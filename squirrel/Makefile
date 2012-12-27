@@ -18,7 +18,8 @@ OBJS= \
 	sqtable.o \
 	sqmem.o \
 	sqvm.o \
-	sqclass.o
+	sqclass.o \
+	lua-regex.o
 	
 SRCS= \
 	sqapi.cpp \
@@ -32,7 +33,8 @@ SRCS= \
 	sqtable.cpp \
 	sqmem.cpp \
 	sqvm.cpp \
-	sqclass.cpp
+	sqclass.cpp \
+	lua-regex.c
 
 	
 	

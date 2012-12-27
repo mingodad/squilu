@@ -964,11 +964,152 @@ static SQInteger string_find(HSQUIRRELVM v)
 STRING_TOFUNCZ(tolower)
 STRING_TOFUNCZ(toupper)
 
+//DAD start
+#include "lua-regex.h"
+
+static int process_string_gsub(LuaMatchState *ms, void *udata, char_buffer_st **b) {
+    const char *str;
+    SQInteger str_size;
+    HSQUIRRELVM v = (HSQUIRRELVM)udata;
+    SQObjectType rtype = sq_gettype(v, 3);
+    SQInteger top = sq_gettop(v);
+    int result = 1;
+    switch(rtype){
+        case OT_CLOSURE:{
+            sq_push(v, 3); //push the function
+            sq_pushroottable(v); //this
+            int i=0;
+            for(; i < ms->level; ++i){
+                sq_pushstring(v, ms->capture[i].init, ms->capture[i].len);
+            }
+            int rc = sq_call(v, i+1, SQTrue, SQTrue);
+            if(rc < 0) return rc;
+            if(SQ_SUCCEEDED(sq_getstr_and_size(v, -1, &str, &str_size))){
+                if(!char_buffer_add_str(ms, b, str, str_size)) {
+                    result = 0;
+                    break;
+                }
+            }
+        }
+        break;
+        case OT_ARRAY:{
+            for(int i=0; i < ms->level; ++i){
+                sq_pushinteger(v, i);
+                sq_get(v, 3);
+                if(SQ_SUCCEEDED(sq_getstr_and_size(v, -1, &str, &str_size))){
+                    if(!char_buffer_add_str(ms, b, str, str_size)) {
+                        result = 0;
+                        break;
+                    }
+                }
+                sq_pop(v, 1); //remove value
+            }
+        }
+        break;
+        case OT_TABLE:{
+            for(int i=0; i < ms->level; ++i){
+                sq_pushstring(v, ms->capture[i].init, ms->capture[i].len);
+                sq_get(v, 3);
+                if(SQ_SUCCEEDED(sq_getstr_and_size(v, -1, &str, &str_size))){
+                    if(!char_buffer_add_str(ms, b, str, str_size)) {
+                        result = 0;
+                        break;
+                    }
+                }
+                sq_pop(v, 1); //remove value
+            }
+        }
+    }
+    sq_settop(v, top); //restore the stack to it's original state
+    return result; //returning non zero means continue
+}
+
+static SQInteger string_gsub(HSQUIRRELVM v)
+{
+    const char *error_ptr;
+    SQ_FUNC_VARS(v);
+    SQ_GET_STRING(v, 1, src);
+    SQ_GET_STRING(v, 2, pattern);
+    SQ_OPT_INTEGER(v, 4, max_sub, 0);
+    SQObjectType rtype = sq_gettype(v, 3);
+    if(rtype == OT_STRING){
+        SQ_GET_STRING(v, 3, replacement);
+        char_buffer_st *buf = str_gsub (src, src_size, pattern, pattern_size,
+                              replacement, replacement_size, max_sub, &error_ptr, 0, 0);
+        if(buf){
+            sq_pushstring(v, buf->buf, buf->used);
+            free(buf);
+            return 1;
+        }
+        return sq_throwerror(v,error_ptr);
+    }
+    else
+    {
+        switch(rtype){
+            case OT_CLOSURE:
+            case OT_ARRAY:
+            case OT_TABLE:{
+                char_buffer_st *buf = str_gsub (src, src_size, pattern, pattern_size,
+                              0, 0, max_sub, &error_ptr, process_string_gsub, v);
+                if(buf){
+                    sq_pushstring(v, buf->buf, buf->used);
+                    free(buf);
+                    return 1;
+                }
+                return sq_throwerror(v,error_ptr);
+            }
+        }
+    }
+	return sq_throwerror(v,"invalid type for parameter 3 function/table/array/string expected");
+}
+
+static int process_string_gmatch(LuaMatchState *ms, void *udata, char_buffer_st **b) {
+    HSQUIRRELVM v = (HSQUIRRELVM)udata;
+    SQInteger top = sq_gettop(v);
+    int result = 1;
+    sq_pushroottable(v); //this en, function already on top of stack
+    int i=0;
+    for(; i < ms->level; ++i){
+        sq_pushstring(v, ms->capture[i].init, ms->capture[i].len);
+    }
+    int rc = sq_call(v, i+1, SQTrue, SQTrue);
+    if(rc < 0) return rc;
+    SQObjectType rtype = sq_gettype(v, -1);
+    if(rtype == OT_BOOL) {
+        SQBool b;
+        sq_getbool(v, -1, &b);
+        result = b == SQTrue;
+    }
+    else result = rtype != OT_NULL;
+
+    sq_settop(v, top); //restore the stack to it's original state
+    return result; //returning non zero means continue
+}
+
+static SQInteger string_gmatch(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, src);
+    SQ_GET_STRING(v, 2, pattern);
+    SQInteger rtype = sq_gettype(v, 3);
+    if(rtype == OT_CLOSURE){
+        LuaMatchState ms;
+        memset(&ms, 0, sizeof(ms));
+        str_match(&ms, src, src_size, pattern, pattern_size,
+                0, 0, process_string_gmatch, v);
+        if(ms.error) return sq_throwerror(v, ms.error);
+        return 0;
+    }
+	return sq_throwerror(v,"invalid type for parameter 3 function expected");
+}
+
 static SQInteger string_getdelegate(HSQUIRRELVM v)
 {
 	sq_pushobject(v,_ss(v)->_string_default_delegate);
 	return 1;
 }
+
+//DAD end
 
 SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("len"),default_delegate_len,1, _SC("s")},
@@ -977,6 +1118,8 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
 	{_SC("slice"),string_slice,-1, _SC(" s n  n")},
 	{_SC("find"),string_find,-2, _SC("s s n ")},
+	{_SC("gsub"),string_gsub,-3, _SC("s s s|a|t|c n")},
+	{_SC("gmatch"),string_gmatch, 3, _SC("s s c")},
 	{_SC("tolower"),string_tolower,1, _SC("s")},
 	{_SC("toupper"),string_toupper,1, _SC("s")},
 	{_SC("weakref"),obj_delegate_weakref,1, NULL },
