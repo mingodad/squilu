@@ -801,7 +801,12 @@ exception_restore:
 				}
 				continue;
 			case _OP_GETK:
+#ifndef NO_EXCEPTION_KEY_NOT_FOUND
 				if (!Get(STK(arg2), ci->_literals[arg1], temp_reg, false,arg2)) { SQ_THROW();}
+#else
+				//DAD instead of throw an exception return null
+				if(!Get(STK(arg2), ci->_literals[arg1], temp_reg, false,arg2)) temp_reg.Null();
+#endif
 				_Swap(TARGET,temp_reg);//TARGET = temp_reg;
 				continue;
 			case _OP_MOVE: TARGET = STK(arg1); continue;
