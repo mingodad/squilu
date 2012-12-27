@@ -884,8 +884,7 @@ static SQInteger array_concat2 (HSQUIRRELVM v) {
 
 static SQInteger array_getdelegate(HSQUIRRELVM v)
 {
-	sq_pushobject(v,_ss(v)->_array_default_delegate);
-	return 1;
+	return SQ_SUCCEEDED(sq_getdelegate(v,-1))?1:SQ_ERROR;
 }
 //DAD end
 
@@ -1105,8 +1104,7 @@ static SQInteger string_gmatch(HSQUIRRELVM v)
 
 static SQInteger string_getdelegate(HSQUIRRELVM v)
 {
-	sq_pushobject(v,_ss(v)->_string_default_delegate);
-	return 1;
+	return SQ_SUCCEEDED(sq_getdelegate(v,-1))?1:SQ_ERROR;
 }
 
 //DAD end
@@ -1130,8 +1128,7 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 //INTEGER DEFAULT DELEGATE//////////////////////////
 static SQInteger number_getdelegate(HSQUIRRELVM v)
 {
-	sq_pushobject(v,_ss(v)->_number_default_delegate);
-	return 1;
+	return SQ_SUCCEEDED(sq_getdelegate(v,-1))?1:SQ_ERROR;
 }
 
 SQRegFunction SQSharedState::_number_default_delegate_funcz[]={
@@ -1205,7 +1202,7 @@ static SQInteger closure_getinfos(HSQUIRRELVM v) {
 		res->NewSlot(SQString::Create(_ss(v),_SC("varargs"),-1),f->_varparams);
     res->NewSlot(SQString::Create(_ss(v),_SC("defparams"),-1),defparams);
 	}
-	else { //OT_NATIVECLOSURE 
+	else { //OT_NATIVECLOSURE
 		SQNativeClosure *nc = _nativeclosure(o);
 		res->NewSlot(SQString::Create(_ss(v),_SC("native"),-1),true);
 		res->NewSlot(SQString::Create(_ss(v),_SC("name"),-1),nc->_name);
@@ -1293,7 +1290,7 @@ static SQInteger thread_wakeup(HSQUIRRELVM v)
 				break;
 			}
 		}
-			
+
 		SQInteger wakeupret = sq_gettop(v)>1?1:0;
 		if(wakeupret) {
 			sq_move(thread,v,2);
@@ -1360,7 +1357,7 @@ static SQInteger thread_getstackinfos(HSQUIRRELVM v)
 		//no result
 		sq_settop(thread,threadtop);
 		return 0;
-		
+
 	}
 	return sq_throwerror(v,_SC("wrong parameter"));
 }
@@ -1429,8 +1426,7 @@ static SQInteger class_rawnewmember(HSQUIRRELVM v)
 
 static SQInteger class_getdelegate(HSQUIRRELVM v)
 {
-	sq_pushobject(v,_ss(v)->_class_default_delegate);
-	return 1;
+	return SQ_SUCCEEDED(sq_getdelegate(v,-1))?1:SQ_ERROR;
 }
 
 SQRegFunction SQSharedState::_class_default_delegate_funcz[] = {
