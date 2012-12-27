@@ -351,13 +351,14 @@ bool SQFuncState::IsLocal(SQUnsignedInteger stkpos)
 	return false;
 }
 
-SQInteger SQFuncState::PushLocalVariable(const SQObject &name)
+SQInteger SQFuncState::PushLocalVariable(const SQObject &name, SQInteger scope)
 {
 	SQInteger pos=_vlocals.size();
 	SQLocalVarInfo lvi;
 	lvi._name=name;
 	lvi._start_op=GetCurrentPos()+1;
 	lvi._pos=_vlocals.size();
+	lvi._scope=scope;
 	_vlocals.push_back(lvi);
 	if(_vlocals.size()>((SQUnsignedInteger)_stacksize))_stacksize=_vlocals.size();
 	return pos;
@@ -413,9 +414,9 @@ SQInteger SQFuncState::GetOuterVariable(const SQObject &name)
 	return -1;
 }
 
-void SQFuncState::AddParameter(const SQObject &name)
+void SQFuncState::AddParameter(const SQObject &name, SQInteger scope)
 {
-	PushLocalVariable(name);
+	PushLocalVariable(name, scope);
 	_parameters.push_back(name);
 }
 

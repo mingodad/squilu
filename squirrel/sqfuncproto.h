@@ -32,18 +32,20 @@ struct SQOuterVar
 
 struct SQLocalVarInfo
 {
-	SQLocalVarInfo():_start_op(0),_end_op(0),_pos(0){}
+	SQLocalVarInfo():_start_op(0),_end_op(0),_pos(0),_scope(0){}
 	SQLocalVarInfo(const SQLocalVarInfo &lvi)
 	{
 		_name=lvi._name;
 		_start_op=lvi._start_op;
 		_end_op=lvi._end_op;
 		_pos=lvi._pos;
+		_scope=lvi._scope;
 	}
 	SQObjectPtr _name;
 	SQUnsignedInteger _start_op;
 	SQUnsignedInteger _end_op;
 	SQUnsignedInteger _pos;
+	SQInteger _scope;
 };
 
 struct SQLineInfo { SQInteger _line;SQInteger _op; };
