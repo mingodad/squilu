@@ -847,6 +847,11 @@ public:
 		case TK_DELETE : DeleteExpr(); break;
 		case _SC('('): Lex(); CommaExpr(); Expect(_SC(')'));
 			break;
+		case TK___LINE__: EmitLoadConstInt(_lex._currentline,-1); Lex();	break;
+		case TK___FILE__:
+			_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(_sourcename));
+			Lex();
+			break;
 		default: Error(_SC("expression expected"));
 		}
 		return -1;

@@ -70,6 +70,8 @@ struct SQVM;
 #define TK_STATIC 322
 #define TK_ENUM 323
 #define TK_CONST 324
+#define TK___LINE__ 325
+#define TK___FILE__ 326
 
 
 typedef void(*CompilerErrorFunc)(void *ud, const SQChar *s);
