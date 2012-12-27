@@ -474,6 +474,8 @@ SQUIRREL_API void sq_free(void *p,SQUnsignedInteger size);
 SQUIRREL_API SQRESULT sq_stackinfos(HSQUIRRELVM v,SQInteger level,SQStackInfos *si);
 SQUIRREL_API void sq_setdebughook(HSQUIRRELVM v);
 SQUIRREL_API void sq_setnativedebughook(HSQUIRRELVM v,SQDEBUGHOOK hook);
+SQUIRREL_API SQInteger sq_getfulltop(HSQUIRRELVM v);
+SQUIRREL_API void sq_getlasterror(HSQUIRRELVM v);
 
 /*UTILITY MACRO*/
 #define sq_isnumeric(o) ((o)._type&SQOBJECT_NUMERIC)

@@ -757,6 +757,11 @@ SQRESULT sq_getinstanceup(HSQUIRRELVM v, SQInteger idx, SQUserPointer *p,SQUserP
 	return SQ_OK;
 }
 
+SQInteger sq_getfulltop(HSQUIRRELVM v)
+{
+	return v->_top;
+}
+
 SQInteger sq_gettop(HSQUIRRELVM v)
 {
 	return (v->_top) - v->_stackbase;

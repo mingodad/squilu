@@ -152,6 +152,12 @@ static SQInteger base_getstackinfos(HSQUIRRELVM v)
 	return __getcallstackinfos(v,level);
 }
 
+static SQInteger base_getstacktop(HSQUIRRELVM v)
+{
+    sq_pushinteger(v, sq_getfulltop(v));
+	return 1;
+}
+
 static SQInteger base_assert(HSQUIRRELVM v)
 {
 	if(SQVM::IsFalse(stack_get(v,2))){
@@ -216,6 +222,12 @@ static SQInteger base_error(HSQUIRRELVM v)
 	sq_getstring(v,-1,&str);
 	if(_ss(v)->_errorfunc) _ss(v)->_errorfunc(v,_SC("%s"),str);
 	return 0;
+}
+
+static SQInteger base_get_last_error(HSQUIRRELVM v)
+{
+    sq_getlasterror(v);
+	return 1;
 }
 
 static SQInteger base_compilestring(HSQUIRRELVM v)
@@ -286,6 +298,7 @@ static SQRegFunction base_funcs[]={
 	{_SC("setdebughook"),base_setdebughook,2, NULL},
 	{_SC("enabledebuginfo"),base_enabledebuginfo,2, NULL},
 	{_SC("getstackinfos"),base_getstackinfos,2, _SC(".n")},
+	{_SC("getstacktop"),base_getstacktop,1, _SC(".")},
 	{_SC("getroottable"),base_getroottable,1, NULL},
 	{_SC("setroottable"),base_setroottable,2, NULL},
 	{_SC("getconsttable"),base_getconsttable,1, NULL},
@@ -294,6 +307,7 @@ static SQRegFunction base_funcs[]={
 	{_SC("print1"),base_print1,2, NULL},
 	{_SC("print"),base_print,-2, NULL},
 	{_SC("error"),base_error,2, NULL},
+	{_SC("get_last_error"),base_get_last_error,1, NULL},
 	{_SC("compilestring"),base_compilestring,-2, _SC(".ss")},
 	{_SC("newthread"),base_newthread,2, _SC(".c")},
 	{_SC("suspend"),base_suspend,-1, NULL},
