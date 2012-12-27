@@ -16,3 +16,7 @@ sq64:
 	cd squirrel; $(MAKE) sq64
 	cd sqstdlib; $(MAKE) sq64
 	cd sq; $(MAKE) sq64
+	
+clean:
+	rm lib/*
+	rm bin/*
