@@ -2,7 +2,7 @@ SQUIRREL= ..
 
 
 OUT= $(SQUIRREL)/lib/libsquirrel.a
-INCZ= -I$(SQUIRREL)/include -I. -Iinclude
+INCZ= -I$(SQUIRREL)/include -I. -Iinclude -I$(SQUIRREL)/sqstdlib
 DEFS= 
 LIB=	
 

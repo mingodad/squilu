@@ -102,7 +102,7 @@ static SQInteger base_setdebughook(HSQUIRRELVM v)
 static SQInteger base_enabledebuginfo(HSQUIRRELVM v)
 {
 	SQObjectPtr &o=stack_get(v,2);
-	
+
 	sq_enabledebuginfo(v,SQVM::IsFalse(o)?SQFalse:SQTrue);
 	return 0;
 }
@@ -112,7 +112,7 @@ static SQInteger __getcallstackinfos(HSQUIRRELVM v,SQInteger level)
 	SQStackInfos si;
 	SQInteger seq = 0;
 	const SQChar *name = NULL;
-	
+
 	if (SQ_SUCCEEDED(sq_stackinfos(v, level, &si)))
 	{
 		const SQChar *fn = _SC("unknown");
@@ -355,7 +355,7 @@ void sq_base_register(HSQUIRRELVM v)
 		sq_newslot(v,-3, SQFalse);
 		i++;
 	}
-	
+
 	sq_pushstring(v,_SC("_versionnumber_"),-1);
 	sq_pushinteger(v,SQUIRREL_VERSION_NUMBER);
 	sq_newslot(v,-3, SQFalse);
@@ -712,7 +712,7 @@ bool _sort_compare(HSQUIRRELVM v,SQObjectPtr &a,SQObjectPtr &b,SQInteger func,SQ
 		v->Push(a);
 		v->Push(b);
 		if(SQ_FAILED(sq_call(v, 3, SQTrue, SQFalse))) {
-			if(!sq_isstring( v->_lasterror)) 
+			if(!sq_isstring( v->_lasterror))
 				v->Raise_Error(_SC("compare func failed"));
 			return false;
 		}
@@ -815,8 +815,79 @@ static SQInteger array_slice(HSQUIRRELVM v)
 	}
 	v->Push(arr);
 	return 1;
-	
+
 }
+
+//DAD start
+#include <sqstdio.h>
+#include <sqstdblob.h>
+#include "sqstdstream.h"
+#include "sqstdblobimpl.h"
+
+SQ_OPT_STRING_STRLEN();
+
+static SQInteger array_concat0 (HSQUIRRELVM v, int allowAll) {
+    SQ_FUNC_VARS(v);
+    SQInteger last = sq_getsize(v, 1);
+    if(last == 0){
+        sq_pushstring(v, "", 0);
+        return 1;
+    }
+    SQ_OPT_STRING(v, 2, sep, "");
+    SQ_OPT_INTEGER(v, 3, i, 0);
+    SQ_OPT_INTEGER(v, 4, opt_last, last);
+
+  last = opt_last < last ? opt_last : last;
+  opt_last = last -1;
+  SQBlob blob(0, 8192);
+  for (; i < last; i++) {
+      sq_pushinteger(v, i);
+      sq_rawget(v, 1);
+      SQObject o = stack_get(v,-1);
+      switch(type(o)){
+          case OT_STRING:
+              break;
+          case OT_INTEGER:
+          case OT_FLOAT:
+              sq_tostring(v, -1);
+              break;
+          case OT_NULL:
+              sq_tostring(v, -1);
+              break;
+          case OT_USERDATA:
+            if(allowAll){
+              sq_tostring(v, -1);
+              break;
+            }
+          default:
+              return sq_throwerror(v, "Invalid type \"%s\" at position %d for array concat !", GetTypeName(o), i);
+      }
+
+      const SQChar *value;
+      sq_getstring(v, -1, &value);
+      SQInteger value_size = sq_getsize(v, -1);
+      blob.Write((void*)value, value_size);
+      if(i != opt_last) blob.Write((void*)sep, sep_size);
+      sq_settop(v, _top_);
+  }
+  sq_pushstring(v, (SQChar*)blob.GetBuf(), blob.Len());
+  return 1;
+}
+
+static SQInteger array_concat (HSQUIRRELVM v) {
+  return array_concat0(v, 0);
+}
+
+static SQInteger array_concat2 (HSQUIRRELVM v) {
+  return array_concat0(v, 1);
+}
+
+static SQInteger array_getdelegate(HSQUIRRELVM v)
+{
+	sq_pushobject(v,_ss(v)->_array_default_delegate);
+	return 1;
+}
+//DAD end
 
 SQRegFunction SQSharedState::_array_default_delegate_funcz[]={
 	{_SC("len"),default_delegate_len,1, _SC("a")},
@@ -834,11 +905,14 @@ SQRegFunction SQSharedState::_array_default_delegate_funcz[]={
 	{_SC("weakref"),obj_delegate_weakref,1, NULL },
 	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
 	{_SC("clear"),obj_clear,1, _SC(".")},
-	{_SC("map"),array_map,2, _SC("ac")}, 
-	{_SC("apply"),array_apply,2, _SC("ac")}, 
-	{_SC("reduce"),array_reduce,2, _SC("ac")}, 
+	{_SC("map"),array_map,2, _SC("ac")},
+	{_SC("apply"),array_apply,2, _SC("ac")},
+	{_SC("reduce"),array_reduce,2, _SC("ac")},
 	{_SC("filter"),array_filter,2, _SC("ac")},
 	{_SC("find"),array_find,2, _SC("a.")},
+	{_SC("concat"),array_concat,-1, _SC("as")},
+	{_SC("concat2"),array_concat2,-1, _SC("as")},
+	{_SC("getdelegate"),array_getdelegate,1, _SC(".")},
 	{0,0}
 };
 
