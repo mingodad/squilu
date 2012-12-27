@@ -13,7 +13,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 
-bool str2num(const SQChar *s,SQObjectPtr &res)
+bool str2num(const SQChar *s,SQObjectPtr &res, SQInteger base=10)
 {
 	SQChar *end;
 	const SQChar *e = s;
@@ -33,7 +33,7 @@ bool str2num(const SQChar *s,SQObjectPtr &res)
 		res = r;
 	}
 	else{
-		SQInteger r = SQInteger(scstrtol(s,&end,10));
+		SQInteger r = SQInteger(scstrtol(s,&end, base));
 		if(s == end) return false;
 		res = r;
 	}
@@ -357,7 +357,13 @@ static SQInteger default_delegate_tointeger(HSQUIRRELVM v)
 	switch(type(o)){
 	case OT_STRING:{
 		SQObjectPtr res;
-		if(str2num(_stringval(o),res)){
+		SQInteger base;
+		if(sq_gettop(v) > 1){
+		    if(sq_getinteger(v, 2, &base) < 0) return sq_throwerror(v, "parameter integer expected (2-36)");
+		    if(base < 2 || base > 36) return sq_throwerror(v, "invalid base \"%d\" to tointeger (2-36)", base);
+		}
+		else base = 10;
+		if(str2num(_stringval(o),res, base)){
 			v->Push(SQObjectPtr(tointeger(res)));
 			break;
 		}}
@@ -832,7 +838,7 @@ STRING_TOFUNCZ(toupper)
 
 SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("len"),default_delegate_len,1, _SC("s")},
-	{_SC("tointeger"),default_delegate_tointeger,1, _SC("s")},
+	{_SC("tointeger"),default_delegate_tointeger,-1, _SC("si")},
 	{_SC("tofloat"),default_delegate_tofloat,1, _SC("s")},
 	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
 	{_SC("slice"),string_slice,-1, _SC(" s n  n")},
