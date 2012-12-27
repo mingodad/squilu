@@ -262,11 +262,9 @@ struct SQObjectPtr : public SQObject
 	}
 			
 	inline SQObjectPtr& operator=(const SQObjectPtr& obj)
-	{ 
-		SQObjectType tOldType;
-		SQObjectValue unOldVal;
-		tOldType=_type;
-		unOldVal=_unVal;
+	{
+		SQObjectType tOldType =_type;
+		SQObjectValue unOldVal =_unVal;
 		_unVal = obj._unVal;
 		_type = obj._type;
 		__AddRef(_type,_unVal);
@@ -274,11 +272,9 @@ struct SQObjectPtr : public SQObject
 		return *this;
 	}
 	inline SQObjectPtr& operator=(const SQObject& obj)
-	{ 
-		SQObjectType tOldType;
-		SQObjectValue unOldVal;
-		tOldType=_type;
-		unOldVal=_unVal;
+	{
+		SQObjectType tOldType =_type;
+		SQObjectValue unOldVal =_unVal;
 		_unVal = obj._unVal;
 		_type = obj._type;
 		__AddRef(_type,_unVal);
