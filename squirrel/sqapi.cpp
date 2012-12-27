@@ -625,6 +625,15 @@ SQRESULT sq_getstring(HSQUIRRELVM v,SQInteger idx,const SQChar **c)
 	return SQ_OK;
 }
 
+SQRESULT sq_getstr_and_size(HSQUIRRELVM v,SQInteger idx,const SQChar **c, SQInteger *size)
+{
+	SQObjectPtr *o = NULL;
+	_GETSAFE_OBJ(v, idx, OT_STRING,o);
+	*c = _stringval(*o);
+	*size = _string(*o)->_len;
+	return SQ_OK;
+}
+
 SQRESULT sq_getthread(HSQUIRRELVM v,SQInteger idx,HSQUIRRELVM *thread)
 {
 	SQObjectPtr *o = NULL;
@@ -1522,4 +1531,35 @@ void *sq_realloc(void* p,SQUnsignedInteger oldsize,SQUnsignedInteger newsize)
 void sq_free(void *p,SQUnsignedInteger size)
 {
 	SQ_FREE(p,size);
+}
+
+
+SQRESULT sq_optinteger(HSQUIRRELVM sqvm, SQInteger idx, SQInteger *value, SQInteger default_value){
+    if(sq_gettop(sqvm) >= idx){
+        return sq_getinteger(sqvm, idx, value);
+    }
+    *value = default_value;
+    return SQ_OK;
+}
+
+SQRESULT sq_optstr_and_size(HSQUIRRELVM sqvm, SQInteger idx, const SQChar **value, const SQChar *dflt, SQInteger *size){
+    if(sq_gettop(sqvm) >= idx){
+        return sq_getstr_and_size(sqvm, idx, value, size);
+    }
+    *value = dflt;
+    *size = strlen(dflt);
+    return SQ_OK;
+}
+
+void sq_insert_reg_funcs(HSQUIRRELVM sqvm, SQRegFunction *obj_funcs){
+	SQInteger i = 0;
+	while(obj_funcs[i].name != 0) {
+		SQRegFunction &f = obj_funcs[i];
+		sq_pushstring(sqvm,f.name,-1);
+		sq_newclosure(sqvm,f.f,0);
+		sq_setparamscheck(sqvm,f.nparamscheck,f.typemask);
+		sq_setnativeclosurename(sqvm,-1,f.name);
+		sq_newslot(sqvm,-3,SQFalse);
+		i++;
+	}
 }

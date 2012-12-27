@@ -505,6 +505,67 @@ SQUIRREL_API void sq_setnativedebughook(HSQUIRRELVM v,SQDEBUGHOOK hook);
 #define SQ_FAILED(res) (res<0)
 #define SQ_SUCCEEDED(res) (res>=0)
 
+/*DAD*/
+#define SQ_FUNC_VARS(v) \
+    SQRESULT _rc_; SQInteger _top_=sq_gettop(v);
+
+#define SQ_FUNC_VARS_NO_TOP(v) \
+    SQRESULT _rc_;
+
+#define SQ_GET_INSTANCE(v, idx, Klass, Klass_tag) \
+	Klass *self; \
+	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)&self,(void*)Klass_tag)) < 0) return _rc_;
+
+#define SQ_GET_STRING(v, idx, var)\
+    const SQChar *var;\
+    SQInteger var##_size;\
+    if((_rc_ = sq_getstr_and_size(v,idx, &var, &var##_size)) < 0) return _rc_;
+
+#define SQ_OPT_STRING_STRLEN() static inline size_t sq_opt_strlen(const char *v) {return v ? scstrlen(v) : 0;}
+
+#define SQ_OPT_STRING(v, idx, var, dflt)\
+    const SQChar *var;\
+    SQInteger var##_size;\
+    if(_top_ >= idx)\
+        {if((_rc_ = sq_getstr_and_size(v,idx, &var, &var##_size)) < 0) return _rc_;}\
+    else {var=dflt; var##_size = sq_opt_strlen(dflt);}
+
+#define SQ_GET_BOOL(v, idx, var)\
+    SQBool var;\
+    if((_rc_ = sq_getbool(v,idx, &var)) < 0) return _rc_;
+
+#define SQ_OPT_BOOL(v, idx, var, dflt)\
+    SQBool var;\
+    if(_top_ >= idx)\
+        {if((_rc_ = sq_getbool(v,idx, &var)) < 0) return _rc_;}\
+    else {var=dflt;}
+
+#define SQ_GET_INTEGER(v, idx, var)\
+    SQInteger var;\
+    if((_rc_ = sq_getinteger(v,idx, &var)) < 0) return _rc_;
+
+#define SQ_OPT_INTEGER(v, idx, var, dflt)\
+    SQInteger var;\
+    if(_top_ >= idx)\
+        {if((_rc_ = sq_getinteger(v,idx, &var)) < 0) return _rc_;}\
+    else {var=dflt;}
+
+#define SQ_GET_FLOAT(v, idx, var)\
+    SQFloat var;\
+    if((_rc_ = sq_getfloat(v,idx, &var)) < 0) return _rc_;
+
+#define SQ_OPT_FLOAT(v, idx, var, dflt)\
+    SQFloat var;\
+    if(_top_ >= idx)\
+        {if((_rc_ = sq_getfloat(v,idx, &var)) < 0) return _rc_;}\
+    else {var=dflt;}
+
+#define sq_pushliteral(v, str) sq_pushstring(v, str, sizeof(str)-1)
+
+
+SQUIRREL_API void sq_insert_reg_funcs(HSQUIRRELVM sqvm, SQRegFunction *obj_funcs);
+SQUIRREL_API SQRESULT sq_getstr_and_size(HSQUIRRELVM v,SQInteger idx,const SQChar **c, SQInteger *size);
+
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif

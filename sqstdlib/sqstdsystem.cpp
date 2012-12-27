@@ -56,6 +56,14 @@ static SQInteger _system_time(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT _system_difftime (HSQUIRRELVM v) {
+    SQ_FUNC_VARS(v);
+    SQ_GET_FLOAT(v, 2, t1);
+    SQ_OPT_FLOAT(v, 3, t2, 0);
+    sq_pushfloat(v, difftime( (time_t)t1, (time_t)t2));
+  return 1;
+}
+
 static SQInteger _system_remove(HSQUIRRELVM v)
 {
 	const SQChar *s;
@@ -116,6 +124,66 @@ static SQInteger _system_date(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT _system_exit (HSQUIRRELVM v) {
+  SQRESULT status = 0;
+  SQ_FUNC_VARS(v);
+  if(_top_ > 1){
+      SQObjectType ptype = sq_gettype(v, 1);
+      if (ptype == OT_BOOL){
+        SQ_GET_BOOL(v,2, b);
+        status = b ? EXIT_SUCCESS : EXIT_FAILURE;
+      }
+      else
+        sq_getinteger(v, 2, &status);
+      SQ_OPT_BOOL(v, 3, bclose, false);
+      if (bclose) sq_close(v);
+  }
+  exit(status);
+}
+
+#include <string.h>
+SQ_OPT_STRING_STRLEN();
+
+#if defined(SC_USE_MKSTEMP)
+#include <unistd.h>
+#define SQ_TMPNAMBUFSIZE	32
+#define sq_tmpnam(b,e)	{ \
+	strcpy(b, "/tmp/lua_XXXXXX"); \
+	e = mkstemp(b); \
+	if (e != -1) close(e); \
+	e = (e == -1); }
+
+#else
+#define SQ_TMPNAMBUFSIZE	L_tmpnam
+#define sq_tmpnam(b,e)		{ e = (tmpnam(b) == NULL); }
+#endif
+
+static SQRESULT _system_tmpname (HSQUIRRELVM v) {
+  char buff[SQ_TMPNAMBUFSIZE];
+  int err;
+  sq_tmpnam(buff, err);
+  if (err)
+    return sq_throwerror(v, "unable to generate a unique filename");
+  sq_pushstring(v, buff, -1);
+  return 1;
+}
+
+#include <locale.h>
+static SQRESULT _system_setlocale (HSQUIRRELVM v) {
+  static const int cat[] = {LC_ALL, LC_COLLATE, LC_CTYPE, LC_MONETARY,
+                      LC_NUMERIC, LC_TIME};
+  static const char *const catnames[] = {"all", "collate", "ctype", "monetary",
+     "numeric", "time", NULL};
+  SQ_FUNC_VARS(v);
+  SQ_OPT_STRING(v, 2, l, NULL);
+  SQ_OPT_STRING(v, 3, name, "all");
+  for (int i=0; catnames[i]; i++)
+    if (strcmp(catnames[i], name) == 0){
+        sq_pushstring(v, setlocale(cat[i], l), -1);
+        return 1;
+    }
+  return sq_throwerror(v, "invalid option %s for param %d", name, 3);
+}
 
 
 #define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_system_##name,nparams,pmask}
@@ -124,15 +192,22 @@ static SQRegFunction systemlib_funcs[]={
 	_DECL_FUNC(system,2,_SC(".s")),
 	_DECL_FUNC(clock,0,NULL),
 	_DECL_FUNC(time,1,NULL),
+	_DECL_FUNC(difftime,-2,_SC(".nn")),
 	_DECL_FUNC(date,-1,_SC(".nn")),
 	_DECL_FUNC(remove,2,_SC(".s")),
 	_DECL_FUNC(rename,3,_SC(".ss")),
+	_DECL_FUNC(exit, 1,_SC(". b|i b")),
+	_DECL_FUNC(tmpname,1,_SC(".")),
+	_DECL_FUNC(setlocale,-1,_SC(".ss")),
 	{0,0}
 };
 #undef _DECL_FUNC
 
 SQInteger sqstd_register_systemlib(HSQUIRRELVM v)
 {
+    sq_pushstring(v,_SC("os"),-1);
+    sq_newclass(v,SQFalse);
+
 	SQInteger i=0;
 	while(systemlib_funcs[i].name!=0)
 	{
@@ -143,5 +218,7 @@ SQInteger sqstd_register_systemlib(HSQUIRRELVM v)
 		sq_newslot(v,-3,SQFalse);
 		i++;
 	}
+
+	sq_newslot(v,-3,SQTrue); //insert os
 	return 1;
 }
