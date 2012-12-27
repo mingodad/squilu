@@ -2,7 +2,7 @@ SQUIRREL= ..
 
 
 OUT= $(SQUIRREL)/bin/sq
-INCZ= -I$(SQUIRREL)/include -I. -I$(SQUIRREL)/sqlibs
+INCZ= -I$(SQUIRREL)/include -I. -I$(SQUIRREL)/sqlibs -DNO_EXCEPTION_KEY_NOT_FOUND=1
 LIBZ= -L$(SQUIRREL)/lib 
 LIB= -lsquirrel -lsqstdlib
 
