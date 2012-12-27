@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="squilu" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/squilu-dbg" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters="hello5.nut" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add library="squilu-dbg" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/squilu" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+					<Add option="-fno-rtti" />
+					<Add option="-fno-strict-aliasing" />
+				</Compiler>
+				<Linker>
+					<Add library="squilu" />
+				</Linker>
+			</Target>
+			<Target title="Release clang">
+				<Option output="bin/squilu" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="clang_compiler" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="squilu" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fno-strict-aliasing" />
+			<Add option="-fno-exceptions" />
+			<Add option="-DSQUSEDOUBLE=1" />
+			<Add option="-DNO_EXCEPTION_KEY_NOT_FOUND=1" />
+			<Add option="-D_SQ642=1" />
+			<Add option="-DNO_GARBAGE_COLLECTOR0=1" />
+			<Add directory="include" />
+			<Add directory="sqstdlib" />
+		</Compiler>
+		<Linker>
+			<Add directory="lib" />
+		</Linker>
+		<Unit filename="sq/sq.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<debugger />
+			<envvars />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

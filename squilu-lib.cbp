@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="squilu-lib" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="lib/libsquilu-dbg" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Debug/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option parameters="hello5.nut" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="lib/libsquilu" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+					<Add option="-fno-rtti" />
+					<Add option="-fno-strict-aliasing" />
+				</Compiler>
+			</Target>
+			<Target title="Release clang">
+				<Option output="lib/libsquilu" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release/" />
+				<Option type="2" />
+				<Option compiler="clang_compiler" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fno-rtti" />
+			<Add option="-fno-strict-aliasing" />
+			<Add option="-fno-exceptions" />
+			<Add option="-DSQUSEDOUBLE=1" />
+			<Add option="-DNO_EXCEPTION_KEY_NOT_FOUND=1" />
+			<Add option="-D_SQ642=1" />
+			<Add option="-DNO_GARBAGE_COLLECTOR0=1" />
+			<Add directory="include" />
+			<Add directory="sqstdlib" />
+			<Add directory="squirrel" />
+		</Compiler>
+		<Linker>
+			<Add directory="../dadbiz++/third-party/fltk/lib" />
+			<Add directory="../dadbiz++/third-party/myaxtls" />
+		</Linker>
+		<Unit filename="include/sqstdaux.h" />
+		<Unit filename="include/sqstdblob.h" />
+		<Unit filename="include/sqstdio.h" />
+		<Unit filename="include/sqstdmath.h" />
+		<Unit filename="include/sqstdstring.h" />
+		<Unit filename="include/sqstdsystem.h" />
+		<Unit filename="include/squirrel.h" />
+		<Unit filename="sqstdlib/sqstdaux.cpp" />
+		<Unit filename="sqstdlib/sqstdblob.cpp" />
+		<Unit filename="sqstdlib/sqstdblobimpl.h" />
+		<Unit filename="sqstdlib/sqstdio.cpp" />
+		<Unit filename="sqstdlib/sqstdmath.cpp" />
+		<Unit filename="sqstdlib/sqstdrex.cpp" />
+		<Unit filename="sqstdlib/sqstdstream.cpp" />
+		<Unit filename="sqstdlib/sqstdstream.h" />
+		<Unit filename="sqstdlib/sqstdstring.cpp" />
+		<Unit filename="sqstdlib/sqstdsystem.cpp" />
+		<Unit filename="squirrel/lua-regex.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="squirrel/lua-regex.h" />
+		<Unit filename="squirrel/sqapi.cpp" />
+		<Unit filename="squirrel/sqarray.h" />
+		<Unit filename="squirrel/sqbaselib.cpp" />
+		<Unit filename="squirrel/sqclass.cpp" />
+		<Unit filename="squirrel/sqclass.h" />
+		<Unit filename="squirrel/sqclosure.h" />
+		<Unit filename="squirrel/sqcompiler.cpp" />
+		<Unit filename="squirrel/sqcompiler.h" />
+		<Unit filename="squirrel/sqdebug.cpp" />
+		<Unit filename="squirrel/sqfuncproto.h" />
+		<Unit filename="squirrel/sqfuncstate.cpp" />
+		<Unit filename="squirrel/sqfuncstate.h" />
+		<Unit filename="squirrel/sqlexer.cpp" />
+		<Unit filename="squirrel/sqlexer.h" />
+		<Unit filename="squirrel/sqmem.cpp" />
+		<Unit filename="squirrel/sqobject.cpp" />
+		<Unit filename="squirrel/sqobject.h" />
+		<Unit filename="squirrel/sqopcodes.h" />
+		<Unit filename="squirrel/sqpcheader.h" />
+		<Unit filename="squirrel/sqstate.cpp" />
+		<Unit filename="squirrel/sqstate.h" />
+		<Unit filename="squirrel/sqstring.h" />
+		<Unit filename="squirrel/sqtable.cpp" />
+		<Unit filename="squirrel/sqtable.h" />
+		<Unit filename="squirrel/squserdata.h" />
+		<Unit filename="squirrel/squtils.h" />
+		<Unit filename="squirrel/sqvm.cpp" />
+		<Unit filename="squirrel/sqvm.h" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+			<envvars />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
