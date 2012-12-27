@@ -11,6 +11,92 @@
 
 //Blob
 
+SQBlob::SQBlob(SQInteger size, SQInteger allocated) {
+    _size = size;
+    _allocated = allocated > 0 ? allocated : size;
+    _buf = (unsigned char *)sq_malloc(_allocated);
+    memset(_buf, 0, _allocated);
+    _ptr = 0;
+    _owns = true;
+}
+SQBlob::~SQBlob() {
+    if(_buf) sq_free(_buf, _allocated);
+}
+SQInteger SQBlob::Write(const void *buffer, SQInteger size) {
+    if(!CanAdvance(size)) {
+        GrowBufOf(_ptr + size - _size);
+    }
+    memcpy(&_buf[_ptr], buffer, size);
+    _ptr += size;
+    return size;
+}
+SQInteger SQBlob::WriteZstr(const char *zStr) {
+    SQInteger size = strlen(zStr);
+    return Write(zStr, size);
+}
+SQInteger SQBlob::WriteChar(const char c) {
+    return Write(&c, 1);
+}
+SQInteger SQBlob::Read(void *buffer,SQInteger size) {
+    SQInteger n = size;
+    if(!CanAdvance(size)) {
+        if((_size - _ptr) > 0)
+            n = _size - _ptr;
+        else return 0;
+    }
+    memcpy(buffer, &_buf[_ptr], n);
+    _ptr += n;
+    return n;
+}
+bool SQBlob::Resize(SQInteger n) {
+    if(!_owns) return false;
+    if(n != _allocated) {
+        unsigned char *newbuf = (unsigned char *)sq_malloc(n);
+        memset(newbuf,0,n);
+        if(_size > n)
+            memcpy(newbuf,_buf,n);
+        else
+            memcpy(newbuf,_buf,_size);
+        sq_free(_buf,_allocated);
+        _buf=newbuf;
+        _allocated = n;
+        if(_size > _allocated)
+            _size = _allocated;
+        if(_ptr > _allocated)
+            _ptr = _allocated;
+    }
+    return true;
+}
+bool SQBlob::GrowBufOf(SQInteger n)
+{
+    bool ret = true;
+    if(_size + n > _allocated) {
+        if(_size + n > _size * 2)
+            ret = Resize(_size + n);
+        else
+            ret = Resize(_size * 2);
+    }
+    _size = _size + n;
+    return ret;
+}
+SQInteger SQBlob::Seek(SQInteger offset, SQInteger origin) {
+    switch(origin) {
+        case SQ_SEEK_SET:
+            if(offset > _size || offset < 0) return -1;
+            _ptr = offset;
+            break;
+        case SQ_SEEK_CUR:
+            if(_ptr + offset > _size || _ptr + offset < 0) return -1;
+            _ptr += offset;
+            break;
+        case SQ_SEEK_END:
+            if(_size + offset > _size || _size + offset < 0) return -1;
+            _ptr = _size + offset;
+            break;
+        default: return -1;
+    }
+    return 0;
+}
 
 #define SETUP_BLOB(v) \
 	SQBlob *self = NULL; \
@@ -125,14 +211,18 @@ static SQInteger _blob_releasehook(SQUserPointer p, SQInteger size)
 static SQInteger _blob_constructor(HSQUIRRELVM v)
 {
 	SQInteger nparam = sq_gettop(v);
-	SQInteger size = 0;
-	if(nparam == 2) {
+	SQInteger size = 0, allocate = 0;
+	if(nparam >= 2) {
 		sq_getinteger(v, 2, &size);
 	}
+	if(nparam >= 3) {
+		sq_getinteger(v, 2, &allocate);
+	}
 	if(size < 0) return sq_throwerror(v, _SC("cannot create blob with negative size"));
+	if(allocate < 0) return sq_throwerror(v, _SC("cannot create blob with negative allocate"));
 	//SQBlob *b = new SQBlob(size);
 
-	SQBlob *b = new (sq_malloc(sizeof(SQBlob)))SQBlob(size);
+	SQBlob *b = new (sq_malloc(sizeof(SQBlob)))SQBlob(size, allocate);
 	if(SQ_FAILED(sq_setinstanceup(v,1,b))) {
 		b->~SQBlob();
 		sq_free(b,sizeof(SQBlob));
@@ -145,9 +235,9 @@ static SQInteger _blob_constructor(HSQUIRRELVM v)
 static SQInteger _blob__cloned(HSQUIRRELVM v)
 {
 	SQBlob *other = NULL;
-	{ 
+	{
 		if(SQ_FAILED(sq_getinstanceup(v,2,(SQUserPointer*)&other,(SQUserPointer)SQSTD_BLOB_TYPE_TAG)))
-			return SQ_ERROR; 
+			return SQ_ERROR;
 	}
 	//SQBlob *thisone = new SQBlob(other->Len());
 	SQBlob *thisone = new (sq_malloc(sizeof(SQBlob)))SQBlob(other->Len());
@@ -161,9 +251,16 @@ static SQInteger _blob__cloned(HSQUIRRELVM v)
 	return 0;
 }
 
+static SQInteger _blob__tostring(HSQUIRRELVM v)
+{
+    SETUP_BLOB(v);
+	sq_pushstring(v, (const SQChar*)self->GetBuf(), self->Len());
+	return 1;
+}
+
 #define _DECL_BLOB_FUNC(name,nparams,typecheck) {_SC(#name),_blob_##name,nparams,typecheck}
 static SQRegFunction _blob_methods[] = {
-	_DECL_BLOB_FUNC(constructor,-1,_SC("xn")),
+	_DECL_BLOB_FUNC(constructor,-1,_SC("xnn")),
 	_DECL_BLOB_FUNC(resize,2,_SC("xn")),
 	_DECL_BLOB_FUNC(swap2,1,_SC("x")),
 	_DECL_BLOB_FUNC(swap4,1,_SC("x")),
@@ -172,6 +269,7 @@ static SQRegFunction _blob_methods[] = {
 	_DECL_BLOB_FUNC(_typeof,1,_SC("x")),
 	_DECL_BLOB_FUNC(_nexti,2,_SC("x")),
 	_DECL_BLOB_FUNC(_cloned,2,_SC("xx")),
+	_DECL_BLOB_FUNC(_tostring,1,_SC("x")),
 	{0,0,0,0}
 };
 
@@ -249,6 +347,21 @@ SQInteger sqstd_getblobsize(HSQUIRRELVM v,SQInteger idx)
 		return -1;
 	return blob->Len();
 }
+
+SQInteger blob_read(SQUserPointer file,SQUserPointer buf,SQInteger size)
+{
+	SQInteger ret;
+	SQBlob *blob = (SQBlob *)file;
+	if( ( ret = blob->Read(buf, size)) !=0 ) return ret;
+	return -1;
+}
+
+SQInteger blob_write(SQUserPointer file,SQUserPointer p,SQInteger size)
+{
+    SQBlob *blob = (SQBlob *)file;
+	return blob->Write(p,size);
+}
+
 
 SQUserPointer sqstd_createblob(HSQUIRRELVM v, SQInteger size)
 {

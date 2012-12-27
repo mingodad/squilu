@@ -16,6 +16,23 @@
 	if(!self || !self->IsValid())  \
 		return sq_throwerror(v,_SC("the stream is invalid"));
 
+SQInteger _stream_read(HSQUIRRELVM v)
+{
+	SETUP_STREAM(v);
+	SQChar *data;
+	SQInteger size,res;
+	sq_getinteger(v,2,&size);
+	if(size > self->Len()) {
+		size = self->Len();
+	}
+	data = sq_getscratchpad(v,size);
+	res = self->Read(data,size);
+	if(res <= 0)
+		return sq_throwerror(v,_SC("no data left to read"));
+	sq_pushstring(v,data,res);
+	return 1;
+}
+
 SQInteger _stream_readblob(HSQUIRRELVM v)
 {
 	SETUP_STREAM(v);
@@ -94,6 +111,22 @@ SQInteger _stream_readn(HSQUIRRELVM v)
 	default:
 		return sq_throwerror(v, _SC("invalid format"));
 	}
+	return 1;
+}
+
+SQInteger _stream_write(HSQUIRRELVM v)
+{
+	const SQChar *str;
+	SQInteger size;
+	SETUP_STREAM(v);
+	if(SQ_FAILED(sq_tostring(v,2)))
+		return sq_throwerror(v,_SC("invalid parameter"));
+    sq_getstring(v,-1,&str);
+	size = sq_getsize(v,-1);
+	if(self->Write((SQChar*)str,size) != size)
+		return sq_throwerror(v,_SC("io error"));
+    sq_poptop(v); //remove converted string
+	sq_pushinteger(v,size);
 	return 1;
 }
 
@@ -239,8 +272,10 @@ SQInteger _stream_eos(HSQUIRRELVM v)
  }
 
 static SQRegFunction _stream_methods[] = {
+	_DECL_STREAM_FUNC(read,2,_SC("xn")),
 	_DECL_STREAM_FUNC(readblob,2,_SC("xn")),
 	_DECL_STREAM_FUNC(readn,2,_SC("xn")),
+	_DECL_STREAM_FUNC(write,2,_SC("x.")),
 	_DECL_STREAM_FUNC(writeblob,-2,_SC("xx")),
 	_DECL_STREAM_FUNC(writen,3,_SC("xnn")),
 	_DECL_STREAM_FUNC(seek,-2,_SC("xnn")),
@@ -289,7 +324,7 @@ SQRESULT declare_stream(HSQUIRRELVM v,const SQChar* name,SQUserPointer typetag,c
 		return sq_throwerror(v,_SC("table expected"));
 	SQInteger top = sq_gettop(v);
 	//create delegate
-    init_streamclass(v);
+	init_streamclass(v);
 	sq_pushregistrytable(v);
 	sq_pushstring(v,reg_name,-1);
 	sq_pushstring(v,_SC("std_stream"),-1);
@@ -308,7 +343,7 @@ SQRESULT declare_stream(HSQUIRRELVM v,const SQChar* name,SQUserPointer typetag,c
 		}
 		sq_newslot(v,-3,SQFalse);
 		sq_pop(v,1);
-		
+
 		i = 0;
 		while(globals[i].name!=0)
 		{
