@@ -292,6 +292,26 @@ static SQInteger base_callee(HSQUIRRELVM v)
 	return sq_throwerror(v,_SC("no closure in the calls stack"));
 }
 
+/* macro to `unsign' a character */
+#define uchar(c)    ((unsigned SQChar)(c))
+
+static SQInteger base_str_from_chars (HSQUIRRELVM v) {
+  SQ_FUNC_VARS_NO_TOP(v);
+  SQInteger n = sq_gettop(v);  /* number of arguments */
+  int i;
+  SQChar *data = sq_getscratchpad(v, n);
+  for (i=2; i<=n; ++i) {
+    SQ_GET_INTEGER(v, i, c);
+    if(uchar(c) != c){
+        return sq_throwerror(v, "invalid value for parameter %d", i);
+    }
+    data[i-2] = uchar(c);
+  }
+  sq_pushstring(v, data, n-1);
+  return 1;
+}
+
+
 static SQRegFunction base_funcs[]={
 	//generic
 	{_SC("seterrorhandler"),base_seterrorhandler,2, NULL},
@@ -318,6 +338,7 @@ static SQRegFunction base_funcs[]={
 #ifndef NO_GARBAGE_COLLECTOR
 	{_SC("collectgarbage"),base_collectgarbage,0, NULL},
 	{_SC("resurrectunreachable"),base_resurectureachable,0, NULL},
+	{_SC("str_from_chars"),base_str_from_chars,-2, _SC(".i")},
 #endif
 	{0,0}
 };
