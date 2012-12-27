@@ -182,12 +182,30 @@ static SQInteger get_slice_params(HSQUIRRELVM v,SQInteger &sidx,SQInteger &eidx,
 	return 1;
 }
 
-static SQInteger base_print(HSQUIRRELVM v)
+static SQInteger base_print1(HSQUIRRELVM v)
 {
 	const SQChar *str;
 	sq_tostring(v,2);
 	sq_getstring(v,-1,&str);
 	if(_ss(v)->_printfunc) _ss(v)->_printfunc(v,_SC("%s"),str);
+	return 0;
+}
+
+static SQInteger base_print(HSQUIRRELVM v)
+{
+    if(_ss(v)->_printfunc){
+        SQPRINTFUNCTION sqprint = _ss(v)->_printfunc;
+        const SQChar *str;
+        SQInteger nargs=sq_gettop(v);
+        for(int i=2; i<=nargs; ++i){
+            if(i>2) sqprint(v,_SC("\t"));
+            sq_tostring(v,i);
+            sq_getstring(v,-1,&str);
+            sqprint(v,_SC("%s"),str);
+            sq_poptop(v); //remove converted string
+        }
+        sqprint(v,_SC("\n"));
+    }
 	return 0;
 }
 
@@ -273,7 +291,8 @@ static SQRegFunction base_funcs[]={
 	{_SC("getconsttable"),base_getconsttable,1, NULL},
 	{_SC("setconsttable"),base_setconsttable,2, NULL},
 	{_SC("assert"),base_assert,2, NULL},
-	{_SC("print"),base_print,2, NULL},
+	{_SC("print1"),base_print1,2, NULL},
+	{_SC("print"),base_print,-2, NULL},
 	{_SC("error"),base_error,2, NULL},
 	{_SC("compilestring"),base_compilestring,-2, _SC(".ss")},
 	{_SC("newthread"),base_newthread,2, _SC(".c")},
