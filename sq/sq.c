@@ -13,7 +13,7 @@
 #include <sqstdblob.h>
 #include <sqstdsystem.h>
 #include <sqstdio.h>
-#include <sqstdmath.h>	
+#include <sqstdmath.h>
 #include <sqstdstring.h>
 #include <sqstdaux.h>
 
@@ -31,7 +31,7 @@
 void PrintVersionInfos();
 
 #if defined(_MSC_VER) && defined(_DEBUG)
-int MemAllocHook( int allocType, void *userData, size_t size, int blockType, 
+int MemAllocHook( int allocType, void *userData, size_t size, int blockType,
    long requestNumber, const unsigned char *filename, int lineNumber)
 {
 	//if(requestNumber==769)_asm int 3;
@@ -89,15 +89,15 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 {
 	int i;
 	int compiles_only = 0;
-	static SQChar temp[500];
-	const SQChar *ret=NULL;
+	//static SQChar temp[500];
+	//const SQChar *ret=NULL;
 	char * output = NULL;
-	int lineinfo=0;
+	//int lineinfo=0;
 	*retval = 0;
 	if(argc>1)
 	{
 		int arg=1,exitloop=0;
-		
+
 		while(arg < argc && !exitloop)
 		{
 
@@ -120,7 +120,7 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 				case 'v':
 					PrintVersionInfos();
 					return _DONE;
-				
+
 				case 'h':
 					PrintVersionInfos();
 					PrintUsage();
@@ -137,7 +137,7 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 		}
 
 		// src file
-		
+
 		if(arg<argc) {
 			const SQChar *filename=NULL;
 #ifdef SQUNICODE
@@ -148,10 +148,10 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 #endif
 
 			arg++;
-			
+
 			//sq_pushstring(v,_SC("ARGS"),-1);
 			//sq_newarray(v,0);
-			
+
 			//sq_createslot(v,-3);
 			//sq_pop(v,1);
 			if(compiles_only) {
@@ -203,7 +203,7 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 					else{
 						return _ERROR;
 					}
-					
+
 				}
 			}
 			//if this point is reached an error occured
@@ -216,7 +216,7 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 					return _ERROR;
 				}
 			}
-			
+
 		}
 	}
 
@@ -225,7 +225,7 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 
 void Interactive(HSQUIRRELVM v)
 {
-	
+
 #define MAXINPUT 1024
 	SQChar buffer[MAXINPUT];
 	SQInteger blocks =0;
@@ -233,7 +233,7 @@ void Interactive(HSQUIRRELVM v)
 	SQInteger retval=0;
 	SQInteger done=0;
 	PrintVersionInfos();
-		
+
 	sq_pushroottable(v);
 	sq_pushstring(v,_SC("quit"),-1);
 	sq_pushuserpointer(v,&done);
@@ -242,7 +242,7 @@ void Interactive(HSQUIRRELVM v)
 	sq_newslot(v,-3,SQFalse);
 	sq_pop(v,1);
 
-    while (!done) 
+    while (!done)
 	{
 		SQInteger i = 0;
 		scprintf(_SC("\nsq>"));
@@ -276,7 +276,7 @@ void Interactive(HSQUIRRELVM v)
 			}
 		}
 		buffer[i] = _SC('\0');
-		
+
 		if(buffer[0]==_SC('=')){
 			scsprintf(sq_getscratchpad(v,MAXINPUT),_SC("return (%s)"),&buffer[1]);
 			memcpy(buffer,sq_getscratchpad(v,-1),(scstrlen(sq_getscratchpad(v,-1))+1)*sizeof(SQChar));
@@ -299,7 +299,7 @@ void Interactive(HSQUIRRELVM v)
 					scprintf(_SC("\n"));
 				}
 			}
-			
+
 			sq_settop(v,oldtop);
 		}
 	}
@@ -309,11 +309,11 @@ int main(int argc, char* argv[])
 {
 	HSQUIRRELVM v;
 	SQInteger retval = 0;
-	const SQChar *filename=NULL;
+	//const SQChar *filename=NULL;
 #if defined(_MSC_VER) && defined(_DEBUG)
 	_CrtSetAllocHook(MemAllocHook);
 #endif
-	
+
 	v=sq_open(1024);
 	sq_setprintfunc(v,printfunc,errorfunc);
 
@@ -337,12 +337,12 @@ int main(int argc, char* argv[])
 		break;
 	case _DONE:
 	case _ERROR:
-	default: 
+	default:
 		break;
 	}
 
 	sq_close(v);
-	
+
 #if defined(_MSC_VER) && defined(_DEBUG)
 	_getch();
 	_CrtMemDumpAllObjectsSince( NULL );
