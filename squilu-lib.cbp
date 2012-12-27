@@ -43,6 +43,19 @@
 					<Add option="-s" />
 				</Linker>
 			</Target>
+			<Target title="Release win32">
+				<Option output="lib/libsquilu-win32" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release-win32/" />
+				<Option type="2" />
+				<Option compiler="mingw32_compiler" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+					<Add option="-fno-rtti" />
+					<Add option="-fno-strict-aliasing" />
+				</Compiler>
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
@@ -61,6 +74,7 @@
 			<Add directory="../dadbiz++/third-party/fltk/lib" />
 			<Add directory="../dadbiz++/third-party/myaxtls" />
 		</Linker>
+		<Unit filename="ext/mongoose.h" />
 		<Unit filename="include/sqstdaux.h" />
 		<Unit filename="include/sqstdblob.h" />
 		<Unit filename="include/sqstdio.h" />

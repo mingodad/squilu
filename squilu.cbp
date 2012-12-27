@@ -47,6 +47,23 @@
 					<Add library="squilu" />
 				</Linker>
 			</Target>
+			<Target title="Release win32">
+				<Option output="bin/squilu.exe" prefix_auto="1" extension_auto="0" />
+				<Option object_output="obj/Release-win32/" />
+				<Option type="1" />
+				<Option compiler="mingw32_compiler" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+					<Add option="-fno-rtti" />
+					<Add option="-fno-strict-aliasing" />
+				</Compiler>
+				<Linker>
+					<Add option="-static-libstdc++" />
+					<Add option="-static-libgcc" />
+					<Add library="squilu-win32" />
+				</Linker>
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
