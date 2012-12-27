@@ -44,7 +44,7 @@ static SQInteger validate_format(HSQUIRRELVM v, SQChar *fmt, const SQChar *src, 
 		width = 0;
 	if (src[n] == '.') {
 	    n++;
-    	
+
 		wc = 0;
 		while (scisdigit(src[n])) {
 			swidth[wc] = src[n];
@@ -65,6 +65,9 @@ static SQInteger validate_format(HSQUIRRELVM v, SQChar *fmt, const SQChar *src, 
 	return n;
 }
 
+/* macro to `unsign' a character */
+#define uchar(c)	((unsigned SQChar)(c))
+
 SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen,SQChar **output)
 {
 	const SQChar *format;
@@ -82,7 +85,7 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
 		}
 		else if(format[n+1] == '%') { //handles %%
 				dest[i++] = '%';
-				n += 2; 
+				n += 2;
 		}
 		else {
 			n++;
@@ -95,12 +98,69 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
 			const SQChar *ts;
 			SQInteger ti;
 			SQFloat tf;
-			switch(format[n]) {
+			SQInteger fc = format[n];
+			switch(fc) {
+            case 'q':
 			case 's':
-				if(SQ_FAILED(sq_getstring(v,nparam,&ts))) 
+				if(SQ_FAILED(sq_getstring(v,nparam,&ts)))
 					return sq_throwerror(v,_SC("string expected for the specified format"));
-				addlen = (sq_getsize(v,nparam)*sizeof(SQChar))+((w+1)*sizeof(SQChar));
-				valtype = 's';
+                if(fc == 'q'){
+                    addlen = 2; //quotes before and after
+                    SQInteger size = sq_getsize(v,nparam);
+                    SQChar *ts2 = (SQChar*)ts;
+                      while (size--) {
+                        ++addlen;
+                        if (*ts2 == '"' || *ts2 == '\\' || *ts2 == '\n') {
+                          ++addlen;
+                        }
+                        else if (*ts2 == '\0' || iscntrl(uchar(*ts2))) {
+                          SQChar buff[10];
+                          if (!isdigit(uchar(*(ts2+1))))
+                            addlen += scsprintf(buff, "\\%d", (int)uchar(*ts2));
+                          else
+                            addlen += scsprintf(buff, "\\%03d", (int)uchar(*ts2));
+                        }
+                        ts2++;
+                      }
+
+                      ts2 = &dest[i];
+                      i += addlen;
+                      addlen = addlen*sizeof(SQChar);
+                      allocated += addlen + sizeof(SQChar);
+                      dest = sq_getscratchpad(v,allocated);
+
+                      size = sq_getsize(v,nparam);
+
+                      *ts2++ = '"';
+                      while (size--) {
+                        if (*ts == '"' || *ts == '\\' || *ts == '\n') {
+                            *ts2++ = '\\';
+                            *ts2++ = *ts;
+                        }
+                        else if (*ts == '\0' || iscntrl(uchar(*ts))) {
+                          SQChar buff[10];
+                          int iw;
+                          if (!isdigit(uchar(*(ts+1))))
+                            iw = scsprintf(buff, "\\%d", (int)uchar(*ts));
+                          else
+                            iw = scsprintf(buff, "\\%03d", (int)uchar(*ts));
+                          for(int i=0; i< iw; ++i) *ts2++ = buff[i];
+                        }
+                        else
+                            *ts2++ = *ts;
+                        ts++;
+                      }
+                      *ts2++ = '"';
+
+                      n++;
+                      nparam ++;
+                      continue;
+                }
+                else
+                {
+                    addlen = (sq_getsize(v,nparam)*sizeof(SQChar))+((w+1)*sizeof(SQChar));
+                    valtype = 's';
+                }
 				break;
 			case 'i': case 'd': case 'o': case 'u':  case 'x':  case 'X':
 #ifdef _SQ64
@@ -117,13 +177,13 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
 				}
 #endif
 			case 'c':
-				if(SQ_FAILED(sq_getinteger(v,nparam,&ti))) 
+				if(SQ_FAILED(sq_getinteger(v,nparam,&ti)))
 					return sq_throwerror(v,_SC("integer expected for the specified format"));
 				addlen = (ADDITIONAL_FORMAT_SPACE)+((w+1)*sizeof(SQChar));
 				valtype = 'i';
 				break;
 			case 'f': case 'g': case 'G': case 'e':  case 'E':
-				if(SQ_FAILED(sq_getfloat(v,nparam,&tf))) 
+				if(SQ_FAILED(sq_getfloat(v,nparam,&tf)))
 					return sq_throwerror(v,_SC("float expected for the specified format"));
 				addlen = (ADDITIONAL_FORMAT_SPACE)+((w+1)*sizeof(SQChar));
 				valtype = 'f';
@@ -228,7 +288,7 @@ static SQInteger _string_split(HSQUIRRELVM v)
 
 #define SETUP_REX(v) \
 	SQRex *self = NULL; \
-	sq_getinstanceup(v,1,(SQUserPointer *)&self,0); 
+	sq_getinstanceup(v,1,(SQUserPointer *)&self,0);
 
 static SQInteger _rexobj_releasehook(SQUserPointer p, SQInteger size)
 {
@@ -246,6 +306,34 @@ static SQInteger _regexp_match(HSQUIRRELVM v)
 	{
 		sq_pushbool(v,SQTrue);
 		return 1;
+	}
+	sq_pushbool(v,SQFalse);
+	return 1;
+}
+
+static SQInteger _regexp_gmatch(HSQUIRRELVM v)
+{
+	SETUP_REX(v);
+	const SQChar *str;
+	SQInteger str_size;
+	sq_getstring(v,2,&str);
+	str_size = sq_getsize(v, 2);
+	const SQChar *begin,*end;
+	while(sqstd_rex_searchrange(self,str, str+str_size,&begin,&end)){
+	    SQInteger n = sqstd_rex_getsubexpcount(self);
+	    SQRexMatch match;
+	    sq_pushroottable(v); //this
+	    SQInteger i = 0;
+	    for(;i < n; i++) {
+            sqstd_rex_getsubexp(self,i,&match);
+            if(i > 0){ //skip whole match
+                sq_pushstring(v, match.begin, match.len);
+            }
+		}
+		i = sq_call(v, n, SQFalse, SQTrue);
+		if(i < 0) return i;
+		str_size -= end-str;
+		str = end;
 	}
 	sq_pushbool(v,SQFalse);
 	return 1;
@@ -300,6 +388,41 @@ static SQInteger _regexp_capture(HSQUIRRELVM v)
 	return 0;
 }
 
+static SQInteger _regexp_xcapture(HSQUIRRELVM v)
+{
+	SETUP_REX(v);
+	const SQChar *str,*begin,*end;
+	SQInteger start = 0;
+	sq_getstring(v,2,&str);
+	if(sq_gettop(v) > 2) sq_getinteger(v,3,&start);
+	if(sqstd_rex_search(self,str+start,&begin,&end) == SQTrue) {
+	    sq_pushbool(v, SQTrue);
+		return 1;
+	}
+	return 0;
+}
+
+static SQInteger _regexp_getxcapture(HSQUIRRELVM v)
+{
+	SETUP_REX(v);
+	SQInteger n, start;
+	const SQChar *str;
+	sq_getstring(v,2,&str);
+	sq_getinteger(v,3,&n);
+	SQRexMatch match;
+    sqstd_rex_getsubexp(self,n,&match);
+    if(match.len > 0){
+        start = match.begin-str;
+        sq_pushinteger(v, start);
+	    sq_arrayappend(v,-2);
+        sq_pushinteger(v, start+match.len);
+	    sq_arrayappend(v,-2);
+	    sq_pushbool(v, SQTrue);
+		return 1;
+    }
+	return 0;
+}
+
 static SQInteger _regexp_subexpcount(HSQUIRRELVM v)
 {
 	SETUP_REX(v);
@@ -329,7 +452,10 @@ static SQRegFunction rexobj_funcs[]={
 	_DECL_REX_FUNC(constructor,2,_SC(".s")),
 	_DECL_REX_FUNC(search,-2,_SC("xsn")),
 	_DECL_REX_FUNC(match,2,_SC("xs")),
+	_DECL_REX_FUNC(gmatch,3,_SC("xsc")),
 	_DECL_REX_FUNC(capture,-2,_SC("xsn")),
+	_DECL_REX_FUNC(xcapture,-2,_SC("xsn")),
+	_DECL_REX_FUNC(getxcapture,4,_SC("xsna")),
 	_DECL_REX_FUNC(subexpcount,1,_SC("x")),
 	_DECL_REX_FUNC(_typeof,1,_SC("x")),
 	{0,0}
