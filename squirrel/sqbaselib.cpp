@@ -964,6 +964,12 @@ static SQInteger string_find(HSQUIRRELVM v)
 STRING_TOFUNCZ(tolower)
 STRING_TOFUNCZ(toupper)
 
+static SQInteger string_getdelegate(HSQUIRRELVM v)
+{
+	sq_pushobject(v,_ss(v)->_string_default_delegate);
+	return 1;
+}
+
 SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("len"),default_delegate_len,1, _SC("s")},
 	{_SC("tointeger"),default_delegate_tointeger,-1, _SC("si")},
@@ -974,16 +980,24 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("tolower"),string_tolower,1, _SC("s")},
 	{_SC("toupper"),string_toupper,1, _SC("s")},
 	{_SC("weakref"),obj_delegate_weakref,1, NULL },
+	{_SC("getdelegate"),string_getdelegate,1, _SC(".")},
 	{0,0}
 };
 
 //INTEGER DEFAULT DELEGATE//////////////////////////
+static SQInteger number_getdelegate(HSQUIRRELVM v)
+{
+	sq_pushobject(v,_ss(v)->_number_default_delegate);
+	return 1;
+}
+
 SQRegFunction SQSharedState::_number_default_delegate_funcz[]={
 	{_SC("tointeger"),default_delegate_tointeger,1, _SC("n|b")},
 	{_SC("tofloat"),default_delegate_tofloat,1, _SC("n|b")},
 	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
 	{_SC("tochar"),number_delegate_tochar,1, _SC("n|b")},
 	{_SC("weakref"),obj_delegate_weakref,1, NULL },
+	{_SC("getdelegate"),number_getdelegate,1, _SC(".")},
 	{0,0}
 };
 
@@ -1270,6 +1284,12 @@ static SQInteger class_rawnewmember(HSQUIRRELVM v)
 	return SQ_SUCCEEDED(sq_rawnewmember(v,-4,bstatic))?1:SQ_ERROR;
 }
 
+static SQInteger class_getdelegate(HSQUIRRELVM v)
+{
+	sq_pushobject(v,_ss(v)->_class_default_delegate);
+	return 1;
+}
+
 SQRegFunction SQSharedState::_class_default_delegate_funcz[] = {
 	{_SC("getattributes"), class_getattributes, 2, _SC("y.")},
 	{_SC("setattributes"), class_setattributes, 3, _SC("y..")},
@@ -1282,6 +1302,7 @@ SQRegFunction SQSharedState::_class_default_delegate_funcz[] = {
 	{_SC("getbase"),class_getbase,1, _SC("y")},
 	{_SC("newmember"),class_newmember,-3, _SC("y")},
 	{_SC("rawnewmember"),class_rawnewmember,-3, _SC("y")},
+	{_SC("getdelegate"),class_getdelegate,1, _SC(".")},
 	{0,0}
 };
 
