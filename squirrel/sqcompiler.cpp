@@ -966,14 +966,19 @@ public:
 				Expect(_SC('=')); Expression();
 				break;
 			case TK_STRING_LITERAL: //JSON
-				if(separator == ',') { //only works for tables
-					_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(Expect(TK_STRING_LITERAL)));
-					Expect(_SC(':')); Expression();
-					break;
-				}
+			case TK_IDENTIFIER: {//JSON
+                SQObjectPtr obj = GetTokenObject();
+                SQInteger next_token = _SC('=');
+                if(separator == ',' && _token == _SC(':')){ //only works for tables
+                    next_token = _token;
+                }
+                Expect(next_token);
+				_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(obj));
+				Expression();
+				break;
+			}
 			default :
-				_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(Expect(TK_IDENTIFIER)));
-				Expect(_SC('=')); Expression();
+                ErrorIfNotToken(TK_IDENTIFIER);
 			}
 			if(_token == separator) Lex();//optional comma/semicolon
 			nkeys++;
