@@ -125,6 +125,7 @@ typedef wchar_t SQChar;
 #define _SC(a) L##a
 #define	scstrcmp	wcscmp
 #define scsprintf	swprintf
+#define scsnprintf	swnprintf
 #define scstrlen	wcslen
 #define scstrtod	wcstod
 #ifdef _SQ64
@@ -134,7 +135,9 @@ typedef wchar_t SQChar;
 #endif
 #define scatoi		_wtoi
 #define scstrtoul	wcstoul
+#define scvfprintf	vfwprintf
 #define scvsprintf	vswprintf
+#define scvsnprintf	vswnprintf
 #define scstrstr	wcsstr
 #define scisspace	iswspace
 #define scisdigit	iswdigit
@@ -149,6 +152,7 @@ typedef char SQChar;
 #define _SC(a) a
 #define	scstrcmp	strcmp
 #define scsprintf	sprintf
+#define scsnprintf	snprintf
 #define scstrlen	strlen
 #define scstrtod	strtod
 #ifdef _SQ64
@@ -162,7 +166,9 @@ typedef char SQChar;
 #endif
 #define scatoi		atoi
 #define scstrtoul	strtoul
+#define scvfprintf	vfprintf
 #define scvsprintf	vsprintf
+#define scvsnprintf	vsnprintf
 #define scstrstr	strstr
 #define scisspace	isspace
 #define scisdigit	isdigit
@@ -432,7 +438,7 @@ SQUIRREL_API SQRESULT sq_resume(HSQUIRRELVM v,SQBool retval,SQBool raiseerror);
 SQUIRREL_API const SQChar *sq_getlocal(HSQUIRRELVM v,SQUnsignedInteger level,SQUnsignedInteger idx);
 SQUIRREL_API SQRESULT sq_getcallee(HSQUIRRELVM v);
 SQUIRREL_API const SQChar *sq_getfreevariable(HSQUIRRELVM v,SQInteger idx,SQUnsignedInteger nval);
-SQUIRREL_API SQRESULT sq_throwerror(HSQUIRRELVM v,const SQChar *err);
+SQUIRREL_API SQRESULT sq_throwerror(HSQUIRRELVM v,const SQChar *fmt, ...);
 SQUIRREL_API SQRESULT sq_throwobject(HSQUIRRELVM v);
 SQUIRREL_API void sq_reseterror(HSQUIRRELVM v);
 SQUIRREL_API void sq_getlasterror(HSQUIRRELVM v);

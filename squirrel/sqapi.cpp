@@ -12,6 +12,7 @@
 #include "sqcompiler.h"
 #include "sqfuncstate.h"
 #include "sqclass.h"
+#include <stdarg.h>
 
 bool sq_aux_gettypedarg(HSQUIRRELVM v,SQInteger idx,SQObjectType type,SQObjectPtr **o)
 {
@@ -1032,8 +1033,13 @@ void sq_resetobject(HSQOBJECT *po)
 	po->_unVal.pUserPointer=NULL;po->_type=OT_NULL;
 }
 
-SQRESULT sq_throwerror(HSQUIRRELVM v,const SQChar *err)
+SQRESULT sq_throwerror(HSQUIRRELVM v,const SQChar *fmt, ...)
 {
+    static SQChar err[256];
+    va_list vl;
+    va_start(vl, fmt);
+    scvsnprintf(err, sizeof(err), fmt, vl);
+    va_end(vl);
 	v->_lasterror=SQString::Create(_ss(v),err);
 	return SQ_ERROR;
 }
