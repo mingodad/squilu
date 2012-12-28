@@ -185,6 +185,28 @@ static SQRESULT _system_setlocale (HSQUIRRELVM v) {
   return sq_throwerror(v, "invalid option %s for param %d", name, 3);
 }
 
+/*-------------------------------------------------------------------------*\
+* Sleep for n seconds.
+\*-------------------------------------------------------------------------*/
+static SQRESULT  _system_sleep(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_FLOAT(v, 2, n);
+#ifdef _WIN32
+    Sleep((int)(n*1000));
+#else
+    struct timespec t, r;
+    t.tv_sec = (int) n;
+    n -= t.tv_sec;
+    t.tv_nsec = (int) (n * 1000000000);
+    if (t.tv_nsec >= 1000000000) t.tv_nsec = 999999999;
+    while (nanosleep(&t, &r) != 0) {
+        t.tv_sec = r.tv_sec;
+        t.tv_nsec = r.tv_nsec;
+    }
+#endif
+    return 0;
+}
 
 #define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_system_##name,nparams,pmask}
 static SQRegFunction systemlib_funcs[]={
@@ -197,6 +219,7 @@ static SQRegFunction systemlib_funcs[]={
 	_DECL_FUNC(remove,2,_SC(".s")),
 	_DECL_FUNC(rename,3,_SC(".ss")),
 	_DECL_FUNC(exit, 1,_SC(". b|i b")),
+	_DECL_FUNC(sleep, 2,_SC(".n")),
 	_DECL_FUNC(tmpname,1,_SC(".")),
 	_DECL_FUNC(setlocale,-1,_SC(".ss")),
 	{0,0}
