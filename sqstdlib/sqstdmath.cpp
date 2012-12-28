@@ -34,6 +34,25 @@ static SQInteger math_rand(HSQUIRRELVM v)
 	return 1;
 }
 
+static int math_random(HSQUIRRELVM v) {
+  SQ_FUNC_VARS(v);
+  /* the `%' avoids the (rare) case of r==1, and is needed also because on
+     some systems (SunOS!) `rand()' may return a value larger than RAND_MAX */
+  SQFloat r = (SQFloat)(rand()%RAND_MAX) / (SQFloat)RAND_MAX;
+  if (_top_==1) {	/* no arguments: range [0,1) */
+    sq_pushfloat(v, r);
+  } else if (_top_<=3) {	/* int range [1,u] or [l,u] */
+    SQ_GET_INTEGER(v, 2, u);
+    SQ_OPT_INTEGER(v, 3, l, 1);
+    SQFloat d;
+    if(l<=u) return sq_throwerror(v, _SC("interval is empty"));
+    d= floor(r*(u-l+1));
+    int tmp = d;
+    sq_pushinteger(v, l+tmp);
+  } else return sq_throwerror(v, _SC("wrong number of arguments"));
+  return 1;
+}
+
 static SQInteger math_abs(HSQUIRRELVM v)
 {
 	SQInteger n;
@@ -298,6 +317,7 @@ static SQRegFunction mathlib_funcs[] = {
 	_DECL_FUNC(exp,2,_SC(".n")),
 	_DECL_FUNC(srand,2,_SC(".n")),
 	_DECL_FUNC(rand,1,NULL),
+	_DECL_FUNC(random,-1,_SC(".ii")),
 	_DECL_FUNC(fabs,2,_SC(".n")),
 	_DECL_FUNC(abs,2,_SC(".n")),
 	_DECL_FUNC(roundf,-2,_SC(".ni")),
