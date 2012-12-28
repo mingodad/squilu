@@ -29,6 +29,8 @@ struct SQBlob : public SQStream
 	SQInteger Tell() { return _ptr; }
 	SQInteger Len() { return _size; }
 	SQUserPointer GetBuf(){ return _buf; }
+	bool SetLen(SQInteger len);
+	static SQUserPointer SQBlob_TAG;
 private:
 	SQInteger _size;
 	SQInteger _allocated;

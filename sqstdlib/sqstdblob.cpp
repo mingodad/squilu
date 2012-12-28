@@ -11,6 +11,8 @@
 
 //Blob
 
+SQUserPointer SQBlob::SQBlob_TAG = (SQUserPointer)SQSTD_BLOB_TYPE_TAG;
+
 SQBlob::SQBlob(SQInteger size, SQInteger allocated) {
     _size = size;
     _allocated = allocated > 0 ? allocated : size;
@@ -96,6 +98,14 @@ SQInteger SQBlob::Seek(SQInteger offset, SQInteger origin) {
         default: return -1;
     }
     return 0;
+}
+
+bool SQBlob::SetLen(SQInteger len){
+    if(len <= _allocated || Resize(len)){
+        _size = len;
+        return true;
+    }
+    return false;
 }
 
 #define SETUP_BLOB(v) \
