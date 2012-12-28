@@ -426,9 +426,9 @@ SQUIRREL_API SQRESULT sq_rawdeleteslot(HSQUIRRELVM v,SQInteger idx,SQBool pushva
 SQUIRREL_API SQRESULT sq_newmember(HSQUIRRELVM v,SQInteger idx,SQBool bstatic);
 SQUIRREL_API SQRESULT sq_rawnewmember(HSQUIRRELVM v,SQInteger idx,SQBool bstatic);
 SQUIRREL_API SQRESULT sq_arrayappend(HSQUIRRELVM v,SQInteger idx);
-SQUIRREL_API SQRESULT sq_arraypop(HSQUIRRELVM v,SQInteger idx,SQBool pushval); 
-SQUIRREL_API SQRESULT sq_arrayresize(HSQUIRRELVM v,SQInteger idx,SQInteger newsize); 
-SQUIRREL_API SQRESULT sq_arrayreverse(HSQUIRRELVM v,SQInteger idx); 
+SQUIRREL_API SQRESULT sq_arraypop(HSQUIRRELVM v,SQInteger idx,SQBool pushval);
+SQUIRREL_API SQRESULT sq_arrayresize(HSQUIRRELVM v,SQInteger idx,SQInteger newsize);
+SQUIRREL_API SQRESULT sq_arrayreverse(HSQUIRRELVM v,SQInteger idx);
 SQUIRREL_API SQRESULT sq_arrayremove(HSQUIRRELVM v,SQInteger idx,SQInteger itemidx);
 SQUIRREL_API SQRESULT sq_arrayinsert(HSQUIRRELVM v,SQInteger idx,SQInteger destpos);
 SQUIRREL_API SQRESULT sq_setdelegate(HSQUIRRELVM v,SQInteger idx);
@@ -522,9 +522,11 @@ SQUIRREL_API void sq_getlasterror(HSQUIRRELVM v);
 #define SQ_FUNC_VARS_NO_TOP(v) \
     SQRESULT _rc_;
 
-#define SQ_GET_INSTANCE(v, idx, Klass, Klass_tag) \
-	Klass *self; \
-	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)&self,(void*)Klass_tag)) < 0) return _rc_;
+#define SQ_GET_INSTANCE_VAR(v, idx, Klass, Var, Klass_tag) \
+	Klass *Var; \
+	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)&Var,(void*)Klass_tag)) < 0) return _rc_;
+
+#define SQ_GET_INSTANCE(v, idx, Klass, Klass_tag) SQ_GET_INSTANCE_VAR(v, idx, Klass, self, Klass_tag)
 
 #define SQ_GET_STRING(v, idx, var)\
     const SQChar *var;\
