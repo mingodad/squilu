@@ -22,7 +22,7 @@ struct SQExceptionTrap{
 	SQInteger _extarget;
 };
 
-#define _INLINE 
+#define _INLINE
 
 #define STK(a) _stack._vals[_stackbase+(a)]
 #define TARGET _stack._vals[_stackbase+arg0]
@@ -44,7 +44,7 @@ struct SQVM : public CHAINABLE_OBJ
 		SQInt32 _ncalls;
 		SQBool _root;
 	};
-	
+
 typedef sqvector<CallInfo> CallInfoVec;
 public:
 	void DebugHookProxy(SQInteger type, const SQChar * sourcename, SQInteger line, const SQChar * funcname);
@@ -80,7 +80,7 @@ public:
 	bool ToString(const SQObjectPtr &o,SQObjectPtr &res);
 	SQString *PrintObjVal(const SQObjectPtr &o);
 
- 
+
 	void Raise_Error(const SQChar *s, ...);
 	void Raise_Error(const SQObjectPtr &desc);
 	void Raise_IdxError(const SQObjectPtr &o);
@@ -128,9 +128,12 @@ public:
 ////////////////////////////////////////////////////////////////////////////
 	//stack functions for the api
 	void Remove(SQInteger n);
+	void Replace(SQInteger n);
+	void ReplaceAbs(SQInteger n);
+	void Insert(SQInteger n);
 
 	static bool IsFalse(SQObjectPtr &o);
-	
+
 	void Pop();
 	void Pop(SQInteger n);
 	void Push(const SQObjectPtr &o);
@@ -154,7 +157,7 @@ public:
 	SQObjectPtr _debughook_closure;
 
 	SQObjectPtr temp_reg;
-	
+
 
 	CallInfo* _callsstack;
 	SQInteger _callsstacksize;

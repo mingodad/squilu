@@ -1662,13 +1662,39 @@ void SQVM::CloseOuters(SQObjectPtr *stackindex) {
   }
 }
 
+#define CALC_PSEUDO_INDEX(n) n = (n >= 0)?n + _stackbase - 1:_top + n
+
 void SQVM::Remove(SQInteger n) {
-	n = (n >= 0)?n + _stackbase - 1:_top + n;
-	for(SQInteger i = n; i < _top; i++){
+	CALC_PSEUDO_INDEX(n);
+	for(SQInteger i = n; i < _top; ++i){
 		_stack[i] = _stack[i+1];
 	}
 	_stack[_top].Null();
 	_top--;
+}
+
+void SQVM::Replace(SQInteger n) {
+	CALC_PSEUDO_INDEX(n);
+	_stack[n] = _stack[_top-1];
+	_stack[_top].Null();
+	_top--;
+}
+
+void SQVM::ReplaceAbs(SQInteger n) {
+	_stack[n] = _stack[_top-1];
+	_stack[_top].Null();
+	_top--;
+}
+
+void SQVM::Insert(SQInteger n) {
+    //Todo revise this to emit error message when used with pseudo-index
+	if(n < 0) return; //nothing to do with pseudo-index
+	n += _stackbase - 1;
+	SQObjectPtr &old_top = _stack[_top];
+	for(SQInteger i = _top; i > n; --i){
+		_stack[i] = _stack[i-1];
+	}
+	_stack[n] = old_top;
 }
 
 void SQVM::Pop() {
