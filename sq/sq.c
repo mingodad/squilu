@@ -305,6 +305,8 @@ void Interactive(HSQUIRRELVM v)
 	}
 }
 
+SQRESULT sqstd_register_sqfs(HSQUIRRELVM v);
+
 int main(int argc, char* argv[])
 {
 	HSQUIRRELVM v;
@@ -328,6 +330,10 @@ int main(int argc, char* argv[])
 	//aux library
 	//sets error handlers
 	sqstd_seterrorhandlers(v);
+
+#ifdef SQ_DAD
+    sqstd_register_sqfs(v);
+#endif
 
 	//gets arguments
 	switch(getargs(v,argc,argv,&retval))
