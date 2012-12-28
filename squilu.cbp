@@ -31,6 +31,7 @@
 					<Add option="-fno-strict-aliasing" />
 				</Compiler>
 				<Linker>
+					<Add option="-s" />
 					<Add library="squilu" />
 				</Linker>
 			</Target>
@@ -59,6 +60,7 @@
 					<Add option="-fno-strict-aliasing" />
 				</Compiler>
 				<Linker>
+					<Add option="-s" />
 					<Add option="-static-libstdc++" />
 					<Add option="-static-libgcc" />
 					<Add library="squilu-win32" />
@@ -73,6 +75,7 @@
 			<Add option="-DNO_EXCEPTION_KEY_NOT_FOUND=1" />
 			<Add option="-D_SQ642=1" />
 			<Add option="-DNO_GARBAGE_COLLECTOR0=1" />
+			<Add option="-DSQ_DAD=1" />
 			<Add directory="include" />
 			<Add directory="sqstdlib" />
 		</Compiler>
