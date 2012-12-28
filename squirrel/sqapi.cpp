@@ -512,6 +512,25 @@ void sq_pushregistrytable(HSQUIRRELVM v)
 	v->Push(_ss(v)->_registry);
 }
 
+SQRESULT sq_getonregistrytable(HSQUIRRELVM v)
+{
+	if(_table(_ss(v)->_registry)->Get(v->GetUp(-1),v->GetUp(-1)))
+		return SQ_OK;
+	v->Pop();
+	return SQ_ERROR;
+}
+
+SQRESULT sq_setonregistrytable(HSQUIRRELVM v)
+{
+	if(type(v->GetUp(-2)) == OT_NULL) {
+		v->Pop(2);
+		return sq_throwerror(v, _SC("null key"));
+	}
+    _table(_ss(v)->_registry)->NewSlot(v->GetUp(-2), v->GetUp(-1));
+    v->Pop(2);
+    return SQ_OK;
+}
+
 void sq_pushconsttable(HSQUIRRELVM v)
 {
 	v->Push(_ss(v)->_consts);
@@ -1074,6 +1093,11 @@ void sq_reseterror(HSQUIRRELVM v)
 void sq_getlasterror(HSQUIRRELVM v)
 {
 	v->Push(v->_lasterror);
+}
+
+const SQChar *sq_getlasterror_str(HSQUIRRELVM v)
+{
+	return _string(v->_lasterror)->_val;
 }
 
 SQRESULT sq_reservestack(HSQUIRRELVM v,SQInteger nsize)

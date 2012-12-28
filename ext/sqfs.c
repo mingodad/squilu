@@ -475,13 +475,9 @@ static SQRESULT _dir__get(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_dir_INSTANCE();
-    sq_pushregistrytable(v);
     sq_pushuserpointer(v, self);
-    if(sq_rawget(v, -2) == SQ_OK) sq_remove(v, -2); //remove registrytable
-    else {
-        sq_poptop(v);//remove registrytable
-        sq_pushnull(v);
-    }
+    if(sq_getonregistrytable(v) != SQ_OK) sq_pushnull(v);
+    //do not worry about registry table it will be removed anyway when restoring the stack
     return 1;
 }
 
@@ -530,11 +526,9 @@ static SQRESULT _dir__nexti(HSQUIRRELVM v)
     }
     fname = entry->d_name;
 #endif
-    sq_pushregistrytable(v);
     sq_pushuserpointer(v, self);
     sq_pushstring(v, fname, -1);
-    sq_rawset(v, -3);
-    sq_poptop(v);//remove registrytable
+    sq_setonregistrytable(v);
 
 	sq_pushinteger(v, idx);
 	return 1;

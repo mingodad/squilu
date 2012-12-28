@@ -48,9 +48,9 @@ typedef long long SQInteger;
 typedef unsigned long long SQUnsignedInteger;
 typedef unsigned long long SQHash; /*should be the same size of a pointer*/
 #endif
-typedef int SQInt32; 
+typedef int SQInt32;
 typedef unsigned int SQUnsignedInteger32;
-#else 
+#else
 typedef int SQInteger;
 typedef int SQInt32; /*must be 32 bits(also on 64bits processors)*/
 typedef unsigned int SQUnsignedInteger32; /*must be 32 bits(also on 64bits processors)*/
@@ -298,7 +298,7 @@ typedef struct SQVM* HSQUIRRELVM;
 typedef SQObject HSQOBJECT;
 typedef SQMemberHandle HSQMEMBERHANDLE;
 typedef SQInteger (*SQFUNCTION)(HSQUIRRELVM);
-typedef SQInteger (*SQRELEASEHOOK)(SQUserPointer,SQInteger size);
+typedef SQInteger (*SQRELEASEHOOK)(SQUserPointer ptr, SQInteger size);
 typedef void (*SQCOMPILERERROR)(HSQUIRRELVM,const SQChar * /*desc*/,const SQChar * /*source*/,SQInteger /*line*/,SQInteger /*column*/);
 typedef void (*SQPRINTFUNCTION)(HSQUIRRELVM,const SQChar * ,...);
 typedef void (*SQDEBUGHOOK)(HSQUIRRELVM /*v*/, SQInteger /*type*/, const SQChar * /*sourcename*/, SQInteger /*line*/, const SQChar * /*funcname*/);
@@ -407,6 +407,8 @@ SQUIRREL_API SQRESULT sq_setbyhandle(HSQUIRRELVM v,SQInteger idx,const HSQMEMBER
 /*object manipulation*/
 SQUIRREL_API void sq_pushroottable(HSQUIRRELVM v);
 SQUIRREL_API void sq_pushregistrytable(HSQUIRRELVM v);
+SQUIRREL_API SQRESULT sq_getonregistrytable(HSQUIRRELVM v);
+SQUIRREL_API SQRESULT sq_setonregistrytable(HSQUIRRELVM v);
 SQUIRREL_API void sq_pushconsttable(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sq_setroottable(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sq_setconsttable(HSQUIRRELVM v);
@@ -443,6 +445,7 @@ SQUIRREL_API SQRESULT sq_throwerror(HSQUIRRELVM v,const SQChar *fmt, ...);
 SQUIRREL_API SQRESULT sq_throwobject(HSQUIRRELVM v);
 SQUIRREL_API void sq_reseterror(HSQUIRRELVM v);
 SQUIRREL_API void sq_getlasterror(HSQUIRRELVM v);
+const SQChar *sq_getlasterror_str(HSQUIRRELVM v);
 
 /*raw object handling*/
 SQUIRREL_API SQRESULT sq_getstackobj(HSQUIRRELVM v,SQInteger idx,HSQOBJECT *po);
