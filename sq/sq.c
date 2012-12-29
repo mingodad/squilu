@@ -306,6 +306,7 @@ void Interactive(HSQUIRRELVM v)
 }
 
 SQRESULT sqstd_register_sqfs(HSQUIRRELVM v);
+SQRESULT sqstd_register_sq_zmq3(HSQUIRRELVM v);
 
 int main(int argc, char* argv[])
 {
@@ -333,6 +334,7 @@ int main(int argc, char* argv[])
 
 #ifdef SQ_DAD
     sqstd_register_sqfs(v);
+    sqstd_register_sq_zmq3(v);
 #endif
 
 	//gets arguments
