@@ -105,10 +105,10 @@ public:
 		va_end(vl);
 	}
 	void Lex(){	_token = _lex.Lex();}
-	SQObjectPtr GetTokenObject()
+	SQObjectPtr GetTokenObject(SQInteger tok)
 	{
 		SQObjectPtr ret;
-		switch(_token)
+		switch(tok)
 		{
 		case TK_IDENTIFIER:
 			ret = _fs->CreateString(_lex._svalue);
@@ -160,7 +160,7 @@ public:
 	SQObject Expect(SQInteger tok)
 	{
         ErrorIfNotToken(tok);
-		return GetTokenObject();
+		return GetTokenObject(tok);
 	}
 	bool IsEndOfStatement() { return ((_lex._prevtoken == _SC('\n')) || (_token == SQUIRREL_EOB) || (_token == _SC('}')) || (_token == _SC(';'))); }
 	void OptionalSemicolon()
@@ -967,7 +967,7 @@ public:
 				break;
 			case TK_STRING_LITERAL: //JSON
 			case TK_IDENTIFIER: {//JSON
-                SQObjectPtr obj = GetTokenObject();
+                SQObjectPtr obj = GetTokenObject(_token);
                 SQInteger next_token = _SC('=');
                 if(separator == ',' && _token == _SC(':')){ //only works for tables
                     next_token = _token;
