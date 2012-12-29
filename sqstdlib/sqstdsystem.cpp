@@ -5,6 +5,10 @@
 #include <stdio.h>
 #include <sqstdsystem.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #ifdef SQUNICODE
 #include <wchar.h>
 #define scgetenv _wgetenv
