@@ -334,6 +334,8 @@ int main(int argc, char* argv[])
 
 #ifdef SQ_DAD
     sqstd_register_sqfs(v);
+#endif
+#ifdef SQ_DAD_TEST
     sqstd_register_sq_zmq3(v);
 #endif
 
