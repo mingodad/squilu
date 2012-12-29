@@ -35,8 +35,9 @@ bool sq_aux_gettypedarg(HSQUIRRELVM v,SQInteger idx,SQObjectType type,SQObjectPt
 
 SQInteger sq_aux_invalidtype(HSQUIRRELVM v,SQObjectType type)
 {
-	scsprintf(_ss(v)->GetScratchPad(100), _SC("unexpected type %s"), IdType2Name(type));
-	return sq_throwerror(v, _ss(v)->GetScratchPad(-1));
+    SQChar *buf = _ss(v)->GetScratchPad(100);
+	scsprintf(buf, _SC("unexpected type %s"), IdType2Name(type));
+	return sq_throwerror(v, buf);
 }
 
 HSQUIRRELVM sq_open(SQInteger initialstacksize)
@@ -254,7 +255,7 @@ void sq_pushuserpointer(HSQUIRRELVM v,SQUserPointer p)
 
 SQUserPointer sq_newuserdata(HSQUIRRELVM v,SQUnsignedInteger size)
 {
-	SQUserData *ud = SQUserData::Create(_ss(v), size);
+	SQUserData *ud = SQUserData::Create(_ss(v), size + SQ_ALIGNMENT);
 	v->Push(ud);
 	return (SQUserPointer)sq_aligning(ud + 1);
 }
