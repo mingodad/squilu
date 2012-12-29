@@ -69,12 +69,14 @@
 			<Add directory="include" />
 			<Add directory="sqstdlib" />
 			<Add directory="squirrel" />
+			<Add directory="../zeromq-3.2.2/include" />
 		</Compiler>
 		<Linker>
 			<Add directory="../dadbiz++/third-party/fltk/lib" />
 			<Add directory="../dadbiz++/third-party/myaxtls" />
 		</Linker>
 		<Unit filename="ext/mongoose.h" />
+		<Unit filename="ext/sq_zmq3.cpp" />
 		<Unit filename="ext/sqfs.c">
 			<Option compilerVar="CC" />
 		</Unit>

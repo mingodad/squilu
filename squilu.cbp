@@ -33,6 +33,9 @@
 				<Linker>
 					<Add option="-s" />
 					<Add library="squilu" />
+					<Add library="zmq3" />
+					<Add library="rt" />
+					<Add directory="../zeromq-3.2.2" />
 				</Linker>
 			</Target>
 			<Target title="Release clang">
