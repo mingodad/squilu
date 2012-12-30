@@ -312,6 +312,7 @@ typedef struct tagSQRegFunction{
 	SQFUNCTION f;
 	SQInteger nparamscheck;
 	const SQChar *typemask;
+	SQBool isStatic;
 }SQRegFunction;
 
 typedef struct tagSQFunctionInfo {
@@ -409,6 +410,8 @@ SQUIRREL_API SQRESULT sq_setbyhandle(HSQUIRRELVM v,SQInteger idx,const HSQMEMBER
 
 /*object manipulation*/
 SQUIRREL_API void sq_pushroottable(HSQUIRRELVM v);
+SQUIRREL_API SQRESULT sq_getonroottable(HSQUIRRELVM v);
+SQUIRREL_API SQRESULT sq_setonroottable(HSQUIRRELVM v);
 SQUIRREL_API void sq_pushregistrytable(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sq_getonregistrytable(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sq_setonregistrytable(HSQUIRRELVM v);

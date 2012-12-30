@@ -508,6 +508,27 @@ void sq_pushroottable(HSQUIRRELVM v)
 	v->Push(v->_roottable);
 }
 
+SQRESULT sq_getonroottable(HSQUIRRELVM v)
+{
+    SQObjectPtr &obj = v->GetUp(-1);
+	if(_table(v->_roottable)->Get(obj,obj))
+		return SQ_OK;
+	v->Pop();
+	return SQ_ERROR;
+}
+
+SQRESULT sq_setonroottable(HSQUIRRELVM v)
+{
+    SQObjectPtr &key = v->GetUp(-2);
+	if(type(key) == OT_NULL) {
+		v->Pop(2);
+		return sq_throwerror(v, _SC("null key"));
+	}
+    _table(v->_roottable)->NewSlot(key, v->GetUp(-1));
+    v->Pop(2);
+    return SQ_OK;
+}
+
 void sq_pushregistrytable(HSQUIRRELVM v)
 {
 	v->Push(_ss(v)->_registry);
