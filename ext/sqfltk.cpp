@@ -43,10 +43,7 @@ struct MyFltkUData {
 };
 
 #define FLTK_TAG(tag) SQFLTK_##tag##_TYPE_TAG
-
-#define CREATE_TAG(tag) \
-static const char* FLTK_TAG(tag) = #tag
-
+#define CREATE_TAG(tag) static const char* FLTK_TAG(tag) = #tag
 
 CREATE_TAG(Fl);
 CREATE_TAG(Fl_Widget);
@@ -82,9 +79,8 @@ CREATE_TAG(Fl_JPEG_Image);
 static void do_register_object_and_instance(HSQUIRRELVM sqvm, int instance_idx, void *cptr){
     sq_pushregistrytable(sqvm);
     sq_pushuserpointer(sqvm, cptr);
-    HSQOBJECT obj; sq_resetobject(&obj);
-    sq_getstackobj(sqvm, instance_idx, &obj);
-    sq_pushobject(sqvm, obj);
+    //sq_weakref(sqvm, instance_idx);
+    sq_push(sqvm, instance_idx);
     sq_rawset(sqvm, -3);
     sq_pop(sqvm, -1);
 }
@@ -125,52 +121,84 @@ static SQInteger _##Klass##_constructor(HSQUIRRELVM sqvm)\
 
 #define FLTK_CONSTRUCTOR(Klass) FLTK_CONSTRUCTOR_RELEASE(Klass, NOTHING, a)
 
-#define FL_WIDGET_GETSET_STR(funcNAME) \
-static SQInteger _flwidget_##funcNAME(HSQUIRRELVM sqvm) \
+#define FUNC_GETSET_STR(prefix, getSelf, selfPtr, funcNAME) \
+static SQInteger prefix##funcNAME(HSQUIRRELVM sqvm) \
 {\
-    SETUP_FL_WIDGET(sqvm);\
+    getSelf;\
     SQInteger argc = sq_gettop(sqvm);\
-    const SQChar *funcNAME = NULL;\
-    if(argc > 0){\
-        sq_getstring(sqvm, 2, &funcNAME);\
-        self->funcNAME(funcNAME);\
+    const SQChar *str = NULL;\
+    if(argc > 1){\
+        sq_getstring(sqvm, 2, &str);\
+        selfPtr funcNAME(str);\
         return 0;\
     }\
-    funcNAME = self->funcNAME();\
-    if(funcNAME) sq_pushstring(sqvm, funcNAME, -1);\
+    str = selfPtr funcNAME();\
+    if(str) sq_pushstring(sqvm, str, -1);\
     else sq_pushnull(sqvm);\
 	return 1;\
 }
 
-#define FL_WIDGET_GETSET_INT0(funcNAME, typeNAME) \
-static SQInteger _flwidget_##funcNAME(HSQUIRRELVM sqvm) \
+#define FUNC_GETSET_INT(prefix, getSelf, selfPtr, funcNAME, typeCast) \
+static SQInteger prefix##funcNAME(HSQUIRRELVM sqvm) \
 {\
-    SETUP_FL_WIDGET(sqvm);\
+    getSelf;\
     SQInteger argc = sq_gettop(sqvm);\
-    SQInteger funcNAME;\
-    if(argc > 0){\
-        sq_getinteger(sqvm, 2, &funcNAME);\
-        self->funcNAME((typeNAME)funcNAME);\
+    SQInteger iparm;\
+    if(argc > 1){\
+        sq_getinteger(sqvm, 2, &iparm);\
+        selfPtr funcNAME((typeCast)iparm);\
         return 0;\
     }\
-    sq_pushinteger(sqvm, self->funcNAME());\
+    sq_pushinteger(sqvm, selfPtr funcNAME());\
 	return 1;\
 }
 
-#define FL_WIDGET_GETSET_INT(funcNAME) FL_WIDGET_GETSET_INT0(funcNAME, int)
-
-#define FL_WIDGET_VOID_CALL(funcNAME) \
-static SQInteger _flwidget_##funcNAME(HSQUIRRELVM sqvm) \
+#define FUNC_GETSET_INT_ONE_CALL(prefix, getSelf, selfPtr, funcNAME, typeCast) \
+static SQInteger prefix##funcNAME(HSQUIRRELVM sqvm) \
 {\
-    SETUP_FL_WIDGET(sqvm);\
-    self->funcNAME();\
+    getSelf;\
+    SQInteger argc = sq_gettop(sqvm);\
+    SQInteger iparm;\
+    if(argc > 1){\
+        sq_getinteger(sqvm, 2, &iparm);\
+        sq_pushinteger(sqvm, selfPtr funcNAME((typeCast)iparm));\
+        return 1;\
+    }\
+    return sq_throwerror(sqvm, _SC("one integer parameter expected"));\
+}
+
+#define FUNC_GETSET_INT_BOOL(prefix, getSelf, selfPtr, funcNAME, typeCast) \
+static SQInteger prefix##funcNAME(HSQUIRRELVM sqvm) \
+{\
+    getSelf;\
+    SQInteger argc = sq_gettop(sqvm);\
+    SQInteger iparm;\
+    SQBool bparm;\
+    if(argc > 1){\
+        sq_getinteger(sqvm, 2, &iparm);\
+        if(argc > 2) {\
+            sq_getbool(sqvm, 3, &bparm);\
+            selfPtr funcNAME((typeCast)iparm, bparm == SQTrue);\
+            return 0;\
+        }\
+        sq_pushbool(sqvm, selfPtr funcNAME((typeCast)iparm));\
+        return 1;\
+    }\
+	return sq_throwerror(sqvm, _SC("invalid number of parameters"));\
+}
+
+#define FUNC_VOID_CALL(prefix, getSelf, selfPtr, funcNAME) \
+static SQInteger prefix##funcNAME(HSQUIRRELVM sqvm) \
+{\
+    getSelf(sqvm);\
+    selfPtr funcNAME();\
 	return 0;\
 }
 
-#define FL_WIDGET_VOID_CALL_2INT(funcNAME) \
-static SQInteger _flwidget_##funcNAME(HSQUIRRELVM sqvm) \
+#define FUNC_VOID_CALL_2INT(prefix, getSelf, funcNAME) \
+static SQInteger prefix##funcNAME(HSQUIRRELVM sqvm) \
 {\
-    SETUP_FL_WIDGET(sqvm);\
+    getSelf(sqvm);\
     SQInteger i1, i2;\
     sq_getinteger(sqvm, 2, &i1);\
     sq_getinteger(sqvm, 3, &i2);\
@@ -178,10 +206,10 @@ static SQInteger _flwidget_##funcNAME(HSQUIRRELVM sqvm) \
 	return 0;\
 }
 
-#define FL_WIDGET_VOID_CALL_4INT(funcNAME) \
-static SQInteger _flwidget_##funcNAME(HSQUIRRELVM sqvm) \
+#define FUNC_VOID_CALL_4INT(prefix, getSelf, funcNAME) \
+static SQInteger prefix##funcNAME(HSQUIRRELVM sqvm) \
 {\
-    SETUP_FL_WIDGET(sqvm);\
+    getSelf(sqvm);\
     SQInteger i1, i2, i3, i4;\
     sq_getinteger(sqvm, 2, &i1);\
     sq_getinteger(sqvm, 3, &i2);\
@@ -191,18 +219,51 @@ static SQInteger _flwidget_##funcNAME(HSQUIRRELVM sqvm) \
 	return 0;\
 }
 
-#define FL_WIDGET_INT_CALL(funcNAME) \
-static SQInteger _flwidget_##funcNAME(HSQUIRRELVM sqvm) \
+#define FUNC_INT_CALL(prefix, getSelf, funcNAME) \
+static SQInteger prefix##funcNAME(HSQUIRRELVM sqvm) \
 {\
-    SETUP_FL_WIDGET(sqvm);\
+    getSelf(sqvm);\
     sq_pushinteger(sqvm, self->funcNAME());\
 	return 1;\
 }
 
-static void sq_call_fl_virtual(void *self, const SQChar *func_name){
-    HSQUIRRELVM sqvm = (HSQUIRRELVM) Fl::user_data;
+#define FUNC_STR_CALL(prefix, getSelf, funcNAME) \
+static SQInteger prefix##funcNAME(HSQUIRRELVM sqvm) \
+{\
+    getSelf(sqvm);\
+    sq_pushstring(sqvm, self->funcNAME(), -1);\
+	return 1;\
+}
+
+#define FL_WIDGET_GETSET_STR(funcNAME) FUNC_GETSET_STR(_flwidget_, SETUP_FL_WIDGET(sqvm), self->, funcNAME)
+
+#define FL_WIDGET_GETSET_INT0(funcNAME, typeNAME) FUNC_GETSET_INT(_flwidget_, SETUP_FL_WIDGET(sqvm), self->, funcNAME, typeNAME)
+#define FL_WIDGET_GETSET_INT(funcNAME) FL_WIDGET_GETSET_INT0(funcNAME, int)
+
+#define FL_WIDGET_VOID_CALL(funcNAME) FUNC_VOID_CALL(_flwidget_, SETUP_FL_WIDGET, self->, funcNAME)
+
+#define FL_WIDGET_VOID_CALL_2INT(funcNAME) FUNC_VOID_CALL_2INT(_flwidget_, SETUP_FL_WIDGET, funcNAME)
+
+#define FL_WIDGET_VOID_CALL_4INT(funcNAME) FUNC_VOID_CALL_4INT(_flwidget_, SETUP_FL_WIDGET, funcNAME)
+
+#define FL_WIDGET_INT_CALL(funcNAME) FUNC_INT_CALL(_flwidget_, SETUP_FL_WIDGET, funcNAME)
+#define FL_WIDGET_STR_CALL(funcNAME) FUNC_STR_CALL(_flwidget_, SETUP_FL_WIDGET, funcNAME)
+
+static SQInteger getInstance_for_Fl_Widget(HSQUIRRELVM v, Fl_Widget *widget){
+    if(!widget) return SQ_ERROR;
+    sq_pushuserpointer(v, widget);
+    if(sq_getonregistrytable(v) == SQ_OK) return SQ_OK;
+    int rc;
+    sq_pushuserpointer(v, (void*)FLTK_TAG(Fl_Widget));
+    rc = sq_getonregistrytable(v);
+    rc = sq_createinstance(v, -1);
+    rc = sq_setinstanceup(v, -1, widget);
+    sq_replace(v, -2); //remove Fl_widget class from stack
+    return SQ_OK;
+}
+
+static SQRESULT sq_get_fl_virtual(HSQUIRRELVM sqvm, void *self, const SQChar *func_name){
     //sq_reservestack(sqvm, 20);
-    SQInteger top = sq_gettop(sqvm);
     sq_pushregistrytable(sqvm);
     sq_pushuserpointer(sqvm, self);
     if(sq_rawget(sqvm, -2) == SQ_OK){
@@ -210,17 +271,26 @@ static void sq_call_fl_virtual(void *self, const SQChar *func_name){
         sq_get(sqvm, -2);
         SQObjectType toptype = sq_gettype(sqvm, -1);
         if(toptype == OT_CLOSURE || toptype == OT_NATIVECLOSURE){
-            sq_push(sqvm, -2); //this
-            sq_call(sqvm, 1, SQFalse, SQTrue);
+            return SQ_OK;
         }
+    }
+    return SQ_ERROR;
+}
+
+static void sq_call_fl_virtual(void *self, const SQChar *func_name){
+    HSQUIRRELVM sqvm = (HSQUIRRELVM) Fl::user_data;
+    //sq_reservestack(sqvm, 20);
+    SQInteger top = sq_gettop(sqvm);
+    if(sq_get_fl_virtual(sqvm, self, func_name) == SQ_OK){
+        sq_push(sqvm, -2); //this
+        sq_call(sqvm, 1, SQFalse, SQTrue);
     }
     sq_settop(sqvm, top);
 }
 
-
 typedef struct {
     HSQOBJECT callback;
-    HSQOBJECT callee;
+    HSQOBJECT sender;
     HSQOBJECT udata;
 } st_mycb;
 
@@ -243,7 +313,7 @@ printf("%d %p At_Widget_Destroy\n", __LINE__, widget);
     SQInteger savedTop = sq_gettop(sqvm);
 printf("%d %p %d At_Widget_Destroy\n", __LINE__, widget, sq_gettop(sqvm));
     sq_pushregistrytable(sqvm);
-printf("%d %p %d At_Widget_Destroy\n", __LINE__, widget, sq_gettop(sqvm));
+printf("%d %p %d %s At_Widget_Destroy\n", __LINE__, widget, sq_gettop(sqvm), sq_gettypename(sqvm, -1));
     sq_pushuserpointer(sqvm, widget);
 printf("%d %p %d At_Widget_Destroy\n", __LINE__, widget, sq_gettop(sqvm));
     int rc = sq_deleteslot(sqvm, -2, SQTrue);
@@ -269,7 +339,8 @@ static void fltk_calback_hook(Fl_Widget *sender, void* udata){
     st_mycb *mycb = (st_mycb *)udata;
     sq_pushobject(sqvm, mycb->callback);
     sq_pushroottable(sqvm); //’this’ (function environment object)
-    sq_pushobject(sqvm, mycb->callee);
+    sq_pushuserpointer(sqvm, sender);
+    if(sq_getonregistrytable(sqvm) != SQ_OK) sq_pushnull(sqvm);
     sq_pushobject(sqvm, mycb->udata);
     printf("%d\n", sq_call(sqvm, 3, SQFalse, SQTrue));
     sq_settop(sqvm, savedTop);
@@ -300,7 +371,7 @@ static SQInteger _flwidget_callback(HSQUIRRELVM sqvm)
         }
         st_mycb *mycb = (st_mycb *)sq_malloc(sizeof(st_mycb));
         sq_resetobject(&mycb->callback); //initializes the object handle (sets to NULL)
-        sq_resetobject(&mycb->callee);
+        sq_resetobject(&mycb->sender);
         sq_resetobject(&mycb->udata);
         sq_getstackobj(sqvm, 2, &mycb->callback);//fetches an handle of the function you passed
         if(sq_gettop(sqvm) > 2) { //we have user data too
@@ -309,8 +380,7 @@ static SQInteger _flwidget_callback(HSQUIRRELVM sqvm)
         }
         if(sq_type(mycb->callback) == OT_CLOSURE || sq_type(mycb->callback) == OT_NATIVECLOSURE){
             sq_addref(sqvm,&mycb->callback);
-            sq_getcallee(sqvm);
-            sq_getstackobj(sqvm, -1, &mycb->callee);
+            //sq_getstackobj(sqvm, 1, &mycb->sender);
             self->callback(&fltk_calback_hook, mycb);
             //registry for free when widget is destroyed
             sq_pushregistrytable(sqvm);
@@ -345,6 +415,25 @@ FL_WIDGET_INT_CALL(h);
 FL_WIDGET_VOID_CALL_2INT(position);
 FL_WIDGET_VOID_CALL_2INT(size);
 FL_WIDGET_VOID_CALL_4INT(resize);
+
+//FL_WIDGET_STR_CALL(classId);
+
+static SQInteger _flwidget_classId(HSQUIRRELVM sqvm)
+{
+    SETUP_FL_WIDGET(sqvm);
+    if(!self) return sq_throwerror(sqvm, _SC("attempt to call method with null object"));
+    const char *cn = self->classId();
+    sq_pushstring(sqvm, cn, -1);
+	return 1;
+}
+
+static SQInteger _flwidget_parent(HSQUIRRELVM sqvm)
+{
+    SETUP_FL_WIDGET(sqvm);
+    if(!self) return sq_throwerror(sqvm, _SC("attempt to call method with null object"));
+    if(getInstance_for_Fl_Widget(sqvm, self->parent()) != SQ_OK) sq_pushnull(sqvm);
+	return 1;
+}
 
 static SQInteger _flwidget_handle(HSQUIRRELVM sqvm)
 {
@@ -389,6 +478,8 @@ static SQRegFunction fl_widget_obj_funcs[]={
 	_DECL_FL_WIDGET_FUNC(resize,5,_SC("xiiii")),
 	_DECL_FL_WIDGET_FUNC(show,1,_SC("x")),
 	_DECL_FL_WIDGET_FUNC(hide,1,_SC("x")),
+	_DECL_FL_WIDGET_FUNC(classId,1,_SC("x")),
+	_DECL_FL_WIDGET_FUNC(parent,1,_SC("x")),
 	{0,0}
 };
 
@@ -469,18 +560,62 @@ static SQRegFunction fl_choice_obj_funcs[]={
 
 
 FLTK_CONSTRUCTOR(Fl_Input_);
+#define SETUP_FL_INPUT_(v) SETUP_FL_KLASS(v, Fl_Input_)
+FUNC_GETSET_STR(_Fl_Input__, SETUP_FL_INPUT_(sqvm), self->, value);
 #define _DECL_FL_INPUT__FUNC(name,nparams,pmask) {_SC(#name),_Fl_Input__##name,nparams,pmask}
 static SQRegFunction fl_input__obj_funcs[]={
 	_DECL_FL_INPUT__FUNC(constructor,-5,_SC("xiiiis")),
+	_DECL_FL_INPUT__FUNC(value,-1,_SC("xs")),
 	{0,0}
 };
 
-FLTK_CONSTRUCTOR(Fl_Input);
-#define _DECL_FL_INPUT_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Input_##name,nparams,pmask}
+class MyFl_Input : public Fl_Input {
+    public:
+    MyFl_Input(int X, int Y, int W, int H, const char *L=0):Fl_Input(X,Y,W,H,L){}
+    int handle(int event){
+        HSQUIRRELVM sqvm = (HSQUIRRELVM) Fl::user_data;
+        SQInteger top = sq_gettop(sqvm);
+        if(sq_get_fl_virtual(sqvm, this, "handle") == SQ_OK){
+            sq_push(sqvm, -2); //this
+            sq_pushinteger(sqvm, event);
+            if(sq_call(sqvm, 2, SQTrue, SQTrue) == SQ_OK){
+                if(sq_gettype(sqvm, -1) == OT_INTEGER){
+                    sq_getinteger(sqvm, -1, &event);
+                    sq_settop(sqvm, top);
+                    return event;
+                }
+            }
+            exit(-1);
+        }
+        sq_settop(sqvm, top);
+        return Fl_Input::handle(event);
+    }
+};
+
+FLTK_CONSTRUCTOR(MyFl_Input);
+
+static SQInteger _MyFl_Input_handle(HSQUIRRELVM sqvm)
+{
+    SQ_FUNC_VARS_NO_TOP(sqvm);
+    SETUP_FL_WIDGET(sqvm);
+    SQ_GET_INTEGER(sqvm, 2, event);
+    sq_pushinteger(sqvm, ((MyFl_Input*)self)->Fl_Input::handle(event));
+    return 1;
+}
+
+#define SETUP_FL_INPUT(v) SETUP_FL_KLASS(v, Fl_Input)
+FUNC_GETSET_STR(_MyFl_Input_, , Fl_Input::, default_number_format);
+FUNC_GETSET_STR(_MyFl_Input_, SETUP_FL_INPUT(sqvm), self->, number_format);
+
+#define _DECL_FL_INPUT_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_MyFl_Input_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_input_obj_funcs[]={
-	_DECL_FL_INPUT_FUNC(constructor,-5,_SC("xiiiis")),
+	_DECL_FL_INPUT_FUNC(constructor,-5,_SC("xiiiis"),SQFalse),
+	_DECL_FL_INPUT_FUNC(handle,2,_SC("xi"),SQFalse),
+	_DECL_FL_INPUT_FUNC(default_number_format,2,_SC("ys"),SQTrue),
+	_DECL_FL_INPUT_FUNC(number_format,2,_SC("xi"),SQFalse),
 	{0,0}
 };
+
 
 FLTK_CONSTRUCTOR(Fl_Float_Input);
 #define _DECL_FL_FLOAT_INPUT_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Float_Input_##name,nparams,pmask}
@@ -585,33 +720,65 @@ static SQRegFunction fl_text_editor_obj_funcs[]={
 };
 
 FLTK_CONSTRUCTOR(Fl_Text_Editor_Buffered);
+#define SETUP_FL_TEXT_EDITOR_BUFFERED(v) SETUP_FL_KLASS(v, Fl_Text_Editor_Buffered)
+
+static SQInteger _Fl_Text_Editor_Buffered_value(HSQUIRRELVM sqvm)
+{
+    SQ_FUNC_VARS(sqvm);
+    const SQChar *txt;
+    SETUP_FL_TEXT_EDITOR_BUFFERED(sqvm);
+    if(_top_ > 1){
+        sq_getstring(sqvm, 2, &txt);
+        self->buffer()->text(txt);
+        return 0;
+    }
+    txt = self->buffer()->text();
+    sq_pushstring(sqvm, txt, -1);
+    return 1;
+}
+
 #define _DECL_FL_TEXT_EDITOR_BUFFERED_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Text_Editor_Buffered_##name,nparams,pmask}
 static SQRegFunction fl_text_editor_buffered_obj_funcs[]={
 	_DECL_FL_TEXT_EDITOR_BUFFERED_FUNC(constructor,-5,_SC("xiiiis")),
+	_DECL_FL_TEXT_EDITOR_BUFFERED_FUNC(value,-1,_SC("xs")),
 	{0,0}
 };
+
+class MyFl_Window : public Fl_Window {
+    public:
+    MyFl_Window(int X, int Y, int W, int H, const char *L=0):Fl_Window(X,Y,W,H,L){}
+    void hide(){sq_call_fl_virtual(this, "hide");}
+};
+
+static SQInteger _MyFl_Window_hide(HSQUIRRELVM sqvm)
+{
+    SETUP_FL_WIDGET(sqvm);
+    ((MyFl_Window*)self)->Fl_Window::hide();
+	return 0;
+}
 
 
 static SQInteger _fl_window_releasehook(SQUserPointer p, SQInteger size)
 {
-	Fl_Window *self = ((Fl_Window *)p);
-	delete self;
+	MyFl_Window *self = ((MyFl_Window *)p);
+	Fl::delete_widget(self);
 	//printf("Releasing %p\n", self);
 	return 1;
 }
 
-FLTK_CONSTRUCTOR_RELEASE(Fl_Window, AS_IS, _fl_window_releasehook);
+FLTK_CONSTRUCTOR_RELEASE(MyFl_Window, AS_IS, _fl_window_releasehook);
 
-#define _DECL_FL_WINDOW_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Window_##name,nparams,pmask}
+#define _DECL_FL_WINDOW_FUNC(name,nparams,pmask) {_SC(#name),_MyFl_Window_##name,nparams,pmask}
 static SQRegFunction fl_window_obj_funcs[]={
 	_DECL_FL_WINDOW_FUNC(constructor,-5,_SC("xiiiis")),
+	_DECL_FL_WINDOW_FUNC(hide,1,_SC("x")),
 	{0,0}
 };
 
 static SQInteger _fl_double_window_releasehook(SQUserPointer p, SQInteger size)
 {
 	Fl_Double_Window *self = ((Fl_Double_Window *)p);
-	delete self;
+	Fl::delete_widget(self);
 	//printf("Releasing %p\n", self);
 	return 1;
 }
@@ -662,33 +829,259 @@ static SQInteger _fl_show(HSQUIRRELVM sqvm)
 	return 1;
 }
 
-static SQInteger _fl_run(HSQUIRRELVM sqvm)
+#define FL_FUNC_NO_ARG_NO_RET(fn) static SQInteger _fl_##fn(HSQUIRRELVM sqvm){Fl::fn();return 0;}
+FL_FUNC_NO_ARG_NO_RET(check);
+FL_FUNC_NO_ARG_NO_RET(do_widget_deletion);
+
+#define FL_FUNC_NO_ARG_RET_INT(fn) static SQInteger _fl_##fn(HSQUIRRELVM sqvm){sq_pushinteger(sqvm, Fl::fn());return 1;}
+FL_FUNC_NO_ARG_RET_INT(run);
+FL_FUNC_NO_ARG_RET_INT(event);
+FL_FUNC_NO_ARG_RET_INT(event_alt);
+FL_FUNC_NO_ARG_RET_INT(event_button);
+FL_FUNC_NO_ARG_RET_INT(event_button1);
+FL_FUNC_NO_ARG_RET_INT(event_button2);
+FL_FUNC_NO_ARG_RET_INT(event_button3);
+FL_FUNC_NO_ARG_RET_INT(event_buttons);
+FL_FUNC_NO_ARG_RET_INT(event_command);
+FL_FUNC_NO_ARG_RET_INT(event_ctrl);
+FL_FUNC_NO_ARG_RET_INT(event_dx);
+FL_FUNC_NO_ARG_RET_INT(event_dy);
+FL_FUNC_NO_ARG_RET_INT(event_length);
+FL_FUNC_NO_ARG_RET_INT(event_shift);
+FL_FUNC_NO_ARG_RET_INT(event_x);
+FL_FUNC_NO_ARG_RET_INT(event_x_root);
+FL_FUNC_NO_ARG_RET_INT(event_y);
+FL_FUNC_NO_ARG_RET_INT(event_y_root);
+FL_FUNC_NO_ARG_RET_INT(x);
+FL_FUNC_NO_ARG_RET_INT(y);
+FL_FUNC_NO_ARG_RET_INT(h);
+FL_FUNC_NO_ARG_RET_INT(w);
+FL_FUNC_NO_ARG_RET_INT(ready);
+FL_FUNC_NO_ARG_RET_INT(screen_count);
+
+#define FL_FUNC_GETSET_INT(fn) FUNC_GETSET_INT(_fl_, , Fl::, fn, int)
+
+FL_FUNC_GETSET_INT(event_key);
+FL_FUNC_GETSET_INT(event_state);
+FL_FUNC_GETSET_INT(event_is_click);
+FL_FUNC_GETSET_INT(event_clicks);
+FL_FUNC_GETSET_INT(scrollbar_size);
+FL_FUNC_GETSET_INT(visible_focus);
+
+#define FL_FUNC_GETSET_INT_ONE_CALL(fn) FUNC_GETSET_INT_ONE_CALL(_fl_, , Fl::, fn, int)
+FL_FUNC_GETSET_INT_ONE_CALL(visual);
+
+#define FL_FUNC_GETSET_INT_BOOL(fn) FUNC_GETSET_INT_BOOL(_fl_, , Fl::, fn, Fl::Fl_Option)
+FL_FUNC_GETSET_INT_BOOL(option);
+
+#define FL_FUNC_GETSET_STR(fn) FUNC_GETSET_STR(_fl_, , Fl::, fn)
+FL_FUNC_GETSET_STR(scheme);
+
+static SQInteger _fl_delete_widget(HSQUIRRELVM v)
 {
-	sq_pushinteger(sqvm, Fl::run());
-	return 1;
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_INSTANCE_VAR(v, 2, Fl_Widget, widget, FLTK_TAG(Fl_Widget));
+	Fl::delete_widget(widget);
+	return 0;
 }
 
+static void fltk_cb_hook(void* udata, bool freeAfter){
+    HSQUIRRELVM sqvm = (HSQUIRRELVM) Fl::user_data;
+    SQInteger savedTop = sq_gettop(sqvm);
+    st_mycb *mycb = (st_mycb *)udata;
+    sq_pushobject(sqvm, mycb->callback);
+    sq_pushroottable(sqvm); //’this’ (function environment object)
+    sq_pushobject(sqvm, mycb->udata);
+    sq_call(sqvm, 2, SQFalse, SQTrue);
+
+    if(freeAfter){
+        //cleanup
+        sq_release(sqvm, &mycb->callback);
+        sq_release(sqvm, &mycb->udata);
+        sq_free(mycb, sizeof(st_mycb));
+    }
+
+    //restore stack
+    sq_settop(sqvm, savedTop);
+}
+
+static SQInteger fltk_add_cb(HSQUIRRELVM v, int idx, st_mycb **cb)
+{
+    int ptype = sq_gettype(v, idx);
+    if(ptype == OT_CLOSURE || ptype == OT_NATIVECLOSURE){
+        st_mycb *mycb = (st_mycb *)sq_malloc(sizeof(st_mycb));
+        memset(mycb, 0, sizeof(mycb));
+        sq_getstackobj(v, idx, &mycb->callback);//fetches an handle of the function you passed
+        sq_addref(v, &mycb->callback);
+        if(sq_gettop(v) > idx) { //we have user data too
+            sq_getstackobj(v, idx+1, &mycb->udata);
+            sq_addref(v,&mycb->udata);
+        }
+        *cb = mycb;
+    }
+    return 0;
+}
+
+static void fltk_add_timeout_hook(void* udata){
+    fltk_cb_hook(udata, true);
+}
+
+static void fltk_add_idle_hook(void* udata){
+    fltk_cb_hook(udata, false);
+}
+
+static SQInteger _fl_add_timeout(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_FLOAT(v, 2, delay);
+    st_mycb *mycb;
+    fltk_add_cb(v, 3, &mycb);
+    if(mycb)  Fl::add_timeout(delay, &fltk_add_timeout_hook, mycb);
+    return 0;
+}
+
+static SQInteger _fl_add_idle(HSQUIRRELVM v)
+{
+    st_mycb *mycb;
+    fltk_add_cb(v, 2, &mycb);
+    if(mycb)  Fl::add_idle(&fltk_add_idle_hook, mycb);
+    return 0;
+}
+
+
+static int flfk_focus_changing_handler_hook(Fl_Widget *to, Fl_Widget *from){
+    HSQUIRRELVM v = (HSQUIRRELVM) Fl::user_data;
+    SQInteger result;
+    SQInteger savedTop = sq_gettop(v);
+    sq_pushuserpointer(v, (void*)flfk_focus_changing_handler_hook);
+    sq_getonregistrytable(v);
+    if(sq_gettype(v, -1) == OT_CLOSURE){
+        sq_pushroottable(v);
+        if(getInstance_for_Fl_Widget(v, to) != SQ_OK) sq_pushnull(v);
+        if(getInstance_for_Fl_Widget(v, from) != SQ_OK) sq_pushnull(v);
+        if(sq_call(v, 3, SQTrue, SQTrue) == SQ_OK &&
+            sq_getinteger(v, -1, &result) == SQ_OK){
+            return result;
+        };
+    }
+    //restore stack
+    sq_settop(v, savedTop);
+    return 0;
+}
+
+static SQInteger _fl_add_focus_changing_handler(HSQUIRRELVM v)
+{
+    sq_pushregistrytable(v);
+    sq_pushuserpointer(v, (void*)flfk_focus_changing_handler_hook);
+    sq_push(v, 2);
+    sq_rawset(v, -3);
+    Fl::add_focus_changing_handler(flfk_focus_changing_handler_hook);
+    return 0;
+}
+
+static SQInteger _fl_set_fonts(HSQUIRRELVM v)
+{
+    const SQChar *filter = 0;
+    if(sq_gettop(v) > 1) sq_getstring(v, 2, &filter);
+    sq_pushinteger(v, Fl::set_fonts(filter));
+    return 1;
+}
+
+static SQInteger _fl_set_font(HSQUIRRELVM v)
+{
+    const SQChar *fname = 0;
+    SQInteger font, new_font;
+    sq_getinteger(v, 2, &font);
+    SQObjectType ptype = sq_gettype(v, 3);
+    if(ptype == OT_INTEGER) {
+        sq_getinteger(v, 3, &new_font);
+        Fl::set_font((Fl_Font)font, (Fl_Font)new_font);
+    }
+    else if(ptype == OT_STRING) {
+        sq_getstring(v, 3, &fname);
+        Fl::set_font((Fl_Font)font, fname);
+    }
+    else return sq_throwerror(v, _SC("invalid parameter number 2"));
+    return 0;
+}
+
+static SQInteger _fl_get_font(HSQUIRRELVM v)
+{
+    SQInteger font;
+    sq_getinteger(v, 2, &font);
+    sq_pushstring(v, Fl::get_font((Fl_Font)font), -1);
+    return 1;
+}
+
+static SQInteger _fl_get_font_name(HSQUIRRELVM v)
+{
+    SQInteger font, attributes = 0;
+    sq_getinteger(v, 2, &font);
+    const char *fname = Fl::get_font_name((Fl_Font)font, &attributes);
+    sq_newtable(v);
+
+    sq_pushliteral(v, _SC("name"));
+    sq_pushstring(v, fname, -1);
+    sq_newslot(v, -3, SQFalse);
+
+    sq_pushliteral(v, _SC("attributes"));
+    sq_pushinteger(v, attributes);
+    sq_newslot(v, -3, SQFalse);
+
+    return 1;
+}
 
 #define _DECL_FL_FUNC(name,nparams,pmask) {_SC(#name),_fl_##name,nparams,pmask}
 static SQRegFunction fl_obj_funcs[]={
-	_DECL_FL_FUNC(show,-1,_SC("y")),
+	_DECL_FL_FUNC(check,1,_SC("y")),
 	_DECL_FL_FUNC(run,1,_SC("y")),
+	_DECL_FL_FUNC(event,1,_SC("y")),
+	_DECL_FL_FUNC(event_alt,1,_SC("y")),
+	_DECL_FL_FUNC(event_button,1,_SC("y")),
+	_DECL_FL_FUNC(event_button1,1,_SC("y")),
+	_DECL_FL_FUNC(event_button2,1,_SC("y")),
+	_DECL_FL_FUNC(event_button3,1,_SC("y")),
+	_DECL_FL_FUNC(event_buttons,1,_SC("y")),
+	_DECL_FL_FUNC(event_command,1,_SC("y")),
+	_DECL_FL_FUNC(event_ctrl,1,_SC("y")),
+	_DECL_FL_FUNC(event_dx,1,_SC("y")),
+	_DECL_FL_FUNC(event_dy,1,_SC("y")),
+	_DECL_FL_FUNC(event_length,1,_SC("y")),
+	_DECL_FL_FUNC(event_shift,1,_SC("y")),
+	_DECL_FL_FUNC(event_x,1,_SC("y")),
+	_DECL_FL_FUNC(event_x_root,1,_SC("y")),
+	_DECL_FL_FUNC(event_y,1,_SC("y")),
+	_DECL_FL_FUNC(event_y_root,1,_SC("y")),
+	_DECL_FL_FUNC(x,1,_SC("y")),
+	_DECL_FL_FUNC(y,1,_SC("y")),
+	_DECL_FL_FUNC(h,1,_SC("y")),
+	_DECL_FL_FUNC(w,1,_SC("y")),
+	_DECL_FL_FUNC(ready,1,_SC("y")),
+	_DECL_FL_FUNC(screen_count,1,_SC("y")),
+
+	_DECL_FL_FUNC(set_fonts,-1,_SC("ys")),
+	_DECL_FL_FUNC(set_font,3,_SC("yi s|i")),
+	_DECL_FL_FUNC(get_font,2,_SC("yi")),
+	_DECL_FL_FUNC(get_font_name, 2,_SC("yi")),
+	_DECL_FL_FUNC(scheme,-1,_SC("ys")),
+	_DECL_FL_FUNC(visual,2,_SC("yi")),
+	_DECL_FL_FUNC(option,-2,_SC("yib")),
+
+	_DECL_FL_FUNC(event_key,-1,_SC("yi")),
+	_DECL_FL_FUNC(event_state,-1,_SC("yi")),
+	_DECL_FL_FUNC(event_is_click,-1,_SC("yi")),
+	_DECL_FL_FUNC(event_clicks,-1,_SC("yi")),
+	_DECL_FL_FUNC(scrollbar_size,-1,_SC("yi")),
+	_DECL_FL_FUNC(visible_focus,-1,_SC("yi")),
+
+	_DECL_FL_FUNC(do_widget_deletion,1,_SC("y")),
+	_DECL_FL_FUNC(delete_widget,2,_SC("yx")),
+	_DECL_FL_FUNC(add_timeout,-3,_SC("ync.")),
+	_DECL_FL_FUNC(add_idle,-2,_SC("yc.")),
+	_DECL_FL_FUNC(add_focus_changing_handler,2,_SC("yc")),
 	{0,0}
 };
 #undef _DECL_FL_FUNC
-
-static void insertFuncs(HSQUIRRELVM sqvm, SQRegFunction *obj_funcs){
-	SQInteger i = 0;
-	while(obj_funcs[i].name != 0) {
-		SQRegFunction &f = obj_funcs[i];
-		sq_pushstring(sqvm,f.name,-1);
-		sq_newclosure(sqvm,f.f,0);
-		sq_setparamscheck(sqvm,f.nparamscheck,f.typemask);
-		sq_setnativeclosurename(sqvm,-1,f.name);
-		sq_newslot(sqvm,-3,SQFalse);
-		i++;
-	}
-}
 
 #define PUSH_FL_CLASS(klass, parent, method_funcs)\
 	sq_pushstring(sqvm,_SC(#klass),-1);\
@@ -697,8 +1090,12 @@ static void insertFuncs(HSQUIRRELVM sqvm, SQRegFunction *obj_funcs){
         return sq_throwerror(sqvm, _SC("Missing base class."));\
 	sq_newclass(sqvm,SQTrue);\
 	sq_settypetag(sqvm,-1,(void*)FLTK_TAG(klass));\
-	insertFuncs(sqvm, method_funcs);\
+	sq_insert_reg_funcs(sqvm, method_funcs);\
 	sq_newslot(sqvm,-3,SQFalse);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 SQRESULT sqstd_register_fltklib(HSQUIRRELVM sqvm)
 {
@@ -706,19 +1103,66 @@ SQRESULT sqstd_register_fltklib(HSQUIRRELVM sqvm)
 	sq_pushstring(sqvm,_SC("fltk"),-1);
 	sq_newtable(sqvm);
 
+#define INT_CONST_PREFIX(prefix, key) \
+    sq_pushstring(sqvm, _SC(#key), -1);\
+    sq_pushinteger(sqvm, prefix key);\
+    sq_newslot(sqvm, -3, SQTrue);
+
+#define INT_CONST(key) INT_CONST_PREFIX(, key)
+
+    INT_CONST(FL_WHITE);
+    INT_CONST(FL_BLACK);
+    INT_CONST(FL_RED);
+    INT_CONST(FL_GREEN);
+    INT_CONST(FL_YELLOW);
+    INT_CONST(FL_BLUE);
+    INT_CONST(FL_MAGENTA);
+    INT_CONST(FL_CYAN);
+    INT_CONST(FL_DARK_RED);
+    INT_CONST(FL_DARK_GREEN);
+    INT_CONST(FL_DARK_YELLOW);
+    INT_CONST(FL_DARK_BLUE);
+    INT_CONST(FL_DARK_MAGENTA);
+    INT_CONST(FL_DARK_CYAN);
+
+    INT_CONST(FL_RGB);
+    INT_CONST(FL_RGB8);
+    INT_CONST(FL_DOUBLE);
+    INT_CONST(FL_INDEX);
+
+    INT_CONST(FL_HELVETICA);
+    INT_CONST(FL_TIMES);
+    INT_CONST(FL_TIMES_ITALIC);
+    INT_CONST(FL_HELVETICA_ITALIC);
+    INT_CONST(FL_ITALIC);
+    INT_CONST(FL_TIMES_BOLD);
+    INT_CONST(FL_HELVETICA_BOLD);
+    INT_CONST(FL_BOLD);
+    INT_CONST(FL_TIMES_BOLD_ITALIC);
+    INT_CONST(FL_HELVETICA_BOLD_ITALIC);
+
     //Fl class
 	sq_pushstring(sqvm,_SC("Fl"),-1);
 	sq_newclass(sqvm,SQFalse);
 	sq_settypetag(sqvm,-1,(void*)FLTK_TAG(Fl));
-	insertFuncs(sqvm, fl_obj_funcs);
+	sq_insert_reg_funcs(sqvm, fl_obj_funcs);
+
+    INT_CONST_PREFIX(Fl::, OPTION_ARROW_FOCUS);
+    INT_CONST_PREFIX(Fl::, OPTION_VISIBLE_FOCUS);
+    INT_CONST_PREFIX(Fl::, OPTION_DND_TEXT);
+    INT_CONST_PREFIX(Fl::, OPTION_SHOW_TOOLTIPS);
+
 	sq_newslot(sqvm,-3,SQFalse);
 
 	//Fl_Widget class
 	sq_pushstring(sqvm,_SC("Fl_Widget"),-1);
 	sq_newclass(sqvm,SQFalse);
+	sq_pushuserpointer(sqvm, (void*)FLTK_TAG(Fl_Widget));
+	sq_push(sqvm,-2); //copy class to insert on registry table
+	sq_setonregistrytable(sqvm); //save a reference on registry to easy access
 	sq_settypetag(sqvm,-1,(void*)FLTK_TAG(Fl_Widget));
-	insertFuncs(sqvm, fl_widget_obj_funcs);
-	sq_newslot(sqvm,-3,SQFalse);
+	sq_insert_reg_funcs(sqvm, fl_widget_obj_funcs);
+	sq_newslot(sqvm,-3,SQFalse); //add to roottable
 
 	//Fl_Box class
 	PUSH_FL_CLASS(Fl_Box, Fl_Widget, fl_box_obj_funcs);
@@ -760,21 +1204,13 @@ SQRESULT sqstd_register_fltklib(HSQUIRRELVM sqvm)
 	sq_newslot(sqvm,-3,SQFalse); //add fltk table to the root table
     sq_poptop(sqvm); //removes fltk table
 
-#define INT_CONST(key) \
-    sq_pushstring(sqvm, _SC(#key), -1);\
-    sq_pushinteger(sqvm, key);\
-    sq_newslot(sqvm, -3, SQFalse);
-
-    sq_pushconsttable(sqvm);
-    INT_CONST(FL_RED);
-    INT_CONST(FL_YELLOW);
-    INT_CONST(FL_GREEN);
-    sq_poptop(sqvm);
-
     //check to see if we need to release resources
     Fl::do_at_widget_destroy_ = At_Widget_Destroy;
 
 	return SQ_OK;
 }
+#ifdef __cplusplus
+}
+#endif
 
 #endif //WITH_FLTK
