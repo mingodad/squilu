@@ -72,6 +72,7 @@ struct SQVM;
 #define TK_CONST 324
 #define TK___LINE__ 325
 #define TK___FILE__ 326
+#define TK_IGNORE 327
 
 
 typedef void(*CompilerErrorFunc)(void *ud, const SQChar *s);

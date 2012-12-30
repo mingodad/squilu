@@ -870,6 +870,11 @@ public:
 			_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(_sourcename));
 			Lex();
 			break;
+		case TK_IGNORE:
+            Warning("Keyword ignored \"%s\" at line %d:%d\n", _lex.Tok2Str(_token),
+                    _lex._currentline, _lex._currentcolumn);
+            Lex(); Factor();
+            break;
 		default: Error(_SC("expression expected"));
 		}
 		return -1;
