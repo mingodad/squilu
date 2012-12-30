@@ -115,6 +115,8 @@ typedef struct dir_data {
 #define LSTAT_FUNC lstat
 #endif
 
+static const SQChar currFileName_key[] = _SC("currFileName");
+
 /*
 ** This function changes the working (current) directory
 */
@@ -458,6 +460,10 @@ static SQRESULT _dir_constructor(HSQUIRRELVM v)
     if (dir->dir == NULL)
       return sq_throwerror(v, "cannot open %s: %s", path, strerror (errno));
 #endif
+    //sq_pushstring(v, currFileName_key, sizeof(currFileName_key)-1); //store file name between iterations
+    //sq_pushliteral(v, _SC(""));
+    //if(sq_set(v, 1) != SQ_OK) return SQ_ERROR;
+
     sq_setinstanceup(v, 1, dir); //replace self for this instance with this new sqlite3_stmt
     sq_setreleasehook(v,1, _dir_releasehook);
 	return 1;
@@ -473,11 +479,8 @@ static SQRESULT _dir_close(HSQUIRRELVM v)
 
 static SQRESULT _dir__get(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS_NO_TOP(v);
-    GET_dir_INSTANCE();
-    sq_pushuserpointer(v, self);
-    if(sq_getonregistrytable(v) != SQ_OK) sq_pushnull(v);
-    //do not worry about registry table it will be removed anyway when restoring the stack
+    sq_pushstring(v, currFileName_key, sizeof(currFileName_key)-1);
+    if(sq_get(v, 1) == SQ_ERROR) sq_pushnull(v);
     return 1;
 }
 
@@ -526,9 +529,9 @@ static SQRESULT _dir__nexti(HSQUIRRELVM v)
     }
     fname = entry->d_name;
 #endif
-    sq_pushuserpointer(v, self);
+    sq_pushstring(v, currFileName_key, sizeof(currFileName_key)-1);
     sq_pushstring(v, fname, -1);
-    sq_setonregistrytable(v);
+    if(sq_set(v, 1) != SQ_OK) return SQ_ERROR;
 
 	sq_pushinteger(v, idx);
 	return 1;
@@ -828,6 +831,11 @@ extern "C" {
         sq_newclass(v, SQFalse);
         sq_settypetag(v,-1,(void*)SQFS_DIR_TAG);
         sq_insert_reg_funcs(v, _dir_methods);
+
+        sq_pushstring(v, currFileName_key, sizeof(currFileName_key)-1); //store file name between iterations
+        sq_pushnull(v);
+        sq_newslot(v,-3,SQFalse);
+
         sq_newslot(v,-3,SQTrue);
 
         sq_newslot(v,-3,SQTrue);
