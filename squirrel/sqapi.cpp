@@ -290,6 +290,23 @@ SQRESULT sq_newclass(HSQUIRRELVM v,SQBool hasbase)
 	return SQ_OK;
 }
 
+SQRESULT sq_pushnewclass(HSQUIRRELVM v, const SQChar *className,
+                          const SQChar *parentName,
+                          void *classTag, SQRegFunction *methods){
+    if(!className || !classTag)
+        return sq_throwerror(v, _SC("Missing base class name or class tag."));
+	sq_pushstring(v,className,-1);
+	if(parentName){
+        sq_pushstring(v, parentName,-1);
+        if (SQ_FAILED(sq_get(v, -3)))
+            return sq_throwerror(v, _SC("Missing base class \"%s\" for \"%s\"."), parentName, className);
+	}
+	sq_newclass(v,SQTrue);
+	sq_settypetag(v,-1,classTag);
+	if(methods) sq_insert_reg_funcs(v, methods);
+	return sq_newslot(v, -3, parentName ? SQTrue : SQFalse);
+}
+
 SQBool sq_instanceof(HSQUIRRELVM v)
 {
 	SQObjectPtr &inst = stack_get(v,-1);
