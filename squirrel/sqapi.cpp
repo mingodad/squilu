@@ -292,19 +292,37 @@ SQRESULT sq_newclass(HSQUIRRELVM v,SQBool hasbase)
 
 SQRESULT sq_pushnewclass(HSQUIRRELVM v, const SQChar *className,
                           const SQChar *parentName,
-                          void *classTag, SQRegFunction *methods){
+                          void *classTag, SQRegFunction *methods,
+                          SQBool leaveOnTop){
     if(!className || !classTag)
-        return sq_throwerror(v, _SC("Missing base class name or class tag."));
+        return sq_throwerror(v, _SC("Missing class name or class tag."));
+    SQBool hasBase = parentName ? SQTrue : SQFalse;
+    SQInteger top = sq_gettop(v);
+    HSQOBJECT obj;
+
 	sq_pushstring(v,className,-1);
-	if(parentName){
+	if(hasBase){
         sq_pushstring(v, parentName,-1);
-        if (SQ_FAILED(sq_get(v, -3)))
+        if (SQ_FAILED(sq_getonroottable(v)) || sq_gettype(v, -1) != OT_CLASS){
+            sq_settop(v, top); //leave stack as we got it
             return sq_throwerror(v, _SC("Missing base class \"%s\" for \"%s\"."), parentName, className);
+        }
 	}
-	sq_newclass(v,SQTrue);
+	sq_newclass(v, hasBase);
 	sq_settypetag(v,-1,classTag);
 	if(methods) sq_insert_reg_funcs(v, methods);
-	return sq_newslot(v, -3, parentName ? SQTrue : SQFalse);
+
+	if(leaveOnTop){
+	    sq_resetobject(&obj);
+	    sq_getstackobj(v, -1, &obj);
+	}
+
+	if(SQ_FAILED(sq_newslot(v, -3, SQFalse))){
+            sq_settop(v, top); //leave stack as we got it
+            return SQ_ERROR;
+    }
+    if(leaveOnTop) sq_pushobject(v, obj);
+	return SQ_OK;
 }
 
 SQBool sq_instanceof(HSQUIRRELVM v)

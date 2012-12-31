@@ -400,7 +400,7 @@ SQUIRREL_API SQRESULT sq_setclassudsize(HSQUIRRELVM v, SQInteger idx, SQInteger 
 SQUIRREL_API SQRESULT sq_newclass(HSQUIRRELVM v,SQBool hasbase);
 SQUIRREL_API SQRESULT sq_pushnewclass(HSQUIRRELVM v, const SQChar *className,
                           const SQChar *parentName,
-                          void *classTag, SQRegFunction *methods);
+                          void *classTag, SQRegFunction *methods, SQBool leaveOnTop);
 SQUIRREL_API SQRESULT sq_createinstance(HSQUIRRELVM v,SQInteger idx);
 SQUIRREL_API SQRESULT sq_setattributes(HSQUIRRELVM v,SQInteger idx);
 SQUIRREL_API SQRESULT sq_getattributes(HSQUIRRELVM v,SQInteger idx);
