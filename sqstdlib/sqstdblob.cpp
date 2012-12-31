@@ -161,6 +161,22 @@ static SQInteger _blob_swap2(HSQUIRRELVM v)
 	return 0;
 }
 
+static SQInteger _blob_memset(HSQUIRRELVM v)
+{
+	SETUP_BLOB(v);
+	SQInteger idx,val,size;
+	sq_getinteger(v,2,&idx);
+	sq_getinteger(v,3,&val);
+	sq_getinteger(v,4,&size);
+	if(idx < 0 || idx >= self->Len())
+		return sq_throwerror(v,_SC("index out of range"));
+	if(idx+size < 0 || idx+size >= self->Len())
+		return sq_throwerror(v,_SC("index+size out of range"));
+    memset(((unsigned char*)self->GetBuf())+idx, val, size);
+	sq_push(v,3);
+	return 1;
+}
+
 static SQInteger _blob__set(HSQUIRRELVM v)
 {
 	SETUP_BLOB(v);
@@ -268,18 +284,25 @@ static SQInteger _blob__tostring(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQInteger _blob_asString(HSQUIRRELVM v)
+{
+    return _blob__tostring(v);
+}
+
 #define _DECL_BLOB_FUNC(name,nparams,typecheck) {_SC(#name),_blob_##name,nparams,typecheck}
 static SQRegFunction _blob_methods[] = {
 	_DECL_BLOB_FUNC(constructor,-1,_SC("xnn")),
 	_DECL_BLOB_FUNC(resize,2,_SC("xn")),
 	_DECL_BLOB_FUNC(swap2,1,_SC("x")),
 	_DECL_BLOB_FUNC(swap4,1,_SC("x")),
+	_DECL_BLOB_FUNC(memset,4,_SC("xnnn")),
 	_DECL_BLOB_FUNC(_set,3,_SC("xnn")),
 	_DECL_BLOB_FUNC(_get,2,_SC("xn")),
 	_DECL_BLOB_FUNC(_typeof,1,_SC("x")),
 	_DECL_BLOB_FUNC(_nexti,2,_SC("x")),
 	_DECL_BLOB_FUNC(_cloned,2,_SC("xx")),
 	_DECL_BLOB_FUNC(_tostring,1,_SC("x")),
+	_DECL_BLOB_FUNC(asString,1,_SC("x")),
 	{0,0,0,0}
 };
 
