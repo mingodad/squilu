@@ -378,6 +378,8 @@ static int str_find_aux (LuaMatchState *ms, int find, const char *s, int ls,
   else if (init > ls + 1) {  /* start after string's end? */
     return 0; /* cannot find anything */
   }
+  ms->src_init = s;
+  ms->src_end = s + ls;
 
 do_again:
   result = 0; /* not found */
@@ -386,11 +388,9 @@ do_again:
     /* do a plain search */
     const char *s2 = lmemfind(s + init, ls - init + 1, p, lp);
     if (s2) {
-      int start_pos = ((int)(s2 - s));
-      ms->level = 1;
-      ms->capture[0].len = CAP_POSITION;
-      ms->capture[0].init = (const char *)start_pos;
-      result = start_pos + lp;
+      ms->start_pos = ((int)(s2 - s));
+      result = ms->end_pos = ms->start_pos+lp;
+      ms->level = 0;
     }
   }
   else {
@@ -399,14 +399,13 @@ do_again:
     if (anchor) {
       p++; lp--;  /* skip anchor character */
     }
-    ms->src_init = s;
-    ms->src_end = s + ls;
     ms->p_end = p + lp;
     do {
       const char *res;
       ms->level = 0;
       if ((res=match(ms, s1, p)) != NULL) {
-          result = (int)(res - s);
+          ms->start_pos = s1-s;
+          result = ms->end_pos = res-s;
           goto eofunc;
       }
     } while (s1++ < ms->src_end && !anchor);
