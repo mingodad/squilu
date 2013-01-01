@@ -382,15 +382,24 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 		}
 		NEXT();
 		if(start_equals){
-		    SQInteger end_equals = start_equals;
-		    while(!IS_EOB() && CUR_CHAR == _SC('=')) {
-		        --end_equals;
-		        NEXT();
+		    if(CUR_CHAR == _SC('=')){
+                SQInteger end_equals = start_equals;
+                NEXT();
+                if(CUR_CHAR == _SC('=') || CUR_CHAR == _SC(']')){
+                    --end_equals;
+                    while(!IS_EOB() && CUR_CHAR == _SC('=')) {
+                        --end_equals;
+                        NEXT();
+                    }
+                    if(end_equals) Error(_SC("expect same number of '=' on literal delimiter"));
+                    if(CUR_CHAR != _SC(']')) Error(_SC("expect ']' to close literal delimiter"));
+                    NEXT();
+                    break;
+                }
+                APPEND_CHAR(_SC('='));
 		    }
-		    if(end_equals) Error(_SC("expect same number of '=' on literal delimiter"));
-		    if(CUR_CHAR != _SC(']')) Error(_SC("expect ']' to close literal delimiter"));
+		    APPEND_CHAR(CUR_CHAR);
 		    NEXT();
-		    break;
 		}
 		else if(verbatim && CUR_CHAR == '"') { //double quotation
 			APPEND_CHAR(CUR_CHAR);
