@@ -217,8 +217,19 @@ SQInteger SQLexer::Lex()
 			}
 		case _SC('{'): case _SC('}'): case _SC('('): case _SC(')'): case _SC('['): case _SC(']'):
 		case _SC(';'): case _SC(','): case _SC('?'): case _SC('^'): case _SC('~'):
-			{SQInteger ret = CUR_CHAR;
-			NEXT(); RETURN_TOKEN(ret); }
+			{
+			    SQInteger ret = CUR_CHAR;
+                NEXT();
+                if(ret == _SC('[') && CUR_CHAR == _SC('=')){
+                    //lets try lua literal delimiters
+                    SQInteger stype;
+                    if((stype=ReadString(CUR_CHAR,true))!=-1){
+                        RETURN_TOKEN(stype);
+                    }
+                    Error(_SC("error parsing the string"));
+                }
+                else RETURN_TOKEN(ret);
+            }
 		case _SC('.'):
 			NEXT();
 			if (CUR_CHAR != _SC('.')){ RETURN_TOKEN('.') }
@@ -294,6 +305,20 @@ SQInteger SQLexer::GetIDType(SQChar *s)
 SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 {
 	INIT_TEMP_STRING();
+	SQInteger start_equals = 0;
+	if(ndelim == _SC('=')){
+	    //lua like literal
+	    while(!IS_EOB() && CUR_CHAR == _SC('=')) {
+	        ++start_equals;
+	        NEXT();
+	    }
+	    if(CUR_CHAR != _SC('[')){
+	        //it's not a lua literal delimiter
+	        Error(_SC("expect '[' on literal delimiter"));
+	        return -1;
+	    }
+	    ndelim = _SC(']');
+	}
 	NEXT();
 	if(IS_EOB()) return -1;
 	for(;;) {
@@ -352,7 +377,18 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 			}
 		}
 		NEXT();
-		if(verbatim && CUR_CHAR == '"') { //double quotation
+		if(start_equals){
+		    SQInteger end_equals = start_equals;
+		    while(!IS_EOB() && CUR_CHAR == _SC('=')) {
+		        --end_equals;
+		        NEXT();
+		    }
+		    if(end_equals) Error(_SC("expect same number of '=' on literal delimiter"));
+		    if(CUR_CHAR != _SC(']')) Error(_SC("expect ']' to close literal delimiter"));
+		    NEXT();
+		    break;
+		}
+		else if(verbatim && CUR_CHAR == '"') { //double quotation
 			APPEND_CHAR(CUR_CHAR);
 			NEXT();
 		}
