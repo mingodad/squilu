@@ -326,6 +326,12 @@ public:
 		default:
 			CommaExpr();
 			_fs->DiscardTarget();
+            if(_token == TK_IDENTIFIER){
+                CommaExpr();
+                if(_token == TK_IDENTIFIER){
+                    Error(_SC(" '=' expected near '%s'"), _lex._svalue);
+                }
+            }
 			//_fs->PopTarget();
 			break;
 		}
