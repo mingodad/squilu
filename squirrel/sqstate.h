@@ -60,6 +60,11 @@ private:
 
 struct SQObjectPtr;
 
+struct SQDelayedReleseHook {
+    SQRELEASEHOOK hook;
+    SQUserPointer ptr;
+};
+
 struct SQSharedState
 {
 	SQSharedState();
@@ -86,6 +91,7 @@ public:
 #ifndef NO_GARBAGE_COLLECTOR
 	SQCollectable *_gc_chain;
 #endif
+    sqvector<SQDelayedReleseHook> _delayed_release_hook;
 	SQObjectPtr _root_vm;
 	SQObjectPtr _table_default_delegate;
 	static SQRegFunction _table_default_delegate_funcz[];

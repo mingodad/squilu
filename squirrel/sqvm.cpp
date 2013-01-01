@@ -125,6 +125,11 @@ SQVM::SQVM(SQSharedState *ss)
 
 void SQVM::Finalize()
 {
+    while(_sharedstate->_delayed_release_hook.size()){
+        SQDelayedReleseHook &dh = _sharedstate->_delayed_release_hook.back();
+        dh.hook(dh.ptr, 0, this);
+        _sharedstate->_delayed_release_hook.pop_back();
+    }
 	if(_openouters) CloseOuters(&_stack._vals[0]);
 	_roottable.Null();
 	_lasterror.Null();
@@ -730,6 +735,11 @@ exception_restore:
 					switch (type(clo)) {
 					case OT_CLOSURE:
 						_GUARD(StartCall(_closure(clo), sarg0, arg3, _stackbase+arg2, false));
+                        if(_sharedstate->_delayed_release_hook.size()){
+                            SQDelayedReleseHook &dh = _sharedstate->_delayed_release_hook.back();
+                            dh.hook(dh.ptr, 0, this);
+                            _sharedstate->_delayed_release_hook.pop_back();
+                        }
 						continue;
 					case OT_NATIVECLOSURE: {
 						bool suspend;

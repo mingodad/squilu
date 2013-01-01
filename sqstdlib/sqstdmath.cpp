@@ -338,7 +338,7 @@ static SQRegFunction mathlib_funcs[] = {
 SQRESULT sqstd_register_mathlib(HSQUIRRELVM v)
 {
     sq_pushstring(v,_SC("math"),-1);
-    sq_newclass(v,SQFalse);
+    sq_newtable(v);
 
 	SQInteger i=0;
 	while(mathlib_funcs[i].name!=0)	{

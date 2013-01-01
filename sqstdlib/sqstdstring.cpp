@@ -305,7 +305,7 @@ static SQInteger _string_split(HSQUIRRELVM v)
 	SQRex *self = NULL; \
 	sq_getinstanceup(v,1,(SQUserPointer *)&self,0);
 
-static SQInteger _rexobj_releasehook(SQUserPointer p, SQInteger size)
+static SQInteger _rexobj_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	SQRex *self = ((SQRex *)p);
 	sqstd_rex_free(self);

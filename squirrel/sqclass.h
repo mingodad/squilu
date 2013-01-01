@@ -56,9 +56,9 @@ public:
 	bool SetAttributes(const SQObjectPtr &key,const SQObjectPtr &val);
 	bool GetAttributes(const SQObjectPtr &key,SQObjectPtr &outval);
 	void Lock() { _locked = true; if(_base) _base->Lock(); }
-	void Release() { 
-		if (_hook) { _hook(_typetag,0);}
-		sq_delete(this, SQClass);	
+	void Release() {
+		if (_hook) { _hook(_typetag,0, 0);}
+		sq_delete(this, SQClass);
 	}
 	void Finalize();
 #ifndef NO_GARBAGE_COLLECTOR
@@ -133,7 +133,13 @@ public:
 	}
 	void Release() {
 		_uiRef++;
-		if (_hook) { _hook(_userpointer,0);}
+		if (_hook) {
+		    SQDelayedReleseHook dh;
+		    dh.hook = _hook;
+		    dh.ptr = _userpointer;
+		    _sharedstate->_delayed_release_hook.push_back(dh);
+		    //_hook(_userpointer,0);
+        }
 		_uiRef--;
 		if(_uiRef > 0) return;
 		SQInteger size = _memsize;

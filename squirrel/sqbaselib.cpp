@@ -1140,6 +1140,32 @@ static SQInteger string_find_lua(HSQUIRRELVM v)
         sq_pushinteger(v, rc);
         return 1;
     }
+    else if(rtype == OT_TABLE || rtype == OT_ARRAY){
+        LuaMatchState ms;
+        memset(&ms, 0, sizeof(ms));
+        int rc = str_find(&ms, src, src_size, pattern, pattern_size,
+                start, raw == SQTrue, 0, 0);
+        if(ms.error) return sq_throwerror(v, ms.error);
+        if(rtype == OT_TABLE){
+            sq_pushstring(v, _SC("start_pos"), -1);
+            sq_pushinteger(v, ms.start_pos);
+            sq_rawset(v, 3);
+            sq_pushstring(v, _SC("end_pos"), -1);
+            sq_pushinteger(v, ms.end_pos);
+            sq_rawset(v, 3);
+        }
+        else if(rtype == OT_ARRAY)
+        {
+            sq_pushinteger(v, 0);
+            sq_pushinteger(v, ms.start_pos);
+            sq_rawset(v, 3);
+            sq_pushinteger(v, 1);
+            sq_pushinteger(v, ms.end_pos);
+            sq_rawset(v, 3);
+        }
+        sq_pushinteger(v, rc);
+        return 1;
+    }
 	return sq_throwerror(v,"invalid type for parameter 3 function expected");
 }
 
@@ -1157,7 +1183,7 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
 	{_SC("slice"),string_slice,-1, _SC(" s n  n")},
 	{_SC("find"),string_find,-2, _SC("s s n ")},
-	{_SC("find_lua"),string_find_lua,-3, _SC("s s c i b")},
+	{_SC("find_lua"),string_find_lua,-3, _SC("s s c|t|a i b")},
 	{_SC("gsub"),string_gsub,-3, _SC("s s s|a|t|c n")},
 	{_SC("gmatch"),string_gmatch, 3, _SC("s s c")},
 	{_SC("tolower"),string_tolower,1, _SC("s")},
