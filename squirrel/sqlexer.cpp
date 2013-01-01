@@ -321,6 +321,10 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 	}
 	NEXT();
 	if(IS_EOB()) return -1;
+	if(start_equals && CUR_CHAR == _SC('\n')) {
+	    NEXT(); //if a new line follows the start of delimiter drop it
+        if(IS_EOB()) return -1;
+	}
 	for(;;) {
 		while(CUR_CHAR != ndelim) {
 			switch(CUR_CHAR) {
