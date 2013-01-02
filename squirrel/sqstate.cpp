@@ -25,6 +25,7 @@ SQSharedState::SQSharedState()
 	_errorfunc = NULL;
 	_debuginfo = false;
 	_notifyallexceptions = false;
+	_already_in_CallDelayedReleaseHooks = false;
 }
 
 #define newsysstring(s) {	\
@@ -227,15 +228,27 @@ SQInteger SQSharedState::GetMetaMethodIdxByName(const SQObjectPtr &name)
 	return -1;
 }
 
+void SQSharedState::AddDelayedReleaseHook(SQRELEASEHOOK hook, SQUserPointer ptr, SQInteger size)
+{
+    SQDelayedReleseHook dh;
+    dh.hook = hook;
+    dh.ptr = ptr;
+    dh.size = size;
+    _delayed_release_hook.push_back(dh);
+}
+
 void SQSharedState::CallDelayedReleaseHooks(SQVM *vm, int count)
 {
+    if(_already_in_CallDelayedReleaseHooks) return;
     if(_delayed_release_hook.size()){
+        _already_in_CallDelayedReleaseHooks = true;
         if(count == 0) count =  _delayed_release_hook.size();
         for(SQInteger i=0; i < count; ++i){
             SQDelayedReleseHook &dh = _delayed_release_hook[i];
             dh.hook(dh.ptr, dh.size, vm);
         }
         _delayed_release_hook.removeFromBegining(count);
+        _already_in_CallDelayedReleaseHooks = false;
     }
 }
 

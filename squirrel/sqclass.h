@@ -134,11 +134,7 @@ public:
 	void Release() {
 		_uiRef++;
 		if (_hook) {
-		    SQDelayedReleseHook dh;
-		    dh.hook = _hook;
-		    dh.ptr = _userpointer;
-		    dh.size = 0;
-		    _sharedstate->_delayed_release_hook.push_back(dh);
+		    _sharedstate->AddDelayedReleaseHook(_hook, _userpointer, 0);
 		    //_hook(_userpointer,0);
         }
 		_uiRef--;

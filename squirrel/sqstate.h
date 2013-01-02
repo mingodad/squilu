@@ -92,7 +92,7 @@ public:
 #ifndef NO_GARBAGE_COLLECTOR
 	SQCollectable *_gc_chain;
 #endif
-    sqvector<SQDelayedReleseHook> _delayed_release_hook;
+    void AddDelayedReleaseHook(SQRELEASEHOOK hook, SQUserPointer ptr, SQInteger size);
     void CallDelayedReleaseHooks(SQVM *vm, int count=0);
 	SQObjectPtr _root_vm;
 	SQObjectPtr _table_default_delegate;
@@ -122,6 +122,8 @@ public:
 	bool _debuginfo;
 	bool _notifyallexceptions;
 private:
+    bool _already_in_CallDelayedReleaseHooks;
+    sqvector<SQDelayedReleseHook> _delayed_release_hook;
 	SQChar *_scratchpad;
 	SQInteger _scratchpadsize;
 };

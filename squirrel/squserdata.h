@@ -25,11 +25,7 @@ struct SQUserData : SQDelegable
 #endif
 	void Release() {
 		if (_hook) {
-		    SQDelayedReleseHook dh;
-		    dh.hook = _hook;
-		    dh.ptr = (SQUserPointer)sq_aligning(this + 1);
-		    dh.size = _size;
-		    _sharedstate->_delayed_release_hook.push_back(dh);
+		    _sharedstate->AddDelayedReleaseHook(_hook, (SQUserPointer)sq_aligning(this + 1), _size);
 		    //_hook((SQUserPointer)sq_aligning(this + 1),_size, 0);
 		}
 		SQInteger tsize = _size;
