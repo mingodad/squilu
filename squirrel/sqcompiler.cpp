@@ -326,12 +326,16 @@ public:
 		default:
 			CommaExpr();
 			_fs->DiscardTarget();
+/*
+//Fagiano says that this is not a bug
+//and with this modification stack grow by one lement all the time
             if(_token == TK_IDENTIFIER){
                 CommaExpr();
                 if(_token == TK_IDENTIFIER){
                     Error(_SC(" '=' expected near '%s'"), _lex._svalue);
                 }
             }
+*/
 			//_fs->PopTarget();
 			break;
 		}
