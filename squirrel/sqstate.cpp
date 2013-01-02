@@ -227,6 +227,18 @@ SQInteger SQSharedState::GetMetaMethodIdxByName(const SQObjectPtr &name)
 	return -1;
 }
 
+void SQSharedState::CallDelayedReleaseHooks(SQVM *vm, int count)
+{
+    if(_delayed_release_hook.size()){
+        if(count == 0) count =  _delayed_release_hook.size();
+        for(SQInteger i=0; i < count; ++i){
+            SQDelayedReleseHook &dh = _delayed_release_hook[i];
+            dh.hook(dh.ptr, dh.size, vm);
+        }
+        _delayed_release_hook.removeFromBegining(count);
+    }
+}
+
 #ifndef NO_GARBAGE_COLLECTOR
 
 void SQSharedState::MarkObject(SQObjectPtr &o,SQCollectable **chain)

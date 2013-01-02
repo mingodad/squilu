@@ -24,13 +24,20 @@ struct SQUserData : SQDelegable
 	SQObjectType GetType(){ return OT_USERDATA;}
 #endif
 	void Release() {
-		if (_hook) _hook((SQUserPointer)sq_aligning(this + 1),_size, 0);
+		if (_hook) {
+		    SQDelayedReleseHook dh;
+		    dh.hook = _hook;
+		    dh.ptr = (SQUserPointer)sq_aligning(this + 1);
+		    dh.size = _size;
+		    _sharedstate->_delayed_release_hook.push_back(dh);
+		    //_hook((SQUserPointer)sq_aligning(this + 1),_size, 0);
+		}
 		SQInteger tsize = _size;
 		this->~SQUserData();
 		SQ_FREE(this, sq_aligning(sizeof(SQUserData)) + tsize);
 	}
-	
-		
+
+
 	SQInteger _size;
 	SQRELEASEHOOK _hook;
 	SQUserPointer _typetag;

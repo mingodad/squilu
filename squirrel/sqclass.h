@@ -137,6 +137,7 @@ public:
 		    SQDelayedReleseHook dh;
 		    dh.hook = _hook;
 		    dh.ptr = _userpointer;
+		    dh.size = 0;
 		    _sharedstate->_delayed_release_hook.push_back(dh);
 		    //_hook(_userpointer,0);
         }

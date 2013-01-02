@@ -98,6 +98,16 @@ public:
 		}
 		_size--;
 	}
+	void removeFromBegining(SQUnsignedInteger count)
+	{
+	    if(count <= _size){
+	        for(SQUnsignedInteger i=0; i < count; ++i) _vals[i].~T();
+            if(count < (_size - 1)) {
+                memmove(&_vals[0], &_vals[count], sizeof(T) * (_size - count));
+            }
+            _size -= count;
+	    }
+	}
 	SQUnsignedInteger capacity() { return _allocated; }
 	inline T &back() const { return _vals[_size - 1]; }
 	inline T& operator[](SQUnsignedInteger pos) const{ return _vals[pos]; }
