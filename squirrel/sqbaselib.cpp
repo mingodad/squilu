@@ -998,28 +998,26 @@ static int process_string_gsub(LuaMatchState *ms, void *udata, char_buffer_st **
         case OT_ARRAY:{
             for(int i=0; i < ms->level; ++i){
                 sq_pushinteger(v, i);
-                sq_get(v, 3);
-                if(SQ_SUCCEEDED(sq_getstr_and_size(v, -1, &str, &str_size))){
+                if(SQ_SUCCEEDED(sq_get(v, 3)) && SQ_SUCCEEDED(sq_getstr_and_size(v, -1, &str, &str_size))){
                     if(!char_buffer_add_str(ms, b, str, str_size)) {
                         result = 0;
                         break;
                     }
+                    sq_pop(v, 1); //remove value
                 }
-                sq_pop(v, 1); //remove value
             }
         }
         break;
         case OT_TABLE:{
             for(int i=0; i < ms->level; ++i){
                 sq_pushstring(v, ms->capture[i].init, ms->capture[i].len);
-                sq_get(v, 3);
-                if(SQ_SUCCEEDED(sq_getstr_and_size(v, -1, &str, &str_size))){
+                if(SQ_SUCCEEDED(sq_get(v, 3)) && SQ_SUCCEEDED(sq_getstr_and_size(v, -1, &str, &str_size))){
                     if(!char_buffer_add_str(ms, b, str, str_size)) {
                         result = 0;
                         break;
                     }
+                    sq_pop(v, 1); //remove value
                 }
-                sq_pop(v, 1); //remove value
             }
         }
     }

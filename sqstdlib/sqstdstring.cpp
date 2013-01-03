@@ -354,6 +354,82 @@ static SQInteger _regexp_gmatch(HSQUIRRELVM v)
 	return 1;
 }
 
+#include "sqstdblobimpl.h"
+static SQInteger _regexp_gsub(HSQUIRRELVM v)
+{
+	SETUP_REX(v);
+	const SQChar *str;
+	SQInteger str_size;
+	sq_getstring(v,2,&str);
+	str_size = sq_getsize(v, 2);
+	const SQChar *begin,*end;
+	SQBlob blob(0,8192);
+	SQObjectType ptype = sq_gettype(v, 3);
+    const SQChar *replacement;
+    SQInteger replacement_size;
+	while(sqstd_rex_searchrange(self,str, str+str_size,&begin,&end)){
+	    blob.Write(str, begin-str);
+	    SQInteger n = sqstd_rex_getsubexpcount(self);
+	    SQRexMatch match;
+        SQInteger i = 0;
+	    switch(ptype){
+	        case OT_CLOSURE:{
+                sq_pushroottable(v); //this
+                for(;i < n; i++) {
+                    sqstd_rex_getsubexp(self,i,&match);
+                    if(i > 0){ //skip whole match
+                        sq_pushstring(v, match.begin, match.len);
+                    }
+                }
+                i = sq_call(v, n, SQTrue, SQTrue);
+                if(i < 0) return i;
+                if(sq_gettype(v, -1) == OT_STRING){
+                    const SQChar *svalue;
+                    sq_getstring(v, -1, &svalue);
+                    blob.Write(svalue, sq_getsize(v, -1));
+                }
+                sq_poptop(v);
+	        }
+	        break;
+	        case OT_ARRAY:{
+                for(;i < n; i++) {
+                    sqstd_rex_getsubexp(self,i,&match);
+                    if(i > 0){ //skip whole match
+                        sq_pushinteger(v, i-1);
+                        if(SQ_SUCCEEDED(sq_get(v, 3)) &&
+                                SQ_SUCCEEDED(sq_getstr_and_size(v, -1, &replacement, &replacement_size))){
+                            blob.Write(replacement, replacement_size);
+                            sq_pop(v, 1); //remove value
+                        }
+                    }
+                }
+	        }
+	        break;
+	        case OT_TABLE:{
+                for(;i < n; i++) {
+                    sqstd_rex_getsubexp(self,i,&match);
+                    if(i > 0){ //skip whole match
+                        sq_pushstring(v, match.begin, match.len);
+                        if(SQ_SUCCEEDED(sq_get(v, 3)) &&
+                                SQ_SUCCEEDED(sq_getstr_and_size(v, -1, &replacement, &replacement_size))){
+                            blob.Write(replacement, replacement_size);
+                            sq_pop(v, 1); //remove value
+                        }
+                    }
+                }
+	        }
+	        break;
+	        default:
+                return sq_throwerror(v, _SC("gsub only works with closure, array, table for replacement"));
+	    }
+		str_size -= end-str;
+		str = end;
+	}
+    if(str_size) blob.Write(str, str_size);
+	sq_pushstring(v, (const SQChar *)blob.GetBuf(), blob.Len());
+	return 1;
+}
+
 static void _addrexmatch(HSQUIRRELVM v,const SQChar *str,const SQChar *begin,const SQChar *end)
 {
 	sq_newtable(v);
@@ -468,6 +544,7 @@ static SQRegFunction rexobj_funcs[]={
 	_DECL_REX_FUNC(search,-2,_SC("xsn")),
 	_DECL_REX_FUNC(match,2,_SC("xs")),
 	_DECL_REX_FUNC(gmatch,3,_SC("xsc")),
+	_DECL_REX_FUNC(gsub,3,_SC("xs c|a|t")),
 	_DECL_REX_FUNC(capture,-2,_SC("xsn")),
 	_DECL_REX_FUNC(xcapture,-2,_SC("xsn")),
 	_DECL_REX_FUNC(getxcapture,4,_SC("xsna")),
@@ -493,7 +570,7 @@ static SQRegFunction stringlib_funcs[]={
 SQInteger sqstd_register_stringlib(HSQUIRRELVM v)
 {
 	sq_pushstring(v,_SC("regexp"),-1);
-	sq_newtable(v);
+	sq_newclass(v,SQFalse);
 	SQInteger i = 0;
 	while(rexobj_funcs[i].name != 0) {
 		SQRegFunction &f = rexobj_funcs[i];
