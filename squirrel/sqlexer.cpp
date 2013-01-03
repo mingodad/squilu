@@ -382,6 +382,7 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 		}
 		NEXT();
 		if(start_equals){
+		    bool lastBraceAdded = false;
 		    if(CUR_CHAR == _SC('=')){
                 SQInteger end_equals = start_equals;
                 NEXT();
@@ -396,9 +397,11 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
                     NEXT();
                     break;
                 }
+                APPEND_CHAR(_SC(']')); //the first NEXT() after break the while loop
                 APPEND_CHAR(_SC('='));
+                lastBraceAdded = true;
 		    }
-		    APPEND_CHAR(_SC(']')); //the first NEXT() after brek the while loop
+		    if(!lastBraceAdded) APPEND_CHAR(_SC(']')); //the first NEXT() after break the while loop
 		    APPEND_CHAR(CUR_CHAR);
 		    NEXT();
 		}
