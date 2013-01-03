@@ -398,6 +398,7 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
                 }
                 APPEND_CHAR(_SC('='));
 		    }
+		    APPEND_CHAR(_SC(']')); //the first NEXT() after brek the while loop
 		    APPEND_CHAR(CUR_CHAR);
 		    NEXT();
 		}
