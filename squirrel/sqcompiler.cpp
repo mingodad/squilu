@@ -881,8 +881,8 @@ public:
 			Lex();
 			break;
 		case TK_IGNORE:
-            Warning("Keyword ignored \"%s\" at line %d:%d\n", _lex.Tok2Str(_token),
-                    _lex._currentline, _lex._currentcolumn);
+            //Warning("Keyword ignored \"%s\" at line %d:%d\n", _lex.Tok2Str(_token),
+            //        _lex._currentline, _lex._currentcolumn);
             Lex(); Factor();
             break;
 		default: Error(_SC("expression expected"));
@@ -980,6 +980,7 @@ public:
 				Lex(); CommaExpr(); Expect(_SC(']'));
 				Expect(_SC('=')); Expression();
 				break;
+
 			case TK_STRING_LITERAL: //JSON
 			case TK_IDENTIFIER: {//JSON
                 SQObjectPtr obj = GetTokenObject(_token);
