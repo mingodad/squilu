@@ -21,7 +21,7 @@ void sqstd_printcallstack(HSQUIRRELVM v)
 			const SQChar *src=_SC("unknown");
 			if(si.funcname)fn=si.funcname;
 			if(si.source)src=si.source;
-			pf(v,_SC("*FUNCTION [%s()] %s line [%d]\n"),fn,src,si.line);
+			pf(v,_SC("%s:%d:0 *FUNCTION [%s()]\n"),src,si.line,fn);
 			level++;
 		}
 		level=0;
