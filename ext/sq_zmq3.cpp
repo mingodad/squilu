@@ -38,7 +38,7 @@ static const SQChar sq_zmq3_msg_TAG[] = _SC("sq_zmq3_msg_tag");
     if(!Var) return sq_throwerror(v, _SC("message already closed"));
 #define GET_zmq3_msg_INSTANCE() GET_zmq3_msg_INSTANCE_VAR_AT(1, self)
 
-static SQRESULT sq_zmq3_msg_releasehook(SQUserPointer p, SQInteger size)
+static SQRESULT sq_zmq3_msg_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	zmq_msg_t *self = ((zmq_msg_t *)p);
 	if(self) {
@@ -96,7 +96,7 @@ static SQRESULT sq_zmq3_msg_close(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_zmq3_msg_INSTANCE();
-    int rc = sq_zmq3_msg_releasehook(self, 0);
+    int rc = sq_zmq3_msg_releasehook(self, 0, v);
     if(rc == 0) sq_setinstanceup(v, 1, 0); //invalidate the message
     sq_pushinteger(v, rc);
 	return 1;
@@ -181,7 +181,7 @@ static SQRegFunction sq_zmq3_msg_methods[] =
 
 //socket
 
-static SQRESULT sq_zmq3_socket_releasehook(SQUserPointer p, SQInteger size)
+static SQRESULT sq_zmq3_socket_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	void *self = ((void *)p);
 	if(self) {
@@ -222,7 +222,7 @@ static SQRESULT sq_zmq3_socket_close(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_zmq3_socket_INSTANCE();
-    int rc = sq_zmq3_socket_releasehook(self, 0);
+    int rc = sq_zmq3_socket_releasehook(self, 0, v);
     if(rc == 0) sq_setinstanceup(v, 1, 0);
     sq_pushinteger(v, rc);
 	return 1;
@@ -509,7 +509,7 @@ static SQRegFunction sq_zmq3_socket_methods[] =
 
 //zmq3 context
 
-static SQRESULT sq_zmq3_ctx_releasehook(SQUserPointer p, SQInteger size)
+static SQRESULT sq_zmq3_ctx_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	void *self = ((void *)p);
 	if(self) {
@@ -602,7 +602,7 @@ static SQRESULT sq_zmq3_ctx_destroy(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_zmq3_ctx_INSTANCE();
-    int rc = sq_zmq3_ctx_releasehook(self, 0);
+    int rc = sq_zmq3_ctx_releasehook(self, 0, v);
     if(rc == 0) sq_setinstanceup(v, 1, 0);
     sq_pushinteger(v, rc);
 	return 1;
