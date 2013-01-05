@@ -213,7 +213,7 @@ static SQRESULT sqlite3_stmt_prepare(HSQUIRRELVM v, sqlite3 *db, sqlite3_stmt **
 	return 1;
 }
 
-static SQRESULT sq_sqlite3_stmt_releasehook(SQUserPointer p, SQInteger size)
+static SQRESULT sq_sqlite3_stmt_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	sqlite3_stmt *stmt = ((sqlite3_stmt *)p);
 	sqlite3_finalize(stmt);
@@ -934,7 +934,7 @@ static SQRESULT sqlite3_exec_fmt(HSQUIRRELVM v, e_type_result type_result, int n
 }
 
 
-static SQRESULT sq_sqlite3_releasehook(SQUserPointer p, SQInteger size)
+static SQRESULT sq_sqlite3_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	sq_sqlite3_sdb *sdb = ((sq_sqlite3_sdb *)p);
 	sqlite3_close_v2(sdb->db);
@@ -1371,7 +1371,7 @@ typedef struct {
 
 static const SQChar sq_sqlite3_context_TAG[]  = _SC(":sqlite3:ctx");
 
-static SQRESULT sq_sqlite3_context_releasehook(SQUserPointer p, SQInteger size)
+static SQRESULT sq_sqlite3_context_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	sq_sqlite3_context_st *ctx = ((sq_sqlite3_context_st *)p);
     /* 'free' all references */
