@@ -1685,6 +1685,15 @@ SQRESULT sq_optstr_and_size(HSQUIRRELVM sqvm, SQInteger idx, const SQChar **valu
     return SQ_OK;
 }
 
+void sq_insertfunc(HSQUIRRELVM sqvm, const SQChar *fname, SQFUNCTION func,
+                        SQInteger nparamscheck, const SQChar *typemask, SQBool isStatic){
+    sq_pushstring(sqvm,fname,-1);
+    sq_newclosure(sqvm,func,0);
+    sq_setparamscheck(sqvm,nparamscheck,typemask);
+    sq_setnativeclosurename(sqvm,-1,fname);
+    sq_newslot(sqvm,-3,isStatic);
+}
+
 void sq_insert_reg_funcs(HSQUIRRELVM sqvm, SQRegFunction *obj_funcs){
 	SQInteger i = 0;
 	while(obj_funcs[i].name != 0) {
@@ -1696,4 +1705,113 @@ void sq_insert_reg_funcs(HSQUIRRELVM sqvm, SQRegFunction *obj_funcs){
 		sq_newslot(sqvm,-3,f.isStatic);
 		i++;
 	}
+}
+
+#define DONE_AND_RETURN(x) {ret_val =x; goto done_and_return;}
+#define CHECK_OK(v) if((ret_val = v) < 0) goto done_and_return;
+
+#define DONE_AND_RETURN(x) {ret_val =x; goto done_and_return;}
+#define CHECK_OK(v) if((ret_val = v) < 0) goto done_and_return;
+
+SQRESULT sq_call_va(HSQUIRRELVM v, SQInteger idx, const SQChar *func, const SQChar *sig, ...)
+{
+    va_list vl;
+    int narg; // nres;  /* number of arguments and results */
+    int ret_val = 0;
+    SQInteger top = sq_gettop(v);
+    va_start(vl, sig);
+
+    sq_pushstring(v, func, -1);
+    CHECK_OK(sq_get(v, idx > 0 ? idx : idx-1));
+    if(sq_gettype(v, -1) != OT_CLOSURE) DONE_AND_RETURN(-100);
+
+    sq_pushroottable(v);
+    /* push arguments */
+    narg = 1;
+    while (*sig)    /* push arguments */
+    {
+        switch (*sig++)
+        {
+        case 'd':  /* double argument */
+            sq_pushfloat(v, va_arg(vl, double));
+            break;
+
+        case 'i':  /* int argument */
+            sq_pushinteger(v, va_arg(vl, int));
+            break;
+
+        case 's':  /* string argument */
+            sq_pushstring(v, va_arg(vl, char *), -1);
+            break;
+
+        case 'b':  /* string argument */
+            sq_pushbool(v, va_arg(vl, int));
+            break;
+
+        case 'n':  /* string argument */
+            sq_pushnull(v);
+            break;
+
+        case 'p':  /* string argument */
+            sq_pushuserpointer(v, va_arg(vl, void *));
+            break;
+
+        case '>':
+            goto endwhile;
+
+        default:
+            DONE_AND_RETURN(-200);
+        }
+        narg++;
+        //sq_checkstack(v, 1, "too many arguments");
+    }
+endwhile:
+
+    /* do the call */
+    //nres = strlen(sig);  /* number of expected results */
+    if (sq_call(v, narg, *sig, SQTrue) != SQ_OK)  /* do the call */
+        DONE_AND_RETURN(-300);
+
+    /* retrieve results */
+    //nres = -nres;  /* stack index of first result */
+    if (*sig)    /* get results */
+    {
+        SQObjectPtr &o = stack_get(v,-1);
+        switch (*sig)
+        {
+
+        case 'd':  /* double result */
+            if (!sq_isnumeric(o))  DONE_AND_RETURN(-1000);
+            *va_arg(vl, double *) = tofloat(o);
+            break;
+
+        case 'i':  /* int result */
+            if (!sq_isnumeric(o))  DONE_AND_RETURN(-1100);
+            *va_arg(vl, int *) = tointeger(o);
+            break;
+
+        case 's':  /* string result */
+            if (!sq_isstring(o)) DONE_AND_RETURN(-1200);
+            *va_arg(vl, const char **) = _stringval(o);
+            break;
+
+        case 'b':  /* bool result */
+            if (!sq_isbool(o)) DONE_AND_RETURN(-1300);
+            *va_arg(vl, int *) = tointeger(o);
+            break;
+
+        case 'p':  /* user pointer result */
+            if (!sq_isuserpointer(o)) DONE_AND_RETURN(-1400);
+            *va_arg(vl, void **) = _userpointer(o);
+            break;
+
+        default:
+            DONE_AND_RETURN(-500);
+        }
+        //nres++;
+    }
+done_and_return:
+    va_end(vl);
+    sq_settop(v, top);
+    return ret_val; //all went ok
 }
