@@ -281,6 +281,7 @@ struct SQObjectPtr : public SQObject
 		__Release(tOldType,unOldVal);
 		return *this;
 	}
+
 	inline void Null()
 	{
 		SQObjectType tOldType = _type;
