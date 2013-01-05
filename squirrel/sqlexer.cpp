@@ -301,7 +301,6 @@ SQInteger SQLexer::GetIDType(SQChar *s)
 	return TK_IDENTIFIER;
 }
 
-
 SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 {
 	INIT_TEMP_STRING();
@@ -322,6 +321,7 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 	NEXT();
 	if(IS_EOB()) return -1;
 	if(start_equals && CUR_CHAR == _SC('\n')) {
+	    ++_currentline;
 	    NEXT(); //if a new line follows the start of delimiter drop it
         if(IS_EOB()) return -1;
 	}
