@@ -123,12 +123,12 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
                         ts2++;
                       }
 
-                      ts2 = &dest[i];
+                      size = i; //save th i position
                       i += addlen;
                       addlen = addlen*sizeof(SQChar);
                       allocated += addlen + sizeof(SQChar);
                       dest = sq_getscratchpad(v,allocated);
-
+                      ts2 = &dest[size]; //use saved i position
                       size = sq_getsize(v,nparam);
 
                       *ts2++ = '"';
