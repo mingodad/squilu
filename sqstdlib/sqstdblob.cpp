@@ -15,7 +15,7 @@ SQUserPointer SQBlob::SQBlob_TAG = (SQUserPointer)SQSTD_BLOB_TYPE_TAG;
 
 SQBlob::SQBlob(SQInteger size, SQInteger allocated) {
     _size = size;
-    _allocated = allocated > 0 ? allocated : size;
+    _allocated = allocated > size ? allocated : size;
     _buf = (unsigned char *)sq_malloc(_allocated);
     memset(_buf, 0, _allocated);
     _ptr = 0;
