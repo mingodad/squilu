@@ -110,40 +110,33 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
                     SQChar *ts2 = (SQChar*)ts;
                       while (size--) {
                         ++addlen;
-                        if (*ts2 == '"' || *ts2 == '\\' || *ts2 == '\n') {
+                        if (*ts2 == '"' || *ts2 == '\\') {
                           ++addlen;
                         }
                         else if (*ts2 == '\0' || iscntrl(uchar(*ts2))) {
                           SQChar buff[10];
-                          if (!isdigit(uchar(*(ts2+1))))
-                            addlen += scsprintf(buff, "\\%d", (int)uchar(*ts2));
-                          else
-                            addlen += scsprintf(buff, "\\%03d", (int)uchar(*ts2));
+                          addlen += scsprintf(buff, "\\x%x", (int)uchar(*ts2))-1; //-1 because we already added the original char to the sum
                         }
                         ts2++;
                       }
 
-                      size = i; //save th i position
+                      ts2 = (SQChar*)i; //save the i position using pointer as integer
                       i += addlen;
-                      addlen = addlen*sizeof(SQChar);
-                      allocated += addlen + sizeof(SQChar);
+                      allocated += addlen;
                       dest = sq_getscratchpad(v,allocated);
-                      ts2 = &dest[size]; //use saved i position
                       size = sq_getsize(v,nparam);
 
+                      ts2 = &dest[(int)ts2]; //use saved i position saved on pointer as integer
                       *ts2++ = '"';
                       while (size--) {
-                        if (*ts == '"' || *ts == '\\' || *ts == '\n') {
+                        if (*ts == '"' || *ts == '\\') {
                             *ts2++ = '\\';
                             *ts2++ = *ts;
                         }
                         else if (*ts == '\0' || iscntrl(uchar(*ts))) {
                           SQChar buff[10];
                           int iw;
-                          if (!isdigit(uchar(*(ts+1))))
-                            iw = scsprintf(buff, "\\%d", (int)uchar(*ts));
-                          else
-                            iw = scsprintf(buff, "\\%03d", (int)uchar(*ts));
+                          iw = scsprintf(buff, "\\x%x", (int)uchar(*ts));
                           for(int i=0; i< iw; ++i) *ts2++ = buff[i];
                         }
                         else
