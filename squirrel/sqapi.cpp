@@ -233,6 +233,19 @@ void sq_pushstring(HSQUIRRELVM v,const SQChar *s,SQInteger len)
 	else v->PushNull();
 }
 
+void sq_pushfstring(HSQUIRRELVM v,const SQChar *fmt, ...)
+{
+    if(fmt){
+        static SQChar str[1024];
+        va_list vl;
+        va_start(vl, fmt);
+        SQInteger len = scvsnprintf(str, sizeof(str), fmt, vl);
+        va_end(vl);
+        v->Push(SQObjectPtr(SQString::Create(_ss(v), str, len)));
+    }
+	else v->PushNull();
+}
+
 void sq_pushinteger(HSQUIRRELVM v,SQInteger n)
 {
 	v->Push(n);
@@ -1814,4 +1827,16 @@ done_and_return:
     va_end(vl);
     sq_settop(v, top);
     return ret_val; //all went ok
+}
+
+SQRESULT sq_checkoption (HSQUIRRELVM v, SQInteger narg, const SQChar *def,
+                                 const SQChar *const lst[]) {
+  const SQChar *name;
+  if(def && sq_gettop(v) >= narg && sq_getstring(v, narg, &name) != SQ_OK) name = def;
+  else if(sq_getstring(v, narg, &name) != SQ_OK) return SQ_ERROR;
+  int i;
+  for (i=0; lst[i]; i++)
+    if (scstrcmp(lst[i], name) == 0)
+      return i;
+  return sq_throwerror(v, _SC("invalid option [%d] [%s]"), narg-1, name);
 }

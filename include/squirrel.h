@@ -365,11 +365,14 @@ SQUIRREL_API void sq_newclosure(HSQUIRRELVM v,SQFUNCTION func,SQUnsignedInteger 
 SQUIRREL_API SQRESULT sq_setparamscheck(HSQUIRRELVM v,SQInteger nparamscheck,const SQChar *typemask);
 SQUIRREL_API SQRESULT sq_bindenv(HSQUIRRELVM v,SQInteger idx);
 SQUIRREL_API void sq_pushstring(HSQUIRRELVM v,const SQChar *s,SQInteger len);
+SQUIRREL_API void sq_pushfstring(HSQUIRRELVM v,const SQChar *fmt, ...);
 SQUIRREL_API void sq_pushfloat(HSQUIRRELVM v,SQFloat f);
 SQUIRREL_API void sq_pushinteger(HSQUIRRELVM v,SQInteger n);
 SQUIRREL_API void sq_pushbool(HSQUIRRELVM v,SQBool b);
 SQUIRREL_API void sq_pushuserpointer(HSQUIRRELVM v,SQUserPointer p);
 SQUIRREL_API void sq_pushnull(HSQUIRRELVM v);
+SQUIRREL_API SQRESULT sq_checkoption (HSQUIRRELVM v, SQInteger narg, const SQChar *def,
+                                 const SQChar *const lst[]);
 SQUIRREL_API SQObjectType sq_gettype(HSQUIRRELVM v,SQInteger idx);
 SQUIRREL_API const SQChar *sq_gettypename(HSQUIRRELVM v,SQInteger idx);
 SQUIRREL_API SQRESULT sq_typeof(HSQUIRRELVM v,SQInteger idx);
