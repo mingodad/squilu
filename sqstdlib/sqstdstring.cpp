@@ -110,14 +110,18 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
                     SQChar *ts2 = (SQChar*)ts;
                       while (size--) {
                         ++addlen;
-                        if (*ts2 == '"' || *ts2 == '\\') {
+                        if (*ts2 == '\r' && *(ts2+1) == '\n' ) {
+                          ++addlen;
+                          ++ts2; //eat \r and output only \n
+                        }
+                        else if (*ts2 == '"' || *ts2 == '\\' || *ts2 == '\n') {
                           ++addlen;
                         }
                         else if (*ts2 == '\0' || iscntrl(uchar(*ts2))) {
                           SQChar buff[10];
                           addlen += scsprintf(buff, "\\x%x", (int)uchar(*ts2))-1; //-1 because we already added the original char to the sum
                         }
-                        ts2++;
+                        ++ts2;
                       }
 
                       ts2 = (SQChar*)i; //save the i position using pointer as integer
@@ -129,9 +133,16 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
                       ts2 = &dest[(int)ts2]; //use saved i position saved on pointer as integer
                       *ts2++ = '"';
                       while (size--) {
+                        if (*ts == '\r' && *(ts+1) == '\n' ) {
+                          ++ts; //eat \r and output only \n
+                        }
                         if (*ts == '"' || *ts == '\\') {
                             *ts2++ = '\\';
                             *ts2++ = *ts;
+                        }
+                        else if (*ts == '\n') {
+                            *ts2++ = '\\';
+                            *ts2++ = 'n';
                         }
                         else if (*ts == '\0' || iscntrl(uchar(*ts))) {
                           SQChar buff[10];
@@ -141,12 +152,12 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
                         }
                         else
                             *ts2++ = *ts;
-                        ts++;
+                        ++ts;
                       }
                       *ts2++ = '"';
 
-                      n++;
-                      nparam ++;
+                      ++n;
+                      ++nparam;
                       continue;
                 }
                 else
