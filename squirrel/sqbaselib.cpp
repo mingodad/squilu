@@ -490,10 +490,34 @@ static SQInteger container_rawset(HSQUIRRELVM v)
 	return sq_rawset(v,-3);
 }
 
-
 static SQInteger container_rawget(HSQUIRRELVM v)
 {
-	return SQ_SUCCEEDED(sq_rawget(v,-2))?1:SQ_ERROR;
+    SQInteger top = sq_gettop(v);
+    switch(sq_gettop(v)){
+        case 2: return SQ_SUCCEEDED(sq_rawget(v,-2))?1:SQ_ERROR;break;
+        case 3: {
+            sq_push(v, 2); //copy key to top
+            sq_rawget(v,-3); //if it fail pop the key and default value is on top
+            return 1;
+        }
+        break;
+    }
+    return sq_throwerror(v, _SC("invalid number of parameters"));
+}
+
+static SQInteger container_get(HSQUIRRELVM v)
+{
+    SQInteger top = sq_gettop(v);
+    switch(sq_gettop(v)){
+        case 2: return SQ_SUCCEEDED(sq_get(v,-2))?1:SQ_ERROR;break;
+        case 3: {
+            sq_push(v, 2); //copy key to top
+            sq_get(v,-3); //if it fail pop the key and default value is on top
+            return 1;
+        }
+        break;
+    }
+    return sq_throwerror(v, _SC("invalid number of parameters"));
 }
 
 static SQInteger table_setdelegate(HSQUIRRELVM v)
@@ -511,7 +535,8 @@ static SQInteger table_getdelegate(HSQUIRRELVM v)
 
 SQRegFunction SQSharedState::_table_default_delegate_funcz[]={
 	{_SC("len"),default_delegate_len,1, _SC("t")},
-	{_SC("rawget"),container_rawget,2, _SC("t")},
+	{_SC("get"),container_get,-2, _SC("t")},
+	{_SC("rawget"),container_rawget,-2, _SC("t")},
 	{_SC("rawset"),container_rawset,3, _SC("t")},
 	{_SC("rawdelete"),table_rawdelete,2, _SC("t")},
 	{_SC("rawin"),container_rawexists,2, _SC("t")},
@@ -912,6 +937,7 @@ SQRegFunction SQSharedState::_array_default_delegate_funcz[]={
 	{_SC("concat"),array_concat,-1, _SC("as")},
 	{_SC("concat2"),array_concat2,-1, _SC("as")},
 	{_SC("getdelegate"),array_getdelegate,1, _SC(".")},
+	{_SC("get"),container_rawget, -2, _SC("ai.")},
 	{0,0}
 };
 
@@ -1498,7 +1524,8 @@ static SQInteger class_getdelegate(HSQUIRRELVM v)
 SQRegFunction SQSharedState::_class_default_delegate_funcz[] = {
 	{_SC("getattributes"), class_getattributes, 2, _SC("y.")},
 	{_SC("setattributes"), class_setattributes, 3, _SC("y..")},
-	{_SC("rawget"),container_rawget,2, _SC("y")},
+	{_SC("get"),container_get,-2, _SC("y")},
+	{_SC("rawget"),container_rawget,-2, _SC("y")},
 	{_SC("rawset"),container_rawset,3, _SC("y")},
 	{_SC("rawin"),container_rawexists,2, _SC("y")},
 	{_SC("weakref"),obj_delegate_weakref,1, NULL },
@@ -1521,7 +1548,8 @@ static SQInteger instance_getclass(HSQUIRRELVM v)
 
 SQRegFunction SQSharedState::_instance_default_delegate_funcz[] = {
 	{_SC("getclass"), instance_getclass, 1, _SC("x")},
-	{_SC("rawget"),container_rawget,2, _SC("x")},
+	{_SC("get"),container_get,-2, _SC("x")},
+	{_SC("rawget"),container_rawget,-2, _SC("x")},
 	{_SC("rawset"),container_rawset,3, _SC("x")},
 	{_SC("rawin"),container_rawexists,2, _SC("x")},
 	{_SC("weakref"),obj_delegate_weakref,1, NULL },
