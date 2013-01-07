@@ -74,7 +74,7 @@ std::string & gzcompress (std::string & dest, std::string const & src)
             break;
         if (err != Z_OK)
         {
-            inflateEnd(&stream);
+            deflateEnd(&stream);
             throw "Could not uncompress data !";
         }
         nExtraChunks += 1;
