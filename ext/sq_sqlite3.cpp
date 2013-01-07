@@ -56,6 +56,19 @@ SQRegFunction sqlite3_NULL_methods[]={
 	{_SC("_tostring"),sqlite3_NULL_tostring,1, _SC(".")},
 	{0,0}
 };
+
+static SQRESULT get_sqlite3_instance(HSQUIRRELVM v, SQInteger idx, sq_sqlite3_sdb **sdb){
+    SQRESULT _rc_;
+	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)sdb,(void*)SQLite3_TAG)) < 0) return _rc_;
+	if(!*sdb) return sq_throwerror(v, _SC("database is closed"));
+}
+
+static SQRESULT get_sqlite3_stmt_instance(HSQUIRRELVM v, SQInteger idx, sqlite3_stmt **stmt){
+    SQRESULT _rc_;
+	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)stmt,(void*)SQLite3_Stmt_TAG)) < 0) return _rc_;
+	if(!*stmt) return sq_throwerror(v, _SC("statement is closed"));
+}
+
 //#define push_sqlite3_null(v) sq_getonregistrytable(v, sqlite3_NULL_Name, sizeof(sqlite3_NULL_Name)-1);
 //#define push_sqlite3_null(v) sq_pushobject(v, sqlite3_NULL);
 //#define push_sqlite3_null(v) sq_getbyname(v, 1, nullName, sizeof(nullName)-1)
@@ -66,13 +79,15 @@ SQRegFunction sqlite3_NULL_methods[]={
 
 #define GET_sqlite3_INSTANCE_AT(idx) \
 	sq_sqlite3_sdb *sdb; \
-	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)&sdb,(void*)SQLite3_TAG)) < 0) return _rc_;\
+	if((_rc_ = get_sqlite3_instance(v,idx,&sdb)) < 0) return _rc_;\
 	sqlite3 *self = sdb->db;
 
 #define GET_sqlite3_INSTANCE() GET_sqlite3_INSTANCE_AT(1)
 
 //#define GET_sqlite3_INSTANCE() SQ_GET_INSTANCE(v, 1, sqlite3, SQLite3_TAG)
-#define GET_sqlite3_stmt_INSTANCE() SQ_GET_INSTANCE(v, 1, sqlite3_stmt, SQLite3_Stmt_TAG)
+#define GET_sqlite3_stmt_INSTANCE()  \
+	sqlite3_stmt *self; \
+	if((_rc_ = get_sqlite3_stmt_instance(v,1,&self)) < 0) return _rc_;
 
 enum e_type_result {tr_first_row_first_col, tr_first_row, tr_all_rows, tr_ddml};
 
@@ -166,7 +181,7 @@ static SQRESULT sqlite3_stmt_bind_value(HSQUIRRELVM v, sqlite3_stmt *stmt, int n
     switch(ptype){
         case OT_BOOL:
             SQ_GET_BOOL(v, argn, param_bool);
-            _rc_ = sqlite3_bind_int(stmt, npar, param_bool ? 1 : 0);
+            _rc_ = sqlite3_bind_int(stmt, npar, param_bool == SQTrue ? 1 : 0);
             break;
         case OT_INTEGER:
             SQ_GET_INTEGER(v, argn, param_integer);
@@ -178,7 +193,7 @@ static SQRESULT sqlite3_stmt_bind_value(HSQUIRRELVM v, sqlite3_stmt *stmt, int n
             break;
         case OT_STRING:
             SQ_GET_STRING(v, argn, param_string);
-            _rc_ = sqlite3_bind_text(stmt, npar, param_string, param_string_size, 0);
+            _rc_ = sqlite3_bind_text(stmt, npar, param_string, param_string_size, SQLITE_TRANSIENT);
             break;
         case OT_NULL:
             _rc_ = sqlite3_bind_null(stmt, npar);
@@ -216,7 +231,7 @@ static SQRESULT sqlite3_stmt_prepare(HSQUIRRELVM v, sqlite3 *db, sqlite3_stmt **
 static SQRESULT sq_sqlite3_stmt_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	sqlite3_stmt *stmt = ((sqlite3_stmt *)p);
-	sqlite3_finalize(stmt);
+	if(stmt) sqlite3_finalize(stmt);
 	return 0;
 }
 
@@ -243,11 +258,17 @@ static SQRESULT sq_sqlite3_stmt_constructor(HSQUIRRELVM v)
 	return _rc_;
 }
 
-static SQRESULT sq_sqlite3_stmt_close(HSQUIRRELVM v){
+static SQRESULT sq_sqlite3_stmt_finalize(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_sqlite3_stmt_INSTANCE();
-	sq_pushbool(v, sqlite3_finalize(self) == SQLITE_OK);
-	return 1;
+	if(sqlite3_finalize(self) == SQLITE_OK){
+	    sq_setinstanceup(v, 1, 0); //next calls will fail with "statement is closed"
+	}
+	else {
+	    sqlite3 *db = sqlite3_db_handle(self);
+	    return sq_throwerror(v, sqlite3_errmsg(db));
+	}
+	return 0;
 }
 
 static SQRESULT sq_sqlite3_stmt_prepare(HSQUIRRELVM v){
@@ -275,6 +296,14 @@ static SQRESULT sq_sqlite3_stmt_bind(HSQUIRRELVM v){
 	GET_sqlite3_stmt_INSTANCE();
     SQ_GET_INTEGER(v, 2, npar);
 	return sqlite3_stmt_bind_value(v, self, npar, 3);
+}
+
+static SQRESULT sq_sqlite3_stmt_bind_parameter_index(HSQUIRRELVM v){
+	SQ_FUNC_VARS_NO_TOP(v);
+	GET_sqlite3_stmt_INSTANCE();
+    SQ_GET_STRING(v, 2, spar);
+	sq_pushinteger(v, sqlite3_bind_parameter_index(self, spar));
+	return 1;
 }
 
 static SQRESULT sq_sqlite3_stmt_reset(HSQUIRRELVM v){
@@ -862,9 +891,11 @@ static SQRegFunction sq_sqlite3_stmt_methods[] =
 {
 	_DECL_FUNC(constructor,  -2, _SC("xxs s|n|b|o")),
 
+	_DECL_FUNC(finalize,  1, _SC("x")),
 	_DECL_FUNC(prepare,  -2, _SC("xs s|n|b|o")),
 	_DECL_FUNC(get_sql,  1, _SC("x")),
 	_DECL_FUNC(bind,  3, _SC("xi s|n|b|o")),
+	_DECL_FUNC(bind_parameter_index,  2, _SC("xs")),
 	_DECL_FUNC(step,  1, _SC("x")),
 	_DECL_FUNC(reset,  1, _SC("x")),
 	_DECL_FUNC(next_row,  1, _SC("x")),
@@ -937,6 +968,7 @@ static SQRESULT sqlite3_exec_fmt(HSQUIRRELVM v, e_type_result type_result, int n
 static SQRESULT sq_sqlite3_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	sq_sqlite3_sdb *sdb = ((sq_sqlite3_sdb *)p);
+	if(sdb){
 	sqlite3_close_v2(sdb->db);
 	if(sdb->func){
         sq_sqlite3_sdb_func *func, *func_next;
@@ -961,6 +993,7 @@ static SQRESULT sq_sqlite3_releasehook(SQUserPointer p, SQInteger size, HSQUIRRE
     sq_release(sdb->v, &sdb->null_value);
 
 	sq_free(sdb, sizeof(sq_sqlite3_sdb));
+	}
 	return 0;
 }
 
@@ -988,6 +1021,17 @@ static SQRESULT sq_sqlite3_constructor(HSQUIRRELVM v)
     return 1;
 }
 
+static SQRESULT sq_sqlite3_close(HSQUIRRELVM v){
+	SQ_FUNC_VARS_NO_TOP(v);
+	GET_sqlite3_INSTANCE();
+	if(sqlite3_close_v2(self) == SQLITE_OK){
+	    sq_setinstanceup(v, 1, 0); //next calls will fail with "database is closed"
+	}
+	else {
+	    return sq_throwerror(v, sqlite3_errmsg(self));
+	}
+	return 0;
+}
 
 /* bool IsAutoCommitOn(  ) */
 static SQRESULT sq_sqlite3_IsAutoCommitOn(HSQUIRRELVM v){
@@ -1570,6 +1614,7 @@ static SQRESULT new_context_instance(HSQUIRRELVM v, sq_sqlite3_context_st **ctx)
     rc = sq_call(v, 1, SQTrue, SQFalse);
     sq_remove(v, -2); //class
     rc = sq_getinstanceup(v, -1, (void**)ctx, (void*)sq_sqlite3_context_TAG);
+    return rc;
 }
 /* scalar function to be called
 ** callback params: context, values... */
@@ -1756,6 +1801,7 @@ static SQRESULT sq_sqlite3_create_aggregate(HSQUIRRELVM v) {
 static SQRegFunction sq_sqlite3_methods[] =
 {
 	_DECL_FUNC(constructor,  2, _SC("xsi")),
+	_DECL_FUNC(close,  1, _SC("x")),
 
 	_DECL_FUNC(IsAutoCommitOn,  1, _SC("x")),
 	_DECL_FUNC(version,  1, _SC("x")),
