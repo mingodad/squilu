@@ -38,7 +38,7 @@ class Sq_Fpdf : public FPDF {
     };
 };
 
-static SQRESULT sq_glue_releasehook(SQUserPointer p, SQInteger size)
+static SQRESULT sq_glue_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	Sq_Fpdf *self = ((Sq_Fpdf *)p);
 	delete self;
