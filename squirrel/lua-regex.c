@@ -382,7 +382,7 @@ static int str_find_aux (LuaMatchState *ms, int find, const char *s, int ls,
   ms->src_end = s + ls;
 
 do_again:
-  result = 0; /* not found */
+  result = -1; /* not found */
   /* explicit request or no special characters? */
   if (find && (raw_find || nospecials(p, lp))) {
     /* do a plain search */
@@ -405,7 +405,7 @@ do_again:
       ms->level = 0;
       if ((res=match(ms, s1, p)) != NULL) {
           ms->start_pos = s1-s;
-          result = ms->end_pos = res-s;
+          result = ms->end_pos = res-s-1;
           goto eofunc;
       }
     } while (s1++ < ms->src_end && !anchor);
@@ -413,7 +413,7 @@ do_again:
 
 eofunc:
 
-  if(result){
+  if(result >= 0){
       int i;
       for(i=0; i<ms->level; ++i){
           if(ms->capture[i].len == CAP_UNFINISHED){
