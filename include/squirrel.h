@@ -321,6 +321,10 @@ typedef struct tagSQFunctionInfo {
 	const SQChar *source;
 }SQFunctionInfo;
 
+#if !defined(sq_assert)
+#define sq_assert(x)	((void)0)
+#endif
+
 /*vm*/
 SQUIRREL_API HSQUIRRELVM sq_open(SQInteger initialstacksize);
 SQUIRREL_API HSQUIRRELVM sq_newthread(HSQUIRRELVM friendvm, SQInteger initialstacksize);
