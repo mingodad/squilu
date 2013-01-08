@@ -43,8 +43,8 @@ struct sq_sqlite3_sdb {
 
 SQ_OPT_STRING_STRLEN();
 
-static const SQChar *SQLite3_TAG = "sqlite3";
-static const SQChar *SQLite3_Stmt_TAG = "sqlite3_stmt";
+static const SQChar *SQLite3_TAG = "SQLite3";
+static const SQChar *SQLite3_Stmt_TAG = "SQLite3Stmt";
 
 static const SQChar sqlite3_NULL_Name[] = _SC("sqlite3_NULL");
 static const SQChar nullName[] = _SC("NULL");
@@ -1088,7 +1088,12 @@ static SQRESULT sq_sqlite3_prepare(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_sqlite3_INSTANCE();
 	SQ_GET_STRING(v, 2, sql);
-	//sq_pushstring(v, self->prepare(sql));
+	sq_pushstring(v, SQLite3_Stmt_TAG, -1);
+	if(sq_getonroottable(v) == SQ_ERROR) return SQ_ERROR;
+	sq_pushroottable(v);
+	sq_push(v, 1);
+	sq_push(v, 2);
+	if(sq_call(v, 3, SQTrue, SQFalse) != SQ_OK) return SQ_ERROR;
 	return 1;
 }
 
@@ -1865,7 +1870,7 @@ extern "C" {
 
         sq_poptop(v); //remove registrytable
 
-        sq_pushstring(v,_SC("SQLite3"),-1);
+        sq_pushstring(v,SQLite3_TAG,-1);
         sq_newclass(v,SQFalse);
         sq_settypetag(v,-1,(void*)SQLite3_TAG);
         sq_insert_reg_funcs(v, sq_sqlite3_methods);
@@ -1884,7 +1889,7 @@ extern "C" {
 
         sq_newslot(v,-3,SQTrue);
 
-        sq_pushstring(v,_SC("SQLite3Stmt"),-1);
+        sq_pushstring(v, SQLite3_Stmt_TAG,-1);
         sq_newclass(v,SQFalse);
         sq_settypetag(v,-1,(void*)SQLite3_Stmt_TAG);
         sq_insert_reg_funcs(v, sq_sqlite3_stmt_methods);
