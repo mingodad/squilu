@@ -16,6 +16,28 @@
 	if(!self || !self->IsValid())  \
 		return sq_throwerror(v,_SC("the stream is invalid"));
 
+SQInteger _stream_read_line(HSQUIRRELVM v) {
+	SETUP_STREAM(v);
+	SQBlob b(0,BLOB_BUFSIZE);
+    char c;
+    int len = sizeof(char);
+    if(!self->EOS()){
+        for (;;) {
+            if(self->Read(&c, len) != len){
+                if(!self->EOS()) return sq_throwerror(v,_SC("io error"));
+                c = '\n';
+            }
+            if(c == '\n') {
+                sq_pushstring(v, (const SQChar*)b.GetBuf(), b.Len());
+                return 1;
+            }
+            b.Write(&c, sizeof(char));
+        }
+    }
+    sq_pushnull(v);
+    return 1;
+}
+
 SQInteger _stream_read(HSQUIRRELVM v)
 {
 	SETUP_STREAM(v);
@@ -292,6 +314,7 @@ SQInteger _stream_eos(HSQUIRRELVM v)
  }
 
 static SQRegFunction _stream_methods[] = {
+	_DECL_STREAM_FUNC(read_line,1,_SC("x")),
 	_DECL_STREAM_FUNC(read,2,_SC("xn")),
 	_DECL_STREAM_FUNC(readblob,2,_SC("xn")),
 	_DECL_STREAM_FUNC(readn,2,_SC("xn")),
