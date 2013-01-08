@@ -950,13 +950,14 @@ static int tcp_meth_accept(HSQUIRRELVM v)
     int err = lua_socket_accept(&tcp->sock, &sock, NULL, NULL, tm);
     /* if successful, push client socket */
     if (err == IO_DONE) {
-        sq_pushregistrytable(v);
-        sq_pushstring(v,_SC("tcp"),-1);
-        int rc = sq_rawget(v, -2);
+        sq_pushstring(v,_SC("socket"),-1);
+        int rc = sq_getonroottable(v);
         if(rc < 0) return rc;
-        sq_remove(v, -2); //remove registrytable
-        sq_createinstance(v, -1);
-        sq_remove(v, -2); //remove class
+        sq_pushstring(v,_SC("tcp"),-1);
+        rc = sq_rawget(v, -2);
+        if(rc < 0) return rc;
+        rc = sq_createinstance(v, -1);
+        if(rc < 0) return rc;
         tcp_constructor_for_socket(v, sq_gettop(v), sock, TCP_TYPE_CLIENT);
     } else {
         return sq_throwerror(v, lua_socket_strerror(err));
