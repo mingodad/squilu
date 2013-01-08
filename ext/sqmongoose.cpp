@@ -4,6 +4,7 @@
 #include <stdarg.h>
 
 #include "squirrel.h"
+#include "sqstdblobimpl.h"
 SQ_OPT_STRING_STRLEN();
 
 #ifdef USE_SQ_SQLITE3
@@ -61,7 +62,7 @@ struct SQ_Mg_Context {
 
 static const char SQ_MG_CONN_TAG[] = "sq_mg_conn_tag";
 
-static SQRESULT sq_mg_conn_releasehook(SQUserPointer p, SQInteger size)
+static SQRESULT sq_mg_conn_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	return 1;
 }
@@ -134,7 +135,7 @@ sq_mg_conn_read(HSQUIRRELVM v)
     size_t rlen;  /* how much to read */
     size_t nr;  /* number of chars actually read */
     rlen = 8192;  /* try to read that much each time */
-#if 0
+
     SQBlob blob(0, rlen);
     if (rlen > n) rlen = n;  /* cannot read more than asked */
     char *p = sq_getscratchpad(v,rlen);
@@ -143,8 +144,8 @@ sq_mg_conn_read(HSQUIRRELVM v)
         blob.Write(p, nr);
         n -= nr;  /* still have to read `n' chars */
     } while (n > 0 && nr == rlen);  /* until end of count or eof */
-    sq_pushstring(v, (const SQchar *)blob.GetBuf(), blob.Len());  /* close buffer */
-#endif
+    sq_pushstring(v, (const SQChar *)blob.GetBuf(), blob.Len());  /* close buffer */
+
     return 1;
 }
 
@@ -163,14 +164,13 @@ sq_mg_conn_write_blob(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_MG_CONNECION();
-#if 0
-    SQInteger saved_top = sq_gettop(v);
-    memfile_raw_data(v);
-    const void *buf = sq_touserdata(v, -2);
-    size_t buf_len = sq_tointeger(v, -1);
-    sq_settop(v, saved_top);
-    sq_pushinteger(v, mg_write(conn, buf, buf_len));
-#endif
+	SQBlob *blob = NULL;
+	{ if(SQ_FAILED(sq_getinstanceup(v,2,(SQUserPointer*)&blob,(SQUserPointer)SQBlob::SQBlob_TAG)))
+		return sq_throwerror(v,_SC("invalid type tag"));  }
+	if(!blob || !blob->IsValid())
+		return sq_throwerror(v,_SC("the blob is invalid"));
+
+    sq_pushinteger(v, mg_write(conn, (const SQChar*)blob->GetBuf(), blob->Len()));
     return 1;
 }
 
@@ -339,7 +339,7 @@ fetchoptions(HSQUIRRELVM v, int idx, const char **options)
 static const char SQ_MONGOOSE_TAG[] = "sq_mongoose_tag";
 static SQBool show_errors_on_stdout = SQFalse;
 
-static SQRESULT sq_mongoose_releasehook(SQUserPointer p, SQInteger size)
+static SQRESULT sq_mongoose_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
     SQ_Mg_Context *sq_mg_ctx = (    SQ_Mg_Context *)p;
     sq_free(sq_mg_ctx, sizeof(SQ_Mg_Context));
@@ -391,6 +391,7 @@ sq_mongoose_version(HSQUIRRELVM v)
     return 1;
 }
 
+SQInteger blob_write(SQUserPointer file,SQUserPointer p,SQInteger size);
 // creates a reference dispatching callbacks to squirrel functions
 static SQRESULT
 fetchcallback(HSQUIRRELVM v, const char *key, SQ_MG_Callback *dump)
@@ -403,18 +404,17 @@ fetchcallback(HSQUIRRELVM v, const char *key, SQ_MG_Callback *dump)
     dump->len = 0;
     dump->size = 0;
     dump->name = key;
-#if 0
+
     if (sq_gettype(v, -1) == OT_CLOSURE){
         SQBlob b(0, 8192);
-        if (sqstd_writeclosure(v, blob_write, &b) != 0)
+        if (sq_writeclosure(v, blob_write, &b) != 0)
             return sq_throwerror(v, "unable to dump given function");
-        dump->buf = malloc(b.Len());
+        dump->buf = (char*)sq_malloc(b.Len());
         if(dump->buf) {
             dump->len = b.Len();
             memcpy(dump->buf, b.GetBuf(),  dump->len);
         }
     }
-#endif
     sq_pop(v, 1);
     return 1;
 }
@@ -494,7 +494,7 @@ static SQRegFunction sq_mongoose_methods[] =
 	_DECL_FUNC(stop,  1, _SC("x")),
 	_DECL_FUNC(modify_passwords_file,  1, _SC("x")),
 	_DECL_FUNC(version,  1, _SC("x")),
-	_DECL_FUNC(show_errors_on_stdout,  1, _SC("x")),
+	_DECL_FUNC(show_errors_on_stdout,  2, _SC("xb")),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -656,6 +656,12 @@ push_request(HSQUIRRELVM v, const struct mg_request_info *ri)
     sq_newslot(v, -3, SQFalse);
 }
 
+static int copy_array(HSQUIRRELVM dst, HSQUIRRELVM src, int i, int top){
+}
+
+static int copy_table(HSQUIRRELVM dst, HSQUIRRELVM src, int i, int top){
+}
+
 /*
 ** Copies values from State src to State dst.
 */
@@ -681,10 +687,23 @@ static int copy_values (HSQUIRRELVM dst, HSQUIRRELVM src, int i, int top) {
         sq_pushstring (dst, vstr, vstr_size);
         break;
       }
-//      case sq_TLIGHTUSERDATA: {
-//        sq_pushlightuserdata (dst, sq_touserdata (src, i));
-//        break;
-//      }
+      case OT_ARRAY:{
+          SQInteger size = sq_getsize(src, i);
+          sq_newarray(dst, size);
+          copy_array(dst, src, i, top);
+      }
+        break;
+      case OT_TABLE:{
+          sq_newtable(dst);
+          copy_table(dst, src, i, top);
+      }
+        break;
+      case OT_USERPOINTER: {
+        SQUserPointer ptr;
+        sq_getuserpointer(src, i, &ptr);
+        sq_pushuserpointer(dst, ptr);
+        break;
+      }
       case OT_NULL:
       default:
         sq_pushnull(dst);
@@ -704,16 +723,18 @@ sq_mg_pcall_master_plugin(HSQUIRRELVM v)
     HSQUIRRELVM master_plugin = (HSQUIRRELVM) mg_lock_master_plugin(conn);
     if(master_plugin){
         int master_plugin_saved_top = sq_gettop(master_plugin);
-        sq_pushcfunction(master_plugin, traceback);  /* push traceback function */
-        int error_func = sq_gettop(master_plugin);
+        //sq_pushcfunction(master_plugin, traceback);  /* push traceback function */
+        //int error_func = sq_gettop(master_plugin);
 
-        sq_getglobal(master_plugin, func_name);
-        if(sq_isfunction(master_plugin, -1)){
+        sq_pushstring(master_plugin, func_name, func_name_size);
+        sq_getonroottable(master_plugin);
+        if(sq_gettype(master_plugin, -1) == OT_CLOSURE){
+            sq_pushroottable(master_plugin);
             int arg_top = sq_gettop (v);
             /* Push arguments to dst stack */
             int idx = 4;
             copy_values (master_plugin, v, idx, arg_top);
-            if (sq_pcall (master_plugin, arg_top-idx+1, sq_MULTRET, error_func) == 0) {
+            if (sq_pcall (master_plugin, arg_top-idx+1, SQTrue, SQTrue) == SQ_OK) {
               /* run OK? */
               int ret_top = sq_gettop (master_plugin);
               /* Push status = OK */
@@ -725,7 +746,7 @@ sq_mg_pcall_master_plugin(HSQUIRRELVM v)
               /*unlock master plugin*/
               mg_unlock_master_plugin(conn);
               /* Return true (success) plus return values */
-              return (ret_top-master_plugin_saved_top);
+              return 1;
             }
             error_message = sq_tostring (master_plugin, -1);
         } else error_message = "Attempt to call an invalid function on master plugin !";
@@ -882,6 +903,10 @@ user_callback_proxy(enum mg_event event,
                 sq_remove(v, -2); //remove registrytable
                 sq_pushroottable(v);
                 rc = sq_call(v, 1, SQTrue, SQFalse);
+                if(rc == SQ_ERROR) {
+                    printf("%d %s\n", __LINE__, sq_getlasterror_str(v));
+                    return 0;
+                }
                 sq_remove(v, -2); //class
                 rc = sq_getinstanceup(v, -1, (void**)sq_mg_ctx, (void*)SQ_MG_CONN_TAG);
 
@@ -939,15 +964,9 @@ user_callback_proxy(enum mg_event event,
 
             if (v) {
                 SQInteger saved_top = sq_gettop(v);
-                //set_mg_conn(v, conn);
 
-                //sq_pushcfunction(v, traceback);  /* push traceback function */
-                SQInteger error_func = sq_gettop(v);
-
-                //sq_getglobal(v, "__manage_conn___");
-                //if the SQIntegererpreter is in a mess state what to do ?
                 if(sq_gettype(v,-1) != OT_CLOSURE) {
-                    const char *error_msg = "Lua SQIntegererpreter lost manage_conn";
+                    const char *error_msg = "SquiLu interpreter lost manage_conn";
                     write_error_message(conn, error_msg, sizeof(error_msg));
                 };
 
@@ -958,20 +977,24 @@ user_callback_proxy(enum mg_event event,
                 case MG_INIT_SSL:       sq_pushliteral(v, "MG_INIT_SSL");       break;
                 default:                sq_pushnull(v);                         break;
                 }
+                sq_pushroottable(v);
                 push_request(v, ri);
         //        sq_call(v, 2, 1);
         //        e = sq_toboolean(v, -1) ? 1 : 0;
-#if 0
-                if(sq_call(v, 2, 1, error_func) != SQ_OK) {
-                    size_t error_len;
-                    const char *error_msg = sq_tolstring(v, -1, &error_len);
+
+                if(sq_call(v, 2, SQTrue, SQFalse) != SQ_OK) {
+                    sq_getlasterror(v);
+                    const SQChar *error_msg;
+                    sq_getstring(v, -1, &error_msg);
                     //printf("%s\n", error_msg);
-                    write_error_message(conn, error_msg, error_len);
+                    write_error_message(conn, error_msg, sq_getsize(v, -1));
                     e = 0;
                 } else {
-                    e = sq_toboolean(v, -1) ? 1 : 0;
+                    SQBool bval;
+                    if(sq_getbool(v, -1, &bval) == SQ_OK) e = bval == SQTrue ? 1 : 0;
+                    else e = 0;
                 }
-#endif
+
                 sq_settop(v, saved_top);
                 return (void *) e;
             }
