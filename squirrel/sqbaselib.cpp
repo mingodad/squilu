@@ -1193,6 +1193,55 @@ static SQInteger string_find_lua(HSQUIRRELVM v)
 	return sq_throwerror(v,"invalid type for parameter 3 function expected");
 }
 
+static const SQChar *lmemfind (const SQChar *s1, size_t l1,
+                               const SQChar *s2, size_t l2) {
+  if (l2 == 0) return s1;  /* empty strings are everywhere */
+  else if (l2 > l1) return NULL;  /* avoids a negative `l1' */
+  else {
+    const SQChar *init;  /* to search for a `*s2' inside `s1' */
+    l2--;  /* 1st char will be checked by `memchr' */
+    l1 = l1-l2;  /* `s2' cannot be found after that */
+    while (l1 > 0 && (init = (const SQChar *)memchr(s1, *s2, l1)) != NULL) {
+      init++;   /* 1st char is already checked */
+      if (memcmp(init, s2+1, l2) == 0)
+        return init-1;
+      else {  /* correct `l1' and `s1' to try again */
+        l1 -= init-s1;
+        s1 = init;
+      }
+    }
+    return NULL;  /* not found */
+  }
+}
+
+/*DAD */
+static SQInteger string_replace(HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, src);
+    SQ_GET_STRING(v, 2, p);
+    SQ_GET_STRING(v, 3, p2);
+    const SQChar *s2;
+    int n = 0;
+    int init = 0;
+
+    SQBlob b(0, 8192);
+
+    while (1) {
+        s2 = lmemfind(src+init, src_size-init, p, p_size);
+        if (s2) {
+            b.Write(src+init, s2-(src+init));
+            b.Write(p2, p2_size);
+            init = init + (s2-(src+init)) + p_size;
+            n++;
+        } else {
+            b.Write(src+init, src_size-init);
+            break;
+        }
+    }
+    sq_pushstring(v, (const SQChar*)b.GetBuf(), b.Len());
+    return 1;
+}
+
 static SQInteger string_getdelegate(HSQUIRRELVM v)
 {
 	return SQ_SUCCEEDED(sq_getdelegate(v,-1))?1:SQ_ERROR;
@@ -1202,12 +1251,13 @@ static SQInteger string_getdelegate(HSQUIRRELVM v)
 
 SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("len"),default_delegate_len,1, _SC("s")},
-	{_SC("tointeger"),default_delegate_tointeger,-1, _SC("si")},
+	{_SC("tointeger"),default_delegate_tointeger,-1, _SC("sn")},
 	{_SC("tofloat"),default_delegate_tofloat,1, _SC("s")},
 	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
 	{_SC("slice"),string_slice,-1, _SC(" s n  n")},
+	{_SC("replace"),string_replace,3, _SC("sss")},
 	{_SC("find"),string_find,-2, _SC("s s n ")},
-	{_SC("find_lua"),string_find_lua,-3, _SC("s s c|t|a i b")},
+	{_SC("find_lua"),string_find_lua,-3, _SC("ss a|t|c nb")},
 	{_SC("gsub"),string_gsub,-3, _SC("s s s|a|t|c n")},
 	{_SC("gmatch"),string_gmatch, 3, _SC("s s c")},
 	{_SC("tolower"),string_tolower,1, _SC("s")},
@@ -1244,23 +1294,29 @@ static SQInteger closure_call(HSQUIRRELVM v)
 	return SQ_SUCCEEDED(sq_call(v,sq_gettop(v)-1,SQTrue,SQTrue))?1:SQ_ERROR;
 }
 
-static SQInteger _closure_acall(HSQUIRRELVM v,SQBool raiseerror)
+static SQInteger _closure_acall(HSQUIRRELVM v,SQBool raiseerror, SQBool v2)
 {
-	SQArray *aparams=_array(stack_get(v,2));
+	SQArray *aparams=_array(stack_get(v, v2 ? 3 : 2));
 	SQInteger nparams=aparams->Size();
 	v->Push(stack_get(v,1));
+	if(v2) v->Push(stack_get(v,2));
 	for(SQInteger i=0;i<nparams;i++)v->Push(aparams->_values[i]);
-	return SQ_SUCCEEDED(sq_call(v,nparams,SQTrue,raiseerror))?1:SQ_ERROR;
+	return SQ_SUCCEEDED(sq_call(v,nparams + (v2 ? 1 : 0),SQTrue,raiseerror))?1:SQ_ERROR;
 }
 
 static SQInteger closure_acall(HSQUIRRELVM v)
 {
-	return _closure_acall(v,SQTrue);
+	return _closure_acall(v,SQTrue, SQFalse);
+}
+
+static SQInteger closure_acall2(HSQUIRRELVM v)
+{
+	return _closure_acall(v,SQTrue, SQTrue);
 }
 
 static SQInteger closure_pacall(HSQUIRRELVM v)
 {
-	return _closure_acall(v,SQFalse);
+	return _closure_acall(v,SQFalse, SQFalse);
 }
 
 static SQInteger closure_bindenv(HSQUIRRELVM v)
@@ -1319,6 +1375,7 @@ SQRegFunction SQSharedState::_closure_default_delegate_funcz[]={
 	{_SC("call"),closure_call,-1, _SC("c")},
 	{_SC("pcall"),closure_pcall,-1, _SC("c")},
 	{_SC("acall"),closure_acall,2, _SC("ca")},
+	{_SC("acall2"),closure_acall2,3, _SC("c.a")},
 	{_SC("pacall"),closure_pacall,2, _SC("ca")},
 	{_SC("weakref"),obj_delegate_weakref,1, NULL },
 	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
