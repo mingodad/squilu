@@ -3,6 +3,7 @@
 #define _SQSTD_BLOBIMPL_H_
 
 #include "sqstdio.h"
+#define BLOB_BUFSIZE 8192
 
 struct SQBlob : public SQStream
 {
