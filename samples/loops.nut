@@ -24,7 +24,7 @@ while(i<arr.len())
 }
 ::print("DO WHILE\n");
 
-local i=0;
+i=0;
 do
 {
 	::print("index ["+i+"]="+arr[i]+"\n");
