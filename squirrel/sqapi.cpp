@@ -236,7 +236,7 @@ void sq_pushstring(HSQUIRRELVM v,const SQChar *s,SQInteger len)
 void sq_pushfstring(HSQUIRRELVM v,const SQChar *fmt, ...)
 {
     if(fmt){
-        static SQChar str[1024];
+        SQChar str[1024];
         va_list vl;
         va_start(vl, fmt);
         SQInteger len = scvsnprintf(str, sizeof(str), fmt, vl);
@@ -1185,7 +1185,7 @@ void sq_resetobject(HSQOBJECT *po)
 
 SQRESULT sq_throwerror(HSQUIRRELVM v,const SQChar *fmt, ...)
 {
-    static SQChar err[256];
+    SQChar err[256];
     va_list vl;
     va_start(vl, fmt);
     scvsnprintf(err, sizeof(err), fmt, vl);
