@@ -78,7 +78,7 @@ static SQRESULT get_sqlite3_stmt_instance(HSQUIRRELVM v, SQInteger idx, sqlite3_
 #define push_sqlite3_null(v) {sq_pushstring(v, nullName, sizeof(nullName)-1);sq_get(v, 1);}
 
 #define GET_sqlite3_INSTANCE_AT(idx) \
-	sq_sqlite3_sdb *sdb; \
+	sq_sqlite3_sdb *sdb=NULL; \
 	if((_rc_ = get_sqlite3_instance(v,idx,&sdb)) < 0) return _rc_;\
 	sqlite3 *self = sdb->db;
 
@@ -86,7 +86,7 @@ static SQRESULT get_sqlite3_stmt_instance(HSQUIRRELVM v, SQInteger idx, sqlite3_
 
 //#define GET_sqlite3_INSTANCE() SQ_GET_INSTANCE(v, 1, sqlite3, SQLite3_TAG)
 #define GET_sqlite3_stmt_INSTANCE()  \
-	sqlite3_stmt *self; \
+	sqlite3_stmt *self=NULL; \
 	if((_rc_ = get_sqlite3_stmt_instance(v,1,&self)) < 0) return _rc_;
 
 enum e_type_result {tr_first_row_first_col, tr_first_row, tr_all_rows, tr_ddml};
@@ -191,9 +191,10 @@ static SQRESULT sqlite3_stmt_bind_value(HSQUIRRELVM v, sqlite3_stmt *stmt, int n
             SQ_GET_FLOAT(v, argn, param_float);
             _rc_ = sqlite3_bind_double(stmt, npar, param_float);
             break;
-        case OT_STRING:
+        case OT_STRING:{
             SQ_GET_STRING(v, argn, param_string);
             _rc_ = sqlite3_bind_text(stmt, npar, param_string, param_string_size, SQLITE_TRANSIENT);
+            }
             break;
         case OT_NULL:
             _rc_ = sqlite3_bind_null(stmt, npar);
@@ -390,7 +391,7 @@ static int get_col_index(HSQUIRRELVM v, sqlite3_stmt *self){
 	    case OT_INTEGER:
             sq_getinteger(v, 2, &col);
 	    break;
-	    case OT_STRING:
+	    case OT_STRING:{
             SQ_GET_STRING(v, 2, col_name);
             if(col_name_size == 0) return sq_throwerror(v, "column name can not be empty");
             col = -1;
@@ -401,6 +402,7 @@ static int get_col_index(HSQUIRRELVM v, sqlite3_stmt *self){
                 }
             }
             if(col == -1) return sq_throwerror(v, "column name not found \"%s\"", col_name);
+	    }
 	    break;
 	    default:
             return sq_throwerror(v, "wrong parameter expected integer|string");
