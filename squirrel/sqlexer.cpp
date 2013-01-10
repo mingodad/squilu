@@ -41,6 +41,26 @@ void SQLexer::Init(SQSharedState *ss, SQLEXREADFUNC rg, SQUserPointer up,Compile
 	ADD_KEYWORD(function, TK_FUNCTION);
 	ADD_KEYWORD(local, TK_LOCAL);
 	ADD_KEYWORD(var, TK_LOCAL);
+
+	ADD_KEYWORD(char_t, TK_LOCAL);
+	ADD_KEYWORD(wchar_t, TK_LOCAL);
+
+	ADD_KEYWORD(int8_t, TK_LOCAL);
+	ADD_KEYWORD(int16_t, TK_LOCAL);
+	ADD_KEYWORD(int32_t, TK_LOCAL);
+	ADD_KEYWORD(int64_t, TK_LOCAL);
+	ADD_KEYWORD(int_t, TK_LOCAL);
+
+	ADD_KEYWORD(uint8_t, TK_LOCAL);
+	ADD_KEYWORD(uint16_t, TK_LOCAL);
+	ADD_KEYWORD(uint32_t, TK_LOCAL);
+	ADD_KEYWORD(uint64_t, TK_LOCAL);
+	ADD_KEYWORD(uint_t, TK_LOCAL);
+
+	ADD_KEYWORD(float_t, TK_LOCAL);
+	ADD_KEYWORD(double_t, TK_LOCAL);
+	ADD_KEYWORD(long_double_t, TK_LOCAL);
+
 	ADD_KEYWORD(for, TK_FOR);
 	ADD_KEYWORD(foreach, TK_FOREACH);
 	ADD_KEYWORD(in, TK_IN);
