@@ -72,7 +72,30 @@ struct SQVM;
 #define TK_CONST 324
 #define TK___LINE__ 325
 #define TK___FILE__ 326
+
 #define TK_IGNORE 327
+
+#define	TK_LOCAL_CHAR_T	328
+#define	TK_LOCAL_WCHAR_T	329
+#define	TK_LOCAL_BOOL_T	330
+
+#define	TK_LOCAL_TABLE_T	331
+#define	TK_LOCAL_ARRAY_T	332
+
+#define	TK_LOCAL_INT8_T	333
+#define	TK_LOCAL_INT16_T	334
+#define	TK_LOCAL_INT32_T	335
+#define	TK_LOCAL_INT64_T	336
+#define	TK_LOCAL_INT_T	337
+#define	TK_LOCAL_UINT8_T	338
+#define	TK_LOCAL_UINT16_T	339
+#define	TK_LOCAL_UINT32_T	340
+#define	TK_LOCAL_UINT64_T	341
+#define	TK_LOCAL_UINT_T	342
+
+#define	TK_LOCAL_FLOAT_T	343
+#define	TK_LOCAL_DOUBLE_T	344
+#define	TK_LOCAL_LONG_DOUBLE_T	345
 
 
 typedef void(*CompilerErrorFunc)(void *ud, const SQChar *s);

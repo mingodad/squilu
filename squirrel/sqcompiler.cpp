@@ -233,6 +233,24 @@ public:
 		case TK_FOR:		ForStatement();			break;
 		case TK_FOREACH:	ForEachStatement();		break;
 		case TK_SWITCH:	SwitchStatement();		break;
+		case TK_LOCAL_CHAR_T:
+		case TK_LOCAL_WCHAR_T:
+		case TK_LOCAL_BOOL_T:
+		case TK_LOCAL_TABLE_T:
+		case TK_LOCAL_ARRAY_T:
+		case TK_LOCAL_INT8_T:
+		case TK_LOCAL_INT16_T:
+		case TK_LOCAL_INT32_T:
+		case TK_LOCAL_INT64_T:
+		case TK_LOCAL_INT_T:
+		case TK_LOCAL_UINT8_T:
+		case TK_LOCAL_UINT16_T:
+		case TK_LOCAL_UINT32_T:
+		case TK_LOCAL_UINT64_T:
+		case TK_LOCAL_UINT_T:
+		case TK_LOCAL_FLOAT_T:
+		case TK_LOCAL_DOUBLE_T:
+		case TK_LOCAL_LONG_DOUBLE_T:
 		case TK_LOCAL:		LocalDeclStatement();	break;
 		case TK_RETURN:
 		case TK_YIELD: {
@@ -1029,6 +1047,7 @@ public:
 	void LocalDeclStatement()
 	{
 		SQObject varname;
+		SQInteger declType = _token;
 		Lex();
 		if( _token == TK_FUNCTION) {
 			Lex();
@@ -1052,7 +1071,47 @@ public:
 				if(dest != src) _fs->AddInstruction(_OP_MOVE, dest, src);
 			}
 			else{
-				_fs->AddInstruction(_OP_LOADNULLS, _fs->PushTarget(),1);
+			    SQInteger dest = _fs->PushTarget();
+			    switch(declType){
+			        /*
+                    case TK_LOCAL_CHAR_T:
+                    case TK_LOCAL_WCHAR_T:
+                        break;
+                    */
+                    case TK_LOCAL_BOOL_T:
+                        //default value false
+                        _fs->AddInstruction(_OP_LOADBOOL, dest,0);
+                        break;
+                    /*
+                    case TK_LOCAL_TABLE_T:
+                        break;
+                    case TK_LOCAL_ARRAY_T:
+                        break;
+                    */
+                    case TK_LOCAL_INT8_T:
+                    case TK_LOCAL_INT16_T:
+                    case TK_LOCAL_INT32_T:
+                    case TK_LOCAL_INT64_T:
+                    case TK_LOCAL_INT_T:
+                    case TK_LOCAL_UINT8_T:
+                    case TK_LOCAL_UINT16_T:
+                    case TK_LOCAL_UINT32_T:
+                    case TK_LOCAL_UINT64_T:
+                    case TK_LOCAL_UINT_T:
+                        //default value 0
+                        _fs->AddInstruction(_OP_LOADINT, dest,0);
+                        break;
+                    case TK_LOCAL_FLOAT_T:
+                    case TK_LOCAL_DOUBLE_T:
+                    case TK_LOCAL_LONG_DOUBLE_T:
+                        //default value 0.0
+                        _fs->AddInstruction(_OP_LOADFLOAT, dest,0);
+                        break;
+                    //case TK_LOCAL:
+                    default:
+                        //default value null
+                        _fs->AddInstruction(_OP_LOADNULLS, dest,1);
+			    }
 			}
 			_fs->PopTarget();
 			_fs->PushLocalVariable(varname, _scope.nested);
@@ -1125,11 +1184,35 @@ public:
 		Lex();
 		BEGIN_SCOPE();
 		Expect(_SC('('));
-		if(_token == TK_LOCAL) LocalDeclStatement();
-		else if(_token != _SC(';')){
+		switch(_token){
+            case TK_LOCAL_CHAR_T:
+            case TK_LOCAL_WCHAR_T:
+            case TK_LOCAL_BOOL_T:
+            case TK_LOCAL_TABLE_T:
+            case TK_LOCAL_ARRAY_T:
+            case TK_LOCAL_INT8_T:
+            case TK_LOCAL_INT16_T:
+            case TK_LOCAL_INT32_T:
+            case TK_LOCAL_INT64_T:
+            case TK_LOCAL_INT_T:
+            case TK_LOCAL_UINT8_T:
+            case TK_LOCAL_UINT16_T:
+            case TK_LOCAL_UINT32_T:
+            case TK_LOCAL_UINT64_T:
+            case TK_LOCAL_UINT_T:
+            case TK_LOCAL_FLOAT_T:
+            case TK_LOCAL_DOUBLE_T:
+            case TK_LOCAL_LONG_DOUBLE_T:
+            case TK_LOCAL:
+                LocalDeclStatement();
+                break;
+            default:
+                if(_token != _SC(';')){
 			CommaExpr();
 			_fs->PopTarget();
 		}
+		}
+
 		Expect(_SC(';'));
 		_fs->SnoozeOpt();
 		SQInteger jmppos = _fs->GetCurrentPos();
