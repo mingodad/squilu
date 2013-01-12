@@ -942,7 +942,7 @@ SQRegFunction SQSharedState::_array_default_delegate_funcz[]={
 };
 
 //STRING DEFAULT DELEGATE//////////////////////////
-static SQInteger string_slice(HSQUIRRELVM v)
+static SQRESULT string_slice(HSQUIRRELVM v)
 {
 	SQInteger sidx,eidx;
 	SQObjectPtr o;
@@ -956,7 +956,7 @@ static SQInteger string_slice(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger string_find(HSQUIRRELVM v)
+static SQRESULT string_find(HSQUIRRELVM v)
 {
 	SQInteger top,start_idx=0;
 	const SQChar *str,*substr,*ret;
@@ -1051,7 +1051,7 @@ static int process_string_gsub(LuaMatchState *ms, void *udata, char_buffer_st **
     return result; //returning non zero means continue
 }
 
-static SQInteger string_gsub(HSQUIRRELVM v)
+static SQRESULT string_gsub(HSQUIRRELVM v)
 {
     const char *error_ptr;
     SQ_FUNC_VARS(v);
@@ -1125,7 +1125,7 @@ static int process_string_gmatch(LuaMatchState *ms, void *udata, char_buffer_st 
     return process_string_gmatch_find(ms, udata, b, false);
 }
 
-static SQInteger string_gmatch(HSQUIRRELVM v)
+static SQRESULT string_gmatch(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, src);
@@ -1147,7 +1147,7 @@ static int process_string_find_lua(LuaMatchState *ms, void *udata, char_buffer_s
     return process_string_gmatch_find(ms, udata, b, true);
 }
 
-static SQInteger string_find_lua(HSQUIRRELVM v)
+static SQRESULT string_find_lua(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SQ_GET_STRING(v, 1, src);
@@ -1155,6 +1155,17 @@ static SQInteger string_find_lua(HSQUIRRELVM v)
     SQ_OPT_INTEGER(v, 4, start, 0);
     SQ_OPT_BOOL(v, 5, raw, SQFalse);
     SQInteger rtype = sq_gettype(v, 3);
+
+    if(_top_ == 2){
+        //only want to know if it exists
+        LuaMatchState ms;
+        memset(&ms, 0, sizeof(ms));
+        int rc = str_find(&ms, src, src_size, pattern, pattern_size,
+                start, raw == SQTrue, 0, 0);
+        if(ms.error) return sq_throwerror(v, ms.error);
+        sq_pushinteger(v, rc);
+        return 1;
+    }
     if(rtype == OT_CLOSURE){
         LuaMatchState ms;
         memset(&ms, 0, sizeof(ms));
@@ -1215,7 +1226,7 @@ static const SQChar *lmemfind (const SQChar *s1, size_t l1,
 }
 
 /*DAD */
-static SQInteger string_replace(HSQUIRRELVM v) {
+static SQRESULT string_replace(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, src);
     SQ_GET_STRING(v, 2, p);
@@ -1242,7 +1253,53 @@ static SQInteger string_replace(HSQUIRRELVM v) {
     return 1;
 }
 
-static SQInteger string_find_close_quote(HSQUIRRELVM v) {
+static SQRESULT string_endswith(HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, str);
+    SQ_GET_STRING(v, 2, token);
+
+    SQInteger ti = token_size, si = str_size;
+    SQBool end = SQTrue;
+    if(token_size <= str_size){
+        while(ti > 0) {
+            if(str[--si] != token[--ti]){
+                end = SQFalse;
+                break;
+
+            }
+        }
+    }
+    else {
+        end = SQFalse;
+    }
+    sq_pushbool(v, end);
+    return 1;
+}
+
+static SQRESULT string_startswith(HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, str);
+    SQ_GET_STRING(v, 2, token);
+
+    int i;
+    SQBool start = SQTrue;
+    // please make this less ugly...
+    if(token_size <= str_size){
+    	for(i = 0; i < token_size; ++i) {
+            if(str[i] != token[i]){
+                start = SQFalse;
+                break;
+            }
+        }
+    }
+    else {
+        start = SQFalse;
+    }
+    sq_pushbool(v, start);
+    return 1;
+}
+
+static SQRESULT string_find_close_quote(HSQUIRRELVM v) {
     SQ_FUNC_VARS(v);
     SQ_GET_STRING(v, 1, src);
     SQ_OPT_INTEGER(v, 2, init, 0);
@@ -1259,7 +1316,7 @@ static SQInteger string_find_close_quote(HSQUIRRELVM v) {
     return 1;
 }
 
-static SQInteger string_getdelegate(HSQUIRRELVM v)
+static SQRESULT string_getdelegate(HSQUIRRELVM v)
 {
 	return SQ_SUCCEEDED(sq_getdelegate(v,-1))?1:SQ_ERROR;
 }
@@ -1274,10 +1331,12 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("slice"),string_slice,-1, _SC(" s n  n")},
 	{_SC("replace"),string_replace,3, _SC("sss")},
 	{_SC("find"),string_find,-2, _SC("s s n ")},
-	{_SC("find_lua"),string_find_lua,-3, _SC("ss a|t|c nb")},
+	{_SC("find_lua"),string_find_lua,-2, _SC("ss a|t|c nb")},
 	{_SC("find_close_quote"),string_find_close_quote,-1, _SC("sn")},
 	{_SC("gsub"),string_gsub,-3, _SC("s s s|a|t|c n")},
 	{_SC("gmatch"),string_gmatch, 3, _SC("s s c")},
+	{_SC("startswith"),string_startswith, 2, _SC("ss")},
+	{_SC("endswith"),string_endswith, 2, _SC("ss")},
 	{_SC("tolower"),string_tolower,1, _SC("s")},
 	{_SC("toupper"),string_toupper,1, _SC("s")},
 	{_SC("weakref"),obj_delegate_weakref,1, NULL },
