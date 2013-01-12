@@ -307,6 +307,11 @@ void Interactive(HSQUIRRELVM v)
 
 SQRESULT sqstd_register_sqfs(HSQUIRRELVM v);
 SQRESULT sqstd_register_sq_zmq3(HSQUIRRELVM v);
+SQRESULT sqstd_register_sq_socket(HSQUIRRELVM v);
+SQRESULT sqstd_register_sq_zlib(HSQUIRRELVM v);
+SQRESULT sqstd_register_mongoose(HSQUIRRELVM v);
+SQRESULT sqrat_register_importlib(HSQUIRRELVM v);
+SQRESULT sqstd_register_sq_slave_vm(HSQUIRRELVM v);
 
 int main(int argc, char* argv[])
 {
@@ -328,16 +333,28 @@ int main(int argc, char* argv[])
 	sqstd_register_mathlib(v);
 	sqstd_register_stringlib(v);
 
+#ifdef WITH_DAD_EXTRAS
+	sqstd_register_base64(v);
+	sqstd_register_Sq_Fpdf(v);
+	sqstd_register_SQLite3(v);
+	sqstd_register_dad_utils(v);
+	sq_register_mix(v);
+	sqstd_register_sqfs(v);
+	sqstd_register_sq_socket(v);
+	sqstd_register_sq_zlib(v);
+	sqstd_register_mongoose(v);
+	sqrat_register_importlib(v);
+	sqstd_register_sq_slave_vm(v);
+
+	sqstd_register_sq_zmq3(v);
+	//sqstd_register_memory_buffer(v);
+#ifdef WITH_FLTK
+	sqstd_register_fltklib(v);
+#endif
+#endif
 	//aux library
 	//sets error handlers
 	sqstd_seterrorhandlers(v);
-
-#ifdef SQ_DAD
-    sqstd_register_sqfs(v);
-#endif
-#ifdef SQ_DAD_TEST
-    sqstd_register_sq_zmq3(v);
-#endif
 
 	//gets arguments
 	switch(getargs(v,argc,argv,&retval))
