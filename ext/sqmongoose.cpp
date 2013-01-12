@@ -44,48 +44,63 @@ typedef struct SQ_Mg_Context SQ_Mg_Context;
 typedef struct SQ_MG_Callback SQ_MG_Callback;
 
 struct SQ_MG_Callback {
-    char *buf;
-    size_t len;
     size_t size;
-    const char *name;
+    char buf[1];
 };
+
+static SQ_MG_Callback *SQ_MG_Callback_malloc(size_t x){
+    SQ_MG_Callback *p = (SQ_MG_Callback *)sq_malloc(sizeof(SQ_MG_Callback)+x);
+    if(p) p->size = x;
+    return p;
+}
+
+static void SQ_MG_Callback_free(SQ_MG_Callback *p){
+    if(p) sq_free(p, sizeof(SQ_MG_Callback)+p->size);
+}
 
 struct SQ_Mg_Context {
     HSQUIRRELVM v;
     struct mg_context *ctx;
-    SQ_MG_Callback master_plugin;
-    SQ_MG_Callback master_plugin_exit;
-    SQ_MG_Callback user_callback;
-    SQ_MG_Callback user_callback_setup;
-    SQ_MG_Callback user_callback_exit;
+    SQ_MG_Callback *master_plugin;
+    SQ_MG_Callback *master_plugin_exit;
+    SQ_MG_Callback *user_callback;
+    SQ_MG_Callback *user_callback_setup;
+    SQ_MG_Callback *user_callback_exit;
 };
 
-static const char SQ_MG_CONN_TAG[] = "sq_mg_conn_tag";
+static const SQChar sq_mg_context_TAG[] = "sq_mg_conn_class";
+#define GET_mg_context_INSTANCE() \
+    SQ_Mg_Context *self; \
+    if((_rc_ = sq_getinstanceup(v,1,(SQUserPointer*)&self,(void*)sq_mg_context_TAG)) < 0) return _rc_;
 
-static SQRESULT sq_mg_conn_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static const SQChar sq_mg_user_callback[] = "mg_user_callback";
+
+static const SQChar sq_http_request_TAG[] = "HttpRequest";
+
+#define GET_http_request_INSTANCE() \
+    struct mg_connection *conn; \
+    if((_rc_ = sq_getinstanceup(v,1,(SQUserPointer*)&conn,(void*)sq_http_request_TAG)) < 0) return _rc_;
+
+static SQRESULT sq_http_request_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	return 1;
 }
 
-static SQRESULT sq_mg_conn_constructor(HSQUIRRELVM v)
+static SQRESULT sq_http_request_constructor(HSQUIRRELVM v)
 {
     //SQ_FUNC_VARS_NO_TOP(v);
     struct mg_connection *conn = 0;
 
     sq_setinstanceup(v, 1, conn);
-    sq_setreleasehook(v,1, sq_mg_conn_releasehook);
+    sq_setreleasehook(v,1, sq_http_request_releasehook);
 	return 1;
 }
 
-#define GET_MG_CONNECION() \
-    struct mg_connection *conn; \
-    if((_rc_ = sq_getinstanceup(v,1,(SQUserPointer*)&conn,(void*)SQ_MG_CONN_TAG)) < 0) return _rc_;
-
 static SQRESULT
-sq_mg_conn_print(HSQUIRRELVM v)
+sq_http_request_print(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
-    GET_MG_CONNECION();
+    GET_http_request_INSTANCE();
     SQInteger i, write_count = 0;
 
     for (i = 2; i <= _top_; ++i) {
@@ -101,9 +116,9 @@ sq_mg_conn_print(HSQUIRRELVM v)
 
 #ifdef USE_SQ_LSQLITE3
 static SQRESULT
-sq_mg_conn_vm_print(HSQUIRRELVM v)
+sq_http_request_vm_print(HSQUIRRELVM v)
 {
-    GET_MG_CONNECION();
+    GET_http_request_INSTANCE();
     lsqlite3_sdb_vm *svm = (lsqlite3_sdb_vm *)luaL_checkudata(v, 1,
                                                               lsqlite3_sqlite_vm_meta);
     SQInteger idx = luaL_checkint(v,2);
@@ -116,10 +131,10 @@ sq_mg_conn_vm_print(HSQUIRRELVM v)
 #endif
 
 static SQRESULT
-sq_mg_conn_write(HSQUIRRELVM v)
+sq_http_request_write(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
-    GET_MG_CONNECION();
+    GET_http_request_INSTANCE();
     SQ_GET_STRING(v, 2, buf);
     SQ_OPT_INTEGER(v, 3, write_size, buf_size);
     sq_pushinteger(v, mg_write(conn, buf, write_size));
@@ -127,10 +142,10 @@ sq_mg_conn_write(HSQUIRRELVM v)
 }
 
 static SQRESULT
-sq_mg_conn_read(HSQUIRRELVM v)
+sq_http_request_read(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
-    GET_MG_CONNECION();
+    GET_http_request_INSTANCE();
     SQ_OPT_INTEGER(v, 2, n, 1024*2000);
     size_t rlen;  /* how much to read */
     size_t nr;  /* number of chars actually read */
@@ -150,20 +165,20 @@ sq_mg_conn_read(HSQUIRRELVM v)
 }
 
 static SQRESULT
-sq_mg_conn_send_file(HSQUIRRELVM v)
+sq_http_request_send_file(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
-    GET_MG_CONNECION();
+    GET_http_request_INSTANCE();
     SQ_GET_STRING(v, 2, file_path);
     mg_send_file(conn, file_path);
     return 0;
 }
 
 static SQRESULT
-sq_mg_conn_write_blob(HSQUIRRELVM v)
+sq_http_request_write_blob(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
-    GET_MG_CONNECION();
+    GET_http_request_INSTANCE();
 	SQBlob *blob = NULL;
 	{ if(SQ_FAILED(sq_getinstanceup(v,2,(SQUserPointer*)&blob,(SQUserPointer)SQBlob::SQBlob_TAG)))
 		return sq_throwerror(v,_SC("invalid type tag"));  }
@@ -175,20 +190,20 @@ sq_mg_conn_write_blob(HSQUIRRELVM v)
 }
 
 static SQRESULT
-sq_mg_conn_get_header(HSQUIRRELVM v)
+sq_http_request_get_header(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
-    GET_MG_CONNECION();
+    GET_http_request_INSTANCE();
     SQ_GET_STRING(v, 2, name);
     sq_pushstring(v, mg_get_header(conn, name), -1);
     return 1;
 }
 
 static SQRESULT
-sq_mg_conn_get_cookie(HSQUIRRELVM v)
+sq_http_request_get_cookie(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
-    GET_MG_CONNECION();
+    GET_http_request_INSTANCE();
     SQ_GET_STRING(v, 2, cookie_name);
 
     const char *start;
@@ -200,10 +215,10 @@ sq_mg_conn_get_cookie(HSQUIRRELVM v)
 }
 
 static SQRESULT
-sq_mg_conn_get_var(HSQUIRRELVM v)
+sq_http_request_get_var(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
-    GET_MG_CONNECION();
+    GET_http_request_INSTANCE();
     SQ_GET_STRING(v, 2, data);
     SQ_GET_STRING(v, 3, name);
 
@@ -224,10 +239,10 @@ sq_mg_conn_get_var(HSQUIRRELVM v)
 }
 
 static SQRESULT
-sq_mg_conn_handle_cgi_request(HSQUIRRELVM v)
+sq_http_request_handle_cgi_request(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
-    GET_MG_CONNECION();
+    GET_http_request_INSTANCE();
     SQ_GET_STRING(v, 2, prog);
 
     mg_handle_cgi_request(conn, prog);
@@ -236,10 +251,10 @@ sq_mg_conn_handle_cgi_request(HSQUIRRELVM v)
 }
 
 static SQRESULT
-sq_mg_conn_get_option(HSQUIRRELVM v)
+sq_http_request_get_option(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
-    GET_MG_CONNECION();
+    GET_http_request_INSTANCE();
     SQ_GET_STRING(v, 2, name);
     SQ_Mg_Context *sq_mg_ctx = (SQ_Mg_Context *) mg_get_user_data(conn);
     sq_pushstring(v, mg_get_option(sq_mg_ctx->ctx, name), -1);
@@ -247,8 +262,8 @@ sq_mg_conn_get_option(HSQUIRRELVM v)
     return 1;
 }
 
-#define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_mg_conn_##name,nparams,tycheck}
-static SQRegFunction mg_conn_methods[] =
+#define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_http_request_##name,nparams,tycheck}
+static SQRegFunction mg_http_request_methods[] =
 {
 	_DECL_FUNC(constructor,  1, _SC("x")),
 
@@ -336,14 +351,29 @@ fetchoptions(HSQUIRRELVM v, int idx, const char **options)
 
 /***********/
 
-static const char SQ_MONGOOSE_TAG[] = "sq_mongoose_tag";
+static const char sq_mongoose_TAG[] = "Mongoose";
 static SQBool show_errors_on_stdout = SQFalse;
+
+static void sq_mongoose_release_references(SQ_Mg_Context *self){
+    SQ_MG_Callback_free(self->master_plugin);
+    SQ_MG_Callback_free(self->master_plugin_exit);
+    SQ_MG_Callback_free(self->user_callback);
+    SQ_MG_Callback_free(self->user_callback_setup);
+    SQ_MG_Callback_free(self->user_callback_exit);
+}
 
 static SQRESULT sq_mongoose_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
-    SQ_Mg_Context *sq_mg_ctx = (    SQ_Mg_Context *)p;
-    sq_free(sq_mg_ctx, sizeof(SQ_Mg_Context));
-	return 1;
+    SQ_Mg_Context *self = (SQ_Mg_Context *)p;
+    if(self){
+        if(self->ctx){
+            mg_stop(self->ctx);
+            sq_mongoose_release_references(self);
+            self->ctx = 0;
+        }
+        sq_free(self, sizeof(SQ_Mg_Context));
+    }
+	return 0;
 }
 
 static SQRESULT sq_mongoose_constructor(HSQUIRRELVM v)
@@ -359,7 +389,7 @@ static SQRESULT sq_mongoose_constructor(HSQUIRRELVM v)
 
 #define GET_mongoose_INSTANCE() \
     SQ_Mg_Context *self; \
-    if((_rc_ = sq_getinstanceup(v,1,(SQUserPointer*)&self,(void*)SQ_MONGOOSE_TAG)) < 0) return _rc_;
+    if((_rc_ = sq_getinstanceup(v,1,(SQUserPointer*)&self,(void*)sq_mongoose_TAG)) < 0) return _rc_;
 
 static SQRESULT
 sq_mongoose_show_errors_on_stdout(HSQUIRRELVM v)
@@ -394,29 +424,27 @@ sq_mongoose_version(HSQUIRRELVM v)
 SQInteger blob_write(SQUserPointer file,SQUserPointer p,SQInteger size);
 // creates a reference dispatching callbacks to squirrel functions
 static SQRESULT
-fetchcallback(HSQUIRRELVM v, const char *key, SQ_MG_Callback *dump)
+fetchcallback(HSQUIRRELVM v, const char *key, SQ_MG_Callback **sq_cb)
 {
+    if(!sq_cb) return sq_throwerror(v, "inavlid SQ_MG_Callback parameter value (NULL)");
     if(sq_gettype(v, -1) != OT_TABLE) return sq_throwerror(v, "table expected to fetch callbacks");
     sq_pushstring(v, key, -1);
     sq_rawget(v, -2);
 
-    dump->buf = NULL;
-    dump->len = 0;
-    dump->size = 0;
-    dump->name = key;
-
     if (sq_gettype(v, -1) == OT_CLOSURE){
         SQBlob b(0, 8192);
-        if (sq_writeclosure(v, blob_write, &b) != 0)
-            return sq_throwerror(v, "unable to dump given function");
-        dump->buf = (char*)sq_malloc(b.Len());
-        if(dump->buf) {
-            dump->len = b.Len();
-            memcpy(dump->buf, b.GetBuf(),  dump->len);
+        if(SQ_SUCCEEDED(sq_writeclosure(v,blob_write,&b))) {
+            *sq_cb = SQ_MG_Callback_malloc(b.Len());
+            if(*sq_cb) memcpy((*sq_cb)->buf, b.GetBuf(), b.Len());
+            sq_poptop(v);
         }
     }
+    else
+    {
     sq_pop(v, 1);
-    return 1;
+        return sq_throwerror(v, "closure expected for callbacks");
+    }
+    return SQ_OK;
 }
 
 static void *
@@ -437,7 +465,7 @@ sq_mongoose_start(HSQUIRRELVM v)
 
     if(self->ctx) return sq_throwerror(v, _SC("mongoose already running or stoped incorrectly"));
 
-    // store the Lua state for use in callback proxies
+    // store the Squirrel vm for use in callback proxies
     self->v = v;
 
     // prepare the mg_config structure from the squirrel table argument
@@ -459,6 +487,7 @@ sq_mongoose_start(HSQUIRRELVM v)
 
     // throw an error if the server did not start
     if (self->ctx == NULL) {
+        sq_mongoose_release_references(self);
         _rc_ = sq_throwerror(v, "could not start mongoose");
     }
 
@@ -474,11 +503,7 @@ sq_mongoose_stop(HSQUIRRELVM v)
 
     if(self->ctx){
         mg_stop(self->ctx);
-
-        if(self->user_callback.buf) {
-            sq_free(self->user_callback.buf, self->user_callback.size);
-            self->user_callback.buf = NULL;
-        }
+        sq_mongoose_release_references(self);
         self->ctx = 0;
     }
 
@@ -503,7 +528,7 @@ static SQRESULT
 sq_mg_url_decode_base(HSQUIRRELVM v, SQInteger is_form_url_encoded)
 {
     SQ_FUNC_VARS_NO_TOP(v);
-    GET_MG_CONNECION();
+    GET_mg_context_INSTANCE();
     SQ_GET_STRING(v, 2, src);
 
     int dst_len = src_size +1;
@@ -529,7 +554,7 @@ static SQRESULT
 sq_mg_url_encode(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
-    GET_MG_CONNECION();
+    GET_mg_context_INSTANCE();
     SQ_GET_STRING(v, 2, src);
 
     char *dst = mg_url_encode(src);
@@ -564,7 +589,6 @@ static SQRESULT
 sq_mg_debug_print(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
-    GET_MG_CONNECION();
     SQInteger i, write_count = 0;
 
     for (i = 2; i <= _top_; ++i) {
@@ -608,7 +632,7 @@ static SQRegFunction sq_mg_methods[] =
 #ifdef JNI_ENABLE_LOG
 	_DECL_FUNC(jniLog,  -2, _SC("xs")),
 #endif
-	_DECL_FUNC(debug_print,  -2, _SC("xs")),
+	_DECL_FUNC(debug_print,  -2, _SC(".s")),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -632,7 +656,8 @@ push_request(HSQUIRRELVM v, const struct mg_request_info *ri)
 {
     int i;
 
-    sq_newtable(v);
+    sq_pushliteral(v, _SC("data"));
+    sq_get(v, -2);
 #define NEWSLOT_STR(ks) reg_string(v, #ks, ri->ks);
     NEWSLOT_STR(request_method);
     NEWSLOT_STR(uri);
@@ -654,62 +679,7 @@ push_request(HSQUIRRELVM v, const struct mg_request_info *ri)
         reg_string(v, ri->http_headers[i].name, ri->http_headers[i].value);
     }
     sq_newslot(v, -3, SQFalse);
-}
-
-static int copy_array(HSQUIRRELVM dst, HSQUIRRELVM src, int i, int top){
-}
-
-static int copy_table(HSQUIRRELVM dst, HSQUIRRELVM src, int i, int top){
-}
-
-/*
-** Copies values from State src to State dst.
-*/
-static int copy_values (HSQUIRRELVM dst, HSQUIRRELVM src, int i, int top) {
-  int _rc_;
-  sq_reservestack(dst, top - i + 1);
-  for (; i <= top; i++) {
-    switch (sq_gettype(src, i)) {
-      case OT_INTEGER:
-        SQ_GET_INTEGER(src, i, vint);
-        sq_pushinteger(dst, vint);
-        break;
-      case OT_FLOAT:
-        SQ_GET_FLOAT(src, i, vfloat);
-        sq_pushfloat (dst, vfloat);
-        break;
-      case OT_BOOL:
-        SQ_GET_BOOL(src, i, vbool);
-        sq_pushbool (dst, vbool);
-        break;
-      case OT_STRING: {
-        SQ_GET_STRING(src, i, vstr)
-        sq_pushstring (dst, vstr, vstr_size);
-        break;
-      }
-      case OT_ARRAY:{
-          SQInteger size = sq_getsize(src, i);
-          sq_newarray(dst, size);
-          copy_array(dst, src, i, top);
-      }
-        break;
-      case OT_TABLE:{
-          sq_newtable(dst);
-          copy_table(dst, src, i, top);
-      }
-        break;
-      case OT_USERPOINTER: {
-        SQUserPointer ptr;
-        sq_getuserpointer(src, i, &ptr);
-        sq_pushuserpointer(dst, ptr);
-        break;
-      }
-      case OT_NULL:
-      default:
-        sq_pushnull(dst);
-        break;
-    }
-  }
+    sq_poptop(v); //remove data table
 }
 
 static SQInteger
@@ -733,16 +703,16 @@ sq_mg_pcall_master_plugin(HSQUIRRELVM v)
             int arg_top = sq_gettop (v);
             /* Push arguments to dst stack */
             int idx = 4;
-            copy_values (master_plugin, v, idx, arg_top);
+            copy_values_between_vms (master_plugin, v, arg_top-idx, idx);
             if (sq_pcall (master_plugin, arg_top-idx+1, SQTrue, SQTrue) == SQ_OK) {
               /* run OK? */
               int ret_top = sq_gettop (master_plugin);
               /* Push status = OK */
               sq_pushbool (v, SQTrue);
               /* Return values to src */
-              copy_values (v, master_plugin, master_plugin_saved_top+2, ret_top);
+              //copy_values_between_vms (v, master_plugin, master_plugin_saved_top+2, ret_top);
               /* pops debug.traceback and result from dst state */
-              sq_settop(master_plugin, master_plugin_saved_top);
+              //sq_settop(master_plugin, master_plugin_saved_top);
               /*unlock master plugin*/
               mg_unlock_master_plugin(conn);
               /* Return true (success) plus return values */
@@ -766,6 +736,7 @@ static void write_error_message(struct mg_connection *conn,
 #define PRE_TAG_OPEN "<pre>"
 #define PRE_TAG_CLOSE "</pre>"
     mg_write(conn, PRE_TAG_OPEN, sizeof(PRE_TAG_OPEN));
+    if(error_len < 0) error_len = strlen(error_msg);
     mg_write(conn, error_msg, error_len);
     mg_write(conn, PRE_TAG_CLOSE, sizeof(PRE_TAG_CLOSE));
 }
@@ -782,7 +753,7 @@ SQUIRREL_API SQInteger sqstd_register_systemlib(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sqstd_register_mathlib(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sqstd_register_stringlib(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sqstd_register_Sq_Fpdf(HSQUIRRELVM v);
-//SQUIRREL_API SQRESULT sqopen_lfs(HSQUIRRELVM v);
+SQUIRREL_API SQRESULT sqstd_register_sqfs(HSQUIRRELVM v);
 SQUIRREL_API void sqstd_seterrorhandlers(HSQUIRRELVM v);
 SQUIRREL_API void sqstd_printcallstack(HSQUIRRELVM v);
 #ifdef __cplusplus
@@ -809,6 +780,10 @@ void sq_errorfunc(HSQUIRRELVM v,const SQChar *s,...)
 static HSQUIRRELVM my_new_squirrel(struct mg_context *ctx) {
     HSQUIRRELVM v = sq_open(1024);
     if(!v) return 0;
+
+	sqstd_seterrorhandlers(v); //registers the default error handlers
+	sq_setprintfunc(v, sq_printfunc, sq_errorfunc); //sets the print function
+
     sq_pushroottable(v);
 
 	sqstd_register_bloblib(v);
@@ -819,16 +794,17 @@ static HSQUIRRELVM my_new_squirrel(struct mg_context *ctx) {
 	sqstd_register_base64(v);
 	sqstd_register_Sq_Fpdf(v);
 	sqstd_register_SQLite3(v);
+	sqstd_register_sqfs(v);
 	sq_register_mix(v);
 
-	sqstd_seterrorhandlers(v); //registers the default error handlers
-	sq_setprintfunc(v, sq_printfunc, sq_errorfunc); //sets the print function
-
-    sq_pushliteral(v,_SC("mg_connection"));
+    sq_pushstring(v,sq_http_request_TAG, -1);
     sq_newclass(v,SQFalse);
-    sq_settypetag(v,-1,(void*)SQ_MG_CONN_TAG);
-    sq_insert_reg_funcs(v, mg_conn_methods);
-    sq_newslot(v,-3,SQTrue);
+    sq_settypetag(v,-1,(void*)sq_http_request_TAG);
+    sq_insert_reg_funcs(v, mg_http_request_methods);
+    sq_pushstring(v, _SC("data"), -1);
+    sq_newtable(v);
+    sq_newslot(v,-3,SQFalse);
+    sq_newslot(v,-3,SQFalse);
 
     sq_insert_reg_funcs(v, sq_mg_methods);
 
@@ -839,6 +815,16 @@ static HSQUIRRELVM my_new_squirrel(struct mg_context *ctx) {
     sq_poptop(v); //remove roottable
 
     return v;
+}
+
+SQInteger blob_read(SQUserPointer file,SQUserPointer p,SQInteger size);
+SQInteger loadstring(HSQUIRRELVM v, const char * bcode, SQInteger bcode_size)
+{
+    SQBlob b(0, bcode_size);
+    b.Write(bcode, bcode_size);
+    b.Seek(0, SQ_SEEK_SET);
+    SQInteger rc = sq_readclosure(v, blob_read, &b);
+	return rc < 0 ? rc : 1;
 }
 
 // dispatches a callback to a Lua function if one is registered
@@ -853,11 +839,12 @@ user_callback_proxy(enum mg_event event,
     switch(event){
         case MG_NEW_MASTER_PLUGIN: {
             SQ_Mg_Context *sq_mg_ctx = (SQ_Mg_Context *) conn;
-            SQ_MG_Callback *dump = &sq_mg_ctx->master_plugin;
+            SQ_MG_Callback *cb = sq_mg_ctx->master_plugin;
             v = my_new_squirrel((struct mg_context *)ri);
             if(!v) return 0;
-            if(dump->buf){
-                if (sq_compilebuffer(v, dump->buf, dump->len, dump->name, SQFalse) == SQ_OK) {
+
+            if(cb){
+                if (loadstring(v, cb->buf, cb->size)  == 1) {
                     sq_pushroottable(v);
                     if(sq_call(v, 1, SQFalse, SQTrue) != SQ_OK){
                         sq_errorfunc(v, "sq_call failed %d\n%s", __LINE__, sq_getlasterror_str(v));
@@ -873,15 +860,16 @@ user_callback_proxy(enum mg_event event,
             v = (HSQUIRRELVM)conn;
             if(v) {
                 SQ_Mg_Context *sq_mg_ctx = (SQ_Mg_Context *) ri;
-                SQ_MG_Callback *dump = &sq_mg_ctx->master_plugin_exit;
-                if(dump->buf){
-                    if (sq_compilebuffer(v, dump->buf, dump->len, dump->name, SQFalse) == SQ_OK) {
+                SQ_MG_Callback *cb = sq_mg_ctx->master_plugin_exit;
+                if(cb){
+                    if (loadstring(v, cb->buf, cb->size) == 1) {
                         sq_pushroottable(v);
-                        if(sq_call(v, 1, SQFalse, SQTrue) != SQ_OK){
+                        if(sq_call(v, 1, SQFalse, SQFalse) != SQ_OK){
                             sq_errorfunc(v, "sq_call failed %d\n%s", __LINE__, sq_getlasterror_str(v));
                         }
                         sq_poptop(v); //remove function from stack
                     }
+                    else sq_errorfunc(v, "sq_call failed %d\n%s", __LINE__, sq_getlasterror_str(v));
                 }
                 sq_close(v);
             }
@@ -891,40 +879,29 @@ user_callback_proxy(enum mg_event event,
         case MG_NEW_PLUGIN:{
             SQ_Mg_Context *sq_mg_ctx = (SQ_Mg_Context *) mg_get_user_data(conn);
             if(!sq_mg_ctx) return 0;
-            SQ_MG_Callback *dump = &sq_mg_ctx->user_callback;
-            if (dump->buf) {
+            SQ_MG_Callback *cb = sq_mg_ctx->user_callback;
+            if (cb) {
                 v = my_new_squirrel((struct mg_context *)ri);
                 if(!v) return 0;
+                SQInteger top = sq_gettop(v);
+                SQ_MG_Callback *cb_setup = sq_mg_ctx->user_callback_setup;
+                if(cb_setup){
+                    if (loadstring(v, cb_setup->buf, cb_setup->size) == 1) {
                 sq_pushroottable(v);
-
-                sq_pushregistrytable(v);
-                sq_pushstring(v, SQ_MG_CONN_TAG,-1);
-                int rc = sq_rawget(v, -2);
-                sq_remove(v, -2); //remove registrytable
-                sq_pushroottable(v);
-                rc = sq_call(v, 1, SQTrue, SQFalse);
-                if(rc == SQ_ERROR) {
-                    printf("%d %s\n", __LINE__, sq_getlasterror_str(v));
-                    return 0;
-                }
-                sq_remove(v, -2); //class
-                rc = sq_getinstanceup(v, -1, (void**)sq_mg_ctx, (void*)SQ_MG_CONN_TAG);
-
-
-
-                //_g_io_dostring(v, dump->buf, dump->len, dump->name);
-                //sq_setglobal(v, "__manage_conn___");
-                dump = &sq_mg_ctx->user_callback_setup;
-                if(dump->buf){
-                    if (sq_compilebuffer(v, dump->buf, dump->len, dump->name, SQFalse) == SQ_OK) {
-                        sq_pushroottable(v);
-                        if(sq_call(v, 1, SQFalse, SQTrue) != SQ_OK){
+                        if(sq_call(v, 1, SQFalse, SQFalse) != SQ_OK){
                             sq_errorfunc(v, "sq_call failed %d\n%s", __LINE__, sq_getlasterror_str(v));
                         }
                         sq_poptop(v); //remove function from stack
                     }
+                    else sq_errorfunc(v, "sq_call failed %d\n%s", __LINE__, sq_getlasterror_str(v));
                 }
-                sq_poptop(v); //remove root table
+                sq_pushroottable(v);
+                sq_pushstring(v, sq_mg_user_callback, -1);
+                if (loadstring(v, cb->buf, cb->size) == 1) {
+                    sq_newslot(v, -3, SQFalse);
+                }
+                else sq_errorfunc(v, "sq_call failed %d\n%s", __LINE__, sq_getlasterror_str(v));
+                sq_settop(v, top); //remove everithing left on stack while working here
                 return v;
             }
         }
@@ -935,16 +912,16 @@ user_callback_proxy(enum mg_event event,
             if(v){
                 SQ_Mg_Context *sq_mg_ctx = (SQ_Mg_Context *) ri;
                 if(sq_mg_ctx){
-                    SQ_MG_Callback *dump = &sq_mg_ctx->user_callback_exit;
-
-                    if(dump->buf){
-                        if (sq_compilebuffer(v, dump->buf, dump->len, dump->name, SQFalse) == SQ_OK) {
+                    SQ_MG_Callback *cb = sq_mg_ctx->user_callback_exit;
+                    if(cb){
+                        if (loadstring(v, cb->buf, cb->size) == 1) {
                             sq_pushroottable(v);
-                            if(sq_call(v, 1, SQFalse, SQTrue) != SQ_OK){
+                            if(sq_call(v, 1, SQFalse, SQFalse) != SQ_OK){
                                 sq_errorfunc(v, "sq_call failed %d\n%s", __LINE__, sq_getlasterror_str(v));
                             }
                             sq_poptop(v); //remove function from stack
                         }
+                        else sq_errorfunc(v, "sq_call failed %d\n%s", __LINE__, sq_getlasterror_str(v));
                     }
                 }
                 sq_close(v);
@@ -964,11 +941,13 @@ user_callback_proxy(enum mg_event event,
 
             if (v) {
                 SQInteger saved_top = sq_gettop(v);
-
-                if(sq_gettype(v,-1) != OT_CLOSURE) {
-                    const char *error_msg = "SquiLu interpreter lost manage_conn";
-                    write_error_message(conn, error_msg, sizeof(error_msg));
-                };
+                //SQ_Mg_Context *sq_mg_ctx = (SQ_Mg_Context *) mg_get_user_data(conn);
+                sq_pushstring(v, sq_mg_user_callback, -1);
+                if(sq_getonroottable(v) != SQ_OK) {
+                    write_error_message(conn, "failed to find mg_user_callback", -1);
+                    return NULL;
+                }
+                sq_pushroottable(v);
 
                 switch (event) {
                 case MG_NEW_REQUEST:    sq_pushliteral(v, "MG_NEW_REQUEST");    break;
@@ -977,17 +956,19 @@ user_callback_proxy(enum mg_event event,
                 case MG_INIT_SSL:       sq_pushliteral(v, "MG_INIT_SSL");       break;
                 default:                sq_pushnull(v);                         break;
                 }
-                sq_pushroottable(v);
-                push_request(v, ri);
-        //        sq_call(v, 2, 1);
-        //        e = sq_toboolean(v, -1) ? 1 : 0;
 
-                if(sq_call(v, 2, SQTrue, SQFalse) != SQ_OK) {
-                    sq_getlasterror(v);
-                    const SQChar *error_msg;
-                    sq_getstring(v, -1, &error_msg);
-                    //printf("%s\n", error_msg);
-                    write_error_message(conn, error_msg, sq_getsize(v, -1));
+                sq_pushstring(v, sq_http_request_TAG, -1);
+                if(sq_getonroottable(v) == SQ_OK){
+                sq_pushroottable(v);
+                    if(sq_call(v, 1, SQTrue, SQFalse) == SQ_OK){
+                        sq_remove(v, -2); //remove class
+                        sq_setinstanceup(v, -1, conn);
+                    }
+                }
+                push_request(v, ri);
+
+                if(sq_call(v, 3, SQTrue, SQFalse) != SQ_OK) {
+                    write_error_message(conn, sq_getlasterror_str(v), -1);
                     e = 0;
                 } else {
                     SQBool bval;
@@ -1014,9 +995,9 @@ extern "C" {
     SQRESULT sqstd_register_mongoose(HSQUIRRELVM v)
     {
         sq_insert_reg_funcs(v, sq_mg_methods);
-        sq_pushliteral(v,_SC("mongoose"));
+        sq_pushstring(v,sq_mongoose_TAG, -1);
         sq_newclass(v,SQFalse);
-        sq_settypetag(v,-1,(void*)SQ_MONGOOSE_TAG);
+        sq_settypetag(v,-1,(void*)sq_mongoose_TAG);
         sq_insert_reg_funcs(v, sq_mongoose_methods);
         sq_newslot(v,-3,SQTrue);
         return 1;
