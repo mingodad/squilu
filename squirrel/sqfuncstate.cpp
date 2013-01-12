@@ -407,8 +407,6 @@ SQInteger SQFuncState::GetOuterVariable(const SQObject &name)
 			_parent->MarkLocalAsOuter(pos);
 			_outervalues.push_back(SQOuterVar(name,SQObjectPtr(SQInteger(pos)),otLOCAL)); //local
 			return _outervalues.size() - 1;
-			
-			
 		}
 	}
 	return -1;
