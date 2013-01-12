@@ -61,12 +61,14 @@ static SQRESULT get_sqlite3_instance(HSQUIRRELVM v, SQInteger idx, sq_sqlite3_sd
     SQRESULT _rc_;
 	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)sdb,(void*)SQLite3_TAG)) < 0) return _rc_;
 	if(!*sdb) return sq_throwerror(v, _SC("database is closed"));
+	return _rc_;
 }
 
 static SQRESULT get_sqlite3_stmt_instance(HSQUIRRELVM v, SQInteger idx, sqlite3_stmt **stmt){
     SQRESULT _rc_;
 	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)stmt,(void*)SQLite3_Stmt_TAG)) < 0) return _rc_;
 	if(!*stmt) return sq_throwerror(v, _SC("statement is closed"));
+	return _rc_;
 }
 
 //#define push_sqlite3_null(v) sq_getonregistrytable(v, sqlite3_NULL_Name, sizeof(sqlite3_NULL_Name)-1);
@@ -176,7 +178,7 @@ static void sqlite3_stmt_asArrayOfTables(HSQUIRRELVM v, sqlite3_stmt *stmt, int 
 }
 
 static SQRESULT sqlite3_stmt_bind_value(HSQUIRRELVM v, sqlite3_stmt *stmt, int npar, int argn){
-    int _rc_;
+    int _rc_ = 0;
     SQObjectType ptype = sq_gettype(v, argn);
     switch(ptype){
         case OT_BOOL:
@@ -202,14 +204,18 @@ static SQRESULT sqlite3_stmt_bind_value(HSQUIRRELVM v, sqlite3_stmt *stmt, int n
         default:
             return sq_throwerror(v, "Invalid bind parameter %d", npar);
     }
-    return 1;
+    if(_rc_ != SQLITE_OK) {
+        sqlite3 *db = sqlite3_db_handle(stmt);
+	    return sq_throwerror(v, sqlite3_errmsg(db));
+    }
+    return SQ_OK;
 }
 
-static SQRESULT sqlite3_stmt_prepare(HSQUIRRELVM v, sqlite3 *db, sqlite3_stmt **stmt, int params_start){
+static SQRESULT sq_sqlite3_stmt_prepare_aux(HSQUIRRELVM v, sqlite3 *db, sqlite3_stmt **stmt, int params_start){
     SQ_FUNC_VARS(v);
 	SQ_GET_STRING(v, params_start, szSQL);
 	const char* szTail=0;
-    if(sqlite3_prepare_v2(db, szSQL, -1, stmt, &szTail) != SQLITE_OK)
+    if(sqlite3_prepare_v2(db, szSQL, szSQL_size, stmt, &szTail) != SQLITE_OK)
     {
         return sq_throwerror(v, sqlite3_errmsg(db));
     }
@@ -226,7 +232,7 @@ static SQRESULT sqlite3_stmt_prepare(HSQUIRRELVM v, sqlite3 *db, sqlite3_stmt **
             if(_rc_ < 0) return _rc_;
         }
     }
-	return 1;
+	return SQ_OK;
 }
 
 static SQRESULT sq_sqlite3_stmt_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
@@ -239,23 +245,23 @@ static SQRESULT sq_sqlite3_stmt_releasehook(SQUserPointer p, SQInteger size, HSQ
 static SQRESULT sq_sqlite3_stmt_constructor(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
+    _rc_ = SQ_ERROR;
     GET_sqlite3_INSTANCE_AT(2);
 	sqlite3_stmt *stmt = 0;
 	if(_top_ > 2){
-        _rc_ = sqlite3_stmt_prepare(v, self, &stmt, 3);
+        _rc_ = sq_sqlite3_stmt_prepare_aux(v, self, &stmt, 3);
 	}
 	else
 	{
         const char* szTail=0;
         if(sqlite3_prepare_v2(self, "select 'statement not prepared';", -1, &stmt, &szTail) != SQLITE_OK)
         {
-            return sq_throwerror(v, sqlite3_errmsg(self));
+            _rc_ = sq_throwerror(v, sqlite3_errmsg(self));
         }
+        else _rc_ = SQ_OK;
 	}
-    if(stmt){
-        sq_setinstanceup(v, 1, stmt); //replace self for this instance with this new sqlite3_stmt
-        sq_setreleasehook(v,1, sq_sqlite3_stmt_releasehook);
-    }
+    sq_setinstanceup(v, 1, stmt); //replace self for this instance with this new sqlite3_stmt
+    sq_setreleasehook(v,1, sq_sqlite3_stmt_releasehook);
 	return _rc_;
 }
 
@@ -276,8 +282,9 @@ static SQRESULT sq_sqlite3_stmt_prepare(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_sqlite3_stmt_INSTANCE();
 	sqlite3 *db = sqlite3_db_handle(self);
+
 	sqlite3_stmt *stmt = 0;
-	_rc_ = sqlite3_stmt_prepare(v, db, &stmt, 2);
+	_rc_ = sq_sqlite3_stmt_prepare_aux(v, db, &stmt, 2);
     if(stmt){
         sqlite3_finalize(self); //finalize the previous sqlite3_stmt
         sq_setinstanceup(v, 1, stmt); //replace self for this instance with this new sqlite3_stmt
@@ -926,7 +933,7 @@ static SQRESULT sqlite3_exec_fmt(HSQUIRRELVM v, e_type_result type_result, int n
 	GET_sqlite3_INSTANCE();
 	SQ_GET_STRING(v, 2, szSQL);
 	sqlite3_stmt *stmt = 0;
-	_rc_ = sqlite3_stmt_prepare(v, self, &stmt, 2);
+	_rc_ = sq_sqlite3_stmt_prepare_aux(v, self, &stmt, 2);
     if(_rc_ < 0){
         if(stmt) sqlite3_finalize(stmt);
         return _rc_;
@@ -967,11 +974,11 @@ static SQRESULT sqlite3_exec_fmt(HSQUIRRELVM v, e_type_result type_result, int n
 }
 
 
-static SQRESULT sq_sqlite3_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
-{
-	sq_sqlite3_sdb *sdb = ((sq_sqlite3_sdb *)p);
+static SQRESULT sq_sqlite3_close_release(HSQUIRRELVM v, sq_sqlite3_sdb *sdb){
+    SQRESULT rc = SQ_ERROR;
 	if(sdb){
-	sqlite3_close_v2(sdb->db);
+        if(sqlite3_close_v2(sdb->db) == SQLITE_OK){
+            rc = SQ_OK;
 	if(sdb->func){
         sq_sqlite3_sdb_func *func, *func_next;
         func = sdb->func;
@@ -996,6 +1003,14 @@ static SQRESULT sq_sqlite3_releasehook(SQUserPointer p, SQInteger size, HSQUIRRE
 
 	sq_free(sdb, sizeof(sq_sqlite3_sdb));
 	}
+	}
+	return rc;
+}
+
+static SQRESULT sq_sqlite3_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+{
+	sq_sqlite3_sdb *sdb = ((sq_sqlite3_sdb *)p);
+	sq_sqlite3_close_release(v, sdb);
 	return 0;
 }
 
@@ -1007,6 +1022,7 @@ static SQRESULT sq_sqlite3_constructor(HSQUIRRELVM v)
     sqlite3 *db;
     int rc = sqlite3_open_v2(dbname, &db, flags, 0);
     if(rc != SQLITE_OK) return sq_throwerror(v, "Failed to open database ! %d", rc);
+
     sq_sqlite3_sdb *sdb = (sq_sqlite3_sdb *)sq_malloc(sizeof(sq_sqlite3_sdb));
     memset(sdb, 0, sizeof(sq_sqlite3_sdb));
     sdb->db = db;
@@ -1026,7 +1042,7 @@ static SQRESULT sq_sqlite3_constructor(HSQUIRRELVM v)
 static SQRESULT sq_sqlite3_close(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_sqlite3_INSTANCE();
-	if(sqlite3_close_v2(self) == SQLITE_OK){
+	if(sq_sqlite3_close_release(v, sdb) == SQ_OK){
 	    sq_setinstanceup(v, 1, 0); //next calls will fail with "database is closed"
 	}
 	else {
@@ -1811,6 +1827,7 @@ static SQRegFunction sq_sqlite3_methods[] =
 	_DECL_FUNC(close,  1, _SC("x")),
 
 	_DECL_FUNC(IsAutoCommitOn,  1, _SC("x")),
+	_DECL_FUNC(close,  1, _SC("x")),
 	_DECL_FUNC(version,  1, _SC("x")),
 	_DECL_FUNC(errcode,  1, _SC("x")),
 	_DECL_FUNC(errmsg,  1, _SC("x")),
