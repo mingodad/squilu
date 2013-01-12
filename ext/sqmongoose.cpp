@@ -262,6 +262,264 @@ sq_http_request_get_option(HSQUIRRELVM v)
     return 1;
 }
 
+//Digest authentication functions
+#define MAX_USER_LEN  20
+#define MAX_NONCE_LEN  36 //extra bytes for zero terminator
+#define MAX_SESSIONS 5
+#define SESSION_TTL 3600
+#define SESSION_REQUEST_TTL 120
+
+enum e_session_state {e_session_invalid, e_session_sent_request, e_session_authorized};
+
+struct st_session_t
+{
+    int state;
+    char nonce[MAX_NONCE_LEN];
+    char user[MAX_USER_LEN];         // Authenticated user
+    long last_nc;
+    time_t last_access;       // last_access time
+    long remote_ip;           // Client's IP address
+};
+
+static struct st_session_t sessions[MAX_SESSIONS];  // Current sessions
+
+// Protects messages, sessions, last_message_id
+static mg_thread_mutex_t session_rwlock;
+
+//should be called only after locking session_rwlock
+static struct st_session_t *my_get_session_only_after_lock(const char *nonce){
+    int i;
+    for(i=0; i < MAX_SESSIONS; ++i){
+        //printf("%s : %s\n", sessions[i].nonce, ah->nonce);
+        if(strcmp(sessions[i].nonce, nonce) == 0){
+            return &sessions[i];
+        }
+    }
+    return 0;
+}
+
+// Check the user's password, return 1 if OK
+static SQBool my_check_password(const struct mg_request_info *request_info, const char *my_tmp_password)
+{
+    md5_buf_t ha2, expected_response;
+    struct mg_auth_header *ah = request_info->ah;
+
+    // Some of the parameters may be NULL
+    if (request_info->request_method == NULL ||
+            //strcmp(ri->request_method, "PUT") == 0 ||
+            //strcmp(ri->request_method, "DELETE") == 0 ||
+            ah == NULL ||
+            ah->nonce == NULL || ah->nc == NULL ||
+            ah->cnonce == NULL || ah->qop == NULL || ah->uri == NULL ||
+            ah->response == NULL)
+    {
+        return SQFalse;
+    }
+
+    // NOTE(lsm): due to a bug in MSIE, we do not compare the URI
+    // TODO(lsm): check for authentication timeout
+    if (// strcmp(ah->uri, conn->request_info.uri) != 0 ||
+        strlen(ah->response) != 32
+    )
+    {
+        return SQFalse;
+    }
+
+    mg_md5(ha2, request_info->request_method, ":", ah->uri, NULL);
+    mg_md5(expected_response, my_tmp_password /*ah->ha1*/, ":", ah->nonce, ":", ah->nc,
+           ":", ah->cnonce, ":", ah->qop, ":", ha2, NULL);
+    SQBool result = mg_strcasecmp(ah->response, expected_response) == 0;
+    //printf("%s : %s : %s\n", my_tmp_password, ah->response, expected_response);
+
+    if(result)  //lets check timeout and other issues
+    {
+        struct st_session_t *session_found = 0;
+        result = SQFalse;
+
+        mg_thread_mutex_lock(&session_rwlock);
+
+        session_found = my_get_session_only_after_lock(ah->nonce);
+        if(session_found)
+        {
+            do
+            {
+                //mobile ip is a pain for security
+                if( /*(ses.remote_ip != request_info->remote_ip) ||*/
+                        ((time(NULL) - session_found->last_access) > SESSION_TTL)
+                  ) break;
+                if(session_found->state == e_session_sent_request)
+                {
+                    session_found->state = e_session_authorized;
+                    snprintf(session_found->user, sizeof(session_found->user), "%s", ah->user);
+                }
+                else if(strcmp(session_found->user, ah->user) != 0) break;
+
+                long recived_nc = strtol(ah->nc, 0, 16);
+                time_t received_time = time(NULL);
+/*
+//printf("%d : %lu : %lu : %lu : %lu\n", request_info->remote_port, ses.last_nc, recived_nc, ses.last_access, received_time);
+                if((ses.last_nc+1) != recived_nc){
+                    //lets see if we can manage out of order sent by some browsers
+                    if((received_time - ses.last_access) > 2) break;
+                    //inside a window of 2 seconds we tolerate nc out of order
+                    if(ses.last_nc > recived_nc) recived_nc = ses.last_nc;
+                }
+*/
+                session_found->last_access = received_time;
+                session_found->last_nc = recived_nc;
+                result = SQTrue;
+            } while(0);
+
+            if(!result){
+                session_found->state = e_session_invalid;
+                session_found->nonce[0] = '\0';
+            }
+       }
+       else {
+           //dbg_msg("Session not found ! : %s : %s\n", ah->nonce, request_info->uri);
+       }
+
+        mg_thread_mutex_unlock(&session_rwlock);
+    }
+
+    return result;
+}
+
+static SQRESULT
+sq_http_request_check_password(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_http_request_INSTANCE();
+    SQ_GET_STRING(v, 2, my_tmp_password);
+    const struct mg_request_info *request_info = mg_get_request_info(conn);
+    sq_pushbool(v, my_check_password(request_info, my_tmp_password));
+    return 1;
+}
+
+// Close user session return 1 if closed
+static SQBool my_close_session(const struct mg_request_info *request_info)
+{
+    SQBool result = SQFalse;
+    struct st_session_t *session_found = 0;
+    struct mg_auth_header *ah = request_info->ah;
+
+    // Some of the parameters may be NULL
+    if (request_info->request_method == NULL ||
+            //strcmp(ri->request_method, "PUT") == 0 ||
+            //strcmp(ri->request_method, "DELETE") == 0 ||
+            ah == NULL ||
+            ah->nonce == NULL || ah->nc == NULL ||
+            ah->cnonce == NULL || ah->qop == NULL || ah->uri == NULL ||
+            ah->response == NULL)
+    {
+        return 0;
+    }
+
+    mg_thread_mutex_lock(&session_rwlock);
+
+    session_found = my_get_session_only_after_lock(ah->nonce);
+    if(session_found) {
+        session_found->state = e_session_invalid;
+        session_found->nonce[0] = '\0';
+        result = SQTrue;
+    }
+    mg_thread_mutex_unlock(&session_rwlock);
+    return result;
+}
+
+static SQRESULT
+sq_http_request_close_session(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_http_request_INSTANCE();
+    const struct mg_request_info *request_info = mg_get_request_info(conn);
+    sq_pushbool(v, my_close_session(request_info));
+    return 1;
+}
+
+typedef char buf_1024_t[1024];
+
+static const char *my_encode_nonce(buf_1024_t buf, md5_buf_t md5_buf, unsigned long ip)
+{
+    snprintf(buf, sizeof(buf), "%lu:%d:%d:%lu", (unsigned long) time(NULL), rand(), rand(), ip);
+    mg_md5(md5_buf, buf, NULL);
+    return md5_buf;
+}
+
+static void my_send_authorization_request(struct mg_connection *conn,
+        const struct mg_request_info *request_info,
+        const char *authentication_domain,
+        const char *nonce)
+{
+    md5_buf_t md5_buf;
+    buf_1024_t buf;
+    int i;
+    if (nonce == NULL)
+    {
+        nonce = my_encode_nonce(buf, md5_buf, (unsigned long) request_info->remote_ip);
+    }
+    struct st_session_t *available_session = NULL;
+
+    mg_thread_mutex_lock(&session_rwlock);
+
+    for(i=0; i<3; ++i)
+    {
+        for(i=0; i < MAX_SESSIONS; ++i){
+            if(sessions[i].state == e_session_invalid){
+                available_session = &sessions[i];
+            }
+            if(sessions[i].state == e_session_sent_request){
+                if((time(NULL) - available_session->last_access) > SESSION_REQUEST_TTL){
+                    //if session request bigger than 2 minutes reuse it
+                    available_session = &sessions[i];
+                }
+            }
+        }
+
+        if(available_session){
+            available_session->state = e_session_sent_request;
+            available_session->last_access = time(NULL);
+            available_session->last_nc = 0;
+            available_session->remote_ip = request_info->remote_ip;
+            snprintf(available_session->nonce, sizeof(available_session->nonce),
+                     "%s", nonce);
+            break;
+        }
+        else
+        {
+            nonce = my_encode_nonce(buf, md5_buf, (unsigned long) request_info->remote_ip);
+        }
+    }
+
+    mg_thread_mutex_unlock(&session_rwlock);
+
+    if(available_session) {
+        i = snprintf(buf, sizeof(buf),
+            "HTTP/1.1 401 Unauthorized\r\n"
+            "Content-Length: 0\r\n"
+            "WWW-Authenticate: Digest qop=\"auth\", "
+            "realm=\"%s\", nonce=\"%s\"\r\n\r\n",
+            authentication_domain, nonce);
+    } else {
+        i = snprintf(buf, sizeof(buf),
+            "HTTP/1.1 503 Service Temporary Unavailable\r\n"
+            "Content-Length: 0\r\n\r\n");
+    }
+
+    mg_write(conn, buf, i);
+}
+
+static SQRESULT
+sq_http_request_send_authorization_request(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_http_request_INSTANCE();
+    SQ_GET_STRING(v, 2, authentication_domain);
+    const struct mg_request_info *request_info = mg_get_request_info(conn);
+    my_send_authorization_request(conn, request_info, authentication_domain, NULL);
+    return 0;
+}
+
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_http_request_##name,nparams,tycheck}
 static SQRegFunction mg_http_request_methods[] =
 {
@@ -271,12 +529,15 @@ static SQRegFunction mg_http_request_methods[] =
 	_DECL_FUNC(read,  2, _SC("xi")),
 	_DECL_FUNC(write,  3, _SC("xsi")),
 	_DECL_FUNC(write_blob,  -2, _SC("xxi")),
-	_DECL_FUNC(get_var,  2, _SC("xs")),
+	_DECL_FUNC(get_var,  3, _SC("xs")),
 	_DECL_FUNC(get_cookie,  2, _SC("xs")),
 	_DECL_FUNC(get_header,  2, _SC("xs")),
 	_DECL_FUNC(send_file,  2, _SC("xs")),
 	_DECL_FUNC(handle_cgi_request,  2, _SC("xs")),
 	_DECL_FUNC(get_option,  2, _SC("xs")),
+	_DECL_FUNC(check_password,  2, _SC("xs")),
+	_DECL_FUNC(close_session,  1, _SC("x")),
+	_DECL_FUNC(send_authorization_request,  2, _SC("xs")),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -628,9 +889,9 @@ static SQRegFunction sq_mg_methods[] =
 	_DECL_FUNC(url_decode,  2, _SC(".s")),
 	_DECL_FUNC(uri_decode,  2, _SC(".s")),
 	_DECL_FUNC(url_encode,  2, _SC(".s")),
-	_DECL_FUNC(md5,  -2, _SC("xs")),
+	_DECL_FUNC(md5,  -2, _SC(".s")),
 #ifdef JNI_ENABLE_LOG
-	_DECL_FUNC(jniLog,  -2, _SC("xs")),
+	_DECL_FUNC(jniLog,  -2, _SC(".s")),
 #endif
 	_DECL_FUNC(debug_print,  -2, _SC(".s")),
 	{0,0}
@@ -656,7 +917,7 @@ push_request(HSQUIRRELVM v, const struct mg_request_info *ri)
 {
     int i;
 
-    sq_pushliteral(v, _SC("data"));
+    sq_pushliteral(v, _SC("info"));
     sq_get(v, -2);
 #define NEWSLOT_STR(ks) reg_string(v, #ks, ri->ks);
     NEWSLOT_STR(request_method);
@@ -776,6 +1037,7 @@ void sq_errorfunc(HSQUIRRELVM v,const SQChar *s,...)
 	va_end(vl);
 }
 
+#define INT_CONST(v,num) 	sq_pushstring(v,_SC(#num),-1);sq_pushinteger(v,num);sq_newslot(v,-3,SQTrue);
 
 static HSQUIRRELVM my_new_squirrel(struct mg_context *ctx) {
     HSQUIRRELVM v = sq_open(1024);
@@ -801,7 +1063,7 @@ static HSQUIRRELVM my_new_squirrel(struct mg_context *ctx) {
     sq_newclass(v,SQFalse);
     sq_settypetag(v,-1,(void*)sq_http_request_TAG);
     sq_insert_reg_funcs(v, mg_http_request_methods);
-    sq_pushstring(v, _SC("data"), -1);
+    sq_pushstring(v, _SC("info"), -1);
     sq_newtable(v);
     sq_newslot(v,-3,SQFalse);
     sq_newslot(v,-3,SQFalse);
@@ -949,12 +1211,14 @@ user_callback_proxy(enum mg_event event,
                 }
                 sq_pushroottable(v);
 
+#define CASE(n) case n: sq_pushstring(v, #n, -1);break
                 switch (event) {
-                case MG_NEW_REQUEST:    sq_pushliteral(v, "MG_NEW_REQUEST");    break;
-                case MG_HTTP_ERROR:     sq_pushliteral(v, "MG_HTTP_ERROR");     break;
-                case MG_EVENT_LOG:      sq_pushliteral(v, "MG_EVENT_LOG");      break;
-                case MG_INIT_SSL:       sq_pushliteral(v, "MG_INIT_SSL");       break;
-                default:                sq_pushnull(v);                         break;
+                    CASE(MG_INIT_SSL);
+                    CASE(MG_HTTP_ERROR);
+                    CASE(MG_EVENT_LOG);
+                    CASE(MG_NEW_REQUEST);
+                    default:
+                        sq_pushnull(v);
                 }
 
                 sq_pushstring(v, sq_http_request_TAG, -1);
