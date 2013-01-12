@@ -422,7 +422,7 @@ eofunc:
           }
       }
       if(fp && (*fp)(ms, udata, 0)) {
-          init = result;
+          init = result+1;
           if (init < ls) goto do_again;
       }
   }
