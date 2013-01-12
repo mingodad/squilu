@@ -109,10 +109,11 @@ static SQRESULT mix_loadstring(HSQUIRRELVM sqvm) {
 	return mix_loadbuffer(sqvm, &S, "chunk");
 }
 
+const SQChar validate_format_mask[] = _SC(".s s|o s|o s|o s");
 #define _DECL_MIX_FUNC(name,nparams,pmask) {_SC(#name), mix_##name,nparams,pmask}
 static SQRegFunction mix_obj_funcs[]={
-	_DECL_MIX_FUNC(loadfile,-2,_SC(".sssss")),
-	_DECL_MIX_FUNC(loadstring,-2,_SC(".sssss")),
+	_DECL_MIX_FUNC(loadfile,-2,validate_format_mask),
+	_DECL_MIX_FUNC(loadstring,-2,validate_format_mask),
 	{0,0}
 };
 #undef _DECL_MIX_FUNC
