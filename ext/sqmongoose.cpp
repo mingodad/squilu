@@ -789,7 +789,6 @@ static SQRESULT
 sq_mg_url_decode_base(HSQUIRRELVM v, SQInteger is_form_url_encoded)
 {
     SQ_FUNC_VARS_NO_TOP(v);
-    GET_mg_context_INSTANCE();
     SQ_GET_STRING(v, 2, src);
 
     int dst_len = src_size +1;
@@ -815,7 +814,6 @@ static SQRESULT
 sq_mg_url_encode(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
-    GET_mg_context_INSTANCE();
     SQ_GET_STRING(v, 2, src);
 
     char *dst = mg_url_encode(src);
@@ -883,7 +881,7 @@ static SQRESULT sq_mg_jniLog(HSQUIRRELVM v)
 }
 #endif
 
-#define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_mg_##name,nparams,tycheck}
+#define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_mg_##name,nparams,tycheck, SQTrue}
 static SQRegFunction sq_mg_methods[] =
 {
 	_DECL_FUNC(url_decode,  2, _SC(".s")),
@@ -1231,7 +1229,7 @@ user_callback_proxy(enum mg_event event,
                 }
                 push_request(v, ri);
 
-                if(sq_call(v, 3, SQTrue, SQFalse) != SQ_OK) {
+                if(sq_call(v, 3, SQTrue, SQTrue) != SQ_OK) {
                     write_error_message(conn, sq_getlasterror_str(v), -1);
                     e = 0;
                 } else {
