@@ -242,6 +242,10 @@ void SQSharedState::CallDelayedReleaseHooks(SQVM *vm, int count)
     if(_already_in_CallDelayedReleaseHooks) return;
     if(_delayed_release_hook.size()){
         _already_in_CallDelayedReleaseHooks = true;
+        //get the count of release hooks before start
+        //and only work on that number because while
+        //calling each release hook new ones can be added
+        //to the list, the new ones will be processed on next call
         if(count == 0) count =  _delayed_release_hook.size();
         for(SQInteger i=0; i < count; ++i){
             SQDelayedReleseHook &dh = _delayed_release_hook[i];
