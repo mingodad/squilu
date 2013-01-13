@@ -167,7 +167,7 @@ public:
 	{
 		if(_token == _SC(';')) { Lex(); return; }
 		if(!IsEndOfStatement()) {
-			Error(_SC("end of statement expected (; or lf)"));
+			Error(_SC("end of statement expected (; or lf) found (%d)"), _token);
 		}
 	}
 	void MoveIfCurrentTargetIsLocal() {
@@ -1127,9 +1127,19 @@ public:
 		SQInteger jnepos = _fs->GetCurrentPos();
 		BEGIN_SCOPE();
 		
+        //there is a situation where the if statement has a statement enclosed by {}
+        //and after the closing "}" there is no newline or semicolom
+        //it's a valid construction but the compiler was complaining about it
+        //for now added "&& _token != TK_IDENTIFIER" to the check after "Statement()" call
+/*
+local color = "blue";
+if(color == "yellow"){
+	print(color);
+} print("Waht color is it ?");
+*/
 		Statement();
 		//
-		if(_token != _SC('}') && _token != TK_ELSE) OptionalSemicolon();
+		if(_token != _SC('}') && _token != TK_ELSE && _token != TK_IDENTIFIER) OptionalSemicolon();
 		
 		END_SCOPE();
 		SQInteger endifblock = _fs->GetCurrentPos();
