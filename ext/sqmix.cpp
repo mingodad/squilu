@@ -6,7 +6,7 @@
 
 /* Generic loader function. Load the data found in the state in the lua engine
  */
-static SQRESULT mix_loadbuffer(HSQUIRRELVM sqvm, mix_state_t *S, const SQChar *name) {
+static SQRESULT mix_loadbuffer(HSQUIRRELVM sqvm, mix_state_t *S, const SQChar *name, int isParseOnly) {
 	SQRESULT res;
 	S->pos = 0;
 
@@ -20,13 +20,23 @@ static SQRESULT mix_loadbuffer(HSQUIRRELVM sqvm, mix_state_t *S, const SQChar *n
 	}
 
 	S->error = NULL;
+	if(isParseOnly){
+	    SQBlob blob(0, BLOB_BUFSIZE);
+	    MixInteger ch;
+	    while((ch = sq_mix_reader_char(S))) blob.WriteChar(ch);
+        if (S->error != NULL) {
+            return sq_throwerror(sqvm, S->error);
+        }
+        sq_pushstring(sqvm, (const SQChar*)blob.GetBuf(), blob.Len());
+	}
+	else
+	{
 	res = sq_compile(sqvm, sq_mix_reader_char, S, name, SQTrue);
 	if (S->error != NULL) {
 		return sq_throwerror(sqvm, S->error);
 	} else if (res != 0) {
 		sq_pushnull(sqvm);
-		//lua_insert(sqvm, -2);
-		return 2;
+        }
 	}
 	return 1;
 }
@@ -68,7 +78,7 @@ static SQRESULT mix_stateopt(HSQUIRRELVM sqvm, mix_state_t *S) {
 	return 0;
 }
 
-static SQRESULT mix_loadfile(HSQUIRRELVM sqvm) {
+static SQRESULT mix_load_parse_file(HSQUIRRELVM sqvm, int isParse) {
 	const SQChar  *filename;
 	FILE        *file;
 	mix_state_t  S;
@@ -95,10 +105,18 @@ static SQRESULT mix_loadfile(HSQUIRRELVM sqvm) {
 	S.buffer = (const char*)buffer.GetBuf();
 	fclose(file);
 
-	return mix_loadbuffer(sqvm, &S, filename);
+	return mix_loadbuffer(sqvm, &S, filename, isParse);
 }
 
-static SQRESULT mix_loadstring(HSQUIRRELVM sqvm) {
+static SQRESULT mix_loadfile(HSQUIRRELVM sqvm) {
+    return mix_load_parse_file(sqvm, 0);
+}
+
+static SQRESULT mix_parsefile(HSQUIRRELVM sqvm) {
+    return mix_load_parse_file(sqvm, 1);
+}
+
+static SQRESULT mix_load_parse_string(HSQUIRRELVM sqvm, int isParse) {
 	mix_state_t S;
 	sq_mix_init(&S, 0, 0, 0,0,0,0);
 
@@ -106,12 +124,22 @@ static SQRESULT mix_loadstring(HSQUIRRELVM sqvm) {
 	S.size = sq_getsize(sqvm, 2);
 	mix_stateopt(sqvm, &S);
 
-	return mix_loadbuffer(sqvm, &S, "chunk");
+	return mix_loadbuffer(sqvm, &S, "chunk", isParse);
+}
+
+static SQRESULT mix_loadstring(HSQUIRRELVM sqvm) {
+    return mix_load_parse_string(sqvm, 0);
+}
+
+static SQRESULT mix_parsestring(HSQUIRRELVM sqvm) {
+    return mix_load_parse_string(sqvm, 1);
 }
 
 const SQChar validate_format_mask[] = _SC(".s s|o s|o s|o s");
 #define _DECL_MIX_FUNC(name,nparams,pmask) {_SC(#name), mix_##name,nparams,pmask}
 static SQRegFunction mix_obj_funcs[]={
+	_DECL_MIX_FUNC(parsefile,-2,validate_format_mask),
+	_DECL_MIX_FUNC(parsestring,-2,validate_format_mask),
 	_DECL_MIX_FUNC(loadfile,-2,validate_format_mask),
 	_DECL_MIX_FUNC(loadstring,-2,validate_format_mask),
 	{0,0}
