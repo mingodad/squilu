@@ -426,7 +426,7 @@ eofunc:
           if (init < ls) goto do_again;
       }
   }
-  return result;
+  return result > 0 ? ms->start_pos : result; //returning the start position
 }
 
 
