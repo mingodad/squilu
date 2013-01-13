@@ -265,6 +265,18 @@ static SQRESULT sq_sqlite3_stmt_constructor(HSQUIRRELVM v)
 	return _rc_;
 }
 
+static SQRESULT sq_sqlite3_stmt_get_db(HSQUIRRELVM v){
+	SQ_FUNC_VARS_NO_TOP(v);
+	GET_sqlite3_stmt_INSTANCE();
+	sqlite3 *db = sqlite3_db_handle(self);
+	sq_pushuserpointer(v, db);
+	if(sq_getonregistrytable(v) == SQ_OK){
+	    sq_getweakrefval(v, -1);
+	}
+	else return sq_throwerror(v, _SC("could not retrive database, maybe it was already closed"));
+	return 1;
+}
+
 static SQRESULT sq_sqlite3_stmt_finalize(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_sqlite3_stmt_INSTANCE();
@@ -900,6 +912,7 @@ static SQRegFunction sq_sqlite3_stmt_methods[] =
 {
 	_DECL_FUNC(constructor,  -2, _SC("xxs s|n|b|o")),
 
+	_DECL_FUNC(get_db,  1, _SC("x")),
 	_DECL_FUNC(finalize,  1, _SC("x")),
 	_DECL_FUNC(prepare,  -2, _SC("xs s|n|b|o")),
 	_DECL_FUNC(get_sql,  1, _SC("x")),
@@ -979,6 +992,13 @@ static SQRESULT sq_sqlite3_close_release(HSQUIRRELVM v, sq_sqlite3_sdb *sdb){
 	if(sdb){
         if(sqlite3_close_v2(sdb->db) == SQLITE_OK){
             rc = SQ_OK;
+
+            //remove waekref from registrytable
+            sq_pushregistrytable(sdb->v);
+            sq_pushuserpointer(sdb->v, sdb->db);
+            sq_deleteslot(sdb->v, -2, SQFalse);
+            sq_poptop(sdb->v);
+
 	if(sdb->func){
         sq_sqlite3_sdb_func *func, *func_next;
         func = sdb->func;
@@ -1036,6 +1056,12 @@ static SQRESULT sq_sqlite3_constructor(HSQUIRRELVM v)
 
     sq_setinstanceup(v, 1, sdb);
     sq_setreleasehook(v,1, sq_sqlite3_releasehook);
+
+    //save a weakref to allow statement return it's db
+    sq_pushuserpointer(v, sdb->db);
+    sq_weakref(v, 1);
+    sq_setonregistrytable(v);
+
     return 1;
 }
 
@@ -1900,6 +1926,7 @@ extern "C" {
         INT_CONST(v,SQLITE_OPEN_SUBLATIN_NA_LIKE);
 
         INT_CONST(v,SQLITE_OK);
+        INT_CONST(v,SQLITE_INTERRUPT);
 
         //push sqlite3_NULL as a member
         sq_pushstring(v, nullName,-1);
