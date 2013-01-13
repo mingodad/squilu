@@ -492,12 +492,11 @@ static SQInteger container_rawset(HSQUIRRELVM v)
 
 static SQInteger container_rawget(HSQUIRRELVM v)
 {
-    SQInteger top = sq_gettop(v);
     switch(sq_gettop(v)){
         case 2: return SQ_SUCCEEDED(sq_rawget(v,-2))?1:SQ_ERROR;break;
         case 3: {
             sq_push(v, 2); //copy key to top
-            sq_rawget(v,-3); //if it fail pop the key and default value is on top
+            sq_rawget(v,-4); //if it fail pop the key and default value is on top
             return 1;
         }
         break;
@@ -507,12 +506,11 @@ static SQInteger container_rawget(HSQUIRRELVM v)
 
 static SQInteger container_get(HSQUIRRELVM v)
 {
-    SQInteger top = sq_gettop(v);
     switch(sq_gettop(v)){
         case 2: return SQ_SUCCEEDED(sq_get(v,-2))?1:SQ_ERROR;break;
         case 3: {
             sq_push(v, 2); //copy key to top
-            sq_get(v,-3); //if it fail pop the key and default value is on top
+            sq_get(v,-4); //if it fail pop the key and default value is on top
             return 1;
         }
         break;
