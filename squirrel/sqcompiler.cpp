@@ -1149,7 +1149,7 @@ if(color == "yellow"){
 			_fs->AddInstruction(_OP_JMP);
 			jmppos = _fs->GetCurrentPos();
 			Lex();
-			Statement(); OptionalSemicolon();
+			Statement(); if(_token != TK_IDENTIFIER) OptionalSemicolon();
 			END_SCOPE();
 			_fs->SetIntructionParam(jmppos, 1, _fs->GetCurrentPos() - jmppos);
 		}
