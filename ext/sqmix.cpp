@@ -49,13 +49,13 @@ SQ_OPT_STRING_STRLEN();
 static SQRESULT mix_stateopt(HSQUIRRELVM sqvm, mix_state_t *S) {
     SQ_FUNC_VARS(sqvm);
 
-	SQ_OPT_STRING(sqvm, 3, code_start, "{%");
+	SQ_OPT_STRING(sqvm, 3, code_start, "<?");
 	S->code_start = code_start;
 	S->code_startsize = code_start_size;
 	if (S->code_startsize == 0)
 		return sq_throwerror(sqvm, _SC("code_start separator cannot be empty"));
 
-	SQ_OPT_STRING(sqvm, 4, code_end, "%}");
+	SQ_OPT_STRING(sqvm, 4, code_end, "?>");
 	S->code_end = code_end;
 	S->code_endsize = code_end_size;
 	if (S->code_endsize == 0)
