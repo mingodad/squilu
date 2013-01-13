@@ -64,8 +64,8 @@ bool SQBlob::Resize(SQInteger n) {
         _allocated = n;
         if(_size > _allocated)
             _size = _allocated;
-        if(_ptr > _allocated)
-            _ptr = _allocated;
+        if(_ptr > _size)
+            _ptr = _size;
     }
     return true;
 }
@@ -103,6 +103,8 @@ SQInteger SQBlob::Seek(SQInteger offset, SQInteger origin) {
 bool SQBlob::SetLen(SQInteger len){
     if(len <= _allocated || Resize(len)){
         _size = len;
+        if(_ptr > _size)
+            _ptr = _size;
         return true;
     }
     return false;
@@ -289,6 +291,22 @@ static SQInteger _blob_asString(HSQUIRRELVM v)
     return _blob__tostring(v);
 }
 
+static SQInteger _blob_setLen(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_BLOB(v);
+    SQ_GET_INTEGER(v, 2, newLen);
+    self->SetLen(newLen);
+    return 0;
+}
+
+static SQInteger _blob_clear(HSQUIRRELVM v)
+{
+    SETUP_BLOB(v);
+    self->SetLen(0);
+    return 0;
+}
+
 #define _DECL_BLOB_FUNC(name,nparams,typecheck) {_SC(#name),_blob_##name,nparams,typecheck}
 static SQRegFunction _blob_methods[] = {
 	_DECL_BLOB_FUNC(constructor,-1,_SC("xnn")),
@@ -303,6 +321,8 @@ static SQRegFunction _blob_methods[] = {
 	_DECL_BLOB_FUNC(_cloned,2,_SC("xx")),
 	_DECL_BLOB_FUNC(_tostring,1,_SC("x")),
 	_DECL_BLOB_FUNC(asString,1,_SC("x")),
+	_DECL_BLOB_FUNC(setLen,2,_SC("xi")),
+	_DECL_BLOB_FUNC(clear,1,_SC("x")),
 	{0,0,0,0}
 };
 
