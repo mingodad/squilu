@@ -119,6 +119,38 @@ static int opt_ip_drop_membersip(HSQUIRRELVM v, p_socket ps)
 /*=========================================================================*\
 * Auxiliar functions
 \*=========================================================================*/
+
+/*-------------------------------------------------------------------------*\
+* Some systems do not provide this so that we provide our own. It's not
+* marvelously fast, but it works just fine.
+\*-------------------------------------------------------------------------*/
+#ifdef INET_ATON
+static int inet_aton(const char *cp, struct in_addr *inp)
+{
+    unsigned int a = 0, b = 0, c = 0, d = 0;
+    int n = 0, r;
+    unsigned long int addr = 0;
+    r = sscanf(cp, "%u.%u.%u.%u%n", &a, &b, &c, &d, &n);
+    if (r == 0 || n == 0) return 0;
+    cp += n;
+    if (*cp) return 0;
+    if (a > 255 || b > 255 || c > 255 || d > 255) return 0;
+    if (inp) {
+        addr += a; addr <<= 8;
+        addr += b; addr <<= 8;
+        addr += c; addr <<= 8;
+        addr += d;
+        inp->s_addr = htonl(addr);
+    }
+    return 1;
+}
+#endif
+
+#ifdef _WIN32
+//#define inet_aton inet_addr
+//#define inet_aton(a,b) inet_pton(a,b, AF_INET)
+#endif
+
 static int opt_setmembership(HSQUIRRELVM v, p_socket ps, int level, int name)
 {
     SQ_FUNC_VARS_NO_TOP(v);
@@ -136,9 +168,9 @@ static int opt_setmembership(HSQUIRRELVM v, p_socket ps, int level, int name)
     if (!sq_gettype(v, -1) != OT_STRING)
         return sq_throwerror(v, _SC("string 'interface' field expected"));
     val.imr_interface.s_addr = htonl(INADDR_ANY);
-    SQ_GET_STRING(v, -1, s_addr);
-    if (strcmp(s_addr, "*") &&
-            !inet_aton(s_addr, &val.imr_interface))
+    SQ_GET_STRING(v, -1, saddr);
+    if (strcmp(saddr, "*") &&
+            !inet_aton(saddr, &val.imr_interface))
         return sq_throwerror(v, _SC("invalid 'interface' ip address"));
     return opt_set(v, ps, level, name, (char *) &val, sizeof(val));
 }
@@ -452,33 +484,6 @@ static const char *inet_trybind(p_socket ps, const char *address, unsigned short
     if (err != IO_DONE) lua_socket_destroy(ps);
     return lua_socket_strerror(err);
 }
-
-/*-------------------------------------------------------------------------*\
-* Some systems do not provide this so that we provide our own. It's not
-* marvelously fast, but it works just fine.
-\*-------------------------------------------------------------------------*/
-#ifdef INET_ATON
-static int inet_aton(const char *cp, struct in_addr *inp)
-{
-    unsigned int a = 0, b = 0, c = 0, d = 0;
-    int n = 0, r;
-    unsigned long int addr = 0;
-    r = sscanf(cp, "%u.%u.%u.%u%n", &a, &b, &c, &d, &n);
-    if (r == 0 || n == 0) return 0;
-    cp += n;
-    if (*cp) return 0;
-    if (a > 255 || b > 255 || c > 255 || d > 255) return 0;
-    if (inp) {
-        addr += a; addr <<= 8;
-        addr += b; addr <<= 8;
-        addr += c; addr <<= 8;
-        addr += d;
-        inp->s_addr = htonl(addr);
-    }
-    return 1;
-}
-#endif
-
 
 /*=========================================================================*\
 * Input/Output interface for Lua programs
