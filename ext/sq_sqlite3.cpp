@@ -277,6 +277,13 @@ static SQRESULT sq_sqlite3_stmt_get_db(HSQUIRRELVM v){
 	return 1;
 }
 
+static SQRESULT sq_sqlite3_stmt_stmt_ptr(HSQUIRRELVM v){
+	SQ_FUNC_VARS_NO_TOP(v);
+	GET_sqlite3_stmt_INSTANCE();
+	sq_pushuserpointer(v, self);
+	return 1;
+}
+
 static SQRESULT sq_sqlite3_stmt_finalize(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_sqlite3_stmt_INSTANCE();
@@ -316,6 +323,83 @@ static SQRESULT sq_sqlite3_stmt_bind(HSQUIRRELVM v){
 	GET_sqlite3_stmt_INSTANCE();
     SQ_GET_INTEGER(v, 2, npar);
 	return sqlite3_stmt_bind_value(v, self, npar, 3);
+}
+
+static SQRESULT sq_sqlite3_stmt_bind_empty_null(HSQUIRRELVM v){
+	SQ_FUNC_VARS_NO_TOP(v);
+	GET_sqlite3_stmt_INSTANCE();
+    SQ_GET_INTEGER(v, 2, npar);
+    if(sq_gettype(v, 3) == OT_STRING && sq_getsize(v, 3) == 0){
+        sq_pushnull(v);
+        sq_replace(v, 3);
+    }
+	return sqlite3_stmt_bind_value(v, self, npar, 3);
+}
+
+static SQRESULT sq_sqlite3_stmt_bind_blob(HSQUIRRELVM v){
+	SQ_FUNC_VARS_NO_TOP(v);
+	GET_sqlite3_stmt_INSTANCE();
+    SQ_GET_INTEGER(v, 2, npar);
+    SQ_GET_STRING(v, 3, blob);
+    if(sqlite3_bind_blob(self, npar, blob, blob_size, SQLITE_TRANSIENT) != SQLITE_OK) {
+        sqlite3 *db = sqlite3_db_handle(self);
+	    return sq_throwerror(v, sqlite3_errmsg(db));
+    }
+    return SQ_OK;
+}
+
+static SQRESULT sq_sqlite3_stmt_bind_values(HSQUIRRELVM v){
+	SQ_FUNC_VARS(v);
+	GET_sqlite3_stmt_INSTANCE();
+
+    if (_top_ - 1 != sqlite3_bind_parameter_count(self))
+        return sq_throwerror(v,
+            _SC("incorrect number of parameters to bind (%d given, %d to bind)"),
+            _top_ - 1,
+            sqlite3_bind_parameter_count(self));
+
+    for (int n = 2; n <= _top_; ++n) {
+        if (sqlite3_stmt_bind_value(v, self, n-1, n) != SQ_OK) return SQ_ERROR;
+    }
+	return 0;
+}
+
+static SQRESULT sq_sqlite3_stmt_bind_names(HSQUIRRELVM v){
+	SQ_FUNC_VARS_NO_TOP(v);
+	GET_sqlite3_stmt_INSTANCE();
+
+    SQObjectType ptype = sq_gettype(v, 2);
+    int count = sqlite3_bind_parameter_count(self);
+    int result;
+
+    for (int n = 1; n <= count; ++n) {
+        const char *name = sqlite3_bind_parameter_name(self, n);
+        if (name && (name[0] == ':' || name[0] == '$' || name[0] == '@')) {
+            if(ptype == OT_TABLE){
+                sq_pushstring(v, ++name, -1);
+                if(sq_get(v, 2) == SQ_OK){
+                    result = sqlite3_stmt_bind_value(v, self, n, -1);
+                    sq_poptop(v);
+                }
+                else return sq_throwerror(v, _SC("bind parameter (%s) not found"), name);
+            }
+            else return sq_throwerror(v, _SC("table expected to bind named parameters"));
+        }
+        else {
+            if(ptype == OT_ARRAY){
+                sq_pushinteger(v, n);
+                if(sq_get(v, 2) == SQ_OK){
+                    result = sqlite3_stmt_bind_value(v, self, n, -1);
+                    sq_poptop(v);
+                }
+                else return sq_throwerror(v, _SC("bind parameter (%d) not found"), n);
+            }
+            else return sq_throwerror(v, _SC("array expected to bind numbered parameters"));
+        }
+
+        if (result != SQ_OK) return result;
+    }
+	return 0;
 }
 
 static SQRESULT sq_sqlite3_stmt_bind_parameter_index(HSQUIRRELVM v){
@@ -912,11 +996,16 @@ static SQRegFunction sq_sqlite3_stmt_methods[] =
 {
 	_DECL_FUNC(constructor,  -2, _SC("xxs s|n|b|o")),
 
+	_DECL_FUNC(stmt_ptr,  1, _SC("x")),
 	_DECL_FUNC(get_db,  1, _SC("x")),
 	_DECL_FUNC(finalize,  1, _SC("x")),
 	_DECL_FUNC(prepare,  -2, _SC("xs s|n|b|o")),
 	_DECL_FUNC(get_sql,  1, _SC("x")),
 	_DECL_FUNC(bind,  3, _SC("xi s|n|b|o")),
+	_DECL_FUNC(bind_empty_null,  3, _SC("xi s|n|b|o")),
+	_DECL_FUNC(bind_blob,  3, _SC("xis")),
+	_DECL_FUNC(bind_values,  -2, _SC("x s|n|b|o")),
+	_DECL_FUNC(bind_names,  2, _SC("x t|a")),
 	_DECL_FUNC(bind_parameter_index,  2, _SC("xs")),
 	_DECL_FUNC(step,  1, _SC("x")),
 	_DECL_FUNC(reset,  1, _SC("x")),
@@ -1075,6 +1164,13 @@ static SQRESULT sq_sqlite3_close(HSQUIRRELVM v){
 	    return sq_throwerror(v, sqlite3_errmsg(self));
 	}
 	return 0;
+}
+
+static SQRESULT sq_sqlite3_db_ptr(HSQUIRRELVM v){
+	SQ_FUNC_VARS_NO_TOP(v);
+	GET_sqlite3_INSTANCE();
+	sq_pushuserpointer(v, self);
+	return 1;
 }
 
 /* bool IsAutoCommitOn(  ) */
@@ -1849,8 +1945,9 @@ static SQRESULT sq_sqlite3_create_aggregate(HSQUIRRELVM v) {
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_sqlite3_##name,nparams,tycheck}
 static SQRegFunction sq_sqlite3_methods[] =
 {
-	_DECL_FUNC(constructor,  2, _SC("xsi")),
+	_DECL_FUNC(constructor,  -2, _SC("xsi")),
 	_DECL_FUNC(close,  1, _SC("x")),
+	_DECL_FUNC(db_ptr,  1, _SC("x")),
 
 	_DECL_FUNC(IsAutoCommitOn,  1, _SC("x")),
 	_DECL_FUNC(close,  1, _SC("x")),
@@ -1865,7 +1962,9 @@ static SQRegFunction sq_sqlite3_methods[] =
 	_DECL_FUNC(busy_timeout,  2, _SC("xi")),
 	_DECL_FUNC(create_function,  4, _SC("xsic")),
 	_DECL_FUNC(create_aggregate,  5, _SC("xsicc")),
+#ifndef WIN32
 	_DECL_FUNC(temp_directory,  -2, _SC("xs")),
+#endif
 	_DECL_FUNC(enable_shared_cache,  2, _SC("xb")),
 	_DECL_FUNC(changes,  1, _SC("x")),
 	_DECL_FUNC(exec,  -2, _SC("xs")),
