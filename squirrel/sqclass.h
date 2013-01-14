@@ -134,8 +134,11 @@ public:
 	void Release() {
 		_uiRef++;
 		if (_hook) {
+#ifndef NO_GARBAGE_COLLECTOR
 		    _sharedstate->AddDelayedReleaseHook(_hook, _userpointer, 0);
-		    //_hook(_userpointer,0);
+#else
+		    _hook(_userpointer,0, 0);
+#endif
         }
 		_uiRef--;
 		if(_uiRef > 0) return;
