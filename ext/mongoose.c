@@ -144,8 +144,10 @@ typedef long off_t;
 #define dlsym(x,y) GetProcAddress((HINSTANCE) (x), (y))
 #endif
 #define RTLD_LAZY  0
+#ifndef fseeko
 //#define fseeko(x, y, z) _lseeki64(_fileno(x), (y), (z))
 #define fseeko(x, y, z) fseek((x), (y), (z))
+#endif
 #define fdopen(x, y) _fdopen((x), (y))
 #define write(x, y, z) _write((x), (y), (unsigned) z)
 #define read(x, y, z) _read((x), (y), (unsigned) z)
