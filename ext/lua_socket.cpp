@@ -104,7 +104,7 @@ int lua_socket_waitfd(p_socket ps, int sw, p_timeout tm){
     }
     if (sw & WAITFD_W) { FD_ZERO(&wfds); FD_SET(*ps, &wfds); wp = &wfds; }
     if (sw & WAITFD_C) { FD_ZERO(&efds); FD_SET(*ps, &efds); ep = &efds; }
-    if ((t = timeout_get(tm)) >= 0.0) {
+    if ((t = lua_timeout_get(tm)) >= 0.0) {
         tv.tv_sec = (int) t;
         tv.tv_usec = (int) ((t-tv.tv_sec)*1.0e6);
         tp = &tv;
@@ -253,7 +253,7 @@ int lua_socket_select(t_socket n, fd_set *rfds, fd_set *wfds, fd_set *efds,
         p_timeout tm){
 #ifdef WIN32
     struct timeval tv;
-    double t = timeout_get(tm);
+    double t = lua_timeout_get(tm);
     tv.tv_sec = (int) t;
     tv.tv_usec = (int) ((t - tv.tv_sec) * 1.0e6);
     if (n <= 0) {
@@ -290,7 +290,7 @@ int lua_socket_connect(p_socket ps, SA *addr, socklen_t addr_len, p_timeout tm){
     /* zero timeout case optimization */
     if (timeout_iszero(tm)) return IO_TIMEOUT;
     /* we wait until something happens */
-    err = socket_waitfd(ps, WAITFD_C, tm);
+    err = lua_socket_waitfd(ps, WAITFD_C, tm);
     if (err == IO_CLOSED) {
         int addr_len = sizeof(err);
         /* give windows time to set the error (yes, disgusting) */
