@@ -629,7 +629,7 @@ static SQRegFunction sq_zmq3_ctx_methods[] =
 extern "C" {
 #endif
 
-    SQRESULT sqstd_register_sq_zmq3(HSQUIRRELVM v)
+    SQRESULT sqext_register_sq_zmq3(HSQUIRRELVM v)
     {
         sq_pushliteral(v,_SC("zmq_ctx"));
         sq_newclass(v,SQFalse);

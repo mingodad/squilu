@@ -1993,7 +1993,7 @@ static SQRegFunction sq_sqlite3_methods[] =
 extern "C" {
 #endif
 
-    SQRESULT sqstd_register_SQLite3(HSQUIRRELVM v)
+    SQRESULT sqext_register_SQLite3(HSQUIRRELVM v)
     {
         HSQOBJECT sqlite3_NULL;
         sq_pushregistrytable(v);
