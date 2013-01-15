@@ -228,7 +228,11 @@ static SQRESULT sqrat_importbin(HSQUIRRELVM v, const SQChar* moduleName) {
     }
 #elif defined(__unix)
     /* adding .so to moduleName? */
-    void *mod = dlopen(moduleName, RTLD_NOW | RTLD_LOCAL | RTLD_NOLOAD); //RTLD_NOLOAD flag is not specified in POSIX.1-2001..so not the best solution :(
+    void *mod = dlopen(moduleName, RTLD_NOW | RTLD_LOCAL
+#ifndef ANDROID_BUILD
+                       | RTLD_NOLOAD //RTLD_NOLOAD flag is not specified in POSIX.1-2001..so not the best solution :(
+#endif
+                       );
     if (mod == NULL) {
         mod = dlopen(moduleName, RTLD_NOW | RTLD_LOCAL);
         if (mod == NULL)
