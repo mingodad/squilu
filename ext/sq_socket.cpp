@@ -1541,7 +1541,7 @@ static void make_assoc(HSQUIRRELVM v, int tab) {
 extern "C" {
 #endif
 
-    SQRESULT sqstd_register_sq_socket(HSQUIRRELVM v)
+    SQRESULT sqext_register_sq_socket(HSQUIRRELVM v)
     {
         sq_pushliteral(v,_SC("socket"));
         sq_newtable(v);
