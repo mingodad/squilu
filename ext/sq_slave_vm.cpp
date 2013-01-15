@@ -272,7 +272,7 @@ static SQRESULT sq_slave_vm_compilestring(HSQUIRRELVM v){
 extern "C" {
 #endif
 
-    SQRESULT sqstd_register_sq_slave_vm(HSQUIRRELVM v)
+    SQRESULT sqext_register_sq_slave_vm(HSQUIRRELVM v)
     {
         const SQChar get_set_validation_mask[] = _SC("x s|n|p s|n|b|a|t|p|o");
         sq_pushstring(v,sq_slave_vm_TAG, -1);
