@@ -337,7 +337,7 @@ int main(int argc, char* argv[])
 	sqext_register_base64(v);
 	sqext_register_Sq_Fpdf(v);
 	sqext_register_SQLite3(v);
-	sqext_register_dad_utils(v);
+	//sqext_register_dad_utils(v);
 	sqext_register_mix(v);
 	sqext_register_sqfs(v);
 	sqext_register_sq_socket(v);
@@ -346,7 +346,7 @@ int main(int argc, char* argv[])
 	sqrat_register_importlib(v);
 	sqext_register_sq_slave_vm(v);
 
-	sqext_register_sq_zmq3(v);
+	//sqext_register_sq_zmq3(v);
 	//sqstd_register_memory_buffer(v);
 #ifdef WITH_FLTK
 	sqext_register_fltklib(v);
