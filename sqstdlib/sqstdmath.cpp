@@ -176,7 +176,7 @@ static SQRESULT math_number_format(HSQUIRRELVM v) {
     SQ_GET_FLOAT(v, 2, d);
     SQ_OPT_INTEGER(v, 3, dec, 2);
     SQ_OPT_STRING(v, 4, dec_point, math_number_format_dec_point);
-    SQ_OPT_STRING(v, 4, thousand_sep, math_number_format_thousand_sep);
+    SQ_OPT_STRING(v, 5, thousand_sep, math_number_format_thousand_sep);
 	char tmpbuf[64], resbuf[64];
 	char *s, *t;  /* source, target */
 	char *dp;
