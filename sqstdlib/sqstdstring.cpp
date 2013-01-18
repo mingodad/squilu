@@ -65,9 +65,6 @@ static SQInteger validate_format(HSQUIRRELVM v, SQChar *fmt, const SQChar *src, 
 	return n;
 }
 
-/* macro to `unsign' a character */
-#define uchar(c)	((unsigned SQChar)(c))
-
 SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen,SQChar **output)
 {
 	const SQChar *format;
