@@ -59,7 +59,9 @@ typedef unsigned int SQHash; /*should be the same size of a pointer*/
 #endif
 
 
-#ifdef SQUSEDOUBLE
+#ifdef SQUSEDECIMAL64
+typedef _Decimal64 SQFloat;
+#elif defined(SQUSEDOUBLE)
 typedef double SQFloat;
 #else
 typedef float SQFloat;
@@ -417,6 +419,11 @@ SQUIRREL_API SQRESULT sq_getdefaultdelegate(HSQUIRRELVM v,SQObjectType t);
 SQUIRREL_API SQRESULT sq_getmemberhandle(HSQUIRRELVM v,SQInteger idx,HSQMEMBERHANDLE *handle);
 SQUIRREL_API SQRESULT sq_getbyhandle(HSQUIRRELVM v,SQInteger idx,const HSQMEMBERHANDLE *handle);
 SQUIRREL_API SQRESULT sq_setbyhandle(HSQUIRRELVM v,SQInteger idx,const HSQMEMBERHANDLE *handle);
+SQUIRREL_API void sq_insertfunc(HSQUIRRELVM sqvm, const SQChar *fname, SQFUNCTION func,
+                        SQInteger nparamscheck, const SQChar *typemask, SQBool isStatic);
+SQUIRREL_API void sq_insert_reg_funcs(HSQUIRRELVM sqvm, SQRegFunction *obj_funcs);
+SQUIRREL_API const SQChar *sq_optstring(HSQUIRRELVM sqvm, SQInteger idx, const SQChar *dflt, SQInteger *size);
+SQUIRREL_API SQRESULT sq_optinteger(HSQUIRRELVM sqvm, SQInteger idx, SQInteger *value, SQInteger default_value);
 
 /*object manipulation*/
 SQUIRREL_API void sq_pushroottable(HSQUIRRELVM v);
