@@ -47,7 +47,7 @@ static const SQChar *SQLite3_TAG = "SQLite3";
 static const SQChar *SQLite3_Stmt_TAG = "SQLite3Stmt";
 
 static const SQChar sqlite3_NULL_Name[] = _SC("sqlite3_NULL");
-static const SQChar nullName[] = _SC("NULL");
+static const SQChar nullName[] = _SC("Null");
 static SQRESULT sqlite3_NULL_tostring(HSQUIRRELVM v){
     sq_pushstring(v, "", 0);
     return 1;
@@ -929,7 +929,7 @@ static int sleSize2buf(slebuf_t sle, size_t size){
     return 0;
 }
 
-static SQRESULT get_sle_size(HSQUIRRELVM v){
+static SQRESULT sq_sqlite3_stmt_get_sle_size(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
     slebuf_t slebuf;
     SQ_GET_INTEGER(v, 2, size);
@@ -991,41 +991,43 @@ static SQRESULT sq_sqlite3_stmt_asSleArray(HSQUIRRELVM v) {
     return 1;
 }
 
-#define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_sqlite3_stmt_##name,nparams,tycheck}
+#define _DECL_FUNC(name,nparams,tycheck, isStatic) {_SC(#name),  sq_sqlite3_stmt_##name,nparams,tycheck, isStatic}
 static SQRegFunction sq_sqlite3_stmt_methods[] =
 {
-	_DECL_FUNC(constructor,  -2, _SC("xxs s|n|b|o")),
+	_DECL_FUNC(constructor,  -2, _SC("xxs s|n|b|o"), SQFalse),
 
-	_DECL_FUNC(stmt_ptr,  1, _SC("x")),
-	_DECL_FUNC(get_db,  1, _SC("x")),
-	_DECL_FUNC(finalize,  1, _SC("x")),
-	_DECL_FUNC(prepare,  -2, _SC("xs s|n|b|o")),
-	_DECL_FUNC(get_sql,  1, _SC("x")),
-	_DECL_FUNC(bind,  3, _SC("xi s|n|b|o")),
-	_DECL_FUNC(bind_empty_null,  3, _SC("xi s|n|b|o")),
-	_DECL_FUNC(bind_blob,  3, _SC("xis")),
-	_DECL_FUNC(bind_values,  -2, _SC("x s|n|b|o")),
-	_DECL_FUNC(bind_names,  2, _SC("x t|a")),
-	_DECL_FUNC(bind_parameter_index,  2, _SC("xs")),
-	_DECL_FUNC(step,  1, _SC("x")),
-	_DECL_FUNC(reset,  1, _SC("x")),
-	_DECL_FUNC(next_row,  1, _SC("x")),
-	_DECL_FUNC(colsAsArray,  1, _SC("x")),
-	_DECL_FUNC(colsAsTable,  1, _SC("x")),
-	_DECL_FUNC(col_count,  1, _SC("x")),
-	_DECL_FUNC(col_name,  2, _SC("xi")),
-	_DECL_FUNC(col_type,  2, _SC("xi")),
-	_DECL_FUNC(col_declared_type,  2, _SC("xi")),
-	_DECL_FUNC(asArray,  -1, _SC("xi")),
-	_DECL_FUNC(asTable,  -1, _SC("xi")),
-	_DECL_FUNC(asArrayOfArrays,  -1, _SC("xi")),
-	_DECL_FUNC(asArrayOfTables,  -1, _SC("xi")),
-	_DECL_FUNC(col,  2, _SC("x i|s")),
-	_DECL_FUNC(asString,  2, _SC("x i|s")),
-	_DECL_FUNC(asStringOrNull, 2, _SC("x i|s")),
-	_DECL_FUNC(asInteger,  2, _SC("x i|s")),
-	_DECL_FUNC(asBool,  2, _SC("x i|s")),
-	_DECL_FUNC(asFloat,  2, _SC("x i|s")),
+	_DECL_FUNC(get_sle_size,  2, _SC(".i"), SQTrue),
+	_DECL_FUNC(stmt_ptr,  1, _SC("x"), SQFalse),
+	_DECL_FUNC(get_db,  1, _SC("x"), SQFalse),
+	_DECL_FUNC(finalize,  1, _SC("x"), SQFalse),
+	_DECL_FUNC(prepare,  -2, _SC("xs s|n|b|o"), SQFalse),
+	_DECL_FUNC(get_sql,  1, _SC("x"), SQFalse),
+	_DECL_FUNC(bind,  3, _SC("xi s|n|b|o"), SQFalse),
+	_DECL_FUNC(bind_empty_null,  3, _SC("xi s|n|b|o"), SQFalse),
+	_DECL_FUNC(bind_blob,  3, _SC("xis"), SQFalse),
+	_DECL_FUNC(bind_values,  -2, _SC("x s|n|b|o"), SQFalse),
+	_DECL_FUNC(bind_names,  2, _SC("x t|a"), SQFalse),
+	_DECL_FUNC(bind_parameter_index,  2, _SC("xs"), SQFalse),
+	_DECL_FUNC(step,  1, _SC("x"), SQFalse),
+	_DECL_FUNC(reset,  1, _SC("x"), SQFalse),
+	_DECL_FUNC(next_row,  1, _SC("x"), SQFalse),
+	_DECL_FUNC(colsAsArray,  1, _SC("x"), SQFalse),
+	_DECL_FUNC(colsAsTable,  1, _SC("x"), SQFalse),
+	_DECL_FUNC(col_count,  1, _SC("x"), SQFalse),
+	_DECL_FUNC(col_name,  2, _SC("xi"), SQFalse),
+	_DECL_FUNC(col_type,  2, _SC("xi"), SQFalse),
+	_DECL_FUNC(col_declared_type,  2, _SC("xi"), SQFalse),
+	_DECL_FUNC(asArray,  -1, _SC("xi"), SQFalse),
+	_DECL_FUNC(asTable,  -1, _SC("xi"), SQFalse),
+	_DECL_FUNC(asArrayOfArrays,  -1, _SC("xi"), SQFalse),
+	_DECL_FUNC(asArrayOfTables,  -1, _SC("xi"), SQFalse),
+	_DECL_FUNC(asSleArray,  1, _SC("x"), SQFalse),
+	_DECL_FUNC(col,  2, _SC("x i|s"), SQFalse),
+	_DECL_FUNC(asString,  2, _SC("x i|s"), SQFalse),
+	_DECL_FUNC(asStringOrNull, 2, _SC("x i|s"), SQFalse),
+	_DECL_FUNC(asInteger,  2, _SC("x i|s"), SQFalse),
+	_DECL_FUNC(asBool,  2, _SC("x i|s"), SQFalse),
+	_DECL_FUNC(asFloat,  2, _SC("x i|s"), SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
