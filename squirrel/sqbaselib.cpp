@@ -292,8 +292,6 @@ static SQInteger base_callee(HSQUIRRELVM v)
 	return sq_throwerror(v,_SC("no closure in the calls stack"));
 }
 
-/* macro to `unsign' a character */
-#define uchar(c)    ((unsigned SQChar)(c))
 
 static SQInteger base_str_from_chars (HSQUIRRELVM v) {
   SQ_FUNC_VARS_NO_TOP(v);
@@ -889,6 +887,7 @@ static SQInteger array_concat0 (HSQUIRRELVM v, int allowAll) {
       const SQChar *value;
       sq_getstring(v, -1, &value);
       SQInteger value_size = sq_getsize(v, -1);
+      if(value_size < 0) return SQ_ERROR;
       blob.Write((void*)value, value_size);
       if(i != opt_last) blob.Write((void*)sep, sep_size);
       sq_settop(v, _top_);
