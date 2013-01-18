@@ -16,7 +16,10 @@
 					<Add option="-g" />
 				</Compiler>
 				<Linker>
-					<Add library="squilu-dbg" />
+					<Add library="pthread" />
+					<Add library="rt" />
+					<Add library="dl" />
+					<Add library="axtls" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -32,6 +35,10 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add library="pthread" />
+					<Add library="rt" />
+					<Add library="dl" />
+					<Add library="axtls" />
 					<Add directory="../zeromq-3.2.2" />
 				</Linker>
 			</Target>
@@ -45,7 +52,10 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="squilu" />
+					<Add library="pthread" />
+					<Add library="rt" />
+					<Add library="dl" />
+					<Add library="axtls" />
 				</Linker>
 			</Target>
 			<Target title="Release win32">
@@ -63,7 +73,8 @@
 					<Add option="-s" />
 					<Add option="-static-libstdc++" />
 					<Add option="-static-libgcc" />
-					<Add library="squilu-win32" />
+					<Add library="ws2_32" />
+					<Add library="axtls-win32" />
 				</Linker>
 			</Target>
 		</Build>
@@ -77,6 +88,7 @@
 			<Add option="-D_SQ642=1" />
 			<Add option="-DNO_GARBAGE_COLLECTOR00=1" />
 			<Add option="-DWITH_FLTKNO=1" />
+			<Add option="-DSQLITE_DEFAULT_FILE_FORMAT=4" />
 			<Add option="-DSQLITE_DEFAULT_AUTOVACUUM=1" />
 			<Add option="-DSQLITE_DEFAULT_FOREIGN_KEYS=1" />
 			<Add option="-DSQLITE_ENABLE_COLUMN_METADATA=1" />
@@ -105,11 +117,7 @@
 		</Compiler>
 		<Linker>
 			<Add library="m" />
-			<Add library="pthread" />
-			<Add library="axtls" />
 			<Add library="z" />
-			<Add library="rt" />
-			<Add library="dl" />
 			<Add directory="lib" />
 			<Add directory="../dadbiz++/third-party/myaxtls" />
 		</Linker>
