@@ -43,7 +43,7 @@ const SQChar *IdType2Name(SQObjectType type)
 
 const SQChar *GetTypeName(const SQObjectPtr &obj1)
 {
-	return IdType2Name(type(obj1));	
+	return IdType2Name(type(obj1));
 }
 
 SQString *SQString::Create(SQSharedState *ss,const SQChar *s,SQInteger len)
@@ -100,10 +100,10 @@ SQRefCounted::~SQRefCounted()
 	}
 }
 
-void SQWeakRef::Release() { 
-	if(ISREFCOUNTED(_obj._type)) { 
+void SQWeakRef::Release() {
+	if(ISREFCOUNTED(_obj._type)) {
 		_obj._unVal.pRefCounted->_weakref = NULL;
-	} 
+	}
 	sq_delete(this,SQWeakRef);
 }
 
@@ -133,7 +133,7 @@ bool SQGenerator::Yield(SQVM *v,SQInteger target)
 	if(_state==eSuspended) { v->Raise_Error(_SC("internal vm error, yielding dead generator"));  return false;}
 	if(_state==eDead) { v->Raise_Error(_SC("internal vm error, yielding a dead generator")); return false; }
 	SQInteger size = v->_top-v->_stackbase;
-	
+
 	_stack.resize(size);
 	SQObject _this = v->_stack[v->_stackbase];
 	_stack._vals[0] = ISREFCOUNTED(type(_this)) ? SQObjectPtr(_refcounted(_this)->GetWeakRef(type(_this))) : _this;
@@ -162,7 +162,7 @@ bool SQGenerator::Resume(SQVM *v,SQObjectPtr &dest)
 	SQInteger size = _stack.size();
 	SQInteger target = &dest - &(v->_stack._vals[v->_stackbase]);
 	assert(target>=0 && target<=255);
-	if(!v->EnterFrame(v->_top, v->_top + size, false)) 
+	if(!v->EnterFrame(v->_top, v->_top + size, false))
 		return false;
 	v->ci->_generator   = this;
 	v->ci->_target      = (SQInt32)target;
@@ -203,7 +203,7 @@ void SQArray::Extend(const SQArray *a){
 const SQChar* SQFunctionProto::GetLocal(SQVM *vm,SQUnsignedInteger stackbase,SQUnsignedInteger nseq,SQUnsignedInteger nop)
 {
 	SQUnsignedInteger nvars=_nlocalvarinfos;
-	const SQChar *res=NULL; 
+	const SQChar *res=NULL;
 	if(nvars>=nseq){
  		for(SQUnsignedInteger i=0;i<nvars;i++){
 			if(_localvarinfos[i]._start_op<=nop && _localvarinfos[i]._end_op>=nop)
@@ -224,7 +224,6 @@ const SQChar* SQFunctionProto::GetLocal(SQVM *vm,SQUnsignedInteger stackbase,SQU
 SQInteger SQFunctionProto::GetLine(SQInstruction *curr)
 {
     SQInteger op = (SQInteger)(curr-_instructions);
-    SQInteger line=_lineinfos[0]._line;
     SQInteger low = 0;
     SQInteger high = _nlineinfos - 1;
     SQInteger mid = 0;
@@ -250,9 +249,7 @@ SQInteger SQFunctionProto::GetLine(SQInstruction *curr)
 
     while(_lineinfos[mid]._op >= op && mid >= 0) mid--;
 
-    line = _lineinfos[mid]._line;
-
-    return line;
+    return _lineinfos[mid]._line;
 }
 
 SQClosure::~SQClosure()
@@ -459,7 +456,7 @@ bool SQFunctionProto::Load(SQVM *v,SQUserPointer up,SQREADFUNC read,SQObjectPtr 
 	_CHECK_IO(CheckTag(v,read,up,SQ_CLOSURESTREAM_PART));
 	_CHECK_IO(ReadObject(v, up, read, sourcename));
 	_CHECK_IO(ReadObject(v, up, read, name));
-	
+
 	_CHECK_IO(CheckTag(v,read,up,SQ_CLOSURESTREAM_PART));
 	_CHECK_IO(SafeRead(v,read,up, &nliterals, sizeof(nliterals)));
 	_CHECK_IO(SafeRead(v,read,up, &nparameters, sizeof(nparameters)));
@@ -469,7 +466,7 @@ bool SQFunctionProto::Load(SQVM *v,SQUserPointer up,SQREADFUNC read,SQObjectPtr 
 	_CHECK_IO(SafeRead(v,read,up, &ndefaultparams, sizeof(ndefaultparams)));
 	_CHECK_IO(SafeRead(v,read,up, &ninstructions, sizeof(ninstructions)));
 	_CHECK_IO(SafeRead(v,read,up, &nfunctions, sizeof(nfunctions)));
-	
+
 
 	SQFunctionProto *f = SQFunctionProto::Create(_opt_ss(v),ninstructions,nliterals,nparameters,
 			nfunctions,noutervalues,nlineinfos,nlocalvarinfos,ndefaultparams);
@@ -526,7 +523,7 @@ bool SQFunctionProto::Load(SQVM *v,SQUserPointer up,SQREADFUNC read,SQObjectPtr 
 	_CHECK_IO(SafeRead(v,read,up, &f->_stacksize, sizeof(f->_stacksize)));
 	_CHECK_IO(SafeRead(v,read,up, &f->_bgenerator, sizeof(f->_bgenerator)));
 	_CHECK_IO(SafeRead(v,read,up, &f->_varparams, sizeof(f->_varparams)));
-	
+
 	ret = f;
 	return true;
 }
