@@ -130,9 +130,9 @@ static SQRESULT sq_glue_Cell(HSQUIRRELVM v){
 	SQ_OPT_STRING(v, 5, border, 0);
 	SQ_OPT_INTEGER(v, 6, ln, 0);
 	SQ_OPT_INTEGER(v, 7, align, ' ');
-	SQ_OPT_INTEGER(v, 8, fill, false);
+	SQ_OPT_BOOL(v, 8, fill, false);
 	SQ_OPT_INTEGER(v, 9, link, 0);
-	self->Cell(w, h, txt, border, ln, align, fill, link);
+	self->Cell(w, h, txt, border, ln, align, fill ? 1 : 0, link);
 	return 0;
 }
 
@@ -146,11 +146,11 @@ static SQRESULT sq_glue_CellFit(HSQUIRRELVM v){
 	SQ_OPT_STRING(v, 5, border, 0);
 	SQ_OPT_INTEGER(v, 6, ln, 0);
 	SQ_OPT_INTEGER(v, 7, align, ' ');
-	SQ_OPT_INTEGER(v, 8, fill, false);
+	SQ_OPT_BOOL(v, 8, fill, false);
 	SQ_OPT_INTEGER(v, 9, link, 0);
 	SQ_OPT_INTEGER(v, 10, scale, false);
 	SQ_OPT_INTEGER(v, 11, force, true);
-	self->CellFit(w, h, txt, border, ln, align, fill, link, scale, force);
+	self->CellFit(w, h, txt, border, ln, align, fill ? 1 : 0, link, scale, force);
 	return 0;
 }
 
@@ -164,9 +164,9 @@ static SQRESULT sq_glue_CellFitScale(HSQUIRRELVM v){
 	SQ_OPT_STRING(v, 5, border, 0);
 	SQ_OPT_INTEGER(v, 6, ln, 0);
 	SQ_OPT_INTEGER(v, 7, align, ' ');
-	SQ_OPT_INTEGER(v, 8, fill, false);
+	SQ_OPT_BOOL(v, 8, fill, false);
 	SQ_OPT_INTEGER(v, 9, link, 0);
-	self->CellFitScale(w, h, txt, border, ln, align, fill, link);
+	self->CellFitScale(w, h, txt, border, ln, align, fill ? 1 : 0, link);
 	return 0;
 }
 
@@ -180,9 +180,9 @@ static SQRESULT sq_glue_CellFitScaleForce(HSQUIRRELVM v){
 	SQ_OPT_STRING(v, 5, border, 0);
 	SQ_OPT_INTEGER(v, 6, ln, 0);
 	SQ_OPT_INTEGER(v, 7, align, ' ');
-	SQ_OPT_INTEGER(v, 8, fill, false);
+	SQ_OPT_BOOL(v, 8, fill, false);
 	SQ_OPT_INTEGER(v, 9, link, 0);
-	self->CellFitScaleForce(w, h, txt, border, ln, align, fill, link);
+	self->CellFitScaleForce(w, h, txt, border, ln, align, fill ? 1 : 0, link);
 	return 0;
 }
 
@@ -196,9 +196,9 @@ static SQRESULT sq_glue_CellFitSpace(HSQUIRRELVM v){
 	SQ_OPT_STRING(v, 5, border, 0);
 	SQ_OPT_INTEGER(v, 6, ln, 0);
 	SQ_OPT_INTEGER(v, 7, align, ' ');
-	SQ_OPT_INTEGER(v, 8, fill, false);
+	SQ_OPT_BOOL(v, 8, fill, false);
 	SQ_OPT_INTEGER(v, 9, link, 0);
-	self->CellFitSpace(w, h, txt, border, ln, align, fill, link);
+	self->CellFitSpace(w, h, txt, border, ln, align, fill ? 1 : 0, link);
 	return 0;
 }
 
@@ -212,9 +212,9 @@ static SQRESULT sq_glue_CellFitSpaceForce(HSQUIRRELVM v){
 	SQ_OPT_STRING(v, 5, border, 0);
 	SQ_OPT_INTEGER(v, 6, ln, 0);
 	SQ_OPT_INTEGER(v, 7, align, ' ');
-	SQ_OPT_INTEGER(v, 8, fill, false);
+	SQ_OPT_BOOL(v, 8, fill, false);
 	SQ_OPT_INTEGER(v, 9, link, 0);
-	self->CellFitSpaceForce(w, h, txt, border, ln, align, fill, link);
+	self->CellFitSpaceForce(w, h, txt, border, ln, align, fill ? 1 : 0, link);
 	return 0;
 }
 
@@ -249,9 +249,9 @@ static SQRESULT sq_glue_ClippedCell(HSQUIRRELVM v){
 	SQ_OPT_STRING(v, 5, border, 0);
 	SQ_OPT_INTEGER(v, 6, ln, 0);
 	SQ_OPT_INTEGER(v, 7, align, ' ');
-	SQ_OPT_INTEGER(v, 8, fill, false);
+	SQ_OPT_BOOL(v, 8, fill, false);
 	SQ_OPT_INTEGER(v, 9, link, 0);
-	self->ClippedCell(w, h, txt, border, ln, align, fill, link);
+	self->ClippedCell(w, h, txt, border, ln, align, fill ? 1 : 0, link);
 	return 0;
 }
 
@@ -327,31 +327,73 @@ static SQRESULT sq_glue_GetAliasNbPages(HSQUIRRELVM v){
 	return 1;
 }
 
+static void push_pdf_color(HSQUIRRELVM v, FPDF::pdf_color_t &color){
+	if(sq_gettop(v) >= 2 && sq_gettype(v, 2) == OT_TABLE){
+	    sq_settop(v, 2);
+	}
+	else sq_newtable(v);
+
+	sq_pushliteral(v, _SC("r"));
+	sq_pushinteger(v, color.r);
+	sq_rawset(v, -3);
+
+	sq_pushliteral(v, _SC("g"));
+	sq_pushinteger(v, color.g);
+	sq_rawset(v, -3);
+
+	sq_pushliteral(v, _SC("b"));
+	sq_pushinteger(v, color.b);
+	sq_rawset(v, -3);
+
+	sq_pushliteral(v, _SC("t"));
+	sq_pushinteger(v, color.t);
+	sq_rawset(v, -3);
+}
+
 /* void GetDrawColor( FPDF::pdf_color_t & color ) */
 static SQRESULT sq_glue_GetDrawColor(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_SQ_FPDF();
-	SQ_GET_INTEGER(v, 2, color);
-	//self->GetDrawColor(color);
-	return 0;
+	FPDF::pdf_color_t color;
+	self->GetDrawColor(color);
+    push_pdf_color(v, color);
+	return 1;
 }
 
 /* void GetFillColor( FPDF::pdf_color_t & color ) */
 static SQRESULT sq_glue_GetFillColor(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_SQ_FPDF();
-	SQ_GET_INTEGER(v, 2, color);
-	//self->GetFillColor(color);
-	return 0;
+	FPDF::pdf_color_t color;
+	self->GetFillColor(color);
+    push_pdf_color(v, color);
+	return 1;
 }
 
 /* void GetFontSettings( font_settings_st & fs ) */
 static SQRESULT sq_glue_GetFontSettings(HSQUIRRELVM v){
-	SQ_FUNC_VARS_NO_TOP(v);
+	SQ_FUNC_VARS(v);
 	GET_SQ_FPDF();
-	SQ_GET_INTEGER(v, 2, fs);
-	//self->GetFontSettings(fs);
-	return 0;
+	FPDF::font_settings_st fs;
+	self->GetFontSettings(fs);
+	if(_top_ >= 2 && sq_gettype(v, 2) == OT_TABLE){
+	    sq_settop(v, 2);
+	}
+	else sq_newtable(v);
+
+	sq_pushliteral(v, _SC("family"));
+	sq_pushstring(v, fs.family.c_str(), fs.family.size());
+	sq_rawset(v, -3);
+
+	sq_pushliteral(v, _SC("style"));
+	sq_pushstring(v, fs.style.c_str(), fs.style.size());
+	sq_rawset(v, -3);
+
+	sq_pushliteral(v, _SC("size"));
+	sq_pushfloat(v, fs.size);
+	sq_rawset(v, -3);
+
+	return 1;
 }
 
 /* pdf_float_t GetFontSize(  ) */
@@ -399,9 +441,10 @@ static SQRESULT sq_glue_GetStringWidth(HSQUIRRELVM v){
 static SQRESULT sq_glue_GetTextColor(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_SQ_FPDF();
-	SQ_GET_INTEGER(v, 2, color);
-	//self->GetTextColor(color);
-	return 0;
+	FPDF::pdf_color_t color;
+	self->GetTextColor(color);
+    push_pdf_color(v, color);
+	return 1;
 }
 
 /* pdf_float_t GetW(  ) */
@@ -503,8 +546,8 @@ static SQRESULT sq_glue_MultiCell(HSQUIRRELVM v){
 	SQ_GET_STRING(v, 4, txt);
 	SQ_OPT_STRING(v, 5, border, 0);
 	SQ_OPT_INTEGER(v, 6, align, 'J');
-	SQ_OPT_INTEGER(v, 7, fill, false);
-	self->MultiCell(w, h, txt, border, align, fill);
+	SQ_OPT_BOOL(v, 7, fill, false);
+	self->MultiCell(w, h, txt, border, align, fill ? 1 : 0);
 	return 0;
 }
 
@@ -518,8 +561,8 @@ static SQRESULT sq_glue_MultiCellBlt(HSQUIRRELVM v){
 	SQ_GET_STRING(v, 5, txt);
 	SQ_OPT_STRING(v, 6, border, 0);
 	SQ_OPT_INTEGER(v, 7, align, 'J');
-	SQ_OPT_INTEGER(v, 8, fill, false);
-	self->MultiCellBlt(w, h, blt, txt, border, align, fill);
+	SQ_OPT_BOOL(v, 8, fill, false);
+	self->MultiCellBlt(w, h, blt, txt, border, align, fill ? 1 : 0);
 	return 0;
 }
 
@@ -677,25 +720,89 @@ static SQRESULT sq_glue_SetDoubleSided(HSQUIRRELVM v){
 	return 0;
 }
 
+static SQRESULT get_pdfcolor_from_table(HSQUIRRELVM v, FPDF::pdf_color_t &color){
+	if(sq_gettop(v) == 2){
+	    if(sq_gettype(v, 2) == OT_TABLE){
+	        SQInteger icolor;
+	        sq_pushliteral(v, _SC("r"));
+	        if(sq_rawget(v, 2) != SQ_OK) return SQ_ERROR;
+            sq_getinteger(v, -1, &icolor);
+            sq_poptop(v);
+            color.r = icolor;
+
+	        sq_pushliteral(v, _SC("g"));
+	        if(sq_rawget(v, 2) != SQ_OK) return SQ_ERROR;
+            sq_getinteger(v, -1, &icolor);
+            sq_poptop(v);
+            color.g = icolor;
+
+	        sq_pushliteral(v, _SC("b"));
+	        if(sq_rawget(v, 2) != SQ_OK) return SQ_ERROR;
+            sq_getinteger(v, -1, &icolor);
+            sq_poptop(v);
+            color.b = icolor;
+
+	        sq_pushliteral(v, _SC("t"));
+	        if(sq_rawget(v, 2) != SQ_OK) return SQ_ERROR;
+            sq_getinteger(v, -1, &icolor);
+            sq_poptop(v);
+            color.t = icolor;
+
+	        return SQ_OK;
+	    }
+	}
+	return SQ_ERROR;
+}
+
 /* void SetDrawColor( unsigned char r , unsigned char g , unsigned char b ) */
 static SQRESULT sq_glue_SetDrawColor(HSQUIRRELVM v){
-	SQ_FUNC_VARS_NO_TOP(v);
+	SQ_FUNC_VARS(v);
 	GET_SQ_FPDF();
-	SQ_GET_INTEGER(v, 2, r);
-	SQ_GET_INTEGER(v, 3, g);
-	SQ_GET_INTEGER(v, 4, b);
-	self->SetDrawColor(r, g, b);
+	if(_top_ == 2){
+	    FPDF::pdf_color_t color;
+	    if(get_pdfcolor_from_table(v, color) == SQ_OK){
+	        self->SetDrawColor(color);
+	    }
+	    else if(sq_gettype(v, 2) == OT_INTEGER){
+	        SQInteger icolor;
+	        sq_getinteger(v, 2, &icolor);
+	        self->SetDrawColor(icolor);
+	    }
+	    else return SQ_ERROR;
+	}
+	else
+	{
+        SQ_GET_INTEGER(v, 2, r);
+        SQ_GET_INTEGER(v, 3, g);
+        SQ_GET_INTEGER(v, 4, b);
+        self->SetDrawColor(r, g, b);
+	}
 	return 0;
 }
 
 /* void SetFillColor( unsigned char r , unsigned char g , unsigned char b ) */
 static SQRESULT sq_glue_SetFillColor(HSQUIRRELVM v){
-	SQ_FUNC_VARS_NO_TOP(v);
+	SQ_FUNC_VARS(v);
 	GET_SQ_FPDF();
-	SQ_GET_INTEGER(v, 2, r);
-	SQ_GET_INTEGER(v, 3, g);
-	SQ_GET_INTEGER(v, 4, b);
-	self->SetFillColor(r, g, b);
+	if(_top_ == 2){
+	    FPDF::pdf_color_t color;
+	    if(get_pdfcolor_from_table(v, color) == SQ_OK){
+	        self->SetFillColor(color);
+	    }
+	    else if(sq_gettype(v, 2) == OT_INTEGER){
+	        SQInteger icolor;
+	        sq_getinteger(v, 2, &icolor);
+	        self->SetFillColor(icolor);
+	    }
+	    else return SQ_ERROR;
+	}
+	else
+	{
+        SQ_GET_INTEGER(v, 2, r);
+        SQ_GET_INTEGER(v, 3, g);
+        SQ_GET_INTEGER(v, 4, b);
+        self->SetFillColor(r, g, b);
+	}
 	return 0;
 }
 
@@ -712,11 +819,36 @@ static SQRESULT sq_glue_SetFont(HSQUIRRELVM v){
 
 /* void SetFontSettings( font_settings_st & fs ) */
 static SQRESULT sq_glue_SetFontSettings(HSQUIRRELVM v){
-	SQ_FUNC_VARS_NO_TOP(v);
+	SQ_FUNC_VARS(v);
 	GET_SQ_FPDF();
-	SQ_GET_INTEGER(v, 2, fs);
-	//self->SetFontSettings(fs);
-	return 0;
+	if(_top_ == 2){
+	    if(sq_gettype(v, 2) == OT_TABLE){
+	        const SQChar *str;
+	        SQFloat num;
+	        FPDF::font_settings_st fs;
+
+	        sq_pushliteral(v, _SC("family"));
+	        if(sq_rawget(v, 2) != SQ_OK) return SQ_ERROR;
+            sq_getstring(v, -1, &str);
+            sq_poptop(v);
+            fs.family = str;
+
+	        sq_pushliteral(v, _SC("style"));
+	        if(sq_rawget(v, 2) != SQ_OK) return SQ_ERROR;
+            sq_getstring(v, -1, &str);
+            sq_poptop(v);
+            fs.style = str;
+
+	        sq_pushliteral(v, _SC("size"));
+	        if(sq_rawget(v, 2) != SQ_OK) return SQ_ERROR;
+            sq_getfloat(v, -1, &num);
+            sq_poptop(v);
+            fs.size = num;
+            self->SetFontSettings(fs);
+	        return 0;
+	    }
+	}
+	return SQ_ERROR;
 }
 
 /* void SetFontSize( pdf_float_t size ) */
@@ -797,12 +929,27 @@ static SQRESULT sq_glue_SetSubject(HSQUIRRELVM v){
 
 /* void SetTextColor( unsigned char r , unsigned char g , unsigned char b ) */
 static SQRESULT sq_glue_SetTextColor(HSQUIRRELVM v){
-	SQ_FUNC_VARS_NO_TOP(v);
+	SQ_FUNC_VARS(v);
 	GET_SQ_FPDF();
-	SQ_GET_INTEGER(v, 2, r);
-	SQ_GET_INTEGER(v, 3, g);
-	SQ_GET_INTEGER(v, 4, b);
-	self->SetTextColor(r, g, b);
+	if(_top_ == 2){
+	    FPDF::pdf_color_t color;
+	    if(get_pdfcolor_from_table(v, color) == SQ_OK){
+	        self->SetTextColor(color);
+	    }
+	    else if(sq_gettype(v, 2) == OT_INTEGER){
+	        SQInteger icolor;
+	        sq_getinteger(v, 2, &icolor);
+	        self->SetTextColor(icolor);
+	    }
+	    else return SQ_ERROR;
+	}
+	else
+	{
+        SQ_GET_INTEGER(v, 2, r);
+        SQ_GET_INTEGER(v, 3, g);
+        SQ_GET_INTEGER(v, 4, b);
+        self->SetTextColor(r, g, b);
+	}
 	return 0;
 }
 
@@ -932,15 +1079,15 @@ static SQRegFunction sq_glue_my_methods[] =
 	_DECL_FUNC(AddPage,  -1, _SC("xis")),
 	_DECL_FUNC(AliasNbPages,  -1, _SC("xs")),
 	_DECL_FUNC(CalcLines,  3, _SC("xns")),
-	_DECL_FUNC(Cell,  -2, _SC("xnnssiiii")),
-	_DECL_FUNC(CellFit,  -2, _SC("xnnssiiiiii")),
-	_DECL_FUNC(CellFitScale,  -2, _SC("xnnssiiii")),
-	_DECL_FUNC(CellFitScaleForce,  -2, _SC("xnnssiiii")),
-	_DECL_FUNC(CellFitSpace,  -2, _SC("xnnssiiii")),
-	_DECL_FUNC(CellFitSpaceForce,  -2, _SC("xnnssiiii")),
+	_DECL_FUNC(Cell,  -2, _SC("xnnssiibi")),
+	_DECL_FUNC(CellFit,  -2, _SC("xnnssiibiii")),
+	_DECL_FUNC(CellFitScale,  -2, _SC("xnnssiibi")),
+	_DECL_FUNC(CellFitScaleForce,  -2, _SC("xnnssiibi")),
+	_DECL_FUNC(CellFitSpace,  -2, _SC("xnnssiibi")),
+	_DECL_FUNC(CellFitSpaceForce,  -2, _SC("xnnssiibi")),
 	_DECL_FUNC(CheckPageBreak,  2, _SC("xn")),
 	_DECL_FUNC(Circle,  -4, _SC("xnnns")),
-	_DECL_FUNC(ClippedCell,  -2, _SC("xnnssiiii")),
+	_DECL_FUNC(ClippedCell,  -2, _SC("xnnssiibi")),
 	_DECL_FUNC(ClippingRect,  -5, _SC("xnnnni")),
 	_DECL_FUNC(ClippingText,  -4, _SC("xnnsi")),
 	_DECL_FUNC(Close,  1, _SC("x")),
@@ -948,16 +1095,15 @@ static SQRegFunction sq_glue_my_methods[] =
 	_DECL_FUNC(Error,  2, _SC("xs")),
 	_DECL_FUNC(Footer,  1, _SC("x")),
 	_DECL_FUNC(GetAliasNbPages,  1, _SC("x")),
-	_DECL_FUNC(GetDrawColor,  2, _SC("xi")),
-	_DECL_FUNC(GetFillColor,  2, _SC("xi")),
-	_DECL_FUNC(GetFontSettings,  2, _SC("xi")),
+	_DECL_FUNC(GetDrawColor,  -1, _SC("xt")),
+	_DECL_FUNC(GetFillColor,  -1, _SC("xt")),
+	_DECL_FUNC(GetFontSettings,  -1, _SC("xt")),
 	_DECL_FUNC(GetFontSize,  1, _SC("x")),
 	_DECL_FUNC(GetH,  1, _SC("x")),
 	_DECL_FUNC(GetLeftMargin,  1, _SC("x")),
 	_DECL_FUNC(GetRightMargin,  1, _SC("x")),
 	_DECL_FUNC(GetStringWidth,  2, _SC("xs")),
-	_DECL_FUNC(GetStringWidth,  2, _SC("xi")),
-	_DECL_FUNC(GetTextColor,  2, _SC("xi")),
+	_DECL_FUNC(GetTextColor,  -1, _SC("xt")),
 	_DECL_FUNC(GetW,  1, _SC("x")),
 	_DECL_FUNC(GetX,  1, _SC("x")),
 	_DECL_FUNC(GetY,  1, _SC("x")),
@@ -967,8 +1113,8 @@ static SQRegFunction sq_glue_my_methods[] =
 	_DECL_FUNC(Line,  5, _SC("xnnnn")),
 	_DECL_FUNC(Link,  6, _SC("xnnnni")),
 	_DECL_FUNC(Ln,  -1, _SC("xn")),
-	_DECL_FUNC(MultiCell,  -4, _SC("xnnssii")),
-	_DECL_FUNC(MultiCellBlt,  -5, _SC("xnnsssii")),
+	_DECL_FUNC(MultiCell,  -4, _SC("xnnssib")),
+	_DECL_FUNC(MultiCellBlt,  -5, _SC("xnnsssbi")),
 	_DECL_FUNC(Open,  1, _SC("x")),
 	_DECL_FUNC(Output,  -1, _SC("xsi")),
 	_DECL_FUNC(PageNo,  1, _SC("x")),
@@ -985,9 +1131,9 @@ static SQRegFunction sq_glue_my_methods[] =
 	_DECL_FUNC(SetDisplayMode,  -2, _SC("xii")),
 	_DECL_FUNC(SetDoubleSided,  -1, _SC("xnn")),
 	_DECL_FUNC(SetDrawColor,  -2, _SC("xiii")),
-	_DECL_FUNC(SetFillColor,  -2, _SC("xiii")),
+	_DECL_FUNC(SetFillColor,  -2, _SC("x t|i ii")),
 	_DECL_FUNC(SetFont,  -1, _SC("xssn")),
-	_DECL_FUNC(SetFontSettings,  2, _SC("xi")),
+	_DECL_FUNC(SetFontSettings,  2, _SC("xt")),
 	_DECL_FUNC(SetFontSize,  2, _SC("xn")),
 	_DECL_FUNC(SetKeywords,  2, _SC("xs")),
 	_DECL_FUNC(SetLeftMargin,  2, _SC("xn")),
