@@ -1090,30 +1090,30 @@ static SQRESULT sq_sqlite3_close_release(HSQUIRRELVM v, sq_sqlite3_sdb *sdb){
             sq_deleteslot(sdb->v, -2, SQFalse);
             sq_poptop(sdb->v);
 
-	if(sdb->func){
-        sq_sqlite3_sdb_func *func, *func_next;
-        func = sdb->func;
-        while (func) {
-            func_next = func->next;
-            sq_release(sdb->v, &func->fn_step);
-            sq_release(sdb->v, &func->fn_finalize);
-            sq_release(sdb->v, &func->udata);
-            sq_free(func, sizeof(sq_sqlite3_sdb_func));
-            func = func_next;
+        if(sdb->func){
+            sq_sqlite3_sdb_func *func, *func_next;
+            func = sdb->func;
+            while (func) {
+                func_next = func->next;
+                sq_release(sdb->v, &func->fn_step);
+                sq_release(sdb->v, &func->fn_finalize);
+                sq_release(sdb->v, &func->udata);
+                sq_free(func, sizeof(sq_sqlite3_sdb_func));
+                func = func_next;
+            }
+            sdb->func = NULL;
         }
-        sdb->func = NULL;
-	}
-    /* 'free' all references */
-    sq_release(sdb->v, &sdb->busy_cb);
-    sq_release(sdb->v, &sdb->busy_udata);
-    sq_release(sdb->v, &sdb->progress_cb);
-    sq_release(sdb->v, &sdb->progress_udata);
-    sq_release(sdb->v, &sdb->trace_cb);
-    sq_release(sdb->v, &sdb->trace_udata);
-    sq_release(sdb->v, &sdb->null_value);
+        /* 'free' all references */
+        sq_release(sdb->v, &sdb->busy_cb);
+        sq_release(sdb->v, &sdb->busy_udata);
+        sq_release(sdb->v, &sdb->progress_cb);
+        sq_release(sdb->v, &sdb->progress_udata);
+        sq_release(sdb->v, &sdb->trace_cb);
+        sq_release(sdb->v, &sdb->trace_udata);
+        sq_release(sdb->v, &sdb->null_value);
 
-	sq_free(sdb, sizeof(sq_sqlite3_sdb));
-	}
+        sq_free(sdb, sizeof(sq_sqlite3_sdb));
+        }
 	}
 	return rc;
 }
@@ -1144,6 +1144,7 @@ static SQRESULT sq_sqlite3_constructor(HSQUIRRELVM v)
     sq_resetobject(&sdb->progress_udata);
     sq_resetobject(&sdb->trace_cb);
     sq_resetobject(&sdb->trace_udata);
+    sq_resetobject(&sdb->null_value);
 
     sq_setinstanceup(v, 1, sdb);
     sq_setreleasehook(v,1, sq_sqlite3_releasehook);
