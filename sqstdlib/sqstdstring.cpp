@@ -234,74 +234,6 @@ static SQInteger _string_printf(HSQUIRRELVM v)
 	return 0;
 }
 
-static void __strip_l(const SQChar *str,const SQChar **start)
-{
-	const SQChar *t = str;
-	while(((*t) != '\0') && scisspace(*t)){ t++; }
-	*start = t;
-}
-
-static void __strip_r(const SQChar *str,SQInteger len,const SQChar **end)
-{
-	if(len == 0) {
-		*end = str;
-		return;
-	}
-	const SQChar *t = &str[len-1];
-	while(t >= str && scisspace(*t)) { t--; }
-	*end = t + 1;
-}
-
-static SQInteger _string_strip(HSQUIRRELVM v)
-{
-	const SQChar *str,*start,*end;
-	sq_getstring(v,2,&str);
-	SQInteger len = sq_getsize(v,2);
-	__strip_l(str,&start);
-	__strip_r(str,len,&end);
-	sq_pushstring(v,start,end - start);
-	return 1;
-}
-
-static SQInteger _string_lstrip(HSQUIRRELVM v)
-{
-	const SQChar *str,*start;
-	sq_getstring(v,2,&str);
-	__strip_l(str,&start);
-	sq_pushstring(v,start,-1);
-	return 1;
-}
-
-static SQInteger _string_rstrip(HSQUIRRELVM v)
-{
-	const SQChar *str,*end;
-	sq_getstring(v,2,&str);
-	SQInteger len = sq_getsize(v,2);
-	__strip_r(str,len,&end);
-	sq_pushstring(v,str,end - str);
-	return 1;
-}
-
-static SQInteger _string_split(HSQUIRRELVM v)
-{
-	const SQChar *str,*seps;
-	SQChar *stemp,*tok;
-	sq_getstring(v,2,&str);
-	sq_getstring(v,3,&seps);
-	if(sq_getsize(v,3) == 0) return sq_throwerror(v,_SC("empty separators string"));
-	SQInteger memsize = (sq_getsize(v,2)+1)*sizeof(SQChar);
-	stemp = sq_getscratchpad(v,memsize);
-	memcpy(stemp,str,memsize);
-	tok = scstrtok(stemp,seps);
-	sq_newarray(v,0);
-	while( tok != NULL ) {
-		sq_pushstring(v,tok,-1);
-		sq_arrayappend(v,-2);
-		tok = scstrtok( NULL, seps );
-	}
-	return 1;
-}
-
 #define SETUP_REX(v) \
 	SQRex *self = NULL; \
 	sq_getinstanceup(v,1,(SQUserPointer *)&self,0);
@@ -559,10 +491,6 @@ static SQRegFunction rexobj_funcs[]={
 static SQRegFunction stringlib_funcs[]={
 	_DECL_FUNC(printf,-2,_SC(".s")),
 	_DECL_FUNC(format,-2,_SC(".s")),
-	_DECL_FUNC(strip,2,_SC(".s")),
-	_DECL_FUNC(lstrip,2,_SC(".s")),
-	_DECL_FUNC(rstrip,2,_SC(".s")),
-	_DECL_FUNC(split,3,_SC(".ss")),
 	{0,0}
 };
 #undef _DECL_FUNC
