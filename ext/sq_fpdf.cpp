@@ -1,4 +1,5 @@
 #include "squirrel.h"
+#include "sqstdblobimpl.h"
 #include "fpdf.h"
 #include <string.h>
 #include <stdio.h>
@@ -578,8 +579,23 @@ static SQRESULT sq_glue_Open(HSQUIRRELVM v){
 static SQRESULT sq_glue_Output(HSQUIRRELVM v){
 	SQ_FUNC_VARS(v);
 	GET_SQ_FPDF();
+	SQBlob *blob = NULL;
+	if(_top_ > 1) {
+        SQObjectType ptype = sq_gettype(v, 2);
+        if(ptype == OT_INSTANCE){
+            if(SQ_FAILED(sq_getinstanceup(v,2,(SQUserPointer*)&blob,(SQUserPointer)SQBlob::SQBlob_TAG)))
+                return sq_throwerror(v,_SC("invalid type tag"));
+            if(!blob || !blob->IsValid())
+                return sq_throwerror(v,_SC("the blob is invalid"));
+            std::string str = self->Output(0, 'S');
+            blob->Resize(str.size());
+            memcpy(blob->GetBuf(), str.c_str(), str.size());
+            return 0;
+        }
+	}
 	SQ_OPT_STRING(v, 2, name, 0);
 	SQ_OPT_INTEGER(v, 3, dest, ' ');
+
 	std::string str = self->Output(name, dest);
 	sq_pushstring(v, str.c_str(), str.size());
 	return 1;
@@ -1116,7 +1132,7 @@ static SQRegFunction sq_glue_my_methods[] =
 	_DECL_FUNC(MultiCell,  -4, _SC("xnnssib")),
 	_DECL_FUNC(MultiCellBlt,  -5, _SC("xnnsssbi")),
 	_DECL_FUNC(Open,  1, _SC("x")),
-	_DECL_FUNC(Output,  -1, _SC("xsi")),
+	_DECL_FUNC(Output,  -1, _SC("x s|x i")),
 	_DECL_FUNC(PageNo,  1, _SC("x")),
 	_DECL_FUNC(Rect,  -5, _SC("xnnnns")),
 	_DECL_FUNC(Rotate,  -2, _SC("xnnn")),
