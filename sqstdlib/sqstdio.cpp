@@ -193,7 +193,7 @@ SQRESULT sqstd_createfile(HSQUIRRELVM v, SQFILE file,SQBool own)
 		}
 	}
 	sq_settop(v,top);
-	return SQ_OK;
+	return SQ_ERROR;
 }
 
 SQRESULT sqstd_getfile(HSQUIRRELVM v, SQInteger idx, SQFILE *file)
