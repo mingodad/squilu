@@ -109,6 +109,7 @@
 			<Add option="-DUSE_AXTLS_ON_MEMORY=1" />
 			<Add option="-D_FILE_OFFSET_BITS=64" />
 			<Add option="-DSSL_STATIC_LIBRARY=1" />
+			<Add option="-DPDF_USING_ZLIB=1" />
 			<Add directory="include" />
 			<Add directory="sqstdlib" />
 			<Add directory="ext" />
