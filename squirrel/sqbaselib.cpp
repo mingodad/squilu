@@ -1328,6 +1328,34 @@ static SQRESULT string_find_close_quote(HSQUIRRELVM v) {
     return 1;
 }
 
+static SQInteger string_reverse (HSQUIRRELVM v) {
+  int i;
+  SQ_FUNC_VARS_NO_TOP(v);
+  SQ_GET_STRING(v, 1, s)
+  SQChar *data = sq_getscratchpad(v,s_size);
+  --s_size;
+  for(i=0; i<=s_size ; ++i){
+      data[i] = s[s_size-i];
+  }
+  sq_pushstring(v, data, s_size+1);
+  return 1;
+}
+
+
+static SQInteger string_rep (HSQUIRRELVM v) {
+  int i;
+  SQ_FUNC_VARS_NO_TOP(v);
+  SQ_GET_STRING(v, 1, s)
+  SQ_GET_INTEGER(v, 2, n);
+  SQInteger nsize = n*s_size;
+  SQChar *data = sq_getscratchpad(v, nsize);
+  for(i=0; i<n ; ++i){
+      memcpy(data+(i*s_size), s, s_size);
+  }
+  sq_pushstring(v, data, nsize);
+  return 1;
+}
+
 static SQRESULT string_getdelegate(HSQUIRRELVM v)
 {
 	return SQ_SUCCEEDED(sq_getdelegate(v,-1))?1:SQ_ERROR;
@@ -1421,6 +1449,100 @@ static SQInteger string_empty(HSQUIRRELVM v)
 	return 1;
 }
 
+#ifdef SQ_SUBLATIN
+#include "sublatin.h"
+
+static int string_sl_len (HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, str);
+    sq_pushinteger(v, strLenSubSetLatinUtf8(str));
+    return 1;
+}
+
+static int string_sl_lower (HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, str);
+    SQChar *s = sq_getscratchpad(v, str_size);
+    memcpy(s, str, str_size);
+    toLowerSubSetLatinUtf8(s);
+    sq_pushstring(v, s, -1);
+    return 1;
+}
+
+
+static int string_sl_upper (HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, str);
+    SQChar *s = sq_getscratchpad(v, str_size);
+    memcpy(s, str, str_size);
+    toUpperSubSetLatinUtf8(s);
+    sq_pushstring(v, s, -1);
+    return 1;
+}
+
+static int string_sl_deaccent (HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, str);
+    SQChar *s = sq_getscratchpad(v, str_size);
+    memcpy(s, str, str_size);
+    deAccentSubSetLatinUtf8(s);
+    sq_pushstring(v, s, -1);
+    return 1;
+}
+
+static int string_sl_lower_deaccent (HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, str);
+    SQChar *s = sq_getscratchpad(v, str_size);
+    memcpy(s, str, str_size);
+    toLowerDeaccentSubSetLatinUtf8(s);
+    sq_pushstring(v, s, -1);
+    return 1;
+}
+
+static int string_sl_icmp (HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, sl);
+    SQ_GET_STRING(v, 2, sr);
+    sq_pushinteger(v, strICmpSubSetLatinUtf8(sl, sr));
+    return 1;
+}
+
+static int string_sl_icmp_noaccents (HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, sl);
+    SQ_GET_STRING(v, 2, sr);
+    sq_pushinteger(v, strICmpSubSetLatinUtf8NoAccents(sl, sr));
+    return 1;
+}
+
+static int string_sl_cmp_noaccents (HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, sl);
+    SQ_GET_STRING(v, 2, sr);
+    sq_pushinteger(v, strCmpSubSetLatinUtf8NoAccents(sl, sr));
+    return 1;
+}
+
+static int string_sl_like_cmp (HSQUIRRELVM v) {
+    SQ_FUNC_VARS(v);
+    SQ_GET_STRING(v, 1, sl);
+    SQ_GET_STRING(v, 2, sr);
+    SQ_OPT_INTEGER(v, 3, s_esc, _SC('%'));
+    sq_pushbool(v, subLatinLikeCompare(sl, sr, s_esc) == 1);
+    return 1;
+}
+
+static int string_sl_like_cmp_noaccents (HSQUIRRELVM v) {
+    SQ_FUNC_VARS(v);
+    SQ_GET_STRING(v, 1, sl);
+    SQ_GET_STRING(v, 2, sr);
+    SQ_OPT_INTEGER(v, 3, s_esc, _SC('%'));
+    sq_pushbool(v, subLatinLikeCompareNoAccents(sl, sr, s_esc) == 1);
+    return 1;
+}
+
+#endif
 
 SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("len"),default_delegate_len,1, _SC("s")},
@@ -1438,6 +1560,8 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("gmatch"),string_gmatch, 3, _SC("s s c")},
 	{_SC("startswith"),string_startswith, 2, _SC("ss")},
 	{_SC("endswith"),string_endswith, 2, _SC("ss")},
+	{_SC("reverse"),string_reverse, 2, _SC("ss")},
+	{_SC("rep"),string_rep, 2, _SC("ss")},
 	{_SC("tolower"),string_tolower,1, _SC("s")},
 	{_SC("toupper"),string_toupper,1, _SC("s")},
 	{_SC("weakref"),obj_delegate_weakref,1, NULL },
@@ -1447,6 +1571,18 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("rstrip"),string_rstrip,1, _SC("s")},
 	{_SC("split"),string_split,2, _SC("ss")},
 	{_SC("empty"),string_empty,1, _SC("s")},
+#ifdef SQ_SUBLATIN
+	{_SC("sl_len"),string_sl_len,1, _SC("s")},
+	{_SC("sl_lower"),string_sl_lower,1, _SC("s")},
+	{_SC("sl_upper"),string_sl_upper,1, _SC("s")},
+	{_SC("sl_deaccent"),string_sl_deaccent,1, _SC("s")},
+	{_SC("sl_lower_deaccent"),string_sl_lower_deaccent,1, _SC("s")},
+	{_SC("sl_icmp"),string_sl_icmp,2, _SC("ss")},
+	{_SC("sl_icmp_noaccents"),string_sl_icmp_noaccents,2, _SC("ss")},
+	{_SC("sl_cmp_noaccents"),string_sl_cmp_noaccents, 2, _SC("ss")},
+	{_SC("sl_like_cmp"),string_sl_like_cmp, -2, _SC("ssi")},
+	{_SC("sl_like_cmp_noaccents"),string_sl_like_cmp_noaccents, -2, _SC("ssi")},
+#endif
 	{0,0}
 };
 
