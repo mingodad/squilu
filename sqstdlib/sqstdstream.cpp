@@ -21,20 +21,16 @@ SQInteger _stream_read_line(HSQUIRRELVM v) {
 	SQBlob b(0,BLOB_BUFSIZE);
     char c;
     int len = sizeof(char);
-    if(!self->EOS()){
-        for (;;) {
-            if(self->Read(&c, len) != len){
-                if(!self->EOS()) return sq_throwerror(v,_SC("io error"));
-                c = '\n';
-            }
-            if(c == '\n') {
-                sq_pushstring(v, (const SQChar*)b.GetBuf(), b.Len());
-                return 1;
-            }
-            b.Write(&c, sizeof(char));
+    while(!self->EOS()){
+        if(self->Read(&c, len) != len){
+            if(!self->EOS()) return sq_throwerror(v,_SC("io error"));
+            c = '\n';
         }
+        if(c == '\n') break;
+        b.Write(&c, sizeof(char));
     }
-    sq_pushnull(v);
+    if(b.Len() > 0) sq_pushstring(v, (const SQChar*)b.GetBuf(), b.Len());
+    else sq_pushnull(v);
     return 1;
 }
 
