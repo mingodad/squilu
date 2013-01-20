@@ -531,6 +531,7 @@ static SQInteger table_getdelegate(HSQUIRRELVM v)
 
 SQRegFunction SQSharedState::_table_default_delegate_funcz[]={
 	{_SC("len"),default_delegate_len,1, _SC("t")},
+	{_SC("size"),default_delegate_len,1, _SC("t")},
 	{_SC("get"),container_get,-2, _SC("t")},
 	{_SC("rawget"),container_rawget,-2, _SC("t")},
 	{_SC("rawset"),container_rawset,3, _SC("t")},
@@ -912,6 +913,7 @@ static SQInteger array_getdelegate(HSQUIRRELVM v)
 
 SQRegFunction SQSharedState::_array_default_delegate_funcz[]={
 	{_SC("len"),default_delegate_len,1, _SC("a")},
+	{_SC("size"),default_delegate_len,1, _SC("a")},
 	{_SC("append"),array_append,2, _SC("a")},
 	{_SC("extend"),array_extend,2, _SC("aa")},
 	{_SC("push"),array_append,2, _SC("a")},
@@ -950,6 +952,19 @@ static SQRESULT string_slice(HSQUIRRELVM v)
 	if(eidx < sidx)	return sq_throwerror(v,_SC("wrong indexes"));
 	if(eidx > slen)	return sq_throwerror(v,_SC("slice out of range"));
 	v->Push(SQString::Create(_ss(v),&_stringval(o)[sidx],eidx-sidx));
+	return 1;
+}
+
+static SQRESULT string_substr(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SQ_GET_INTEGER(v, 2, start);
+	SQObjectPtr &o = stack_get(v,1);
+    SQInteger str_size = sq_getsize(v, 1);
+    SQ_OPT_INTEGER(v, 3, len, str_size - start);
+	if(start < 0)	return sq_throwerror(v,_SC("invalid start index %d"), start);
+	if(len > (str_size - start))	return sq_throwerror(v,_SC("lenght out of range"));
+	v->Push(SQString::Create(_ss(v),&_stringval(o)[start], len));
 	return 1;
 }
 
@@ -1320,12 +1335,101 @@ static SQRESULT string_getdelegate(HSQUIRRELVM v)
 
 //DAD end
 
+#ifdef SQUNICODE
+#define scstrchr wcschr
+#define scsnprintf wsnprintf
+#define scatoi _wtoi
+#define scstrtok wcstok
+#else
+#define scstrchr strchr
+#define scsnprintf snprintf
+#define scatoi atoi
+#define scstrtok strtok
+#endif
+
+static void __strip_l(const SQChar *str,const SQChar **start)
+{
+	const SQChar *t = str;
+	while(((*t) != '\0') && scisspace(*t)){ t++; }
+	*start = t;
+}
+
+static void __strip_r(const SQChar *str,SQInteger len,const SQChar **end)
+{
+	if(len == 0) {
+		*end = str;
+		return;
+	}
+	const SQChar *t = &str[len-1];
+	while(t >= str && scisspace(*t)) { t--; }
+	*end = t + 1;
+}
+
+static SQInteger string_strip(HSQUIRRELVM v)
+{
+	const SQChar *str,*start,*end;
+	sq_getstring(v,1,&str);
+	SQInteger len = sq_getsize(v,1);
+	__strip_l(str,&start);
+	__strip_r(str,len,&end);
+	sq_pushstring(v,start,end - start);
+	return 1;
+}
+
+static SQInteger string_lstrip(HSQUIRRELVM v)
+{
+	const SQChar *str,*start;
+	sq_getstring(v,1,&str);
+	__strip_l(str,&start);
+	sq_pushstring(v,start,-1);
+	return 1;
+}
+
+static SQInteger string_rstrip(HSQUIRRELVM v)
+{
+	const SQChar *str,*end;
+	sq_getstring(v,1,&str);
+	SQInteger len = sq_getsize(v,1);
+	__strip_r(str,len,&end);
+	sq_pushstring(v,str,end - str);
+	return 1;
+}
+
+static SQInteger string_split(HSQUIRRELVM v)
+{
+	const SQChar *str,*seps;
+	SQChar *stemp,*tok;
+	sq_getstring(v,1,&str);
+	sq_getstring(v,2,&seps);
+	if(sq_getsize(v,2) == 0) return sq_throwerror(v,_SC("empty separators string"));
+	SQInteger memsize = (sq_getsize(v,1)+1)*sizeof(SQChar);
+	stemp = sq_getscratchpad(v,memsize);
+	memcpy(stemp,str,memsize);
+	tok = scstrtok(stemp,seps);
+	sq_newarray(v,0);
+	while( tok != NULL ) {
+		sq_pushstring(v,tok,-1);
+		sq_arrayappend(v,-2);
+		tok = scstrtok( NULL, seps );
+	}
+	return 1;
+}
+
+static SQInteger string_empty(HSQUIRRELVM v)
+{
+	sq_pushbool(v,sq_getsize(v,1) == 0);
+	return 1;
+}
+
+
 SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("len"),default_delegate_len,1, _SC("s")},
+	{_SC("size"),default_delegate_len,1, _SC("s")},
 	{_SC("tointeger"),default_delegate_tointeger,-1, _SC("sn")},
 	{_SC("tofloat"),default_delegate_tofloat,1, _SC("s")},
 	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
 	{_SC("slice"),string_slice,-1, _SC(" s n  n")},
+	{_SC("substr"),string_substr,-2, _SC(" s n  n")},
 	{_SC("replace"),string_replace,3, _SC("sss")},
 	{_SC("find"),string_find,-2, _SC("s s n ")},
 	{_SC("find_lua"),string_find_lua,-2, _SC("ss a|t|c nb")},
@@ -1338,6 +1442,11 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("toupper"),string_toupper,1, _SC("s")},
 	{_SC("weakref"),obj_delegate_weakref,1, NULL },
 	{_SC("getdelegate"),string_getdelegate,1, _SC(".")},
+	{_SC("strip"),string_strip,1, _SC("s")},
+	{_SC("lstrip"),string_lstrip,1, _SC("s")},
+	{_SC("rstrip"),string_rstrip,1, _SC("s")},
+	{_SC("split"),string_split,2, _SC("ss")},
+	{_SC("empty"),string_empty,1, _SC("s")},
 	{0,0}
 };
 
