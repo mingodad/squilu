@@ -16,12 +16,14 @@
 #define scgetenv _wgetenv
 #define scsystem _wsystem
 #define scasctime _wasctime
+#define scstrftime _wstrftime
 #define scremove _wremove
 #define screname _wrename
 #else
 #define scgetenv getenv
 #define scsystem system
 #define scasctime asctime
+#define scstrftime strftime
 #define scremove remove
 #define screname rename
 #endif
@@ -137,9 +139,9 @@ static SQInteger _system_date(HSQUIRRELVM v)
                 b.WriteChar(*arg_format);
             else {
                 size_t reslen;
-                char buff[200];  /* should be big enough for any conversion result */
+                SQChar buff[200];  /* should be big enough for any conversion result */
                 cc[1] = *(++arg_format);
-                reslen = strftime(buff, sizeof(buff), cc, stm);
+                reslen = scstrftime(buff, sizeof(buff)/sizeof(SQChar), cc, stm);
                 b.Write(buff, reslen);
             }
         }
