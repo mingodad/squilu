@@ -14,8 +14,10 @@
 				<Option parameters="hello5.nut" />
 				<Compiler>
 					<Add option="-g" />
+					<Add directory="../zeromq-3.2.2/include" />
 				</Compiler>
 				<Linker>
+					<Add library="../zeromq-3.2.2/libzmq3.a" />
 					<Add library="pthread" />
 					<Add library="rt" />
 					<Add library="dl" />
@@ -71,6 +73,7 @@
 					<Add option="-fno-rtti" />
 					<Add option="-fno-strict-aliasing" />
 					<Add option="-DAS_STATIC_LIB=1" />
+					<Add option="-DINET_ATON=1" />
 					<Add directory="../../../../media/DATA/dadbiz++/zeromq-3.2.2/include" />
 				</Compiler>
 				<Linker>
@@ -139,6 +142,9 @@
 		<Unit filename="ext/mongoose.h" />
 		<Unit filename="ext/pdf-font.cpp" />
 		<Unit filename="ext/pdf-font.h" />
+		<Unit filename="ext/sq_axtls.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="ext/sq_base64.cpp" />
 		<Unit filename="ext/sq_fpdf.cpp" />
 		<Unit filename="ext/sq_fs.c">
