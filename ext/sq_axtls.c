@@ -4,12 +4,15 @@ extern "C" {
 
 #include "squirrel.h"
 #include <string.h>
+#include <stdio.h>
 #include <stdlib.h>  /* for malloc */
 #include <assert.h>  /* for a few sanity tests */
 
 #include "ssl.h"
 
-#define SQ_NETLIBNAME "axtlsl"
+static const SQChar SQ_LIBNAME[] = _SC("axtls");
+static const SQChar ssl_ctx_NAME[] = _SC("ssl_ctx");
+static const SQChar ssl_NAME[] = _SC("ssl");
 
 SQ_OPT_STRING_STRLEN();
 
@@ -55,13 +58,21 @@ static SQInteger ssl_constructor(HSQUIRRELVM v, SSL *ssl, int free_on_gc)
     if(!ssl)
         return sq_throwerror(v, _SC("Could'nt create an ssl object."));
 
-    SSL_ptr *self = (SSL_ptr*)sq_malloc(sizeof(SSL_ptr));
-    self->ptr = ssl;
-    self->free_ptr_on_gc = free_on_gc;
-
-    sq_setinstanceup(v, 1, self);
-    sq_setreleasehook(v,1, ssl_release_hook);
-	return 1;
+    sq_pushstring(v, SQ_LIBNAME, -1);
+    if(sq_getonroottable(v) == SQ_OK){
+        sq_pushstring(v, ssl_NAME, -1);
+        if(sq_get(v, -2) == SQ_OK){
+            if(sq_createinstance(v, -1) == SQ_OK){
+                SSL_ptr *self = (SSL_ptr*)sq_malloc(sizeof(SSL_ptr));
+                self->ptr = ssl;
+                self->free_ptr_on_gc = free_on_gc;
+                sq_setinstanceup(v, -1, self);
+                sq_setreleasehook(v,-1, ssl_release_hook);
+                return 1;
+            }
+        }
+    }
+	return SQ_ERROR;
 }
 
 static int sq_ssl_read(HSQUIRRELVM v){
@@ -158,7 +169,11 @@ static int sq_ssl_ctx_server_new(HSQUIRRELVM v){
     GET_ssl_ctx_INSTANCE();
     SQ_GET_INTEGER(v, 2, client_fd);
     SSL *ssl = ssl_server_new(self->ptr, client_fd);
-    return ssl_constructor(v, ssl, 1);
+    SQRESULT rc = ssl_constructor(v, ssl, 1);
+    if(rc == SQ_ERROR && ssl){
+        ssl_free(ssl);
+    }
+    return rc;
 }
 
 static int sq_ssl_ctx_client_new(HSQUIRRELVM v){
@@ -169,7 +184,11 @@ static int sq_ssl_ctx_client_new(HSQUIRRELVM v){
     SQ_OPT_INTEGER(v, 4, size, -1);
 	SSL *ssl = ssl_client_new(self->ptr, client_fd, (const uint8_t *)session_id,
                            size >= 0 ? size : session_id_size);
-    return ssl_constructor(v, ssl, 1);
+    SQRESULT rc = ssl_constructor(v, ssl, 1);
+    if(rc == SQ_ERROR && ssl){
+        ssl_free(ssl);
+    }
+    return rc;
 }
 
 static int sq_ssl_ctx_find(HSQUIRRELVM v){
@@ -287,15 +306,15 @@ static SQRegFunction ssl_ctx_obj_funcs[]={
 #define _DECL_SSL_FUNC(name,nparams,pmask) {_SC(#name),sq_ssl_##name,nparams,pmask}
 static SQRegFunction ssl_obj_funcs[]={
 	_DECL_SSL_FUNC(free,1,_SC("x")),
-	_DECL_SSL_FUNC(read,2,_SC("xi")),
-	_DECL_SSL_FUNC(write,2,_SC("xi")),
+	_DECL_SSL_FUNC(read,1,_SC("x")),
+	_DECL_SSL_FUNC(write,-2,_SC("xsi")),
 	_DECL_SSL_FUNC(get_session_id,1,_SC("x")),
 	_DECL_SSL_FUNC(get_session_id_size,1,_SC("x")),
 	_DECL_SSL_FUNC(get_cipher_id,1,_SC("x")),
 	_DECL_SSL_FUNC(handshake_status,1,_SC("x")),
 	_DECL_SSL_FUNC(verify_cert,1,_SC("x")),
-	_DECL_SSL_FUNC(get_cert_dn,1,_SC("x")),
-	_DECL_SSL_FUNC(get_cert_subject_alt_dnsname,1,_SC("x")),
+	_DECL_SSL_FUNC(get_cert_dn,2,_SC("xi")),
+	_DECL_SSL_FUNC(get_cert_subject_alt_dnsname,2,_SC("xi")),
 	_DECL_SSL_FUNC(renegotiate,1,_SC("x")),
 	{0,0}
 };
@@ -380,7 +399,7 @@ static KeyIntType axtls_constants[] = {
 /* This defines a function that opens up your library. */
 SQRESULT sqext_register_axtls (HSQUIRRELVM v) {
     //add a namespace axtls
-	sq_pushstring(v,_SC("axtls"),-1);
+	sq_pushstring(v, SQ_LIBNAME, -1);
 	sq_newtable(v);
 
 	sq_insert_reg_funcs(v, axtls_obj_funcs);
@@ -394,14 +413,14 @@ SQRESULT sqext_register_axtls (HSQUIRRELVM v) {
     }
 
     //now create the SSL Context class
-	sq_pushstring(v,_SC("ssl_ctx"),-1);
+	sq_pushstring(v,ssl_ctx_NAME,-1);
 	sq_newclass(v,SQFalse);
 	sq_settypetag(v,-1,(void*)SSL_CTX_Tag);
 	sq_insert_reg_funcs(v, ssl_ctx_obj_funcs);
 	sq_newslot(v,-3,SQFalse);
 
     //now create the SSL class
-	sq_pushstring(v,_SC("ssl"),-1);
+	sq_pushstring(v,ssl_NAME,-1);
 	sq_newclass(v,SQFalse);
 	sq_settypetag(v,-1,(void*)SSL_Tag);
 	sq_insert_reg_funcs(v, ssl_obj_funcs);
