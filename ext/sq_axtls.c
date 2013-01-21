@@ -16,31 +16,19 @@ static const SQChar ssl_NAME[] = _SC("ssl");
 
 SQ_OPT_STRING_STRLEN();
 
-typedef struct {
-	SSL_CTX *ptr;
-	int free_ptr_on_gc;
-} SSL_CTX_ptr;
-
 static const SQChar SSL_CTX_Tag[]   = _SC("sq_axtls_ssl_ctx");
-#define GET_ssl_ctx_INSTANCE() SQ_GET_INSTANCE(v, 1, SSL_CTX_ptr, SSL_CTX_Tag) \
+#define GET_ssl_ctx_INSTANCE() SQ_GET_INSTANCE(v, 1, SSL_CTX, SSL_CTX_Tag) \
     if(self == NULL) return sq_throwerror(v, _SC("ssl_ctx object already closed"));
 
-typedef struct {
-	SSL *ptr;
-	int free_ptr_on_gc;
-} SSL_ptr;
 
 static const SQChar SSL_Tag[]   = _SC("sq_axtls_ssl");
-#define GET_ssl_INSTANCE() SQ_GET_INSTANCE(v, 1, SSL_ptr, SSL_Tag) \
+#define GET_ssl_INSTANCE() SQ_GET_INSTANCE(v, 1, SSL, SSL_Tag) \
     if(self == NULL) return sq_throwerror(v, _SC("ssl object already closed"));
 
 static SQInteger ssl_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
-    SSL_ptr *self = (SSL_ptr*)p;
-    if(self){
-        if(self->free_ptr_on_gc) ssl_free(self->ptr);
-        sq_free(self, sizeof(SSL_ptr));
-    }
+    SSL *self = (SSL*)p;
+    if(self) ssl_free(self);
 	return 0;
 }
 
@@ -63,11 +51,8 @@ static SQInteger ssl_constructor(HSQUIRRELVM v, SSL *ssl, int free_on_gc)
         sq_pushstring(v, ssl_NAME, -1);
         if(sq_get(v, -2) == SQ_OK){
             if(sq_createinstance(v, -1) == SQ_OK){
-                SSL_ptr *self = (SSL_ptr*)sq_malloc(sizeof(SSL_ptr));
-                self->ptr = ssl;
-                self->free_ptr_on_gc = free_on_gc;
-                sq_setinstanceup(v, -1, self);
-                sq_setreleasehook(v,-1, ssl_release_hook);
+                sq_setinstanceup(v, -1, ssl);
+                if(free_on_gc) sq_setreleasehook(v,-1, ssl_release_hook);
                 return 1;
             }
         }
@@ -79,7 +64,7 @@ static int sq_ssl_read(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
     GET_ssl_INSTANCE();
 	uint8_t *in_data;
-	int result = ssl_read(self->ptr, &in_data);
+	int result = ssl_read(self, &in_data);
 	if (result > SSL_OK) sq_pushstring(v, (const SQChar*)in_data, result);
 	else sq_pushinteger(v, result);
 	return 1;
@@ -94,22 +79,22 @@ static int sq_ssl_write(HSQUIRRELVM v){
 	    if(size > out_data_size) return sq_throwerror(v, _SC("parameter 2 size bigger than data size"));
 	    out_data_size = size;
 	}
-	sq_pushinteger(v, ssl_write(self->ptr, (const uint8_t *)out_data, out_data_size));
+	sq_pushinteger(v, ssl_write(self, (const uint8_t *)out_data, out_data_size));
 	return 1;
 }
 
 static int sq_ssl_get_session_id(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
     GET_ssl_INSTANCE();
-	const uint8_t * result = ssl_get_session_id(self->ptr);
-    sq_pushstring(v, (char *)result, ssl_get_session_id_size(self->ptr));
+	const uint8_t * result = ssl_get_session_id(self);
+    sq_pushstring(v, (char *)result, ssl_get_session_id_size(self));
 	return 1;
 }
 
 static int sq_ssl_get_session_id_size(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
     GET_ssl_INSTANCE();
-	uint8_t result = ssl_get_session_id_size(self->ptr);
+	uint8_t result = ssl_get_session_id_size(self);
 	sq_pushinteger(v, result);
 	return 1;
 }
@@ -117,7 +102,7 @@ static int sq_ssl_get_session_id_size(HSQUIRRELVM v){
 static int sq_ssl_get_cipher_id(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
     GET_ssl_INSTANCE();
-	uint8_t result = ssl_get_cipher_id(self->ptr);
+	uint8_t result = ssl_get_cipher_id(self);
 	sq_pushinteger(v, result);
 	return 1;
 }
@@ -125,7 +110,7 @@ static int sq_ssl_get_cipher_id(HSQUIRRELVM v){
 static int sq_ssl_handshake_status(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
     GET_ssl_INSTANCE();
-	int result = ssl_handshake_status(self->ptr);
+	int result = ssl_handshake_status(self);
 	sq_pushinteger(v, result);
 	return 1;
 }
@@ -133,7 +118,7 @@ static int sq_ssl_handshake_status(HSQUIRRELVM v){
 static int sq_ssl_verify_cert(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
     GET_ssl_INSTANCE();
-	int result = ssl_verify_cert(self->ptr);
+	int result = ssl_verify_cert(self);
 	sq_pushinteger(v, result);
 	return 1;
 }
@@ -142,7 +127,7 @@ static int sq_ssl_get_cert_dn(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
     GET_ssl_INSTANCE();
     SQ_GET_INTEGER(v, 2, component);
-	const char* result = ssl_get_cert_dn(self->ptr, component);
+	const char* result = ssl_get_cert_dn(self, component);
 	sq_pushstring(v, result, -1);
 	return 1;
 }
@@ -151,7 +136,7 @@ static int sq_ssl_get_cert_subject_alt_dnsname(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
     GET_ssl_INSTANCE();
     SQ_GET_INTEGER(v, 2, dnsindex);
-	const char* result = ssl_get_cert_subject_alt_dnsname(self->ptr, dnsindex);
+	const char* result = ssl_get_cert_subject_alt_dnsname(self, dnsindex);
 	sq_pushstring(v, result, -1);
 	return 1;
 }
@@ -159,7 +144,7 @@ static int sq_ssl_get_cert_subject_alt_dnsname(HSQUIRRELVM v){
 static int sq_ssl_renegotiate(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
     GET_ssl_INSTANCE();
-	int result = ssl_renegotiate(self->ptr);
+	int result = ssl_renegotiate(self);
 	sq_pushinteger(v, result);
 	return 1;
 }
@@ -168,7 +153,7 @@ static int sq_ssl_ctx_server_new(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
     GET_ssl_ctx_INSTANCE();
     SQ_GET_INTEGER(v, 2, client_fd);
-    SSL *ssl = ssl_server_new(self->ptr, client_fd);
+    SSL *ssl = ssl_server_new(self, client_fd);
     SQRESULT rc = ssl_constructor(v, ssl, 1);
     if(rc == SQ_ERROR && ssl){
         ssl_free(ssl);
@@ -182,7 +167,7 @@ static int sq_ssl_ctx_client_new(HSQUIRRELVM v){
     SQ_GET_INTEGER(v, 2, client_fd);
     SQ_OPT_STRING(v, 3, session_id, NULL);
     SQ_OPT_INTEGER(v, 4, size, -1);
-	SSL *ssl = ssl_client_new(self->ptr, client_fd, (const uint8_t *)session_id,
+	SSL *ssl = ssl_client_new(self, client_fd, (const uint8_t *)session_id,
                            size >= 0 ? size : session_id_size);
     SQRESULT rc = ssl_constructor(v, ssl, 1);
     if(rc == SQ_ERROR && ssl){
@@ -195,7 +180,7 @@ static int sq_ssl_ctx_find(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
     GET_ssl_ctx_INSTANCE();
     SQ_GET_INTEGER(v, 2, client_fd);
-    SSL *ssl = ssl_find(self->ptr, client_fd);
+    SSL *ssl = ssl_find(self, client_fd);
     if(ssl) return ssl_constructor(v, ssl, 0);
     else sq_pushnull(v);
     return 1;
@@ -207,7 +192,7 @@ static int sq_ssl_ctx_obj_load(HSQUIRRELVM v){
 	SQ_GET_INTEGER(v, 2, obj_type);
 	SQ_GET_STRING(v, 3, filename);
 	SQ_GET_STRING(v, 4, password);
-	int result = ssl_obj_load(self->ptr, obj_type, filename, password);
+	int result = ssl_obj_load(self, obj_type, filename, password);
 	sq_pushinteger(v, result);
 	return 1;
 }
@@ -218,7 +203,7 @@ static int sq_ssl_ctx_obj_memory_load(HSQUIRRELVM v){
 	SQ_GET_INTEGER(v, 2, obj_type);
 	SQ_GET_STRING(v, 3, data);
 	SQ_GET_STRING(v, 4, password);
-	int result = ssl_obj_memory_load(self->ptr, obj_type, (const uint8_t *)data, data_size, password);
+	int result = ssl_obj_memory_load(self, obj_type, (const uint8_t *)data, data_size, password);
 	sq_pushinteger(v, result);
 	return 1;
 }
@@ -244,11 +229,8 @@ static int sq_axtls_display_error(HSQUIRRELVM v){
 
 static SQInteger ssl_ctx_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
-    SSL_CTX_ptr *self = (SSL_CTX_ptr*)p;
-    if(self){
-        if(self->free_ptr_on_gc) ssl_ctx_free(self->ptr);
-        sq_free(self, sizeof(SSL_CTX_ptr));
-    }
+    SSL_CTX *self = (SSL_CTX*)p;
+    if(self) ssl_ctx_free(self);
 	return 0;
 }
 
@@ -272,11 +254,7 @@ static SQInteger sq_ssl_ctx_constructor(HSQUIRRELVM v)
     if(!ssl_ctx)
         return sq_throwerror(v, _SC("Could'nt create an ssl context."));
 
-    SSL_CTX_ptr *self = (SSL_CTX_ptr*)sq_malloc(sizeof(SSL_CTX_ptr));
-    self->ptr = ssl_ctx;
-    self->free_ptr_on_gc = 1;
-
-    sq_setinstanceup(v, 1, self);
+    sq_setinstanceup(v, 1, ssl_ctx);
     sq_setreleasehook(v,1, ssl_ctx_release_hook);
 	return 1;
 }
