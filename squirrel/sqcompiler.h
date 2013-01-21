@@ -97,6 +97,11 @@ struct SQVM;
 #define	TK_LOCAL_DOUBLE_T	344
 #define	TK_LOCAL_LONG_DOUBLE_T	345
 
+#define	TK_BIT_AND_EQ	346
+#define	TK_BIT_OR_EQ	347
+#define	TK_BIT_XOR_EQ	348
+#define	TK_BIT_SHIFT_LEFT_EQ	349
+#define	TK_BIT_SHIFT_RIGHT_EQ	350
 
 typedef void(*CompilerErrorFunc)(void *ud, const SQChar *s);
 bool Compile(SQVM *vm, SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, SQObjectPtr &out, bool raiseerror, bool lineinfo);
