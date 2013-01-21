@@ -1423,9 +1423,11 @@ static int global_select(HSQUIRRELVM v) {
 \*=========================================================================*/
 static t_socket getfd(HSQUIRRELVM v) {
     t_socket fd = SOCKET_INVALID;
+    SQInteger top = sq_gettop(v);
     sq_pushliteral(v, _SC("getfd"));
     if(sq_get(v, -2) == SQ_OK){
-        if (sq_gettype(v, -1) == OT_CLOSURE) {
+        SQObjectType ptype = sq_gettype(v, -1);
+        if (ptype == OT_CLOSURE || ptype == OT_NATIVECLOSURE) {
             sq_push(v, -2);
             if(sq_call(v, 1, SQTrue, SQFalse) == SQ_OK){
                 if (sq_gettype(v, -1) == OT_INTEGER){
@@ -1435,16 +1437,18 @@ static t_socket getfd(HSQUIRRELVM v) {
                 }
             }
         }
-        sq_pop(v, 1);
     }
+    sq_settop(v, top);
     return fd;
 }
 
 static int dirty(HSQUIRRELVM v) {
     int is = 0;
+    SQInteger top = sq_gettop(v);
     sq_pushliteral(v, _SC("dirty"));
     if(sq_get(v, -2) == SQ_OK){
-        if (sq_gettype(v, -1) == OT_CLOSURE) {
+        SQObjectType ptype = sq_gettype(v, -1);
+        if (ptype == OT_CLOSURE || ptype == OT_NATIVECLOSURE) {
             sq_push(v, -2);
             if(sq_call(v, 1, SQTrue, SQFalse) == SQ_OK){
                 if (sq_gettype(v, -1) == OT_INTEGER){
@@ -1456,6 +1460,7 @@ static int dirty(HSQUIRRELVM v) {
         }
         sq_pop(v, 1);
     }
+    sq_settop(v, top);
     return is;
 }
 
