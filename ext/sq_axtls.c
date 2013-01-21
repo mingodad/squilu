@@ -233,6 +233,15 @@ static int sq_axtls_display_error(HSQUIRRELVM v){
 	return 0;
 }
 
+static int sq_axtls_get_error(HSQUIRRELVM v){
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_INTEGER(v, 2, error);
+    SQInteger buff_size = 250;
+    SQChar *buff = sq_getscratchpad(v, buff_size);
+	sq_pushstring(v, ssl_get_error(error, buff, buff_size), -1);
+	return 1;
+}
+
 static SQInteger ssl_ctx_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
     SSL_CTX *self = (SSL_CTX*)p;
@@ -269,6 +278,7 @@ static SQInteger sq_ssl_ctx_constructor(HSQUIRRELVM v)
 static SQRegFunction axtls_obj_funcs[]={
 	_DECL_AXTLS_FUNC(get_config,2,_SC(".i")),
 	_DECL_AXTLS_FUNC(display_error,2,_SC(".i")),
+	_DECL_AXTLS_FUNC(get_error,2,_SC(".i")),
 	_DECL_AXTLS_FUNC(version,2,_SC(".")),
 	{0,0}
 };
