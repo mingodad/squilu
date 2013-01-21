@@ -222,7 +222,7 @@ static SQRegFunction systemlib_funcs[]={
 	_DECL_FUNC(date,-1,_SC(".nn")),
 	_DECL_FUNC(remove,2,_SC(".s")),
 	_DECL_FUNC(rename,3,_SC(".ss")),
-	_DECL_FUNC(exit, 1,_SC(". b|i b")),
+	_DECL_FUNC(exit, -1,_SC(". b|i b")),
 	_DECL_FUNC(sleep, 2,_SC(".n")),
 	_DECL_FUNC(tmpname,1,_SC(".")),
 	_DECL_FUNC(setlocale,-1,_SC(".ss")),
