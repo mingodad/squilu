@@ -700,6 +700,8 @@ exception_restore:
 	{
 		for(;;)
 		{
+		    //if the last instruction was a call then check for release hooks
+		    if(ci->_ip->op == _OP_CALL) _sharedstate->CallDelayedReleaseHooks(this);
 			const SQInstruction &_i_ = *ci->_ip++;
 			//dumpstack(_stackbase);
 			//scprintf("\n[%d] %s %d %d %d %d\n",ci->_ip-ci->_iv->_vals,g_InstrDesc[_i_.op].name,arg0,arg1,arg2,arg3);
@@ -731,7 +733,6 @@ exception_restore:
 					switch (type(clo)) {
 					case OT_CLOSURE:
 						_GUARD(StartCall(_closure(clo), sarg0, arg3, _stackbase+arg2, false));
-						_sharedstate->CallDelayedReleaseHooks(this);
 						continue;
 					case OT_NATIVECLOSURE: {
 						bool suspend;
