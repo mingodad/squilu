@@ -603,8 +603,9 @@ static int buffer_meth_send(HSQUIRRELVM v, p_buffer buf) {
     SQ_OPT_INTEGER(v, 3, start, 0);
     SQ_OPT_INTEGER(v, 3, end, -1);
 #ifdef LUASOCKET_DEBUG
-    p_timeout tm = lua_timeout_markstart(buf->tm);
+    p_timeout tm =
 #endif
+    lua_timeout_markstart(buf->tm);
     if (start < 0) start = (data_size+start+1);
     if (end < 0) end = (data_size+end+1);
     if (start < 0) start = 0;
@@ -632,8 +633,9 @@ static int buffer_meth_receive(HSQUIRRELVM v, p_buffer buf) {
     SQBlob b(0, 8192);
     SQ_OPT_STRING(v, 3, prefix, NULL);
 #ifdef LUASOCKET_DEBUG
-    p_timeout tm = lua_timeout_markstart(buf->tm);
+    p_timeout tm =
 #endif
+    lua_timeout_markstart(buf->tm);
     /* initialize buffer with optional extra prefix
      * (useful for concatenating previous partial results) */
     b.Write(prefix, prefix_size);
