@@ -260,9 +260,9 @@ function do_server(build_mode){
 
         while (true){
             socket.select([client_sock], []);
-	    result = ssl.read();
-	    if(type(result) == "string"){
-                foreach(v in buf) print1(v);
+	    res = ssl.read();
+	    if(type(res) == "string"){
+                foreach(v in res) print1(v);
 	    }
 	    else
 	    {
@@ -431,7 +431,10 @@ function do_client(build_mode){
 
         }
     }
-    else ssl = ssl_ctx.client_new(client_sock.getfd());
+    else
+    {    
+	ssl = ssl_ctx.client_new(client_sock.getfd());
+    }
 
     // check the return status
     res = ssl.handshake_status();
@@ -449,6 +452,10 @@ function do_client(build_mode){
         display_cipher(ssl);
     }
 
+	res = ssl.write("Hello World !");
+	res = ssl.write("Again we are here !");
+	res = ssl.write("Comming back !");
+	res = ssl.write("Bye !");
     while (true){
         local line = stdin.read_line();
 	if (line == null) break;
@@ -461,7 +468,7 @@ function do_client(build_mode){
             break;
         }
     }
-
+    
     ssl_ctx.free();
     client_sock.close();
 }
