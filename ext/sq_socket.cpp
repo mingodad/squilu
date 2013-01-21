@@ -1566,7 +1566,7 @@ extern "C" {
         sq_insertfunc(v, _SC("getpeername"), tcp_meth_getpeername, 1, _SC("x"), SQFalse);
         sq_insertfunc(v, _SC("getsockname"), tcp_meth_getsockname, 1, _SC("x"), SQFalse);
         sq_insertfunc(v, _SC("getstats"), tcp_meth_getstats, 1, _SC("x"), SQFalse);
-        sq_insertfunc(v, _SC("listen"), tcp_meth_listen, 2, _SC("xi"), SQFalse);
+        sq_insertfunc(v, _SC("listen"), tcp_meth_listen, -1, _SC("xi"), SQFalse);
         sq_insertfunc(v, _SC("receive"), tcp_meth_receive, -1, _SC("x i|s s"), SQFalse);
         sq_insertfunc(v, _SC("send"), tcp_meth_send, -2, _SC("xsii"), SQFalse);
         sq_insertfunc(v, _SC("setfd"), tcp_meth_setfd, 2, _SC("xi"), SQFalse);
