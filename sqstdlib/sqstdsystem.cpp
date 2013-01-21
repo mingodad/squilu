@@ -1,5 +1,7 @@
 /* see copyright notice in squirrel.h */
 #include <squirrel.h>
+#include <string.h>
+#include "sqstdblobimpl.h"
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -23,6 +25,8 @@
 #define scremove remove
 #define screname rename
 #endif
+
+SQ_OPT_STRING_STRLEN();
 
 static SQInteger _system_getenv(HSQUIRRELVM v)
 {
@@ -96,36 +100,52 @@ static void _set_integer_slot(HSQUIRRELVM v,const SQChar *name,SQInteger val)
 
 static SQInteger _system_date(HSQUIRRELVM v)
 {
-	time_t t;
-	SQInteger it;
-	SQInteger format = 'l';
-	if(sq_gettop(v) > 1) {
-		sq_getinteger(v,2,&it);
-		t = it;
-		if(sq_gettop(v) > 2) {
-			sq_getinteger(v,3,(SQInteger*)&format);
-		}
-	}
-	else {
-		time(&t);
-	}
-	tm *date;
-    if(format == 'u')
-		date = gmtime(&t);
-	else
-		date = localtime(&t);
-	if(!date)
-		return sq_throwerror(v,_SC("crt api failure"));
-	sq_newtable(v);
-	_set_integer_slot(v, _SC("sec"), date->tm_sec);
-    _set_integer_slot(v, _SC("min"), date->tm_min);
-    _set_integer_slot(v, _SC("hour"), date->tm_hour);
-    _set_integer_slot(v, _SC("day"), date->tm_mday);
-    _set_integer_slot(v, _SC("month"), date->tm_mon);
-    _set_integer_slot(v, _SC("year"), date->tm_year+1900);
-    _set_integer_slot(v, _SC("wday"), date->tm_wday);
-    _set_integer_slot(v, _SC("yday"), date->tm_yday);
-	return 1;
+    SQ_FUNC_VARS(v);
+    SQ_OPT_STRING(v, 2, arg_format, _SC("%c"));
+    SQ_OPT_FLOAT(v, 3, arg_time, time(NULL));
+	time_t t = (time_t)arg_time;
+
+    struct tm *stm;
+    if (*arg_format == _SC('!')) {  /* UTC? */
+        stm = gmtime(&t);
+        arg_format++;  /* skip `!' */
+    }
+    else
+        stm = localtime(&t);
+    if (stm == NULL)  /* invalid date? */
+        sq_pushnull(v);
+    else if (scstrcmp(arg_format, _SC("*t")) == 0) {
+        sq_newtable(v);
+        _set_integer_slot(v, _SC("sec"), stm->tm_sec);
+        _set_integer_slot(v, _SC("min"), stm->tm_min);
+        _set_integer_slot(v, _SC("hour"), stm->tm_hour);
+        _set_integer_slot(v, _SC("day"), stm->tm_mday);
+        _set_integer_slot(v, _SC("month"), stm->tm_mon+1);
+        _set_integer_slot(v, _SC("year"), stm->tm_year+1900);
+        _set_integer_slot(v, _SC("wday"), stm->tm_wday+1);
+        _set_integer_slot(v, _SC("yday"), stm->tm_yday+1);
+        sq_pushliteral(v, _SC("isdst"));
+        sq_pushbool(v, stm->tm_isdst);
+        sq_rawset(v, -3);
+    }
+    else {
+        SQChar cc[3];
+        SQBlob b(0, BLOB_BUFSIZE);
+        cc[0] = _SC('%'); cc[2] = _SC('\0');
+        for (; *arg_format; arg_format++) {
+            if (*arg_format != _SC('%') || *(arg_format + 1) == _SC('\0'))  /* no conversion specifier? */
+                b.WriteChar(*arg_format);
+            else {
+                size_t reslen;
+                char buff[200];  /* should be big enough for any conversion result */
+                cc[1] = *(++arg_format);
+                reslen = strftime(buff, sizeof(buff), cc, stm);
+                b.Write(buff, reslen);
+            }
+        }
+        sq_pushstring(v, (const SQChar*)b.GetBuf(), b.Len());
+    }
+    return 1;
 }
 
 static SQRESULT _system_exit (HSQUIRRELVM v) {
@@ -144,9 +164,6 @@ static SQRESULT _system_exit (HSQUIRRELVM v) {
   }
   exit(status);
 }
-
-#include <string.h>
-SQ_OPT_STRING_STRLEN();
 
 #if defined(SC_USE_MKSTEMP)
 #include <unistd.h>
@@ -219,7 +236,7 @@ static SQRegFunction systemlib_funcs[]={
 	_DECL_FUNC(clock,0,NULL),
 	_DECL_FUNC(time,1,NULL),
 	_DECL_FUNC(difftime,-2,_SC(".nn")),
-	_DECL_FUNC(date,-1,_SC(".nn")),
+	_DECL_FUNC(date,-1,_SC(".sn")),
 	_DECL_FUNC(remove,2,_SC(".s")),
 	_DECL_FUNC(rename,3,_SC(".ss")),
 	_DECL_FUNC(exit, -1,_SC(". b|i b")),
