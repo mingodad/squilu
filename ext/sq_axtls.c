@@ -27,13 +27,8 @@ static const SQChar SSL_Tag[]   = _SC("sq_axtls_ssl");
 
 static SQInteger ssl_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
-    /*
-    axtls mantains a list of ssl connections on ssl_ctx
-    on case of program abort it frees there all ssl connections
-    and if we try to do it here we get segault
-    */
-    //SSL *self = (SSL*)p;
-    //if(self) ssl_free(self);
+    SSL *self = (SSL*)p;
+    if(self) ssl_free(self);
 	return 0;
 }
 
@@ -42,7 +37,6 @@ static SQInteger sq_ssl_free(HSQUIRRELVM v)
     SQ_FUNC_VARS_NO_TOP(v);
     GET_ssl_INSTANCE();
     ssl_release_hook(self, 0, v);
-    ssl_free(self);
     sq_setinstanceup(v, 1, 0);
 	return 0;
 }
