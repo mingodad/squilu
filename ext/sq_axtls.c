@@ -166,8 +166,9 @@ static int sq_ssl_ctx_client_new(HSQUIRRELVM v){
     GET_ssl_ctx_INSTANCE();
     SQ_GET_INTEGER(v, 2, client_fd);
     SQ_OPT_STRING(v, 3, session_id, NULL);
-    //SQ_OPT_STRING(v, 4, size, NULL);
-	SSL *ssl = ssl_client_new(self->ptr, client_fd, (const uint8_t *)session_id, session_id_size);
+    SQ_OPT_INTEGER(v, 4, size, -1);
+	SSL *ssl = ssl_client_new(self->ptr, client_fd, (const uint8_t *)session_id,
+                           size >= 0 ? size : session_id_size);
     return ssl_constructor(v, ssl, 1);
 }
 
@@ -274,8 +275,8 @@ static SQRegFunction axtls_obj_funcs[]={
 static SQRegFunction ssl_ctx_obj_funcs[]={
 	_DECL_SSL_CTX_FUNC(constructor,3,_SC("xii")),
 	_DECL_SSL_CTX_FUNC(free,1,_SC("x")),
-	_DECL_SSL_CTX_FUNC(server_new,2,_SC("xx")),
-	_DECL_SSL_CTX_FUNC(client_new,2,_SC("xxii")),
+	_DECL_SSL_CTX_FUNC(server_new,2,_SC("xi")),
+	_DECL_SSL_CTX_FUNC(client_new,-2,_SC("xisi")),
 	_DECL_SSL_CTX_FUNC(find,2,_SC("xs")),
 	_DECL_SSL_CTX_FUNC(obj_load,2,_SC("xs")),
 	_DECL_SSL_CTX_FUNC(obj_memory_load,2,_SC("xs")),
@@ -377,7 +378,7 @@ static KeyIntType axtls_constants[] = {
 };
 
 /* This defines a function that opens up your library. */
-SQRESULT sq_register_axtlsl (HSQUIRRELVM v) {
+SQRESULT sqext_register_axtls (HSQUIRRELVM v) {
     //add a namespace axtls
 	sq_pushstring(v,_SC("axtls"),-1);
 	sq_newtable(v);
