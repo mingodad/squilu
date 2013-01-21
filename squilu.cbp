@@ -32,9 +32,11 @@
 					<Add option="-Wall" />
 					<Add option="-fno-rtti" />
 					<Add option="-fno-strict-aliasing" />
+					<Add directory="../zeromq-3.2.2/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add library="../zeromq-3.2.2/libzmq3.a" />
 					<Add library="pthread" />
 					<Add library="rt" />
 					<Add library="dl" />
@@ -68,13 +70,16 @@
 					<Add option="-Wall" />
 					<Add option="-fno-rtti" />
 					<Add option="-fno-strict-aliasing" />
+					<Add option="-DAS_STATIC_LIB=1" />
+					<Add directory="../../../../media/DATA/dadbiz++/zeromq-3.2.2/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
 					<Add option="-static-libstdc++" />
 					<Add option="-static-libgcc" />
-					<Add library="ws2_32" />
+					<Add library="../../../../media/DATA/dadbiz++/zeromq-3.2.2/libzeromq-win32.a" />
 					<Add library="axtls-win32" />
+					<Add library="ws2_32" />
 				</Linker>
 			</Target>
 		</Build>
@@ -145,6 +150,7 @@
 		<Unit filename="ext/sq_socket.cpp" />
 		<Unit filename="ext/sq_sqlite3.cpp" />
 		<Unit filename="ext/sq_zlib.cpp" />
+		<Unit filename="ext/sq_zmq3.cpp" />
 		<Unit filename="ext/sqmodule.h" />
 		<Unit filename="ext/sqratimport.cpp" />
 		<Unit filename="ext/sqratimport.h" />
