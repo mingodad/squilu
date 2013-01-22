@@ -1770,7 +1770,7 @@ static void db_sql_normal_function(sqlite3_context *context, int argc, sqlite3_v
     sq_sqlite3_sdb_func *func = (sq_sqlite3_sdb_func*)sqlite3_user_data(context);
     HSQUIRRELVM v = func->sdb->v;
 
-    int n, rc;
+    int n;
     sq_sqlite3_context_st *ctx;
     int top = sq_gettop(v);
 
@@ -1996,66 +1996,66 @@ static SQRegFunction sq_sqlite3_methods[] =
 extern "C" {
 #endif
 
-    SQRESULT sqext_register_SQLite3(HSQUIRRELVM v)
-    {
-        HSQOBJECT sqlite3_NULL;
-        sq_pushregistrytable(v);
-        sq_pushstring(v, sqlite3_NULL_Name,-1);
-        sq_newuserdata(v, sizeof(void*));
-        sq_resetobject(&sqlite3_NULL);
-        sq_getstackobj(v, -1, &sqlite3_NULL);
-        sq_newtable(v);
-        sq_insert_reg_funcs(v, sqlite3_NULL_methods);
-        sq_setdelegate(v, -2);
-        sq_newslot(v,-3,SQTrue);
+SQRESULT sqext_register_SQLite3(HSQUIRRELVM v)
+{
+    HSQOBJECT sqlite3_NULL;
+    sq_pushregistrytable(v);
+    sq_pushstring(v, sqlite3_NULL_Name,-1);
+    sq_newuserdata(v, sizeof(void*));
+    sq_resetobject(&sqlite3_NULL);
+    sq_getstackobj(v, -1, &sqlite3_NULL);
+    sq_newtable(v);
+    sq_insert_reg_funcs(v, sqlite3_NULL_methods);
+    sq_setdelegate(v, -2);
+    sq_newslot(v,-3,SQTrue);
 
-        sq_pushstring(v,_SC("sqite3_context"),-1);
-        sq_newclass(v,SQFalse);
-        sq_settypetag(v,-1,(void*)sq_sqlite3_context_TAG);
-        sq_insert_reg_funcs(v, sq_sqlite3_context_methods);
-        sq_newslot(v,-3,SQTrue);
+    sq_pushstring(v,_SC("sqite3_context"),-1);
+    sq_newclass(v,SQFalse);
+    sq_settypetag(v,-1,(void*)sq_sqlite3_context_TAG);
+    sq_insert_reg_funcs(v, sq_sqlite3_context_methods);
+    sq_newslot(v,-3,SQTrue);
 
-        sq_poptop(v); //remove registrytable
+    sq_poptop(v); //remove registrytable
 
-        sq_pushstring(v,SQLite3_TAG,-1);
-        sq_newclass(v,SQFalse);
-        sq_settypetag(v,-1,(void*)SQLite3_TAG);
-        sq_insert_reg_funcs(v, sq_sqlite3_methods);
+    sq_pushstring(v,SQLite3_TAG,-1);
+    sq_newclass(v,SQFalse);
+    sq_settypetag(v,-1,(void*)SQLite3_TAG);
+    sq_insert_reg_funcs(v, sq_sqlite3_methods);
 
-        INT_CONST(v,SQLITE_OPEN_CREATE);
-        INT_CONST(v,SQLITE_OPEN_READWRITE);
-        INT_CONST(v,SQLITE_OPEN_SHAREDCACHE);
-        INT_CONST(v,SQLITE_OPEN_SUBLATIN_NA_LIKE);
+    INT_CONST(v,SQLITE_OPEN_CREATE);
+    INT_CONST(v,SQLITE_OPEN_READWRITE);
+    INT_CONST(v,SQLITE_OPEN_SHAREDCACHE);
+    INT_CONST(v,SQLITE_OPEN_SUBLATIN_NA_LIKE);
 
-        INT_CONST(v,SQLITE_OK);
-        INT_CONST(v,SQLITE_INTERRUPT);
+    INT_CONST(v,SQLITE_OK);
+    INT_CONST(v,SQLITE_INTERRUPT);
 
-        //push sqlite3_NULL as a member
-        sq_pushstring(v, nullName,-1);
-        sq_pushobject(v, sqlite3_NULL);
-        sq_newslot(v,-3,SQTrue);
+    //push sqlite3_NULL as a member
+    sq_pushstring(v, nullName,-1);
+    sq_pushobject(v, sqlite3_NULL);
+    sq_newslot(v,-3,SQTrue);
 
-        sq_newslot(v,-3,SQTrue);
+    sq_newslot(v,-3,SQTrue);
 
-        sq_pushstring(v, SQLite3_Stmt_TAG,-1);
-        sq_newclass(v,SQFalse);
-        sq_settypetag(v,-1,(void*)SQLite3_Stmt_TAG);
-        sq_insert_reg_funcs(v, sq_sqlite3_stmt_methods);
+    sq_pushstring(v, SQLite3_Stmt_TAG,-1);
+    sq_newclass(v,SQFalse);
+    sq_settypetag(v,-1,(void*)SQLite3_Stmt_TAG);
+    sq_insert_reg_funcs(v, sq_sqlite3_stmt_methods);
 
-        INT_CONST(v,SQLITE_OK);
-        INT_CONST(v,SQLITE_ROW);
-        INT_CONST(v,SQLITE_DONE);
-        INT_CONST(v,AS_STRING_ALWAYS);
-        INT_CONST(v,NULL_AS_EMPTY_STR);
+    INT_CONST(v,SQLITE_OK);
+    INT_CONST(v,SQLITE_ROW);
+    INT_CONST(v,SQLITE_DONE);
+    INT_CONST(v,AS_STRING_ALWAYS);
+    INT_CONST(v,NULL_AS_EMPTY_STR);
 
-        //push sqlite3_NULL as a member
-        sq_pushstring(v, nullName,-1);
-        sq_pushobject(v, sqlite3_NULL);
-        sq_newslot(v,-3,SQTrue);
+    //push sqlite3_NULL as a member
+    sq_pushstring(v, nullName,-1);
+    sq_pushobject(v, sqlite3_NULL);
+    sq_newslot(v,-3,SQTrue);
 
-        sq_newslot(v,-3,SQTrue);
-        return 1;
-    }
+    sq_newslot(v,-3,SQTrue);
+    return 1;
+}
 
 #ifdef __cplusplus
 }
