@@ -125,6 +125,7 @@ typedef unsigned short wchar_t;
 #endif
 
 typedef wchar_t SQChar;
+typedef wchar_t USQChar;
 #define uchar(c)    ((unsigned short)(c))
 #define _SC(a) L##a
 #define	scstrcmp	wcscmp
@@ -153,6 +154,7 @@ typedef wchar_t SQChar;
 #define MAX_CHAR 0xFFFF
 #else
 typedef char SQChar;
+typedef unsigned char USQChar;
 #define uchar(c)    ((unsigned char)(c))
 #define _SC(a) a
 #define	scstrcmp	strcmp
