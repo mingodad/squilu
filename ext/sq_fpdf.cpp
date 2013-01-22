@@ -1179,15 +1179,15 @@ static SQRegFunction sq_glue_my_methods[] =
 extern "C" {
 #endif
 
-    SQRESULT sqext_register_Sq_Fpdf(HSQUIRRELVM v)
-    {
-        sq_pushstring(v,SQ_FPDF_TAG,-1);
-        sq_newclass(v,SQFalse);
-        sq_settypetag(v,-1,(void*)SQ_FPDF_TAG);
-        sq_insert_reg_funcs(v, sq_glue_my_methods);
-        sq_newslot(v,-3,SQTrue);
-        return 1;
-    }
+SQRESULT sqext_register_Sq_Fpdf(HSQUIRRELVM v)
+{
+    sq_pushstring(v,SQ_FPDF_TAG,-1);
+    sq_newclass(v,SQFalse);
+    sq_settypetag(v,-1,(void*)SQ_FPDF_TAG);
+    sq_insert_reg_funcs(v, sq_glue_my_methods);
+    sq_newslot(v,-3,SQTrue);
+    return 1;
+}
 
 #ifdef __cplusplus
 }
