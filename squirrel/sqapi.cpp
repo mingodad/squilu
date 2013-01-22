@@ -1212,6 +1212,20 @@ void sq_getlasterror(HSQUIRRELVM v)
 	v->Push(v->_lasterror);
 }
 
+void sq_getlaststackinfo(HSQUIRRELVM v)
+{
+    sq_newtable(v);
+    sq_pushliteral(v, _SC("line"));
+    sq_pushinteger(v, v->_lasterror_stackinfo.line);
+    sq_rawset(v, -3);
+    sq_pushliteral(v, _SC("source"));
+    sq_pushstring(v, v->_lasterror_stackinfo.source, -1);
+    sq_rawset(v, -3);
+    sq_pushliteral(v, _SC("funcname"));
+    sq_pushstring(v, v->_lasterror_stackinfo.funcname, -1);
+    sq_rawset(v, -3);
+}
+
 const SQChar *sq_getlasterror_str(HSQUIRRELVM v)
 {
 	return _string(v->_lasterror)->_val;

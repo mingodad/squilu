@@ -230,6 +230,12 @@ static SQInteger base_get_last_error(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQInteger base_get_last_stackinfo(HSQUIRRELVM v)
+{
+    sq_getlaststackinfo(v);
+	return 1;
+}
+
 static SQInteger base_compilestring(HSQUIRRELVM v)
 {
 	SQInteger nargs=sq_gettop(v);
@@ -326,6 +332,7 @@ static SQRegFunction base_funcs[]={
 	{_SC("print"),base_print,-2, NULL},
 	{_SC("error"),base_error,2, NULL},
 	{_SC("get_last_error"),base_get_last_error,1, NULL},
+	{_SC("get_last_stackinfo"),base_get_last_stackinfo,1, NULL},
 	{_SC("compilestring"),base_compilestring,-2, _SC(".ss")},
 	{_SC("newthread"),base_newthread,2, _SC(".c")},
 	{_SC("suspend"),base_suspend,-1, NULL},

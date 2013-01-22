@@ -150,6 +150,7 @@ public:
 	SQOuter	*_openouters;
 	SQObjectPtr _roottable;
 	SQObjectPtr _lasterror;
+	SQStackInfos _lasterror_stackinfo;
 	SQObjectPtr _errorhandler;
 
 	bool _debughook;

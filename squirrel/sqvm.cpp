@@ -114,6 +114,7 @@ SQVM::SQVM(SQSharedState *ss)
 	_nnativecalls = 0;
 	_nmetamethodscall = 0;
 	_lasterror.Null();
+	memset(&_lasterror_stackinfo, 0, sizeof(SQStackInfos));
 	_errorhandler.Null();
 	_debughook = false;
 	_debughook_native = NULL;
@@ -1051,6 +1052,7 @@ exception_restore:
 	}
 exception_trap:
 	{
+	    sq_stackinfos(this, 0, &_lasterror_stackinfo);
 		SQObjectPtr currerror = _lasterror;
 //		dumpstack(_stackbase);
 //		SQInteger n = 0;
