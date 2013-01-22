@@ -313,6 +313,11 @@ SQRESULT sqext_register_mongoose(HSQUIRRELVM v);
 SQRESULT sqrat_register_importlib(HSQUIRRELVM v);
 SQRESULT sqext_register_sq_slave_vm(HSQUIRRELVM v);
 SQRESULT sqext_register_axtls (HSQUIRRELVM v);
+SQRESULT sqext_register_base64(HSQUIRRELVM v);
+SQRESULT sqext_register_Sq_Fpdf(HSQUIRRELVM v);
+SQRESULT sqext_register_SQLite3(HSQUIRRELVM v);
+SQRESULT sqext_register_mix (HSQUIRRELVM sqvm);
+SQRESULT sqext_register_rs232(HSQUIRRELVM v);
 
 int main(int argc, char* argv[])
 {
@@ -349,7 +354,8 @@ int main(int argc, char* argv[])
 	sqext_register_sq_slave_vm(v);
 
 	sqext_register_sq_zmq3(v);
-	//sqstd_register_memory_buffer(v);
+
+	sqext_register_rs232(v);
 #ifdef WITH_FLTK
 	sqext_register_fltklib(v);
 #endif
