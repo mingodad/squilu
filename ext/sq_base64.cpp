@@ -136,14 +136,14 @@ static SQRegFunction base64_methods[] =
 extern "C" {
 #endif
 
-    SQRESULT sqext_register_base64(HSQUIRRELVM v)
-    {
-        sq_pushstring(v,_SC("base64"),-1);
-        sq_newclass(v,SQFalse);
-        sq_insert_reg_funcs(v, base64_methods);
-        sq_newslot(v,-3,SQTrue);
-        return 1;
-    }
+SQRESULT sqext_register_base64(HSQUIRRELVM v)
+{
+    sq_pushstring(v,_SC("base64"),-1);
+    sq_newtable(v);
+    sq_insert_reg_funcs(v, base64_methods);
+    sq_newslot(v,-3,SQTrue);
+    return 1;
+}
 
 #ifdef __cplusplus
 }
