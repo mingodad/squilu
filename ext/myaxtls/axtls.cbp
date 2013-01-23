@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="axtls" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="libaxtls" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Debug/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="libaxtls" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-march=i686" />
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="Release-lua-jit">
+				<Option output="libaxtls-lua-jit" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-march=i686" />
+					<Add option="-fomit-frame-pointer" />
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="Debug-lua-jit">
+				<Option output="libaxtls-lua-jit" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Debug/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-march=i686" />
+					<Add option="-fomit-frame-pointer" />
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release O3">
+				<Option output="libaxtls" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-march=i686" />
+					<Add option="-fomit-frame-pointer" />
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-O3" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="Release WIN32">
+				<Option output="libaxtls-win32" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release-win32/" />
+				<Option type="2" />
+				<Option compiler="mingw32_compiler" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-march=i686" />
+					<Add option="-O3" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-march=i686" />
+			<Add option="-O2" />
+			<Add option="-DSSL_STATIC_LIBRARY=1" />
+			<Add option="-DAXTLS_LIBRARY=1" />
+			<Add option="-DAS_STATIC_LIB=1" />
+			<Add option="-DCONFIG_OPENSSL_COMPATIBLE=1" />
+		</Compiler>
+		<Linker>
+			<Add option="-s" />
+		</Linker>
+		<Unit filename="aes.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="asn1.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="bigint.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="bigint.h" />
+		<Unit filename="bigint_impl.h" />
+		<Unit filename="cert.h" />
+		<Unit filename="config.h" />
+		<Unit filename="crypto.h" />
+		<Unit filename="crypto_misc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="crypto_misc.h" />
+		<Unit filename="gen_cert.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="hmac.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="loader.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="md2.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="md5.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="openssl.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="os_int.h" />
+		<Unit filename="os_port.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="os_port.h" />
+		<Unit filename="p12.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="private_key.h" />
+		<Unit filename="rc4.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="rsa.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sha1.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ssl.h" />
+		<Unit filename="tls1.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tls1.h" />
+		<Unit filename="tls1_clnt.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tls1_svr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="version.h" />
+		<Unit filename="x509.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<debugger />
+			<envvars />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
