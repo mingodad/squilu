@@ -599,6 +599,11 @@ SQUIRREL_API void sq_getlaststackinfo(HSQUIRRELVM v);
 
 #define sq_pushliteral(v, str) sq_pushstring(v, str, sizeof(str)-1)
 
+#define SQ_GET_USERPOINTER(v, idx, var)\
+    SQUserPointer var;\
+    if((_rc_ = sq_getuserpointer(v,idx, &var)) < 0) return _rc_;
+
+
 
 SQUIRREL_API void sq_insert_reg_funcs(HSQUIRRELVM sqvm, SQRegFunction *obj_funcs);
 SQUIRREL_API SQRESULT sq_getstr_and_size(HSQUIRRELVM v,SQInteger idx,const SQChar **c, SQInteger *size);
