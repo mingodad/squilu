@@ -351,7 +351,7 @@ bool SQFuncState::IsLocal(SQUnsignedInteger stkpos)
 	return false;
 }
 
-SQInteger SQFuncState::PushLocalVariable(const SQObject &name, SQInteger scope)
+SQInteger SQFuncState::PushLocalVariable(const SQObject &name, SQInteger scope, SQInteger type)
 {
 	SQInteger pos=_vlocals.size();
 	SQLocalVarInfo lvi;
@@ -359,8 +359,10 @@ SQInteger SQFuncState::PushLocalVariable(const SQObject &name, SQInteger scope)
 	lvi._start_op=GetCurrentPos()+1;
 	lvi._pos=_vlocals.size();
 	lvi._scope=scope;
+	lvi._type=type;
 	_vlocals.push_back(lvi);
 	if(_vlocals.size()>((SQUnsignedInteger)_stacksize))_stacksize=_vlocals.size();
+printf("%d %d %d %d %d %s\n", __LINE__, scope, type, pos, lvi._start_op, _stringval(lvi._name));
 	return pos;
 }
 
@@ -384,6 +386,18 @@ void SQFuncState::MarkLocalAsOuter(SQInteger pos)
 	SQLocalVarInfo &lvi = _vlocals[pos];
 	lvi._end_op = UINT_MINUS_ONE;
 	_outers++;
+}
+
+SQInteger SQFuncState::FindOuterVariable(const SQObject &name)
+{
+	SQInteger pos=-1;
+	if(_parent) {
+		pos = _parent->GetLocalVariable(name);
+		if(pos == -1) {
+			pos = _parent->FindOuterVariable(name);
+		}
+	}
+	return pos;
 }
 
 SQInteger SQFuncState::GetOuterVariable(const SQObject &name)

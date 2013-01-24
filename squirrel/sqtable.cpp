@@ -116,6 +116,13 @@ bool SQTable::Get(const SQObjectPtr &key,SQObjectPtr &val)
 	}
 	return false;
 }
+bool SQTable::Exists(const SQObjectPtr &key)
+{
+	if(type(key) == OT_NULL)
+		return false;
+	_HashNode *n = _Get(key, HashObj(key) & (_numofnodes - 1));
+	return n ? true : false;
+}
 bool SQTable::NewSlot(const SQObjectPtr &key,const SQObjectPtr &val)
 {
 	assert(type(key) != OT_NULL);

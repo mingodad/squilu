@@ -32,6 +32,10 @@ public:
 		}
 		else return false;
 	}
+	bool Exists(const SQInteger nidx)
+	{
+		return (nidx>=0 && nidx<(SQInteger)_values.size());
+	}
 	bool Set(const SQInteger nidx,const SQObjectPtr &val)
 	{
 		if(nidx>=0 && nidx<(SQInteger)_values.size()){
@@ -88,7 +92,7 @@ public:
 	{
 		sq_delete(this,SQArray);
 	}
-	
+
 	SQObjectPtrVec _values;
 };
 #endif //_SQARRAY_H_

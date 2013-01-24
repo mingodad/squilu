@@ -45,6 +45,9 @@ public:
 		}
 		return false;
 	}
+	bool Exists(const SQObjectPtr &key) {
+		return _members->Exists(key);
+	}
 	bool GetConstructor(SQObjectPtr &ctor)
 	{
 		if(_constructoridx != -1) {
@@ -83,14 +86,14 @@ public:
 #define calcinstancesize(_theclass_) \
 	(_theclass_->_udsize + sq_aligning(sizeof(SQInstance) +  (sizeof(SQObjectPtr)*(_theclass_->_defaultvalues.size()>0?_theclass_->_defaultvalues.size()-1:0))))
 
-struct SQInstance : public SQDelegable 
+struct SQInstance : public SQDelegable
 {
 	void Init(SQSharedState *ss);
 	SQInstance(SQSharedState *ss, SQClass *c, SQInteger memsize);
 	SQInstance(SQSharedState *ss, SQInstance *c, SQInteger memsize);
 public:
 	static SQInstance* Create(SQSharedState *ss,SQClass *theclass) {
-		
+
 		SQInteger size = calcinstancesize(theclass);
 		SQInstance *newinst = (SQInstance *)SQ_MALLOC(size);
 		new (newinst) SQInstance(ss, theclass,size);
@@ -123,6 +126,9 @@ public:
 		}
 		return false;
 	}
+	bool Exists(const SQObjectPtr &key)  {
+		return _class->_members->Exists(key);
+	}
 	bool Set(const SQObjectPtr &key,const SQObjectPtr &val) {
 		SQObjectPtr idx;
 		if(_class->_members->Get(key,idx) && _isfield(idx)) {
@@ -147,7 +153,7 @@ public:
 		SQ_FREE(this, size);
 	}
 	void Finalize();
-#ifndef NO_GARBAGE_COLLECTOR 
+#ifndef NO_GARBAGE_COLLECTOR
 	void Mark(SQCollectable ** );
 	SQObjectType GetType() {return OT_INSTANCE;}
 #endif

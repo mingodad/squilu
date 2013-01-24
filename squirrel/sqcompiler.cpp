@@ -251,6 +251,7 @@ public:
 		case TK_LOCAL_FLOAT_T:
 		case TK_LOCAL_DOUBLE_T:
 		case TK_LOCAL_LONG_DOUBLE_T:
+		//case TK_CONST:
 		case TK_LOCAL:		LocalDeclStatement();	break;
 		case TK_RETURN:
 		case TK_YIELD: {
@@ -328,6 +329,7 @@ public:
 			CommaExpr();
 			_fs->AddInstruction(_OP_THROW, _fs->PopTarget());
 			break;
+
 		case TK_CONST:
 			{
 			Lex();
@@ -337,10 +339,16 @@ public:
 			OptionalSemicolon();
 			SQTable *enums = _table(_ss(_vm)->_consts);
 			SQObjectPtr strongid = id;
+			if(enums->Exists(strongid)) {
+			    strongid.Null();
+			    Error(_SC("constant '%s' already exists"), _stringval(id));
+			}
 			enums->NewSlot(strongid,SQObjectPtr(val));
 			strongid.Null();
+
 			}
 			break;
+
 		default:
 			CommaExpr();
 			_fs->DiscardTarget();
@@ -409,6 +417,11 @@ public:
 	{
 		for(Expression(warningAssign);_token == ',';_fs->PopTarget(), Lex(), CommaExpr(warningAssign));
 	}
+	void ErrorIfConst(){
+        SQLocalVarInfo &vsrc = _fs->_vlocals[_fs->TopTarget()];
+printf("%d %d %d %d %s\n", __LINE__, vsrc._scope, vsrc._type, vsrc._pos, vsrc._name._unVal.pString ? _stringval(vsrc._name) : "?");
+        if(vsrc._type & _VAR_CONST) Error(_SC("can't assign to a const variable"));
+	}
 	void Expression(bool warningAssign=false)
 	{
 		 SQExpState es = _es;
@@ -427,7 +440,9 @@ public:
 			SQInteger op = _token;
 			SQInteger ds = _es.etype;
 			SQInteger pos = _es.epos;
+
 			if(ds == EXPR) Error(_SC("can't assign expression"));
+            ErrorIfConst();
 			Lex(); Expression();
 
 			switch(op){
@@ -1038,15 +1053,22 @@ public:
 	    if(found >= 0){
 	        SQLocalVarInfo &lvi = _fs->_vlocals[found];
 	        if(lvi._scope == scope)
-                Error(_SC("local '%s' already declared"), _string(name)->_val);
+                Error(_SC("local '%s' already declared"), _stringval(name));
             else
                 Warning(_SC("WARNING: at line %d:%d local '%s' already declared will be shadowed\n"),
-                        _lex._currentline, _lex._currentcolumn, _string(name)->_val);
+                        _lex._currentline, _lex._currentcolumn, _stringval(name));
+	    }
+	    else
+	    {
+	        found = _fs->FindOuterVariable(name);
+	        if(found >= 0) Warning(_SC("WARNING: at line %d:%d outer variable '%s' already declared will be shadowed\n"),
+                        _lex._currentline, _lex._currentcolumn, _stringval(name));
 	    }
 	}
 	void LocalDeclStatement()
 	{
 		SQObject varname;
+		SQBool is_const_declaration = _token == TK_CONST;
 		SQInteger declType = _token;
 		Lex();
 		if( _token == TK_FUNCTION) {
@@ -1057,7 +1079,7 @@ public:
 			CreateFunction(varname,false);
 			_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
 			_fs->PopTarget();
-			_fs->PushLocalVariable(varname, _scope.nested);
+			_fs->PushLocalVariable(varname, _scope.nested, _VAR_CLOSURE);
 			return;
 		}
 
@@ -1069,25 +1091,33 @@ public:
 				SQInteger src = _fs->PopTarget();
 				SQInteger dest = _fs->PushTarget();
 				if(dest != src) _fs->AddInstruction(_OP_MOVE, dest, src);
+				declType = _VAR_ANY;
 			}
+			else if(is_const_declaration) Error(_SC("const '%s' need an initializer"), _stringval(varname));
 			else{
 			    SQInteger dest = _fs->PushTarget();
 			    switch(declType){
-			        /*
                     case TK_LOCAL_CHAR_T:
                     case TK_LOCAL_WCHAR_T:
+                        _fs->AddInstruction(_OP_LOADNULLS, dest,1);
+                        declType = _VAR_STRING;
                         break;
-                    */
+
                     case TK_LOCAL_BOOL_T:
                         //default value false
                         _fs->AddInstruction(_OP_LOADBOOL, dest,0);
+                        declType = _VAR_BOOL;
                         break;
-                    /*
+
                     case TK_LOCAL_TABLE_T:
+                        _fs->AddInstruction(_OP_LOADNULLS, dest,1);
+                        declType = _VAR_TABLE;
                         break;
                     case TK_LOCAL_ARRAY_T:
+                        _fs->AddInstruction(_OP_LOADNULLS, dest,1);
+                        declType = _VAR_ARRAY;
                         break;
-                    */
+
                     case TK_LOCAL_INT8_T:
                     case TK_LOCAL_INT16_T:
                     case TK_LOCAL_INT32_T:
@@ -1100,21 +1130,24 @@ public:
                     case TK_LOCAL_UINT_T:
                         //default value 0
                         _fs->AddInstruction(_OP_LOADINT, dest,0);
+                        declType = _VAR_INTEGER;
                         break;
                     case TK_LOCAL_FLOAT_T:
                     case TK_LOCAL_DOUBLE_T:
                     case TK_LOCAL_LONG_DOUBLE_T:
                         //default value 0.0
                         _fs->AddInstruction(_OP_LOADFLOAT, dest,0);
+                        declType = _VAR_FLOAT;
                         break;
                     //case TK_LOCAL:
                     default:
                         //default value null
                         _fs->AddInstruction(_OP_LOADNULLS, dest,1);
+                        declType = _VAR_ANY;
 			    }
 			}
 			_fs->PopTarget();
-			_fs->PushLocalVariable(varname, _scope.nested);
+			_fs->PushLocalVariable(varname, _scope.nested, is_const_declaration ? _VAR_CONST : declType);
 			if(_token == _SC(',')) Lex(); else break;
 		} while(1);
 	}
@@ -1431,7 +1464,16 @@ if(color == "yellow"){
 		SQObject id = Expect(TK_IDENTIFIER);
 		Expect(_SC('{'));
 
+        //checkLocalNameScope(id, _scope.nested);
+		SQTable *enums = _table(_ss(_vm)->_consts);
+		SQObjectPtr strongid = id;
+		if(enums->Exists(strongid)) {
+		    strongid.Null();
+		    Error(_SC("constant '%s' already exists"), _stringval(id));
+		}
+
 		SQObject table = _fs->CreateTable();
+		//_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(),0,NOT_TABLE);
 		SQInteger nval = 0;
 		while(_token != _SC('}')) {
 			SQObject key = Expect(TK_IDENTIFIER);
@@ -1444,11 +1486,13 @@ if(color == "yellow"){
 				val._type = OT_INTEGER;
 				val._unVal.nInteger = nval++;
 			}
+			//SQInteger table = _fs->TopTarget(); //<<BECAUSE OF THIS NO COMMON EMIT FUNC IS POSSIBLE
+            //_fs->AddInstruction(_OP_NEWSLOT, 0xFF, table, key, val);
+
 			_table(table)->NewSlot(SQObjectPtr(key),SQObjectPtr(val));
 			if(_token == ',') Lex();
 		}
-		SQTable *enums = _table(_ss(_vm)->_consts);
-		SQObjectPtr strongid = id;
+
 		enums->NewSlot(SQObjectPtr(strongid),SQObjectPtr(table));
 		strongid.Null();
 		Lex();

@@ -11,7 +11,7 @@ enum SQOuterType {
 
 struct SQOuterVar
 {
-	
+
 	SQOuterVar(){}
 	SQOuterVar(const SQObjectPtr &name,const SQObjectPtr &src,SQOuterType t)
 	{
@@ -30,22 +30,37 @@ struct SQOuterVar
 	SQObjectPtr _src;
 };
 
+#define _VAR_ANY			0x00000001
+#define _VAR_INTEGER		0x00000002
+#define _VAR_FLOAT			0x00000004
+#define _VAR_BOOL			0x00000008
+#define _VAR_STRING			0x00000010
+#define _VAR_TABLE			0x00000020
+#define _VAR_ARRAY			0x00000040
+#define _VAR_CLOSURE		0x00000080
+#define _VAR_CLASS			0x00000100
+#define _VAR_REFERENCE  	0x00000200
+#define _VAR_CONST  		0x00000400
+
 struct SQLocalVarInfo
 {
-	SQLocalVarInfo():_start_op(0),_end_op(0),_pos(0),_scope(0){}
+	SQLocalVarInfo():_start_op(0),_end_op(0),_pos(0),
+        _type(_VAR_ANY),_scope(0) {}
 	SQLocalVarInfo(const SQLocalVarInfo &lvi)
 	{
 		_name=lvi._name;
 		_start_op=lvi._start_op;
 		_end_op=lvi._end_op;
 		_pos=lvi._pos;
+		_type=lvi._type;
 		_scope=lvi._scope;
 	}
 	SQObjectPtr _name;
 	SQUnsignedInteger _start_op;
 	SQUnsignedInteger _end_op;
 	SQUnsignedInteger _pos;
-	SQInteger _scope;
+	unsigned short _type;
+	unsigned short _scope;
 };
 
 struct SQLineInfo { SQInteger _line;SQInteger _op; };
@@ -66,7 +81,7 @@ struct SQFunctionProto : public CHAINABLE_OBJ
 private:
 	SQFunctionProto(SQSharedState *ss);
 	~SQFunctionProto();
-	
+
 public:
 	static SQFunctionProto *Create(SQSharedState *ss,SQInteger ninstructions,
 		SQInteger nliterals,SQInteger nparameters,
@@ -101,7 +116,7 @@ public:
 		_CONSTRUCT_VECTOR(SQLocalVarInfo,f->_nlocalvarinfos,f->_localvarinfos);
 		return f;
 	}
-	void Release(){ 
+	void Release(){
 		_DESTRUCT_VECTOR(SQObjectPtr,_nliterals,_literals);
 		_DESTRUCT_VECTOR(SQObjectPtr,_nparameters,_parameters);
 		_DESTRUCT_VECTOR(SQObjectPtr,_nfunctions,_functions);
@@ -112,7 +127,7 @@ public:
 		this->~SQFunctionProto();
 		sq_vm_free(this,size);
 	}
-	
+
 	const SQChar* GetLocal(SQVM *v,SQUnsignedInteger stackbase,SQUnsignedInteger nseq,SQUnsignedInteger nop);
 	SQInteger GetLine(SQInstruction *curr);
 	bool Save(SQVM *v,SQUserPointer up,SQWRITEFUNC write);
@@ -139,7 +154,7 @@ public:
 
 	SQInteger _nparameters;
 	SQObjectPtr *_parameters;
-	
+
 	SQInteger _nfunctions;
 	SQObjectPtr *_functions;
 
@@ -148,7 +163,7 @@ public:
 
 	SQInteger _ndefaultparams;
 	SQInteger *_defaultparams;
-	
+
 	SQInteger _ninstructions;
 	SQInstruction _instructions[1];
 };
