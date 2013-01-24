@@ -335,14 +335,14 @@ public:
 			Lex();
 			SQObject id = Expect(TK_IDENTIFIER);
 			Expect('=');
-			SQObject val = ExpectScalar();
-			OptionalSemicolon();
 			SQTable *enums = _table(_ss(_vm)->_consts);
 			SQObjectPtr strongid = id;
 			if(enums->Exists(strongid)) {
 			    strongid.Null();
 			    Error(_SC("constant '%s' already exists"), _stringval(id));
 			}
+			SQObject val = ExpectScalar();
+			OptionalSemicolon();
 			enums->NewSlot(strongid,SQObjectPtr(val));
 			strongid.Null();
 
@@ -1606,6 +1606,7 @@ if(color == "yellow"){
 		funcstate->AddParameter(_fs->CreateString(_SC("this")), _scope.nested+1);
 		funcstate->_sourcename = _sourcename;
 		SQInteger defparams = 0;
+		SQInteger is_reference = 0;
 		while(_token!=_SC(')')) {
 			if(_token == TK_VARPARAMS) {
 				if(defparams > 0) Error(_SC("function with default parameters cannot have variable number of parameters"));
@@ -1615,9 +1616,14 @@ if(color == "yellow"){
 				if(_token != _SC(')')) Error(_SC("expected ')'"));
 				break;
 			}
+			else if(_token == _SC('&')){
+			    is_reference = 1;
+			    Lex();
+			}
 			else {
 				paramname = Expect(TK_IDENTIFIER);
-				funcstate->AddParameter(paramname, _scope.nested+1);
+				funcstate->AddParameter(paramname, _scope.nested+1, is_reference ? _VAR_REFERENCE : _VAR_ANY);
+				is_reference = 0; //reset is_reference
 				if(_token == _SC('=')) {
 					Lex();
 					Expression();

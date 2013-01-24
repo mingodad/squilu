@@ -29,7 +29,7 @@ struct SQFuncState
 	SQInteger GetNumericConstant(const SQInteger cons);
 	SQInteger GetNumericConstant(const SQFloat cons);
 	SQInteger PushLocalVariable(const SQObject &name, SQInteger scope, SQInteger type=_VAR_ANY);
-	void AddParameter(const SQObject &name, SQInteger scope);
+	void AddParameter(const SQObject &name, SQInteger scope, SQInteger type=_VAR_ANY);
 	//void AddOuterValue(const SQObject &name);
 	SQInteger GetLocalVariable(const SQObject &name);
 	void MarkLocalAsOuter(SQInteger pos);

@@ -426,9 +426,9 @@ SQInteger SQFuncState::GetOuterVariable(const SQObject &name)
 	return -1;
 }
 
-void SQFuncState::AddParameter(const SQObject &name, SQInteger scope)
+void SQFuncState::AddParameter(const SQObject &name, SQInteger scope, SQInteger type)
 {
-	PushLocalVariable(name, scope);
+	PushLocalVariable(name, scope, type);
 	_parameters.push_back(name);
 }
 
