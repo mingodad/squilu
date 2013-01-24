@@ -1608,6 +1608,7 @@ if(color == "yellow"){
 		SQInteger defparams = 0;
 		SQInteger is_reference = 0;
 		while(_token!=_SC(')')) {
+            is_reference = 0; //reset is_reference
 			if(_token == TK_VARPARAMS) {
 				if(defparams > 0) Error(_SC("function with default parameters cannot have variable number of parameters"));
 				funcstate->AddParameter(_fs->CreateString(_SC("vargv")), _scope.nested+1);
@@ -1616,15 +1617,15 @@ if(color == "yellow"){
 				if(_token != _SC(')')) Error(_SC("expected ')'"));
 				break;
 			}
-			else if(_token == _SC('&')){
-			    is_reference = 1;
-			    Lex();
-			}
 			else {
+			    if(_token == _SC('&')){
+                    is_reference = 1;
+                    Lex();
+                }
 				paramname = Expect(TK_IDENTIFIER);
 				funcstate->AddParameter(paramname, _scope.nested+1, is_reference ? _VAR_REFERENCE : _VAR_ANY);
-				is_reference = 0; //reset is_reference
 				if(_token == _SC('=')) {
+				    if(is_reference) Error(_SC("parameter passed by reference can't have default value"));
 					Lex();
 					Expression();
 					funcstate->AddDefaultParam(_fs->TopTarget());
