@@ -1067,7 +1067,8 @@ public:
 	void LocalDeclStatement()
 	{
 		SQObject varname;
-		SQBool is_const_declaration = _token == TK_CONST;
+		bool is_const_declaration = _token == TK_CONST;
+		bool is_reference_declaration = false;
 		SQInteger declType = _token;
 		Lex();
 		if( _token == TK_FUNCTION) {
@@ -1083,6 +1084,10 @@ public:
 		}
 
 		do {
+		    if(_token == _SC('&')){
+		        is_reference_declaration = true;
+		        Lex();
+		    }
 			varname = Expect(TK_IDENTIFIER);
 			checkLocalNameScope(varname, _scope.nested);
 			if(_token == _SC('=')) {
@@ -1092,7 +1097,8 @@ public:
 				if(dest != src) _fs->AddInstruction(_OP_MOVE, dest, src);
 				declType = _VAR_ANY;
 			}
-			else if(is_const_declaration) Error(_SC("const '%s' need an initializer"), _stringval(varname));
+			else if(is_const_declaration || is_reference_declaration)
+                Error(_SC("const/reference '%s' need an initializer"), _stringval(varname));
 			else{
 			    SQInteger dest = _fs->PushTarget();
 			    switch(declType){
@@ -1146,7 +1152,8 @@ public:
 			    }
 			}
 			_fs->PopTarget();
-			_fs->PushLocalVariable(varname, _scope.nested, is_const_declaration ? _VAR_CONST : declType);
+			_fs->PushLocalVariable(varname, _scope.nested, (is_const_declaration ? _VAR_CONST : declType)
+                          | (is_reference_declaration ? _VAR_REFERENCE : 0));
 			if(_token == _SC(',')) Lex(); else break;
 		} while(1);
 	}
