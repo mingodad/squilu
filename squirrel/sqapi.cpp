@@ -1142,6 +1142,35 @@ SQRESULT sq_rawget(HSQUIRRELVM v,SQInteger idx)
 	return sq_throwerror(v,_SC("the index doesn't exist"));
 }
 
+SQBool sq_rawexists(HSQUIRRELVM v,SQInteger idx)
+{
+	SQObjectPtr &self=stack_get(v,idx);
+	SQObjectPtr &obj = v->GetUp(-1);
+	switch(type(self)) {
+	case OT_TABLE:
+		if(_table(self)->Exists(obj))
+			return SQTrue;
+		break;
+	case OT_CLASS:
+		if(_class(self)->Exists(obj))
+			return SQTrue;
+		break;
+	case OT_INSTANCE:
+		if(_instance(self)->Exists(obj))
+			return SQTrue;
+		break;
+	case OT_ARRAY:
+		if(sq_isnumeric(obj)){
+			if(_array(self)->Exists(tointeger(obj))) {
+				return SQTrue;
+			}
+		}
+	default:
+		v->Pop();
+	}
+	return SQFalse;
+}
+
 SQRESULT sq_getstackobj(HSQUIRRELVM v,SQInteger idx,HSQOBJECT *po)
 {
 	*po=stack_get(v,idx);
