@@ -482,7 +482,7 @@ static SQInteger table_rawdelete(HSQUIRRELVM v)
 
 static SQInteger container_rawexists(HSQUIRRELVM v)
 {
-	if(SQ_SUCCEEDED(sq_rawget(v,-2))) {
+	if(SQ_SUCCEEDED(sq_rawexists(v,-2))) {
 		sq_pushbool(v,SQTrue);
 		return 1;
 	}
@@ -729,6 +729,41 @@ static SQInteger array_find(HSQUIRRELVM v)
 }
 
 
+static SQInteger array_bsearch(HSQUIRRELVM v)
+{
+	SQObject &o = stack_get(v,1);
+	SQObjectPtr &val = stack_get(v,2);
+	SQArray *a = _array(o);
+	SQObjectPtr temp;
+	SQInteger imid, imin = 0, imax = a->Size()-1;
+	while(imax >= imin) {
+	    /* calculate the midpoint for roughly equal partition */
+        imid = (imin + imax) / 2;
+
+        // determine which subarray to search
+		SQInteger res = 0;
+		a->Get(imid,temp);
+
+		if(v->ObjCmp(temp,val,res)) {
+            if(res <  0)
+                // change min index to search upper subarray
+                imin = imid + 1;
+            else if(res > 0 )
+                // change max index to search lower subarray
+                imax = imid - 1;
+            else{
+                // key found at index imid
+                sq_pushinteger(v, imid);
+                return 1;
+            }
+		}
+		else break;
+	}
+	sq_pushinteger(v, -1);
+	return 1;
+}
+
+
 bool _sort_compare(HSQUIRRELVM v,SQObjectPtr &a,SQObjectPtr &b,SQInteger func,SQInteger &ret)
 {
 	if(func < 0) {
@@ -940,6 +975,7 @@ SQRegFunction SQSharedState::_array_default_delegate_funcz[]={
 	{_SC("reduce"),array_reduce,2, _SC("ac")},
 	{_SC("filter"),array_filter,2, _SC("ac")},
 	{_SC("find"),array_find,2, _SC("a.")},
+	{_SC("bsearch"),array_bsearch,2, _SC("a.")},
 	{_SC("concat"),array_concat,-1, _SC("as")},
 	{_SC("concat2"),array_concat2,-1, _SC("as")},
 	{_SC("getdelegate"),array_getdelegate,1, _SC(".")},
