@@ -85,6 +85,71 @@
 					<Add library="ws2_32" />
 				</Linker>
 			</Target>
+			<Target title="Release FLTK">
+				<Option output="bin/squilu" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-Wall" />
+					<Add option="-fno-rtti" />
+					<Add option="-fno-strict-aliasing" />
+					<Add option="-DWITH_FLTK=1" />
+					<Add directory="../zeromq-3.2.2/include" />
+					<Add directory="../dadbiz++/third-party/fltk" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="../zeromq-3.2.2/libzmq3.a" />
+					<Add library="pthread" />
+					<Add library="rt" />
+					<Add library="dl" />
+					<Add library="axtls" />
+					<Add library="fltk" />
+					<Add library="fltk_images" />
+					<Add library="fltk_png" />
+					<Add library="fltk_jpeg" />
+					<Add library="fltk_z" />
+					<Add library="Xext" />
+					<Add library="Xft" />
+					<Add library="Xinerama" />
+					<Add directory="../zeromq-3.2.2" />
+					<Add directory="../dadbiz++/third-party/fltk/lib" />
+				</Linker>
+			</Target>
+			<Target title="Debug FLTK">
+				<Option output="bin/squilu-dbg" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="-fno-rtti" />
+					<Add option="-fno-strict-aliasing" />
+					<Add option="-DWITH_FLTK=1" />
+					<Add directory="../zeromq-3.2.2/include" />
+					<Add directory="../dadbiz++/third-party/fltk" />
+				</Compiler>
+				<Linker>
+					<Add library="../zeromq-3.2.2/libzmq3.a" />
+					<Add library="pthread" />
+					<Add library="rt" />
+					<Add library="dl" />
+					<Add library="axtls" />
+					<Add library="fltk" />
+					<Add library="fltk_images" />
+					<Add library="fltk_png" />
+					<Add library="fltk_jpeg" />
+					<Add library="fltk_z" />
+					<Add library="Xext" />
+					<Add library="Xft" />
+					<Add library="Xinerama" />
+					<Add directory="../zeromq-3.2.2" />
+					<Add directory="../dadbiz++/third-party/fltk/lib" />
+				</Linker>
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
@@ -97,7 +162,6 @@
 			<Add option="-DNO_EXCEPTION_KEY_NOT_FOUND0=1" />
 			<Add option="-D_SQ642=1" />
 			<Add option="-DNO_GARBAGE_COLLECTOR00=1" />
-			<Add option="-DWITH_FLTKNO=1" />
 			<Add option="-DSQLITE_DEFAULT_FILE_FORMAT=4" />
 			<Add option="-DSQLITE_DEFAULT_AUTOVACUUM=1" />
 			<Add option="-DSQLITE_DEFAULT_FOREIGN_KEYS=1" />
@@ -143,6 +207,9 @@
 		<Unit filename="ext/mongoose.h" />
 		<Unit filename="ext/pdf-font.cpp" />
 		<Unit filename="ext/pdf-font.h" />
+		<Unit filename="ext/sq_alien_struct.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="ext/sq_axtls.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -159,11 +226,15 @@
 		<Unit filename="ext/sq_slave_vm.cpp" />
 		<Unit filename="ext/sq_socket.cpp" />
 		<Unit filename="ext/sq_sqlite3.cpp" />
+		<Unit filename="ext/sq_tinyxml2.cpp" />
 		<Unit filename="ext/sq_zlib.cpp" />
 		<Unit filename="ext/sq_zmq3.cpp" />
+		<Unit filename="ext/sqfltk.cpp" />
 		<Unit filename="ext/sqmodule.h" />
 		<Unit filename="ext/sqratimport.cpp" />
 		<Unit filename="ext/sqratimport.h" />
+		<Unit filename="ext/tinyxml2.cpp" />
+		<Unit filename="ext/tinyxml2.h" />
 		<Unit filename="sq/sq.c">
 			<Option compilerVar="CC" />
 		</Unit>
