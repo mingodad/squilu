@@ -362,7 +362,7 @@ SQInteger SQFuncState::PushLocalVariable(const SQObject &name, SQInteger scope, 
 	lvi._type=type;
 	_vlocals.push_back(lvi);
 	if(_vlocals.size()>((SQUnsignedInteger)_stacksize))_stacksize=_vlocals.size();
-printf("%d %d %d %d %d %s\n", __LINE__, scope, type, pos, lvi._start_op, _stringval(lvi._name));
+//printf("%d %d %d %d %d %s\n", __LINE__, scope, type, pos, lvi._start_op, _stringval(lvi._name));
 	return pos;
 }
 

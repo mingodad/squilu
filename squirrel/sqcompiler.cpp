@@ -419,7 +419,7 @@ public:
 	}
 	void ErrorIfConst(){
         SQLocalVarInfo &vsrc = _fs->_vlocals[_fs->TopTarget()];
-printf("%d %d %d %d %s\n", __LINE__, vsrc._scope, vsrc._type, vsrc._pos, vsrc._name._unVal.pString ? _stringval(vsrc._name) : "?");
+//printf("%d %d %d %d %s\n", __LINE__, vsrc._scope, vsrc._type, vsrc._pos, vsrc._name._unVal.pString ? _stringval(vsrc._name) : "?");
         if(vsrc._type & _VAR_CONST) Error(_SC("can't assign to a const variable"));
 	}
 	void Expression(bool warningAssign=false)
