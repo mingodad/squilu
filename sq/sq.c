@@ -320,8 +320,14 @@ SQRESULT sqext_register_mix (HSQUIRRELVM sqvm);
 SQRESULT sqext_register_rs232(HSQUIRRELVM v);
 SQRESULT sqext_register_tinyxml2(HSQUIRRELVM v);
 
+int sq_main_argc = 0;
+char** sq_main_argv = 0;
+
 int main(int argc, char* argv[])
 {
+    sq_main_argc = argc;
+    sq_main_argv = argv;
+
 	HSQUIRRELVM v;
 	SQInteger retval = 0;
 	//const SQChar *filename=NULL;
