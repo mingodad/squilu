@@ -120,17 +120,18 @@
 			<Add option="-D_FILE_OFFSET_BITS=64" />
 			<Add option="-DSSL_STATIC_LIBRARY=1" />
 			<Add option="-DPDF_USING_ZLIB=1" />
+			<Add option="-DRS232_STATIC=1" />
 			<Add directory="include" />
 			<Add directory="sqstdlib" />
 			<Add directory="ext" />
-			<Add directory="../dadbiz++/third-party/myaxtls" />
+			<Add directory="ext/myaxtls" />
 			<Add directory="../dadbiz++/third-party/sqlite3" />
 		</Compiler>
 		<Linker>
 			<Add library="m" />
 			<Add library="z" />
 			<Add directory="lib" />
-			<Add directory="../dadbiz++/third-party/myaxtls" />
+			<Add directory="ext/myaxtls" />
 		</Linker>
 		<Unit filename="ext/fpdf.cpp" />
 		<Unit filename="ext/fpdf.h" />
@@ -152,6 +153,9 @@
 		</Unit>
 		<Unit filename="ext/sq_mix.cpp" />
 		<Unit filename="ext/sq_mongoose.cpp" />
+		<Unit filename="ext/sq_rs232.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="ext/sq_slave_vm.cpp" />
 		<Unit filename="ext/sq_socket.cpp" />
 		<Unit filename="ext/sq_sqlite3.cpp" />

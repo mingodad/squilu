@@ -318,6 +318,7 @@ SQRESULT sqext_register_Sq_Fpdf(HSQUIRRELVM v);
 SQRESULT sqext_register_SQLite3(HSQUIRRELVM v);
 SQRESULT sqext_register_mix (HSQUIRRELVM sqvm);
 SQRESULT sqext_register_rs232(HSQUIRRELVM v);
+SQRESULT sqext_register_tinyxml2(HSQUIRRELVM v);
 
 int main(int argc, char* argv[])
 {
@@ -352,6 +353,7 @@ int main(int argc, char* argv[])
 	sqext_register_mongoose(v);
 	sqrat_register_importlib(v);
 	sqext_register_sq_slave_vm(v);
+	sqext_register_tinyxml2(v);
 
 	sqext_register_sq_zmq3(v);
 
