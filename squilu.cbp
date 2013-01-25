@@ -214,6 +214,7 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="ext/sq_base64.cpp" />
+		<Unit filename="ext/sq_fltk.cpp" />
 		<Unit filename="ext/sq_fpdf.cpp" />
 		<Unit filename="ext/sq_fs.c">
 			<Option compilerVar="CC" />
@@ -229,7 +230,6 @@
 		<Unit filename="ext/sq_tinyxml2.cpp" />
 		<Unit filename="ext/sq_zlib.cpp" />
 		<Unit filename="ext/sq_zmq3.cpp" />
-		<Unit filename="ext/sqfltk.cpp" />
 		<Unit filename="ext/sqmodule.h" />
 		<Unit filename="ext/sqratimport.cpp" />
 		<Unit filename="ext/sqratimport.h" />
