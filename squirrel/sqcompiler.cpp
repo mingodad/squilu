@@ -442,7 +442,6 @@ public:
 			SQInteger pos = _es.epos;
 
 			if(ds == EXPR) Error(_SC("can't assign expression"));
-            ErrorIfConst();
 			Lex(); Expression();
 
 			switch(op){
