@@ -1159,6 +1159,10 @@ static int process_string_gmatch_find(LuaMatchState *ms, void *udata, char_buffe
     for(; i < ms->level; ++i){
         sq_pushstring(v, ms->capture[i].init, ms->capture[i].len);
     }
+    if(!isFind && i == 0){
+        sq_pushstring(v, ms->src_init + ms->start_pos, ms->end_pos-ms->start_pos+1);
+        i=1;
+    }
     int rc = sq_call(v, i+1 + (isFind ? 2 : 0), SQTrue, SQTrue);
     if(rc < 0) {
         ms->error = sq_getlasterror_str(v);
@@ -1182,20 +1186,33 @@ static int process_string_gmatch(LuaMatchState *ms, void *udata, char_buffer_st 
 
 static SQRESULT string_gmatch(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_FUNC_VARS(v);
     SQ_GET_STRING(v, 1, src);
     SQ_GET_STRING(v, 2, pattern);
-    SQInteger rtype = sq_gettype(v, 3);
-    if(rtype == OT_CLOSURE){
-        LuaMatchState ms;
-        memset(&ms, 0, sizeof(ms));
-        int rc = str_match(&ms, src, src_size, pattern, pattern_size,
-                0, 0, process_string_gmatch, v);
-        if(ms.error) return sq_throwerror(v, ms.error);
-        sq_pushinteger(v, rc);
-        return 1;
+    LuaMatchState ms;
+    memset(&ms, 0, sizeof(ms));
+
+    if(_top_ > 2){
+        SQInteger rtype = sq_gettype(v, 3);
+        if(rtype == OT_CLOSURE){
+            _rc_ = str_match(&ms, src, src_size, pattern, pattern_size,
+                    0, 0, process_string_gmatch, v);
+            if(ms.error) return sq_throwerror(v, ms.error);
+            sq_pushinteger(v, _rc_);
+            return 1;
+        }
+        return sq_throwerror(v,"invalid type for parameter 3 function expected");
     }
-	return sq_throwerror(v,"invalid type for parameter 3 function expected");
+    _rc_ = str_match(&ms, src, src_size, pattern, pattern_size,
+            0, 0, 0, 0);
+    if(ms.error) return sq_throwerror(v, ms.error);
+    if(ms.level){
+        sq_pushstring(v, ms.capture[0].init, ms.capture[0].len);
+    } else {
+        if(ms.end_pos > ms.start_pos) sq_pushstring(v, src + ms.start_pos, ms.end_pos-ms.start_pos+1);
+        else sq_pushnull(v);
+    }
+    return 1;
 }
 
 static int process_string_find_lua(LuaMatchState *ms, void *udata, char_buffer_st **b) {
@@ -1601,10 +1618,11 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("find_close_quote"),string_find_close_quote,-1, _SC("sn")},
 	{_SC("gsub"),string_gsub,-3, _SC("s s s|a|t|c n")},
 	{_SC("gmatch"),string_gmatch, 3, _SC("s s c")},
+	{_SC("match"), string_gmatch, 2, _SC("s s")},
 	{_SC("startswith"),string_startswith, 2, _SC("ss")},
 	{_SC("endswith"),string_endswith, 2, _SC("ss")},
 	{_SC("reverse"),string_reverse, 2, _SC("ss")},
-	{_SC("rep"),string_rep, 2, _SC("ss")},
+	{_SC("rep"),string_rep, 2, _SC("si")},
 	{_SC("tolower"),string_tolower,1, _SC("s")},
 	{_SC("toupper"),string_toupper,1, _SC("s")},
 	{_SC("weakref"),obj_delegate_weakref,1, NULL },
