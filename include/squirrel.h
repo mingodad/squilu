@@ -373,6 +373,8 @@ SQUIRREL_API void sq_newtableex(HSQUIRRELVM v,SQInteger initialcapacity);
 SQUIRREL_API void sq_newarray(HSQUIRRELVM v,SQInteger size);
 SQUIRREL_API void sq_newclosure(HSQUIRRELVM v,SQFUNCTION func,SQUnsignedInteger nfreevars);
 SQUIRREL_API SQRESULT sq_setparamscheck(HSQUIRRELVM v,SQInteger nparamscheck,const SQChar *typemask);
+SQUIRREL_API SQRESULT sq_setfenv(HSQUIRRELVM v,SQInteger idx, SQBool cloning);
+SQUIRREL_API SQRESULT sq_getfenv(HSQUIRRELVM v,SQInteger idx, SQBool roottable_when_null);
 SQUIRREL_API SQRESULT sq_bindenv(HSQUIRRELVM v,SQInteger idx);
 SQUIRREL_API void sq_pushstring(HSQUIRRELVM v,const SQChar *s,SQInteger len);
 SQUIRREL_API void sq_pushfstring(HSQUIRRELVM v,const SQChar *fmt, ...);

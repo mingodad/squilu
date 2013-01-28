@@ -1207,7 +1207,15 @@ static SQRESULT string_gmatch(HSQUIRRELVM v)
             0, 0, 0, 0);
     if(ms.error) return sq_throwerror(v, ms.error);
     if(ms.level){
-        sq_pushstring(v, ms.capture[0].init, ms.capture[0].len);
+        if(ms.level == 1) sq_pushstring(v, ms.capture[0].init, ms.capture[0].len);
+        else {
+            sq_newarray(v, ms.level);
+            for(int i=0; i < ms.level; ++i){
+                sq_pushinteger(v, i);
+                sq_pushstring(v, ms.capture[i].init, ms.capture[i].len);
+                sq_rawset(v, -3);
+            }
+        }
     } else {
         if(ms.end_pos > ms.start_pos) sq_pushstring(v, src + ms.start_pos, ms.end_pos-ms.start_pos+1);
         else sq_pushnull(v);
@@ -1706,6 +1714,19 @@ static SQInteger closure_bindenv(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQInteger closure_setenv(HSQUIRRELVM v)
+{
+	if(SQ_FAILED(sq_setfenv(v,1, SQFalse)))
+		return SQ_ERROR;
+	return 0;
+}
+static SQInteger closure_getenv(HSQUIRRELVM v)
+{
+	if(SQ_FAILED(sq_getfenv(v,1, SQFalse)))
+		return SQ_ERROR;
+	return 1;
+}
+
 static SQInteger closure_getinfos(HSQUIRRELVM v) {
 	SQObject o = stack_get(v,1);
 	SQTable *res = SQTable::Create(_ss(v),4);
@@ -1760,6 +1781,8 @@ SQRegFunction SQSharedState::_closure_default_delegate_funcz[]={
 	{_SC("weakref"),obj_delegate_weakref,1, NULL },
 	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
 	{_SC("bindenv"),closure_bindenv,2, _SC("c x|y|t")},
+	{_SC("setenv"),closure_setenv,2, _SC("c x|y|t")},
+	{_SC("getenv"),closure_getenv,1, _SC("c")},
 	{_SC("getinfos"),closure_getinfos,1, _SC("c")},
 	{0,0}
 };

@@ -485,7 +485,7 @@ SQRESULT sq_setparamscheck(HSQUIRRELVM v,SQInteger nparamscheck,const SQChar *ty
 	return SQ_OK;
 }
 
-SQRESULT sq_bindenv(HSQUIRRELVM v,SQInteger idx)
+SQRESULT sq_setfenv(HSQUIRRELVM v,SQInteger idx, SQBool cloning)
 {
 	SQObjectPtr &o = stack_get(v,idx);
 	if(!sq_isnativeclosure(o) &&
@@ -499,7 +499,7 @@ SQRESULT sq_bindenv(HSQUIRRELVM v,SQInteger idx)
 	SQWeakRef *w = _refcounted(env)->GetWeakRef(type(env));
 	SQObjectPtr ret;
 	if(sq_isclosure(o)) {
-		SQClosure *c = _closure(o)->Clone();
+		SQClosure *c = cloning ? _closure(o)->Clone() : _closure(o);
 		__ObjRelease(c->_env);
 		c->_env = w;
 		__ObjAddRef(c->_env);
@@ -510,20 +510,49 @@ SQRESULT sq_bindenv(HSQUIRRELVM v,SQInteger idx)
 		ret = c;
 	}
 	else { //then must be a native closure
-		SQNativeClosure *c = _nativeclosure(o)->Clone();
+		SQNativeClosure *c = cloning ? _nativeclosure(o)->Clone() : _nativeclosure(o);
 		__ObjRelease(c->_env);
 		c->_env = w;
 		__ObjAddRef(c->_env);
 		ret = c;
 	}
 	v->Pop();
-	v->Push(ret);
+	if(cloning) v->Push(ret);
 	return SQ_OK;
+}
+
+SQRESULT sq_getfenv(HSQUIRRELVM v,SQInteger idx, SQBool roottable_when_null)
+{
+	SQObjectPtr &o = stack_get(v,idx);
+	if(!sq_isnativeclosure(o) &&
+		!sq_isclosure(o))
+		return sq_throwerror(v,_SC("the source is not a closure"));
+	if(sq_isclosure(o)) {
+	    if(_closure(o)->_env) v->Push(_closure(o)->_env);
+	    else {
+	        if(roottable_when_null) sq_pushroottable(v);
+	        else sq_pushnull(v);
+	    }
+	}
+	else { //then must be a native closure
+	    if(_nativeclosure(o)->_env) v->Push(_nativeclosure(o)->_env);
+	    else {
+	        if(roottable_when_null) sq_pushroottable(v);
+	        else sq_pushnull(v);
+	    }
+	}
+	return SQ_OK;
+}
+
+SQRESULT sq_bindenv(HSQUIRRELVM v,SQInteger idx)
+{
+    return sq_setfenv(v, idx, SQTrue);
 }
 
 SQRESULT sq_getclosurename(HSQUIRRELVM v,SQInteger idx)
 {
 	SQObjectPtr &o = stack_get(v,idx);
+
 	if(!sq_isnativeclosure(o) &&
 		!sq_isclosure(o))
 		return sq_throwerror(v,_SC("the target is not a closure"));
