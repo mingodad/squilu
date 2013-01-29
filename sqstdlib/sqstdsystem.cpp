@@ -231,6 +231,39 @@ static SQRESULT  _system_sleep(HSQUIRRELVM v)
     return 0;
 }
 
+#include <sys/timeb.h>
+
+int GetMilliCount()
+{
+  // Something like GetTickCount but portable
+  // It rolls over every ~ 12.1 days (0x100000/24/60/60)
+  // Use GetMilliSpan to correct for rollover
+  timeb tb;
+  ftime( &tb );
+  int nCount = tb.millitm + (tb.time & 0xfffff) * 1000;
+  return nCount;
+}
+
+int GetMilliSpan( int nTimeStart )
+{
+  int nSpan = GetMilliCount() - nTimeStart;
+  if ( nSpan < 0 )
+    nSpan += 0x100000 * 1000;
+  return nSpan;
+}
+
+static SQRESULT _system_getmillicount (HSQUIRRELVM v) {
+    sq_pushinteger(v, GetMilliCount());
+    return 1;
+}
+
+static SQRESULT _system_getmillispan (HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_INTEGER(v, 2, nTimeStart);
+    sq_pushinteger(v, GetMilliSpan(nTimeStart));
+    return 1;
+}
+
 #define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_system_##name,nparams,pmask}
 static SQRegFunction systemlib_funcs[]={
 	_DECL_FUNC(getenv,2,_SC(".s")),
@@ -245,6 +278,8 @@ static SQRegFunction systemlib_funcs[]={
 	_DECL_FUNC(sleep, 2,_SC(".n")),
 	_DECL_FUNC(tmpname,1,_SC(".")),
 	_DECL_FUNC(setlocale,-1,_SC(".ss")),
+	_DECL_FUNC(getmillicount,1,_SC(".")),
+	_DECL_FUNC(getmillispan,2,_SC(".i")),
 	{0,0}
 };
 #undef _DECL_FUNC
