@@ -1,0 +1,75 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0300 
+i18n_type 1 
+i18n_include i18n_function.h 
+i18n_function _tr 
+header_name {.h} 
+code_name {.cxx}
+decl {\#include "My_Base_App.h"} {public global
+} 
+
+widget_class AppConfigEditWindow {
+  label {Application Configuration List / Edit} open
+  xywh {730 45 500 494} type Double labelsize 16 resizable
+  class Edit_Base_Window visible
+} {
+  Fl_Browser grid {
+    xywh {5 5 490 200} type Multi labeltype NO_LABEL labelsize 16 textsize 16 resizable
+    class Fl_Data_Table
+  }
+  Fl_Group editGroup {open
+    xywh {5 215 490 269} box ENGRAVED_BOX color 246 labelsize 16 align 8
+  } {
+    Fl_Output db_config_id {
+      label ID
+      macro_name {db config id}
+      xywh {15 240 82 26} labelsize 16 align 5 textsize 16
+      code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+    }
+    Fl_Output db_config_cdate {
+      label CDate
+      macro_name {db config cdate}
+      xywh {115 240 120 25} labelsize 16 align 5 textsize 16
+      code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+    }
+    Fl_Output db_config_mdate {
+      label MDate
+      macro_name {db config mdate}
+      xywh {255 240 120 25} labelsize 16 align 5 textsize 16
+      code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+    }
+    Fl_Check_Button db_config_is_active {
+      label Active
+      macro_name {db config is_active}
+      xywh {385 242 100 23} down_box DOWN_BOX labelsize 16
+      code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+    }
+    Fl_Input db_config_key {
+      label Key
+      macro_name {db config key}
+      xywh {15 292 350 25} labelsize 16 align 5 textfont 1 textsize 16
+      code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+    }
+    Fl_Input db_config_value {
+      label Value
+      macro_name {db config value} selected
+      xywh {15 345 350 25} labelsize 16 align 5 textfont 1 textsize 16
+      code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+    }
+    Fl_Choice dbAction {
+      dirty_name {@dbAction} open
+      xywh {380 310 105 25} down_box BORDER_BOX labeltype NO_LABEL labelsize 16 textsize 16
+    } {}
+    Fl_Button btnDbAction {
+      label Action
+      dirty_name {@btnDbAction}
+      xywh {380 345 105 25} labelsize 16
+    }
+    Fl_Input db_config_notes {
+      label Notes
+      macro_name {db config notes}
+      xywh {15 398 470 76} type Multiline labelsize 16 align 5 textsize 16
+      code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+    }
+  }
+} 
