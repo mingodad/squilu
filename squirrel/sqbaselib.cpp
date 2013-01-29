@@ -951,6 +951,13 @@ static SQInteger array_getdelegate(HSQUIRRELVM v)
 {
 	return SQ_SUCCEEDED(sq_getdelegate(v,-1))?1:SQ_ERROR;
 }
+
+static SQInteger array_empty(HSQUIRRELVM v)
+{
+	sq_pushbool(v,sq_getsize(v,1) == 0);
+	return 1;
+}
+
 //DAD end
 
 SQRegFunction SQSharedState::_array_default_delegate_funcz[]={
@@ -980,6 +987,7 @@ SQRegFunction SQSharedState::_array_default_delegate_funcz[]={
 	{_SC("concat2"),array_concat2,-1, _SC("as")},
 	{_SC("getdelegate"),array_getdelegate,1, _SC(".")},
 	{_SC("get"),container_rawget, -2, _SC("ai.")},
+	{_SC("empty"),array_empty, 1, _SC("a")},
 	{0,0}
 };
 
