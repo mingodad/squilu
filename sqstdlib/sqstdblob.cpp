@@ -128,6 +128,16 @@ static SQInteger _blob_resize(HSQUIRRELVM v)
 	return 0;
 }
 
+static SQInteger _blob_reserve(HSQUIRRELVM v)
+{
+	SETUP_BLOB(v);
+	SQInteger size;
+	sq_getinteger(v,2,&size);
+	if(!self->GrowBufOf(size))
+		return sq_throwerror(v,_SC("reserve failed"));
+	return 0;
+}
+
 static void __swap_dword(unsigned int *n)
 {
 	*n=(unsigned int)(((*n&0xFF000000)>>24)  |
@@ -310,6 +320,7 @@ static SQInteger _blob_clear(HSQUIRRELVM v)
 static SQRegFunction _blob_methods[] = {
 	_DECL_BLOB_FUNC(constructor,-1,_SC("xnn")),
 	_DECL_BLOB_FUNC(resize,2,_SC("xn")),
+	_DECL_BLOB_FUNC(reserve,2,_SC("xn")),
 	_DECL_BLOB_FUNC(swap2,1,_SC("x")),
 	_DECL_BLOB_FUNC(swap4,1,_SC("x")),
 	_DECL_BLOB_FUNC(memset,4,_SC("xiii")),
