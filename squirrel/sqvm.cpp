@@ -3,6 +3,7 @@
 */
 #include "sqpcheader.h"
 #include <math.h>
+#include <limits.h>
 #include <stdlib.h>
 #include "sqopcodes.h"
 #include "sqvm.h"
@@ -52,7 +53,10 @@ bool SQVM::BW_OP(SQUnsignedInteger op,SQObjectPtr &trg,const SQObjectPtr &o1,con
 { \
 	SQInteger tmask = type(o1)|type(o2); \
 	switch(tmask) { \
-		case OT_INTEGER: { SQInteger i2 = _integer(o2); if(i2 == 0) { Raise_Error(err); SQ_THROW(); } trg = _integer(o1) op i2; } break;\
+		case OT_INTEGER: { SQInteger i1 = _integer(o1); SQInteger i2 = _integer(o2);\
+            if(i2 == 0) { Raise_Error(err); SQ_THROW(); } \
+            else if(i2 == -1 && i1 == INT_MIN) { trg = 0; break; }\
+            trg = i1 op i2; } break;\
 		case (OT_FLOAT|OT_INTEGER): \
 		case (OT_FLOAT): trg = tofloat(o1) op tofloat(o2); break;\
 		default: _GUARD(ARITH_OP((#op)[0],trg,o1,o2)); break;\
@@ -62,17 +66,21 @@ bool SQVM::BW_OP(SQUnsignedInteger op,SQObjectPtr &trg,const SQObjectPtr &o1,con
 bool SQVM::ARITH_OP(SQUnsignedInteger op,SQObjectPtr &trg,const SQObjectPtr &o1,const SQObjectPtr &o2)
 {
 	SQInteger tmask = type(o1)|type(o2);
+
 	switch(tmask) {
 		case OT_INTEGER:{
 			SQInteger res, i1 = _integer(o1), i2 = _integer(o2);
 			switch(op) {
 			case '+': res = i1 + i2; break;
 			case '-': res = i1 - i2; break;
-			case '/': if(i2 == 0) { Raise_Error(_SC("division by zero")); return false; }
+			case '/':
+                    if(i2 == 0) { Raise_Error(_SC("division by zero")); return false; }
+                    else if(i2 == -1 && i1 == INT_MIN) { res = 0; break; }
 					res = i1 / i2;
 					break;
 			case '*': res = i1 * i2; break;
 			case '%': if(i2 == 0) { Raise_Error(_SC("modulo by zero")); return false; }
+                    else if(i2 == -1 && i1 == INT_MIN) { res = 0; break; }
 					res = i1 % i2;
 					break;
 			default: res = 0xDEADBEEF;
