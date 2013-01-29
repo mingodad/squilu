@@ -96,7 +96,7 @@ enum HTTP_status_code {
 // ------------------------------------------------
 
 enum Connection_State { IDLE, REQ_STARTED, REQ_SENT };
-class Connection {
+class HappyHttpConnection {
 	m_Port = null;
 	m_Host = null;
 	m_State = null;
@@ -231,7 +231,7 @@ class Connection {
 		putheader("Accept-Encoding", "identity");
 
 		// Push a new response onto the queue
-		local r = new Response( method, url, this );
+		local r = new HappyHttpResponse( method, url, this );
 		m_Outstanding.push( r );
 	}
 
@@ -290,7 +290,7 @@ enum Response_state {
 		COMPLETE,		// response is complete!
 	};
 	
-class Response {
+class HappyHttpResponse {
 	m_Connection = null; 	// to access callback ptrs
 	m_Method = null; 		// req method: "GET", "POST" etc...
 	m_Url = null; 			// req url: /image.php?d=2...
@@ -630,7 +630,8 @@ class Response {
 	}
 }
 
-class MyConnection extends Connection {
+/*
+class MyHappyHttpConnection extends HappyHttpConnection {
 	count = null;
 	
 	constructor(host, port){
@@ -651,7 +652,12 @@ class MyConnection extends Connection {
 }
 
 function test_happyhttp(){
-	local conn = MyConnection( "www.scumways.com", 80);
+	local start = os.getmillicount();
+	local conn = MyHappyHttpConnection( "www.scumways.com", 80);
 	conn.request( "GET", "/happyhttp/test.php" );
 	while( conn.outstanding() ) conn.pump();
+	print(format("Took : %d ms", os.getmillispan(start)));
 }
+
+test_happyhttp();
+*/
