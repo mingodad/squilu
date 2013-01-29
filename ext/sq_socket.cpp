@@ -601,12 +601,12 @@ static int buffer_meth_send(HSQUIRRELVM v, p_buffer buf) {
     size_t sent = 0;
     SQ_GET_STRING(v, 2, data);
     SQ_OPT_INTEGER(v, 3, start, 0);
-    SQ_OPT_INTEGER(v, 3, end, -1);
+    SQ_OPT_INTEGER(v, 4, end, -1);
 #ifdef LUASOCKET_DEBUG
     p_timeout tm =
 #endif
     lua_timeout_markstart(buf->tm);
-    if (start < 0) start = (data_size+start+1);
+    if (start < 0) start = (data_size+start);
     if (end < 0) end = (data_size+end+1);
     if (start < 0) start = 0;
     if (end > data_size) end = data_size;
@@ -615,7 +615,7 @@ static int buffer_meth_send(HSQUIRRELVM v, p_buffer buf) {
     if (err != IO_DONE) {
         return sq_throwerror(v, buf->io->error(buf->io->ctx, err));
     } else {
-        sq_pushinteger(v, sent+start-1);
+        sq_pushinteger(v, sent+start);
     }
 #ifdef LUASOCKET_DEBUG
     /* push time elapsed during operation as the last return value */
@@ -654,15 +654,15 @@ static int buffer_meth_receive(HSQUIRRELVM v, p_buffer buf) {
         SQ_GET_INTEGER(v, 2, recv_size);
         err = recvraw(buf, (size_t) recv_size-prefix_size, b);
     }
+    sq_newarray(v,2);
+    sq_pushinteger(v, 0);
+    sq_pushstring(v, (const SQChar*)b.GetBuf(), b.Len());
+    sq_rawset(v, -3);
+    sq_pushinteger(v, 1);
+    sq_pushinteger(v, err);
+    sq_rawset(v, -3);
     /* check if there was an error */
-    if (err != IO_DONE) {
-        return sq_throwerror(v, buf->io->error(buf->io->ctx, err));
-        /* we can't push anyting in the stack before pushing the
-         * contents of the buffer. this is the reason for the complication */
-
-    } else {
-        sq_pushstring(v, (const SQChar*)b.GetBuf(), b.Len());
-    }
+    //if (err != IO_DONE) return sq_throwerror(v, buf->io->error(buf->io->ctx, err));
 #ifdef LUASOCKET_DEBUG
     /* push time elapsed during operation as the last return value */
     buf->elapsed = timeout_gettime() - timeout_getstart(tm);
@@ -1391,12 +1391,12 @@ static int global_select(HSQUIRRELVM v) {
     SQ_OPT_FLOAT(v, 4, t, -1);
     FD_ZERO(&rset); FD_ZERO(&wset);
     sq_settop(v, 4);
-    sq_newarray(v, 0); itab = sq_gettop(v);
+    sq_newtable(v); itab = sq_gettop(v);
     sq_newarray(v, 0); rtab = sq_gettop(v);
     sq_newarray(v, 0); wtab = sq_gettop(v);
     max_fd = collect_fd(v, 2, SOCKET_INVALID, itab, &rset);
     ndirty = check_dirty(v, 2, rtab, &rset);
-    t = ndirty > 0? 0.0: t;
+    t = ndirty > 0 ? 0.0: t;
     lua_timeout_init(&tm, t, -1);
     lua_timeout_markstart(&tm);
     max_fd = collect_fd(v, 3, max_fd, itab, &wset);
@@ -1404,15 +1404,13 @@ static int global_select(HSQUIRRELVM v) {
     if (ret > 0 || ndirty > 0) {
         return_fd(v, &rset, max_fd+1, itab, rtab, ndirty);
         return_fd(v, &wset, max_fd+1, itab, wtab, 0);
-        make_assoc(v, rtab);
-        make_assoc(v, wtab);
         sq_newarray(v, 2);
         sq_pushinteger(v, 0);
         sq_push(v, rtab);
-        sq_rawset(v, -2);
+        sq_rawset(v, -3);
         sq_pushinteger(v, 1);
         sq_push(v, wtab);
-        sq_rawset(v, -2);
+        sq_rawset(v, -3);
         return 1;
     } else if (ret == 0) {
         return sq_throwerror(v, _SC("timeout"));
@@ -1469,8 +1467,7 @@ static int dirty(HSQUIRRELVM v) {
 static t_socket collect_fd(HSQUIRRELVM v, int tab, t_socket max_fd,
         int itab, fd_set *set) {
     int i = 0;
-    if (sq_gettype(v, tab) == OT_NULL)
-        return max_fd;
+    if (sq_gettype(v, tab) == OT_NULL) return max_fd;
     while (1) {
         t_socket fd;
         sq_pushinteger(v, i);
@@ -1485,7 +1482,7 @@ static t_socket collect_fd(HSQUIRRELVM v, int tab, t_socket max_fd,
             sq_rawset(v, itab);
         }
         sq_pop(v, 1);
-        i = i + 1;
+        ++i;
     }
     return max_fd;
 }
@@ -1506,7 +1503,7 @@ static int check_dirty(HSQUIRRELVM v, int tab, int dtab, fd_set *set) {
             FD_CLR(fd, set);
         }
         sq_pop(v, 1);
-        i = i + 1;
+        ++i;
     }
     return ndirty;
 }
@@ -1516,33 +1513,14 @@ static void return_fd(HSQUIRRELVM v, fd_set *set, t_socket max_fd,
     t_socket fd;
     for (fd = 0; fd < max_fd; fd++) {
         if (FD_ISSET(fd, set)) {
-            sq_pushinteger(v, ++start);
             sq_pushinteger(v, fd);
             sq_rawget(v, itab);
-            sq_rawset(v, tab);
+            sq_arrayappend(v, tab);
         }
     }
 }
 
-static void make_assoc(HSQUIRRELVM v, int tab) {
-    int i = 0, atab;
-    sq_newarray(v, 0); atab = sq_gettop(v);
-    while (1) {
-        sq_pushinteger(v, i);
-        if(sq_rawget(v, tab) == SQ_ERROR) break;
-        if (sq_gettype(v, -1) != OT_NULL) {
-            sq_pushinteger(v, i);
-            sq_push(v, -2);
-            sq_rawset(v, atab);
-            sq_pushinteger(v, i);
-            sq_rawset(v, atab);
-        } else {
-            sq_pop(v, 1);
-            break;
-        }
-        i = i+1;
-    }
-}
+#define INT_CONST(v,num) 	sq_pushstring(v,_SC(#num),-1);sq_pushinteger(v,num);sq_newslot(v,-3,SQTrue);
 
 #ifdef __cplusplus
 extern "C" {
@@ -1552,6 +1530,13 @@ extern "C" {
     {
         sq_pushliteral(v,_SC("socket"));
         sq_newtable(v);
+
+        INT_CONST(v, IO_DONE);
+        INT_CONST(v, IO_TIMEOUT);
+        INT_CONST(v, IO_CLOSED);
+        INT_CONST(v, IO_UNKNOWN);
+        INT_CONST(v, IO_SSL);
+
         sq_insertfunc(v, _SC("gethostname"), inet_global_gethostname, 1, _SC("."), SQTrue);
         sq_insertfunc(v, _SC("gettime"), timeout_lua_gettime, 1, _SC("."), SQTrue);
         sq_insertfunc(v, _SC("select"), global_select, -3, _SC(".aan"), SQTrue);
