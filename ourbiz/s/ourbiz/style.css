@@ -1,0 +1,52 @@
+body {
+font: 100% verdana, arial, sans-serif;
+background-color: #fff;
+margin: 50px;
+}
+
+.box  {
+  background-color: #ffff00;
+  border: 1px solid #000000;
+  color: #000000;
+  padding: 0px;
+  position: absolute;
+}
+
+.bar {
+  background-color: #008080;
+  color: #ffffff;
+  cursor: move;
+  font-weight: bold;
+  padding: 3px 1em 3px 1em;
+}
+
+.content {
+  padding: 1em;
+}
+
+.keyLink {
+	position: absolute;
+	top: 1px;
+	right: 2px;
+	width: 20px;
+	height: 20px;
+	border: 1px solid #000000;
+	background-image: none;
+	font-size: 120%;
+	text-align: center;
+	padding: 0;
+	background-color: #ffffff;
+	opacity: .5;
+}
+
+.kl1 {right: +74px;}
+.kl2 {right: +50px;}
+.kl3 {right: +26px;}
+
+.fw {
+	width:100%;
+}
+
+}
+
+/* end css tabs */

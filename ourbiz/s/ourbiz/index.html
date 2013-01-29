@@ -1,0 +1,249 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>OURBIZ</title>
+<meta http-equiv="X-UA-Compatible" content="IE=9" >
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<!--<link href="style.css" rel="stylesheet" type="text/css" />-->
+<!--<script type="text/javascript" src="midori.js"></script>-->
+
+<style type="text/css">
+body, html {
+	height: 100%;
+	margin: 0;
+	padding: 0;
+}
+body, input, textarea, select, button {
+font-family: "Helvetica Neue", arial, sans-serif;
+font-size: 100%;
+/*font: 100% verdana, arial, sans-serif;*/
+}
+
+body {
+background-color: #fff;
+margin: 50px;
+background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGBAMAAAAS4vJ7AAAAG1BMVEXS4erj7PHf6O3g6O729vby8vLx8fHh6u%2Fz8%2FOBUUhCAAAAIElEQVQIHWNgFFJkMAlJYShzaWMQS3Nh0EhzY1BxSQMAM84Ew1msm%2BsAAAAASUVORK5CYII%3D");
+}
+
+.box  {
+  background-color: #ffff00;
+  border: 1px solid #000000;
+  color: #000000;
+  padding: 0px;
+  position: absolute;
+}
+
+.bar {
+  background-color: #008080;
+  color: #ffffff;
+  cursor: move;
+  /*font-weight: bold;*/
+  padding: 3px .5em 3px .5em;
+}
+
+.content {
+  padding: 0.5em;
+}
+
+.bold {font-weight:bold;}
+
+.keyLink {
+	position: absolute;
+	top: 1px;
+	right: 2px;
+	width: 20px;
+	height: 20px;
+	border: 1px solid #000000;
+	background-image: none;
+	font-size: 120%;
+	text-align: center;
+	padding: 0;
+	background-color: #ffffff;
+	opacity: .5;
+}
+
+.kl1 {right: +74px;}
+.kl2 {right: +50px;}
+.kl3 {right: +26px;}
+
+.resizeable {
+	border: 2px solid #888; 
+	padding: 2px;
+	background-color: #fff;
+}
+.winDiv {cursor: auto; overflow:auto;}
+.noWinOpt {display:none;}
+.winOpt {width:.3em;}
+.winOpt a {
+	color:#fff; border: 2px solid #aaa; width:.3em; 
+	font-weight:bold; text-decoration: none; 
+	font-size: 80%;
+	padding: 0 .5em 0 .5em;
+}
+.divTable {border: 1px solid #888; background: #FFFFFF;}
+.winContent {padding: 5px; width:98%;height:98%;}
+.winContent td {vertical-align:top;}
+.trvam td {vertical-align:middle;}
+.minw td {width:10px;}
+.draggable, .winheader { cursor: move; }
+.winTitle {
+    color: #eee; background: #696f77; text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#696f77), color-stop(100%,#28343b));
+    background: -webkit-linear-gradient(top, #696f77 0%,#28343b 100%); background: -ms-linear-gradient(top, #696f77 0%,#28343b 100%); 
+}
+
+.winHeader {
+	border: 0px solid #ddf; 
+	text-indent:10px; 
+	padding-top:2px;
+	cursor:move;
+}
+
+/*
+fieldset {padding:10px 30px;margin:0;border:1px solid #ccc;-moz-border-radius:1em;-webkit-border-radius:1em;border-radius:1em;border-bottom-width:10px;}
+legend {color:#333;padding:0 10px;margin:0;font-size:1.5em;font-weight:400;}
+*/
+
+.searchBox, .editBox {background-color: #aaf; padding: 2px; margin: 2px;}
+
+/*table*/
+table {border-collapse:collapse;}
+
+.wrappedTable {width:100%;}
+.wrappedTable th {
+  color: #eee; background: #4e8c0b; text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+	border: 1px solid #fff;
+}
+.wrappedTable tr td {border: 1px solid #ccc; padding-left: 5px; padding-right:5px;}
+.wrappedTable tr:hover td { background: #CAEFFD; color: #0768B3; cursor: pointer; }
+.orders_list tr:nth-child(3) {white-space:nowrap;}
+.orders_lines tfoot tr:nth-last-child(1) {white-space:nowrap;}
+tr.odd {background-color: #cfc;}
+.cell_id, .cell_pct, .cell_money {text-align:right; padding-right:5px;}
+.cell_text {padding-left:5px;}
+.cell_bool {text-align:center;}
+
+.display_none, .display_none_c {display:none;}
+
+
+.searchBox, .editBox {
+	padding: 0;
+	background: #6fb2e5;
+	white-space:nowrap;
+	box-shadow: 0 1px 5px #0061aa, inset 0 10px 20px #b6f9ff;
+	-o-box-shadow: 0 1px 5px #0061aa, inset 0 10px 20px #b6f9ff;
+	-webkit-box-shadow: 0 1px 5px #0061aa, inset 0 10px 20px #b6f9ff;
+	-moz-box-shadow: 0 1px 5px #0061aa, inset 0 10px 20px #b6f9ff;
+}
+
+/*tabs*/
+.editForm {background-color: #ffe0a7;}
+tr.tabContent { 
+	border: 1px solid #c9c3ba; 
+	padding: 0.2em; 
+	background-color: #ffc660; /*#f1f0ee; */
+	height:90%;
+}
+tr.tabContent.hide { display: none; }
+tr.tabs { margin: 0.5em 0 0 0; padding: 0 0 0.3em 0; }
+tr.tabs button { 
+	display: inline;
+	color: #42454a; background-color: #dedbde; 
+	border: 1px solid #c9c3ba; border-bottom: none; 
+	padding: 0.3em; text-decoration: none; 
+}
+tr.tabs button:hover { background-color: #f1f0ee; }
+tr.tabs button.selected { color: #000; background-color: #f1f0ee; 
+	font-weight: bold; padding: 0.3em 0.3em 0.38em 0.3em; 
+}
+.mainmenu tr.tabContent button {width:100%; display:block;padding: 0.5em;}
+.mainmenu tr.tabContent button.cfg {padding: 0.2em;}
+
+/*tbody.firstRight tr > td:first-child {text-align:right;padding-right:5px;}*/
+tr.fcr  td:first-child {text-align:right;padding-right:5px;}
+.tal {text-align:left;}
+/*
+tbody.firstRight tr > td:nth-child(2) input {width:7em;}
+tbody.firstRight tr > td:nth-child(4) input {width:7em;}
+*/
+.size9 {width:7em;}
+.fw {width:99%;}
+
+.hcenter {text-align:center;}
+.vright {text-align:right;}
+.tcvright_c {text-align:right;}
+.cc_days th {
+	background-color:green;
+	color:white;
+	border: 1px solid #fff;
+}
+.cc_days tr td {border: 1px solid green;}
+.cc_month button {font-size: 80%;}
+.cc_month button, .cc_nav button {width: 15%; font-weight: bold;}
+.cc_days td {text-align:center; width:14%;}
+.cc_days input {width:2em;text-align:right;border:0px;background-color:inherit;}
+.cc_days td:hover {background-color:yellow;}
+
+input:focus, textarea:focus, select:focus {background-color: yellow;} 
+input[type=checkbox]:focus + label, input[type=radio]:focus + label {
+	background-color: yellow;
+}
+
+.context-menu {
+	visibility:hidden; /* No, you cannot use display:none; */
+	position:absolute;
+	border:1px solid #666;
+	margin:0;
+	padding:3px;
+	list-style:none;
+	width:100px;
+	background-color:#eee;
+} 
+.context-menu li:hover, .context-menu .context-menu-item-active {
+	background-color:#ccc;
+}
+.disabled {
+	color:#999;
+	background-color:#eee !important;
+}
+
+.divTree li:hover {background-color:#ccc;}
+
+</style>
+
+<!--[if gt IE 5]>
+<!--[if lt IE 9]>
+<style type="text/css" media="screen">
+.winOpt {width:2%;}
+</style>
+<script type="text/javascript" src="excanvas.js"></script>
+<![endif]-->
+<![endif]-->
+
+<script type="text/javascript" src="jaml.js"></script>
+<script type="text/javascript" src="app-base.js"></script>
+<script type="text/javascript" src="dadlib.js"></script>
+<script type="text/javascript" src="ajax-data-table.js"></script>
+<script type="text/javascript" src="barchart.js"></script>
+<script type="text/javascript" src="calendar-chooser.js"></script>
+<script type="text/javascript" src="listsearch.js"></script>
+<script type="text/javascript" src="sales-tax-rates.js"></script>
+<script type="text/javascript" src="groups.js"></script>
+<script type="text/javascript" src="order-types.js"></script>
+<script type="text/javascript" src="payment-types.js"></script>
+<script type="text/javascript" src="measure-units.js"></script>
+<script type="text/javascript" src="warranty-types.js"></script>
+<script type="text/javascript" src="entities.js"></script>
+<script type="text/javascript" src="products.js"></script>
+<script type="text/javascript" src="payments.js"></script>
+<script type="text/javascript" src="orders.js"></script>
+<script type="text/javascript" src="gl-groups.js"></script>
+<script type="text/javascript" src="gl-chart.js"></script>
+<script type="text/javascript" src="gl-transactions.js"></script>
+<script type="text/javascript" src="main-menu.js"></script>
+
+</head>
+<body>
+<div id="logShow"></div>
+</body>
+</html>

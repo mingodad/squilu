@@ -1,0 +1,1 @@
+for %%f in (*) do COPY /B %%f +,,

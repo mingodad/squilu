@@ -1,0 +1,258 @@
+/*
+Design by Free Responsive Templates
+http://www.free-responsive-templates.com
+Released for free under a Creative Commons Attribution 3.0 Unported License (CC BY 3.0)
+*/ 
+* {
+	margin:0;
+	padding:0;
+}
+body {
+	font-family: verdana, serif;
+	font-size:14px;
+	background: url(../images/siteBackground.jpg);
+	margin: 0;
+	padding: 0;
+	color: rgb(50, 60, 70);	
+}
+a img { 
+	border: none;
+}
+a:link {
+	color: #0484c0;
+	text-decoration: underline; 
+}
+a:visited {
+	color: #0484c0;
+	text-decoration: underline;
+}
+a:hover, a:active, a:focus { 
+	color: #0484c0;
+	text-decoration: none;
+}
+h1 {
+	font-size:30px;
+	color:#8dc35a;
+	font-family: verdana, sans-serif;
+	padding: 0 0 10px 0;
+}
+h2 {
+	font-size:24px;
+	color:#ffffff;
+	font-family: verdana, sans-serif;
+	padding: 0 0 10px 0;
+	text-shadow: 0px 0px, 1px 3px #b8bec0;
+}
+h3 {
+	font-size:30px;
+	color:#677a83;
+	font-family: verdana, sans-serif;
+	padding: 0 0 10px 0;
+}
+p {
+	line-height:140%;
+}
+.wrapper {
+	width:960px;
+	margin:40px auto;
+	background: #ffffff;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+	padding-bottom:50px;
+}
+header {
+	padding:50px 50px 10px 50px;
+}
+.logo {
+	float: left;
+	background: url(../images/logoBackground.png) no-repeat;
+	width: 122px;
+	height: 123px;
+}
+.logo h1 a {
+	text-shadow: 0px 0px, 1px 2px #5b9e11;
+	font-size:60px;
+	color: #ffffff;
+	text-decoration:none;
+	padding:10px;
+	line-height:110px;
+}
+footer {
+	text-align:center;
+	padding-bottom:40px
+}
+.horSeparator {
+	background:url(../images/horSeparator.png) repeat-x;
+	height:13px;
+	margin:20px 0;
+}
+section {
+	padding:0 50px;
+}
+.post {
+	border-bottom:1px solid rgba(200, 207, 210, 1);
+	padding:50px 0;
+	margin:0 50px;
+}
+.post header {
+	float:right;
+	width:519px;
+	padding:0;
+}
+.post p {
+	float:right;
+	width:519px;
+}
+.post aside img {
+	border:1px solid #c8cfd2;
+	margin:10px 0 0 0;
+}
+.sectionFooter {
+	background: #d6d9da;
+	padding:40px 0;
+	margin:0 50px;
+	border-top:1px solid #ffffff;
+}
+.footerBox {
+	width:40%;
+	float:left;
+	padding:0 40px;
+}
+.footerBox p {
+	font-style:italic;
+	padding:0 0px 10px 0px;
+}
+.clearfloat { 
+	clear:both;
+	height:0;
+	font-size: 1px;
+	line-height: 0px;
+}
+
+  
+/**************************/
+/*********************************Begin main menu****************************************/
+/**************************/
+nav {
+	float:right;
+	padding:40px 0 0 0;
+}
+ul#navlist {
+	margin-left: 0;
+	padding-left: 0;
+	white-space: nowrap;
+}
+#navlist li {
+	display: inline;
+	list-style-type: none;
+}
+#navlist a { 
+	padding: 3px 10px; 
+	font-family: 'Lobster', sans-serif;
+	font-size: 36px;
+	color: #677a83;
+}
+#navlist a:link, #navlist a:visited {
+	color: #677a83;
+	text-decoration: none;
+}
+#navlist a:hover {
+	color: #8dc35a;
+	text-decoration: none;
+}
+#navlist #active a {
+	color: #8dc35a;
+	text-decoration: none;
+}
+/**************************/
+/*********************************End main menu****************************************/
+/**************************/
+/*********************************Begin Media Queries****************************************/
+/**************************/
+/* for 980px or less */
+@media screen and (max-width: 980px) {
+	.wrapper {
+		width: 95%;
+	}
+}
+/* for 768px or less */
+@media screen and (max-width: 768px) {
+	h1, h2, h3 {
+		font-size:24px;
+	}
+	header {
+		padding:20px 50px 0px 50px;
+	}
+	.post {
+		padding:20px 0;
+	}
+	.post header, .post p {
+		width:400px;
+	}
+	article aside {
+		width: 170px;
+	}
+	.footerBox {
+		padding:0 20px;
+	}
+	.footerBox p {
+		padding:0 0 10px 0;
+	}
+	#navlist a { 
+		padding: 3px 10px; 
+		font-size: 24px;
+	}
+}
+/* for 480px or less */
+@media screen and (max-width: 480px) {
+	.wrapper {
+		margin-top:10px;
+	}
+	header {
+		padding:10px 10px 0px 10px;
+	}
+	.logo {
+		float:none;
+		margin:0 auto;
+	}
+	nav {
+		float:none;
+		padding:5px 0 0 0;
+	}
+	#navlist a { 
+		padding: 7px 2px; 
+		font-family: 'Lobster', sans-serif;
+		font-size: 16px;
+		color: #677a83;
+	}
+	section {
+		padding:0 10px;
+	}
+	article aside {
+		display:none;
+	}
+	.post {
+		padding:10px 0;
+		margin:0 10px;
+	}
+	.post header, .post p {
+		width:auto;
+		float:none;
+	}
+	.sectionFooter {
+		padding:10px 0;
+		margin:0 10px;
+	}
+	.footerBox {
+		width:auto;
+		float:none;
+		padding:10px;
+	}
+}
+img {
+	max-width: 100%;
+	height: auto;
+	width: auto;
+}
+/**************************/
+/*********************************End Media Queries****************************************/
+/**************************/
