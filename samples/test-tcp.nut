@@ -3,7 +3,7 @@ function download(host, file, extra_header=null){
 	sock.connect(host, 80);
 	local info = sock.getpeername()
 	print(info.address, info.port);
-	//sock.settimeout(1, "t");
+	//sock.settimeout(1);
 
 	local count = 0;    // counts number of bytes read
 	local req = "GET " + file + " HTTP/1.1\r\nHost: " + host + "\r\n";
@@ -11,21 +11,24 @@ function download(host, file, extra_header=null){
 	req += "\r\n";
 	print(req, req.len());
 	sock.send(req);
-	local s
+	local s, rc;
 	local tbl = {};
 	local len = 0;
 	while (true){
-		s = sock.receive("*l");
-		print("s", s);
+		rc = sock.receive("*l");
+		s = rc[0];
+		print("s", s, rc[1]);
 		//if err == "closed" then break end
 		if (s.len() == 0) break;
+		//if (rc[1] == socket.IO_CLOSED) break;
 		local slen;
 		s.gmatch("Content%-Length: (%d+)", function(m){ slen=m; return false;});
 		if (slen) {
 			len = slen.tointeger();
 		}
 	}
-	s = sock.receive(len);
+	rc = sock.receive(len);
+	s = rc[0];
 	sock.close();
 	//print(file, count)
 	return s;
