@@ -95,6 +95,27 @@ void sq_seterrorhandler(HSQUIRRELVM v)
 	}
 }
 
+SQRESULT sq_geterrorhandler(HSQUIRRELVM v)
+{
+    v->Push(v->_errorhandler);
+	return 1;
+}
+
+void sq_setatexithandler(HSQUIRRELVM v)
+{
+	SQObject o = stack_get(v, -1);
+	if(sq_isclosure(o) || sq_isnativeclosure(o) || sq_isnull(o)) {
+		v->_atexithandler = o;
+		v->Pop();
+	}
+}
+
+SQRESULT sq_getatexithandler(HSQUIRRELVM v)
+{
+    v->Push(v->_atexithandler);
+	return 1;
+}
+
 void sq_setnativedebughook(HSQUIRRELVM v,SQDEBUGHOOK hook)
 {
 	v->_debughook_native = hook;

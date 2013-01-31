@@ -65,6 +65,7 @@ public:
 
 	void CallDebugHook(SQInteger type,SQInteger forcedline=0);
 	void CallErrorHandler(SQObjectPtr &e);
+	void CallAtExitHandler();
 	bool Get(const SQObjectPtr &self, const SQObjectPtr &key, SQObjectPtr &dest, bool raw, SQInteger selfidx);
 	SQInteger FallBackGet(const SQObjectPtr &self,const SQObjectPtr &key,SQObjectPtr &dest);
 	bool InvokeDefaultDelegate(const SQObjectPtr &self,const SQObjectPtr &key,SQObjectPtr &dest);
@@ -152,6 +153,7 @@ public:
 	SQObjectPtr _lasterror;
 	SQStackInfos _lasterror_stackinfo;
 	SQObjectPtr _errorhandler;
+	SQObjectPtr _atexithandler;
 
 	bool _debughook;
 	SQDEBUGHOOK _debughook_native;

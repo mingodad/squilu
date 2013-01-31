@@ -93,6 +93,22 @@ static SQInteger base_seterrorhandler(HSQUIRRELVM v)
 	return 0;
 }
 
+static SQInteger base_geterrorhandler(HSQUIRRELVM v)
+{
+	return sq_geterrorhandler(v);
+}
+
+static SQInteger base_setatexithandler(HSQUIRRELVM v)
+{
+	sq_setatexithandler(v);
+	return 0;
+}
+
+static SQInteger base_getatexithandler(HSQUIRRELVM v)
+{
+	return sq_getatexithandler(v);
+}
+
 static SQInteger base_setdebughook(HSQUIRRELVM v)
 {
 	sq_setdebughook(v);
@@ -318,7 +334,10 @@ static SQInteger base_str_from_chars (HSQUIRRELVM v) {
 
 static SQRegFunction base_funcs[]={
 	//generic
-	{_SC("seterrorhandler"),base_seterrorhandler,2, NULL},
+	{_SC("setatexithandler"),base_setatexithandler,2, _SC(".c")},
+	{_SC("getatexithandler"),base_getatexithandler,1, NULL},
+	{_SC("seterrorhandler"),base_seterrorhandler,2, _SC(".c")},
+	{_SC("geterrorhandler"),base_geterrorhandler,1, NULL},
 	{_SC("setdebughook"),base_setdebughook,2, NULL},
 	{_SC("enabledebuginfo"),base_enabledebuginfo,2, NULL},
 	{_SC("getstackinfos"),base_getstackinfos,2, _SC(".n")},

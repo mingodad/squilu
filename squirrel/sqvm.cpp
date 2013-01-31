@@ -55,7 +55,7 @@ bool SQVM::BW_OP(SQUnsignedInteger op,SQObjectPtr &trg,const SQObjectPtr &o1,con
 	switch(tmask) { \
 		case OT_INTEGER: { SQInteger i1 = _integer(o1); SQInteger i2 = _integer(o2);\
             if(i2 == 0) { Raise_Error(err); SQ_THROW(); } \
-            else if(i2 == -1 && i1 == INT_MIN) { trg = 0; break; }\
+            else if(i2 == -1 && i1 == INT_MIN) { Raise_Error(_SC("integer overflow")); SQ_THROW(); }\
             trg = i1 op i2; } break;\
 		case (OT_FLOAT|OT_INTEGER): \
 		case (OT_FLOAT): trg = tofloat(o1) op tofloat(o2); break;\
@@ -75,7 +75,7 @@ bool SQVM::ARITH_OP(SQUnsignedInteger op,SQObjectPtr &trg,const SQObjectPtr &o1,
 			case '-': res = i1 - i2; break;
 			case '/':
                     if(i2 == 0) { Raise_Error(_SC("division by zero")); return false; }
-                    else if(i2 == -1 && i1 == INT_MIN) { res = 0; break; }
+                    else if(i2 == -1 && i1 == INT_MIN) { Raise_Error(_SC("integer overflow")); return false; }
 					res = i1 / i2;
 					break;
 			case '*': res = i1 * i2; break;
@@ -124,6 +124,7 @@ SQVM::SQVM(SQSharedState *ss)
 	_lasterror.Null();
 	memset(&_lasterror_stackinfo, 0, sizeof(SQStackInfos));
 	_errorhandler.Null();
+	_atexithandler.Null();
 	_debughook = false;
 	_debughook_native = NULL;
 	_debughook_closure.Null();
@@ -134,11 +135,13 @@ SQVM::SQVM(SQSharedState *ss)
 
 void SQVM::Finalize()
 {
+    CallAtExitHandler();
     _sharedstate->CallDelayedReleaseHooks(this);
 	if(_openouters) CloseOuters(&_stack._vals[0]);
 	_roottable.Null();
 	_lasterror.Null();
 	_errorhandler.Null();
+	_atexithandler.Null();
 	_debughook = false;
 	_debughook_native = NULL;
 	_debughook_closure.Null();
@@ -1117,6 +1120,15 @@ void SQVM::CallErrorHandler(SQObjectPtr &error)
 	}
 }
 
+void SQVM::CallAtExitHandler()
+{
+	if(type(_atexithandler) != OT_NULL) {
+		SQObjectPtr out;
+		Push(_roottable);
+		Call(_atexithandler, 1, _top-1, out,SQFalse);
+		Pop(1);
+	}
+}
 
 void SQVM::CallDebugHook(SQInteger type,SQInteger forcedline)
 {

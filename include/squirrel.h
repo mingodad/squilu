@@ -335,6 +335,9 @@ typedef struct tagSQFunctionInfo {
 SQUIRREL_API HSQUIRRELVM sq_open(SQInteger initialstacksize);
 SQUIRREL_API HSQUIRRELVM sq_newthread(HSQUIRRELVM friendvm, SQInteger initialstacksize);
 SQUIRREL_API void sq_seterrorhandler(HSQUIRRELVM v);
+SQUIRREL_API SQRESULT sq_geterrorhandler(HSQUIRRELVM v);
+SQUIRREL_API void sq_setatexithandler(HSQUIRRELVM v);
+SQUIRREL_API SQRESULT sq_getatexithandler(HSQUIRRELVM v);
 SQUIRREL_API void sq_close(HSQUIRRELVM v);
 SQUIRREL_API void sq_setforeignptr(HSQUIRRELVM v,SQUserPointer p);
 SQUIRREL_API SQUserPointer sq_getforeignptr(HSQUIRRELVM v);
