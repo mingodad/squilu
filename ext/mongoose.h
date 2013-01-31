@@ -112,6 +112,7 @@ void *mg_get_plugin(struct mg_connection *conn);
 void *mg_lock_master_plugin(struct mg_connection *conn);
 void mg_unlock_master_plugin(struct mg_connection *conn);
 void *mg_get_user_data(struct mg_connection *conn);
+const char *mg_get_conn_buf(struct mg_connection *conn, int *buf_size);
 
 // Start web server.
 //

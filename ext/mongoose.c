@@ -619,6 +619,11 @@ void *mg_get_user_data(struct mg_connection *conn) {
   return conn != NULL && conn->ctx != NULL ? conn->ctx->user_data : NULL;
 }
 
+const char *mg_get_conn_buf(struct mg_connection *conn, int *buf_size){
+    *buf_size = conn->buf_size;
+    return conn->buf;
+}
+
 const char *mg_get_log_message(const struct mg_connection *conn) {
   return conn == NULL ? NULL : conn->request_info.log_message;
 }
