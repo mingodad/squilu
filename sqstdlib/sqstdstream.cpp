@@ -132,6 +132,23 @@ SQInteger _stream_readn(HSQUIRRELVM v)
 	return 1;
 }
 
+SQInteger _stream_write_str(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+	SQInteger total_size, size;
+	SETUP_STREAM(v);
+    SQ_GET_STRING(v, 2, str);
+    SQ_OPT_INTEGER(v, 3, start, 0);
+    if(start < 0 || start > str_size) return sq_throwerror(v, _SC("start position out of range (%d)"), start);
+    SQ_OPT_INTEGER(v, 4, len, str_size - start);
+    if(len < 0 || len > (str_size-start)) return sq_throwerror(v, _SC("len value out of range (%d)"), len);
+
+    if(self->Write(((SQChar*)str)+start, len) != len)
+            return sq_throwerror(v,_SC("io error"));
+	sq_pushinteger(v,len);
+	return 1;
+}
+
 SQInteger _stream_write(HSQUIRRELVM v)
 {
 	const SQChar *str;
@@ -314,6 +331,7 @@ static SQRegFunction _stream_methods[] = {
 	_DECL_STREAM_FUNC(read,2,_SC("xn")),
 	_DECL_STREAM_FUNC(readblob,2,_SC("xn")),
 	_DECL_STREAM_FUNC(readn,2,_SC("xn")),
+	_DECL_STREAM_FUNC(write_str,-2,_SC("xsii")),
 	_DECL_STREAM_FUNC(write,-2,_SC("x.")),
 	_DECL_STREAM_FUNC(writeblob,-2,_SC("xx")),
 	_DECL_STREAM_FUNC(writen,3,_SC("xnn")),
