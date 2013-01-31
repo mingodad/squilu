@@ -128,6 +128,7 @@ class HappyHttpConnection {
 	function close(){
 		m_Sock.close();
 		m_Sock = null;
+		m_Outstanding.clear();
 	}
 
 	// Update the connection (non-blocking)
@@ -144,7 +145,7 @@ class HappyHttpConnection {
 			case socket.IO_TIMEOUT:
 				break;
 			default:
-				throw(format("socket io error %d", rc[1]));
+				if(rc[0].len() == 0) throw(format("socket io error %d", rc[1]));
 		}
 		local buf = rc[0];
 		local a = buf.len();
@@ -245,8 +246,7 @@ class HappyHttpConnection {
 	function endheaders(){
 		if( m_State != Connection_State.REQ_STARTED ) throw "Cannot send header";
 		m_State = Connection_State.IDLE;
-		m_Buffer.push( "" );
-		m_Buffer.push( "" );
+		m_Buffer.push( "\r\n" ); //for double "\r\n\r\n"
 		local msg = m_Buffer.concat("\r\n");
 		m_Buffer.clear();
 		send( msg , msg.len() );
@@ -257,6 +257,7 @@ class HappyHttpConnection {
 	function send( buf, numbytes ){
 		if( !m_Sock ) connect();
 		local n = m_Sock.send( buf , 0, numbytes );
+		//print(m_Sock.getfd(), n, buf);
 		if(n != numbytes) throw("Could not send ");
 	}
 
@@ -276,7 +277,7 @@ class HappyHttpConnection {
 	}
 
     function response_begin( r ) {}
-    function response_data( r, data, numbytes ) {}
+    function response_data( r, data, data_idx, numbytes ) {}
     function response_complete( r ) {}
 };
 
@@ -362,7 +363,7 @@ class HappyHttpResponse {
 		assert( datasize != 0 );
 		local count = datasize;
 		local data_idx = 0;
-
+		//print(data);
 		while( count > 0 && m_State != Response_state.COMPLETE )
 		{
 			if( m_State == Response_state.STATUSLINE ||
@@ -410,9 +411,9 @@ class HappyHttpResponse {
 			{
 				local bytesused = 0;
 				if( m_Chunked )
-					bytesused = ProcessDataChunked( data, count );
+					bytesused = ProcessDataChunked( data, data_idx, count );
 				else
-					bytesused = ProcessDataNonChunked( data, count );
+					bytesused = ProcessDataNonChunked( data, data_idx, count );
 				data += bytesused;
 				count -= bytesused;
 			}
@@ -509,14 +510,14 @@ class HappyHttpResponse {
 		}
 	}
 	
-	function ProcessDataChunked( data, count ){
+	function ProcessDataChunked( data, data_idx, count ){
 		assert( m_Chunked );
 
 		local n = count;
 		if( n>m_ChunkLeft ) n = m_ChunkLeft;
 
 		// invoke callback to pass out the data
-		m_Connection.response_data( this, data, n );
+		m_Connection.response_data( this, data, data_idx, n );
 
 		m_BytesRead += n;
 
@@ -530,7 +531,7 @@ class HappyHttpResponse {
 		return n;
 	}
 	
-	function ProcessDataNonChunked( data, count ){
+	function ProcessDataNonChunked( data, data_idx, count ){
 		local n = count;
 		if( m_Length != -1 )
 		{
@@ -540,7 +541,7 @@ class HappyHttpResponse {
 		}
 
 		// invoke callback to pass out the data
-		m_Connection.response_data( this, data, n );
+		m_Connection.response_data( this, data, data_idx, n );
 		m_BytesRead += n;
 
 		// Finish if we know we're done. Else we're waiting for connection close.
@@ -642,7 +643,7 @@ class MyHappyHttpConnection extends HappyHttpConnection {
 		printf( "BEGIN (%d %s)\n", r->getstatus(), r->getreason() );
 		count = 0;
 	}
-	function response_data( r, data, numbytes ) {
+	function response_data( r, data, data_idx, numbytes ) {
 		print( data );
 		count += numbytes;
 	}

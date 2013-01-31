@@ -1,3 +1,6 @@
+local globals = getroottable();
+local constants = getconsttable();
+
 class AuthDigest {
 	_nc = null;
 	_cnonce = null;
@@ -45,7 +48,7 @@ class AuthDigest {
 		_nonce = null;
 		_opaque = null;
 		local function checkKV(k,v){
-			if(v[0] == '"') v = v.slice(1, -2);
+			if(v[0] == '"') v = v.slice(1, -1);
 			if(k == "realm") _realm = v;
 			else if(k == "qop") _qop = v;
 			else if(k == "nonce") _nonce = v;
@@ -53,8 +56,8 @@ class AuthDigest {
 			return true;
 		}
 		checkKV.setenv(this);
-		szAuthenticate.gmatch("(%w+)%s*=%s*(%S+),", checkKV);
-		printf("%s, %s, %s, %s\n", _realm || "?", _qop || "?", _nonce || "?", _opaque || "?");
+		szAuthenticate.gmatch("(%w+)%s*=%s*([^%s,]+)", checkKV);
+		//printf("%s, %s, %s, %s\n", _realm || "?", _qop || "?", _nonce || "?", _opaque || "?");
 	}
 }
 
@@ -92,7 +95,7 @@ class HTTPConnBase extends HappyHttpConnection
             _www_authenticate = r->getheader("WWW-Authenticate");
         }
     }
-    function response_data( r, data, n )
+    function response_data( r, data, data_idx, n )
     {
     }
     function response_complete( r )
@@ -122,9 +125,10 @@ class HTTPConnAuthBase extends HTTPConnBase
     function response_begin( r )
     {
         base.response_begin(r);
-        if(my_status == 401)
+        if(my_status != 200)
         {
-            throw ("Authentication required.");
+	    //foreach(k,v in get_last_stackinfo()) print(k,v)
+            throw (format("HTTP Error %d", my_status));
         }
     }
 
@@ -146,8 +150,8 @@ class HTTPConnAuthBase extends HTTPConnBase
                     putheader("Content-Type", str);
                 }
                 if(_digest_auth->okToAuthDigest())
-                    putheader("Authorization", _digest_auth->auth_digest(str, method, uri));
-                putheader("Content-Length", bodysize);
+                    putheader("Authorization", _digest_auth->auth_digest(method, uri));
+                putheader("Content-Length", bodysize || 0);
                 endheaders();
                 if(body && bodysize) send( body, bodysize );
                 while( outstanding() )
@@ -159,6 +163,7 @@ class HTTPConnAuthBase extends HTTPConnBase
             }
             catch(e)
             {
+		//foreach(k,v in get_last_stackinfo()) print(k,v)
                 if(my_status == 401){
                         _digest_auth->parse_authenticate(_www_authenticate);
                         close();
@@ -188,9 +193,9 @@ class HTTPConn extends HTTPConnAuthBase
         if(resp_length > 0) result_out.reserve(resp_length);
     }
 
-    function response_data( r, data, n )
+    function response_data( r, data, data_idx, n )
     {
-        result_out.write(data, n);
+        result_out.write_str(data, data_idx, n);
     }
 };
 
@@ -213,13 +218,16 @@ class HTTPConnBin extends HTTPConnAuthBase
         szContentType = r->getheader("Content-type");
     }
 
-    function response_data( r, data, n )
+    function response_data( r, data, data_idx, n )
     {
-        my_result.write(data, n);
+        my_result.write_str(data, data_idx, n);
     }
 };
 
 enum conn_type_e {e_conn_none, e_conn_http, e_conn_dbfile};
+
+constants.rawdelete("TimePeriode");
+enum TimePeriode {is_years = 1, is_months, is_weeks, is_days};
 
 local _the_app_server = null;
 class AppServer
@@ -277,12 +285,11 @@ class AppServer
 
     function check_login()
     {
-        local appServer = AppServer.getAppServer();
-        if(appServer.get_conn_type() == conn_type_e.e_conn_http)
+        if(get_conn_type() == conn_type_e.e_conn_http)
         {
             local my_result = blob();
             local http = HTTPConn(my_result);
-            appServer.httpcon_setup(http);
+            httpcon_setup(http);
             http.send_my_request("GET", "/OURBIZ");
             if(http.my_status != 200)
             {
@@ -303,17 +310,28 @@ class AppServer
 
     function close()
     {
+        if(get_conn_type() == conn_type_e.e_conn_http)
+        {
+            local my_result = blob();
+            local http = HTTPConn(my_result);
+            httpcon_setup(http);
+	    try {
+		http.send_my_request("GET", "/SQ/logout");
+	    }
+	    catch(e){
+		if(http.my_status != 302) throw(my_result.tostring());
+	    }
+        }
     }
 
     function _get_data(method, query_string, httpBody, data_out, throwNotFound=true)
     {
         data_out.clear();
 
-        local appServer = AppServer.getAppServer();
-        if(appServer.get_conn_type() == conn_type_e.e_conn_http)
+        if(get_conn_type() == conn_type_e.e_conn_http)
         {
             local httpRequest = HTTPConn(data_out);
-            appServer.httpcon_setup(httpRequest);
+            httpcon_setup(httpRequest);
 
             httpRequest.send_my_request(method, query_string, httpBody,
                                      httpBody ? httpBody.len() : 0);
@@ -329,11 +347,10 @@ class AppServer
     {
         rec.clear();
 
-        local appServer = AppServer.getAppServer();
-        if(appServer.get_conn_type() == conn_type_e.e_conn_http)
+        if(get_conn_type() == conn_type_e.e_conn_http)
         {
             local  httpRequest = HTTPConnBin(rec);
-            appServer.httpcon_setup(httpRequest);
+            httpcon_setup(httpRequest);
 
             httpRequest.send_my_request("GET", get_url);
             if(httpRequest.my_status != 200)
@@ -348,8 +365,7 @@ class AppServer
     function get_binary_data(rec, binary_type, table, aid, extra_url=0, throwNotFound=true)
     {
         rec.clear();
-        local appServer = AppServer.getAppServer();
-        if(appServer.get_conn_type() == conn_type_e.e_conn_http)
+        if(get_conn_type() == conn_type_e.e_conn_http)
         {
             local url = format("/DB/GetBin?%s=%s", table, aid);
             if(extra_url) url += extra_url;
@@ -362,12 +378,11 @@ class AppServer
     {
         data.clear();
 
-        local appServer = AppServer.getAppServer();
-        if(appServer.get_conn_type() == conn_type_e.e_conn_http)
+        if(get_conn_type() == conn_type_e.e_conn_http)
         {
             local my_result = blob();
             local  httpRequest = HTTPConn(my_result);
-            appServer.httpcon_setup(httpRequest);
+            httpcon_setup(httpRequest);
 
             local url = format("/DB/GetList?list=%s", table);
             if(query_string) url += query_string;
@@ -376,7 +391,8 @@ class AppServer
                                      httpBody ? httpBody.len() : 0);
             if(httpRequest.my_status != 200)
             {
-                throw(my_result.tostring());
+		if(my_result.len()) throw(my_result.tostring());
+		else throw(format("HTTP error %d", httpRequest.my_status));
             }
             //parse_jsonArray2Vector(data, my_result);
             sle2vecOfvec(my_result, data);
@@ -388,12 +404,11 @@ class AppServer
     {
         data.clear();
 
-        local appServer = AppServer.getAppServer();
-        if(appServer.get_conn_type() == conn_type_e.e_conn_http)
+        if(get_conn_type() == conn_type_e.e_conn_http)
         {
             local my_result = blob();
             local httpRequest = HTTPConn(my_result);
-            appServer.httpcon_setup(httpRequest);
+            httpcon_setup(httpRequest);
 
             local url = format("/DB/GetList?list=%s", table);
             if(qs) url += qs;
@@ -413,12 +428,11 @@ class AppServer
 
     function do_dbaction(rec, action, table, aid, version, query_string=0)
     {
-        local appServer = AppServer.getAppServer();
-        if(appServer.get_conn_type() == conn_type_e.e_conn_http)
+        if(get_conn_type() == conn_type_e.e_conn_http)
         {
             local my_result = blob();
             local httpRequest = HTTPConn(my_result);
-            appServer.httpcon_setup(httpRequest);
+            httpcon_setup(httpRequest);
 
             local url = "/DB/Action";
             if(query_string) url = format("%s?%s", url, query_string);
@@ -464,12 +478,11 @@ class AppServer
 
     function get_str_record(table, qs, aid, extra_url=0)
     {
-        local appServer = AppServer.getAppServer();
-        if(appServer.get_conn_type() == conn_type_e.e_conn_http)
+        if(get_conn_type() == conn_type_e.e_conn_http)
         {
             local my_result = blob();
             local httpRequest = HTTPConn(my_result);
-            appServer.httpcon_setup(httpRequest);
+            httpcon_setup(httpRequest);
 
             local url = format("/DB/GetOne?%s", table);
             if(qs) url += qs;
@@ -524,7 +537,7 @@ class AppServer
     }
 
     function entities_get_bar_chart_statistics_list(data, entity_id, sab, periode_count=12,
-            periode=periode_is_months)
+            periode=TimePeriode.is_months)
     {
         local qs = format("&statistics=%d&periode_type=%s&periode_count=%d&sab=%c",
                            entity_id, getStatisticsPeriodeType(periode),
@@ -606,7 +619,7 @@ class AppServer
     }
 
     function orders_get_bar_chart_statistics_list(data, sab, periode_count=12,
-            periode=periode_is_months, paidUnpaid=false)
+            periode=TimePeriode.is_months, paidUnpaid=false)
     {
         local myUrl = format("&statistics=1&periode_type=%s&periode_count=%d&paid_unpaid=%s&sab=%s", 
 		getStatisticsPeriodeType(periode), periode_count, paidUnpaid ? "1" : "0", sab);
@@ -657,7 +670,7 @@ class AppServer
             parse_jsonObject2map(p, kit_details, js.c_str());
         }
 */
-        if(js[0] != '[') throw "Invalid sls encoded !";
+        if(js[0] != '[') throw "Invalid sle encoded !";
         local start = 0;
         local pos = sle2map(start, js.len(), rec);
         pos = sle2vecOfvec(pos, js.len() - (pos - start), prices_list);
@@ -681,7 +694,7 @@ class AppServer
             parse_jsonArray2Vector(p, warranty_data, js.c_str());
         }
 */
-        if(js[0] != '[') throw "Invalid sls encoded !";
+        if(js[0] != '[') throw "Invalid sle encoded !";
         local start = 0;
         local pos = sle2vecOfvec(start, js.len(), sales_tax_data);
         pos = sle2vecOfvec(pos, js.len() - (pos - start), measure_units_data);
@@ -726,7 +739,7 @@ class AppServer
     }
 
     function products_get_bar_chart_statistics_list(data, product_id, sab, periode_count=12,
-            periode=periode_is_months)
+            periode=TimePeriode.is_months)
     {
         local myUrl = format("&statistics=%d&periode_type=%s&periode_count=%d&sab=%s", product_id, 
 		getStatisticsPeriodeType(periode), periode_count, sab);
@@ -833,3 +846,26 @@ class AppServer
     }
 };
 
+local data = [];
+local appServer = AppServer.getAppServer();
+appServer.credentials("mingote", "tr14pink");
+appServer.connect("localhost", 8855);
+
+appServer.sales_tax_rates_get_list(data);
+foreach(i, row in data){
+	foreach(j, fld in row) print(i, j, fld);
+}
+
+appServer.order_types_get_list(data);
+foreach(i, row in data){
+	foreach(j, fld in row) print(i, j, fld);
+}
+
+function OurBizClientAtExit(){
+	local as = AppServer.getAppServer();
+	as.close();
+	print("Bye !");
+}
+setatexithandler(OurBizClientAtExit);
+
+//print(OurBizClientAtExit, getatexithandler());
