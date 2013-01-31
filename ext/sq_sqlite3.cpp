@@ -834,19 +834,41 @@ static SQRESULT sle2vec(HSQUIRRELVM v, const unsigned char *sle,
     if(!*next || *next[0] != ']'){
         return sq_throwerror(v, "Invalid end of vector !");
     }
-    *next++;
+    (*next)++;
     return 0;
 }
 
-static SQRESULT sle2vecOfvec(HSQUIRRELVM v)
+static SQRESULT sq_sle2vecOfvec(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
-    SQ_GET_STRING(v, 2, sle);
-    SQ_OPT_INTEGER(v, 3, start, 0);
+	SQBlob *blob = NULL;
+    const SQChar *sle;
+    SQInteger sle_size;
+
+    SQObjectType ptype = sq_gettype(v, 2);
+    switch(ptype){
+        case OT_STRING:
+            sq_getstr_and_size(v, 2, &sle, &sle_size);
+            break;
+        case OT_INSTANCE:
+            if(SQ_FAILED(sq_getinstanceup(v,2,(SQUserPointer*)&blob,(SQUserPointer)SQBlob::SQBlob_TAG)))
+                return sq_throwerror(v,_SC("invalid type tag"));
+            if(!blob || !blob->IsValid())
+                return sq_throwerror(v,_SC("the blob is invalid"));
+            sle = (const SQChar*)blob->GetBuf();
+            sle_size = blob->Len();
+        break;
+        default:
+            return sq_throwerror(v,_SC("invalid parameter 1 of type %s"), sq_gettypename(v, 2));
+    }
+    if(sq_gettype(v, 3) != OT_ARRAY)
+        return sq_throwerror(v,_SC("invalid parameter 2 of type %s"), sq_gettypename(v, 3));
+
+    SQ_OPT_INTEGER(v, 4, start, 0);
+    sq_push(v, 3);
 
     int rc, data_count = 1;
 
-    sq_newarray(v, 0);
     const unsigned char *next;
     if(sle[0] != '[') {
         return sq_throwerror(v, "Invalid encoded vector !");
@@ -870,7 +892,7 @@ static SQRESULT sle2vecOfvec(HSQUIRRELVM v)
     if(!next || *next != ']'){
         return sq_throwerror(v, "Invalid end of vector !");
     }
-    //sq_pushinteger(v, ++next - sle);
+    sq_pushinteger(v, ((const SQChar*)(++next)) - sle);
     return 1;
 }
 
@@ -929,7 +951,7 @@ static int sleSize2buf(slebuf_t sle, size_t size){
     return 0;
 }
 
-static SQRESULT sq_sqlite3_stmt_get_sle_size(HSQUIRRELVM v){
+static SQRESULT sq_get_sle_size(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
     slebuf_t slebuf;
     SQ_GET_INTEGER(v, 2, size);
@@ -996,7 +1018,6 @@ static SQRegFunction sq_sqlite3_stmt_methods[] =
 {
 	_DECL_FUNC(constructor,  -2, _SC("xxs s|n|b|o"), SQFalse),
 
-	_DECL_FUNC(get_sle_size,  2, _SC(".i"), SQTrue),
 	_DECL_FUNC(stmt_ptr,  1, _SC("x"), SQFalse),
 	_DECL_FUNC(get_db,  1, _SC("x"), SQFalse),
 	_DECL_FUNC(finalize,  1, _SC("x"), SQFalse),
@@ -1998,6 +2019,10 @@ extern "C" {
 
 SQRESULT sqext_register_SQLite3(HSQUIRRELVM v)
 {
+    sq_insertfunc(v, _SC("sle2vecOfvec"), sq_sle2vecOfvec, -2, _SC(". s|x a i"), SQTrue);
+    sq_insertfunc(v, _SC("get_sle_size"), sq_get_sle_size, -2, _SC(".i"), SQTrue);
+
+
     HSQOBJECT sqlite3_NULL;
     sq_pushregistrytable(v);
     sq_pushstring(v, sqlite3_NULL_Name,-1);
