@@ -4,6 +4,7 @@
 #include "sqpcheader.h"
 #include <ctype.h>
 #include <stdlib.h>
+#include <limits.h>
 #include "sqtable.h"
 #include "sqstring.h"
 #include "sqcompiler.h"
@@ -500,6 +501,7 @@ SQInteger SQLexer::ReadNumber()
 #define TSCIENTIFIC 4
 #define TOCTAL 5
 	SQInteger type = TINT, firstchar = CUR_CHAR;
+	SQUnsignedInteger itmp;
 	SQChar *sTemp;
 	INIT_TEMP_STRING();
 	NEXT();
@@ -549,13 +551,21 @@ SQInteger SQLexer::ReadNumber()
 		_fvalue = (SQFloat)scstrtod(&_longstr[0],&sTemp);
 		return TK_FLOAT;
 	case TINT:
-		LexInteger(&_longstr[0],(SQUnsignedInteger *)&_nvalue);
-		return TK_INTEGER;
+		LexInteger(&_longstr[0],&itmp);
+		break;
 	case THEX:
-		LexHexadecimal(&_longstr[0],(SQUnsignedInteger *)&_nvalue);
-		return TK_INTEGER;
+		LexHexadecimal(&_longstr[0],&itmp);
+		break;
 	case TOCTAL:
-		LexOctal(&_longstr[0],(SQUnsignedInteger *)&_nvalue);
+		LexOctal(&_longstr[0],&itmp);
+		break;
+	}
+	switch(type) {
+	case TINT:
+	case THEX:
+	case TOCTAL:
+        if(itmp > INT_MAX) Error(_SC("integer overflow"));
+        _nvalue = (SQInteger) itmp;
 		return TK_INTEGER;
 	}
 	return 0;
