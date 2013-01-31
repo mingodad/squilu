@@ -240,6 +240,18 @@ sq_http_request_get_var(HSQUIRRELVM v)
 }
 
 static SQRESULT
+sq_http_request_get_conn_buf(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_http_request_INSTANCE();
+
+    int buf_size;
+    const char *buf = mg_get_conn_buf(conn, &buf_size);
+    sq_pushstring(v, buf, buf_size);
+    return 1;
+}
+
+static SQRESULT
 sq_http_request_handle_cgi_request(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
@@ -266,7 +278,7 @@ sq_http_request_get_option(HSQUIRRELVM v)
 //Digest authentication functions
 #define MAX_USER_LEN  20
 #define MAX_NONCE_LEN  36 //extra bytes for zero terminator
-#define MAX_SESSIONS 5
+#define MAX_SESSIONS 25
 #define SESSION_TTL 3600
 #define SESSION_REQUEST_TTL 120
 
@@ -463,23 +475,33 @@ static void my_send_authorization_request(struct mg_connection *conn,
 
     mg_thread_mutex_lock(&session_rwlock);
 
-    for(i=0; i<3; ++i)
+    time_t now = time(NULL);
+
+    for(int j=0; j<3; ++j)
     {
         for(i=0; i < MAX_SESSIONS; ++i){
             if(sessions[i].state == e_session_invalid){
-                available_session = &sessions[i];
+                break;
             }
             if(sessions[i].state == e_session_sent_request){
-                if((time(NULL) - available_session->last_access) > SESSION_REQUEST_TTL){
+                if((now - sessions[i].last_access) > SESSION_REQUEST_TTL){
                     //if session request bigger than 2 minutes reuse it
-                    available_session = &sessions[i];
+                    break;
+                }
+            }
+            //on the second intent we will reuse idle authorized sessions
+            if( (j > 0) && sessions[i].state == e_session_authorized){
+                if((now - sessions[i].last_access) > (SESSION_REQUEST_TTL*5)){
+                    //if session request bigger than 10 minutes reuse it
+                    break;
                 }
             }
         }
 
-        if(available_session){
+        if(i < MAX_SESSIONS){
+            available_session = &sessions[i];
             available_session->state = e_session_sent_request;
-            available_session->last_access = time(NULL);
+            available_session->last_access = now;
             available_session->last_nc = 0;
             available_session->remote_ip = request_info->remote_ip;
             snprintf(available_session->nonce, sizeof(available_session->nonce),
@@ -539,6 +561,7 @@ static SQRegFunction mg_http_request_methods[] =
 	_DECL_FUNC(check_password,  2, _SC("xs")),
 	_DECL_FUNC(close_session,  1, _SC("x")),
 	_DECL_FUNC(send_authorization_request,  2, _SC("xs")),
+	_DECL_FUNC(get_conn_buf,  1, _SC("x")),
 	{0,0}
 };
 #undef _DECL_FUNC
