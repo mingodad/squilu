@@ -6,6 +6,9 @@ f1 = 0.1;
 f2 = 0.3;
 print(f1+f1+f1-f2);
 
+local d = Decimal();
+print(d.isnan(), d.iszero(), d.isodd(), d.iseven());
+
 local dec1 = Decimal("1.1");
 local dec2 = Decimal("2.2");
 print(dec1 + dec2)
@@ -56,7 +59,7 @@ for(local i=0; i < count; ++i){
 	result = dec1 * dec2;
 	result = dec1 / dec2;
 	//if(i%1000) collectgarbage();
-	if(i%1000) dummy();
+	if(i%1000) dummy(); //dummy function call to trigger release hook garbage collection
 }
 
 print("Decimal took", os.clock()-now);
@@ -67,7 +70,7 @@ for(local i=0; i < count; ++i){
 	result = f1 - f2;
 	result = f1 * f2;
 	result = f1 / f2;
-	if(i%1000) dummy();
+	if(i%1000) dummy(); // only to make this loop with the same extra load of a function call
 }
 print("Float took", os.clock()-now);
 

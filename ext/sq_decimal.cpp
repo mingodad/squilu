@@ -184,33 +184,32 @@ static SQRESULT sq_Decimal_release_hook(SQUserPointer p, SQInteger size, HSQUIRR
 static SQRESULT sq_Decimal_constructor (HSQUIRRELVM v) {
     SQ_FUNC_VARS(v);
     GET_Decimal_INSTANCE(v, 1);
+    uint32_t status;
+    mpd_context_t *ctx = sq_get_global_ctx(v, 1);
     if(_top_ > 1){
         switch(sq_gettype(v, 2)){
+/*
             case OT_INSTANCE:{
                 GET_DecimalCtx_INSTANCE(v, 2);
                 dec = mpd_new(ctx);
+                mpd_qset_i32(dec, 0, ctx, &status);
             }
+*/
             case OT_INTEGER:{
                 SQ_GET_INTEGER(v, 2, iparam);
-                mpd_context_t *ctx = sq_get_global_ctx(v, 1);
                 dec = mpd_new(ctx);
-                uint32_t status;
                 mpd_qset_i32(dec, iparam, ctx, &status);
             }
             break;
             case OT_STRING:{
                 SQ_GET_STRING(v, 2, str);
-                mpd_context_t *ctx = sq_get_global_ctx(v, 1);
                 dec = mpd_new(ctx);
-                uint32_t status;
                 mpd_qset_string(dec, str, ctx, &status);
             }
             break;
             case OT_FLOAT:{
                 SQ_GET_FLOAT(v, 2, fparam);
-                mpd_context_t *ctx = sq_get_global_ctx(v, 1);
                 dec = mpd_new(ctx);
-                uint32_t status;
                 char buf[32];
                 snprintf(buf, sizeof(buf), "%f", fparam);
                 mpd_qset_string(dec, buf, ctx, &status);
@@ -218,7 +217,10 @@ static SQRESULT sq_Decimal_constructor (HSQUIRRELVM v) {
             break;
         }
     }
-    else dec = mpd_qnew();
+    else {
+        dec = mpd_new(ctx);
+        mpd_qset_i32(dec, 0, ctx, &status);
+    }
     sq_setinstanceup(v, 1, dec);
     sq_setreleasehook(v, 1, sq_Decimal_release_hook);
     return 1;
@@ -424,6 +426,30 @@ static SQRESULT sq_Decimal_next_toward(HSQUIRRELVM v)
 	return sq_Decimal_new_for_dec(v, result, ctx, status);
 }
 
+#define DECIMAL_IS(fn) \
+static SQRESULT sq_Decimal_##fn(HSQUIRRELVM v)\
+{\
+    SQ_FUNC_VARS_NO_TOP(v);\
+    GET_Decimal_INSTANCE(v, 1);\
+    sq_pushbool(v, mpd_##fn(dec));\
+	return 1;\
+}
+
+DECIMAL_IS(isfinite);
+DECIMAL_IS(isinfinite);
+DECIMAL_IS(isnan);
+DECIMAL_IS(isnegative);
+DECIMAL_IS(ispositive);
+DECIMAL_IS(isqnan);
+DECIMAL_IS(issigned);
+DECIMAL_IS(issnan);
+DECIMAL_IS(isspecial);
+DECIMAL_IS(iszero);
+DECIMAL_IS(isinteger);
+DECIMAL_IS(isodd);
+DECIMAL_IS(iseven);
+
+
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),sq_Decimal_##name,nparams,tycheck}
 static SQRegFunction Decimal_methods[] =
 {
@@ -443,6 +469,19 @@ static SQRegFunction Decimal_methods[] =
     _DECL_FUNC(next_minus, 1,_SC("x")),
     _DECL_FUNC(next_plus, 1,_SC("x")),
     _DECL_FUNC(next_toward, 2,_SC("xx")),
+    _DECL_FUNC(isfinite, 1,_SC("x")),
+    _DECL_FUNC(isinfinite, 1,_SC("x")),
+    _DECL_FUNC(isnan, 1,_SC("x")),
+    _DECL_FUNC(isnegative, 1,_SC("x")),
+    _DECL_FUNC(ispositive, 1,_SC("x")),
+    _DECL_FUNC(isqnan, 1,_SC("x")),
+    _DECL_FUNC(issigned, 1,_SC("x")),
+    _DECL_FUNC(issnan, 1,_SC("x")),
+    _DECL_FUNC(isspecial, 1,_SC("x")),
+    _DECL_FUNC(iszero, 1,_SC("x")),
+    _DECL_FUNC(isinteger, 1,_SC("x")),
+    _DECL_FUNC(isodd, 1,_SC("x")),
+    _DECL_FUNC(iseven, 1,_SC("x")),
     {0,0}
 };
 #undef _DECL_FUNC
