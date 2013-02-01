@@ -32,12 +32,15 @@ print(result);
 
 dec2 = Decimal(0);
 try {
-result = dec1 / dec2;
+	result = dec1 / dec2;
 }
 catch(e){
 	print(e);
 }
 print(result);
+
+dec1 = Decimal("10.0");
+dec2 = Decimal("3.33");
 
 local count = 1000;
 f1 = 10.54;
