@@ -3,8 +3,10 @@
 #include <string.h>
 SQ_OPT_STRING_STRLEN();
 
+
 static const SQChar sq_decimal_ctx_TAG[] = _SC("DecimalCtx");
 static const SQChar sq_decimal_TAG[] = _SC("Decimal");
+static const SQChar sq_context_static[] = _SC("context");
 
 #define GET_DecimalCtx_INSTANCE(v, idx) SQ_GET_INSTANCE_VAR(v, idx, mpd_context_t, ctx, sq_decimal_ctx_TAG)
 #define GET_Decimal_INSTANCE(v, idx) SQ_GET_INSTANCE_VAR(v, idx, mpd_t, dec, sq_decimal_TAG)
@@ -162,7 +164,7 @@ static SQRegFunction DecimalCtx_methods[] =
 
 static mpd_context_t * sq_get_global_ctx(HSQUIRRELVM v, SQInteger idx)
 {
-    sq_pushliteral(v, _SC("gctx"));
+    sq_pushstring(v, sq_context_static, SIZEOF_SQCHAR_STRING(sq_context_static));
     sq_get(v, idx);
     mpd_context_t *ctx = 0;
     sq_getinstanceup(v, -1, (void**)&ctx, (void*)sq_decimal_ctx_TAG);
@@ -223,7 +225,7 @@ static SQRESULT sq_Decimal_constructor (HSQUIRRELVM v) {
 }
 
 static SQRESULT sq_Decimal_error(HSQUIRRELVM v, uint32_t status) {
-    SQChar *error = _SC("MPD_??");
+    const SQChar *error = _SC("MPD_??");
 #define CASE_ERROR(n) case n: error = #n; break;
     switch(status){
         CASE_ERROR(MPD_Clamped);
@@ -249,7 +251,10 @@ static SQRESULT sq_Decimal_error(HSQUIRRELVM v, uint32_t status) {
 static SQRESULT sq_Decimal_new_for_dec (HSQUIRRELVM v, mpd_t *dec, mpd_context_t *ctx, uint32_t status) {
     //mpd_addstatus_raise(ctx, status);
 	ctx->status |= status;
-	if (status&ctx->traps) return sq_Decimal_error(v, status);
+	if (status&ctx->traps) {
+	    mpd_del(dec);
+	    return sq_Decimal_error(v, status);
+	}
 
     sq_pushstring(v, sq_decimal_TAG, -1);
     sq_getonroottable(v);
@@ -442,6 +447,51 @@ static SQRegFunction Decimal_methods[] =
 };
 #undef _DECL_FUNC
 
+#define CTXC(s)  { _SC(#s), MPD_ ## s },
+
+static const struct {
+    const SQChar* name;
+    int value;
+} ctx_constants[] = {
+    /*Precision and Exponents*/
+    CTXC(MAX_PREC)
+    CTXC(MAX_EMAX)
+    CTXC(MIN_EMIN)
+    /* rounding */
+    CTXC(ROUND_UP)                  /* round away from 0 */
+    CTXC(ROUND_DOWN)                /* round toward 0 (truncate) */
+    CTXC(ROUND_CEILING)             /* round toward +infinity */
+    CTXC(ROUND_FLOOR)               /* round toward -infinity */
+    CTXC(ROUND_HALF_UP)             /* 0.5 is rounded up */
+    CTXC(ROUND_HALF_DOWN)           /* 0.5 is rounded down */
+    CTXC(ROUND_HALF_EVEN)           /* 0.5 is rounded to even */
+    CTXC(ROUND_05UP)                /* round zero or five away from 0  */
+    CTXC(ROUND_TRUNC)               /* truncate, but set infinities  */
+    /* Trap-enabler and Status flags */
+    CTXC(Conversion_syntax)
+    CTXC(Division_impossible)
+    CTXC(Division_undefined)
+    CTXC(Invalid_context)
+    CTXC(Invalid_operation)
+    CTXC(Malloc_error)
+    CTXC(Clamped)
+    CTXC(Division_by_zero)
+    CTXC(Fpu_error)
+    CTXC(Inexact)
+    CTXC(Not_implemented)
+    CTXC(Overflow)
+    CTXC(Rounded)
+    CTXC(Subnormal)
+    CTXC(Underflow)
+    CTXC(IEEE_Invalid_operation)
+    /*IEEE Interchange Formats*/
+    CTXC(IEEE_CONTEXT_MAX_BITS)
+    CTXC(DECIMAL32)
+    CTXC(DECIMAL64)
+    CTXC(DECIMAL128)
+    /* terminator */
+    { NULL, 0 }
+};
 
 #ifdef __cplusplus
 extern "C" {
@@ -449,17 +499,22 @@ extern "C" {
 
 SQRESULT sqext_register_decimal(HSQUIRRELVM v)
 {
-    sq_pushstring(v,sq_decimal_ctx_TAG,-1);
+    sq_pushstring(v,sq_decimal_ctx_TAG,SIZEOF_SQCHAR_STRING(sq_decimal_ctx_TAG));
 	sq_newclass(v,SQFalse);
 	sq_settypetag(v,-1,(void*)sq_decimal_ctx_TAG);
     sq_insert_reg_funcs(v, DecimalCtx_methods);
+    for(int i=0; ctx_constants[i].name; ++i){
+        sq_pushstring(v, ctx_constants[i].name, -1);
+        sq_pushinteger(v, ctx_constants[i].value);
+        sq_newslot(v,-3,SQTrue);
+    }
     sq_newslot(v,-3,SQTrue);
 
-    sq_pushstring(v,sq_decimal_TAG,-1);
+    sq_pushstring(v,sq_decimal_TAG,SIZEOF_SQCHAR_STRING(sq_decimal_TAG));
 	sq_newclass(v,SQFalse);
 	sq_settypetag(v,-1,(void*)sq_decimal_TAG);
 
-	sq_pushliteral(v, _SC("gctx"));
+    sq_pushstring(v, sq_context_static, SIZEOF_SQCHAR_STRING(sq_context_static));
 	sq_pushstring(v,sq_decimal_ctx_TAG,-1);
 	sq_getonroottable(v);
 	sq_pushroottable(v);

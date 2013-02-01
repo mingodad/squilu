@@ -38,6 +38,8 @@ catch(e){
 	print(e);
 }
 print(result);
+print(Decimal.context);
+print(result.context.prec());
 
 dec1 = Decimal("10.0");
 dec2 = Decimal("3.33");
