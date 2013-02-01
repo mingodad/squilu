@@ -222,8 +222,35 @@ static SQRESULT sq_Decimal_constructor (HSQUIRRELVM v) {
     return 1;
 }
 
+static SQRESULT sq_Decimal_error(HSQUIRRELVM v, uint32_t status) {
+    SQChar *error = _SC("MPD_??");
+#define CASE_ERROR(n) case n: error = #n; break;
+    switch(status){
+        CASE_ERROR(MPD_Clamped);
+        CASE_ERROR(MPD_Conversion_syntax);
+        CASE_ERROR(MPD_Division_by_zero );
+        CASE_ERROR(MPD_Division_impossible);
+        CASE_ERROR(MPD_Division_undefined);
+        CASE_ERROR(MPD_Fpu_error);
+        CASE_ERROR(MPD_Inexact);
+        CASE_ERROR(MPD_Invalid_context);
+        CASE_ERROR(MPD_Invalid_operation);
+        CASE_ERROR(MPD_Malloc_error);
+        CASE_ERROR(MPD_Not_implemented);
+        CASE_ERROR(MPD_Overflow);
+        CASE_ERROR(MPD_Rounded);
+        CASE_ERROR(MPD_Subnormal);
+        CASE_ERROR(MPD_Underflow);
+    }
+#undef CASE_ERROR
+    return sq_throwerror(v, error);
+}
+
 static SQRESULT sq_Decimal_new_for_dec (HSQUIRRELVM v, mpd_t *dec, mpd_context_t *ctx, uint32_t status) {
     //mpd_addstatus_raise(ctx, status);
+	ctx->status |= status;
+	if (status&ctx->traps) return sq_Decimal_error(v, status);
+
     sq_pushstring(v, sq_decimal_TAG, -1);
     sq_getonroottable(v);
     sq_createinstance(v, -1);
@@ -249,7 +276,7 @@ static SQRESULT sq_Decimal__add(HSQUIRRELVM v)
     GET_Decimal_INSTANCE2(v, 2);
     mpd_context_t *ctx = sq_get_global_ctx(v, 1);
     mpd_t *result = mpd_new(ctx);
-    uint32_t status;
+    uint32_t status = 0;
     mpd_qadd(result, dec, dec2, ctx, &status);
 	return sq_Decimal_new_for_dec(v, result, ctx, status);
 }
@@ -261,7 +288,7 @@ static SQRESULT sq_Decimal__sub(HSQUIRRELVM v)
     GET_Decimal_INSTANCE2(v, 2);
     mpd_context_t *ctx = sq_get_global_ctx(v, 1);
     mpd_t *result = mpd_new(ctx);
-    uint32_t status;
+    uint32_t status = 0;
     mpd_qsub(result, dec, dec2, ctx, &status);
 	return sq_Decimal_new_for_dec(v, result, ctx, status);
 }
@@ -273,7 +300,7 @@ static SQRESULT sq_Decimal__mul(HSQUIRRELVM v)
     GET_Decimal_INSTANCE2(v, 2);
     mpd_context_t *ctx = sq_get_global_ctx(v, 1);
     mpd_t *result = mpd_new(ctx);
-    uint32_t status;
+    uint32_t status = 0;
     mpd_qmul(result, dec, dec2, ctx, &status);
 	return sq_Decimal_new_for_dec(v, result, ctx, status);
 }
@@ -285,7 +312,7 @@ static SQRESULT sq_Decimal__div(HSQUIRRELVM v)
     GET_Decimal_INSTANCE2(v, 2);
     mpd_context_t *ctx = sq_get_global_ctx(v, 1);
     mpd_t *result = mpd_new(ctx);
-    uint32_t status;
+    uint32_t status = 0;
     mpd_qdiv(result, dec, dec2, ctx, &status);
 	return sq_Decimal_new_for_dec(v, result, ctx, status);
 }
@@ -297,7 +324,7 @@ static SQRESULT sq_Decimal__modulo(HSQUIRRELVM v)
     GET_Decimal_INSTANCE2(v, 2);
     mpd_context_t *ctx = sq_get_global_ctx(v, 1);
     mpd_t *result = mpd_new(ctx);
-    uint32_t status;
+    uint32_t status = 0;
     mpd_qrem(result, dec, dec2, ctx, &status);
 	return sq_Decimal_new_for_dec(v, result, ctx, status);
 }
@@ -308,7 +335,7 @@ static SQRESULT sq_Decimal__unm(HSQUIRRELVM v)
     GET_Decimal_INSTANCE(v, 1);
     mpd_context_t *ctx = sq_get_global_ctx(v, 1);
     mpd_t *result = mpd_new(ctx);
-    uint32_t status;
+    uint32_t status = 0;
     mpd_qminus(result, dec, ctx, &status);
 	return sq_Decimal_new_for_dec(v, result, ctx, status);
 }
@@ -329,7 +356,7 @@ static SQRESULT sq_Decimal_abs(HSQUIRRELVM v)
     GET_Decimal_INSTANCE(v, 1);
     mpd_context_t *ctx = sq_get_global_ctx(v, 1);
     mpd_t *result = mpd_new(ctx);
-    uint32_t status;
+    uint32_t status = 0;
     mpd_qabs(result, dec, ctx, &status);
 	return sq_Decimal_new_for_dec(v, result, ctx, status);
 }
@@ -341,7 +368,7 @@ static SQRESULT sq_Decimal_max(HSQUIRRELVM v)
     GET_Decimal_INSTANCE2(v, 2);
     mpd_context_t *ctx = sq_get_global_ctx(v, 1);
     mpd_t *result = mpd_new(ctx);
-    uint32_t status;
+    uint32_t status = 0;
     mpd_qmax(result, dec, dec2, ctx, &status);
 	return sq_Decimal_new_for_dec(v, result, ctx, status);
 }
@@ -353,7 +380,7 @@ static SQRESULT sq_Decimal_min(HSQUIRRELVM v)
     GET_Decimal_INSTANCE2(v, 2);
     mpd_context_t *ctx = sq_get_global_ctx(v, 1);
     mpd_t *result = mpd_new(ctx);
-    uint32_t status;
+    uint32_t status = 0;
     mpd_qmin(result, dec, dec2, ctx, &status);
 	return sq_Decimal_new_for_dec(v, result, ctx, status);
 }
@@ -364,7 +391,7 @@ static SQRESULT sq_Decimal_next_minus(HSQUIRRELVM v)
     GET_Decimal_INSTANCE(v, 1);
     mpd_context_t *ctx = sq_get_global_ctx(v, 1);
     mpd_t *result = mpd_new(ctx);
-    uint32_t status;
+    uint32_t status = 0;
     mpd_qnext_minus(result, dec, ctx, &status);
 	return sq_Decimal_new_for_dec(v, result, ctx, status);
 }
@@ -375,7 +402,7 @@ static SQRESULT sq_Decimal_next_plus(HSQUIRRELVM v)
     GET_Decimal_INSTANCE(v, 1);
     mpd_context_t *ctx = sq_get_global_ctx(v, 1);
     mpd_t *result = mpd_new(ctx);
-    uint32_t status;
+    uint32_t status = 0;
     mpd_qnext_plus(result, dec, ctx, &status);
 	return sq_Decimal_new_for_dec(v, result, ctx, status);
 }
@@ -387,7 +414,7 @@ static SQRESULT sq_Decimal_next_toward(HSQUIRRELVM v)
     GET_Decimal_INSTANCE2(v, 2);
     mpd_context_t *ctx = sq_get_global_ctx(v, 1);
     mpd_t *result = mpd_new(ctx);
-    uint32_t status;
+    uint32_t status = 0;
     mpd_qnext_toward(result, dec, dec2, ctx, &status);
 	return sq_Decimal_new_for_dec(v, result, ctx, status);
 }
