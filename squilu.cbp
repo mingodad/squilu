@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="hello5.nut" />
+				<Option parameters="ourbiz-client.nut" />
 				<Compiler>
 					<Add option="-g" />
 					<Add directory="../zeromq-3.2.2/include" />
@@ -190,12 +190,15 @@
 			<Add directory="ext" />
 			<Add directory="ext/myaxtls" />
 			<Add directory="../dadbiz++/third-party/sqlite3" />
+			<Add directory="ext/mpdecimal" />
 		</Compiler>
 		<Linker>
+			<Add library="mpdecimal" />
 			<Add library="m" />
 			<Add library="z" />
 			<Add directory="lib" />
 			<Add directory="ext/myaxtls" />
+			<Add directory="ext/mpdecimal" />
 		</Linker>
 		<Unit filename="ext/fpdf.cpp" />
 		<Unit filename="ext/fpdf.h" />
@@ -214,6 +217,7 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="ext/sq_base64.cpp" />
+		<Unit filename="ext/sq_decimal.cpp" />
 		<Unit filename="ext/sq_fltk.cpp" />
 		<Unit filename="ext/sq_fpdf.cpp" />
 		<Unit filename="ext/sq_fs.c">

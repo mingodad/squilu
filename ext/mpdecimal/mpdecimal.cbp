@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="mpdecimal" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="libmpdecimal" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Debug/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="libmpdecimal" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="/home/mingo/dev/mpdecimal-2.3//.objs" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-DCONFIG_32=1" />
+			<Add option="-DPPRO=1" />
+			<Add option="-DASM=1" />
+		</Compiler>
+		<Unit filename="basearith.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="basearith.h" />
+		<Unit filename="constants.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="constants.h" />
+		<Unit filename="context.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="convolute.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="convolute.h" />
+		<Unit filename="crt.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="crt.h" />
+		<Unit filename="difradix2.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="difradix2.h" />
+		<Unit filename="fnt.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="fnt.h" />
+		<Unit filename="fourstep.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="fourstep.h" />
+		<Unit filename="io.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="io.h" />
+		<Unit filename="memory.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="memory.h" />
+		<Unit filename="mpdecimal.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="mpdecimal.h" />
+		<Unit filename="mpsignal.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="numbertheory.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="numbertheory.h" />
+		<Unit filename="sixstep.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sixstep.h" />
+		<Unit filename="transpose.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="transpose.h" />
+		<Extensions>
+			<envvars />
+			<code_completion />
+			<lib_finder disable_auto="1" />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

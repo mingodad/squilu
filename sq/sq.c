@@ -319,6 +319,7 @@ SQRESULT sqext_register_SQLite3(HSQUIRRELVM v);
 SQRESULT sqext_register_mix (HSQUIRRELVM sqvm);
 SQRESULT sqext_register_rs232(HSQUIRRELVM v);
 SQRESULT sqext_register_tinyxml2(HSQUIRRELVM v);
+SQRESULT sqext_register_decimal(HSQUIRRELVM v);
 
 int sq_main_argc = 0;
 char** sq_main_argv = 0;
@@ -360,6 +361,7 @@ int main(int argc, char* argv[])
 	sqrat_register_importlib(v);
 	sqext_register_sq_slave_vm(v);
 	sqext_register_tinyxml2(v);
+	sqext_register_decimal(v);
 
 	sqext_register_sq_zmq3(v);
 
