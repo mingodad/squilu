@@ -13,7 +13,7 @@ class SalesTaxRatesEditWindow extends MyBaseWindow {
 	db_map = null;
 	
 constructor() {
-	base.constructor(10, 50, 500, 385, _tr("Sales Tax Rates List / Edit"));
+	base.constructor(-1, -1, 500, 385, _tr("Sales Tax Rates List / Edit"));
 	db_map = {};
 	
 	dbAction = new Fl_Button(0, 0, 100, 25, _tr("Action"));

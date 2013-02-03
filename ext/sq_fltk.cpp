@@ -18,6 +18,7 @@
 #include <FL/Fl_Menu_Item.H>
 #include <FL/Fl_Menu_.H>
 #include <FL/Fl_Menu_Bar.H>
+#include <FL/Fl_Menu_Button.H>
 #include <FL/Fl_Choice.H>
 #include <FL/Fl_Input_.H>
 #include <FL/Fl_Input.H>
@@ -62,6 +63,7 @@ CREATE_TAG(Fl_Return_Button);
 CREATE_TAG(Fl_Round_Button);
 CREATE_TAG(Fl_Menu_);
 CREATE_TAG(Fl_Menu_Bar);
+CREATE_TAG(Fl_Menu_Button);
 CREATE_TAG(Fl_Menu_Item);
 CREATE_TAG(Fl_Choice);
 CREATE_TAG(Fl_Input_);
@@ -746,10 +748,29 @@ static SQInteger _Fl_Menu__copy(HSQUIRRELVM v)
     return 0;
 }
 
+static SQInteger _Fl_Menu__add(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_MENU_(v);
+    SQ_GET_STRING(v, 2, label);
+    self->add(label);
+    return 0;
+}
+
+static SQInteger _Fl_Menu__value(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_MENU_(v);
+    sq_pushinteger(v, self->value());
+    return 1;
+}
+
 #define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Menu__##name,nparams,pmask}
 static SQRegFunction fl_menu__obj_funcs[]={
 	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
 	_DECL_FUNC(copy,-2,_SC("xa.")),
+	_DECL_FUNC(add,2,_SC("xs")),
+	_DECL_FUNC(value,1,_SC("x")),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -758,6 +779,31 @@ FLTK_CONSTRUCTOR(Fl_Menu_Bar);
 #define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Menu_Bar_##name,nparams,pmask}
 static SQRegFunction fl_menu_bar_obj_funcs[]={
 	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
+	{0,0}
+};
+#undef _DECL_FUNC
+
+FLTK_CONSTRUCTOR(Fl_Menu_Button);
+#define SETUP_FL_MENU_BUTTON(v) SETUP_FL_KLASS(v, Fl_Menu_Button)
+
+static SQInteger _Fl_Menu_Button_popup(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SETUP_FL_MENU_BUTTON(v);
+    if(_top_ > 1){
+        SQ_GET_INTEGER(v, 2, x);
+        SQ_GET_INTEGER(v, 3, y);
+        self->popup(x, y);
+    }
+    else self->popup();
+	return 0;
+}
+
+
+#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Menu_Button_##name,nparams,pmask}
+static SQRegFunction fl_menu_button_obj_funcs[]={
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
+	_DECL_FUNC(popup,-1,_SC("xnn")),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -1266,7 +1312,6 @@ class Flv_Data_Table : public Flv_Table
 public:
     int selection_count, _draw_offset;
     bool _forPrint;
-    Fl_Menu_Button *_popup_menu;
 
     Flv_Data_Table(int X, int Y, int W=340, int H=202, const char *L=0):
         Flv_Table(X, Y, W, H, L)
@@ -1274,7 +1319,6 @@ public:
         _draw_offset = 5;
         selection_count = 0;
         _forPrint = false;
-        _popup_menu = 0;
 
         callback_when( FLVEcb_ROW_CHANGED | FLVEcb_CLICKED);
         selection_color(FL_BLUE);
@@ -1294,8 +1338,21 @@ public:
     }
     void resize(int x, int y, int w, int h)
     {
-        Flv_Table::resize(x, y, w, h);
-        //calc_cols();
+        bool done = false;
+        HSQUIRRELVM v = (HSQUIRRELVM) Fl::user_data;
+        SQInteger top = sq_gettop(v);
+        if(sq_get_fl_virtual(v, this, "resize") == SQ_OK){
+            sq_push(v, -2); //this
+            sq_pushinteger(v, x);
+            sq_pushinteger(v, y);
+            sq_pushinteger(v, w);
+            sq_pushinteger(v, h);
+            if(sq_call(v, 5, SQFalse, SQTrue) == SQ_OK){
+                    done = true;
+            }
+        }
+        sq_settop(v, top);
+        if(!done) Flv_Table::resize(x, y, w, h);
     }
 
     void textsize(Fl_Fontsize s)
@@ -1431,10 +1488,6 @@ public:
             case FL_LEFT_MOUSE:
                 take_focus();
                 break;
-            case FL_RIGHT_MOUSE:
-                show_popup_menu();
-                return 1;
-                break;
             }
         }
         break;
@@ -1461,20 +1514,6 @@ public:
         }
         sq_settop(v, top);
         return Flv_Table::handle(event);
-    }
-
-    void show_popup_menu()
-    {
-        if(_popup_menu) _popup_menu->popup();
-    }
-
-    void set_popup_menu(Fl_Menu_Button *popup)
-    {
-        _popup_menu=popup;
-    }
-    Fl_Menu_Button *get_popup_menu()
-    {
-        return _popup_menu;
     }
 
     virtual Fl_Color get_multi_select_color()
@@ -1532,6 +1571,18 @@ static SQInteger _Flv_Data_Table_handle(HSQUIRRELVM v)
     return 1;
 }
 
+static SQInteger _Flv_Data_Table_resize(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FLV_DATA_TABLE(v);
+    SQ_GET_INTEGER(v, 2, x);
+    SQ_GET_INTEGER(v, 3, y);
+    SQ_GET_INTEGER(v, 4, w);
+    SQ_GET_INTEGER(v, 5, h);
+    ((Flv_Data_Table*)self)->Flv_Table::resize(x, y, w, h);
+    return 0;
+}
+
 static SQInteger _Flv_Data_Table_draw_offset(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
@@ -1551,6 +1602,7 @@ FLTK_CONSTRUCTOR(Flv_Data_Table);
 static SQRegFunction flv_data_table_obj_funcs[]={
 	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
 	_DECL_FUNC(handle,2,_SC("xi")),
+	_DECL_FUNC(resize,5,_SC("xnnnn")),
 	_DECL_FUNC(draw_offset, -1,_SC("xn")),
 	{0,0}
 };
@@ -2285,6 +2337,18 @@ SQRESULT sqext_register_fltklib(HSQUIRRELVM v)
 	PUSH_FL_CLASS(Fl_Menu_, Fl_Widget, fl_menu__obj_funcs);
 	PUSH_FL_CLASS(Fl_Menu_Bar, Fl_Menu_, fl_menu_bar_obj_funcs);
 	PUSH_FL_CLASS(Fl_Choice, Fl_Menu_, fl_choice_obj_funcs);
+	sq_pushnewclass(v, FLTK_TAG(Fl_Menu_Button), FLTK_TAG(Fl_Menu_), (void*)FLTK_TAG(Fl_Menu_Button),
+                 fl_menu_button_obj_funcs, SQTrue);
+#define POPUP_INT_CONST(key) INT_CONST_PREFIX(Fl_Menu_Button::, key)
+
+	POPUP_INT_CONST(POPUP1);
+	POPUP_INT_CONST(POPUP2);
+	POPUP_INT_CONST(POPUP12);
+	POPUP_INT_CONST(POPUP3);
+	POPUP_INT_CONST(POPUP13);
+	POPUP_INT_CONST(POPUP23);
+	POPUP_INT_CONST(POPUP123);
+	sq_poptop(v); //remove Fl_Menu_Button
 
 	//Fl_Input_ class
 	PUSH_FL_CLASS(Fl_Input_, Fl_Widget, fl_input__obj_funcs);

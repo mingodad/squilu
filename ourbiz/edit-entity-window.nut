@@ -62,7 +62,7 @@ class EditEntitiesWindow extends MyBaseWindow {
 	print_progress=null;
 	
 	constructor(){
-		base.constructor(10, 50, 800, 560, "Edit Entity");
+		base.constructor(-1, -1, 800, 560, "Edit Entity");
 		//clear_flag(GROUP_RELATIVE);
 begin();
 this->box(FL_FLAT_BOX);

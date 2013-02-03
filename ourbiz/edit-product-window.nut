@@ -152,7 +152,7 @@ class EditProductWindow extends MyBaseWindow {
 	db_products_group_id=null;
 	
 constructor() {
-	base.constructor(10, 50, 800, 560, _tr("Edit Products"));
+	base.constructor(-1, -1, 800, 560, _tr("Edit Products"));
 begin();
 this->box(FL_FLAT_BOX);
 this->color(FL_BACKGROUND_COLOR);

@@ -5,11 +5,31 @@ appServer.connect("localhost", 8855);
 
 function _tr(str){ return str;}
 
+function create_popup_menu_for (wgt, yOffset=0, options=null){
+	local parent = wgt->parent();
+	if(!parent){
+		parent = wgt->as_group();
+		if(!parent) return null;
+	}
+	local o = new Fl_Menu_Button(wgt->x(), wgt->y()+yOffset, wgt->w(), wgt->h()-yOffset);
+	o->labelsize(wgt->labelsize());
+	o->textsize(wgt->labelsize());
+
+	if(options) for(local i=0, len= options.size(); i < len; ++i) o->add(opt[i]);
+	o->type(Fl_Menu_Button.POPUP3);
+
+	if(parent) parent->add(o);
+	else if(wgt->as_group()) wgt->as_group()->add(o);
+	return o;
+}
+
+
 class MyBaseWindow extends Fl_Window {
 	childWindows=null;
 
 	constructor(px, py, pw, ph, pl) {
-		base.constructor(px, py, pw, ph, pl);
+		if(px < 0) base.constructor(pw, ph, pl);
+		else base.constructor(px, py, pw, ph, pl);
 		childWindows = {};
 	}
 
@@ -36,13 +56,9 @@ class Fl_Data_Table extends Flv_Data_Table {
 		_cols_info = [];
 		_data = [];
 	}
-	function fill_grid_from_table(tbl){
-		//SafeCursorWait cursor_wait;
-		row(-1);
-		clear_data_rows();
-		local key = format("%s_get_list", tbl);
-		appServer[key](_data);
-		recalc_data();
+	function resize(ax, ay, aw, ah){
+		base.resize(ax, ay, aw, ah);
+		calc_cols();
 	}
 
 	function clear_data_rows(){
@@ -171,6 +187,13 @@ class Fl_Data_Table extends Flv_Data_Table {
 		    cs.width(col_width);
 		}
 	}
+	function get_selection(ar_out, withIds=false){
+	}
+	function clear_selection(){
+	}
+	function get_row_id(arow){
+		return _data[arow][0];
+	}
 }
 
 dofile("search-options.nut");
@@ -184,6 +207,7 @@ dofile("list-search-window.nut");
 
 class MyListSearchWindow extends ListSearch {
 	_search_options = null;
+	_sab = null;
 
 	constructor(){
 		base.constructor();
@@ -357,6 +381,7 @@ class OrdersListSearch extends MyListSearchWindow {
 	_search_by_date = null;
 	_search_by_total = null;
 	_search_wp = null;
+	_popup = null;
 
 	constructor() {
 		base.constructor();
@@ -380,6 +405,7 @@ class OrdersListSearch extends MyListSearchWindow {
 		_search_wp = create_search_by2("WP");
 		_search_by_entities->setonly();
 		fill_grid();
+		mk_popup();
 	}
 	
 	function get_search_data(data){
@@ -395,6 +421,46 @@ class OrdersListSearch extends MyListSearchWindow {
 	function cb_btnInsert(sender, udata){
 		local pr = sender.parent_root();
 		local win = pr.showChildWindow("Order Edit", EditOrderWindow);
+	}
+	function mk_popup()
+	{
+		_popup = create_popup_menu_for(grid, grid->global_style().height());
+		_popup.callback(on_popupmenu_cb);
+
+		_popup->add(_tr("Copy"));
+		_popup->add(_tr("Copy grouping"));
+		_popup->add(_tr("Clear selection"));
+	}
+	
+	function on_popupmenu_cb(sender, udata){
+		//printf("%p : %d : %s\n", sender, popup->value(),
+		//       popup->menu_at(popup->value())->label());
+		local pr = sender.parent_root();
+		local row = pr->grid->row();
+		if(row < 0) return;
+		switch(pr->_popup->value()){
+			case 0:{
+				local vi = [];
+				pr->grid->get_selection(vi, true);
+				if(vi.size() == 0) vi.push(pr->grid->get_row_id(row));
+				pr->copy_order(vi, false, pr->_sab);
+			}
+			break;
+			case 1:{
+			    local vi = [];
+			    pr->grid->get_selection(vi, true);
+			    pr->copy_order(vi, true, pr->_sab);
+			}
+			break;
+			case 2:{
+			    pr->grid->clear_selection();
+			    pr->grid->redraw();
+			}
+			break;
+		}
+	}
+	
+	function copy_order(ar_ids, grouping, sab){
 	}
 }
 
