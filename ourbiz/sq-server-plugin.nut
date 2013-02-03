@@ -813,7 +813,9 @@ function getExtraCompanyData(cid, cnum){
 	}
 }
 
-dofile(APP_CODE_FOLDER + "/ourbiz.nut");
+if(AT_DEV_DBG || !globals.get("ourbizDB", false)) {
+	dofile(APP_CODE_FOLDER + "/ourbiz.nut");
+}
 
 local uri_handlers = {
 	["/SQ/testParams"] = function(request){

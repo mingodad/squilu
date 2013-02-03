@@ -1,12 +1,3 @@
-class Fl_Data_Table extends Flv_Table {
-	_forPrint = null;
-	
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-		_forPrint=false;
-	}
-}
-
 class Fl_Box_ClearLabel extends Fl_Box {
 	constructor(px, py, pw, ph, pl=""){
 		base.constructor(px, py, pw, ph, pl);
@@ -216,48 +207,4 @@ function cb_btnInsert(sender, udata){
 	local pr = sender.parent_root();
 	local win = pr.showChildWindow("Order Edit", EditOrderWindow);
 }
-}
-
-class EntitiesListSearch extends ListSearch {
-
-	constructor() {
-		base.constructor();
-		label(_tr("Entities List Search"));
-	}
-	function cb_btnInsert(sender, udata){
-		local pr = sender.parent_root();
-		local win = pr.showChildWindow("Entity Edit", EditEntitiesWindow);
-	}
-}
-
-class ProductsListSearch extends ListSearch {
-
-	constructor() {
-		base.constructor();
-		label(_tr("Products List Search"));
-	}
-	function cb_btnInsert(sender, udata){
-		local pr = sender.parent_root();
-		local win = pr.showChildWindow("Product Edit", EditProductWindow);
-	}
-}
-
-class OrdersListSearch extends ListSearch {
-
-	constructor() {
-		base.constructor();
-		label(_tr("Orders List Search"));
-	}
-	function cb_btnInsert(sender, udata){
-		local pr = sender.parent_root();
-		local win = pr.showChildWindow("Order Edit", EditOrderWindow);
-	}
-}
-
-class PaymentsListSearch extends ListSearch {
-
-	constructor() {
-		base.constructor();
-		label(_tr("Payments List Search"));
-	}
 }

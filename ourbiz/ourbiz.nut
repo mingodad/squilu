@@ -15,7 +15,9 @@ function getOurbizDB(){
 	//return checkCachedDB(APP_CODE_FOLDER + "/ourbiz.db");
 }
 
-dofile(APP_CODE_FOLDER + "/pdf-table.nut");
+if(AT_DEV_DBG || !globals.get("PdfSqlTable", false)) {
+	dofile(APP_CODE_FOLDER + "/pdf-table.nut");
+}
 
 function escape_sql_like_search_str(str){
     if (str && (str.len() > 0)){
@@ -534,7 +536,9 @@ db_ourbiz_tables.entities <- new DB_Entities();
 // orders
 //
 
-dofile(APP_CODE_FOLDER +"/pdf-order.nut");
+if(AT_DEV_DBG || !globals.get("PDF_Order", false)) {
+	dofile(APP_CODE_FOLDER + "/pdf-order.nut");
+}
 
 class My_PDF_Order extends PDF_Order {
 	_tr_map = null;
@@ -669,6 +673,21 @@ class CalcOrderLine
 		}
 	}
 
+	function clear_preserving_tax_flags2(withFullTax=false)
+	{
+		unit_weight = quantity = weight = price =
+                                              first_total = discount_pct =
+                                                      discount_amt = line_subtotal =
+                                                              sales_tax1_pct = sales_tax1_amt = sales_tax2_pct =
+                                                                      sales_tax2_amt = line_total = Decimal(0);
+		id = order_id = product_id = 0;
+		price_decimals = 2;
+		if(withFullTax){
+			use_sales_tax2 = true;
+			tax_exempt=false;
+		}
+	}
+
 	function dumpSLSArrayCalcNames(out_result)
 	{
 		//this list must match the dumpSLSArrayCalc order
@@ -719,6 +738,38 @@ class CalcOrderLine
 		}
 		line_total = round(line_subtotal + sales_tax1_amt + sales_tax2_amt, price_decimals);
 	}
+	
+	function calc2()
+	{
+		local num100 = Decimal(100);
+		first_total = quantity * price;
+		weight = unit_weight * quantity;
+		local round = math.broundf;
+		local saved_prec = Decimal.gctx.prec();
+		Decimal.gctx.prec(price_decimals);
+
+		discount_amt = first_total * (discount_pct/num100);
+		line_subtotal = first_total - discount_amt;
+
+		if(!tax_exempt)
+		{
+			sales_tax1_amt = line_subtotal * (sales_tax1_pct/num100);
+			if(use_sales_tax2)
+			{
+				sales_tax2_amt = line_subtotal * (sales_tax2_pct/num100);
+			}
+			else
+			{
+				sales_tax2_pct = 0.0;
+			}
+		}
+		else
+		{
+			sales_tax2_pct = sales_tax1_pct = 0.0;
+		}
+		line_total = line_subtotal + sales_tax1_amt + sales_tax2_amt;
+		Decimal.gctx.prec(saved_prec);
+	}
 }
 
 class  CalcOrderTotals
@@ -743,6 +794,12 @@ class  CalcOrderTotals
 	{
 		subtotal_amt = discount_amt = sales_tax1_amt =
                                           sales_tax2_amt = total_amt = weight_total = 0.0;
+		lines_count = 0;
+	}
+	function clear2()
+	{
+		subtotal_amt = discount_amt = sales_tax1_amt =
+                                          sales_tax2_amt = total_amt = weight_total = Decimal(0);
 		lines_count = 0;
 	}
 

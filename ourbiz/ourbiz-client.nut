@@ -846,6 +846,7 @@ class AppServer
     }
 };
 
+/*
 local data = [];
 local appServer = AppServer.getAppServer();
 appServer.credentials("mingote", "tr14pink");
@@ -869,3 +870,4 @@ function OurBizClientAtExit(){
 setatexithandler(OurBizClientAtExit);
 
 //print(OurBizClientAtExit, getatexithandler());
+*/

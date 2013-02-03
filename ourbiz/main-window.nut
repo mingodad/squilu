@@ -320,7 +320,7 @@ function cb_btnGLTransactions(){print(__LINE__);}
 function cb_btnOrdersSum(){print(__LINE__);}
 function cb_btnSalesTaxRates(sender, udata){
 	local pr = sender.parent_root();
-	local win = pr.showChildWindow("Sales Tax Rates List/Edit", SalesTaxRatesEditWindow);
+	local win = pr.showChildWindow("Sales Tax Rates List/Edit", OurSalesTax);
 }
 function cb_btnOrderTypes(){print(__LINE__);}
 function cb_btnPaymentTypes(){print(__LINE__);}

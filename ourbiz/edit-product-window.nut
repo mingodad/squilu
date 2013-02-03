@@ -1,12 +1,3 @@
-class Fl_Data_Table extends Flv_Table {
-	_forPrint = null;
-	
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-		_forPrint=false;
-	}
-}
-
 class Flu_Tree_Browser extends Flv_Table {
 	_forPrint = null;
 	
