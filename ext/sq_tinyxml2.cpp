@@ -4,7 +4,7 @@
 SQ_OPT_STRING_STRLEN();
 
 #define XML_TAG(tag) SQXML_##tag##_TYPE_TAG
-#define CREATE_TAG(tag) static const char* XML_TAG(tag) = #tag
+#define CREATE_TAG(tag) static const SQChar* XML_TAG(tag) = #tag
 
 static const SQChar sq_tinyxml2_TAG[] = _SC("TinyXml2");
 CREATE_TAG(XMLNode);
