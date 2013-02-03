@@ -1415,7 +1415,7 @@ static int global_select(HSQUIRRELVM v) {
     } else if (ret == 0) {
         return sq_throwerror(v, _SC("timeout"));
     }
-    return sq_throwerror(v, _SC("error"));
+    return sq_throwerror(v, _SC("select error %d"), ret);
 }
 
 /*=========================================================================*\
