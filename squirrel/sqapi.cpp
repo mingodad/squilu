@@ -1448,6 +1448,7 @@ SQRESULT sq_resurrectunreachable(HSQUIRRELVM v)
 SQInteger sq_collectgarbage(HSQUIRRELVM v)
 {
 #ifndef NO_GARBAGE_COLLECTOR
+    _ss(v)->CallDelayedReleaseHooks(v);
 	return _ss(v)->CollectGarbage(v);
 #else
 	return -1;
