@@ -131,6 +131,7 @@ static SQRegFunction base64_methods[] =
     _DECL_FUNC(decode,2,_SC(".s")),
     {0,0}
 };
+#undef _DECL_FUNC
 
 #ifdef __cplusplus
 extern "C" {
