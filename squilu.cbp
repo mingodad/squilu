@@ -196,7 +196,6 @@
 			<Add directory="ext" />
 			<Add directory="ext/myaxtls" />
 			<Add directory="../dadbiz++/third-party/sqlite3" />
-			<Add directory="ext/mpdecimal" />
 		</Compiler>
 		<Linker>
 			<Add library="m" />
