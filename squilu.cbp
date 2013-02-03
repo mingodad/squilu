@@ -22,6 +22,7 @@
 					<Add library="rt" />
 					<Add library="dl" />
 					<Add library="axtls" />
+					<Add library="mpdecimal" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -43,6 +44,7 @@
 					<Add library="rt" />
 					<Add library="dl" />
 					<Add library="axtls" />
+					<Add library="mpdecimal" />
 					<Add directory="../zeromq-3.2.2" />
 				</Linker>
 			</Target>
@@ -60,6 +62,7 @@
 					<Add library="rt" />
 					<Add library="dl" />
 					<Add library="axtls" />
+					<Add library="mpdecimal" />
 				</Linker>
 			</Target>
 			<Target title="Release win32">
@@ -83,6 +86,7 @@
 					<Add library="../../../../media/DATA/dadbiz++/zeromq-3.2.2/libzeromq-win32.a" />
 					<Add library="axtls-win32" />
 					<Add library="ws2_32" />
+					<Add library="mpdecimal-win32" />
 				</Linker>
 			</Target>
 			<Target title="Release FLTK">
@@ -114,6 +118,7 @@
 					<Add library="Xext" />
 					<Add library="Xft" />
 					<Add library="Xinerama" />
+					<Add library="mpdecimal" />
 					<Add directory="../zeromq-3.2.2" />
 					<Add directory="../dadbiz++/third-party/fltk/lib" />
 				</Linker>
@@ -146,6 +151,7 @@
 					<Add library="Xext" />
 					<Add library="Xft" />
 					<Add library="Xinerama" />
+					<Add library="mpdecimal" />
 					<Add directory="../zeromq-3.2.2" />
 					<Add directory="../dadbiz++/third-party/fltk/lib" />
 				</Linker>
@@ -193,7 +199,6 @@
 			<Add directory="ext/mpdecimal" />
 		</Compiler>
 		<Linker>
-			<Add library="mpdecimal" />
 			<Add library="m" />
 			<Add library="z" />
 			<Add directory="lib" />
