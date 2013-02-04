@@ -38,10 +38,6 @@ class Fl_Choice_Str extends Fl_Button {
 		base.constructor(px, py, pw, ph, pl);
 	}
 }
-
-
-function add_input_field_to_map(tbl, fldname, fld){
-}
 	
 //class BaseReportA4 extends Fl_Group {
 class ListSearch extends MyBaseWindow {
@@ -62,7 +58,7 @@ class ListSearch extends MyBaseWindow {
 	pack_search_options2=null;
 
 constructor() {
-	base.constructor(-1, -1, 800, 560, _tr("List Search"));
+	base.constructor(10, 50, 800, 560, _tr("List Search"));
 begin();
 this->box(FL_FLAT_BOX);
 this->color(FL_BACKGROUND_COLOR);

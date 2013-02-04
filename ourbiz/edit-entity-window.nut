@@ -5,7 +5,7 @@ class Fl_Progress extends Fl_Box {
 }
 
 
-class EditEntitiesWindow extends MyBaseWindow {
+class EditEntityWindow extends EditWindow {
 	db_entities_id=null;
 	db_entities_name_ro=null;
 	db_entities_mdate=null;
@@ -62,7 +62,7 @@ class EditEntitiesWindow extends MyBaseWindow {
 	print_progress=null;
 	
 	constructor(){
-		base.constructor(-1, -1, 800, 560, "Edit Entity");
+		base.constructor(10, 50, 800, 560, "Edit Entity");
 		//clear_flag(GROUP_RELATIVE);
 begin();
 this->box(FL_FLAT_BOX);

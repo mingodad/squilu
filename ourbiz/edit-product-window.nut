@@ -35,12 +35,9 @@ class Fl_Choice_Str extends Fl_Button {
 		base.constructor(px, py, pw, ph, pl);
 	}
 }
-
-function add_input_field_to_map(tbl, fldname, fld){
-}
 	
 //class EditProductWindow extends Fl_Group {
-class EditProductWindow extends MyBaseWindow {
+class EditProductWindow extends EditWindow {
 	db_products_id=null;
 	db_products_description_ro=null;
 	db_products_mdate=null;
@@ -123,7 +120,7 @@ class EditProductWindow extends MyBaseWindow {
 	db_products_group_id=null;
 	
 constructor() {
-	base.constructor(-1, -1, 800, 560, _tr("Edit Products"));
+	base.constructor(10, 50, 800, 560, _tr("Edit Products"));
 begin();
 this->box(FL_FLAT_BOX);
 this->color(FL_BACKGROUND_COLOR);

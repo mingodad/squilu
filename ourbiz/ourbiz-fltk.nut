@@ -94,27 +94,43 @@ function button_show_db_image(btn, image_id, window=null, asThumb=true, throwNot
 }
 
 class Fl_Box_ClearLabel extends Fl_Box {
-	constructor(px, py, pw, ph, pl=""){
+	constructor(px, py, pw, ph, pl=null){
 		base.constructor(px, py, pw, ph, pl);
 	}
 }
 
 class MyBaseWindow extends Fl_Window {
 	childWindows=null;
+	_db_map = null;
 
 	constructor(px, py, pw, ph, pl) {
 		if(px < 0) base.constructor(pw, ph, pl);
 		else base.constructor(px, py, pw, ph, pl);
 		childWindows = {};
+		_db_map = {};
 	}
 
-	function showChildWindow(winName, WindowClass){
+	function add_input_field_to_map(tbl, fldname, fld){
+		local tbl_map = _db_map.get(tbl, false);
+		if(!tbl_map){
+			tbl_map = {};
+			_db_map[tbl] <- tbl_map;
+		}
+		tbl_map[fldname] <- fld;
+	}
+
+	function getChildWindow(winName, WindowClass){
 		local win = childWindows.get(winName, false);
 		if(!win){
 			win = new WindowClass();
 			win.label(winName);
 			childWindows[winName] <- win;
 		}
+		return win;
+	}
+	
+	function showChildWindow(winName, WindowClass){
+		local win = getChildWindow(winName, WindowClass);
 		win->show();
 		return win;
 	}
@@ -193,17 +209,68 @@ class MyBaseWindow extends Fl_Window {
 	}		
 }
 
+class EditWindow extends MyBaseWindow {
+	_record = null;
+	_id = null;
+	_main_table = null;
+	
+	constructor(px, py, pw, ph, pl){
+		base.constructor(px, py, pw, ph, pl);
+		_record = {};
+	}
+	function show_id(id){
+		appServer.get_record(_record, _main_table, 0, id);
+		_id = id;
+		local tbl_map = _db_map.get(_main_table, false);
+		if(tbl_map){
+			foreach(k, wdg in tbl_map){
+				if(_record.rawin(k)){
+					local value =  _record[k];
+					local classId = wdg->classId();
+					if(classId == Fl_Text_Editor.className()){
+						//set_widget_value((Fl_Text_Editor*)wdg, fld_name);
+					}
+					else if(classId == Fl_Check_Button.className()){
+						//set_widget_value((Fl_Check_Button*)wdg, fld_name);
+						wdg->value(value == "1" ? 1 : 0);
+					}
+					/*
+					else if(classId == Fl_Choice_Str.className()){
+						//set_widget_value((Fl_Choice_Str*)wdg, fld_name);
+					}
+					else if(classId == Fl_Choice_Int.className()){
+						//set_widget_value((Fl_Choice_Int*)wdg, fld_name);
+					}
+					else if(classId == Flu_Combo_Box.className()){
+						//set_widget_value((Flu_Combo_Box*)wdg, fld_name);
+					}
+					else if(classId == Flu_Tree_Browser.className()){
+						//set_widget_value((Flu_Tree_Browser*)wdg, fld_name);
+					}
+					*/
+					else if(wdg->inherits_from(Fl_Input_.cheap_rtti_info())){
+						//set_widget_value((Fl_Input_*)wdg, fld_name);
+						wdg->value(value);
+					}
+				}
+			}
+		}
+	}
+}
+
+enum Fl_Data_Table_Events {e_none, e_event, e_select, e_insert, e_update, e_delete};
+
 class Fl_Data_Table extends Flv_Data_Table {
 	_forPrint = null;
 	_cols_info = null;
 	_data = null;
+	_call_this = null;
 
 	constructor(px, py, pw, ph, pl=null){
 		base.constructor(px, py, pw, ph, pl);
 		_forPrint=false;
 		_cols_info = [];
 		_data = [];
-		callback_when(FLVEcb_ROW_CHANGED | FLVEcb_CLICKED | FLVEcb_ROW_HEADER_CLICKED);
 	}
 	function resize(ax, ay, aw, ah){
 		base.resize(ax, ay, aw, ah);
@@ -258,16 +325,48 @@ class Fl_Data_Table extends Flv_Data_Table {
 		}
 		return value;
 	}
+	
 	function handle(event){
-		if(event == FLVE_ROW_CHANGED){
-			local pr = parent_root();
-			if(pr && pr.get("on_row_changed", false)){
-				pr.on_row_changed(this, row());
+		switch(event){
+			case FL_RELEASE:{
+				local done = false;
+				if(Fl.event_clicks() > 0){
+					row_selected(Fl_Data_Table_Events.e_update);
+					done = true;
+				}
+				if(done){
+					Fl.event_clicks(0);
+					return 1;
+				}
 			}
+			break;
+			case FL_KEYBOARD:
+				local key = Fl.event_key();
+				switch(key){
+					case FL_KP_Plus:
+						if(Fl.event_ctrl()) break;
+					case FL_Insert:
+						row_selected(Fl_Data_Table_Events.e_insert);
+					break;
+					//case FL_KP_Minus:
+					//    if(Fl::event_ctrl()) break;
+					case FL_Delete:
+						row_selected(Fl_Data_Table_Events.e_delete);
+					break;
+					case FL_KP_Enter:
+					case FL_Enter:
+					case FL_Key_Space:
+						if(!Fl.event_ctrl()){
+							row_selected(Fl_Data_Table_Events.e_update);
+						}
+					break;
+				}
+			break;
 		}
 		local rc = base.handle(event);
 		return rc;
 	}
+	function row_selected(ev){ if(_call_this) _call_this.row_selected(ev);}
 	function set_cols(mycols){
 		_cols_info.clear();
 		for(local i=0, max_cols=mycols.size(); i < max_cols; ++i){
@@ -349,7 +448,8 @@ class Fl_Data_Table extends Flv_Data_Table {
 	}
 	function clear_selection(){
 	}
-	function get_row_id(arow){
+	function get_row_id(arow=null){
+		if(arow == null) arow = row();
 		return _data[arow][0];
 	}
 }
@@ -371,6 +471,30 @@ class MyListSearchWindow extends ListSearch {
 	constructor(){
 		base.constructor();
 		_search_options = OurBizSearchOptions();
+		grid->callback_when(FLVEcb_ROW_CHANGED | FLVEcb_CLICKED | FLVEcb_ROW_HEADER_CLICKED);
+		grid->callback(grid_cb);
+		grid->_call_this = this;
+	}
+	
+	function grid_cb(sender, udata){}
+	function get_edit_window(){return null;}
+	
+	function row_selected(ev){
+		local edit_window = get_edit_window();
+		if(edit_window){
+			edit_window.show();
+			edit_window.show_id(grid->get_row_id());
+			switch(ev){
+				case Fl_Data_Table_Events.e_select:					
+				break;
+				case Fl_Data_Table_Events.e_insert:
+				break;
+				case Fl_Data_Table_Events.e_update:
+				break;
+				case Fl_Data_Table_Events.e_delete:
+				break;
+			}
+		}
 	}
 
 	function get_search_data(data){}
@@ -473,6 +597,12 @@ class OurSalesTax extends SalesTaxRatesEditWindow {
 	}
 }
 
+class MyEditEntityWindow extends EditEntityWindow {
+	constructor(){
+		base.constructor();
+		_main_table = "entities";
+	}
+}
 
 class EntitiesListSearch extends MyListSearchWindow {
 	_search_by_name = null;
@@ -519,10 +649,19 @@ class EntitiesListSearch extends MyListSearchWindow {
 		appServer.entities_get_list(grid->_data, _search_options);
 	}
 	
+	function get_edit_window(){return getChildWindow("Entity Edit", MyEditEntityWindow);}
+	
 	function cb_btnInsert(sender, udata){
 		local pr = sender.parent_root();
 		local win = pr.showChildWindow("Entity Edit", EditEntitiesWindow);
 	}	
+}
+
+class MyEditProductWindow extends EditProductWindow {
+	constructor(){
+		base.constructor();
+		_main_table = "products";
+	}
 }
 
 class ProductsListSearch extends MyListSearchWindow {
@@ -577,25 +716,38 @@ class ProductsListSearch extends MyListSearchWindow {
 		appServer.products_get_list(grid->_data, _search_options);
 	}
 
+	function get_edit_window(){return getChildWindow("Product Edit", MyEditProductWindow);}
+
 	function cb_btnInsert(sender, udata){
 		local pr = sender.parent_root();
 		local win = pr.showChildWindow("Product Edit", EditProductWindow);
 	}
 	
-	function on_row_changed(sender, row){
+	function grid_cb(sender, udata){
 		//print("on_row_changed", sender, row);
-		if(shown()){
-			local img_id = sender->get_data_value(row, sender->cols()-1);
-			if(img_id){
-				img_id = img_id.tointeger();
-				if(img_id != _last_image_id){
-					button_show_db_image(btnThumbImage, img_id, _image_window, true, false);
-					_last_image_id = img_id;
+		if(sender->why_event() == FLVE_ROW_CHANGED){
+			local pr = sender.parent_root();
+			if(pr->shown()){
+				local img_id = sender->get_data_value(sender->row(), sender->cols()-1);
+				if(img_id){
+					img_id = img_id.tointeger();
+					if(img_id != pr->_last_image_id){
+						button_show_db_image(pr->btnThumbImage, img_id, pr->_image_window, true, false);
+						pr->_last_image_id = img_id;
+					}
 				}
-			}
+			}	
 		}
 	}
 }
+
+class MyEditOrderWindow extends EditOrderWindow {
+	constructor(){
+		base.constructor();
+		_main_table = "orders";
+	}
+}
+
 
 class OrdersListSearch extends MyListSearchWindow {
 	_search_by_entities = null;
@@ -644,6 +796,8 @@ class OrdersListSearch extends MyListSearchWindow {
 		_search_options.group_id = group_filter->get_data_at();
 		appServer.orders_get_list(grid->_data, _search_options);
 	}
+
+	function get_edit_window(){return getChildWindow("Order Edit", MyEditOrderWindow);}
 
 	function cb_btnInsert(sender, udata){
 		local pr = sender.parent_root();

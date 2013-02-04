@@ -119,7 +119,4 @@ constructor() {
 	} // Fl_Group* editGroup
 	end();
 }
-function add_input_field_to_map(tbl, fldname, fld){
-	db_map[fldname] <- fld;
-}
 }

@@ -374,20 +374,20 @@ static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
 	return 1;\
 }
 
-#define FL_WIDGET_GETSET_STR(funcNAME) FUNC_GETSET_STR(_flwidget_, SETUP_FL_WIDGET, self->, funcNAME)
+#define FL_WIDGET_GETSET_STR(funcNAME) FUNC_GETSET_STR(_Fl_Widget_, SETUP_FL_WIDGET, self->, funcNAME)
 
-#define FL_WIDGET_GETSET_INT0(funcNAME, typeNAME) FUNC_GETSET_INT(_flwidget_, SETUP_FL_WIDGET, self->, funcNAME, typeNAME)
+#define FL_WIDGET_GETSET_INT0(funcNAME, typeNAME) FUNC_GETSET_INT(_Fl_Widget_, SETUP_FL_WIDGET, self->, funcNAME, typeNAME)
 #define FL_WIDGET_GETSET_INT(funcNAME) FL_WIDGET_GETSET_INT0(funcNAME, int)
 #define FL_WIDGET_GETSET_INT_CAST(funcNAME, castType) FL_WIDGET_GETSET_INT0(funcNAME, castType)
 
-#define FL_WIDGET_VOID_CALL(funcNAME) FUNC_VOID_CALL(_flwidget_, SETUP_FL_WIDGET, self->, funcNAME)
+#define FL_WIDGET_VOID_CALL(funcNAME) FUNC_VOID_CALL(_Fl_Widget_, SETUP_FL_WIDGET, self->, funcNAME)
 
-#define FL_WIDGET_VOID_CALL_2INT(funcNAME) FUNC_VOID_CALL_2INT(_flwidget_, SETUP_FL_WIDGET, funcNAME)
+#define FL_WIDGET_VOID_CALL_2INT(funcNAME) FUNC_VOID_CALL_2INT(_Fl_Widget_, SETUP_FL_WIDGET, funcNAME)
 
-#define FL_WIDGET_VOID_CALL_4INT(funcNAME) FUNC_VOID_CALL_4INT(_flwidget_, SETUP_FL_WIDGET, funcNAME)
+#define FL_WIDGET_VOID_CALL_4INT(funcNAME) FUNC_VOID_CALL_4INT(_Fl_Widget_, SETUP_FL_WIDGET, funcNAME)
 
-#define FL_WIDGET_INT_CALL(funcNAME) FUNC_INT_CALL(_flwidget_, SETUP_FL_WIDGET, funcNAME)
-#define FL_WIDGET_STR_CALL(funcNAME) FUNC_STR_CALL(_flwidget_, SETUP_FL_WIDGET, funcNAME)
+#define FL_WIDGET_INT_CALL(funcNAME) FUNC_INT_CALL(_Fl_Widget_, SETUP_FL_WIDGET, funcNAME)
+#define FL_WIDGET_STR_CALL(funcNAME) FUNC_STR_CALL(_Fl_Widget_, SETUP_FL_WIDGET, funcNAME)
 
 #define GETINSTANCE_FOR_FL_KLASS(Klass)\
 static SQInteger getInstance_for_##Klass(HSQUIRRELVM v, Klass *widget){\
@@ -401,6 +401,14 @@ static SQInteger getInstance_for_##Klass(HSQUIRRELVM v, Klass *widget){\
     sq_replace(v, -2);\
     return SQ_OK;\
 }
+
+#define CHEAP_RTTI_FOR(Klass) \
+static SQRESULT _##Klass##_className(HSQUIRRELVM v){sq_pushstring(v, Klass::className(), -1); return 1;};\
+static SQRESULT _##Klass##_cheap_rtti_info(HSQUIRRELVM v){sq_pushuserpointer(v, (SQUserPointer)Klass::cheap_rtti_info()); return 1;};
+
+#define CHEAP_RTTI_REG_FUN_FOR(Klass) \
+{_SC("className"),_##Klass##_className, 1,_SC("y"), SQTrue},\
+{_SC("cheap_rtti_info"),_##Klass##_cheap_rtti_info, 1,_SC("y"), SQTrue},
 
 GETINSTANCE_FOR_FL_KLASS(Fl_Widget);
 GETINSTANCE_FOR_FL_KLASS(Fl_Group);
@@ -501,7 +509,7 @@ static void fltk_calback_hook(Fl_Widget *sender, void* udata){
     sq_settop(v, savedTop);
 }
 
-static SQInteger _flwidget_callback(HSQUIRRELVM v)
+static SQInteger _Fl_Widget_callback(HSQUIRRELVM v)
 {
 //printf("%d %s\n", __LINE__, __FILE__);
     SETUP_FL_WIDGET(v);
@@ -570,11 +578,11 @@ FL_WIDGET_GETSET_INT(h);
 FL_WIDGET_VOID_CALL_2INT(position);
 FL_WIDGET_VOID_CALL_2INT(size);
 FL_WIDGET_VOID_CALL_4INT(resize);
-//FUNC_SET_INT(_flwidget_, SETUP_FL_WIDGET, clear_flag);
+//FUNC_SET_INT(_Fl_Widget_, SETUP_FL_WIDGET, clear_flag);
 
 //FL_WIDGET_STR_CALL(classId);
 
-static SQInteger _flwidget_classId(HSQUIRRELVM v)
+static SQInteger _Fl_Widget_classId(HSQUIRRELVM v)
 {
     SETUP_FL_WIDGET(v);
     if(!self) return sq_throwerror(v, _SC("attempt to call method with null object"));
@@ -583,7 +591,25 @@ static SQInteger _flwidget_classId(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _flwidget_parent(HSQUIRRELVM v)
+static SQInteger _Fl_Widget_classRTTI(HSQUIRRELVM v)
+{
+    SETUP_FL_WIDGET(v);
+    if(!self) return sq_throwerror(v, _SC("attempt to call method with null object"));
+    sq_pushuserpointer(v, (SQUserPointer)self->classRTTI());
+	return 1;
+}
+
+static SQInteger _Fl_Widget_inherits_from(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_WIDGET(v);
+    if(!self) return sq_throwerror(v, _SC("attempt to call method with null object"));
+    SQ_GET_USERPOINTER(v, 2, ptr);
+    sq_pushbool(v, self->inherits_from((const st_cheap_rtti *)ptr));
+	return 1;
+}
+
+static SQInteger _Fl_Widget_parent(HSQUIRRELVM v)
 {
     SETUP_FL_WIDGET(v);
     if(!self) return sq_throwerror(v, _SC("attempt to call method with null object"));
@@ -591,7 +617,7 @@ static SQInteger _flwidget_parent(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _flwidget_parent_root(HSQUIRRELVM v)
+static SQInteger _Fl_Widget_parent_root(HSQUIRRELVM v)
 {
     SETUP_FL_WIDGET(v);
     if(!self) return sq_throwerror(v, _SC("attempt to call method with null object"));
@@ -599,7 +625,7 @@ static SQInteger _flwidget_parent_root(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _flwidget_handle(HSQUIRRELVM v)
+static SQInteger _Fl_Widget_handle(HSQUIRRELVM v)
 {
     SETUP_FL_WIDGET(v);
     SQInteger event;
@@ -613,7 +639,7 @@ FL_WIDGET_VOID_CALL(redraw_label);
 FL_WIDGET_VOID_CALL(hide);
 FL_WIDGET_VOID_CALL(show);
 
-static SQInteger _flwidget_image(HSQUIRRELVM v)
+static SQInteger _Fl_Widget_image(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SETUP_FL_WIDGET(v);
@@ -632,41 +658,46 @@ static SQInteger _flwidget_image(HSQUIRRELVM v)
     return 1;
 }
 
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_flwidget_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Widget);
+
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Widget_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_widget_obj_funcs[]={
-	_DECL_FUNC(align,-1,_SC("xi")),
-	_DECL_FUNC(argument,-1,_SC("xi")),
-	_DECL_FUNC(box,-1,_SC("xi")),
-	_DECL_FUNC(callback,-1,_SC("xc.")),
-	_DECL_FUNC(color,-1,_SC("xi")),
-	_DECL_FUNC(selection_color,-1,_SC("xi")),
-	_DECL_FUNC(label,-1,_SC("x s|o")),
-	_DECL_FUNC(labelcolor,-1,_SC("xi")),
-	_DECL_FUNC(labelfont,-1,_SC("xi")),
-	_DECL_FUNC(labelsize,-1,_SC("xi")),
-	_DECL_FUNC(labeltype,-1,_SC("xi")),
-	_DECL_FUNC(textfont,-1,_SC("xi")),
-	_DECL_FUNC(textsize,-1,_SC("xi")),
-	_DECL_FUNC(tooltip,-1,_SC("xs")),
-	_DECL_FUNC(type,-1,_SC("xi")),
-	_DECL_FUNC(when,-1,_SC("xi")),
-	_DECL_FUNC(handle,2,_SC("xi")),
-	_DECL_FUNC(redraw,1,_SC("x")),
-	_DECL_FUNC(redraw_label,1,_SC("x")),
-	_DECL_FUNC(x,-1,_SC("xn")),
-	_DECL_FUNC(y,-1,_SC("xn")),
-	_DECL_FUNC(w,-1,_SC("xn")),
-	_DECL_FUNC(h,-1,_SC("xn")),
-	_DECL_FUNC(position,3,_SC("xii")),
-	_DECL_FUNC(size,3,_SC("xii")),
-	_DECL_FUNC(resize,5,_SC("xiiii")),
-	_DECL_FUNC(show,1,_SC("x")),
-	_DECL_FUNC(hide,1,_SC("x")),
-	_DECL_FUNC(classId,1,_SC("x")),
-	_DECL_FUNC(parent,1,_SC("x")),
-	_DECL_FUNC(parent_root,1,_SC("x")),
-	_DECL_FUNC(image,-1,_SC("x x|o")),
-//	_DECL_FUNC(clear_flag,2,_SC("xi")),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Widget)
+	_DECL_FUNC(align,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(argument,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(box,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(callback,-1,_SC("xc."), SQFalse),
+	_DECL_FUNC(color,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(selection_color,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(label,-1,_SC("x s|o"), SQFalse),
+	_DECL_FUNC(labelcolor,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(labelfont,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(labelsize,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(labeltype,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(textfont,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(textsize,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(tooltip,-1,_SC("xs"), SQFalse),
+	_DECL_FUNC(type,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(when,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(handle,2,_SC("xi"), SQFalse),
+	_DECL_FUNC(redraw,1,_SC("x"), SQFalse),
+	_DECL_FUNC(redraw_label,1,_SC("x"), SQFalse),
+	_DECL_FUNC(x,-1,_SC("xn"), SQFalse),
+	_DECL_FUNC(y,-1,_SC("xn"), SQFalse),
+	_DECL_FUNC(w,-1,_SC("xn"), SQFalse),
+	_DECL_FUNC(h,-1,_SC("xn"), SQFalse),
+	_DECL_FUNC(position,3,_SC("xii"), SQFalse),
+	_DECL_FUNC(size,3,_SC("xii"), SQFalse),
+	_DECL_FUNC(resize,5,_SC("xiiii"), SQFalse),
+	_DECL_FUNC(show,1,_SC("x"), SQFalse),
+	_DECL_FUNC(hide,1,_SC("x"), SQFalse),
+	_DECL_FUNC(classId,1,_SC("x"), SQFalse),
+	_DECL_FUNC(inherits_from,2,_SC("xp"), SQFalse),
+	_DECL_FUNC(classRTTI,1,_SC("x"), SQFalse),
+	_DECL_FUNC(parent,1,_SC("x"), SQFalse),
+	_DECL_FUNC(parent_root,1,_SC("x"), SQFalse),
+	_DECL_FUNC(image,-1,_SC("x x|o"), SQFalse),
+//	_DECL_FUNC(clear_flag,2,_SC("xi"), SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -694,10 +725,13 @@ static SQInteger _MyFl_Box_draw(HSQUIRRELVM v)
 	return 0;
 }
 
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_MyFl_Box_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Box);
+
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_MyFl_Box_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_box_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
-	_DECL_FUNC(draw,1,_SC("x")),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Box)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	_DECL_FUNC(draw,1,_SC("x"), SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -714,61 +748,75 @@ static SQRESULT _Fl_Button_setonly(HSQUIRRELVM v){
     return 0;
 }
 
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Button_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Button);
+
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Button_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_button_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
-	_DECL_FUNC(down_box,-1,_SC("xi")),
-	_DECL_FUNC(value,-1,_SC("xi")),
-	_DECL_FUNC(setonly,1,_SC("x")),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Button)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	_DECL_FUNC(down_box,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(value,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(setonly,1,_SC("x"), SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
 
 FLTK_CONSTRUCTOR(Fl_Light_Button);
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Light_Button_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Light_Button);
+
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Light_Button_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_light_button_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Light_Button)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
 
 FLTK_CONSTRUCTOR(Fl_Check_Button);
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Check_Button_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Check_Button);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Check_Button_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_check_button_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Check_Button)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
 
 FLTK_CONSTRUCTOR(Fl_Radio_Button);
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Radio_Button_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Radio_Button);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Radio_Button_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_radio_button_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Radio_Button)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
 
 FLTK_CONSTRUCTOR(Fl_Return_Button);
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Return_Button_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Return_Button);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Return_Button_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_return_button_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Return_Button)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
 
 FLTK_CONSTRUCTOR(Fl_Round_Button);
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Round_Button_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Round_Button);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Round_Button_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_round_button_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Round_Button)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
 
 /*
 FLTK_CONSTRUCTOR(Fl_Menu_Item);
-#define _DECL_FL_MENU_ITEM_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Menu_Item_##name,nparams,pmask}
+#define _DECL_FL_MENU_ITEM_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Menu_Item_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_menu_item_obj_funcs[]={
-	_DECL_FL_MENU_ITEM_FUNC(constructor,-5,FLTK_constructor_Mask),
+	_DECL_FL_MENU_ITEM_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	{0,0}
 };
 */
@@ -828,20 +876,24 @@ static SQInteger _Fl_Menu__value(HSQUIRRELVM v)
     return 1;
 }
 
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Menu__##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Menu_);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Menu__##name,nparams,pmask,isStatic}
 static SQRegFunction fl_menu__obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
-	_DECL_FUNC(copy,-2,_SC("xa.")),
-	_DECL_FUNC(add,2,_SC("xs")),
-	_DECL_FUNC(value,1,_SC("x")),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Menu_)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	_DECL_FUNC(copy,-2,_SC("xa."),SQFalse),
+	_DECL_FUNC(add,2,_SC("xs"),SQFalse),
+	_DECL_FUNC(value,1,_SC("x"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
 
 FLTK_CONSTRUCTOR(Fl_Menu_Bar);
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Menu_Bar_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Menu_Bar);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Menu_Bar_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_menu_bar_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Menu_Bar)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -862,19 +914,22 @@ static SQInteger _Fl_Menu_Button_popup(HSQUIRRELVM v)
 	return 0;
 }
 
-
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Menu_Button_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Menu_Button);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Menu_Button_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_menu_button_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
-	_DECL_FUNC(popup,-1,_SC("xnn")),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Menu_Button)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	_DECL_FUNC(popup,-1,_SC("xnn"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
 
 FLTK_CONSTRUCTOR(Fl_Choice);
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Choice_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Choice);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Choice_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_choice_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Choice)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -882,10 +937,12 @@ static SQRegFunction fl_choice_obj_funcs[]={
 FLTK_CONSTRUCTOR(Fl_Input_);
 #define SETUP_FL_INPUT_(v) SETUP_FL_KLASS(v, Fl_Input_)
 FUNC_GETSET_STR(_Fl_Input__, SETUP_FL_INPUT_, self->, value);
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Input__##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Input_);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Input__##name,nparams,pmask,isStatic}
 static SQRegFunction fl_input__obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
-	_DECL_FUNC(value,-1,_SC("xs")),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Input_)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	_DECL_FUNC(value,-1,_SC("xs"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -929,8 +986,10 @@ FL_INPUT_GETSET_INT_CAST(use_numeric_format, int);
 FL_INPUT_GETSET_INT_CAST(right_to_left, int);
 FL_INPUT_GETSET_INT_CAST(decimal_places, int);
 
+CHEAP_RTTI_FOR(Fl_Input);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_MyFl_Input_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_input_obj_funcs[]={
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Input)
 	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask,SQFalse),
 	_DECL_FUNC(handle,2,_SC("xi"),SQFalse),
 	_DECL_FUNC(default_number_format,-1,_SC("ys"),SQTrue),
@@ -944,33 +1003,41 @@ static SQRegFunction fl_input_obj_funcs[]={
 
 
 FLTK_CONSTRUCTOR(Fl_Float_Input);
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Float_Input_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Float_Input);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Float_Input_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_float_input_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Float_Input)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
 
 FLTK_CONSTRUCTOR(Fl_Int_Input);
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Int_Input_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Int_Input);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Int_Input_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_int_input_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Int_Input)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
 
 FLTK_CONSTRUCTOR(Fl_Output);
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Output_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Output);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Output_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_output_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Output)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
 
 FLTK_CONSTRUCTOR(Fl_Secret_Input);
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Secret_Input_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Secret_Input);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Secret_Input_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_secret_input_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Secret_Input)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -1086,8 +1153,10 @@ static SQInteger _Fl_Group_remove(HSQUIRRELVM v)
 	return 0;
 }
 
+CHEAP_RTTI_FOR(Fl_Group);
 #define _DECL_FUNC(name,nparams,pmask, isStatic) {_SC(#name),_Fl_Group_##name,nparams,pmask, isStatic}
 static SQRegFunction fl_group_obj_funcs[]={
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Group)
 	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	_DECL_FUNC(begin,1,_SC("x"), SQFalse),
 	_DECL_FUNC(end,1,_SC("x"), SQFalse),
@@ -1107,11 +1176,13 @@ FLTK_CONSTRUCTOR(Fl_Pack);
 FL_PACK_GETSET_INT_CAST(spacing, int);
 FL_PACK_GETSET_INT_CAST(with_label, int);
 
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Pack_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Pack);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Pack_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_pack_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
-	_DECL_FUNC(spacing,-1,_SC("xi")),
-	_DECL_FUNC(with_label,-1,_SC("xi")),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Pack)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	_DECL_FUNC(spacing,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(with_label,-1,_SC("xi"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -1146,23 +1217,26 @@ static SQRESULT _Flu_Combo_Box_select_by_data(HSQUIRRELVM v){
     return 0;
 }
 
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Flu_Combo_Box_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Flu_Combo_Box);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Flu_Combo_Box_##name,nparams,pmask,isStatic}
 static SQRegFunction flu_combo_box_obj_funcs[]={
-	_DECL_FUNC(add_item,3,_SC("x.s")),
-	_DECL_FUNC(get_data_at,-1,_SC("xi")),
-	_DECL_FUNC(select_by_data,2,_SC("x.")),
-	_DECL_FUNC(clear_items,1,_SC("x")),
-	_DECL_FUNC(hasItems,1,_SC("x")),
+    CHEAP_RTTI_REG_FUN_FOR(Flu_Combo_Box)
+	_DECL_FUNC(add_item,3,_SC("x.s"),SQFalse),
+	_DECL_FUNC(get_data_at,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(select_by_data,2,_SC("x."),SQFalse),
+	_DECL_FUNC(clear_items,1,_SC("x"),SQFalse),
+	_DECL_FUNC(hasItems,1,_SC("x"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
 
 FLTK_CONSTRUCTOR(Flu_Combo_List);
 #define SETUP_FLU_COMBO_LIST(v) SETUP_FL_KLASS(v, Flu_Combo_List)
-
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Flu_Combo_List_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Flu_Combo_List);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Flu_Combo_List_##name,nparams,pmask,isStatic}
 static SQRegFunction flu_combo_list_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
+    CHEAP_RTTI_REG_FUN_FOR(Flu_Combo_List)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -1175,11 +1249,12 @@ static SQRESULT _Flu_Combo_Tree_tree(HSQUIRRELVM v){
     SETUP_FLU_COMBO_TREE(v);
     return fltk_pushinstance(v, FLTK_TAG(Flu_Tree_Browser), self);
 }
-
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Flu_Combo_Tree_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Flu_Combo_Tree);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Flu_Combo_Tree_##name,nparams,pmask,isStatic}
 static SQRegFunction flu_combo_tree_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
-	_DECL_FUNC(tree,1,_SC("x")),
+    CHEAP_RTTI_REG_FUN_FOR(Flu_Combo_Tree)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	_DECL_FUNC(tree,1,_SC("x"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -1219,16 +1294,17 @@ static SQRESULT _Flu_Tree_Browser_leaf_text(HSQUIRRELVM v){
     self->leaf_text(color, font, size);
     return 0;
 }
-
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Flu_Tree_Browser_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Flu_Tree_Browser);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Flu_Tree_Browser_##name,nparams,pmask,isStatic}
 static SQRegFunction flu_combo_tree_browser_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
-	_DECL_FUNC(auto_branches,-1,_SC("xb")),
-	_DECL_FUNC(show_branches,-1,_SC("xb")),
-	_DECL_FUNC(all_branches_always_open,-1,_SC("xb")),
-	_DECL_FUNC(branch_text,4,_SC("xiii")),
-	_DECL_FUNC(leaf_text,4,_SC("xiii")),
-	_DECL_FUNC(shaded_entry_colors,3,_SC("xii")),
+    CHEAP_RTTI_REG_FUN_FOR(Flu_Tree_Browser)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	_DECL_FUNC(auto_branches,-1,_SC("xb"),SQFalse),
+	_DECL_FUNC(show_branches,-1,_SC("xb"),SQFalse),
+	_DECL_FUNC(all_branches_always_open,-1,_SC("xb"),SQFalse),
+	_DECL_FUNC(branch_text,4,_SC("xiii"),SQFalse),
+	_DECL_FUNC(leaf_text,4,_SC("xiii"),SQFalse),
+	_DECL_FUNC(shaded_entry_colors,3,_SC("xii"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -1402,21 +1478,21 @@ FLV_STYLE_GETSET_INT_CAST(border_color, Fl_Color);
 FLV_STYLE_GETSET_INT_CAST(foreground, Fl_Color);
 FLV_STYLE_GETSET_INT_CAST(background, Fl_Color);
 
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Flv_Style_##name,nparams,pmask}
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Flv_Style_##name,nparams,pmask,isStatic}
 static SQRegFunction flv_style_obj_funcs[]={
     //no constructor for Flv_Style
 	//{_SC("constructor"), Flv_Style_constructor, -1,_SC("xi")},
-	_DECL_FUNC(border,-1,_SC("xn")),
-	_DECL_FUNC(border_spacing,-1,_SC("xn")),
-	_DECL_FUNC(font_size,-1,_SC("xn")),
-	_DECL_FUNC(height,-1,_SC("xn")),
-	_DECL_FUNC(x_margin,-1,_SC("xn")),
-	_DECL_FUNC(y_margin,-1,_SC("xn")),
-	_DECL_FUNC(width,-1,_SC("xn")),
-	_DECL_FUNC(align,-1,_SC("xi")),
-	_DECL_FUNC(border_color,-1,_SC("xi")),
-	_DECL_FUNC(foreground,-1,_SC("xi")),
-	_DECL_FUNC(background,-1,_SC("xi")),
+	_DECL_FUNC(border,-1,_SC("xn"),SQFalse),
+	_DECL_FUNC(border_spacing,-1,_SC("xn"),SQFalse),
+	_DECL_FUNC(font_size,-1,_SC("xn"),SQFalse),
+	_DECL_FUNC(height,-1,_SC("xn"),SQFalse),
+	_DECL_FUNC(x_margin,-1,_SC("xn"),SQFalse),
+	_DECL_FUNC(y_margin,-1,_SC("xn"),SQFalse),
+	_DECL_FUNC(width,-1,_SC("xn"),SQFalse),
+	_DECL_FUNC(align,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(border_color,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(foreground,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(background,-1,_SC("xi"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -1431,9 +1507,9 @@ static SQRESULT _Flv_Style_List_get(HSQUIRRELVM v){
     return 1;
 }
 
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Flv_Style_List_##name,nparams,pmask}
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Flv_Style_List_##name,nparams,pmask,isStatic}
 static SQRegFunction flv_style_list_obj_funcs[]={
-	_DECL_FUNC(get,-1,_SC("xi")),
+	_DECL_FUNC(get,-1,_SC("xi"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -1483,23 +1559,24 @@ static SQRESULT _Flv_List_clear_callback_when(HSQUIRRELVM v){
     self->clear_callback_when(when);
     return 1;
 }
-
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Flv_List_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Flv_List);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Flv_List_##name,nparams,pmask,isStatic}
 static SQRegFunction flv_list_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
-	_DECL_FUNC(has_scrollbar,-1,_SC("xi")),
-	_DECL_FUNC(scrollbar_width,-1,_SC("xi")),
-	_DECL_FUNC(feature,-1,_SC("xi")),
-	_DECL_FUNC(feature_add,-1,_SC("xi")),
-	_DECL_FUNC(feature_remove,-1,_SC("xi")),
-	_DECL_FUNC(rows,-1,_SC("xi")),
-	_DECL_FUNC(row,-1,_SC("xi")),
-	_DECL_FUNC(global_style,1,_SC("x")),
-	_DECL_FUNC(row_style,1,_SC("x")),
-	_DECL_FUNC(why_event,-1,_SC("xi")),
-	_DECL_FUNC(callback_when,-1,_SC("xi")),
-	_DECL_FUNC(add_callback_when,2,_SC("xi")),
-	_DECL_FUNC(clear_callback_when,2,_SC("xi")),
+    CHEAP_RTTI_REG_FUN_FOR(Flv_List)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	_DECL_FUNC(has_scrollbar,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(scrollbar_width,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(feature,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(feature_add,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(feature_remove,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(rows,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(row,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(global_style,1,_SC("x"),SQFalse),
+	_DECL_FUNC(row_style,1,_SC("x"),SQFalse),
+	_DECL_FUNC(why_event,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(callback_when,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(add_callback_when,2,_SC("xi"),SQFalse),
+	_DECL_FUNC(clear_callback_when,2,_SC("xi"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -1518,13 +1595,14 @@ static SQRESULT _Flv_Table_col_style(HSQUIRRELVM v){
     fltk_pushinstance(v, FLTK_TAG(Flv_Style_List), &self->col_style);
     return 1;
 }
-
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Flv_Table_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Flv_Table);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Flv_Table_##name,nparams,pmask,isStatic}
 static SQRegFunction flv_table_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
-	_DECL_FUNC(cols,-1,_SC("xi")),
-	_DECL_FUNC(col,-1,_SC("xi")),
-	_DECL_FUNC(col_style,1,_SC("x")),
+    CHEAP_RTTI_REG_FUN_FOR(Flv_Table)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	_DECL_FUNC(cols,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(col,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(col_style,1,_SC("x"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -1845,28 +1923,32 @@ static SQInteger _Flv_Data_Table_draw_offset(HSQUIRRELVM v)
 
 FLTK_CONSTRUCTOR(Flv_Data_Table);
 
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Flv_Data_Table_##name,nparams,pmask}
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Flv_Data_Table_##name,nparams,pmask,isStatic}
 static SQRegFunction flv_data_table_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
-	_DECL_FUNC(handle,2,_SC("xi")),
-	_DECL_FUNC(resize,5,_SC("xnnnn")),
-	_DECL_FUNC(draw_offset, -1,_SC("xn")),
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	_DECL_FUNC(handle,2,_SC("xi"),SQFalse),
+	_DECL_FUNC(resize,5,_SC("xnnnn"),SQFalse),
+	_DECL_FUNC(draw_offset, -1,_SC("xn"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
 
 FLTK_CONSTRUCTOR(Fl_Scroll);
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Scroll_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Scroll);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Scroll_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_scroll_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Scroll)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
 
 FLTK_CONSTRUCTOR(Fl_Tabs);
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Tabs_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Tabs);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Tabs_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_tabs_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Tabs)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -1875,8 +1957,8 @@ static SQRegFunction fl_tabs_obj_funcs[]={
 static SQInteger _Fl_Image_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	Fl_Image *self = ((Fl_Image *)p);
-	//delete self;
-	return 1;
+	delete self;
+	return 0;
 }
 
 static SQInteger _Fl_Image_constructor(HSQUIRRELVM v)
@@ -1927,9 +2009,10 @@ static SQInteger _Fl_Image_uncache(HSQUIRRELVM v)
     self->uncache();
 	return 0;
 }
-
+CHEAP_RTTI_FOR(Fl_Image);
 #define _DECL_FUNC(name,nparams,pmask, isStatic) {_SC(#name),_Fl_Image_##name,nparams,pmask, isStatic}
 static SQRegFunction fl_image_obj_funcs[]={
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Image)
 	_DECL_FUNC(constructor,4,_SC("xiii"), SQFalse),
 	_DECL_FUNC(copy,-1,_SC("xii"), SQFalse),
 	_DECL_FUNC(w,1,_SC("x"), SQFalse),
@@ -1973,9 +2056,10 @@ static SQInteger _Fl_RGB_Image_max_size(HSQUIRRELVM v)
     sq_pushinteger(v, Fl_RGB_Image::max_size());
 	return 1;
 }
-
+CHEAP_RTTI_FOR(Fl_RGB_Image);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_RGB_Image_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_rgb_image_obj_funcs[]={
+    CHEAP_RTTI_REG_FUN_FOR(Fl_RGB_Image)
 	_DECL_FUNC(constructor,-4,_SC("xsiiii"), SQFalse),
 	_DECL_FUNC(max_size,-1,_SC("yi"), SQTrue),
 	{0,0}
@@ -2014,9 +2098,10 @@ static SQInteger _Fl_JPEG_Image_encode(HSQUIRRELVM v)
     free(outbuffer);
 	return 1;
 }
-
+CHEAP_RTTI_FOR(Fl_JPEG_Image);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_JPEG_Image_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_jpeg_image_obj_funcs[]={
+    CHEAP_RTTI_REG_FUN_FOR(Fl_JPEG_Image)
 	_DECL_FUNC(constructor,-2,_SC("xss"), SQFalse),
 	_DECL_FUNC(encode,3,_SC("yxi"), SQTrue),
 	{0,0}
@@ -2056,9 +2141,10 @@ static SQInteger _Fl_PNG_Image_encode(HSQUIRRELVM v)
 	return 1;
 }
 
-
+CHEAP_RTTI_FOR(Fl_PNG_Image);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_PNG_Image_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_png_image_obj_funcs[]={
+    CHEAP_RTTI_REG_FUN_FOR(Fl_PNG_Image)
 	_DECL_FUNC(constructor,-2,_SC("xssi"),SQFalse),
 	_DECL_FUNC(encode,2,_SC("yx"), SQTrue),
 	{0,0}
@@ -2071,7 +2157,7 @@ static SQInteger _Fl_Text_Buffer_releasehook(SQUserPointer p, SQInteger size, HS
 {
 	Fl_Text_Buffer *self = ((Fl_Text_Buffer *)p);
 	delete self;
-	return 1;
+	return 0;
 }
 
 static SQInteger _Fl_Text_Buffer_constructor(HSQUIRRELVM v)
@@ -2108,13 +2194,13 @@ static SQInteger _Fl_Text_Buffer_input_file_was_transcoded(HSQUIRRELVM v)
 	return 1;
 }
 
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Text_Buffer_##name,nparams,pmask}
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Text_Buffer_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_text_buffer_obj_funcs[]={
-	_DECL_FUNC(constructor,-1,_SC("xii")),
-	_DECL_FUNC(text,-1,_SC("xs")),
-	_DECL_FUNC(length,-1,_SC("xii")),
-	_DECL_FUNC(loadfile,-2,_SC("xsi")),
-	_DECL_FUNC(input_file_was_transcoded,1,_SC("x")),
+	_DECL_FUNC(constructor,-1,_SC("xii"),SQFalse),
+	_DECL_FUNC(text,-1,_SC("xs"),SQFalse),
+	_DECL_FUNC(length,-1,_SC("xii"),SQFalse),
+	_DECL_FUNC(loadfile,-2,_SC("xsi"),SQFalse),
+	_DECL_FUNC(input_file_was_transcoded,1,_SC("x"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -2137,19 +2223,22 @@ static SQInteger _Fl_Text_Display_highlight_data(HSQUIRRELVM v)
     SQUserPointer rsz;
 	return 0;
 }
-
-#define _DECL_FL_TEXT_DISPLAY_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Text_Display_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Text_Display);
+#define _DECL_FL_TEXT_DISPLAY_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Text_Display_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_text_display_obj_funcs[]={
-	_DECL_FL_TEXT_DISPLAY_FUNC(constructor,-5,FLTK_constructor_Mask),
-	_DECL_FL_TEXT_DISPLAY_FUNC(buffer,-1,_SC("xx")),
-	_DECL_FL_TEXT_DISPLAY_FUNC(highlight_data, 7,_SC("xxaiic.")),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Text_Display)
+	_DECL_FL_TEXT_DISPLAY_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	_DECL_FL_TEXT_DISPLAY_FUNC(buffer,-1,_SC("xx"),SQFalse),
+	_DECL_FL_TEXT_DISPLAY_FUNC(highlight_data, 7,_SC("xxaiic."),SQFalse),
 	{0,0}
 };
 
 FLTK_CONSTRUCTOR(Fl_Text_Editor);
-#define _DECL_FL_TEXT_EDITOR_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Text_Editor_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Text_Editor);
+#define _DECL_FL_TEXT_EDITOR_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Text_Editor_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_text_editor_obj_funcs[]={
-	_DECL_FL_TEXT_EDITOR_FUNC(constructor,-5,FLTK_constructor_Mask),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Text_Editor)
+	_DECL_FL_TEXT_EDITOR_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	{0,0}
 };
 
@@ -2171,10 +2260,10 @@ static SQInteger _Fl_Text_Editor_Buffered_value(HSQUIRRELVM v)
     return 1;
 }
 
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Text_Editor_Buffered_##name,nparams,pmask}
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Text_Editor_Buffered_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_text_editor_buffered_obj_funcs[]={
-	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask),
-	_DECL_FUNC(value,-1,_SC("xs")),
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	_DECL_FUNC(value,-1,_SC("xs"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -2276,7 +2365,7 @@ static SQInteger _fl_window_releasehook(SQUserPointer p, SQInteger size, HSQUIRR
 	MyFl_Window *self = ((MyFl_Window *)p);
 	Fl::delete_widget(self);
 //printf("Releasing %p\n", self);
-	return 1;
+	return 0;
 }
 
 static SQInteger _MyFl_Window_set_non_modal(HSQUIRRELVM v)
@@ -2294,15 +2383,16 @@ static SQInteger _MyFl_Window_shown(HSQUIRRELVM v)
 }
 
 FLTK_CONSTRUCTOR_RELEASE_WINDOW(MyFl_Window, AS_IS, _fl_window_releasehook);
-
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_MyFl_Window_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Window);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_MyFl_Window_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_window_obj_funcs[]={
-	_DECL_FUNC(constructor,-3,_SC("xii")),
-	_DECL_FUNC(show_main,1,_SC("x")),
-	_DECL_FUNC(shown,1,_SC("x")),
-	_DECL_FUNC(hide,1,_SC("x")),
-	_DECL_FUNC(set_non_modal,1,_SC("x")),
-	_DECL_FUNC(on_first_time_show,1,_SC("x")),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Window)
+	_DECL_FUNC(constructor,-3,_SC("xii"),SQFalse),
+	_DECL_FUNC(show_main,1,_SC("x"),SQFalse),
+	_DECL_FUNC(shown,1,_SC("x"),SQFalse),
+	_DECL_FUNC(hide,1,_SC("x"),SQFalse),
+	_DECL_FUNC(set_non_modal,1,_SC("x"),SQFalse),
+	_DECL_FUNC(on_first_time_show,1,_SC("x"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -2312,14 +2402,15 @@ static SQInteger _fl_double_window_releasehook(SQUserPointer p, SQInteger size, 
 	Fl_Double_Window *self = ((Fl_Double_Window *)p);
 	Fl::delete_widget(self);
 //printf("Releasing %p\n", self);
-	return 1;
+	return 0;
 }
 
 FLTK_CONSTRUCTOR_RELEASE_WINDOW(Fl_Double_Window, AS_IS, _fl_double_window_releasehook);
-
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Double_Window_##name,nparams,pmask}
+CHEAP_RTTI_FOR(Fl_Double_Window);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Double_Window_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_double_window_obj_funcs[]={
-	_DECL_FUNC(constructor,-3,_SC("xii")),
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Double_Window)
+	_DECL_FUNC(constructor,-3,_SC("xii"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -2330,7 +2421,7 @@ static SQInteger _Fl_File_Chooser_releasehook(SQUserPointer p, SQInteger size, H
 {
 	Fl_File_Chooser *self = ((Fl_File_Chooser *)p);
 	delete self;
-	return 1;
+	return 0;
 }
 
 static SQInteger _Fl_File_Chooser_constructor(HSQUIRRELVM v)
@@ -2348,9 +2439,9 @@ static SQInteger _Fl_File_Chooser_constructor(HSQUIRRELVM v)
 	return 1;
 }
 
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_File_Chooser_##name,nparams,pmask}
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_File_Chooser_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_file_chooser_obj_funcs[]={
-	_DECL_FUNC(constructor,5,_SC("xssis")),
+	_DECL_FUNC(constructor,5,_SC("xssis"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -2361,7 +2452,7 @@ static SQInteger _Fl_Native_File_Chooser_releasehook(SQUserPointer p, SQInteger 
 {
 	Fl_Native_File_Chooser *self = ((Fl_Native_File_Chooser *)p);
 	delete self;
-	return 1;
+	return 0;
 }
 
 static SQInteger _Fl_Native_File_Chooser_constructor(HSQUIRRELVM v)
@@ -2376,15 +2467,15 @@ static SQInteger _Fl_Native_File_Chooser_constructor(HSQUIRRELVM v)
 	return 1;
 }
 
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Native_File_Chooser_##name,nparams,pmask}
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Native_File_Chooser_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_native_file_chooser_obj_funcs[]={
-	_DECL_FUNC(constructor,-1,_SC("xi")),
+	_DECL_FUNC(constructor,-1,_SC("xi"),SQFalse),
 /*
-	_DECL_FUNC(title,-1,_SC("xs")),
-	_DECL_FUNC(type,-1,_SC("xi")),
-	_DECL_FUNC(show,1,_SC("x")),
-	_DECL_FUNC(filename,1,_SC("x")),
-	_DECL_FUNC(directory,1,_SC("x")),
+	_DECL_FUNC(title,-1,_SC("xs"),SQFalse),
+	_DECL_FUNC(type,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(show,1,_SC("x"),SQFalse),
+	_DECL_FUNC(filename,1,_SC("x"),SQFalse),
+	_DECL_FUNC(directory,1,_SC("x"),SQFalse),
 */
 	{0,0}
 };
@@ -2651,62 +2742,62 @@ static SQInteger _fl_fl_preferences(HSQUIRRELVM v)
     return 0;
 }
 
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_fl_##name,nparams,pmask}
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_fl_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_obj_funcs[]={
-	_DECL_FUNC(check,1,_SC("y")),
-	_DECL_FUNC(run,1,_SC("y")),
-	_DECL_FUNC(event,1,_SC("y")),
-	_DECL_FUNC(event_alt,1,_SC("y")),
-	_DECL_FUNC(event_button,1,_SC("y")),
-	_DECL_FUNC(event_button1,1,_SC("y")),
-	_DECL_FUNC(event_button2,1,_SC("y")),
-	_DECL_FUNC(event_button3,1,_SC("y")),
-	_DECL_FUNC(event_buttons,1,_SC("y")),
-	_DECL_FUNC(event_command,1,_SC("y")),
-	_DECL_FUNC(event_ctrl,1,_SC("y")),
-	_DECL_FUNC(event_dx,1,_SC("y")),
-	_DECL_FUNC(event_dy,1,_SC("y")),
-	_DECL_FUNC(event_length,1,_SC("y")),
-	_DECL_FUNC(event_shift,1,_SC("y")),
-	_DECL_FUNC(event_x,1,_SC("y")),
-	_DECL_FUNC(event_x_root,1,_SC("y")),
-	_DECL_FUNC(event_y,1,_SC("y")),
-	_DECL_FUNC(event_y_root,1,_SC("y")),
-	_DECL_FUNC(x,1,_SC("y")),
-	_DECL_FUNC(y,1,_SC("y")),
-	_DECL_FUNC(h,1,_SC("y")),
-	_DECL_FUNC(w,1,_SC("y")),
-	_DECL_FUNC(ready,1,_SC("y")),
-	_DECL_FUNC(screen_count,1,_SC("y")),
+	_DECL_FUNC(check,1,_SC("y"),SQFalse),
+	_DECL_FUNC(run,1,_SC("y"),SQFalse),
+	_DECL_FUNC(event,1,_SC("y"),SQFalse),
+	_DECL_FUNC(event_alt,1,_SC("y"),SQFalse),
+	_DECL_FUNC(event_button,1,_SC("y"),SQFalse),
+	_DECL_FUNC(event_button1,1,_SC("y"),SQFalse),
+	_DECL_FUNC(event_button2,1,_SC("y"),SQFalse),
+	_DECL_FUNC(event_button3,1,_SC("y"),SQFalse),
+	_DECL_FUNC(event_buttons,1,_SC("y"),SQFalse),
+	_DECL_FUNC(event_command,1,_SC("y"),SQFalse),
+	_DECL_FUNC(event_ctrl,1,_SC("y"),SQFalse),
+	_DECL_FUNC(event_dx,1,_SC("y"),SQFalse),
+	_DECL_FUNC(event_dy,1,_SC("y"),SQFalse),
+	_DECL_FUNC(event_length,1,_SC("y"),SQFalse),
+	_DECL_FUNC(event_shift,1,_SC("y"),SQFalse),
+	_DECL_FUNC(event_x,1,_SC("y"),SQFalse),
+	_DECL_FUNC(event_x_root,1,_SC("y"),SQFalse),
+	_DECL_FUNC(event_y,1,_SC("y"),SQFalse),
+	_DECL_FUNC(event_y_root,1,_SC("y"),SQFalse),
+	_DECL_FUNC(x,1,_SC("y"),SQFalse),
+	_DECL_FUNC(y,1,_SC("y"),SQFalse),
+	_DECL_FUNC(h,1,_SC("y"),SQFalse),
+	_DECL_FUNC(w,1,_SC("y"),SQFalse),
+	_DECL_FUNC(ready,1,_SC("y"),SQFalse),
+	_DECL_FUNC(screen_count,1,_SC("y"),SQFalse),
 
-	_DECL_FUNC(set_fonts,-1,_SC("ys")),
-	_DECL_FUNC(set_font,3,_SC("yi s|i")),
-	_DECL_FUNC(get_font,2,_SC("yi")),
-	_DECL_FUNC(get_font_name, 2,_SC("yi")),
-	_DECL_FUNC(scheme,-1,_SC("ys")),
-	_DECL_FUNC(visual,2,_SC("yi")),
-	_DECL_FUNC(option,-2,_SC("yib")),
+	_DECL_FUNC(set_fonts,-1,_SC("ys"),SQFalse),
+	_DECL_FUNC(set_font,3,_SC("yi s|i"),SQFalse),
+	_DECL_FUNC(get_font,2,_SC("yi"),SQFalse),
+	_DECL_FUNC(get_font_name, 2,_SC("yi"),SQFalse),
+	_DECL_FUNC(scheme,-1,_SC("ys"),SQFalse),
+	_DECL_FUNC(visual,2,_SC("yi"),SQFalse),
+	_DECL_FUNC(option,-2,_SC("yib"),SQFalse),
 
-	_DECL_FUNC(event_key,-1,_SC("yi")),
-	_DECL_FUNC(event_state,-1,_SC("yi")),
-	_DECL_FUNC(event_is_click,-1,_SC("yi")),
-	_DECL_FUNC(event_clicks,-1,_SC("yi")),
-	_DECL_FUNC(scrollbar_size,-1,_SC("yi")),
-	_DECL_FUNC(visible_focus,-1,_SC("yi")),
+	_DECL_FUNC(event_key,-1,_SC("yi"),SQFalse),
+	_DECL_FUNC(event_state,-1,_SC("yi"),SQFalse),
+	_DECL_FUNC(event_is_click,-1,_SC("yi"),SQFalse),
+	_DECL_FUNC(event_clicks,-1,_SC("yi"),SQFalse),
+	_DECL_FUNC(scrollbar_size,-1,_SC("yi"),SQFalse),
+	_DECL_FUNC(visible_focus,-1,_SC("yi"),SQFalse),
 
-	_DECL_FUNC(do_widget_deletion,1,_SC("y")),
-	_DECL_FUNC(delete_widget,2,_SC("yx")),
-	_DECL_FUNC(add_timeout,-3,_SC("ync.")),
-	_DECL_FUNC(add_idle,-2,_SC("yc.")),
-	_DECL_FUNC(add_focus_changing_handler,2,_SC("yc")),
+	_DECL_FUNC(do_widget_deletion,1,_SC("y"),SQFalse),
+	_DECL_FUNC(delete_widget,2,_SC("yx"),SQFalse),
+	_DECL_FUNC(add_timeout,-3,_SC("ync."),SQFalse),
+	_DECL_FUNC(add_idle,-2,_SC("yc."),SQFalse),
+	_DECL_FUNC(add_focus_changing_handler,2,_SC("yc"),SQFalse),
 
 	//globals made static on Fl
-	_DECL_FUNC(fl_cursor, -2,_SC("yiii")),
-	_DECL_FUNC(fl_font,3,_SC("yii")),
-	_DECL_FUNC(fl_width,-2,_SC("ysi")),
-	_DECL_FUNC(fl_height,-1,_SC("yii")),
-	_DECL_FUNC(fl_descent,1,_SC("y")),
-	_DECL_FUNC(fl_preferences,4,_SC("yiss")),
+	_DECL_FUNC(fl_cursor, -2,_SC("yiii"),SQFalse),
+	_DECL_FUNC(fl_font,3,_SC("yii"),SQFalse),
+	_DECL_FUNC(fl_width,-2,_SC("ysi"),SQFalse),
+	_DECL_FUNC(fl_height,-1,_SC("yii"),SQFalse),
+	_DECL_FUNC(fl_descent,1,_SC("y"),SQFalse),
+	_DECL_FUNC(fl_preferences,4,_SC("yiss"),SQFalse),
 
 	{0,0}
 };
@@ -2869,6 +2960,114 @@ static const struct {
 	INT_CONST(FL_WHEN_RELEASE_ALWAYS)
 	INT_CONST(FL_WHITE)
 	INT_CONST(FL_YELLOW)
+
+    /*keyboard*/
+    INT_CONST(FL_Key_Space)
+    INT_CONST(FL_Key_Plus)
+    INT_CONST(FL_Key_Minus)
+    INT_CONST(FL_KP_Plus)
+    INT_CONST(FL_KP_Minus)
+    INT_CONST(FL_KP_Times)
+    INT_CONST(FL_KP_Division)
+    INT_CONST(FL_KP_Dot)
+    INT_CONST(FL_Key_0)
+    INT_CONST(FL_Key_9)
+    INT_CONST(FL_KP_0)
+    INT_CONST(FL_KP_1)
+    INT_CONST(FL_KP_2)
+    INT_CONST(FL_KP_3)
+    INT_CONST(FL_KP_4)
+    INT_CONST(FL_KP_5)
+    INT_CONST(FL_KP_6)
+    INT_CONST(FL_KP_7)
+    INT_CONST(FL_KP_8)
+    INT_CONST(FL_KP_9)
+
+    INT_CONST(FL_Button)
+    INT_CONST(FL_BackSpace)
+    INT_CONST(FL_Tab)
+    INT_CONST(FL_Iso_Key)
+    INT_CONST(FL_Enter)
+    INT_CONST(FL_Pause)
+    INT_CONST(FL_Scroll_Lock)
+    INT_CONST(FL_Escape)
+    INT_CONST(FL_Kana)
+    INT_CONST(FL_Eisu)
+    INT_CONST(FL_Yen)
+    INT_CONST(FL_JIS_Underscore)
+    INT_CONST(FL_Home)
+    INT_CONST(FL_Left)
+    INT_CONST(FL_Up)
+    INT_CONST(FL_Right)
+    INT_CONST(FL_Down)
+    INT_CONST(FL_Page_Up)
+    INT_CONST(FL_Page_Down)
+    INT_CONST(FL_End)
+    INT_CONST(FL_Print)
+    INT_CONST(FL_Insert)
+    INT_CONST(FL_Menu)
+    INT_CONST(FL_Help)
+    INT_CONST(FL_Num_Lock)
+    INT_CONST(FL_KP)
+    INT_CONST(FL_KP_Enter)
+    INT_CONST(FL_KP_Last)
+    INT_CONST(FL_F)
+    INT_CONST(FL_F_Last)
+    INT_CONST(FL_Shift_L)
+    INT_CONST(FL_Shift_R)
+    INT_CONST(FL_Control_L)
+    INT_CONST(FL_Control_R)
+    INT_CONST(FL_Caps_Lock)
+    INT_CONST(FL_Meta_L)
+    INT_CONST(FL_Meta_R)
+    INT_CONST(FL_Alt_L)
+    INT_CONST(FL_Alt_R)
+    INT_CONST(FL_Delete)
+
+    INT_CONST(FL_LEFT_MOUSE)
+    INT_CONST(FL_MIDDLE_MOUSE)
+    INT_CONST(FL_RIGHT_MOUSE)
+    INT_CONST(FL_SHIFT)
+    INT_CONST(FL_CAPS_LOCK)
+    INT_CONST(FL_CTRL)
+    INT_CONST(FL_ALT)
+    INT_CONST(FL_NUM_LOCK)
+    INT_CONST(FL_META)
+    INT_CONST(FL_SCROLL_LOCK)
+    INT_CONST(FL_BUTTON1)
+    INT_CONST(FL_BUTTON2)
+    INT_CONST(FL_BUTTON3)
+    INT_CONST(FL_BUTTONS)
+    INT_CONST(FL_KEY_MASK)
+
+    /*EVENTS*/
+    INT_CONST(FL_NO_EVENT)
+    INT_CONST(FL_PUSH)
+    INT_CONST(FL_RELEASE)
+    INT_CONST(FL_ENTER)
+    INT_CONST(FL_LEAVE)
+    INT_CONST(FL_DRAG)
+    INT_CONST(FL_FOCUS)
+    INT_CONST(FL_UNFOCUS)
+    INT_CONST(FL_KEYDOWN)
+    INT_CONST(FL_KEYBOARD)
+    INT_CONST(FL_KEYUP)
+    INT_CONST(FL_CLOSE)
+    INT_CONST(FL_MOVE)
+    INT_CONST(FL_SHORTCUT)
+    INT_CONST(FL_DEACTIVATE)
+    INT_CONST(FL_ACTIVATE)
+    INT_CONST(FL_HIDE)
+    INT_CONST(FL_SHOW)
+    INT_CONST(FL_PASTE)
+    INT_CONST(FL_SELECTIONCLEAR)
+    INT_CONST(FL_MOUSEWHEEL)
+    INT_CONST(FL_DND_ENTER)
+    INT_CONST(FL_DND_DRAG)
+    INT_CONST(FL_DND_LEAVE)
+    INT_CONST(FL_DND_RELEASE)
+    INT_CONST(FL_SCREEN_CONFIGURATION_CHANGED)
+    INT_CONST(FL_FULLSCREEN)
     /* terminator */
     { NULL, 0 }
 };

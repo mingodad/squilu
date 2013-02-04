@@ -29,13 +29,8 @@ class Fl_Choice_Str extends Fl_Button {
 	}
 }
 
-
-
-function add_input_field_to_map(tbl, fldname, fld){
-}
-	
 //class EditOrderWindow extends Fl_Group {
-class EditOrderWindow extends MyBaseWindow {
+class EditOrderWindow extends EditWindow {
 	delivery_calc_window = 0;
 	entities_list_window = 0;
 	products_list_window = 0;
@@ -163,7 +158,7 @@ class EditOrderWindow extends MyBaseWindow {
 	btnRefreshTotals=null;
 	
 constructor() {
-	base.constructor(-1, -1, 800, 560, _tr("Edit Order"));
+	base.constructor(10, 50, 800, 560, _tr("Edit Order"));
 begin();
 this->box(FL_FLAT_BOX);
 this->color(FL_BACKGROUND_COLOR);

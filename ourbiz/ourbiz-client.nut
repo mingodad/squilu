@@ -156,7 +156,7 @@ class HTTPConnAuthBase extends HTTPConnBase
                 if(body && bodysize) send( body, bodysize );
                 while( outstanding() )
                 {
-                    //check_idle();
+                    //if(globals.get("Fl", false)) Fl.check();//check_idle();
                     pump();
                 }
                 break;
@@ -424,6 +424,14 @@ class AppServer
             //parse_jsonArray2map(data, my_result.c_str());
             sleArray2map(my_result, data);
         }
+    }
+    
+    function sle2map(sle_str, rec){
+	local ar = [];
+	sle2vecOfvec(sle_str, ar);
+	local keys = ar[0];
+	local values = ar[1];
+	foreach(idx, k in keys) rec[k] <- values[idx]; 
     }
 
     function do_dbaction(rec, action, table, aid, version, query_string=0)
