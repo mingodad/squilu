@@ -225,7 +225,7 @@ this->when(FL_WHEN_RELEASE);
         btnDbAction->labelsize(16);
       } // Fl_Button* btnDbAction
       { 
-        dbAction = new Fl_Button(675, 520, 110, 25);
+        dbAction = new Fl_Choice_dbAction(675, 520, 110, 25);
         dbAction->label(_tr("Action"));
         dbAction->down_box(FL_BORDER_BOX);
         dbAction->labelsize(16);

@@ -99,6 +99,46 @@ class Fl_Box_ClearLabel extends Fl_Box {
 	}
 }
 
+class Fl_Choice_Int extends Fl_Choice {
+	constructor(px, py, pw, ph, pl=""){
+		base.constructor(px, py, pw, ph, pl);
+	}
+}
+
+enum DbAction_Enum {
+		e_none, e_insert, e_update, e_delete,
+		e_export, e_import, e_refresh, e_copy, e_last
+		};
+	
+class Fl_Choice_dbAction extends Fl_Choice {
+	constructor(px, py, pw, ph, pl=null){
+		base.constructor(px, py, pw, ph, pl);
+		tooltip(_tr("Select an operation to perform on this record"));
+		add_tr("Insert", DbAction_Enum.e_insert);
+		add_tr("Update", DbAction_Enum.e_update);
+		add_tr("Delete", DbAction_Enum.e_delete);
+	}
+
+	function action(){return mvalue()->user_data();}
+	function action(act){
+		local m = menu();
+		for(local i=0, count = m->size(); i<count; ++i){
+			if(m[i].user_data() == act){
+				value(i);
+				break;
+			}
+		}
+	}
+	function add_tr(label, act){return add(_tr(label), 0, 0, act, 0);}
+
+	function insert_export_import(){
+		add_tr("Export", DbAction_Enum.e_export);
+		add_tr("Import", DbAction_Enum.e_import);
+	}
+	function insert_refresh(){add_tr("Refresh", DbAction_Enum.e_refresh);}
+	function insert_copy(){add_tr("Copy", DbAction_Enum.e_copy);}
+};
+
 class MyBaseWindow extends Fl_Window {
 	childWindows=null;
 	_db_map = null;

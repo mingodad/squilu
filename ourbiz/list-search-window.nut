@@ -9,12 +9,6 @@ class Fl_Image_Box extends Fl_Box {
 }
 
 
-class Fl_Choice_Int extends Fl_Button {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
 class Fl_Float_Input_Fmt extends Fl_Float_Input {
 	constructor(px, py, pw, ph, pl=""){
 		base.constructor(px, py, pw, ph, pl);

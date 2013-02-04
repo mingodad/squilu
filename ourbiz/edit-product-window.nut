@@ -5,12 +5,6 @@ class Fl_Image_Box extends Fl_Box {
 }
 
 
-class Fl_Choice_Int extends Fl_Button {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
 class Fl_Float_Input_Fmt extends Fl_Float_Input {
 	constructor(px, py, pw, ph, pl=""){
 		base.constructor(px, py, pw, ph, pl);
@@ -298,7 +292,7 @@ this->when(FL_WHEN_RELEASE);
         o->labeltype(FL_NO_LABEL);
         Fl_Group.current()->resizable(o);
       } // Fl_Box* o
-      { dbAction = new Fl_Button(675, 520, 110, 25);
+      { dbAction = new Fl_Choice_dbAction(675, 520, 110, 25);
         dbAction->label(_tr("Action"));
         dbAction->down_box(FL_BORDER_BOX);
         dbAction->labelsize(16);

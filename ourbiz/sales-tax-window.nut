@@ -16,7 +16,7 @@ constructor() {
 	base.constructor(-1, -1, 500, 385, _tr("Sales Tax Rates List / Edit"));
 	db_map = {};
 	
-	dbAction = new Fl_Button(0, 0, 100, 25, _tr("Action"));
+	dbAction = new Fl_Choice_dbAction(0, 0, 100, 25, _tr("Action"));
 	btnDbAction = new Fl_Button(0, 0, 100, 25, _tr("Action"));
 	begin();
 	this->box(FL_FLAT_BOX);

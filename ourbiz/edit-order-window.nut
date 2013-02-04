@@ -1,9 +1,3 @@
-class Fl_Choice_Int extends Fl_Button {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
 class Fl_Float_Input_Fmt extends Fl_Float_Input {
 	constructor(px, py, pw, ph, pl=""){
 		base.constructor(px, py, pw, ph, pl);
@@ -817,7 +811,7 @@ calendar_window = 0;
       dbAction->labelsize(16);
       dbAction->textsize(16);
     } // Fl_Choice* dbAction
-    { btnDbAction = new My_Fl_Return_Button(138, 525, 82, 25, _tr("Action"));
+    { btnDbAction = new Fl_Choice_dbAction(138, 525, 82, 25, _tr("Action"));
       btnDbAction->resize(138, 525, 82, 25);
       btnDbAction->label(_tr("Action"));
       btnDbAction->tooltip(_tr("Perform the selected action on this order"));

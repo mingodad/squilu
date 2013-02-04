@@ -861,10 +861,15 @@ static SQInteger _Fl_Menu__copy(HSQUIRRELVM v)
 
 static SQInteger _Fl_Menu__add(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_FUNC_VARS(v);
     SETUP_FL_MENU_(v);
     SQ_GET_STRING(v, 2, label);
-    self->add(label);
+    if(_top_ > 2) {
+        //SQObjectType ptype3 = sq_gettype(v, 3);
+        SQ_GET_INTEGER(v, 5, udata);
+        self->add(label, 0,0, (void*)udata, 0);
+    }
+    else self->add(label);
     return 0;
 }
 
@@ -876,14 +881,17 @@ static SQInteger _Fl_Menu__value(HSQUIRRELVM v)
     return 1;
 }
 
+FUNC_GETSET_INT(_Fl_Menu__, SETUP_FL_MENU_, self->, down_box, Fl_Boxtype);
+
 CHEAP_RTTI_FOR(Fl_Menu_);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Menu__##name,nparams,pmask,isStatic}
 static SQRegFunction fl_menu__obj_funcs[]={
     CHEAP_RTTI_REG_FUN_FOR(Fl_Menu_)
 	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	_DECL_FUNC(copy,-2,_SC("xa."),SQFalse),
-	_DECL_FUNC(add,2,_SC("xs"),SQFalse),
+	_DECL_FUNC(add,-2,_SC("xs s|i|o c|n .i"),SQFalse),
 	_DECL_FUNC(value,1,_SC("x"),SQFalse),
+	_DECL_FUNC(down_box,-1,_SC("xi"), SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
