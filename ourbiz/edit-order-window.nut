@@ -1,15 +1,3 @@
-class Fl_Box_ClearLabel extends Fl_Box {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
-class Flu_Combo_List extends Fl_Box {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
 class Fl_Choice_Int extends Fl_Button {
 	constructor(px, py, pw, ph, pl=""){
 		base.constructor(px, py, pw, ph, pl);

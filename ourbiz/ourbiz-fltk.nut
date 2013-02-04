@@ -23,6 +23,11 @@ function create_popup_menu_for (wgt, yOffset=0, options=null){
 	return o;
 }
 
+class Fl_Box_ClearLabel extends Fl_Box {
+	constructor(px, py, pw, ph, pl=""){
+		base.constructor(px, py, pw, ph, pl);
+	}
+}
 
 class MyBaseWindow extends Fl_Window {
 	childWindows=null;
@@ -42,7 +47,80 @@ class MyBaseWindow extends Fl_Window {
 		}
 		win->show();
 		return win;
-	}	
+	}
+	
+	function fill_parent_size(wdg, xOffset=0, yOffset=0){
+		local my_parent = wdg->parent();
+		local newWidth =0;
+		local oldRight = my_parent->x()+my_parent->w();
+		local newRight = wdg->x()+wdg->w();
+		if( newRight >  (oldRight - xOffset))
+		{
+		    newWidth = wdg->w() - (newRight - oldRight + xOffset);
+		}
+		else if(newRight <  (oldRight - xOffset))
+		{
+		    newWidth = wdg->w() + (oldRight - xOffset - newRight);
+		}
+
+		local newHeight =0;
+		local oldBottom = my_parent->y()+my_parent->h();
+		local newBottom = wdg->y()+wdg->h();
+		if( newBottom >  (oldBottom - xOffset))
+		{
+		    newHeight = wdg->h() - (newBottom - oldBottom + xOffset);
+		}
+		else if(newBottom <  (oldBottom - xOffset))
+		{
+		    newHeight = wdg->h() + (oldBottom - xOffset - newBottom);
+		}
+
+		if(newWidth || newHeight)
+		{
+		    wdg->size(
+			newWidth ? newWidth : wdg->w(),
+			newHeight ? newHeight : wdg->h()
+		    );
+		}
+	}
+	
+	function copy_widget_properties(src, dest){
+		dest->labeltype(src->labeltype());
+		dest->label(src->label());
+		dest->labelfont(src->labelfont());
+		dest->labelsize(src->labelsize());
+		dest->textfont(src->textfont());
+		dest->textsize(src->textsize());
+		dest->color(src->color());
+	}
+
+	function replace_widget_for(wold, wnew){
+		local xOffset=5, yOffset=10;
+		copy_widget_properties(wold, wnew);
+		wold->parent()->insert(wnew, wold);
+		wnew->position(wold->x()+xOffset, wold->y()+yOffset);
+		wnew->parent()->remove(wold);
+		fill_parent_size(wnew, xOffset, yOffset);
+		//delete wold;
+	}
+
+	function replace_widget_by(wold, wnew)
+	{
+		copy_widget_properties(wold, wnew);
+		wold->parent()->insert(wnew, wold);
+		wnew->parent()->remove(wold);
+		wnew->resize(wold->x(), wold->y(), wold->w(), wold->h());
+		//delete wold;
+	}
+	
+	function fill_combolist_by_data (choice, data)
+	{
+		for(local i=0, max_count = data.size(); i<max_count; ++i)
+		{
+			local rec = data[i];
+			choice->add_item(rec[0].tointeger(), rec[1]);
+		}
+	}		
 }
 
 class Fl_Data_Table extends Flv_Data_Table {
@@ -206,6 +284,7 @@ dofile("edit-order-window.nut");
 dofile("list-search-window.nut");
 
 class MyListSearchWindow extends ListSearch {
+	_popup = null;
 	_search_options = null;
 	_sab = null;
 
@@ -243,6 +322,50 @@ class MyListSearchWindow extends ListSearch {
 	function create_search_by2(name){
 		local sb = create_search_by0(name, Fl_Check_Button, pack_search_options2);
 		return sb;
+	}
+	function on_first_time_show()
+	{
+		local filter_data = [];
+		get_data_group_filter(filter_data);
+		fill_group_filter(filter_data);
+		//fill_search_options();
+		mk_popup();
+		//Fl::add_timeout(0.1, &do_delayed_on_search, this);
+	}
+	
+	function get_data_group_filter(data){}
+	function mk_popup(){}
+	function fill_group_filter(data)
+	{
+		group_filter->clear_items();
+		group_filter->add_item(0, "---");
+		fill_combolist_by_data(group_filter, data);
+		group_filter->select_by_data(0);
+		group_filter.callback(on_filter);
+	}
+	function on_filter(sender, udata){
+		local pr = sender.parent_root();
+		pr->cb_btnSearch(sender, udata);
+	}
+	
+	function setFilterComboTree(){
+		local ctree = new Flu_Combo_Tree(0,0, 25,25);
+		replace_widget_by(group_filter, ctree);
+
+		ctree->textfont(ctree->labelfont());
+		ctree->textsize(ctree->labelsize());
+
+		local tree = ctree->tree();
+		tree.auto_branches(true);
+		tree.show_branches(true);
+		tree.all_branches_always_open(true);
+		tree.branch_text(ctree->labelcolor(), ctree->labelfont(), ctree->labelsize());
+		tree.leaf_text(ctree->labelcolor(), ctree->labelfont(), ctree->labelsize());
+		tree.shaded_entry_colors( FL_WHITE, FL_GRAY );
+		//tree.label("----");
+
+		ctree.callback(on_filter);
+		group_filter = ctree;
 	}
 }
 
@@ -312,13 +435,14 @@ class EntitiesListSearch extends MyListSearchWindow {
 		_search_options.product_id = _search_by_product.value() == 1;
 		_search_options.id = _search_by_id.value() == 1;
 		_search_options.active = _search_by_active.value() == 1;
+		_search_options.group_id = group_filter->get_data_at();
 		appServer.entities_get_list(grid->_data, _search_options);
 	}
 	
 	function cb_btnInsert(sender, udata){
 		local pr = sender.parent_root();
 		local win = pr.showChildWindow("Entity Edit", EditEntitiesWindow);
-	}
+	}	
 }
 
 class ProductsListSearch extends MyListSearchWindow {
@@ -346,6 +470,7 @@ class ProductsListSearch extends MyListSearchWindow {
 			"image_id|image_id|0",
 		];
 		grid->set_cols(cols_info);
+		//setFilterComboTree();
 		_search_by_description = create_search_by("Description");
 		_search_by_notes = create_search_by("Notes");
 		_search_by_reference = create_search_by("Reference");
@@ -365,6 +490,7 @@ class ProductsListSearch extends MyListSearchWindow {
 		_search_options.entities = _search_by_entities.value() == 1;
 		_search_options.id = _search_by_id.value() == 1;
 		_search_options.active = _search_by_active.value() == 1;
+		_search_options.group_id = group_filter->get_data_at();
 		appServer.products_get_list(grid->_data, _search_options);
 	}
 
@@ -381,7 +507,6 @@ class OrdersListSearch extends MyListSearchWindow {
 	_search_by_date = null;
 	_search_by_total = null;
 	_search_wp = null;
-	_popup = null;
 
 	constructor() {
 		base.constructor();
@@ -405,7 +530,11 @@ class OrdersListSearch extends MyListSearchWindow {
 		_search_wp = create_search_by2("WP");
 		_search_by_entities->setonly();
 		fill_grid();
-		mk_popup();
+	}
+	
+	function get_data_group_filter(data)
+	{
+		appServer.order_types_list_short(data, 0);
 	}
 	
 	function get_search_data(data){
@@ -415,6 +544,7 @@ class OrdersListSearch extends MyListSearchWindow {
 		_search_options.products = _search_by_products.value() == 1;
 		_search_options.date = _search_by_date.value() == 1;
 		_search_options.total = _search_by_total.value() == 1;
+		_search_options.group_id = group_filter->get_data_at();
 		appServer.orders_get_list(grid->_data, _search_options);
 	}
 

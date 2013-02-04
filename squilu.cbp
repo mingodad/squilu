@@ -102,6 +102,7 @@
 					<Add option="-DWITH_FLTK=1" />
 					<Add directory="../zeromq-3.2.2/include" />
 					<Add directory="../dadbiz++/third-party/fltk" />
+					<Add directory="../dadbiz++/third-party/flu" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -110,6 +111,7 @@
 					<Add library="rt" />
 					<Add library="dl" />
 					<Add library="axtls" />
+					<Add library="fltkutils" />
 					<Add library="fltk" />
 					<Add library="fltk_images" />
 					<Add library="fltk_png" />
@@ -121,6 +123,7 @@
 					<Add library="mpdecimal" />
 					<Add directory="../zeromq-3.2.2" />
 					<Add directory="../dadbiz++/third-party/fltk/lib" />
+					<Add directory="../dadbiz++/third-party/flu" />
 				</Linker>
 			</Target>
 			<Target title="Debug FLTK">
@@ -136,6 +139,7 @@
 					<Add option="-DWITH_FLTK=1" />
 					<Add directory="../zeromq-3.2.2/include" />
 					<Add directory="../dadbiz++/third-party/fltk" />
+					<Add directory="../dadbiz++/third-party/flu" />
 				</Compiler>
 				<Linker>
 					<Add library="../zeromq-3.2.2/libzmq3.a" />
@@ -143,6 +147,7 @@
 					<Add library="rt" />
 					<Add library="dl" />
 					<Add library="axtls" />
+					<Add library="fltkutils" />
 					<Add library="fltk" />
 					<Add library="fltk_images" />
 					<Add library="fltk_png" />
@@ -154,6 +159,7 @@
 					<Add library="mpdecimal" />
 					<Add directory="../zeromq-3.2.2" />
 					<Add directory="../dadbiz++/third-party/fltk/lib" />
+					<Add directory="../dadbiz++/third-party/flu" />
 				</Linker>
 			</Target>
 		</Build>

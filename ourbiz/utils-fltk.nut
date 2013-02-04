@@ -94,3 +94,4 @@ Fl.visual(FL_RGB);
 Fl.option(Fl.OPTION_ARROW_FOCUS, true);
 setAppFont("erdana");
 Fl.add_focus_changing_handler(fltk_focus_changing);
+Fl.fl_preferences(Fl.FL_PREFERENCES_USER, "dadbiz", "ourbiz");

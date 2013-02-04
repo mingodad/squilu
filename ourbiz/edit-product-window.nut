@@ -1,25 +1,3 @@
-class Flu_Tree_Browser extends Flv_Table {
-	_forPrint = null;
-	
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-		_forPrint=false;
-	}
-}
-
-
-class Fl_Box_ClearLabel extends Fl_Box {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
-class Flu_Combo_List extends Fl_Box {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
 class Fl_Image_Box extends Fl_Box {
 	constructor(px, py, pw, ph, pl=""){
 		base.constructor(px, py, pw, ph, pl);
@@ -57,13 +35,6 @@ class Fl_Choice_Str extends Fl_Button {
 		base.constructor(px, py, pw, ph, pl);
 	}
 }
-
-class Flu_Combo_Box extends Fl_Button {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
 
 function add_input_field_to_map(tbl, fldname, fld){
 }

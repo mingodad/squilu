@@ -1,15 +1,3 @@
-class Fl_Box_ClearLabel extends Fl_Box {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
-class Flu_Combo_List extends Fl_Box {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
 class Fl_Image_Box extends Fl_Box {
 	constructor(px, py, pw, ph, pl=""){
 		base.constructor(px, py, pw, ph, pl);
@@ -35,7 +23,6 @@ class My_Fl_Float_Input extends Fl_Float_Input {
 	}
 }
 
-
 class My_Fl_Return_Button extends Fl_Button {
 	constructor(px, py, pw, ph, pl=""){
 		base.constructor(px, py, pw, ph, pl);
@@ -43,12 +30,6 @@ class My_Fl_Return_Button extends Fl_Button {
 }
 
 class Fl_Choice_Str extends Fl_Button {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
-class Flu_Combo_Box extends Fl_Button {
 	constructor(px, py, pw, ph, pl=""){
 		base.constructor(px, py, pw, ph, pl);
 	}
@@ -90,7 +71,7 @@ this->align((FL_ALIGN_TOP));
 this->when(FL_WHEN_RELEASE);
 { topGroup = new Fl_Group(0, 0, 800, 35);
   topGroup->labelsize(16);
-  { group_filter = new Flu_Combo_Box(5, 5, 675, 25);
+  { group_filter = new Flu_Combo_List(5, 5, 675, 25);
     group_filter->resize(5, 5, 675, 25);
     group_filter->box(FL_DOWN_BOX);
     group_filter->color(FL_BACKGROUND2_COLOR);
@@ -102,7 +83,7 @@ this->when(FL_WHEN_RELEASE);
     group_filter->textsize(16);
     group_filter->align((FL_ALIGN_LEFT));
     group_filter->when(FL_WHEN_RELEASE);
-  } // Flu_Combo_Box* group_filter
+  } // Flu_Combo_List* group_filter
   { local o = query_limit = new Fl_Int_Input(690, 6, 60, 25);
     query_limit->type(2);
     query_limit->labeltype(FL_NO_LABEL);

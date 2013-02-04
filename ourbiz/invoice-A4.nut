@@ -1,9 +1,3 @@
-class Fl_Box_ClearLabel extends Fl_Box {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-	
 //class InvoiceA4 extends Fl_Group {
 class InvoiceA4 extends Fl_Window {
 	page=null;
