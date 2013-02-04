@@ -112,11 +112,11 @@
 					<Add library="dl" />
 					<Add library="axtls" />
 					<Add library="fltkutils" />
-					<Add library="fltk" />
 					<Add library="fltk_images" />
 					<Add library="fltk_png" />
 					<Add library="fltk_jpeg" />
 					<Add library="fltk_z" />
+					<Add library="fltk" />
 					<Add library="Xext" />
 					<Add library="Xft" />
 					<Add library="Xinerama" />
@@ -148,11 +148,11 @@
 					<Add library="dl" />
 					<Add library="axtls" />
 					<Add library="fltkutils" />
-					<Add library="fltk" />
 					<Add library="fltk_images" />
 					<Add library="fltk_png" />
 					<Add library="fltk_jpeg" />
 					<Add library="fltk_z" />
+					<Add library="fltk" />
 					<Add library="Xext" />
 					<Add library="Xft" />
 					<Add library="Xinerama" />

@@ -215,7 +215,7 @@ class HTTPConnBin extends HTTPConnAuthBase
         my_result.clear();
         local resp_length = r->getLength();
         if(resp_length > 0) my_result.reserve(resp_length);
-        szContentType = r->getheader("Content-type");
+        my_content_type = r->getheader("Content-type");
     }
 
     function response_data( r, data, data_idx, n )
@@ -349,16 +349,16 @@ class AppServer
 
         if(get_conn_type() == conn_type_e.e_conn_http)
         {
-            local  httpRequest = HTTPConnBin(rec);
-            httpcon_setup(httpRequest);
+		local  httpRequest = HTTPConnBin(rec);
+		httpcon_setup(httpRequest);
 
-            httpRequest.send_my_request("GET", get_url);
-            if(httpRequest.my_status != 200)
-            {
-                if(throwNotFound) throw(httpRequest.my_result.tostring());
-                else return;
-            }
-            content_type = httpRequest.my_content_type;
+		httpRequest.send_my_request("GET", get_url);
+		if(httpRequest.my_status != 200)
+		{
+			if(throwNotFound) throw(httpRequest.my_result.tostring());
+			else return;
+		}
+		content_type = httpRequest.my_content_type;
         }
     }
 
@@ -367,7 +367,7 @@ class AppServer
         rec.clear();
         if(get_conn_type() == conn_type_e.e_conn_http)
         {
-            local url = format("/DB/GetBin?%s=%s", table, aid);
+            local url = format("/DB/GetBin?%s=%d", table, aid);
             if(extra_url) url += extra_url;
 
             get_binary_data_from_url(url, rec, binary_type, throwNotFound);
@@ -562,13 +562,13 @@ class AppServer
         get_list_data_search(data, "images", 0, so);
     }
 
-    function images_get_image_record(rec, binary_type, id, thumbnail=true, throwNotFound=true)
+    function images_get_image_record_by_id(rec, binary_type, id, thumbnail=true, throwNotFound=true)
     {
         local extra_url = thumbnail ? "&thumbnail=1" : null;
         get_binary_data(rec, binary_type, "image", id, extra_url, throwNotFound);
     }
 
-    function images_get_image_record(rec, binary_type, img_name, thumbnail=true, throwNotFound=true)
+    function images_get_image_record_by_name(rec, binary_type, img_name, thumbnail=true, throwNotFound=true)
     {
         local extra_url = thumbnail ? "&thumbnail=1" : null;
         get_binary_data(rec, binary_type, "image", 0, extra_url, throwNotFound);

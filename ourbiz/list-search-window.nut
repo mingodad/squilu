@@ -1,4 +1,8 @@
 class Fl_Image_Box extends Fl_Box {
+	image_id = null;
+	image_type = null;
+	thumbIMG = null;
+	
 	constructor(px, py, pw, ph, pl=""){
 		base.constructor(px, py, pw, ph, pl);
 	}

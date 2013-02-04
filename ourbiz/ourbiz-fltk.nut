@@ -23,6 +23,76 @@ function create_popup_menu_for (wgt, yOffset=0, options=null){
 	return o;
 }
 
+function clear_image_box(btn)
+{
+    if (btn->thumbIMG)
+    {
+        btn->hide();
+        btn->image(0);
+        btn->thumbIMG = null;
+    }
+}
+
+function button_show_image(btn, image_id, mime_type, image, image_size, window)
+{
+    btn->image_id = image_id;
+    btn->image_type = mime_type;
+    if (btn->image_id)
+    {
+        if (btn->thumbIMG)
+        {
+            btn->thumbIMG = null;
+            btn->image(null);
+        }
+        if(image_size)
+        {
+            local image_name;
+	    local image_header = image.slice(0, 4);
+            if(image_header == "\x89PNG") btn->image_type = "png";
+            else if(image_header == "\xFF\xD8\xFF\xE0") btn->image_type = "jpg";
+
+            image_name = format("thumbJPG%d", btn->image_id);
+            if(btn->image_type == "jpg") btn->thumbIMG = new Fl_JPEG_Image(image_name, image);
+            else if(btn->image_type == "png") btn->thumbIMG = new Fl_PNG_Image(image_name, image, image_size);
+            else return;
+
+            if( (btn->w() < btn->thumbIMG->w()) || (btn->h() < btn->thumbIMG->h()) )
+            {
+                local imgb = btn->thumbIMG;
+                local new_w = imgb->w();
+                local new_h = imgb->h();
+                best_fit(new_w, new_h, btn->w(), btn->h());
+
+                if(new_w < imgb->w() || new_h < imgb->h())
+                {
+                    btn->thumbIMG = imgb->copy(new_w, new_h);
+                }
+            }
+        }
+
+        btn->hide();
+        btn->image(btn->thumbIMG);
+        btn->show();
+        if(window  && window->shown()) window->show_image(btn->image_id);
+    }
+    else
+    {
+        clear_image_box(btn);
+    }
+}
+
+function button_show_db_image(btn, image_id, window=null, asThumb=true, throwNotFound=true)
+{
+	if(image_id)
+	{
+		local rec = blob(0, 8192), image_type;
+		appServer.images_get_image_record_by_id(rec, image_type, image_id, asThumb, throwNotFound);
+		button_show_image(btn, image_id, image_type, rec.tostring(), rec.len(), window);
+		return;
+	}
+	clear_image_box(btn);
+}
+
 class Fl_Box_ClearLabel extends Fl_Box {
 	constructor(px, py, pw, ph, pl=""){
 		base.constructor(px, py, pw, ph, pl);
@@ -133,6 +203,7 @@ class Fl_Data_Table extends Flv_Data_Table {
 		_forPrint=false;
 		_cols_info = [];
 		_data = [];
+		callback_when(FLVEcb_ROW_CHANGED | FLVEcb_CLICKED | FLVEcb_ROW_HEADER_CLICKED);
 	}
 	function resize(ax, ay, aw, ah){
 		base.resize(ax, ay, aw, ah);
@@ -146,6 +217,9 @@ class Fl_Data_Table extends Flv_Data_Table {
 		rows(_data.size());
 		redraw();
 	}
+	
+	function get_data_value(arow, acol){ return _data[arow][acol];}
+	
 	function get_value(arow, acol){
 		if(acol < 0)
 		{
@@ -185,6 +259,12 @@ class Fl_Data_Table extends Flv_Data_Table {
 		return value;
 	}
 	function handle(event){
+		if(event == FLVE_ROW_CHANGED){
+			local pr = parent_root();
+			if(pr && pr.get("on_row_changed", false)){
+				pr.on_row_changed(this, row());
+			}
+		}
 		local rc = base.handle(event);
 		return rc;
 	}
@@ -452,8 +532,11 @@ class ProductsListSearch extends MyListSearchWindow {
 	_search_by_entities = null;
 	_search_by_id = null;
 	_search_by_active = null;
+	_last_image_id = null;
+	_image_window = null;
 	
 	constructor() {
+		_last_image_id = 0;
 		base.constructor();
 		_search_options = OurBizSearchOptions();
 		label(_tr("Products List Search"));
@@ -497,6 +580,20 @@ class ProductsListSearch extends MyListSearchWindow {
 	function cb_btnInsert(sender, udata){
 		local pr = sender.parent_root();
 		local win = pr.showChildWindow("Product Edit", EditProductWindow);
+	}
+	
+	function on_row_changed(sender, row){
+		//print("on_row_changed", sender, row);
+		if(shown()){
+			local img_id = sender->get_data_value(row, sender->cols()-1);
+			if(img_id){
+				img_id = img_id.tointeger();
+				if(img_id != _last_image_id){
+					button_show_db_image(btnThumbImage, img_id, _image_window, true, false);
+					_last_image_id = img_id;
+				}
+			}
+		}
 	}
 }
 
