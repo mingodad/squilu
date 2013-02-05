@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="editor" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/editor" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="editor" prefix_auto="1" extension_auto="1" />
+				<Option object_output="/home/mingo/dev/fltk-1.3.x-r9811/test/.objs" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+			<Add option="-DWITH_DAD_EXTRAS=1" />
+			<Add option="-DWITH_FLTK=1" />
+			<Add option="-DSQ_SUBLATIN=1" />
+			<Add option="-DNEED_SUBLATIN_C2=1" />
+			<Add option="-DSQUSEDOUBLE=1" />
+			<Add option="-DSQUSEDECIMAL642=1" />
+			<Add option="-DNO_EXCEPTION_KEY_NOT_FOUND0=1" />
+			<Add option="-D_SQ642=1" />
+			<Add option="-DNO_GARBAGE_COLLECTOR00=1" />
+			<Add option="-DSQLITE_DEFAULT_FILE_FORMAT=4" />
+			<Add option="-DSQLITE_DEFAULT_AUTOVACUUM=1" />
+			<Add option="-DSQLITE_DEFAULT_FOREIGN_KEYS=1" />
+			<Add option="-DSQLITE_ENABLE_COLUMN_METADATA=1" />
+			<Add option="-DSQLITE_ENABLE_EXTENSION_FUNCTIONS=1" />
+			<Add option="-DSQLITE_ENABLE_FTS3=1" />
+			<Add option="-DSQLITE_ENABLE_FTS3_PARENTHESIS=1" />
+			<Add option="-DSQLITE_ENABLE_UNLOCK_NOTIFY=1" />
+			<Add option="-DSQLITE_ENABLE_RTREE=1" />
+			<Add option="-DSQLITE_ENABLE_STAT3=1" />
+			<Add option="-DSQLITE_HAS_CODEC=1" />
+			<Add option="-DSQLITE_OMIT_TCL_VARIABLE=1" />
+			<Add option="-DSQLITE_USE_URI=1" />
+			<Add option="-DSQLITE_SOUNDEX=1" />
+			<Add option="-DNO_POPEN=1" />
+			<Add option="-DNO_SSL_DL=1" />
+			<Add option="-DHAVE_STDINT=1" />
+			<Add option="-DUSE_AXTLS=1" />
+			<Add option="-DUSE_AXTLS_ON_MEMORY=1" />
+			<Add option="-D_FILE_OFFSET_BITS=64" />
+			<Add option="-DSSL_STATIC_LIBRARY=1" />
+			<Add option="-DPDF_USING_ZLIB=1" />
+			<Add option="-DRS232_STATIC=1" />
+			<Add directory="../../dadbiz++/third-party/fltk" />
+			<Add directory="../include" />
+			<Add directory="../ext/myaxtls" />
+			<Add directory="../sqstdlib" />
+			<Add directory="../ext" />
+			<Add directory="../../dadbiz++/third-party/sqlite3" />
+			<Add directory="../../zeromq-3.2.2/include" />
+			<Add directory="../../dadbiz++/third-party/flu" />
+		</Compiler>
+		<Linker>
+			<Add library="fltk_images" />
+			<Add library="fltk_png" />
+			<Add library="fltk_jpeg" />
+			<Add library="fltkutils" />
+			<Add library="fltk_z" />
+			<Add library="fltk" />
+			<Add library="X11" />
+			<Add library="Xinerama" />
+			<Add library="Xft" />
+			<Add library="Xext" />
+			<Add library="axtls" />
+			<Add library="mpdecimal" />
+			<Add library="m" />
+			<Add library="pthread" />
+			<Add library="zmq3" />
+			<Add library="rt" />
+			<Add directory="../../dadbiz++/third-party/fltk/lib" />
+			<Add directory="../ext/mpdecimal" />
+			<Add directory="../ext/myaxtls" />
+			<Add directory="../../zeromq-3.2.2" />
+			<Add directory="../../dadbiz++/third-party/flu" />
+		</Linker>
+		<Unit filename="editor.cxx" />
+		<Unit filename="../ext/fpdf.cpp" />
+		<Unit filename="../ext/fpdf.h" />
+		<Unit filename="../ext/lua_socket.cpp" />
+		<Unit filename="../ext/lua_socket.h" />
+		<Unit filename="../ext/mongoose.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../ext/mongoose.h" />
+		<Unit filename="../ext/pdf-font.cpp" />
+		<Unit filename="../ext/pdf-font.h" />
+		<Unit filename="../ext/sq_axtls.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../ext/sq_base64.cpp" />
+		<Unit filename="../ext/sq_decimal.cpp" />
+		<Unit filename="../ext/sq_fltk.cpp" />
+		<Unit filename="../ext/sq_fpdf.cpp" />
+		<Unit filename="../ext/sq_fs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../ext/sq_mix.cpp" />
+		<Unit filename="../ext/sq_mongoose.cpp" />
+		<Unit filename="../ext/sq_rs232.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../ext/sq_slave_vm.cpp" />
+		<Unit filename="../ext/sq_socket.cpp" />
+		<Unit filename="../ext/sq_sqlite3.cpp" />
+		<Unit filename="../ext/sq_tinyxml2.cpp" />
+		<Unit filename="../ext/sq_zlib.cpp" />
+		<Unit filename="../ext/sq_zmq3.cpp" />
+		<Unit filename="../ext/sqfs.h" />
+		<Unit filename="../ext/sqmodule.h" />
+		<Unit filename="../ext/sqratimport.cpp" />
+		<Unit filename="../ext/sqratimport.h" />
+		<Unit filename="../ext/tinyxml2.cpp" />
+		<Unit filename="../ext/tinyxml2.h" />
+		<Unit filename="../sqstdlib/sqstdaux.cpp" />
+		<Unit filename="../sqstdlib/sqstdblob.cpp" />
+		<Unit filename="../sqstdlib/sqstdblobimpl.h" />
+		<Unit filename="../sqstdlib/sqstdio.cpp" />
+		<Unit filename="../sqstdlib/sqstdlib.dsp" />
+		<Unit filename="../sqstdlib/sqstdmath.cpp" />
+		<Unit filename="../sqstdlib/sqstdrex.cpp" />
+		<Unit filename="../sqstdlib/sqstdstream.cpp" />
+		<Unit filename="../sqstdlib/sqstdstream.h" />
+		<Unit filename="../sqstdlib/sqstdstring.cpp" />
+		<Unit filename="../sqstdlib/sqstdsystem.cpp" />
+		<Unit filename="../squirrel/lua-regex.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../squirrel/lua-regex.h" />
+		<Unit filename="../squirrel/sqapi.cpp" />
+		<Unit filename="../squirrel/sqarray.h" />
+		<Unit filename="../squirrel/sqbaselib.cpp" />
+		<Unit filename="../squirrel/sqclass.cpp" />
+		<Unit filename="../squirrel/sqclass.h" />
+		<Unit filename="../squirrel/sqclosure.h" />
+		<Unit filename="../squirrel/sqcompiler.cpp" />
+		<Unit filename="../squirrel/sqcompiler.h" />
+		<Unit filename="../squirrel/sqdebug.cpp" />
+		<Unit filename="../squirrel/sqfuncproto.h" />
+		<Unit filename="../squirrel/sqfuncstate.cpp" />
+		<Unit filename="../squirrel/sqfuncstate.h" />
+		<Unit filename="../squirrel/sqlexer.cpp" />
+		<Unit filename="../squirrel/sqlexer.h" />
+		<Unit filename="../squirrel/sqmem.cpp" />
+		<Unit filename="../squirrel/sqobject.cpp" />
+		<Unit filename="../squirrel/sqobject.h" />
+		<Unit filename="../squirrel/sqopcodes.h" />
+		<Unit filename="../squirrel/sqpcheader.h" />
+		<Unit filename="../squirrel/sqstate.cpp" />
+		<Unit filename="../squirrel/sqstate.h" />
+		<Unit filename="../squirrel/sqstring.h" />
+		<Unit filename="../squirrel/sqtable.cpp" />
+		<Unit filename="../squirrel/sqtable.h" />
+		<Unit filename="../squirrel/squirrel.dsp" />
+		<Unit filename="../squirrel/squserdata.h" />
+		<Unit filename="../squirrel/squtils.h" />
+		<Unit filename="../squirrel/sqvm.cpp" />
+		<Unit filename="../squirrel/sqvm.h" />
+		<Unit filename="../squirrel/sublatin.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../squirrel/sublatin.h" />
+		<Unit filename="../../dadbiz++/third-party/sqlite3/sqlite3.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../dadbiz++/third-party/sqlite3/sqlite3.h" />
+		<Extensions>
+			<envvars />
+			<code_completion />
+			<lib_finder disable_auto="1" />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
