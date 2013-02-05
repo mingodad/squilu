@@ -761,6 +761,76 @@ class EntitiesListSearch extends MyListSearchWindow {
 	}
 }
 
+function print_products_list()
+{
+	//SafeCursorWait cursor_wait;
+	fl_cursor(FL_CURSOR_WAIT);
+	local mydata = [];
+	appServer.products_list_get_list(mydata);
+
+	local report = new BaseReportA4(0,0,420,594);
+	//report.resize(0,0, 546, 772);
+	report.resize(0,0, 546, 790);
+	//report.rpt_Body->_forPrint = true;
+	local lines_per_page = 56;
+
+	local _cols_info = [
+                "id|ID|6|R",
+                "reference|Reference|9",
+                "sell_description|Description|-1",
+                "kit|Kit|4|C",
+                "price_taxed|Price+V.A.T.|12|R|M",
+                "quantity_onhand|Onhand|9|R|N",
+	    ];
+	report.rpt_Body->set_cols(_cols_info);
+
+	local nrows = mydata.size();
+	local npages = nrows/lines_per_page;
+	if(nrows%lines_per_page) npages++; //check integer division truncation
+
+	local printer = Fl_Pdf_File_Device();
+	printer.compress(true);
+	local result = printer.start_job("products-list.pdf", 1);
+	local date = os.date("*t");
+	local bufSubTitle, bufSubFooter;
+
+	local rptData = report.rpt_Body->_data;
+	local iter1, iter2, iter0 = 0;
+	
+	local function array_assign(dest, src, start, end){
+		dest.clear();
+		dest.extend(src.slice(start, end));
+	}
+
+	for(local i=0; i< npages; ++i)
+	{
+	    local line_start = i*lines_per_page;
+	    local line_end = line_start + lines_per_page;
+	    iter1 = iter0 + line_start;
+	    iter2 = iter0 + (line_end > nrows ? nrows : line_end);
+	    array_assign(rptData, mydata, iter1, iter2);
+	    report.rpt_Body->recalc_data();
+
+	    report.rpt_Title->label(_tr("Products List"));
+	    bufSubTitle = format("%s %.2d/%.2d/%d", _tr("Date"), date.day, date.month, date.year);
+	    report.rpt_SubTitle->label(bufSubTitle);
+
+	    bufSubFooter = format("%s %d / %d", _tr("Page"), i+1, npages);
+	    report.rpt_SubFooter->label(bufSubFooter);
+	    printer.start_page();
+	    printer.origin(30,25);
+	    printer.print_widget(report);
+	    printer.end_page();
+	    
+            //to allow user do something meanwhile
+            Fl_Display_Device.display_device()->set_current();
+            Fl.check();
+            printer.set_current();	    
+	}
+	printer.end_job();
+	fl_cursor(FL_CURSOR_DEFAULT);
+}
+
 class MyEditProductWindow extends EditProductWindow {
 	constructor(){
 		base.constructor();
@@ -842,6 +912,9 @@ class ProductsListSearch extends MyListSearchWindow {
 				}
 			}	
 		}
+	}
+	function cb_btnUpdate(sender, udata){
+		print_products_list();
 	}
 }
 

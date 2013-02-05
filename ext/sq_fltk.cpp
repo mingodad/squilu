@@ -100,6 +100,7 @@ CREATE_TAG(Fl_JPEG_Image);
 
 CREATE_TAG(Fl_Device);
 CREATE_TAG(Fl_Surface_Device);
+CREATE_TAG(Fl_Display_Device);
 CREATE_TAG(Fl_Paged_Device);
 CREATE_TAG(Fl_Pdf_File_Device);
 CREATE_TAG(Fl_PostScript_File_Device);
@@ -2489,6 +2490,19 @@ static SQRegFunction fl_surface_device_obj_funcs[]={
 };
 #undef _DECL_FUNC
 
+#define SETUP_FL_DISPLAY_DEVICE(v) SETUP_FL_KLASS(v, Fl_Display_Device)
+static SQRESULT _Fl_Display_Device_display_device(HSQUIRRELVM v)
+{
+    return fltk_pushinstance(v, FLTK_TAG(Fl_Display_Device), Fl_Display_Device::display_device());
+}
+
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Display_Device_##name,nparams,pmask,isStatic}
+static SQRegFunction fl_display_device_obj_funcs[]={
+	_DECL_FUNC(display_device,1,_SC("y"),SQTrue),
+	{0,0}
+};
+#undef _DECL_FUNC
+
 #define SETUP_FL_PAGED_DEVICE(v) SETUP_FL_KLASS(v, Fl_Paged_Device)
 //int start_job(int pagecount, int *frompage = NULL, int *topage = NULL);
 static SQRESULT _Fl_Paged_Device_start_job(HSQUIRRELVM v)
@@ -3728,6 +3742,7 @@ SQRESULT sqext_register_fltklib(HSQUIRRELVM v)
 
     sq_pushnewclass(v, FLTK_TAG(Fl_Device), NULL, (void*)FLTK_TAG(Fl_Device), fl_device_obj_funcs, SQFalse);
     sq_pushnewclass(v, FLTK_TAG(Fl_Surface_Device), FLTK_TAG(Fl_Device), (void*)FLTK_TAG(Fl_Surface_Device), fl_surface_device_obj_funcs, SQFalse);
+    sq_pushnewclass(v, FLTK_TAG(Fl_Display_Device), FLTK_TAG(Fl_Surface_Device), (void*)FLTK_TAG(Fl_Display_Device), fl_display_device_obj_funcs, SQFalse);
     sq_pushnewclass(v, FLTK_TAG(Fl_Paged_Device), FLTK_TAG(Fl_Surface_Device), (void*)FLTK_TAG(Fl_Paged_Device), fl_paged_device_obj_funcs, SQFalse);
     sq_pushnewclass(v, FLTK_TAG(Fl_Pdf_File_Device), FLTK_TAG(Fl_Paged_Device), (void*)FLTK_TAG(Fl_Pdf_File_Device), fl_pdf_file_device_obj_funcs, SQFalse);
     sq_pushnewclass(v, FLTK_TAG(Fl_PostScript_File_Device), FLTK_TAG(Fl_Paged_Device), (void*)FLTK_TAG(Fl_PostScript_File_Device), fl_postscript_file_device_obj_funcs, SQFalse);
