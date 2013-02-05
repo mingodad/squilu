@@ -930,7 +930,7 @@ static void sq_debug_hook(HSQUIRRELVM v, SQInteger ev_type, const SQChar *source
             printf("LINE line [%d] func [%s] r\n", line, fname);
         break;
     }
-    while(_debug_wait){
+    while(_debug_wait && !_stop_debug){
         Fl::wait(0.01);
     }
     _debug_wait = true;

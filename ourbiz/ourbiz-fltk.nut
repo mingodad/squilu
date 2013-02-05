@@ -460,10 +460,10 @@ class Fl_Data_Table extends Flv_Data_Table {
 		//char_width = self:labelsize() --fltk.fl_width('w')
 		//it seems that if not set the text font on fluid
 		//we get segfault here
-		Fl.fl_font(textfont(), textsize());
+		fl_font(textfont(), textsize());
 		local gs = global_style();
-		gs.height(Fl.fl_height()+Fl.fl_descent());
-		char_width = Fl.fl_width("w");
+		gs.height(fl_height()+fl_descent());
+		char_width = fl_width("w");
 		draw_offset(char_width/3);
 		//print(grid_width, char_width)
 
@@ -540,11 +540,11 @@ class MyListSearchWindow extends ListSearch {
 	function get_search_data(data){}
 	function fill_grid(){
 		//SafeCursorWait cursor_wait;
-		Fl.fl_cursor(FL_CURSOR_WAIT);
+		fl_cursor(FL_CURSOR_WAIT);
 		grid->clear_data_rows();
 		get_search_data(grid->_data);
 		grid->recalc_data();
-		Fl.fl_cursor(FL_CURSOR_DEFAULT);
+		fl_cursor(FL_CURSOR_DEFAULT);
 	}
 	function cb_btnSearch(sender, udata){
 		local pr = sender.parent_root();
@@ -554,7 +554,7 @@ class MyListSearchWindow extends ListSearch {
 	function create_search_by0(name, Klass, pack){
 		local sb = Klass(0,0,25,20, _tr(name));
 		sb->labelsize(pack->labelsize());
-		sb->w(Fl.fl_width(sb.label()) + Fl.fl_width("W"));
+		sb->w(fl_width(sb.label()) + fl_width("W"));
 		pack->add(sb);
 		return sb;
 	}

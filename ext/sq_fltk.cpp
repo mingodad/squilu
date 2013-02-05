@@ -46,6 +46,7 @@
 #include <FLU/Flu_Tree_Browser.H>
 
 #include <squirrel.h>
+SQ_OPT_STRING_STRLEN();
 
 #include "sqfltk.h"
 
@@ -2692,16 +2693,79 @@ static SQInteger _fl_get_font_name(HSQUIRRELVM v)
     return 1;
 }
 
-static SQInteger _fl_fl_font(HSQUIRRELVM v)
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_fl_##name,nparams,pmask,isStatic}
+static SQRegFunction fl_obj_funcs[]={
+	_DECL_FUNC(check,1,_SC("y"),SQTrue),
+	_DECL_FUNC(run,1,_SC("y"),SQTrue),
+	_DECL_FUNC(event,1,_SC("y"),SQTrue),
+	_DECL_FUNC(event_alt,1,_SC("y"),SQTrue),
+	_DECL_FUNC(event_button,1,_SC("y"),SQTrue),
+	_DECL_FUNC(event_button1,1,_SC("y"),SQTrue),
+	_DECL_FUNC(event_button2,1,_SC("y"),SQTrue),
+	_DECL_FUNC(event_button3,1,_SC("y"),SQTrue),
+	_DECL_FUNC(event_buttons,1,_SC("y"),SQTrue),
+	_DECL_FUNC(event_command,1,_SC("y"),SQTrue),
+	_DECL_FUNC(event_ctrl,1,_SC("y"),SQTrue),
+	_DECL_FUNC(event_dx,1,_SC("y"),SQTrue),
+	_DECL_FUNC(event_dy,1,_SC("y"),SQTrue),
+	_DECL_FUNC(event_length,1,_SC("y"),SQTrue),
+	_DECL_FUNC(event_shift,1,_SC("y"),SQTrue),
+	_DECL_FUNC(event_x,1,_SC("y"),SQTrue),
+	_DECL_FUNC(event_x_root,1,_SC("y"),SQTrue),
+	_DECL_FUNC(event_y,1,_SC("y"),SQTrue),
+	_DECL_FUNC(event_y_root,1,_SC("y"),SQTrue),
+	_DECL_FUNC(x,1,_SC("y"),SQTrue),
+	_DECL_FUNC(y,1,_SC("y"),SQTrue),
+	_DECL_FUNC(h,1,_SC("y"),SQTrue),
+	_DECL_FUNC(w,1,_SC("y"),SQTrue),
+	_DECL_FUNC(ready,1,_SC("y"),SQTrue),
+	_DECL_FUNC(screen_count,1,_SC("y"),SQTrue),
+
+	_DECL_FUNC(set_fonts,-1,_SC("ys"),SQTrue),
+	_DECL_FUNC(set_font,3,_SC("yi s|i"),SQTrue),
+	_DECL_FUNC(get_font,2,_SC("yi"),SQTrue),
+	_DECL_FUNC(get_font_name, 2,_SC("yi"),SQTrue),
+	_DECL_FUNC(scheme,-1,_SC("ys"),SQTrue),
+	_DECL_FUNC(visual,2,_SC("yi"),SQTrue),
+	_DECL_FUNC(option,-2,_SC("yib"),SQTrue),
+
+	_DECL_FUNC(event_key,-1,_SC("yi"),SQTrue),
+	_DECL_FUNC(event_state,-1,_SC("yi"),SQTrue),
+	_DECL_FUNC(event_is_click,-1,_SC("yi"),SQTrue),
+	_DECL_FUNC(event_clicks,-1,_SC("yi"),SQTrue),
+	_DECL_FUNC(scrollbar_size,-1,_SC("yi"),SQTrue),
+	_DECL_FUNC(visible_focus,-1,_SC("yi"),SQTrue),
+
+	_DECL_FUNC(do_widget_deletion,1,_SC("y"),SQTrue),
+	_DECL_FUNC(delete_widget,2,_SC("yx"),SQTrue),
+	_DECL_FUNC(add_timeout,-3,_SC("ync."),SQTrue),
+	_DECL_FUNC(add_idle,-2,_SC("yc."),SQTrue),
+	_DECL_FUNC(add_focus_changing_handler,2,_SC("yc"),SQTrue),
+	{0,0}
+};
+#undef _DECL_FUNC
+
+
+static SQInteger _fl_globals_fl_font(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS_NO_TOP(v);
-    SQ_GET_INTEGER(v, 2, font);
-    SQ_GET_INTEGER(v, 3, font_size);
-    fl_font(font, font_size);
-    return 0;
+    SQ_FUNC_VARS(v);
+    if(_top_ > 1){
+        SQ_GET_INTEGER(v, 2, font);
+        SQ_GET_INTEGER(v, 3, font_size);
+        fl_font(font, font_size);
+        return 0;
+    }
+    sq_pushinteger(v, fl_font());
+    return 1;
 }
 
-static SQInteger _fl_fl_height(HSQUIRRELVM v)
+static SQInteger _fl_globals_fl_size(HSQUIRRELVM v)
+{
+    sq_pushinteger(v, fl_size());
+    return 1;
+}
+
+static SQInteger _fl_globals_fl_height(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     if(_top_ > 1){
@@ -2713,7 +2777,7 @@ static SQInteger _fl_fl_height(HSQUIRRELVM v)
     return 1;
 }
 
-static SQInteger _fl_fl_width(HSQUIRRELVM v)
+static SQInteger _fl_globals_fl_width(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SQ_GET_STRING(v, 2, str);
@@ -2722,14 +2786,14 @@ static SQInteger _fl_fl_width(HSQUIRRELVM v)
     return 1;
 }
 
-static SQInteger _fl_fl_descent(HSQUIRRELVM v)
+static SQInteger _fl_globals_fl_descent(HSQUIRRELVM v)
 {
     sq_pushinteger(v, fl_descent());
     return 1;
 }
 
 //void fl_cursor(Fl_Cursor, Fl_Color fg=FL_BLACK, Fl_Color bg=FL_WHITE);
-static SQInteger _fl_fl_cursor(HSQUIRRELVM v)
+static SQInteger _fl_globals_fl_cursor(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SQ_GET_INTEGER(v, 2, cursor);
@@ -2739,7 +2803,184 @@ static SQInteger _fl_fl_cursor(HSQUIRRELVM v)
     return 0;
 }
 
-static SQInteger _fl_fl_preferences(HSQUIRRELVM v)
+//void	fl_color(Fl_Color c)
+static SQInteger _fl_globals_fl_color(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    if(_top_ > 1){
+        SQ_GET_INTEGER(v, 2, color);
+        fl_color(color);
+        return 0;
+    }
+    sq_pushinteger(v, fl_color());
+    return 1;
+}
+
+//void fl_draw(int angle,const char* str, int n, int x, int y)
+static SQInteger _fl_globals_fl_draw(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    if(sq_gettype(v, 2) == OT_INTEGER){
+        //with angle rotation
+        SQ_GET_INTEGER(v, 2, angle);
+        SQ_GET_STRING(v, 3, str);
+        if(_top_ > 5){
+            SQ_GET_INTEGER(v, 4, n);
+            SQ_GET_INTEGER(v, 5, x);
+            SQ_GET_INTEGER(v, 6, y);
+            fl_draw(angle, str, n, x, y);
+        }
+        else
+        {
+            SQ_GET_INTEGER(v, 4, x);
+            SQ_GET_INTEGER(v, 5, y);
+            fl_draw(angle, str, str_size, x, y);
+        }
+    }
+    else
+    {
+        //string
+        SQ_GET_STRING(v, 2, str);
+        if(_top_ > 4){
+            SQ_GET_INTEGER(v, 3, n);
+            SQ_GET_INTEGER(v, 4, x);
+            SQ_GET_INTEGER(v, 5, y);
+            fl_draw(str, n, x, y);
+        }
+        else
+        {
+            SQ_GET_INTEGER(v, 3, x);
+            SQ_GET_INTEGER(v, 4, y);
+            fl_draw(str, str_size, x, y);
+        }
+    }
+    return 0;
+}
+
+//inline void fl_rect(int x, int y, int w, int h, Fl_Color c)
+static SQInteger _fl_globals_fl_rect(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SQ_GET_INTEGER(v, 2, ix);
+    SQ_GET_INTEGER(v, 3, iy);
+    SQ_GET_INTEGER(v, 4, iw);
+    SQ_GET_INTEGER(v, 5, ih);
+    if(_top_ > 5){
+        SQ_GET_INTEGER(v, 5, icolor);
+        fl_rect(ix, iy, iw, ih, icolor);
+    }
+    else fl_rect(ix, iy, iw, ih);
+    return 0;
+}
+
+//inline void fl_rectf(int x, int y, int w, int h, Fl_Color c)
+static SQInteger _fl_globals_fl_rectf(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SQ_GET_INTEGER(v, 2, ix);
+    SQ_GET_INTEGER(v, 3, iy);
+    SQ_GET_INTEGER(v, 4, iw);
+    SQ_GET_INTEGER(v, 5, ih);
+    if(_top_ > 5){
+        SQ_GET_INTEGER(v, 5, icolor);
+        fl_rectf(ix, iy, iw, ih, icolor);
+    }
+    else fl_rectf(ix, iy, iw, ih);
+    return 0;
+}
+
+//void fl_line(int x, int y, int x1, int y1, int x2, int y2)
+static SQInteger _fl_globals_fl_line(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SQ_GET_INTEGER(v, 2, x);
+    SQ_GET_INTEGER(v, 3, y);
+    SQ_GET_INTEGER(v, 4, x1);
+    SQ_GET_INTEGER(v, 5, y1);
+    if(_top_ > 5){
+        SQ_GET_INTEGER(v, 6, x2);
+        SQ_GET_INTEGER(v, 7, y2);
+        fl_line(x, y, x1, y1, x2, y2);
+    }
+    else fl_line(x, y, x1, y1);
+    return 0;
+}
+
+//void fl_line_style(int style, int width=0, char* dashes=0)
+static SQInteger _fl_globals_fl_line_style(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SQ_GET_INTEGER(v, 2, style);
+    SQ_OPT_INTEGER(v, 3, width, 0);
+    if(sq_gettype(v, 4) == OT_STRING){
+        SQ_GET_STRING(v, 4, dashes);
+        fl_line_style(style, width, (char*)dashes);
+    }
+    else fl_line_style(style, width);
+    return 0;
+}
+
+//void fl_loop(int x, int y, int x1, int y1, int x2, int y2, int x3, int y3)
+static SQInteger _fl_globals_fl_loop(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SQ_GET_INTEGER(v, 2, x);
+    SQ_GET_INTEGER(v, 3, y);
+    SQ_GET_INTEGER(v, 4, x1);
+    SQ_GET_INTEGER(v, 5, y1);
+    SQ_GET_INTEGER(v, 6, x2);
+    SQ_GET_INTEGER(v, 7, y2);
+    if(_top_ > 7){
+        SQ_GET_INTEGER(v, 8, x3);
+        SQ_GET_INTEGER(v, 9, y3);
+        fl_loop(x, y, x1, y1, x2, y2, x3, y3);
+    }
+    else fl_loop(x, y, x1, y1, x2, y2);
+    return 0;
+}
+
+#define SQ_CHECK_TYPE(v, idx, tp) if(sq_gettype(v, idx) != OT_##tp) return sq_throwerror(v, _SC( #tp " expected for parameter (%d)"), idx-1);
+#define SQ_CHECK_ARRAY(v, idx) SQ_CHECK_TYPE(v, idx, ARRAY)
+#define SQ_CHECK_TABLE(v, idx) SQ_CHECK_TYPE(v, idx, TABLE)
+
+//void fl_measure(const char* str, int& x, int& y, int draw_symbols = 1);
+static SQInteger _fl_globals_fl_measure(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SQ_GET_STRING(v, 2, str);
+    SQ_CHECK_TABLE(v, 3);
+    SQ_OPT_BOOL(v, 4, draw_symbols, true);
+    int iw, ih;
+    fl_measure(str, iw, ih, draw_symbols);
+    sq_pushstring(v, _SC("width"), -1);
+    sq_pushinteger(v, iw);
+    sq_rawset(v, 3);
+    sq_pushstring(v, _SC("height"), -1);
+    sq_pushinteger(v, ih);
+    sq_rawset(v, 3);
+    return 0;
+}
+
+//void fl_polygon(int x, int y, int x1, int y1, int x2, int y2, int x3, int y3)
+static SQInteger _fl_globals_fl_polygon(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SQ_GET_INTEGER(v, 2, x);
+    SQ_GET_INTEGER(v, 3, y);
+    SQ_GET_INTEGER(v, 4, x1);
+    SQ_GET_INTEGER(v, 5, y1);
+    SQ_GET_INTEGER(v, 6, x2);
+    SQ_GET_INTEGER(v, 7, y2);
+    if(_top_ > 7){
+        SQ_GET_INTEGER(v, 8, x3);
+        SQ_GET_INTEGER(v, 9, y3);
+        fl_polygon(x, y, x1, y1, x2, y2, x3, y3);
+    }
+    else fl_polygon(x, y, x1, y1, x2, y2);
+    return 0;
+}
+
+static SQInteger _fl_globals_fl_preferences(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SQ_GET_INTEGER(v, 2, ptype);
@@ -2750,62 +2991,24 @@ static SQInteger _fl_fl_preferences(HSQUIRRELVM v)
     return 0;
 }
 
-#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_fl_##name,nparams,pmask,isStatic}
-static SQRegFunction fl_obj_funcs[]={
-	_DECL_FUNC(check,1,_SC("y"),SQFalse),
-	_DECL_FUNC(run,1,_SC("y"),SQFalse),
-	_DECL_FUNC(event,1,_SC("y"),SQFalse),
-	_DECL_FUNC(event_alt,1,_SC("y"),SQFalse),
-	_DECL_FUNC(event_button,1,_SC("y"),SQFalse),
-	_DECL_FUNC(event_button1,1,_SC("y"),SQFalse),
-	_DECL_FUNC(event_button2,1,_SC("y"),SQFalse),
-	_DECL_FUNC(event_button3,1,_SC("y"),SQFalse),
-	_DECL_FUNC(event_buttons,1,_SC("y"),SQFalse),
-	_DECL_FUNC(event_command,1,_SC("y"),SQFalse),
-	_DECL_FUNC(event_ctrl,1,_SC("y"),SQFalse),
-	_DECL_FUNC(event_dx,1,_SC("y"),SQFalse),
-	_DECL_FUNC(event_dy,1,_SC("y"),SQFalse),
-	_DECL_FUNC(event_length,1,_SC("y"),SQFalse),
-	_DECL_FUNC(event_shift,1,_SC("y"),SQFalse),
-	_DECL_FUNC(event_x,1,_SC("y"),SQFalse),
-	_DECL_FUNC(event_x_root,1,_SC("y"),SQFalse),
-	_DECL_FUNC(event_y,1,_SC("y"),SQFalse),
-	_DECL_FUNC(event_y_root,1,_SC("y"),SQFalse),
-	_DECL_FUNC(x,1,_SC("y"),SQFalse),
-	_DECL_FUNC(y,1,_SC("y"),SQFalse),
-	_DECL_FUNC(h,1,_SC("y"),SQFalse),
-	_DECL_FUNC(w,1,_SC("y"),SQFalse),
-	_DECL_FUNC(ready,1,_SC("y"),SQFalse),
-	_DECL_FUNC(screen_count,1,_SC("y"),SQFalse),
-
-	_DECL_FUNC(set_fonts,-1,_SC("ys"),SQFalse),
-	_DECL_FUNC(set_font,3,_SC("yi s|i"),SQFalse),
-	_DECL_FUNC(get_font,2,_SC("yi"),SQFalse),
-	_DECL_FUNC(get_font_name, 2,_SC("yi"),SQFalse),
-	_DECL_FUNC(scheme,-1,_SC("ys"),SQFalse),
-	_DECL_FUNC(visual,2,_SC("yi"),SQFalse),
-	_DECL_FUNC(option,-2,_SC("yib"),SQFalse),
-
-	_DECL_FUNC(event_key,-1,_SC("yi"),SQFalse),
-	_DECL_FUNC(event_state,-1,_SC("yi"),SQFalse),
-	_DECL_FUNC(event_is_click,-1,_SC("yi"),SQFalse),
-	_DECL_FUNC(event_clicks,-1,_SC("yi"),SQFalse),
-	_DECL_FUNC(scrollbar_size,-1,_SC("yi"),SQFalse),
-	_DECL_FUNC(visible_focus,-1,_SC("yi"),SQFalse),
-
-	_DECL_FUNC(do_widget_deletion,1,_SC("y"),SQFalse),
-	_DECL_FUNC(delete_widget,2,_SC("yx"),SQFalse),
-	_DECL_FUNC(add_timeout,-3,_SC("ync."),SQFalse),
-	_DECL_FUNC(add_idle,-2,_SC("yc."),SQFalse),
-	_DECL_FUNC(add_focus_changing_handler,2,_SC("yc"),SQFalse),
-
-	//globals made static on Fl
-	_DECL_FUNC(fl_cursor, -2,_SC("yiii"),SQFalse),
-	_DECL_FUNC(fl_font,3,_SC("yii"),SQFalse),
-	_DECL_FUNC(fl_width,-2,_SC("ysi"),SQFalse),
-	_DECL_FUNC(fl_height,-1,_SC("yii"),SQFalse),
-	_DECL_FUNC(fl_descent,1,_SC("y"),SQFalse),
-	_DECL_FUNC(fl_preferences,4,_SC("yiss"),SQFalse),
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_fl_globals_##name,nparams,pmask,isStatic}
+static SQRegFunction fl_globals_funcs[]={
+	_DECL_FUNC(fl_cursor, -2,_SC(".iii"),SQTrue),
+	_DECL_FUNC(fl_color,-1,_SC(".i"),SQTrue),
+	_DECL_FUNC(fl_draw,-4,_SC(". n|s n|s nnn"),SQTrue),
+	_DECL_FUNC(fl_font,-1,_SC(".ii"),SQTrue),
+	_DECL_FUNC(fl_size,1,_SC("."),SQTrue),
+	_DECL_FUNC(fl_height,-1,_SC(".ii"),SQTrue),
+	_DECL_FUNC(fl_width,-2,_SC(".si"),SQTrue),
+	_DECL_FUNC(fl_descent,1,_SC("."),SQTrue),
+	_DECL_FUNC(fl_line,-5,_SC(".nnnnnn"),SQTrue),
+	_DECL_FUNC(fl_line_style,-2,_SC(".ii s|o"),SQTrue),
+	_DECL_FUNC(fl_loop,-7,_SC(".nnnnnnnn"),SQTrue),
+	_DECL_FUNC(fl_measure,-3,_SC(".stb"),SQTrue),
+	_DECL_FUNC(fl_polygon,-7,_SC(".nnnnnnnn"),SQTrue),
+	_DECL_FUNC(fl_rect,-5,_SC(".nnnn"),SQTrue),
+	_DECL_FUNC(fl_rectf,-5,_SC(".nnnn"),SQTrue),
+	_DECL_FUNC(fl_preferences,4,_SC(".iss"),SQTrue),
 
 	{0,0}
 };
@@ -2969,6 +3172,19 @@ static const struct {
 	INT_CONST(FL_WHITE)
 	INT_CONST(FL_YELLOW)
 
+	/*line style*/
+    INT_CONST(FL_SOLID)
+    INT_CONST(FL_DASH)
+    INT_CONST(FL_DOT)
+    INT_CONST(FL_DASHDOT)
+    INT_CONST(FL_DASHDOTDOT)
+    INT_CONST(FL_CAP_FLAT)
+    INT_CONST(FL_CAP_ROUND)
+    INT_CONST(FL_CAP_SQUARE)
+    INT_CONST(FL_JOIN_MITER)
+    INT_CONST(FL_JOIN_ROUND)
+    INT_CONST(FL_JOIN_BEVEL)
+
     /*keyboard*/
     INT_CONST(FL_Key_Space)
     INT_CONST(FL_Key_Plus)
@@ -3094,6 +3310,9 @@ SQRESULT sqext_register_fltklib(HSQUIRRELVM v)
     Fl::user_data = v;
 	//sq_pushstring(v,_SC("fltk"),-1);
 	//sq_newtable(v);
+
+    //global fl_* functions
+	sq_insert_reg_funcs(v, fl_globals_funcs);
 
 #define INT_CONST_PREFIX_VALUE(prefix, key, value) \
     sq_pushstring(v, _SC(#key), -1);\
