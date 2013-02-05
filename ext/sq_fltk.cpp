@@ -37,6 +37,9 @@
 #include <FL/Fl_PNG_Image.H>
 #include <FL/Fl_JPEG_Image.H>
 
+#include <FL/Fl_Pdf.H>
+#include <FL/Fl_PostScript.H>
+
 #include <FL/Fl_File_Chooser.H>
 #include <FL/Fl_Native_File_Chooser.H>
 
@@ -94,6 +97,12 @@ CREATE_TAG(Fl_Double_Window);
 CREATE_TAG(Fl_Image);
 CREATE_TAG(Fl_PNG_Image);
 CREATE_TAG(Fl_JPEG_Image);
+
+CREATE_TAG(Fl_Device);
+CREATE_TAG(Fl_Surface_Device);
+CREATE_TAG(Fl_Paged_Device);
+CREATE_TAG(Fl_Pdf_File_Device);
+CREATE_TAG(Fl_PostScript_File_Device);
 
 CREATE_TAG(Fl_File_Chooser);
 CREATE_TAG(Fl_Native_File_Chooser);
@@ -340,7 +349,16 @@ static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
 {\
     getSelf(v);\
     SQInteger iparam; sq_getinteger(v, 2, &iparam);\
-    self->funcNAME(iparam));\
+    self->funcNAME(iparam);\
+	return 0;\
+}
+
+#define FUNC_SET_STR(prefix, getSelf, funcNAME) \
+static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
+{\
+    getSelf(v);\
+    const SQChar *str; sq_getstring(v, 2, &str);\
+    self->funcNAME(str);\
 	return 0;\
 }
 
@@ -375,6 +393,7 @@ static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
 	return 1;\
 }
 
+#define FL_WIDGET_SET_STR(funcNAME) FUNC_SET_STR(_Fl_Widget_, SETUP_FL_WIDGET, funcNAME)
 #define FL_WIDGET_GETSET_STR(funcNAME) FUNC_GETSET_STR(_Fl_Widget_, SETUP_FL_WIDGET, self->, funcNAME)
 
 #define FL_WIDGET_GETSET_INT0(funcNAME, typeNAME) FUNC_GETSET_INT(_Fl_Widget_, SETUP_FL_WIDGET, self->, funcNAME, typeNAME)
@@ -562,6 +581,7 @@ FL_WIDGET_GETSET_INT(argument);
 FL_WIDGET_GETSET_INT_CAST(box, Fl_Boxtype);
 FL_WIDGET_GETSET_INT(color);
 FL_WIDGET_GETSET_INT(selection_color);
+FL_WIDGET_SET_STR(copy_label);
 FL_WIDGET_GETSET_STR(label);
 FL_WIDGET_GETSET_INT(labelcolor);
 FL_WIDGET_GETSET_INT(labelfont);
@@ -670,6 +690,7 @@ static SQRegFunction fl_widget_obj_funcs[]={
 	_DECL_FUNC(callback,-1,_SC("xc."), SQFalse),
 	_DECL_FUNC(color,-1,_SC("xi"), SQFalse),
 	_DECL_FUNC(selection_color,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(copy_label,2,_SC("xs"), SQFalse),
 	_DECL_FUNC(label,-1,_SC("x s|o"), SQFalse),
 	_DECL_FUNC(labelcolor,-1,_SC("xi"), SQFalse),
 	_DECL_FUNC(labelfont,-1,_SC("xi"), SQFalse),
@@ -1930,12 +1951,26 @@ static SQInteger _Flv_Data_Table_draw_offset(HSQUIRRELVM v)
     return 1;
 }
 
+static SQInteger _Flv_Data_Table_for_print(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SETUP_FLV_DATA_TABLE(v);
+    if(_top_ > 1){
+        SQ_GET_BOOL(v, 2, bval);
+        ((Flv_Data_Table*)self)->_forPrint = bval;
+        return 0;
+    }
+    sq_pushbool(v, ((Flv_Data_Table*)self)->_forPrint);
+    return 1;
+}
+
 FLTK_CONSTRUCTOR(Flv_Data_Table);
 
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Flv_Data_Table_##name,nparams,pmask,isStatic}
 static SQRegFunction flv_data_table_obj_funcs[]={
 	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	_DECL_FUNC(handle,2,_SC("xi"),SQFalse),
+	_DECL_FUNC(for_print,-1,_SC("xb"),SQFalse),
 	_DECL_FUNC(resize,5,_SC("xnnnn"),SQFalse),
 	_DECL_FUNC(draw_offset, -1,_SC("xn"),SQFalse),
 	{0,0}
@@ -2423,6 +2458,200 @@ static SQRegFunction fl_double_window_obj_funcs[]={
 	{0,0}
 };
 #undef _DECL_FUNC
+
+#define SETUP_FL_DEVICE(v) SETUP_FL_KLASS(v, Fl_Device)
+static SQRESULT _Fl_Device_class_name(HSQUIRRELVM v)
+{
+    SETUP_FL_DEVICE(v);
+    sq_pushstring(v, self->class_name(), -1);
+	return 1;
+}
+
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Device_##name,nparams,pmask,isStatic}
+static SQRegFunction fl_device_obj_funcs[]={
+	_DECL_FUNC(class_name,1,_SC("x"),SQFalse),
+	{0,0}
+};
+#undef _DECL_FUNC
+
+#define SETUP_FL_SURFACE_DEVICE(v) SETUP_FL_KLASS(v, Fl_Surface_Device)
+static SQRESULT _Fl_Surface_Device_set_current(HSQUIRRELVM v)
+{
+    SETUP_FL_SURFACE_DEVICE(v);
+    self->set_current();
+	return 0;
+}
+
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Surface_Device_##name,nparams,pmask,isStatic}
+static SQRegFunction fl_surface_device_obj_funcs[]={
+	_DECL_FUNC(set_current,1,_SC("x"),SQFalse),
+	{0,0}
+};
+#undef _DECL_FUNC
+
+#define SETUP_FL_PAGED_DEVICE(v) SETUP_FL_KLASS(v, Fl_Paged_Device)
+//int start_job(int pagecount, int *frompage = NULL, int *topage = NULL);
+static SQRESULT _Fl_Paged_Device_start_job(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SETUP_FL_PAGED_DEVICE(v);
+    SQ_GET_INTEGER(v, 2, pagecount);
+    if(_top_ > 1) SQ_CHECK_TABLE(v, 3);
+    int frompage, topage;
+    sq_pushinteger(v, self->start_job(pagecount, &frompage, &topage));
+    if(_top_ > 1){
+        sq_pushstring(v, _SC("frompage"), -1);
+        sq_pushinteger(v, frompage);
+        sq_rawset(v, 3);
+        sq_pushstring(v, _SC("topage"), -1);
+        sq_pushinteger(v, topage);
+        sq_rawset(v, 3);
+    }
+    return 1;
+}
+
+static SQRESULT _Fl_Paged_Device_end_job(HSQUIRRELVM v)
+{
+    SETUP_FL_PAGED_DEVICE(v);
+    self->end_job();
+	return 0;
+}
+
+static SQRESULT _Fl_Paged_Device_start_page(HSQUIRRELVM v)
+{
+    SETUP_FL_PAGED_DEVICE(v);
+    sq_pushinteger(v, self->start_page());
+	return 1;
+}
+
+static SQRESULT _Fl_Paged_Device_end_page(HSQUIRRELVM v)
+{
+    SETUP_FL_PAGED_DEVICE(v);
+    sq_pushinteger(v, self->end_page());
+	return 1;
+}
+
+static SQRESULT _Fl_Paged_Device_origin(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_PAGED_DEVICE(v);
+    SQ_GET_INTEGER(v, 2, x);
+    SQ_GET_INTEGER(v, 3, y);
+    self->origin(x, y);
+	return 0;
+}
+
+static SQRESULT _Fl_Paged_Device_print_widget(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SETUP_FL_PAGED_DEVICE(v);
+    SETUP_FL_WIDGET_AT(v, 2, wdg);
+    SQ_OPT_INTEGER(v, 3, delta_x, 0);
+    SQ_OPT_INTEGER(v, 4, delta_y, 0);
+    self->print_widget(wdg, delta_x, delta_y);
+	return 0;
+}
+
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Paged_Device_##name,nparams,pmask,isStatic}
+static SQRegFunction fl_paged_device_obj_funcs[]={
+	_DECL_FUNC(start_job,-2,_SC("xt"),SQFalse),
+	_DECL_FUNC(end_job,1,_SC("x"),SQFalse),
+	_DECL_FUNC(start_page,1,_SC("x"),SQFalse),
+	_DECL_FUNC(end_page,1,_SC("x"),SQFalse),
+	_DECL_FUNC(origin,3,_SC("xii"),SQFalse),
+	_DECL_FUNC(print_widget,-2,_SC("xxii"),SQFalse),
+	{0,0}
+};
+#undef _DECL_FUNC
+
+#define SETUP_FL_PDF_FILE_DEVICE(v) SETUP_FL_KLASS(v, Fl_Pdf_File_Device)
+
+static SQInteger _Fl_Pdf_File_Device_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+{
+	Fl_Pdf_File_Device *self = ((Fl_Pdf_File_Device *)p);
+	delete self;
+	return 0;
+}
+
+static SQInteger _Fl_Pdf_File_Device_constructor(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_PDF_FILE_DEVICE(v);
+	self = new Fl_Pdf_File_Device();
+    sq_setinstanceup(v, 1, self);
+    sq_setreleasehook(v,1, _Fl_Pdf_File_Device_releasehook);
+	return 1;
+}
+
+static SQRESULT _Fl_Pdf_File_Device_compress(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_PDF_FILE_DEVICE(v);
+    SQ_GET_BOOL(v, 2, bval);
+    self->compress(bval);
+    return 0;
+}
+
+//int start_job(const char *pdf_filename, int pagecount,
+//        enum Fl_Paged_Device::Page_Format format = Fl_Paged_Device::A4,
+//		enum Fl_Paged_Device::Page_Layout layout = Fl_Paged_Device::PORTRAIT);
+static SQRESULT _Fl_Pdf_File_Device_start_job(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SETUP_FL_PDF_FILE_DEVICE(v);
+    if(sq_gettype(v, 2) == OT_STRING){
+        SQ_GET_STRING(v, 2, pdf_filename);
+        SQ_GET_INTEGER(v, 3, pagecount);
+        SQ_OPT_INTEGER(v, 4, format, Fl_Paged_Device::A4);
+        SQ_OPT_INTEGER(v, 5, layout, Fl_Paged_Device::PORTRAIT);
+        sq_pushinteger(v, self->start_job(pdf_filename, pagecount,
+                                          (Fl_Paged_Device::Page_Format)format,
+                                          (Fl_Paged_Device::Page_Layout)layout));
+    }
+    else
+    {
+        SQ_GET_INTEGER(v, 2, pagecount);
+        SQ_OPT_INTEGER(v, 3, format, Fl_Paged_Device::A4);
+        SQ_OPT_INTEGER(v, 4, layout, Fl_Paged_Device::PORTRAIT);
+        sq_pushinteger(v, self->start_job(pagecount,
+                                          (Fl_Paged_Device::Page_Format)format,
+                                          (Fl_Paged_Device::Page_Layout)layout));
+    }
+    return 1;
+}
+
+
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Pdf_File_Device_##name,nparams,pmask,isStatic}
+static SQRegFunction fl_pdf_file_device_obj_funcs[]={
+	_DECL_FUNC(constructor,1,_SC("x"),SQFalse),
+	_DECL_FUNC(compress,2,_SC("xb"),SQFalse),
+	_DECL_FUNC(start_job,-2,_SC("x s|i iii"),SQFalse),
+	{0,0}
+};
+#undef _DECL_FUNC
+
+#define SETUP_FL_POSTSCRIPT_FILE_DEVICE(v) SETUP_FL_KLASS(v, Fl_PostScript_File_Device)
+static SQRESULT _Fl_PostScript_File_Device_file_chooser_title(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    if(_top_ > 1){
+        SQ_GET_STRING(v, 2, str);
+        Fl_PostScript_File_Device::file_chooser_title = str; //memory leak here !!!!!
+        return 0;
+    }
+    if(Fl_PostScript_File_Device::file_chooser_title)
+        sq_pushstring(v, Fl_PostScript_File_Device::file_chooser_title, -1);
+    else sq_pushnull(v);
+    return 1;
+}
+
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_PostScript_File_Device_##name,nparams,pmask,isStatic}
+static SQRegFunction fl_postscript_file_device_obj_funcs[]={
+	_DECL_FUNC(file_chooser_title,-1,_SC("ys"),SQTrue),
+	{0,0}
+};
+#undef _DECL_FUNC
+
 
 static SQChar Fl_File_Chooser_TAG[] = _SC("Fl_File_Chooser");
 
@@ -2939,10 +3168,6 @@ static SQInteger _fl_globals_fl_loop(HSQUIRRELVM v)
     return 0;
 }
 
-#define SQ_CHECK_TYPE(v, idx, tp) if(sq_gettype(v, idx) != OT_##tp) return sq_throwerror(v, _SC( #tp " expected for parameter (%d)"), idx-1);
-#define SQ_CHECK_ARRAY(v, idx) SQ_CHECK_TYPE(v, idx, ARRAY)
-#define SQ_CHECK_TABLE(v, idx) SQ_CHECK_TYPE(v, idx, TABLE)
-
 //void fl_measure(const char* str, int& x, int& y, int draw_symbols = 1);
 static SQInteger _fl_globals_fl_measure(HSQUIRRELVM v)
 {
@@ -2958,6 +3183,15 @@ static SQInteger _fl_globals_fl_measure(HSQUIRRELVM v)
     sq_pushstring(v, _SC("height"), -1);
     sq_pushinteger(v, ih);
     sq_rawset(v, 3);
+    return 0;
+}
+
+static SQInteger _fl_globals_fl_point(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_INTEGER(v, 2, x);
+    SQ_GET_INTEGER(v, 3, y);
+    fl_point(x, y);
     return 0;
 }
 
@@ -2978,6 +3212,42 @@ static SQInteger _fl_globals_fl_polygon(HSQUIRRELVM v)
     }
     else fl_polygon(x, y, x1, y1, x2, y2);
     return 0;
+}
+
+//void fl_push_clip(int x, int y, int w, int h)
+static SQInteger _fl_globals_fl_push_clip(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_INTEGER(v, 2, x);
+    SQ_GET_INTEGER(v, 3, y);
+    SQ_GET_INTEGER(v, 4, w);
+    SQ_GET_INTEGER(v, 5, h);
+    fl_push_clip(x, y, w, h);
+    return 0;
+}
+
+static SQInteger _fl_globals_fl_push_no_clip(HSQUIRRELVM v)
+{
+    fl_push_no_clip();
+    return 0;
+}
+
+static SQInteger _fl_globals_fl_pop_clip(HSQUIRRELVM v)
+{
+    fl_pop_clip();
+    return 0;
+}
+
+//int fl_not_clipped(int x, int y, int w, int h)
+static SQInteger _fl_globals_fl_not_clipped(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_INTEGER(v, 2, x);
+    SQ_GET_INTEGER(v, 3, y);
+    SQ_GET_INTEGER(v, 4, w);
+    SQ_GET_INTEGER(v, 5, h);
+    sq_pushbool(v, fl_not_clipped(x, y, w, h));
+    return 1;
 }
 
 static SQInteger _fl_globals_fl_preferences(HSQUIRRELVM v)
@@ -3005,9 +3275,14 @@ static SQRegFunction fl_globals_funcs[]={
 	_DECL_FUNC(fl_line_style,-2,_SC(".ii s|o"),SQTrue),
 	_DECL_FUNC(fl_loop,-7,_SC(".nnnnnnnn"),SQTrue),
 	_DECL_FUNC(fl_measure,-3,_SC(".stb"),SQTrue),
+	_DECL_FUNC(fl_not_clipped,5,_SC(".nnnn"),SQTrue),
+	_DECL_FUNC(fl_point,3,_SC(".nn"),SQTrue),
 	_DECL_FUNC(fl_polygon,-7,_SC(".nnnnnnnn"),SQTrue),
-	_DECL_FUNC(fl_rect,-5,_SC(".nnnn"),SQTrue),
-	_DECL_FUNC(fl_rectf,-5,_SC(".nnnn"),SQTrue),
+	_DECL_FUNC(fl_pop_clip,1,_SC("."),SQTrue),
+	_DECL_FUNC(fl_push_clip,5,_SC(".nnnn"),SQTrue),
+	_DECL_FUNC(fl_push_no_clip,1,_SC("."),SQTrue),
+	_DECL_FUNC(fl_rect,-5,_SC(".nnnni"),SQTrue),
+	_DECL_FUNC(fl_rectf,-5,_SC(".nnnni"),SQTrue),
 	_DECL_FUNC(fl_preferences,4,_SC(".iss"),SQTrue),
 
 	{0,0}
@@ -3292,6 +3567,46 @@ static const struct {
     INT_CONST(FL_DND_RELEASE)
     INT_CONST(FL_SCREEN_CONFIGURATION_CHANGED)
     INT_CONST(FL_FULLSCREEN)
+
+#define INT_PAGE_FORMAT_CONST(nm) { "PAGE_FORMAT_" #nm, Fl_Paged_Device::nm },
+    INT_PAGE_FORMAT_CONST(A0)
+    INT_PAGE_FORMAT_CONST(A1)
+    INT_PAGE_FORMAT_CONST(A2)
+    INT_PAGE_FORMAT_CONST(A3)
+    INT_PAGE_FORMAT_CONST(A4)
+    INT_PAGE_FORMAT_CONST(A5)
+    INT_PAGE_FORMAT_CONST(A6)
+    INT_PAGE_FORMAT_CONST(A7)
+    INT_PAGE_FORMAT_CONST(A8)
+    INT_PAGE_FORMAT_CONST(A9)
+    INT_PAGE_FORMAT_CONST(B0)
+    INT_PAGE_FORMAT_CONST(B1)
+    INT_PAGE_FORMAT_CONST(B2)
+    INT_PAGE_FORMAT_CONST(B3)
+    INT_PAGE_FORMAT_CONST(B4)
+    INT_PAGE_FORMAT_CONST(B5)
+    INT_PAGE_FORMAT_CONST(B6)
+    INT_PAGE_FORMAT_CONST(B7)
+    INT_PAGE_FORMAT_CONST(B8)
+    INT_PAGE_FORMAT_CONST(B9)
+    INT_PAGE_FORMAT_CONST(B10)
+    INT_PAGE_FORMAT_CONST(C5E)
+    INT_PAGE_FORMAT_CONST(DLE)
+    INT_PAGE_FORMAT_CONST(EXECUTIVE)
+    INT_PAGE_FORMAT_CONST(FOLIO)
+    INT_PAGE_FORMAT_CONST(LEDGER)
+    INT_PAGE_FORMAT_CONST(LEGAL)
+    INT_PAGE_FORMAT_CONST(LETTER)
+    INT_PAGE_FORMAT_CONST(TABLOID)
+    INT_PAGE_FORMAT_CONST(ENVELOPE)
+    INT_PAGE_FORMAT_CONST(MEDIA)
+
+#define INT_PAGE_LAYOUT_CONST(nm) { "PAGE_LAYOUT_" #nm, Fl_Paged_Device::nm },
+    INT_PAGE_LAYOUT_CONST(PORTRAIT)
+    INT_PAGE_LAYOUT_CONST(LANDSCAPE)
+    INT_PAGE_LAYOUT_CONST(REVERSED)
+    INT_PAGE_LAYOUT_CONST(ORIENTATION)
+
     /* terminator */
     { NULL, 0 }
 };
@@ -3410,6 +3725,12 @@ SQRESULT sqext_register_fltklib(HSQUIRRELVM v)
     sq_pushnewclass(v, Fl_RGB_Image_TAG, Fl_Image_TAG, (void*)Fl_RGB_Image_TAG, fl_rgb_image_obj_funcs, SQFalse);
     sq_pushnewclass(v, Fl_JPEG_Image_TAG, Fl_RGB_Image_TAG, (void*)Fl_JPEG_Image_TAG, fl_jpeg_image_obj_funcs, SQFalse);
     sq_pushnewclass(v, Fl_PNG_Image_TAG, Fl_RGB_Image_TAG, (void*)Fl_PNG_Image_TAG, fl_png_image_obj_funcs, SQFalse);
+
+    sq_pushnewclass(v, FLTK_TAG(Fl_Device), NULL, (void*)FLTK_TAG(Fl_Device), fl_device_obj_funcs, SQFalse);
+    sq_pushnewclass(v, FLTK_TAG(Fl_Surface_Device), FLTK_TAG(Fl_Device), (void*)FLTK_TAG(Fl_Surface_Device), fl_surface_device_obj_funcs, SQFalse);
+    sq_pushnewclass(v, FLTK_TAG(Fl_Paged_Device), FLTK_TAG(Fl_Surface_Device), (void*)FLTK_TAG(Fl_Paged_Device), fl_paged_device_obj_funcs, SQFalse);
+    sq_pushnewclass(v, FLTK_TAG(Fl_Pdf_File_Device), FLTK_TAG(Fl_Paged_Device), (void*)FLTK_TAG(Fl_Pdf_File_Device), fl_pdf_file_device_obj_funcs, SQFalse);
+    sq_pushnewclass(v, FLTK_TAG(Fl_PostScript_File_Device), FLTK_TAG(Fl_Paged_Device), (void*)FLTK_TAG(Fl_PostScript_File_Device), fl_postscript_file_device_obj_funcs, SQFalse);
 
     sq_pushconsttable(v);
     INT_CONST_PREFIX_VALUE(, FL_SHADOW_LABEL, FL_SHADOW_LABEL);

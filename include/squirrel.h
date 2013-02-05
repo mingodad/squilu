@@ -609,6 +609,10 @@ SQUIRREL_API void sq_getlaststackinfo(HSQUIRRELVM v);
     SQUserPointer var;\
     if((_rc_ = sq_getuserpointer(v,idx, &var)) < 0) return _rc_;
 
+#define SQ_CHECK_TYPE(v, idx, tp) if(sq_gettype(v, idx) != OT_##tp) return sq_throwerror(v, _SC( #tp " expected for parameter (%d)"), idx-1);
+#define SQ_CHECK_ARRAY(v, idx) SQ_CHECK_TYPE(v, idx, ARRAY)
+#define SQ_CHECK_TABLE(v, idx) SQ_CHECK_TYPE(v, idx, TABLE)
+
 #define SIZEOF_SQCHAR_STRING(str) ((sizeof(str)/sizeof(SQChar))-(1*sizeof(SQChar)))
 
 

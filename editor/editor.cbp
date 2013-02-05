@@ -71,6 +71,7 @@
 			<Add directory="../../dadbiz++/third-party/sqlite3" />
 			<Add directory="../../zeromq-3.2.2/include" />
 			<Add directory="../../dadbiz++/third-party/flu" />
+			<Add directory="../../dadbiz++/third-party/libharu/include" />
 		</Compiler>
 		<Linker>
 			<Add library="fltk_images" />
@@ -89,11 +90,13 @@
 			<Add library="pthread" />
 			<Add library="zmq3" />
 			<Add library="rt" />
+			<Add library="hpdfs" />
 			<Add directory="../../dadbiz++/third-party/fltk/lib" />
 			<Add directory="../ext/mpdecimal" />
 			<Add directory="../ext/myaxtls" />
 			<Add directory="../../zeromq-3.2.2" />
 			<Add directory="../../dadbiz++/third-party/flu" />
+			<Add directory="../../dadbiz++/third-party/libharu/src" />
 		</Linker>
 		<Unit filename="editor.cxx" />
 		<Unit filename="../ext/fpdf.cpp" />

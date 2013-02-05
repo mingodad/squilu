@@ -7,8 +7,8 @@ class BaseReportA4 extends Fl_Window {
 	rpt_SubFooter=null;
 	rpt_Footer=null;
 	
-constructor() {
-	base.constructor(10, 50, 420, 594, _tr("BaseReportA4"));
+constructor(px=10, py=50, pw=420, ph=594, lbl="BaseReportA4") {
+	base.constructor(px, py, pw, ph, _tr(lbl));
 begin();
 { rpt_Logo = new Fl_Box(10, 5, 105, 35, _tr("Ourbiz"));
   rpt_Logo->labeltype(FL_SHADOW_LABEL);
@@ -43,7 +43,7 @@ begin();
   Fl_Group.current()->resizable(rpt_Body);
   o->has_scrollbar(FLVS_NONE);
   o->feature_remove(FLVF_ROW_SELECT | FLVF_PERSIST_SELECT);
-  o->_forPrint = true;
+  o->for_print(true);
 } // Fl_Data_Table* rpt_Body
 { local o = new Fl_Box(10, 545, 405, 1, _tr("Line"));
   o->box(FL_FLAT_BOX);

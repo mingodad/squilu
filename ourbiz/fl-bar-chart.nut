@@ -313,7 +313,7 @@ class Fl_Bar_Chart extends Fl_Box {
 	}
 };
 
-
+/*
 math.number_format_set_thousand_sep(".");
 math.number_format_set_dec_point(",");
 
@@ -361,4 +361,4 @@ mychart->bar_add("Dicember", rand_value());
 win->resizable(mychart);
 win->show_main();
 Fl.run();
-
+*/

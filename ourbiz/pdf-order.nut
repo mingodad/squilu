@@ -36,8 +36,6 @@ class PDF_Order extends Sq_Fpdf
 		//SetCompression(false);
 	}
 
-	function _tr(str) {return str;}
-
 	function do_init()
 	{
 		secondColX = 107;

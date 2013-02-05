@@ -301,14 +301,12 @@ class EditWindow extends MyBaseWindow {
 enum Fl_Data_Table_Events {e_none, e_event, e_select, e_insert, e_update, e_delete};
 
 class Fl_Data_Table extends Flv_Data_Table {
-	_forPrint = null;
 	_cols_info = null;
 	_data = null;
 	_call_this = null;
 
 	constructor(px, py, pw, ph, pl=null){
 		base.constructor(px, py, pw, ph, pl);
-		_forPrint=false;
 		_cols_info = [];
 		_data = [];
 	}
@@ -637,6 +635,69 @@ class OurSalesTax extends SalesTaxRatesEditWindow {
 	}
 }
 
+function print_entities_list_contact_report()
+{
+	//SafeCursorWait cursor_wait;
+	fl_cursor(FL_CURSOR_WAIT);
+	local mydata = [];
+	appServer.entities_toprint_get_list(mydata);
+
+	local report = new BaseReportA4(0,0,420,594);
+	//report.resize(0,0, 546, 772);
+	report.resize(0,0, 546, 790);
+	//report.rpt_Body->_forPrint = true;
+	local lines_per_page = 56;
+
+	local _cols_info = [
+		"id|ID|6|R",
+		"name|Name|-1",
+		"contact|Contact|12",
+		"phone|Phone|12",
+	    ];
+	report.rpt_Body->set_cols(_cols_info);
+
+	local nrows = mydata.size();
+	local npages = nrows/lines_per_page;
+	if(nrows%lines_per_page) npages++; //check integer division truncation
+
+	local printer = Fl_Pdf_File_Device();
+	printer.compress(true);
+	local result = printer.start_job("entities-contact-list.pdf", 1);
+	local date = os.date("*t");
+	local bufSubTitle, bufSubFooter;
+
+	local rptData = report.rpt_Body->_data;
+	local iter1, iter2, iter0 = 0;
+	
+	local function array_assign(dest, src, start, end){
+		dest.clear();
+		dest.extend(src.slice(start, end));
+	}
+
+	for(local i=0; i< npages; ++i)
+	{
+	    local line_start = i*lines_per_page;
+	    local line_end = line_start + lines_per_page;
+	    iter1 = iter0 + line_start;
+	    iter2 = iter0 + (line_end > nrows ? nrows : line_end);
+	    array_assign(rptData, mydata, iter1, iter2);
+	    report.rpt_Body->recalc_data();
+
+	    report.rpt_Title->label(_tr("Entities List"));
+	    bufSubTitle = format("%s %.2d/%.2d/%d", _tr("Date"), date.day, date.month, date.year);
+	    report.rpt_SubTitle->label(bufSubTitle);
+
+	    bufSubFooter = format("%s %d / %d", _tr("Page"), i+1, npages);
+	    report.rpt_SubFooter->label(bufSubFooter);
+	    printer.start_page();
+	    printer.origin(30,25);
+	    printer.print_widget(report);
+	    printer.end_page();
+	}
+	printer.end_job();
+	fl_cursor(FL_CURSOR_DEFAULT);
+}
+
 class MyEditEntityWindow extends EditEntityWindow {
 	constructor(){
 		base.constructor();
@@ -694,7 +755,10 @@ class EntitiesListSearch extends MyListSearchWindow {
 	function cb_btnInsert(sender, udata){
 		local pr = sender.parent_root();
 		local win = pr.showChildWindow("Entity Edit", EditEntitiesWindow);
-	}	
+	}
+	function cb_btnUpdate(sender, udata){
+		print_entities_list_contact_report();
+	}
 }
 
 class MyEditProductWindow extends EditProductWindow {
