@@ -567,8 +567,8 @@ class MyListSearchWindow extends ListSearch {
 		fl_cursor(FL_CURSOR_DEFAULT);
 	}
 	function cb_btnSearch(sender, udata){
-		local pr = sender.parent_root();
-		pr->fill_grid();
+		this = sender.window();
+		fill_grid();
 	}
 	
 	function create_search_by0(name, Klass, pack){
@@ -608,8 +608,8 @@ class MyListSearchWindow extends ListSearch {
 		group_filter.callback(on_filter);
 	}
 	function on_filter(sender, udata){
-		local pr = sender.parent_root();
-		pr->cb_btnSearch(sender, udata);
+		this = sender.window();
+		cb_btnSearch(sender, udata);
 	}
 	
 	function setFilterComboTree(){
@@ -775,8 +775,8 @@ class EntitiesListSearch extends MyListSearchWindow {
 	function get_edit_window(){return getChildWindow("Entity Edit", MyEditEntityWindow);}
 	
 	function cb_btnInsert(sender, udata){
-		local pr = sender.parent_root();
-		local win = pr.showChildWindow("Entity Edit", EditEntitiesWindow);
+		this = sender.window();
+		local win = showChildWindow("Entity Edit", EditEntitiesWindow);
 	}
 	function cb_btnUpdate(sender, udata){
 		print_entities_list_contact_report();
@@ -915,21 +915,21 @@ class ProductsListSearch extends MyListSearchWindow {
 	function get_edit_window(){return getChildWindow("Product Edit", MyEditProductWindow);}
 
 	function cb_btnInsert(sender, udata){
-		local pr = sender.parent_root();
-		local win = pr.showChildWindow("Product Edit", EditProductWindow);
+		this = sender.windw();
+		local win = showChildWindow("Product Edit", EditProductWindow);
 	}
 	
 	function grid_cb(sender, udata){
 		//print("on_row_changed", sender, row);
 		if(sender->why_event() == FLVE_ROW_CHANGED){
-			local pr = sender.parent_root();
-			if(pr->shown()){
+			this = sender.window();
+			if(shown()){
 				local img_id = sender->get_data_value(sender->row(), sender->cols()-1);
 				if(img_id){
 					img_id = img_id.tointeger();
-					if(img_id != pr->_last_image_id){
-						button_show_db_image(pr->btnThumbImage, img_id, pr->_image_window, true, false);
-						pr->_last_image_id = img_id;
+					if(img_id != _last_image_id){
+						button_show_db_image(btnThumbImage, img_id, _image_window, true, false);
+						_last_image_id = img_id;
 					}
 				}
 			}	
@@ -999,8 +999,8 @@ class OrdersListSearch extends MyListSearchWindow {
 	function get_edit_window(){return getChildWindow("Order Edit", MyEditOrderWindow);}
 
 	function cb_btnInsert(sender, udata){
-		local pr = sender.parent_root();
-		local win = pr.showChildWindow("Order Edit", EditOrderWindow);
+		this = sender.windw();
+		local win = showChildWindow("Order Edit", EditOrderWindow);
 	}
 	function mk_popup()
 	{
@@ -1015,26 +1015,26 @@ class OrdersListSearch extends MyListSearchWindow {
 	function on_popupmenu_cb(sender, udata){
 		//printf("%p : %d : %s\n", sender, popup->value(),
 		//       popup->menu_at(popup->value())->label());
-		local pr = sender.parent_root();
-		local row = pr->grid->row();
+		this = sender.windw();
+		local row = grid->row();
 		if(row < 0) return;
-		switch(pr->_popup->value()){
+		switch(_popup->value()){
 			case 0:{
 				local vi = [];
-				pr->grid->get_selection(vi, true);
-				if(vi.size() == 0) vi.push(pr->grid->get_row_id(row));
-				pr->copy_order(vi, false, pr->_sab);
+				grid->get_selection(vi, true);
+				if(vi.size() == 0) vi.push(grid->get_row_id(row));
+				copy_order(vi, false, _sab);
 			}
 			break;
 			case 1:{
 			    local vi = [];
-			    pr->grid->get_selection(vi, true);
-			    pr->copy_order(vi, true, pr->_sab);
+			    grid->get_selection(vi, true);
+			    copy_order(vi, true, _sab);
 			}
 			break;
 			case 2:{
-			    pr->grid->clear_selection();
-			    pr->grid->redraw();
+			    grid->clear_selection();
+			    grid->redraw();
 			}
 			break;
 		}

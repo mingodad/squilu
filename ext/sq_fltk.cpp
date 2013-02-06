@@ -454,6 +454,7 @@ static SQChar Fl_Image_TAG[] = _SC("Fl_Image");
 
 static SQRESULT fltk_pushinstance(HSQUIRRELVM v, const SQChar *klass, SQUserPointer self){
 	sq_pushstring(v, klass,-1);
+	if(fltk_get_registered_instance(v, self) == SQ_OK) return 1;
 	if(sq_getonroottable(v) == SQ_OK){
 	    if(sq_createinstance(v, -1) == SQ_OK){
 	        sq_setinstanceup(v, -1, self);
