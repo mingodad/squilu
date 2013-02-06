@@ -1,0 +1,86 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0300 
+i18n_type 1 
+i18n_include i18n_function.h 
+i18n_function _tr 
+header_name {.h} 
+code_name {.cxx}
+decl {\#include "My_Base_App.h"} {public global
+} 
+
+widget_class HelpWindow {
+  label Help selected
+  xywh {76 128 600 400} type Double hide resizable
+  class Base_Window
+} {
+  Fl_Tabs tabs {
+    dirty_name tabs open
+    xywh {5 5 590 355} labelsize 16 resizable
+  } {
+    Fl_Group tabView {
+      label View
+      dirty_name tabView open
+      xywh {5 30 590 330} resizable
+    } {
+      Fl_Help_View view_html {
+        dirty_name view_html
+        xywh {5 30 590 330} labelsize 16
+      }
+    }
+    Fl_Group tabEdit {
+      label Edit
+      dirty_name tabEdit open
+      xywh {5 30 590 310} hide
+    } {
+      Fl_Text_Editor help_text {
+        dirty_name help_text
+        xywh {5 30 590 310} labelsize 18 textsize 18 resizable
+        class Fl_Text_Editor_Buffered
+      }
+    }
+  }
+  Fl_Group {} {open
+    xywh {5 370 590 25}
+  } {
+    Fl_Input words_to_search {
+      label {@search}
+      dirty_name words_to_search
+      xywh {34 370 225 25} labelsize 18 textsize 18 resizable
+    }
+    Fl_Button btnSearchHelp {
+      label Search
+      dirty_name btnSearchHelp
+      xywh {265 370 80 25} labelsize 16
+    }
+    Fl_Button btnSavehelp {
+      label Save
+      dirty_name btnSavehelp
+      xywh {350 370 80 25} labelsize 16 deactivate
+    }
+    Fl_Button btnBackward {
+      label {@<-}
+      dirty_name btnBackward
+      xywh {435 370 25 25} labelcolor 63
+    }
+    Fl_Button btnTop {
+      label {@8->}
+      dirty_name btnTop
+      xywh {470 370 25 25} labelcolor 63
+    }
+    Fl_Button btnForward {
+      label {@->}
+      dirty_name btnForward
+      xywh {503 370 25 25} labelcolor 63
+    }
+    Fl_Button btnFontSmaller {
+      label F
+      dirty_name btnFontSmaller
+      xywh {536 370 25 25} labelfont 1 labelsize 10
+    }
+    Fl_Button btnFontBigger {
+      label F
+      dirty_name btnFontBigger
+      xywh {569 370 25 25} labelfont 1
+    }
+  }
+} 

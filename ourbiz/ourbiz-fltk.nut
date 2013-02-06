@@ -139,15 +139,35 @@ class Fl_Choice_dbAction extends Fl_Choice {
 	function insert_copy(){add_tr("Copy", DbAction_Enum.e_copy);}
 };
 
+local app_help_window = null;
+
 class MyBaseWindow extends Fl_Window {
 	childWindows=null;
 	_db_map = null;
 
-	constructor(px, py, pw, ph, pl) {
+	constructor(px, py, pw, ph, pl=null) {
 		if(px < 0) base.constructor(pw, ph, pl);
 		else base.constructor(px, py, pw, ph, pl);
 		childWindows = {};
 		_db_map = {};
+	}
+
+	function handle(event){
+		if(event == FL_KEYBOARD && Fl.event_command() == 0){
+			local key = Fl.event_key();
+			switch(key){
+				//case FL_Menu:  menu_bar_navigate();break;
+				case FL_F+1:
+					if(!app_help_window){
+						app_help_window = OurHelpWindow();
+					}
+					app_help_window.show();
+					//Fl_Group *grp = wdg->as_group();
+					app_help_window->search_help_file(label(), true);
+				break;
+			}
+		}
+		return base.handle(event);
 	}
 
 	function add_input_field_to_map(tbl, fldname, fld){
@@ -494,6 +514,8 @@ class Fl_Data_Table extends Flv_Data_Table {
 
 dofile("search-options.nut");
 dofile("utils-fltk.nut");
+dofile("help-view-gui.nut");
+dofile("help-view.nut");
 dofile("base-report-A4.nut");
 dofile("invoice-A4.nut");
 dofile("edit-product-window.nut");
