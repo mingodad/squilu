@@ -9,6 +9,7 @@ class OurHelpWindow extends HelpWindow
 		base.constructor();
 		_help_file_name = "help.txt";
 		_last_found_pos = 0;
+		_navigation = [];
 		help_text->wrap_mode(1, 0);
 		view_html->textsize(view_html->labelsize());
 		view_html->link(hlp_link);
@@ -34,9 +35,7 @@ class OurHelpWindow extends HelpWindow
 	}
 
 	function refresh_html() {
-		local html;
-		markdown2html(help_text->buffer()->text(),
-			      help_text->buffer()->length(), html);
+		local html = markdown2html(help_text->buffer()->text(), help_text->buffer()->length());
 		view_html->value(html);
 		//printf(html.c_str());
 	}
@@ -68,7 +67,7 @@ class OurHelpWindow extends HelpWindow
 			words_to_search->clear_changed2();
 		}
 
-		local foundPos = 0;
+		local foundPos = -1;
 
 		if(tabs->value() == tabView){
 			foundPos = view_html->find(topic, _last_found_pos);
@@ -77,8 +76,8 @@ class OurHelpWindow extends HelpWindow
 		}
 		else
 		{
-			if(help_text->buffer()->search_forward(_last_found_pos, topic, foundPos)){
-				help_text->buffer()->select(foundPos, foundPos+strlen(topic));
+			if((foundPos = help_text->buffer()->search_forward(_last_found_pos, topic)) >= 0){
+				help_text->buffer()->select(foundPos, foundPos+topic.len());
 				help_text->insert_position(foundPos);
 				help_text->show_insert_position();
 				_last_found_pos = foundPos+1;
@@ -86,13 +85,18 @@ class OurHelpWindow extends HelpWindow
 			}
 		}
 
-		if(!foundPos){
+		if(foundPos < 0){
 			_last_found_pos = 0;
-			fl_alert(_tr("Nothing found for '%s' !"), topic);
+			fl_alert(format(_tr("Nothing found for '%s' !"), topic));
 		}
 	}
 
 	function on_font_size(sender, udata){
+		local pr = sender->window();
+		local view_html = pr->view_html;
+		local btnFontSmaller = pr->btnFontSmaller;
+		local btnFontBigger = pr->btnFontBigger;
+		
 		local fsize = view_html->textsize();
 		if(sender == btnFontSmaller){
 			if (fsize > 10){
@@ -116,14 +120,15 @@ class OurHelpWindow extends HelpWindow
 	}
 
 	function on_navigate(sender, udata){
-		if(sender == btnBackward && !_navigation.empty() )
+		local pr = sender->window();
+		if(sender == pr->btnBackward && !pr->_navigation.empty() )
 		{
-			view_html->topline(_navigation.top());
-			_navigation.pop();
+			pr->view_html->topline(pr->_navigation.top());
+			pr->_navigation.pop();
 		}
-		else if(sender == btnTop)
+		else if(sender == pr->btnTop)
 		{
-			view_html->topline(0);
+			pr->view_html->topline(0);
 		}
 	}
     

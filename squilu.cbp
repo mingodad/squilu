@@ -143,6 +143,7 @@
 					<Add directory="../zeromq-3.2.2/include" />
 					<Add directory="../dadbiz++/third-party/fltk" />
 					<Add directory="../dadbiz++/third-party/flu" />
+					<Add directory="../dadbiz++/third-party/libharu/include" />
 				</Compiler>
 				<Linker>
 					<Add library="../zeromq-3.2.2/libzmq3.a" />
@@ -160,9 +161,11 @@
 					<Add library="Xft" />
 					<Add library="Xinerama" />
 					<Add library="mpdecimal" />
+					<Add library="hpdfs" />
 					<Add directory="../zeromq-3.2.2" />
 					<Add directory="../dadbiz++/third-party/fltk/lib" />
 					<Add directory="../dadbiz++/third-party/flu" />
+					<Add directory="../dadbiz++/third-party/libharu/src" />
 				</Linker>
 			</Target>
 		</Build>

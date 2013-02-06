@@ -700,6 +700,8 @@ static SQInteger _Fl_Widget_handle(HSQUIRRELVM v)
 	return 1;
 }
 
+FL_WIDGET_VOID_CALL(activate);
+FL_WIDGET_VOID_CALL(deactivate);
 FL_WIDGET_VOID_CALL(redraw);
 FL_WIDGET_VOID_CALL(redraw_label);
 FL_WIDGET_VOID_CALL(hide);
@@ -729,6 +731,8 @@ CHEAP_RTTI_FOR(Fl_Widget);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Widget_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_widget_obj_funcs[]={
     CHEAP_RTTI_REG_FUN_FOR(Fl_Widget)
+	_DECL_FUNC(activate,1,_SC("x"), SQFalse),
+	_DECL_FUNC(deactivate,1,_SC("x"), SQFalse),
 	_DECL_FUNC(align,-1,_SC("xi"), SQFalse),
 	_DECL_FUNC(argument,-1,_SC("xi"), SQFalse),
 	_DECL_FUNC(box,-1,_SC("xi"), SQFalse),
@@ -1572,8 +1576,7 @@ static SQRESULT _Flv_Style_List_get(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FLV_STYLE_LIST(v);
     SQ_GET_INTEGER(v, 2, idx);
-    fltk_pushinstance(v, FLTK_TAG(Flv_Style), &self->get(idx));
-    return 1;
+    return fltk_pushinstance(v, FLTK_TAG(Flv_Style), &self->get(idx));
 }
 
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Flv_Style_List_##name,nparams,pmask,isStatic}
@@ -1602,15 +1605,13 @@ FLV_LIST_GETSET_INT(callback_when);
 static SQRESULT _Flv_List_global_style(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FLV_LIST(v);
-    fltk_pushinstance(v, FLTK_TAG(Flv_Style), &self->global_style);
-    return 1;
+    return fltk_pushinstance(v, FLTK_TAG(Flv_Style), &self->global_style);
 }
 
 static SQRESULT _Flv_List_row_style(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FLV_LIST(v);
-    fltk_pushinstance(v, FLTK_TAG(Flv_Style_List), &self->row_style);
-    return 1;
+    return fltk_pushinstance(v, FLTK_TAG(Flv_Style_List), &self->row_style);
 }
 
 static SQRESULT _Flv_List_add_callback_when(HSQUIRRELVM v){
@@ -1661,9 +1662,9 @@ FLV_TABLE_GETSET_INT(col);
 static SQRESULT _Flv_Table_col_style(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FLV_TABLE(v);
-    fltk_pushinstance(v, FLTK_TAG(Flv_Style_List), &self->col_style);
-    return 1;
+    return fltk_pushinstance(v, FLTK_TAG(Flv_Style_List), &self->col_style);
 }
+
 CHEAP_RTTI_FOR(Flv_Table);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Flv_Table_##name,nparams,pmask,isStatic}
 static SQRegFunction flv_table_obj_funcs[]={
@@ -2265,6 +2266,31 @@ static SQInteger _Fl_Text_Buffer_input_file_was_transcoded(HSQUIRRELVM v)
 	return 1;
 }
 
+//int search_forward(int startPos, const char* searchString, int* foundPos, int matchCase = 0) const;
+static SQInteger _Fl_Text_Buffer_search_forward(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SETUP_FL_TEXT_BUFFER(v);
+    SQ_GET_INTEGER(v, 2, startPos);
+    SQ_GET_STRING(v, 3, searchStr);
+    SQ_OPT_BOOL(v, 4, matchCase, SQFalse);
+    int foundPos = -1;
+    _rc_ = self->search_forward(startPos, searchStr, &foundPos, matchCase);
+    sq_pushinteger(v, _rc_ ? foundPos : -1);
+	return 1;
+}
+
+//void select(int start, int end);
+static SQInteger _Fl_Text_Buffer_select(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SETUP_FL_TEXT_BUFFER(v);
+    SQ_GET_INTEGER(v, 2, start);
+    SQ_GET_INTEGER(v, 3, end);
+    self->select(start, end);
+    return 0;
+}
+
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Text_Buffer_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_text_buffer_obj_funcs[]={
 	_DECL_FUNC(constructor,-1,_SC("xii"),SQFalse),
@@ -2272,6 +2298,8 @@ static SQRegFunction fl_text_buffer_obj_funcs[]={
 	_DECL_FUNC(length,-1,_SC("xii"),SQFalse),
 	_DECL_FUNC(loadfile,-2,_SC("xsi"),SQFalse),
 	_DECL_FUNC(input_file_was_transcoded,1,_SC("x"),SQFalse),
+	_DECL_FUNC(search_forward,-3,_SC("xisi"),SQFalse),
+	_DECL_FUNC(select, 3,_SC("xii"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -2310,6 +2338,27 @@ static SQInteger _Fl_Text_Display_wrap_mode(HSQUIRRELVM v)
 	return 0;
 }
 
+static SQInteger _Fl_Text_Display_insert_position(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SETUP_FL_TEXT_DISPLAY(v);
+    if(_top_ > 1){
+        SQ_GET_INTEGER(v, 2, pos);
+        self->insert_position(pos);
+        return 0;
+    }
+    sq_pushinteger(v, self->insert_position());
+    return 1;
+}
+
+static SQInteger _Fl_Text_Display_show_insert_position(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SETUP_FL_TEXT_DISPLAY(v);
+    self->show_insert_position();
+    return 0;
+}
+
 CHEAP_RTTI_FOR(Fl_Text_Display);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Text_Display_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_text_display_obj_funcs[]={
@@ -2318,6 +2367,8 @@ static SQRegFunction fl_text_display_obj_funcs[]={
 	_DECL_FUNC(buffer,-1,_SC("xx"),SQFalse),
 	_DECL_FUNC(highlight_data, 7,_SC("xxaiic."),SQFalse),
 	_DECL_FUNC(wrap_mode, 3,_SC("xii"),SQFalse),
+	_DECL_FUNC(insert_position,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(show_insert_position,1,_SC("x"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -2360,6 +2411,7 @@ static SQRegFunction fl_text_editor_buffered_obj_funcs[]={
 
 FLTK_CONSTRUCTOR(Fl_Help_View);
 #define SETUP_FL_HELP_VIEW(v) SETUP_FL_KLASS(v, Fl_Help_View)
+#define SETUP_FL_HELP_VIEW_GETSET_INT_CAST(funcNAME, typeNAME) FUNC_GETSET_INT(_Fl_Help_View_, SETUP_FL_HELP_VIEW, self->, funcNAME, typeNAME)
 
 static SQInteger _Fl_Help_View_value(HSQUIRRELVM v)
 {
@@ -2417,10 +2469,11 @@ static const char *help_func_hook(Fl_Widget *sender, const char *uri, const char
     HSQUIRRELVM v = (HSQUIRRELVM) Fl::user_data;
     //sq_reservestack(v, 20);
     SQInteger top = sq_gettop(v);
-    if(fltk_pushinstance(v, FLTK_TAG(Fl_Help_View), sender) == SQ_OK){
+    if(fltk_pushinstance(v, FLTK_TAG(Fl_Help_View), sender)){
         sq_pushstring(v, Fl_Help_View_Links, -1);
         if(sq_getonregistrytable(v) == SQ_OK){
-            sq_push(v, -2); //Fl_Help_View instance
+            //sq_push(v, -2); //Fl_Help_View instance
+            sq_pushuserpointer(v, sender); //Fl_Help_View instance
             if(sq_get(v, -2) == SQ_OK){
                 sq_pushroottable(v);
                 sq_push(v, -4); //Fl_Help_View instance
@@ -2450,11 +2503,17 @@ static SQInteger _Fl_Help_View_link(HSQUIRRELVM v)
         sq_push(v, -2);
         sq_setonregistrytable(v);
     }
-    sq_weakref(v, 1);
+    //sq_weakref(v, 1);
+    //come back here release closure needed ???
+    sq_pushuserpointer(v, self);
     sq_push(v, 2);
     sq_rawset(v, -3);
 	return 0;
 }
+
+SETUP_FL_HELP_VIEW_GETSET_INT_CAST(textcolor, Fl_Color);
+SETUP_FL_HELP_VIEW_GETSET_INT_CAST(textfont, int);
+SETUP_FL_HELP_VIEW_GETSET_INT_CAST(textsize, int);
 
 CHEAP_RTTI_FOR(Fl_Help_View);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Help_View_##name,nparams,pmask,isStatic}
@@ -2466,6 +2525,9 @@ static SQRegFunction fl_help_view_obj_funcs[]={
 	_DECL_FUNC(topline, -1,_SC("x s|i"),SQFalse),
 	_DECL_FUNC(find, -1,_SC("x s|i"),SQFalse),
 	_DECL_FUNC(link, 2,_SC("x c|o"),SQFalse),
+	_DECL_FUNC(textcolor,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(textfont,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(textsize,-1,_SC("xi"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -3162,6 +3224,14 @@ static SQRegFunction fl_obj_funcs[]={
 #undef _DECL_FUNC
 
 
+static SQInteger _fl_globals_fl_alert(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 2, msg);
+    fl_alert(msg);
+    return 0;
+}
+
 static SQInteger _fl_globals_fl_font(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
@@ -3450,6 +3520,7 @@ static SQInteger _fl_globals_fl_preferences(HSQUIRRELVM v)
 
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_fl_globals_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_globals_funcs[]={
+	_DECL_FUNC(fl_alert, 2,_SC(".s"),SQTrue),
 	_DECL_FUNC(fl_cursor, -2,_SC(".iii"),SQTrue),
 	_DECL_FUNC(fl_color,-1,_SC(".i"),SQTrue),
 	_DECL_FUNC(fl_draw,-4,_SC(". n|s n|s nnn"),SQTrue),

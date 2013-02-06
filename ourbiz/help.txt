@@ -1,0 +1,76 @@
+Ourbiz 
+===
+Ourbiz is an excelent application to manage a small business, yet simple and powerfull !
+
+[Help](db:/help)
+---
+Help: using this screen you can consult any existing help topic and edit then to help you make a better use of this application.
+
+Terminology
+---
+Some terminology used on this application that will help you understand and use it better:
+
+- Entity : we call an entity any person/company that we have a commercial relation with.
+
+Tips
+-----
+On any tabular list you can use the keys CTRL+numeric(+) and CTRL+numeric(-) to increse or decrease the font size.
+
+Sales Products List/Search
+---
+On this screen we can navigate through all existing sales products with an easy to use search capability.
+
+Edit Products
+---
+When we need to edit an existing product or add a new one this form is the place to do it.
+
+Sales Entities List/Search
+---
+On this screen we can navigate through all existing sales entities with an easy to use search capability.
+
+Edit Entity
+---
+When we need to edit an existing entity or add a new one this form is the place to do it.
+
+Sales Orders List/Search
+---
+Here is where we register the sales transactions we do with entities and our products/services.
+
+Buys Orders List/Search
+---
+This is the same for the sales transactions but only applied to buy transactions.
+
+Edit Order / Sales Order Edit / Buy Order Edit
+---
+All transactions are registered on this screen.
+
+Delivery Calc
+---
+This is a complement to help calc delivery costs for an order.
+
+Calendar
+---
+To make easy to enter dates we use this screen.
+
+Auxiliar information
+====
+
+V.A.T. Rates List / Edit
+---
+The information about sales tax are here.
+
+Order Types List / Edit
+---
+All transactions availlable are described here with option to add new ones as needed.
+
+Images List / Edit
+---
+Images used though the application are centrally managed here.
+
+Product Groups List/Edit
+---
+To group our products for any purpose we create the groups here.
+
+Entity Groups List/Edit
+---
+Also to group our entities we create the groups here.
