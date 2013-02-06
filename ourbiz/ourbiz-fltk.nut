@@ -516,6 +516,7 @@ dofile("search-options.nut");
 dofile("utils-fltk.nut");
 dofile("help-view-gui.nut");
 dofile("help-view.nut");
+dofile("delivery-calc-gui.nut");
 dofile("base-report-A4.nut");
 dofile("invoice-A4.nut");
 dofile("edit-product-window.nut");
@@ -940,13 +941,40 @@ class ProductsListSearch extends MyListSearchWindow {
 	}
 }
 
+class MyDeliveryCalcWindow extends DeliveryCalcWindow {
+	_delivery_data = null;
+	
+	constructor(){
+		base.constructor();
+		_delivery_data = dofile("delivery-info.json.nut");
+		foreach(idx, v in _delivery_data.provincias){
+			gui_destination_zone.add_item(idx, v[2]);
+		}
+		gui_destination_zone.callback(cb_gui_destination_zone);
+	}
+	function cb_gui_destination_zone(sender, udata){
+		this = sender->window();
+		local zone_id = gui_destination_zone.get_data_at();
+		local zone = _delivery_data.provincias[zone_id];
+		gui_destination_city.list().clear();
+		for(local i = 3, len=zone.len(); i < len; ++i){
+			gui_destination_city.add_item(zone[1], zone[i]);
+		}
+	}
+}
+
 class MyEditOrderWindow extends EditOrderWindow {
 	constructor(){
 		base.constructor();
 		_main_table = "orders";
+		btnCalcDelivery.callback(cb_btnCalcDelivery);
+	}
+	function cb_btnCalcDelivery(sender, udata){
+		this = sender->window();
+		local dc = getChildWindow("Delivery Calc", MyDeliveryCalcWindow);
+		dc.show();
 	}
 }
-
 
 class OrdersListSearch extends MyListSearchWindow {
 	_search_by_entities = null;

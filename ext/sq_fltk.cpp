@@ -38,6 +38,9 @@
 #include <FL/Fl_JPEG_Image.H>
 
 #include <FL/Fl_Help_View.H>
+#include <FL/Fl_Browser_.H>
+#include <FL/Fl_Browser.H>
+#include <FL/Fl_Hold_Browser.H>
 
 #include <FL/Fl_Pdf.H>
 #include <FL/Fl_PostScript.H>
@@ -97,6 +100,9 @@ CREATE_TAG(Fl_Window);
 CREATE_TAG(Fl_Double_Window);
 
 CREATE_TAG(Fl_Help_View);
+CREATE_TAG(Fl_Browser_);
+CREATE_TAG(Fl_Browser);
+CREATE_TAG(Fl_Hold_Browser);
 
 CREATE_TAG(Fl_Image);
 CREATE_TAG(Fl_PNG_Image);
@@ -453,8 +459,8 @@ static SQChar Fl_Image_TAG[] = _SC("Fl_Image");
 
 
 static SQRESULT fltk_pushinstance(HSQUIRRELVM v, const SQChar *klass, SQUserPointer self){
-	sq_pushstring(v, klass,-1);
 	if(fltk_get_registered_instance(v, self) == SQ_OK) return 1;
+	sq_pushstring(v, klass,-1);
 	if(sq_getonroottable(v) == SQ_OK){
 	    if(sq_createinstance(v, -1) == SQ_OK){
 	        sq_setinstanceup(v, -1, self);
@@ -1306,11 +1312,18 @@ static SQRegFunction flu_combo_box_obj_funcs[]={
 
 FLTK_CONSTRUCTOR(Flu_Combo_List);
 #define SETUP_FLU_COMBO_LIST(v) SETUP_FL_KLASS(v, Flu_Combo_List)
+
+static SQRESULT _Flu_Combo_List_list(HSQUIRRELVM v){
+    SETUP_FLU_COMBO_LIST(v);
+    return fltk_pushinstance(v, FLTK_TAG(Fl_Hold_Browser), &self->list);
+}
+
 CHEAP_RTTI_FOR(Flu_Combo_List);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Flu_Combo_List_##name,nparams,pmask,isStatic}
 static SQRegFunction flu_combo_list_obj_funcs[]={
     CHEAP_RTTI_REG_FUN_FOR(Flu_Combo_List)
 	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	_DECL_FUNC(list,1,_SC("x"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -2022,6 +2035,55 @@ static SQRegFunction fl_tabs_obj_funcs[]={
     CHEAP_RTTI_REG_FUN_FOR(Fl_Tabs)
 	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	_DECL_FUNC(value,-1, _SC("xx"), SQFalse),
+	{0,0}
+};
+#undef _DECL_FUNC
+
+#define SETUP_FL_BROWSER_(v) SETUP_KLASS(v, 1, self, Fl_Browser_, FLTK_TAG(Fl_Browser_))
+#define SETUP_FL_BROWSER__GETSET_INT_CAST(funcNAME, typeNAME) FUNC_GETSET_INT(_Fl_Browser__, SETUP_FL_BROWSER_, self->, funcNAME, typeNAME)
+
+SETUP_FL_BROWSER__GETSET_INT_CAST(textcolor, Fl_Color);
+SETUP_FL_BROWSER__GETSET_INT_CAST(textfont, int);
+SETUP_FL_BROWSER__GETSET_INT_CAST(textsize, int);
+
+CHEAP_RTTI_FOR(Fl_Browser_);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Browser__##name,nparams,pmask,isStatic}
+static SQRegFunction fl_browser__obj_funcs[]={
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Browser_)
+	_DECL_FUNC(textcolor,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(textfont,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(textsize,-1,_SC("xi"),SQFalse),
+	{0,0}
+};
+#undef _DECL_FUNC
+
+FLTK_CONSTRUCTOR(Fl_Browser);
+#define SETUP_FL_BROWSER(v) SETUP_KLASS(v, 1, self, Fl_Browser, FLTK_TAG(Fl_Browser))
+
+static SQRESULT _Fl_Browser_clear(HSQUIRRELVM v){
+    SQ_FUNC_VARS(v);
+    SETUP_FL_BROWSER(v);
+    self->clear();
+    return 0;
+}
+
+CHEAP_RTTI_FOR(Fl_Browser);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Browser_##name,nparams,pmask,isStatic}
+static SQRegFunction fl_browser_obj_funcs[]={
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Browser)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	_DECL_FUNC(clear,1, _SC("x"), SQFalse),
+	{0,0}
+};
+#undef _DECL_FUNC
+
+FLTK_CONSTRUCTOR(Fl_Hold_Browser);
+#define SETUP_FL_HOLD_BROWSER(v) SETUP_KLASS(v, 1, self, Fl_Hold_Browser, FLTK_TAG(Fl_Hold_Browser))
+CHEAP_RTTI_FOR(Fl_Hold_Browser);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Hold_Browser_##name,nparams,pmask,isStatic}
+static SQRegFunction fl_hold_browser_obj_funcs[]={
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Hold_Browser)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -3962,6 +4024,10 @@ SQRESULT sqext_register_fltklib(HSQUIRRELVM v)
 	PUSH_FL_CLASS(Fl_Text_Display, Fl_Group, fl_text_display_obj_funcs);
 	PUSH_FL_CLASS(Fl_Text_Editor, Fl_Text_Display, fl_text_editor_obj_funcs);
 	PUSH_FL_CLASS(Fl_Text_Editor_Buffered, Fl_Text_Editor, fl_text_editor_buffered_obj_funcs);
+
+	PUSH_FL_CLASS(Fl_Browser_, Fl_Group, fl_browser__obj_funcs);
+	PUSH_FL_CLASS(Fl_Browser, Fl_Browser_, fl_browser_obj_funcs);
+	PUSH_FL_CLASS(Fl_Hold_Browser, Fl_Browser, fl_hold_browser_obj_funcs);
 
 	PUSH_FL_CLASS(Flv_List, Fl_Group, flv_list_obj_funcs);
 	PUSH_FL_CLASS(Flv_Table, Flv_List, flv_table_obj_funcs);
