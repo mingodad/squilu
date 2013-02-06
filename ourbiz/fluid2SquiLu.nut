@@ -665,8 +665,8 @@ function Fluid2SquiLu(infile, outfile, config){
 }
 
 if (vargv.len() > 0){ 
-	local rc = DecodeOption(arg);
-	local config = rc[0], infile = rc[1], outfile = rc[2]; 
+	local rc = DecodeOption(vargv);
+	local config = rc[0], infile = rc[1], outfile = rc.get(2, "-"); 
 	Fluid2SquiLu(infile, outfile, config);
 }
-Fluid2SquiLu("dadbiz-gui.fl", "-", {});
+//Fluid2SquiLu("dadbiz-gui.fl", "-", {});
