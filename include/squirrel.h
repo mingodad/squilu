@@ -27,6 +27,8 @@ THE SOFTWARE.
 extern "C" {
 #endif
 
+#include <stdarg.h>
+
 #ifndef SQUIRREL_API
 #define SQUIRREL_API extern
 #endif
@@ -471,6 +473,10 @@ SQUIRREL_API SQRESULT sq_clear(HSQUIRRELVM v,SQInteger idx);
 
 /*calls*/
 SQUIRREL_API SQRESULT sq_call(HSQUIRRELVM v,SQInteger params,SQBool retval,SQBool raiseerror);
+SQUIRREL_API SQRESULT sq_call_va_vl(HSQUIRRELVM v, SQBool reset_stack, SQInteger idx, const SQChar *func,
+                                    SQInteger idx_this, const SQChar *sig, va_list vl);
+SQUIRREL_API SQRESULT sq_call_va(HSQUIRRELVM v, SQBool reset_stack, SQInteger idx, const SQChar *func,
+                                 SQInteger idx_this, const SQChar *sig, ...);
 SQUIRREL_API SQRESULT sq_resume(HSQUIRRELVM v,SQBool retval,SQBool raiseerror);
 SQUIRREL_API const SQChar *sq_getlocal(HSQUIRRELVM v,SQUnsignedInteger level,SQUnsignedInteger idx);
 SQUIRREL_API SQRESULT sq_getcallee(HSQUIRRELVM v);
