@@ -247,7 +247,7 @@ Write.Atributes <- function(t, ind, name){
 			if (type(v) == "integer") Output(0, "%d", v);
 			else if (Grammar.konst.get(v, false)) Output(0, "%d", Grammar.konst[v]);
 			else if (v.match("^[A-Z_]+$") ) Output(0, "FL_%s", v);
-			else Output(0, "_tr %q", v);
+			else Output(0, "%s(%q)", configuration.textfilter, v);
 			Output(0, ");\n");
 		}			
 	}
@@ -516,7 +516,7 @@ Write.widget_class <- function(t, ind){
 			Output(ind+1, "if (!_arg1_){\n");
 			local ar = t.attr.xywh;
 			local x = ar[0], y = ar[1], w = ar[2], h = ar[3];
-			Output(ind+2, "kTopW = %s.new_local(%d, %d, %s %q);\n", widgetType, w, h, 
+			Output(ind+2, "kTopW = %s.new_local(%d, %d, %s(%q));\n", widgetType, w, h, 
 				configuration.textfilter, t.attr.label);
 			local tmpType = t.attr.type;
 			t.attr.type = null;
@@ -600,7 +600,7 @@ function WriteScript(tree){
 	local fct = configuration.textfilter;
 	foreach(k in tree) if (k.key == "i18n_function") fct = fct || k.name;
 
-	configuration.textfilter = fct && fct + " " || "";
+	configuration.textfilter = fct || "";
 	if (configuration.shebang){
 		if (configuration.shebang.match("\\") || configuration.shebang.match("%.[eE][xX][eE]")){
 			Output(ind, "rem=[[ Start Lua script\n");
