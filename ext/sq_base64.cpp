@@ -143,7 +143,7 @@ SQRESULT sqext_register_base64(HSQUIRRELVM v)
     sq_newtable(v);
     sq_insert_reg_funcs(v, base64_methods);
     sq_newslot(v,-3,SQTrue);
-    return 1;
+    return 0;
 }
 
 #ifdef __cplusplus
