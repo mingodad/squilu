@@ -1820,19 +1820,20 @@ void sq_insert_reg_funcs(HSQUIRRELVM sqvm, SQRegFunction *obj_funcs){
 #define DONE_AND_RETURN(x) {ret_val =x; goto done_and_return;}
 #define CHECK_OK(v) if((ret_val = v) < 0) goto done_and_return;
 
-SQRESULT sq_call_va(HSQUIRRELVM v, SQInteger idx, const SQChar *func, const SQChar *sig, ...)
+SQRESULT sq_call_va_vl(HSQUIRRELVM v, SQBool reset_stack, SQInteger idx, const SQChar *func, SQInteger idx_this, const SQChar *sig, va_list vl)
 {
-    va_list vl;
     int narg; // nres;  /* number of arguments and results */
-    int ret_val = 0;
+    SQRESULT ret_val = 0;
+    SQObjectType toptype;
     SQInteger top = sq_gettop(v);
-    va_start(vl, sig);
 
     sq_pushstring(v, func, -1);
     CHECK_OK(sq_get(v, idx > 0 ? idx : idx-1));
-    if(sq_gettype(v, -1) != OT_CLOSURE) DONE_AND_RETURN(-100);
+    toptype = sq_gettype(v, -1);
+    if(!(toptype == OT_CLOSURE || toptype == OT_NATIVECLOSURE)) DONE_AND_RETURN(-100);
 
-    sq_pushroottable(v);
+    if(idx_this == 0) sq_pushroottable(v);
+    else sq_push(v, idx_this > 0 ? idx_this : idx_this-1);
     /* push arguments */
     narg = 1;
     while (*sig)    /* push arguments */
@@ -1896,12 +1897,12 @@ endwhile:
             if (!sq_isnumeric(o))  DONE_AND_RETURN(-1100);
             *va_arg(vl, int *) = tointeger(o);
             break;
-
+        //string do not work with stack reset
         case 's':  /* string result */
+            if(reset_stack) DONE_AND_RETURN(-1250);
             if (!sq_isstring(o)) DONE_AND_RETURN(-1200);
             *va_arg(vl, const char **) = _stringval(o);
             break;
-
         case 'b':  /* bool result */
             if (!sq_isbool(o)) DONE_AND_RETURN(-1300);
             *va_arg(vl, int *) = tointeger(o);
@@ -1918,9 +1919,17 @@ endwhile:
         //nres++;
     }
 done_and_return:
+    if(reset_stack) sq_settop(v, top);
+    return ret_val;
+}
+
+SQRESULT sq_call_va(HSQUIRRELVM v, SQBool reset_stack, SQInteger idx, const SQChar *func, SQInteger idx_this, const SQChar *sig, ...)
+{
+    va_list vl;
+    va_start(vl, sig);
+    SQRESULT ret_val = sq_call_va_vl(v, reset_stack, idx, func, idx_this, sig, vl);
     va_end(vl);
-    sq_settop(v, top);
-    return ret_val; //all went ok
+    return ret_val;
 }
 
 SQRESULT sq_checkoption (HSQUIRRELVM v, SQInteger narg, const SQChar *def,
