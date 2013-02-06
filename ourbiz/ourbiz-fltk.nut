@@ -436,7 +436,7 @@ class Fl_Data_Table extends Flv_Data_Table {
 		calc_cols();
 	}
 	function parse_field_header(str, col_info){
-		local ci = str.split("|");
+		local ci = str.split('|');
 		local ci_size = ci.size();
 		local curr_ci = 0;
 		col_info.colname <- (ci_size > curr_ci++) ? ci[curr_ci-1] : "?";

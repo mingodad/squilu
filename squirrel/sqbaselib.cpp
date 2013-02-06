@@ -1518,7 +1518,7 @@ static SQInteger string_rstrip(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger string_split(HSQUIRRELVM v)
+static SQInteger string_split_by_strtok(HSQUIRRELVM v)
 {
 	const SQChar *str,*seps;
 	SQChar *stemp,*tok;
@@ -1536,6 +1536,22 @@ static SQInteger string_split(HSQUIRRELVM v)
 		tok = scstrtok( NULL, seps );
 	}
 	return 1;
+}
+
+static int string_split(HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, str);
+    SQ_GET_INTEGER(v, 2, sep);
+    const SQChar *token;
+    sq_newarray(v,0);
+    while ((token = scstrchr(str, sep)) != NULL) {
+        sq_pushstring(v, str, token - str);
+        sq_arrayappend(v, -2);
+        str = token + 1;
+    }
+    sq_pushstring(v, str, -1);
+    sq_arrayappend(v, -2);
+    return 1;
 }
 
 static SQInteger string_empty(HSQUIRRELVM v)
@@ -1665,7 +1681,8 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("strip"),string_strip,1, _SC("s")},
 	{_SC("lstrip"),string_lstrip,1, _SC("s")},
 	{_SC("rstrip"),string_rstrip,1, _SC("s")},
-	{_SC("split"),string_split,2, _SC("ss")},
+	{_SC("split"),string_split,2, _SC("si")},
+	{_SC("split_by_strtok"),string_split_by_strtok,2, _SC("ss")},
 	{_SC("empty"),string_empty,1, _SC("s")},
 #ifdef SQ_SUBLATIN
 	{_SC("sl_len"),string_sl_len,1, _SC("s")},

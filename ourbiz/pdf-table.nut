@@ -21,7 +21,7 @@ class PdfSqlTable extends Sq_Fpdf {
 	}
 
 	function parse_field_header(col_name){
-		local ci = col_name.split("|");
+		local ci = col_name.split('|');
 		local col_info = {};
 		col_info.colname <- ci.get(0, "?");
 		col_info.header <- ci.get(1, "?");
