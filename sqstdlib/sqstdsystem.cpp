@@ -113,7 +113,7 @@ static SQInteger _system_time(HSQUIRRELVM v) {
 
     rc = get_int_field(v, "month", -1);
     if(rc == SQ_ERROR) return rc;
-    else ts.tm_mon = rc - 1;
+    else ts.tm_mon = rc;
 
     rc = get_int_field(v, "year", -1);
     if(rc == SQ_ERROR) return rc;
@@ -188,7 +188,7 @@ static SQInteger _system_date(HSQUIRRELVM v)
     if (stm == NULL)  /* invalid date? */
         sq_pushnull(v);
     else if (scstrcmp(arg_format, _SC("*t")) == 0) {
-        sq_newtable(v);
+        sq_newtableex(v, 9); /* 9 = number of fields */
         _set_integer_slot(v, _SC("sec"), stm->tm_sec);
         _set_integer_slot(v, _SC("min"), stm->tm_min);
         _set_integer_slot(v, _SC("hour"), stm->tm_hour);
