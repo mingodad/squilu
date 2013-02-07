@@ -324,12 +324,17 @@ class Fl_Data_Table extends Flv_Data_Table {
 	_cols_info = null;
 	_data = null;
 	_call_this = null;
+	_forPrint = null;
 
 	constructor(px, py, pw, ph, pl=null){
 		base.constructor(px, py, pw, ph, pl);
 		_cols_info = [];
 		_data = [];
+		_forPrint = false;
 	}
+	
+	function for_print(bval){_forPrint = bval; }
+	
 	function resize(ax, ay, aw, ah){
 		base.resize(ax, ay, aw, ah);
 		calc_cols();
@@ -341,6 +346,11 @@ class Fl_Data_Table extends Flv_Data_Table {
 	function recalc_data(){
 		rows(_data.size());
 		redraw();
+	}
+	
+	function set_data(data_array){
+		_data = data_array;
+		recalc_data();
 	}
 	
 	function get_data_value(arow, acol){ return _data[arow][acol];}
@@ -378,10 +388,45 @@ class Fl_Data_Table extends Flv_Data_Table {
 			break;
 			case 'B': return (value == "1" ? "@-3+" : "");
 			break;
+			case 'S': return value.tostring();
+			break;
 			case '@': return value.replace("@", "@@"); //escape any @ 	{
 			break;
 		}
 		return value;
+	}
+	
+	function get_style(style, Row, Col){
+		base.get_style(style, Row, Col);
+		if(Row >= 0 && Col >= 0)
+		{
+		    local rs = row_style().get(Row);
+		    local cs = col_style().get(Col);
+		    local have_bg = 0;
+		    if(cs.background_defined()) have_bg = cs.background();
+		    else if(rs.background_defined()) have_bg = rs.background();
+
+		    if((Row % 2) == 0)
+		    {
+			if(have_bg)
+			    //s:background(fltk.fl_color_average(207, have_bg, 0.5))
+			    style.background(have_bg);
+			else
+			    style.background(207);
+		    }
+		    else
+		    {
+			if(have_bg)
+			    //s:background(have_bg)
+			    style.background(fl_color_average(FL_WHITE, have_bg, 0.5));
+			else
+			    style.background(FL_WHITE);
+		    }
+		}
+		else if(_forPrint)
+		{
+		    style.frame(FL_NO_BOX);
+		}
 	}
 	
 	function handle(event){
@@ -425,7 +470,7 @@ class Fl_Data_Table extends Flv_Data_Table {
 		return rc;
 	}
 	function row_selected(ev){ if(_call_this) _call_this.row_selected(ev);}
-	function set_cols(mycols){
+	function set_cols(mycols, size_absolute=false){
 		_cols_info.clear();
 		for(local i=0, max_cols=mycols.size(); i < max_cols; ++i){
 		    local col_info = {};
@@ -433,7 +478,7 @@ class Fl_Data_Table extends Flv_Data_Table {
 		    _cols_info.push(col_info);
 		}
 		cols(_cols_info.size());
-		calc_cols();
+		calc_cols(size_absolute);
 	}
 	function parse_field_header(str, col_info){
 		local ci = str.split('|');
@@ -447,8 +492,8 @@ class Fl_Data_Table extends Flv_Data_Table {
 		col_info.color <- (ci_size > curr_ci++) ? ci[curr_ci-1].tointeger() : 0;
 		col_info.bgcolor <- (ci_size > curr_ci++) ? ci[curr_ci-1].tointeger() : 0;
 	}
-	function calc_cols(){
-		calc_cols_width();
+	function calc_cols(size_absolute=false){
+		calc_cols_width(size_absolute);
 		for(local k=0, len = cols(); k < len; ++k)
 		{
 		    local v = _cols_info[k];
@@ -471,7 +516,15 @@ class Fl_Data_Table extends Flv_Data_Table {
 		    if(v.bgcolor) cs.background(v.bgcolor);
 		}
 	}
-	function calc_cols_width(){
+	function calc_cols_width(size_absolute=false){
+		if(size_absolute){
+			for(local k=0, len = cols(); k < len; ++k)
+			{
+			    local cs = col_style().get(k);
+			    cs.width(_cols_info[k].width);
+			}
+			return;
+		}
 		local grid_width, total_widths, char_width;
 		grid_width = w();
 		if(has_scrollbar()) grid_width -= scrollbar_width();
@@ -512,11 +565,43 @@ class Fl_Data_Table extends Flv_Data_Table {
 	}
 }
 
+class Fl_Data_Table_Calendar extends Fl_Data_Table {
+
+	constructor(px, py, pw, ph, pl=null){
+		base.constructor(px, py, pw, ph, pl);
+	}
+	function get_style(style, R, C )
+	{
+		base.get_style(style, R, C);
+		if (R >= 0)
+		{
+		    local zebra = false;
+
+		    if ((R % 2) == 0)
+		    {
+			if ((C % 2) == 0) zebra = true;
+		    }
+		    else if((C % 2) != 0) zebra = true;
+
+		    if (zebra) style.background(207);
+		    else style.background(FL_WHITE);
+
+		    if ((R == 0 && _data[0][C] > 7) ||
+			    (R > 3 && _data[R][C] < 20))
+			style.foreground(fl_color_average(FL_BLACK, FL_WHITE, 0.5));
+		    else style.foreground(FL_BLACK);
+		}
+	}
+}
+
+
 dofile("search-options.nut");
 dofile("utils-fltk.nut");
 dofile("help-view-gui.nut");
 dofile("help-view.nut");
 dofile("delivery-calc-gui.nut");
+dofile("calendar-gui.nut");
+dofile("calendar-utils.nut");
 dofile("base-report-A4.nut");
 dofile("invoice-A4.nut");
 dofile("edit-product-window.nut");
@@ -963,15 +1048,53 @@ class MyDeliveryCalcWindow extends DeliveryCalcWindow {
 	}
 }
 
+class MyCalendarWindow extends CalendarWindow {
+	_date = null;
+	_date_source = null;
+	_last_row = null;
+	_last_col = null;
+	static _week_days_abbr = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+	
+	constructor(){
+		base.constructor();
+		grid->has_scrollbar( FLVS_AUTOMATIC );
+		local gs = grid.global_style();
+		gs->font_size(grid->labelsize());
+		gs->height(28);
+		gs->resizable(false);
+		grid->feature_remove(FLVF_ROW_SELECT);
+		local col_size = grid->w() / _week_days_abbr.len();
+		local cols_info = array(_week_days_abbr.len());
+		foreach(i, v in _week_days_abbr){
+			cols_info[i] = format("%s|%s|%d|R|S", v, v, col_size);
+		}
+		grid->set_cols(cols_info, true);
+		makemonth();
+	}
+	function makemonth(){
+		local tm = CalendarBase.makemonth(2013, 1);
+		grid->set_data(tm);
+	}
+	function cb_gui_destination_zone(sender, udata){
+		this = sender->window();
+	}	
+}
+
 class MyEditOrderWindow extends EditOrderWindow {
 	constructor(){
 		base.constructor();
 		_main_table = "orders";
 		btnCalcDelivery.callback(cb_btnCalcDelivery);
+		btnShowCalendar.callback(cb_btnShowCalendar);
 	}
 	function cb_btnCalcDelivery(sender, udata){
 		this = sender->window();
 		local dc = getChildWindow("Delivery Calc", MyDeliveryCalcWindow);
+		dc.show();
+	}
+	function cb_btnShowCalendar(sender, udata){
+		this = sender->window();
+		local dc = getChildWindow("Calendar", MyCalendarWindow);
 		dc.show();
 	}
 }

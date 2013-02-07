@@ -13,6 +13,7 @@
 #include <FL/Fl_Light_Button.H>
 #include <FL/Fl_Check_Button.H>
 #include <FL/Fl_Radio_Button.H>
+#include <FL/Fl_Repeat_Button.H>
 #include <FL/Fl_Return_Button.H>
 #include <FL/Fl_Round_Button.H>
 #include <FL/Fl_Menu_Item.H>
@@ -73,6 +74,7 @@ CREATE_TAG(Fl_Button);
 CREATE_TAG(Fl_Light_Button);
 CREATE_TAG(Fl_Check_Button);
 CREATE_TAG(Fl_Radio_Button);
+CREATE_TAG(Fl_Repeat_Button);
 CREATE_TAG(Fl_Return_Button);
 CREATE_TAG(Fl_Round_Button);
 CREATE_TAG(Fl_Menu_);
@@ -464,6 +466,7 @@ static SQRESULT fltk_pushinstance(HSQUIRRELVM v, const SQChar *klass, SQUserPoin
 	if(sq_getonroottable(v) == SQ_OK){
 	    if(sq_createinstance(v, -1) == SQ_OK){
 	        sq_setinstanceup(v, -1, self);
+	        sq_remove(v, -2); //remove class
 	        return 1;
 	    }
 	}
@@ -872,6 +875,16 @@ CHEAP_RTTI_FOR(Fl_Radio_Button);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Radio_Button_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_radio_button_obj_funcs[]={
     CHEAP_RTTI_REG_FUN_FOR(Fl_Radio_Button)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	{0,0}
+};
+#undef _DECL_FUNC
+
+FLTK_CONSTRUCTOR(Fl_Repeat_Button);
+CHEAP_RTTI_FOR(Fl_Repeat_Button);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Repeat_Button_##name,nparams,pmask,isStatic}
+static SQRegFunction fl_repeat_button_obj_funcs[]={
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Repeat_Button)
 	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	{0,0}
 };
@@ -1396,9 +1409,12 @@ static SQRegFunction flu_combo_tree_browser_obj_funcs[]={
 };
 #undef _DECL_FUNC
 
-#define SETUP_FLV_STYLE(v) SETUP_FL_KLASS(v, Flv_Style)
+#define SETUP_FLV_STYLE_AT(v, idx, Var) SETUP_FL_KLASS_AT(v, idx, Var, Flv_Style)
+#define SETUP_FLV_STYLE(v) SETUP_FLV_STYLE_AT(v, 1, self)
 #define FLV_STYLE_GETSET_INT_CAST(funcNAME, typeNAME) FUNC_GETSET_INT(_Flv_Style_, SETUP_FLV_STYLE, self->, funcNAME, typeNAME)
 #define FLV_STYLE_GETSET_INT(funcNAME) FLV_STYLE_GETSET_INT_CAST(funcNAME, int)
+#define FLV_STYLE_GETSET_BOOL(funcNAME) FUNC_GETSET_BOOL(_Flv_Style_, SETUP_FLV_STYLE, self->,funcNAME)
+#define FLV_STYLE_GET_BOOL(funcNAME) FUNC_GET_BOOL(_Flv_Style_, SETUP_FLV_STYLE, funcNAME)
 
 
 //no constructor for Flv_Style
@@ -1564,6 +1580,9 @@ FLV_STYLE_GETSET_INT_CAST(align, Fl_Align);
 FLV_STYLE_GETSET_INT_CAST(border_color, Fl_Color);
 FLV_STYLE_GETSET_INT_CAST(foreground, Fl_Color);
 FLV_STYLE_GETSET_INT_CAST(background, Fl_Color);
+FLV_STYLE_GETSET_BOOL(resizable);
+FLV_STYLE_GET_BOOL(foreground_defined);
+FLV_STYLE_GET_BOOL(background_defined);
 
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Flv_Style_##name,nparams,pmask,isStatic}
 static SQRegFunction flv_style_obj_funcs[]={
@@ -1579,7 +1598,10 @@ static SQRegFunction flv_style_obj_funcs[]={
 	_DECL_FUNC(align,-1,_SC("xi"),SQFalse),
 	_DECL_FUNC(border_color,-1,_SC("xi"),SQFalse),
 	_DECL_FUNC(foreground,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(foreground_defined,1,_SC("x"),SQFalse),
 	_DECL_FUNC(background,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(background_defined,1,_SC("x"),SQFalse),
+	_DECL_FUNC(resizable,-1,_SC("xb"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -1643,6 +1665,18 @@ static SQRESULT _Flv_List_clear_callback_when(HSQUIRRELVM v){
     self->clear_callback_when(when);
     return 1;
 }
+
+//void get_style( Flv_Style &s, int R, int C=0 )
+static SQRESULT _Flv_List_get_style(HSQUIRRELVM v){
+    SQ_FUNC_VARS(v);
+    SETUP_FLV_LIST(v);
+    SETUP_FLV_STYLE_AT(v, 2, style);
+    SQ_GET_INTEGER(v, 3, row);
+    SQ_OPT_INTEGER(v, 4, col, 0);
+    self->get_style(*style, row, col);
+    return 0;
+}
+
 CHEAP_RTTI_FOR(Flv_List);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Flv_List_##name,nparams,pmask,isStatic}
 static SQRegFunction flv_list_obj_funcs[]={
@@ -1661,6 +1695,7 @@ static SQRegFunction flv_list_obj_funcs[]={
 	_DECL_FUNC(callback_when,-1,_SC("xi"),SQFalse),
 	_DECL_FUNC(add_callback_when,2,_SC("xi"),SQFalse),
 	_DECL_FUNC(clear_callback_when,2,_SC("xi"),SQFalse),
+	_DECL_FUNC(get_style,-3,_SC("xxii"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -1720,14 +1755,12 @@ class Flv_Data_Table : public Flv_Table
 {
 public:
     int selection_count, _draw_offset;
-    bool _forPrint;
 
     Flv_Data_Table(int X, int Y, int W=340, int H=202, const char *L=0):
         Flv_Table(X, Y, W, H, L)
     {
         _draw_offset = 5;
         selection_count = 0;
-        _forPrint = false;
 
         callback_when( FLVEcb_ROW_CHANGED | FLVEcb_CLICKED);
         selection_color(FL_BLUE);
@@ -1765,35 +1798,20 @@ public:
 
     void get_style(Flv_Style &s, int R, int C )
     {
+        HSQUIRRELVM v = (HSQUIRRELVM) Fl::user_data;
+        SQInteger top = sq_gettop(v);
+        if(sq_get_fl_virtual(v, this, "get_style") == SQ_OK){
+            sq_push(v, -2); //this
+            fltk_pushinstance(v, FLTK_TAG(Flv_Style), &s);
+            sq_pushinteger(v, R);
+            sq_pushinteger(v, C);
+            if(sq_call(v, 4, SQFalse, SQTrue) == SQ_OK){
+                sq_settop(v, top);
+                return;
+            }
+        }
+        sq_settop(v, top);
         Flv_Table::get_style(s, R, C);
-        if(R >= 0 && C >= 0)
-        {
-            Flv_Style &rs = row_style.get(R);
-            Flv_Style &cs = col_style.get(C);
-            Fl_Color have_bg = 0;
-            if(cs.background_defined()) have_bg = cs.background();
-            else if(rs.background_defined()) have_bg = rs.background();
-            if((R % 2) == 0)
-            {
-                if(have_bg)
-                    //s:background(fltk.fl_color_average(207, have_bg, 0.5))
-                    s.background(have_bg);
-                else
-                    s.background(207);
-            }
-            else
-            {
-                if(have_bg)
-                    //s:background(have_bg)
-                    s.background(fl_color_average(FL_WHITE, have_bg, 0.5));
-                else
-                    s.background(FL_WHITE);
-            }
-        }
-        else if(_forPrint)
-        {
-            s.frame(FL_NO_BOX);
-        }
     }
 
     virtual void draw_cell( int Offset, int &X, int &Y, int &W, int &H, int R, int C ){
@@ -1979,17 +1997,15 @@ static SQInteger _Flv_Data_Table_draw_offset(HSQUIRRELVM v)
     return 1;
 }
 
-static SQInteger _Flv_Data_Table_for_print(HSQUIRRELVM v)
-{
+//void get_style( Flv_Style &s, int R, int C=0 )
+static SQRESULT _Flv_Data_Table_get_style(HSQUIRRELVM v){
     SQ_FUNC_VARS(v);
     SETUP_FLV_DATA_TABLE(v);
-    if(_top_ > 1){
-        SQ_GET_BOOL(v, 2, bval);
-        ((Flv_Data_Table*)self)->_forPrint = bval;
-        return 0;
-    }
-    sq_pushbool(v, ((Flv_Data_Table*)self)->_forPrint);
-    return 1;
+    SETUP_FLV_STYLE_AT(v, 2, style);
+    SQ_GET_INTEGER(v, 3, row);
+    SQ_OPT_INTEGER(v, 4, col, 0);
+    self->Flv_Table::get_style(*style, row, col);
+    return 0;
 }
 
 FLTK_CONSTRUCTOR(Flv_Data_Table);
@@ -1998,9 +2014,9 @@ FLTK_CONSTRUCTOR(Flv_Data_Table);
 static SQRegFunction flv_data_table_obj_funcs[]={
 	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	_DECL_FUNC(handle,2,_SC("xi"),SQFalse),
-	_DECL_FUNC(for_print,-1,_SC("xb"),SQFalse),
 	_DECL_FUNC(resize,5,_SC("xnnnn"),SQFalse),
 	_DECL_FUNC(draw_offset, -1,_SC("xn"),SQFalse),
+	_DECL_FUNC(get_style,-3,_SC("xxii"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -3570,6 +3586,17 @@ static SQInteger _fl_globals_fl_not_clipped(HSQUIRRELVM v)
     return 1;
 }
 
+//Fl_Color fl_color_average(Fl_Color c1, Fl_Color c2, float weight)
+static SQInteger _fl_globals_fl_color_average(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_INTEGER(v, 2, c1);
+    SQ_GET_INTEGER(v, 3, c2);
+    SQ_GET_FLOAT(v, 4, weight);
+    sq_pushinteger(v, fl_color_average(c1, c2, weight));
+    return 1;
+}
+
 static SQInteger _fl_globals_fl_preferences(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
@@ -3586,6 +3613,7 @@ static SQRegFunction fl_globals_funcs[]={
 	_DECL_FUNC(fl_alert, 2,_SC(".s"),SQTrue),
 	_DECL_FUNC(fl_cursor, -2,_SC(".iii"),SQTrue),
 	_DECL_FUNC(fl_color,-1,_SC(".i"),SQTrue),
+	_DECL_FUNC(fl_color_average,4,_SC(".iif"),SQTrue),
 	_DECL_FUNC(fl_draw,-4,_SC(". n|s n|s nnn"),SQTrue),
 	_DECL_FUNC(fl_font,-1,_SC(".ii"),SQTrue),
 	_DECL_FUNC(fl_size,1,_SC("."),SQTrue),
@@ -3990,6 +4018,7 @@ SQRESULT sqext_register_fltklib(HSQUIRRELVM v)
 	PUSH_FL_CLASS(Fl_Check_Button, Fl_Light_Button, fl_check_button_obj_funcs);
 	PUSH_FL_CLASS(Fl_Radio_Button, Fl_Button, fl_radio_button_obj_funcs);
 	PUSH_FL_CLASS(Fl_Return_Button, Fl_Button, fl_return_button_obj_funcs);
+	PUSH_FL_CLASS(Fl_Repeat_Button, Fl_Button, fl_repeat_button_obj_funcs);
 	PUSH_FL_CLASS(Fl_Round_Button, Fl_Light_Button, fl_round_button_obj_funcs);
 
 	PUSH_FL_CLASS(Fl_Menu_, Fl_Widget, fl_menu__obj_funcs);
