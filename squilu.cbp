@@ -208,13 +208,16 @@
 			<Add directory="ext" />
 			<Add directory="ext/myaxtls" />
 			<Add directory="../dadbiz++/third-party/sqlite3" />
+			<Add directory="../dadbiz++/third-party/discount-2.1.2" />
 		</Compiler>
 		<Linker>
 			<Add library="m" />
 			<Add library="z" />
+			<Add library="discount" />
 			<Add directory="lib" />
 			<Add directory="ext/myaxtls" />
 			<Add directory="ext/mpdecimal" />
+			<Add directory="../dadbiz++/third-party/discount-2.1.2" />
 		</Linker>
 		<Unit filename="ext/fpdf.cpp" />
 		<Unit filename="ext/fpdf.h" />
@@ -239,6 +242,7 @@
 		<Unit filename="ext/sq_fs.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="ext/sq_markdown.cpp" />
 		<Unit filename="ext/sq_mix.cpp" />
 		<Unit filename="ext/sq_mongoose.cpp" />
 		<Unit filename="ext/sq_rs232.c">
