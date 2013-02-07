@@ -5,6 +5,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <signal.h>
 #include <sqstdsystem.h>
 
 #ifdef _WIN32
@@ -58,6 +59,7 @@ static SQInteger _system_clock(HSQUIRRELVM v)
 	return 1;
 }
 
+/*
 static SQInteger _system_time(HSQUIRRELVM v)
 {
 	time_t t;
@@ -65,6 +67,75 @@ static SQInteger _system_time(HSQUIRRELVM v)
 	sq_pushinteger(v,*((SQInteger *)&t));
 	return 1;
 }
+*/
+
+static SQInteger get_int_field (HSQUIRRELVM v, const SQChar *key, int dflt) {
+    SQInteger res;
+    SQObjectType stype;
+    sq_pushstring(v, key, -1);
+    if(sq_get(v, -2) == SQ_OK){
+        stype = sq_gettype(v, -1);
+        if (stype == OT_INTEGER || stype == OT_FLOAT){
+            sq_getinteger(v, -1, &res);
+            sq_poptop(v);
+            return res;
+        }
+        sq_poptop(v);
+  }
+  if(dflt < 0) return sq_throwerror(v, _SC("field %s is missing"), key);
+  return dflt;
+}
+
+static SQInteger _system_time(HSQUIRRELVM v) {
+  time_t t;
+  if (sq_gettop(v) == 1)  /* called without args? */
+    t = time(NULL);  /* get current time */
+  else {
+    struct tm ts;
+    if(sq_gettype(v, 2) != OT_TABLE)
+        return sq_throwerror(v, _SC("table expected as parameter but got (%s)"), sq_gettypename(v, 2));
+    sq_settop(v, 2);  /* make sure table is at the top */
+    SQInteger rc = get_int_field(v, "sec", 0);
+    if(rc == SQ_ERROR) return rc;
+    else ts.tm_sec = rc;
+
+    rc = get_int_field(v, "min", 0);
+    if(rc == SQ_ERROR) return rc;
+    else ts.tm_min = rc;
+
+    rc = get_int_field(v, "hour", 12);
+    if(rc == SQ_ERROR) return rc;
+    else ts.tm_hour = rc;
+
+    rc = get_int_field(v, "day", -1);
+    if(rc == SQ_ERROR) return rc;
+    else ts.tm_mday = rc;
+
+    rc = get_int_field(v, "month", -1);
+    if(rc == SQ_ERROR) return rc;
+    else ts.tm_mon = rc - 1;
+
+    rc = get_int_field(v, "year", -1);
+    if(rc == SQ_ERROR) return rc;
+    else ts.tm_year = rc - 1900;
+
+    SQBool isdst = SQTrue;
+    sq_pushstring(v, _SC("isdst"), -1);
+    if(sq_get(v, 2) == SQ_OK){
+        if(sq_getbool(v, -1, &isdst) == SQ_OK){
+            ts.tm_isdst = isdst;
+        }
+        sq_poptop(v);
+    }
+    ts.tm_isdst = isdst;
+    t = mktime(&ts);
+  }
+  if (t == (time_t)(-1))
+    sq_pushnull(v);
+  else sq_pushinteger(v,(SQInteger)t);
+  return 1;
+}
+
 
 static SQRESULT _system_difftime (HSQUIRRELVM v) {
     SQ_FUNC_VARS(v);
@@ -122,10 +193,10 @@ static SQInteger _system_date(HSQUIRRELVM v)
         _set_integer_slot(v, _SC("min"), stm->tm_min);
         _set_integer_slot(v, _SC("hour"), stm->tm_hour);
         _set_integer_slot(v, _SC("day"), stm->tm_mday);
-        _set_integer_slot(v, _SC("month"), stm->tm_mon+1);
+        _set_integer_slot(v, _SC("month"), stm->tm_mon);
         _set_integer_slot(v, _SC("year"), stm->tm_year+1900);
-        _set_integer_slot(v, _SC("wday"), stm->tm_wday+1);
-        _set_integer_slot(v, _SC("yday"), stm->tm_yday+1);
+        _set_integer_slot(v, _SC("wday"), stm->tm_wday);
+        _set_integer_slot(v, _SC("yday"), stm->tm_yday);
         sq_pushliteral(v, _SC("isdst"));
         sq_pushbool(v, stm->tm_isdst);
         sq_rawset(v, -3);
@@ -264,12 +335,175 @@ static SQRESULT _system_getmillispan (HSQUIRRELVM v) {
     return 1;
 }
 
+#if 0
+struct sq_signal_list
+{
+  char *name; /* name of the signal */
+  int sig; /* the signal */
+};
+
+static const struct sq_signal_list sq_signals_list[] = {
+  /* ANSI C signals */
+#ifdef SIGABRT
+  {"SIGABRT", SIGABRT},
+#endif
+#ifdef SIGFPE
+  {"SIGFPE", SIGFPE},
+#endif
+#ifdef SIGILL
+  {"SIGILL", SIGILL},
+#endif
+#ifdef SIGINT
+  {"SIGINT", SIGINT},
+#endif
+#ifdef SIGSEGV
+  {"SIGSEGV", SIGSEGV},
+#endif
+#ifdef SIGTERM
+  {"SIGTERM", SIGTERM},
+#endif
+  /* posix signals */
+#ifdef SIGHUP
+  {"SIGHUP", SIGHUP},
+#endif
+#ifdef SIGQUIT
+  {"SIGQUIT", SIGQUIT},
+#endif
+#ifdef SIGTRAP
+  {"SIGTRAP", SIGTRAP},
+#endif
+#ifdef SIGKILL
+  {"SIGKILL", SIGKILL},
+#endif
+#ifdef SIGUSR1
+  {"SIGUSR1", SIGUSR1},
+#endif
+#ifdef SIGUSR2
+  {"SIGUSR2", SIGUSR2},
+#endif
+#ifdef SIGPIPE
+  {"SIGPIPE", SIGPIPE},
+#endif
+#ifdef SIGALRM
+  {"SIGALRM", SIGALRM},
+#endif
+#ifdef SIGCHLD
+  {"SIGCHLD", SIGCHLD},
+#endif
+#ifdef SIGCONT
+  {"SIGCONT", SIGCONT},
+#endif
+#ifdef SIGSTOP
+  {"SIGSTOP", SIGSTOP},
+#endif
+#ifdef SIGTTIN
+  {"SIGTTIN", SIGTTIN},
+#endif
+#ifdef SIGTTOU
+  {"SIGTTOU", SIGTTOU},
+#endif
+  /* some BSD signals */
+#ifdef SIGIOT
+  {"SIGIOT", SIGIOT},
+#endif
+#ifdef SIGBUS
+  {"SIGBUS", SIGBUS},
+#endif
+#ifdef SIGCLD
+  {"SIGCLD", SIGCLD},
+#endif
+#ifdef SIGURG
+  {"SIGURG", SIGURG},
+#endif
+#ifdef SIGXCPU
+  {"SIGXCPU", SIGXCPU},
+#endif
+#ifdef SIGXFSZ
+  {"SIGXFSZ", SIGXFSZ},
+#endif
+#ifdef SIGVTALRM
+  {"SIGVTALRM", SIGVTALRM},
+#endif
+#ifdef SIGPROF
+  {"SIGPROF", SIGPROF},
+#endif
+#ifdef SIGWINCH
+  {"SIGWINCH", SIGWINCH},
+#endif
+#ifdef SIGPOLL
+  {"SIGPOLL", SIGPOLL},
+#endif
+#ifdef SIGIO
+  {"SIGIO", SIGIO},
+#endif
+  /* add odd signals */
+#ifdef SIGSTKFLT
+  {"SIGSTKFLT", SIGSTKFLT}, /* stack fault */
+#endif
+#ifdef SIGSYS
+  {"SIGSYS", SIGSYS},
+#endif
+  {NULL, 0}
+};
+
+static HSQUIRRELVM vsig = NULL;
+
+static void sq_sig_handle(int sig)
+{
+    if(vsig){
+        sq_pushliteral(vsig, _SC("sq_sig_handler"));
+        if(sq_getonregistrytable(vsig) == SQ_OK){
+            SQObjectType ptype = sq_gettype(v, -1);
+            if(ptype == OT_CLOSURE || ptype == OT_NATIVECLOSURE){
+                sq_pushroottable(v);
+                sq_pushinteger(v, sig);
+                sq_call(v, 2, SQFalse, SQFalse);
+            }
+        }
+    }
+}
+
+/*
+ * _system_raise == raise(signal)
+ *
+ * signal = signal number or string
+*/
+
+static int _system_raise(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    switch(sq_gettype(v, 2)){
+        case OT_INTEGER:{
+            SQ_GET_INTEGER(v, 2, iparam);
+            sq_pushinteger(v, raise(iparam));
+        }
+        break;
+        case OT_STRING:{
+            int sig = 0;
+            SQ_GET_STRING(v, 2, signame);
+            for(int i=0, len = sizeof(sq_signals_list)/sizeof(sq_signal_list); i < len; ++i){
+                if(strcmp(sq_signals_list[i].name, signame) == 0){
+                    sig = sq_signals_list[i].sig;
+                    break;
+                }
+            }
+            if(sig) sq_pushinteger(v, raise(sig));
+            else return sq_throwerror(v, _SC("invalid signal (%s)"), signame);
+        }
+        break;
+        default:
+            return sq_throwerror(v, _SC("invalid paramter (%s)"), sq_gettypename(v, 2));
+    }
+    return 1;
+}
+#endif
+
 #define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_system_##name,nparams,pmask}
 static SQRegFunction systemlib_funcs[]={
 	_DECL_FUNC(getenv,2,_SC(".s")),
 	_DECL_FUNC(system,2,_SC(".s")),
 	_DECL_FUNC(clock,0,NULL),
-	_DECL_FUNC(time,1,NULL),
+	_DECL_FUNC(time,-1,_SC(".t")),
 	_DECL_FUNC(difftime,-2,_SC(".nn")),
 	_DECL_FUNC(date,-1,_SC(".sn")),
 	_DECL_FUNC(remove,2,_SC(".s")),
