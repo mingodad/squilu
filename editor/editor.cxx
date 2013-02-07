@@ -894,6 +894,7 @@ extern "C" {
     SQRESULT sqext_register_tinyxml2(HSQUIRRELVM v);
     SQRESULT sqext_register_decimal(HSQUIRRELVM v);
     SQRESULT sqext_register_fltklib(HSQUIRRELVM v);
+    SQRESULT sqext_register_markdown(HSQUIRRELVM v);
 }
 
 
@@ -967,6 +968,7 @@ int main(int argc, char **argv) {
 	sqext_register_sq_slave_vm(v);
 	sqext_register_tinyxml2(v);
 	sqext_register_decimal(v);
+	sqext_register_markdown(v);
 
 	sqext_register_sq_zmq3(v);
 

@@ -72,6 +72,7 @@
 			<Add directory="../../zeromq-3.2.2/include" />
 			<Add directory="../../dadbiz++/third-party/flu" />
 			<Add directory="../../dadbiz++/third-party/libharu/include" />
+			<Add directory="../../dadbiz++/third-party/discount-2.1.2" />
 		</Compiler>
 		<Linker>
 			<Add library="fltk_images" />
@@ -91,12 +92,14 @@
 			<Add library="zmq3" />
 			<Add library="rt" />
 			<Add library="hpdfs" />
+			<Add library="discount" />
 			<Add directory="../../dadbiz++/third-party/fltk/lib" />
 			<Add directory="../ext/mpdecimal" />
 			<Add directory="../ext/myaxtls" />
 			<Add directory="../../zeromq-3.2.2" />
 			<Add directory="../../dadbiz++/third-party/flu" />
 			<Add directory="../../dadbiz++/third-party/libharu/src" />
+			<Add directory="../../dadbiz++/third-party/discount-2.1.2" />
 		</Linker>
 		<Unit filename="editor.cxx" />
 		<Unit filename="../ext/fpdf.cpp" />
@@ -119,6 +122,7 @@
 		<Unit filename="../ext/sq_fs.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="../ext/sq_markdown.cpp" />
 		<Unit filename="../ext/sq_mix.cpp" />
 		<Unit filename="../ext/sq_mongoose.cpp" />
 		<Unit filename="../ext/sq_rs232.c">
