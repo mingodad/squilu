@@ -27,6 +27,8 @@
 #define scvprintf vfprintf
 #endif
 
+int sq_main_argc = 0;
+char** sq_main_argv = 0;
 
 void PrintVersionInfos();
 
@@ -305,6 +307,113 @@ void Interactive(HSQUIRRELVM v)
 	}
 }
 
+#define SCRIPT_END_TAG "<DAD:%ld>ooOo(^.^)oOoo"
+// end of file is 29: "<DAD:%010d>ooOo(^.^)oOoo", script_len
+#define END_TAG_LEN 29
+
+static SQInteger LoadFrozenScript(HSQUIRRELVM v, const SQChar* filename, int only_check)
+{
+    SQInteger retval;
+    // lots of debugging to make sure that everything is ok
+    //printf("%s\n", filename);
+    FILE *f = fopen(filename, "rb");
+
+    if (!f) return -1;
+
+
+    if (fseek(f, 0, SEEK_END))
+    {
+        fclose(f);
+        return -1;
+    }
+
+	int fileSize = ftell(f);
+	//printf("%d\n", fileSize);
+    if (fseek(f, fileSize-END_TAG_LEN, SEEK_SET ))
+    {
+        fclose(f);
+        return -1;
+    }
+
+    // do some sanity checking before reading the script length
+
+    char tag_buf[END_TAG_LEN+2] = {0};
+    memset(tag_buf, 0, sizeof(char)*(END_TAG_LEN+2));
+    long script_len = 0;
+
+    if (fread((void*)tag_buf, 1, END_TAG_LEN, f) != END_TAG_LEN)
+    {
+        fclose(f);
+        return -1;
+    }
+
+	//printf("%s\n", tag_buf);
+    if (sscanf(tag_buf, SCRIPT_END_TAG, &script_len) != 1)
+    {
+        fclose(f);
+
+        // they only wanted to know if the script exists, assume it's valid
+        if (only_check) return -2;
+        else return -1;
+    }
+    else if (fseek(f, fileSize-END_TAG_LEN - script_len, SEEK_SET ))
+    {
+        fclose(f);
+        return -1;
+    }
+
+    // size should be valid from Seek statement
+    char *script = (char*)sq_malloc(script_len+10);
+    if (script)
+    {
+        memset(script, 0, sizeof(script_len+10));
+        fread(script, 1, script_len, f);
+        script[script_len] = 0;
+		//printf("%s", script);
+    }
+
+    fclose(f);
+
+    // we finally have our script!
+    //fwrite(script, 1, finalSize, f);
+    //fclose(f);
+
+    if(SQ_SUCCEEDED(sq_compilebuffer(v,script, script_len, SQFalse, SQTrue))) {
+        int i, callargs = 1;
+        sq_pushroottable(v);
+        for(i=0;i<sq_main_argc;i++)
+        {
+            const SQChar *a;
+#ifdef SQUNICODE
+            int alen=(int)strlen(sq_main_argv[i]);
+            a=sq_getscratchpad(v,(int)(alen*sizeof(SQChar)));
+            mbstowcs(sq_getscratchpad(v,-1),sq_main_argv[i],alen);
+            sq_getscratchpad(v,-1)[alen] = _SC('\0');
+#else
+            a=sq_main_argv[i];
+#endif
+            sq_pushstring(v,a,-1);
+            callargs++;
+            //sq_arrayappend(v,-2);
+        }
+        if(SQ_SUCCEEDED(sq_call(v,callargs,SQTrue,SQTrue))) {
+            SQObjectType type = sq_gettype(v,-1);
+            if(type == OT_INTEGER) {
+                sq_getinteger(v,-1, &retval);
+            }
+            return _DONE;
+        }
+        else{
+            return _ERROR;
+        }
+    }
+
+    free(script);
+
+    return 0;
+}
+
+
 SQRESULT sqext_register_sqfs(HSQUIRRELVM v);
 SQRESULT sqext_register_sq_zmq3(HSQUIRRELVM v);
 SQRESULT sqext_register_sq_socket(HSQUIRRELVM v);
@@ -321,9 +430,6 @@ SQRESULT sqext_register_rs232(HSQUIRRELVM v);
 SQRESULT sqext_register_tinyxml2(HSQUIRRELVM v);
 SQRESULT sqext_register_decimal(HSQUIRRELVM v);
 SQRESULT sqext_register_markdown(HSQUIRRELVM v);
-
-int sq_main_argc = 0;
-char** sq_main_argv = 0;
 
 int main(int argc, char* argv[])
 {
@@ -375,6 +481,9 @@ int main(int argc, char* argv[])
 	//aux library
 	//sets error handlers
 	sqstd_seterrorhandlers(v);
+
+    //frozen script executed ?
+    if(LoadFrozenScript(v, argv[0], 0) == _DONE) return 0;
 
 	//gets arguments
 	switch(getargs(v,argc,argv,&retval))
