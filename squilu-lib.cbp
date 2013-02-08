@@ -76,10 +76,10 @@
 			<Add directory="../dadbiz++/third-party/myaxtls" />
 		</Linker>
 		<Unit filename="ext/mongoose.h" />
-		<Unit filename="ext/sq_zmq3.cpp" />
-		<Unit filename="ext/sqfs.c">
+		<Unit filename="ext/sq_fs.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="ext/sq_zmq3.cpp" />
 		<Unit filename="ext/sqfs.h" />
 		<Unit filename="include/sqstdaux.h" />
 		<Unit filename="include/sqstdblob.h" />
