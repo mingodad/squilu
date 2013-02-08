@@ -7,9 +7,12 @@
 #include "sqstdstream.h"
 #include "sqstdblobimpl.h"
 
-#define SQSTD_BLOB_TYPE_TAG (SQSTD_STREAM_TYPE_TAG | 0x00000002)
+//#define SQSTD_BLOB_TYPE_TAG (SQSTD_STREAM_TYPE_TAG | 0x00000002)
+static const SQChar  SQSTD_BLOB_TYPE_TAG[] = _SC("std_stream_blob");
+
 
 //Blob
+
 
 SQUserPointer SQBlob::SQBlob_TAG = (SQUserPointer)SQSTD_BLOB_TYPE_TAG;
 

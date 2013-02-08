@@ -9,6 +9,8 @@
 #include "sqstdstream.h"
 #include "sqstdblobimpl.h"
 
+static const SQChar SQSTD_STREAM_TYPE_TAG[] = _SC("std_stream");
+
 #define SETUP_STREAM(v) \
 	SQStream *self = NULL; \
 	if(SQ_FAILED(sq_getinstanceup(v,1,(SQUserPointer*)&self,(SQUserPointer)SQSTD_STREAM_TYPE_TAG))) \
@@ -347,9 +349,9 @@ static SQRegFunction _stream_methods[] = {
 void init_streamclass(HSQUIRRELVM v)
 {
 	sq_pushregistrytable(v);
-	sq_pushstring(v,_SC("std_stream"),-1);
+	sq_pushstring(v,SQSTD_STREAM_TYPE_TAG,-1);
 	if(SQ_FAILED(sq_get(v,-2))) {
-		sq_pushstring(v,_SC("std_stream"),-1);
+		sq_pushstring(v,SQSTD_STREAM_TYPE_TAG,-1);
 		sq_newclass(v,SQFalse);
 		sq_settypetag(v,-1,(SQUserPointer)SQSTD_STREAM_TYPE_TAG);
 		SQInteger i = 0;

@@ -5,7 +5,9 @@
 #include <sqstdio.h>
 #include "sqstdstream.h"
 
-#define SQSTD_FILE_TYPE_TAG (SQSTD_STREAM_TYPE_TAG | 0x00000001)
+//#define SQSTD_FILE_TYPE_TAG (SQSTD_STREAM_TYPE_TAG | 0x00000001)
+static const SQChar  SQSTD_FILE_TYPE_TAG[] = _SC("std_stream_file");
+
 //basic API
 SQFILE sqstd_fopen(const SQChar *filename ,const SQChar *mode)
 {
