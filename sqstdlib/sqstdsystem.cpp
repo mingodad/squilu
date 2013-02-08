@@ -521,7 +521,7 @@ static SQRegFunction systemlib_funcs[]={
 SQInteger sqstd_register_systemlib(HSQUIRRELVM v)
 {
     sq_pushstring(v,_SC("os"),-1);
-    sq_newclass(v,SQFalse);
+    sq_newtable(v);
 
 	SQInteger i=0;
 	while(systemlib_funcs[i].name!=0)
