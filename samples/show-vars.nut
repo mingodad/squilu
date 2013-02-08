@@ -1,4 +1,5 @@
-function getMembersNotInBaseClass(klass, klass_members){
+local base_class_key = " [base class] -> ";
+local function getMembersNotInBaseClass(klass, klass_members){
 	local bklass = klass.getbase();
 	local bklass_members = {};
 	if(bklass) foreach(k,v in bklass) bklass_members[k] <- true;
@@ -7,32 +8,142 @@ function getMembersNotInBaseClass(klass, klass_members){
 			klass_members.push([k,v]);
 		}
 	}
-	klass_members.push([" [base class] -> ", gettypetag(bklass)]);
+	klass_members.push([base_class_key, gettypetag(bklass)]);
 }
 
-function showVars(avar, prefix=null){
+local function getParamsCheck(pc){
+	local mask_values = {
+		["NULL"]		=	0x00000001,
+		INTEGER		=	0x00000002,
+		FLOAT		=	0x00000004,
+		BOOL		=	0x00000008,
+		STRING		=	0x00000010,
+		TABLE		=	0x00000020,
+		ARRAY		=	0x00000040,
+		USERDATA	=	0x00000080,
+		CLOSURE		=	0x00000100,
+		NATIVECLOSURE	= 0x00000200,
+		GENERATOR	=	0x00000400,
+		USERPOINTER	=	0x00000800,
+		THREAD		=	0x00001000,
+		FUNCPROTO	=	0x00002000,
+		CLASS		=	0x00004000,
+		INSTANCE	=	0x00008000,
+		WEAKREF		=	0x00010000,
+		OUTER		=	0x00020000,
+	}
+	local ANY = -1;
+	local tmp = [];
+	foreach(v in pc){
+		if(v == ANY) {
+			tmp.push("ANY");
+			continue;
+		}
+		local m = [];
+		foreach(k, mv in mask_values){
+			if(mv & v) m.push(k);
+		}
+		tmp.push(m.concat("|"));
+	}
+	return "(" + tmp.concat(" , ") + ")";
+}
+
+/*local do not allow recursion*/
+function showVars(avar, myvars, prefix=null){
 	local isClass = type(avar) == "class";
 	local isTable = type(avar) == "table";
-	local  myvars=[];
+
 	if(isClass) getMembersNotInBaseClass(avar, myvars);
 	else 
 	{
 		foreach(k,v in avar) {
-			if(isTable || isClass){
-				if(avar.rawin(k)) myvars.push([k,v]);
+			/* class and instance do not work with this code
+			if(isTable){
+				if(avar.rawin(k)) {
+					myvars.push([k,v]);
+				}
 			}
-			else myvars.push([k,v]);
+			else */
+			myvars.push([k,v]);
 		}
 	}
 	myvars.sort(@(a,b) a[0] <=> b[0]);
 	foreach(v in myvars) {
-		if(prefix) print1(prefix);
-		print(v[0], type(v[1]), v[1]);
 		local vtype = type(v[1]);
-		if(vtype == "class" || vtype == "table") showVars(v[1], prefix ? prefix + "\t" : "\t");
+		if(prefix) print1(prefix);
+		local vvalue = "";
+		try { 
+			if(vtype == "function"){
+				local infos = v[1].getinfos();
+				if(infos.native){
+					vvalue = getParamsCheck(infos.typecheck);
+				}
+			}
+			else
+			{
+				vvalue = v[1].tostring(); 
+				if(vvalue[0] == '(') vvalue = "";
+			}
+		} catch(e) {}
+		if(v[0] == base_class_key) {
+			vtype = "";
+			if(vvalue == "") vvalue = "NONE";
+		}
+		print(v[0], vtype, vvalue);
+		if(vtype == "class" || vtype == "table") showVars(v[1], [], prefix ? prefix + "\t" : "\t");
 	}
 }
-showVars(this);
+//showVars(this, []);
+
+local function hideFromGlobals(){
+	/*
+	There is a bug in the language that when a class implements the metamethod _get 
+	that expects other types than string  make impossible to call default delegate functions
+	like here blob/file/std_stream implements _get expecting a number (integer|float).
+	local instBlob = blob();
+	local weakv = instBlob.weakref();
+	*/
+	local inst_klass = Decimal(); //SlaveVM(1024);
+	local weakv = inst_klass.weakref();
+	local intv = 2;
+	local tblv = {};
+	local arrayv = [];
+	local str = "";
+	local coro = ::newthread(showVars);
+	local function geny(n){
+		for(local i=0;i<n;i+=1)
+		yield i;
+		return null;
+	}
+	local gtor=geny(10);
+
+	local myvars = [
+			["array_delegate", arrayv.getdelegate()],
+			["class_delegate", getdefaultdelegate(blob)],
+			["instance_delegate", getdefaultdelegate(inst_klass)],
+			["closure_delegate", getdefaultdelegate(showVars)],
+			["generator_delegate", getdefaultdelegate(gtor)],
+			["number_delegate", getdefaultdelegate(intv)],
+			["string_delegate", str.getdelegate()],
+			["table_delegate", getdefaultdelegate(tblv)],
+			["thread_delegate", getdefaultdelegate(coro)],
+			["weakref_delegate", getdefaultdelegate(weakv)],
+		];
+
+	showVars(this, myvars);
+	
+	print("\n<<<Constants>>>\n")
+	local const_array = [];
+	foreach(k,v in getconsttable()){
+		const_array.push([k,v]);
+	}
+	const_array.sort(@(a,b) a[0] <=> b[0]);
+	foreach(v in const_array){
+		print(v[0], v[1]);
+	}
+}
+hideFromGlobals();
+
 /*
 //bug in passing array as default parameter ??????
 function showVars(avar, prefix=null, myvars=[]){
@@ -54,39 +165,4 @@ function showVars(avar, prefix=null, myvars=[]){
 	}
 }
 showVars(this);
-
-function hideFromGlobals(){
-	//class A {};
-	//local instA = A();
-	//local weakv = instA.weakref();
-	local intv = 2;
-	local tblv = {};
-	local arrayv = [];
-	local str = "";
-	local coro = ::newthread(showVars);
-	local function geny(n){
-		for(local i=0;i<n;i+=1)
-		yield i;
-		return null;
-	}
-	local gtor=geny(10);
-
-
-	local myvars = [
-			//["array_delegate", arrayv.getdelegate()],
-			//["class_delegate", A.getdelegate()],
-			//["instance_delegate", instA.getdelegate()],
-			//["closure_delegate", showVars.getdelegate()],
-			//["generator_delegate", gtor.getdelegate()],
-			//["number_delegate", intv.getdelegate()],
-			//["float_delegate", floatv.getdelegate()],
-			//["string_delegate", str.getdelegate()],
-			//["table_delegate", tblv.getdelegate()],
-			//["thread_delegate", coro.getdelegate()],
-			//["weakref_delegate", weakv.getdelegate()],
-		];
-
-	showVars(this);
-}
-hideFromGlobals();
 */
