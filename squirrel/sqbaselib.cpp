@@ -191,6 +191,13 @@ static SQInteger base_gettypetag(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQInteger base_getdefaultdelegate(HSQUIRRELVM v)
+{
+    if(sq_getdefaultdelegate(v, sq_gettype(v, 2)) != SQ_OK)
+        sq_pushnull(v);
+	return 1;
+}
+
 static SQInteger base_assert(HSQUIRRELVM v)
 {
 	if(SQVM::IsFalse(stack_get(v,2))){
@@ -360,6 +367,7 @@ static SQRegFunction base_funcs[]={
 	{_SC("getstackinfos"),base_getstackinfos,2, _SC(".n")},
 	{_SC("getstacktop"),base_getstacktop,1, _SC(".")},
 	{_SC("gettypetag"),base_gettypetag,2, _SC("..")},
+	{_SC("getdefaultdelegate"),base_getdefaultdelegate,2, _SC("..")},
 	{_SC("getroottable"),base_getroottable,1, NULL},
 	{_SC("setroottable"),base_setroottable,2, NULL},
 	{_SC("getconsttable"),base_getconsttable,1, NULL},
@@ -984,7 +992,7 @@ static SQInteger array_concat2 (HSQUIRRELVM v) {
 
 static SQInteger array_getdelegate(HSQUIRRELVM v)
 {
-	return SQ_SUCCEEDED(sq_getdelegate(v,-1))?1:SQ_ERROR;
+	return SQ_SUCCEEDED(sq_getdefaultdelegate(v,OT_ARRAY))?1:SQ_ERROR;
 }
 
 static SQInteger array_empty(HSQUIRRELVM v)
@@ -1469,7 +1477,7 @@ static SQInteger string_rep (HSQUIRRELVM v) {
 
 static SQRESULT string_getdelegate(HSQUIRRELVM v)
 {
-	return SQ_SUCCEEDED(sq_getdelegate(v,-1))?1:SQ_ERROR;
+	return SQ_SUCCEEDED(sq_getdefaultdelegate(v,OT_STRING))?1:SQ_ERROR;
 }
 
 //DAD end
@@ -1718,7 +1726,7 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 //NUMBER DEFAULT DELEGATE//////////////////////////
 static SQInteger number_getdelegate(HSQUIRRELVM v)
 {
-	return SQ_SUCCEEDED(sq_getdelegate(v,-1))?1:SQ_ERROR;
+	return SQ_SUCCEEDED(sq_getdefaultdelegate(v,OT_INTEGER))?1:SQ_ERROR;
 }
 
 SQRegFunction SQSharedState::_number_default_delegate_funcz[]={
@@ -1833,7 +1841,7 @@ static SQInteger closure_getinfos(HSQUIRRELVM v) {
 //CLOSURE DEFAULT DELEGATE//////////////////////////
 static SQInteger closure_getdelegate(HSQUIRRELVM v)
 {
-	return SQ_SUCCEEDED(sq_getdelegate(v,-1))?1:SQ_ERROR;
+	return SQ_SUCCEEDED(sq_getdefaultdelegate(v,OT_CLOSURE))?1:SQ_ERROR;
 }
 
 
@@ -1868,7 +1876,7 @@ static SQInteger generator_getstatus(HSQUIRRELVM v)
 //GENERATOR DEFAULT DELEGATE//////////////////////////
 static SQInteger generator_getdelegate(HSQUIRRELVM v)
 {
-	return SQ_SUCCEEDED(sq_getdelegate(v,-1))?1:SQ_ERROR;
+	return SQ_SUCCEEDED(sq_getdefaultdelegate(v,OT_GENERATOR))?1:SQ_ERROR;
 }
 
 SQRegFunction SQSharedState::_generator_default_delegate_funcz[]={
@@ -1990,7 +1998,7 @@ static SQInteger thread_getstackinfos(HSQUIRRELVM v)
 //THREAD DEFAULT DELEGATE//////////////////////////
 static SQInteger thread_getdelegate(HSQUIRRELVM v)
 {
-	return SQ_SUCCEEDED(sq_getdelegate(v,-1))?1:SQ_ERROR;
+	return SQ_SUCCEEDED(sq_getdefaultdelegate(v,OT_THREAD))?1:SQ_ERROR;
 }
 
 
@@ -2059,7 +2067,7 @@ static SQInteger class_rawnewmember(HSQUIRRELVM v)
 
 static SQInteger class_getdelegate(HSQUIRRELVM v)
 {
-	return SQ_SUCCEEDED(sq_getdelegate(v,-1))?1:SQ_ERROR;
+	return SQ_SUCCEEDED(sq_getdefaultdelegate(v,OT_CLASS))?1:SQ_ERROR;
 }
 
 SQRegFunction SQSharedState::_class_default_delegate_funcz[] = {
@@ -2089,7 +2097,7 @@ static SQInteger instance_getclass(HSQUIRRELVM v)
 
 static SQInteger instance_getdelegate(HSQUIRRELVM v)
 {
-	return SQ_SUCCEEDED(sq_getdelegate(v,-1))?1:SQ_ERROR;
+	return SQ_SUCCEEDED(sq_getdefaultdelegate(v,OT_INSTANCE))?1:SQ_ERROR;
 }
 
 SQRegFunction SQSharedState::_instance_default_delegate_funcz[] = {
@@ -2113,7 +2121,7 @@ static SQInteger weakref_ref(HSQUIRRELVM v)
 
 static SQInteger weakref_getdelegate(HSQUIRRELVM v)
 {
-	return SQ_SUCCEEDED(sq_getdelegate(v,-1))?1:SQ_ERROR;
+	return SQ_SUCCEEDED(sq_getdefaultdelegate(v,OT_WEAKREF))?1:SQ_ERROR;
 }
 
 SQRegFunction SQSharedState::_weakref_default_delegate_funcz[] = {
