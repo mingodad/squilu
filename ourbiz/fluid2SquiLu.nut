@@ -492,41 +492,15 @@ Write.widget_class <- function(t, ind){
 	FindMembers.group(t.body, vars);
 	WriteVariables(ind+1, vars, "class members");
 	
-	if (!t.attr.get("class", false) || (! t.attr["class"].match("^Fl_"))){
-		local strCreateWidget = format("constructor(){\n");
-		Output(ind+1, strCreateWidget);
-		local ar = t.attr.xywh;
-		local x = ar[0], y = ar[1], w = ar[2], h = ar[3];
-		Output(ind+2, "base.constructor(%d, %d, %d, %d);\n", x, y, w, h);
-		if (! (t.attr.get("class", "")).match("_Window$") ) {
-			t.xoffset <- "_x + ";
-			t.yoffset <- "_y + ";
-			Output(ind+2, "local _x = %d, _y = %d;\n", x, y);
-		}
-	}
-	else
-	{
-		local strCreateWidget = format("kTopW = %s.new_local(...);\n", widgetType);
-	
-		Output(ind+1, "// using top_level_window.new_local() to allow garbage collection\n");
-		Output(ind+1, "// but .new() on any other widget owned by top_level_window\n");
-		
-		if (t.attr.get("class", "").match("_Window$")){
-			Output(ind+1, "local _arg1_ = vargv;\n");
-			Output(ind+1, "if (!_arg1_){\n");
-			local ar = t.attr.xywh;
-			local x = ar[0], y = ar[1], w = ar[2], h = ar[3];
-			Output(ind+2, "kTopW = %s.new_local(%d, %d, %s(%q));\n", widgetType, w, h, 
-				configuration.textfilter, t.attr.label);
-			local tmpType = t.attr.type;
-			t.attr.type = null;
-			Write.Atributes(t, ind+2, "");
-			t.attr.type = tmpType;
-			Output(ind+1, "} else {\n");
-			Output(ind+2, strCreateWidget);
-			Output(ind+1, "}\n");
-		}
-		else Output(ind+1, strCreateWidget);
+	local strCreateWidget = format("constructor(){\n");
+	Output(ind+1, strCreateWidget);
+	local ar = t.attr.xywh;
+	local x = ar[0], y = ar[1], w = ar[2], h = ar[3];
+	Output(ind+2, "base.constructor(%d, %d, %d, %d);\n", x, y, w, h);
+	if (! (t.attr.get("class", "")).match("_Window$") ) {
+		t.xoffset <- "_x + ";
+		t.yoffset <- "_y + ";
+		Output(ind+2, "local _x = %d, _y = %d;\n", x, y);
 	}
 
 	FindMembers.group(t.body, vars);
