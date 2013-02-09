@@ -522,35 +522,33 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 	}
     SafeWriteFmt(v,write,up,"\t],\n");
 
-	SafeWriteFmt(v,write,up,"\toutervalues = [\n");
+	SafeWriteFmt(v,write,up,"\toutervalues = [\n\t\t//[type, src, name],\n");
 	for(i=0;i<noutervalues;i++){
-		SafeWriteFmt(v,write,up,"\t\t/*%d*/{type=%d,\n", i, _outervalues[i]._type);
-		SafeWriteFmt(v,write,up,"\t\tsrc=");
+		SafeWriteFmt(v,write,up,"\t\t/*%d*/[%d, ", i, _outervalues[i]._type);
 		_CHECK_IO(WriteObjectAsCode(v,up,write,_outervalues[i]._src));
-		SafeWriteFmt(v,write,up,",\n");
-		SafeWriteFmt(v,write,up,"\t\tname=");
+		SafeWriteFmt(v,write,up,", ");
 		_CHECK_IO(WriteObjectAsCode(v,up,write,_outervalues[i]._name));
-		SafeWriteFmt(v,write,up,"},\n");
+		SafeWriteFmt(v,write,up,"],\n");
 	}
     SafeWriteFmt(v,write,up,"\t],\n");
 
-	SafeWriteFmt(v,write,up,"\tlocalvarinfos = [\n");
+	SafeWriteFmt(v,write,up,"\tlocalvarinfos = [\n\t\t//[pos, name, start_op, end_op, scope, type],\n");
 	for(i=0;i<nlocalvarinfos;i++){
 	    SQLocalVarInfo &lvi=_localvarinfos[i];
-		SafeWriteFmt(v,write,up,"\t\t/*%d*/{name=", i);
+		SafeWriteFmt(v,write,up,"\t\t/*%d*/[", i);
+		SafeWriteFmt(v,write,up,"%d, ", lvi._pos);
 		_CHECK_IO(WriteObjectAsCode(v,up,write,lvi._name));
-		SafeWriteFmt(v,write,up,", pos=%d", lvi._pos);
-		SafeWriteFmt(v,write,up,", start_op=%d", lvi._start_op);
-		SafeWriteFmt(v,write,up,", end_op=%d", lvi._end_op);
-		SafeWriteFmt(v,write,up,", scope=%d", lvi._scope);
-		SafeWriteFmt(v,write,up,", type=%d},\n", lvi._type);
+		SafeWriteFmt(v,write,up,", %d", lvi._start_op);
+		SafeWriteFmt(v,write,up,", %d", lvi._end_op);
+		SafeWriteFmt(v,write,up,", %d", lvi._scope);
+		SafeWriteFmt(v,write,up,", %d],\n", lvi._type);
 	}
     SafeWriteFmt(v,write,up,"\t],\n");
 
-	SafeWriteFmt(v,write,up,"\tlineinfos = [\n");
+	SafeWriteFmt(v,write,up,"\tlineinfos = [\n\t\t//[op, line],\n");
 	for(i=0;i<nlineinfos;i++){
 	    SQLineInfo &li=_lineinfos[i];
-		SafeWriteFmt(v,write,up,"\t\t/*%d*/{line=%d, op=%d},\n", i, li._line, li._op);
+		SafeWriteFmt(v,write,up,"\t\t/*%d*/[%d, %d],\n", i, li._op, li._line);
 	}
     SafeWriteFmt(v,write,up,"\t],\n");
 
@@ -636,17 +634,17 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 	}
     SafeWriteFmt(v,write,up,"\t],\n");
 
-	SafeWriteFmt(v,write,up,"\tfunctions = [");
+	SafeWriteFmt(v,write,up,"\tfunctions = [\n");
 	for(i=0;i<nfunctions;i++){
-	    SafeWriteFmt(v,write,up,"/*%d*/", i);
+	    SafeWriteFmt(v,write,up,"/*function %d*/", i);
 	    _CHECK_IO(_funcproto(_functions[i])->SaveAsSource(v,up,write));
 	    SafeWriteFmt(v,write,up,",\n");
 	}
     SafeWriteFmt(v,write,up,"],\n");
 
-	SafeWriteFmt(v,write,up,"\tstacksize = %d,\n", sizeof(_stacksize));
-	SafeWriteFmt(v,write,up,"\tbgenerator = %d,\n", sizeof(_bgenerator));
-	SafeWriteFmt(v,write,up,"\tvarparams = %d,\n", sizeof(_varparams));
+	SafeWriteFmt(v,write,up,"\tstacksize = %d,\n", _stacksize);
+	SafeWriteFmt(v,write,up,"\tbgenerator = %d,\n", _bgenerator);
+	SafeWriteFmt(v,write,up,"\tvarparams = %d,\n", _varparams);
 	SafeWriteFmt(v,write,up,"}");
 	return true;
 }

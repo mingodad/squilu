@@ -1076,10 +1076,10 @@ public:
 			varname = Expect(TK_IDENTIFIER);
 			checkLocalNameScope(varname, _scope.nested);
 			Expect(_SC('('));
+			_fs->PushLocalVariable(varname, _scope.nested, _VAR_CLOSURE);
 			CreateFunction(varname,false);
 			_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
 			_fs->PopTarget();
-			_fs->PushLocalVariable(varname, _scope.nested, _VAR_CLOSURE);
 			return;
 		}
 
