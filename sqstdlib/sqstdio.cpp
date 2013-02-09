@@ -370,6 +370,18 @@ SQRESULT sqstd_writeclosuretofile(HSQUIRRELVM v,const SQChar *filename)
 	return SQ_ERROR; //forward the error
 }
 
+SQRESULT sqstd_writeclosuretofile_as_source(HSQUIRRELVM v,const SQChar *filename)
+{
+	SQFILE file = sqstd_fopen(filename,_SC("wb+"));
+	if(!file) return sq_throwerror(v,_SC("cannot open the file"));
+	if(SQ_SUCCEEDED(sq_writeclosure_as_source(v,file_write,file))) {
+		sqstd_fclose(file);
+		return SQ_OK;
+	}
+	sqstd_fclose(file);
+	return SQ_ERROR; //forward the error
+}
+
 SQInteger _g_io_loadfile(HSQUIRRELVM v)
 {
 	const SQChar *filename;

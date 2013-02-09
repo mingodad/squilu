@@ -1407,10 +1407,24 @@ SQRESULT sq_writeclosure(HSQUIRRELVM v,SQWRITEFUNC w,SQUserPointer up)
 	_GETSAFE_OBJ(v, -1, OT_CLOSURE,o);
 	unsigned short tag = SQ_BYTECODE_STREAM_TAG;
 	if(_closure(*o)->_function->_noutervalues)
-		return sq_throwerror(v,_SC("a closure with free valiables bound it cannot be serialized"));
+		return sq_throwerror(v,_SC("a closure with free valiables bound cannot be serialized"));
 	if(w(up,&tag,2) != 2)
 		return sq_throwerror(v,_SC("io error"));
 	if(!_closure(*o)->Save(v,up,w))
+		return SQ_ERROR;
+	return SQ_OK;
+}
+
+SQRESULT sq_writeclosure_as_source(HSQUIRRELVM v,SQWRITEFUNC w,SQUserPointer up)
+{
+	SQObjectPtr *o = NULL;
+	_GETSAFE_OBJ(v, -1, OT_CLOSURE,o);
+	if(_closure(*o)->_function->_noutervalues)
+		return sq_throwerror(v,_SC("a closure with free valiables bound cannot be serialized"));
+    const SQChar decl[] = _SC("local bytecode = ");
+	if(w(up, (void*)decl, scstrlen(decl)) != scstrlen(decl))
+		return sq_throwerror(v,_SC("io error"));
+	if(!_closure(*o)->SaveAsSource(v,up,w))
 		return SQ_ERROR;
 	return SQ_OK;
 }

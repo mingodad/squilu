@@ -507,6 +507,7 @@ SQUIRREL_API SQRESULT sq_resurrectunreachable(HSQUIRRELVM v);
 
 /*serialization*/
 SQUIRREL_API SQRESULT sq_writeclosure(HSQUIRRELVM vm,SQWRITEFUNC writef,SQUserPointer up);
+SQUIRREL_API SQRESULT sq_writeclosure_as_source(HSQUIRRELVM vm,SQWRITEFUNC writef,SQUserPointer up);
 SQUIRREL_API SQRESULT sq_readclosure(HSQUIRRELVM vm,SQREADFUNC readf,SQUserPointer up);
 
 /*mem allocation*/

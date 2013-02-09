@@ -91,6 +91,7 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 {
 	int i;
 	int compiles_only = 0;
+	int compiles_as_source_only = 0;
 	//static SQChar temp[500];
 	//const SQChar *ret=NULL;
 	char * output = NULL;
@@ -112,6 +113,9 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 					break;
 				case 'c':
 					compiles_only = 1;
+					break;
+				case 's':
+					compiles_as_source_only = 1;
 					break;
 				case 'o':
 					if(arg < argc) {
@@ -169,6 +173,22 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 #endif
 					}
 					if(SQ_SUCCEEDED(sqstd_writeclosuretofile(v,outfile)))
+						return _DONE;
+				}
+			}
+			else if(compiles_as_source_only) {
+				if(SQ_SUCCEEDED(sqstd_loadfile(v,filename,SQTrue))){
+					const SQChar *outfile = _SC("out.nut");
+					if(output) {
+#ifdef SQUNICODE
+						int len = (int)(strlen(output)+1);
+						mbstowcs(sq_getscratchpad(v,len*sizeof(SQChar)),output,len);
+						outfile = sq_getscratchpad(v,-1);
+#else
+						outfile = output;
+#endif
+					}
+					if(SQ_SUCCEEDED(sqstd_writeclosuretofile_as_source(v,outfile)))
 						return _DONE;
 				}
 			}

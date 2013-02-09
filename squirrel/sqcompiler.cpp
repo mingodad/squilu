@@ -1633,7 +1633,7 @@ if(color == "yellow"){
 				if(_token == _SC('=')) {
 				    if(is_reference) Error(_SC("parameter passed by reference can't have default value"));
 					Lex();
-					if(_token == _SC('[') || _token == _SC('{')) Error(_SC("array/table default parameter not supported"));
+					if(_token == _SC('[') || _token == _SC('{')) Error(_SC("default parameter with array/table values not supported"));
 					Expression();
 					funcstate->AddDefaultParam(_fs->TopTarget());
 					defparams++;

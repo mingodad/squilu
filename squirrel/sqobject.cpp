@@ -269,6 +269,19 @@ bool SafeWrite(HSQUIRRELVM v,SQWRITEFUNC write,SQUserPointer up,SQUserPointer de
 	return true;
 }
 
+bool SafeWriteFmt(HSQUIRRELVM v,SQWRITEFUNC write,SQUserPointer up, const SQChar *fmt, ...)
+{
+    if(fmt){
+        SQChar str[8192];
+        va_list vl;
+        va_start(vl, fmt);
+        SQInteger len = scvsnprintf(str, sizeof(str), fmt, vl);
+        va_end(vl);
+        return SafeWrite(v, write, up, str, len);
+    }
+	return false;
+}
+
 bool SafeRead(HSQUIRRELVM v,SQWRITEFUNC read,SQUserPointer up,SQUserPointer dest,SQInteger size)
 {
 	if(size && read(up,dest,size) != size) {
@@ -289,6 +302,37 @@ bool CheckTag(HSQUIRRELVM v,SQWRITEFUNC read,SQUserPointer up,SQUnsignedInteger3
 	_CHECK_IO(SafeRead(v,read,up,&t,sizeof(t)));
 	if(t != tag){
 		v->Raise_Error(_SC("invalid or corrupted closure stream"));
+		return false;
+	}
+	return true;
+}
+
+bool WriteObjectAsCode(HSQUIRRELVM v,SQUserPointer up,SQWRITEFUNC write,SQObjectPtr &o, bool withQuotes=true)
+{
+	SQChar buf[32];
+	SQInteger sz;
+	switch(type(o)){
+	case OT_STRING:{
+            const SQChar *d1 = withQuotes ? _SC("\"") : _SC("[==[");
+            const SQChar *d2 = withQuotes ? _SC("\"") : _SC("]==]");
+            _CHECK_IO(SafeWrite(v,write,up, (void*)d1, scstrlen(d1)));
+            _CHECK_IO(SafeWrite(v,write,up, _stringval(o),rsl(_string(o)->_len)));
+            _CHECK_IO(SafeWrite(v,write,up, (void*)d2, scstrlen(d2)));
+        }
+		break;
+	case OT_INTEGER:
+        sz = scsnprintf(buf, sizeof(buf), "%d", _integer(o));
+		_CHECK_IO(SafeWrite(v,write,up,buf,sz));break;
+	case OT_FLOAT:
+        sz = scsnprintf(buf, sizeof(buf), "%f", _float(o));
+		_CHECK_IO(SafeWrite(v,write,up,buf,sz));break;
+	case OT_NULL:{
+            const SQChar str[] = _SC("null");
+            _CHECK_IO(SafeWrite(v,write,up, (void*)str, scstrlen(str)));
+        }
+		break;
+	default:
+		v->Raise_Error(_SC("cannot serialize a %s"),GetTypeName(o));
 		return false;
 	}
 	return true;
@@ -355,6 +399,12 @@ bool SQClosure::Save(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 	_CHECK_IO(WriteTag(v,write,up,sizeof(SQFloat)));
 	_CHECK_IO(_function->Save(v,up,write));
 	_CHECK_IO(WriteTag(v,write,up,SQ_CLOSURESTREAM_TAIL));
+	return true;
+}
+
+bool SQClosure::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
+{
+	_CHECK_IO(_function->SaveAsSource(v,up,write));
 	return true;
 }
 
@@ -443,6 +493,161 @@ bool SQFunctionProto::Save(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 	_CHECK_IO(SafeWrite(v,write,up,&_stacksize,sizeof(_stacksize)));
 	_CHECK_IO(SafeWrite(v,write,up,&_bgenerator,sizeof(_bgenerator)));
 	_CHECK_IO(SafeWrite(v,write,up,&_varparams,sizeof(_varparams)));
+	return true;
+}
+
+bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
+{
+	SQInteger i,nliterals = _nliterals,nparameters = _nparameters;
+	SQInteger noutervalues = _noutervalues,nlocalvarinfos = _nlocalvarinfos;
+	SQInteger nlineinfos=_nlineinfos,ninstructions = _ninstructions,nfunctions=_nfunctions;
+	SQInteger ndefaultparams = _ndefaultparams;
+	SafeWriteFmt(v,write,up,"{\n");
+	SafeWriteFmt(v,write,up,"\tsource_name = \"%s\",\n", _stringval(_sourcename));
+	SafeWriteFmt(v,write,up,"\tfunction_name = \"%s\",\n", _stringval(_name));
+
+	SafeWriteFmt(v,write,up,"\tliterals = [\n");
+	for(i=0;i<nliterals;i++){
+		SafeWriteFmt(v,write,up,"\t\t/*%d*/", i);
+		_CHECK_IO(WriteObjectAsCode(v,up,write,_literals[i], false));
+		SafeWriteFmt(v,write,up,",\n");
+	}
+    SafeWriteFmt(v,write,up,"\t],\n");
+
+	SafeWriteFmt(v,write,up,"\tparameters = [\n");
+	for(i=0;i<nparameters;i++){
+		SafeWriteFmt(v,write,up,"\t\t/*%d*/", i);
+		_CHECK_IO(WriteObjectAsCode(v,up,write,_parameters[i]));
+		SafeWriteFmt(v,write,up,",\n");
+	}
+    SafeWriteFmt(v,write,up,"\t],\n");
+
+	SafeWriteFmt(v,write,up,"\toutervalues = [\n");
+	for(i=0;i<noutervalues;i++){
+		SafeWriteFmt(v,write,up,"\t\t/*%d*/{type=%d,\n", i, _outervalues[i]._type);
+		SafeWriteFmt(v,write,up,"\t\tsrc=");
+		_CHECK_IO(WriteObjectAsCode(v,up,write,_outervalues[i]._src));
+		SafeWriteFmt(v,write,up,",\n");
+		SafeWriteFmt(v,write,up,"\t\tname=");
+		_CHECK_IO(WriteObjectAsCode(v,up,write,_outervalues[i]._name));
+		SafeWriteFmt(v,write,up,"},\n");
+	}
+    SafeWriteFmt(v,write,up,"\t],\n");
+
+	SafeWriteFmt(v,write,up,"\tlocalvarinfos = [\n");
+	for(i=0;i<nlocalvarinfos;i++){
+	    SQLocalVarInfo &lvi=_localvarinfos[i];
+		SafeWriteFmt(v,write,up,"\t\t/*%d*/{name=", i);
+		_CHECK_IO(WriteObjectAsCode(v,up,write,lvi._name));
+		SafeWriteFmt(v,write,up,", pos=%d", lvi._pos);
+		SafeWriteFmt(v,write,up,", start_op=%d", lvi._start_op);
+		SafeWriteFmt(v,write,up,", end_op=%d", lvi._end_op);
+		SafeWriteFmt(v,write,up,", scope=%d", lvi._scope);
+		SafeWriteFmt(v,write,up,", type=%d},\n", lvi._type);
+	}
+    SafeWriteFmt(v,write,up,"\t],\n");
+
+	SafeWriteFmt(v,write,up,"\tlineinfos = [\n");
+	for(i=0;i<nlineinfos;i++){
+	    SQLineInfo &li=_lineinfos[i];
+		SafeWriteFmt(v,write,up,"\t\t/*%d*/{line=%d, op=%d},\n", i, li._line, li._op);
+	}
+    SafeWriteFmt(v,write,up,"\t],\n");
+
+	SafeWriteFmt(v,write,up,"\tdefaultparams = [");
+	for(i=0;i<ndefaultparams;i++){
+		SafeWriteFmt(v,write,up,"%d,", _defaultparams[i]);
+	}
+    SafeWriteFmt(v,write,up,"],\n");
+
+	SafeWriteFmt(v,write,up,"\tinstructions = [\n");
+    SafeWriteFmt(v,write,up,"\t\t//[op_str, op, arg0, arg1, arg2, arg3],\n");
+	const SQChar *str_op;
+#define CASE_OP(v) case v: str_op = _SC(#v); break;
+	for(i=0;i<ninstructions;i++){
+	    SQInstruction &inst = _instructions[i];
+	    switch(inst.op){
+            CASE_OP(_OP_LINE)
+            CASE_OP(_OP_LOAD)
+            CASE_OP(_OP_LOADINT)
+            CASE_OP(_OP_LOADFLOAT)
+            CASE_OP(_OP_DLOAD)
+            CASE_OP(_OP_TAILCALL)
+            CASE_OP(_OP_CALL)
+            CASE_OP(_OP_PREPCALL)
+            CASE_OP(_OP_PREPCALLK)
+            CASE_OP(_OP_GETK)
+            CASE_OP(_OP_MOVE)
+            CASE_OP(_OP_NEWSLOT)
+            CASE_OP(_OP_DELETE)
+            CASE_OP(_OP_SET)
+            CASE_OP(_OP_GET)
+            CASE_OP(_OP_EQ)
+            CASE_OP(_OP_NE)
+            CASE_OP(_OP_ADD)
+            CASE_OP(_OP_SUB)
+            CASE_OP(_OP_MUL)
+            CASE_OP(_OP_DIV)
+            CASE_OP(_OP_MOD)
+            CASE_OP(_OP_BITW)
+            CASE_OP(_OP_RETURN)
+            CASE_OP(_OP_LOADNULLS)
+            CASE_OP(_OP_LOADROOT)
+            CASE_OP(_OP_LOADBOOL)
+            CASE_OP(_OP_DMOVE)
+            CASE_OP(_OP_JMP)
+            //CASE_OP(_OP_JNZ)
+            CASE_OP(_OP_JCMP)
+            CASE_OP(_OP_JZ)
+            CASE_OP(_OP_SETOUTER)
+            CASE_OP(_OP_GETOUTER)
+            CASE_OP(_OP_NEWOBJ)
+            CASE_OP(_OP_APPENDARRAY)
+            CASE_OP(_OP_COMPARITH)
+            CASE_OP(_OP_INC)
+            CASE_OP(_OP_INCL)
+            CASE_OP(_OP_PINC)
+            CASE_OP(_OP_PINCL)
+            CASE_OP(_OP_CMP)
+            CASE_OP(_OP_EXISTS)
+            CASE_OP(_OP_INSTANCEOF)
+            CASE_OP(_OP_AND)
+            CASE_OP(_OP_OR)
+            CASE_OP(_OP_NEG)
+            CASE_OP(_OP_NOT)
+            CASE_OP(_OP_BWNOT)
+            CASE_OP(_OP_CLOSURE)
+            CASE_OP(_OP_YIELD)
+            CASE_OP(_OP_RESUME)
+            CASE_OP(_OP_FOREACH)
+            CASE_OP(_OP_POSTFOREACH)
+            CASE_OP(_OP_CLONE)
+            CASE_OP(_OP_TYPEOF)
+            CASE_OP(_OP_PUSHTRAP)
+            CASE_OP(_OP_POPTRAP)
+            CASE_OP(_OP_THROW)
+            CASE_OP(_OP_NEWSLOTA)
+            CASE_OP(_OP_GETBASE)
+            CASE_OP(_OP_CLOSE)
+            default:
+                str_op = _SC("???");
+	    }
+		SafeWriteFmt(v,write,up,"\t\t/*%d*/[\"%s\", %d, %d, %d, %d, %d],\n", i, str_op, inst.op, inst._arg0, inst._arg1, inst._arg2, inst._arg3);
+	}
+    SafeWriteFmt(v,write,up,"\t],\n");
+
+	SafeWriteFmt(v,write,up,"\tfunctions = [");
+	for(i=0;i<nfunctions;i++){
+	    SafeWriteFmt(v,write,up,"/*%d*/", i);
+	    _CHECK_IO(_funcproto(_functions[i])->SaveAsSource(v,up,write));
+	    SafeWriteFmt(v,write,up,",\n");
+	}
+    SafeWriteFmt(v,write,up,"],\n");
+
+	SafeWriteFmt(v,write,up,"\tstacksize = %d,\n", sizeof(_stacksize));
+	SafeWriteFmt(v,write,up,"\tbgenerator = %d,\n", sizeof(_bgenerator));
+	SafeWriteFmt(v,write,up,"\tvarparams = %d,\n", sizeof(_varparams));
+	SafeWriteFmt(v,write,up,"}");
 	return true;
 }
 
