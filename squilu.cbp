@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="ourbiz-client.nut" />
+				<Option parameters="test-weakref.nut" />
 				<Compiler>
 					<Add option="-g" />
 					<Add directory="../zeromq-3.2.2/include" />
@@ -134,6 +134,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="test.nut" />
 				<Compiler>
 					<Add option="-Wall" />
 					<Add option="-g" />
@@ -172,6 +173,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fno-strict-aliasing" />
+			<Add option="-D_DEBUG_DUMP2=1" />
 			<Add option="-DWITH_DAD_EXTRAS=1" />
 			<Add option="-DSQ_SUBLATIN=1" />
 			<Add option="-DNEED_SUBLATIN_C2=1" />
@@ -209,6 +211,7 @@
 			<Add directory="ext/myaxtls" />
 			<Add directory="../dadbiz++/third-party/sqlite3" />
 			<Add directory="../dadbiz++/third-party/discount-2.1.2" />
+			<Add directory="/usr/include/postgresql" />
 		</Compiler>
 		<Linker>
 			<Add library="m" />
@@ -219,6 +222,8 @@
 			<Add directory="ext/mpdecimal" />
 			<Add directory="../dadbiz++/third-party/discount-2.1.2" />
 		</Linker>
+		<Unit filename="ext/dynamic_library.cpp" />
+		<Unit filename="ext/dynamic_library.h" />
 		<Unit filename="ext/fpdf.cpp" />
 		<Unit filename="ext/fpdf.h" />
 		<Unit filename="ext/lua_socket.cpp" />
@@ -245,6 +250,7 @@
 		<Unit filename="ext/sq_markdown.cpp" />
 		<Unit filename="ext/sq_mix.cpp" />
 		<Unit filename="ext/sq_mongoose.cpp" />
+		<Unit filename="ext/sq_postgresql.cpp" />
 		<Unit filename="ext/sq_rs232.c">
 			<Option compilerVar="CC" />
 		</Unit>
