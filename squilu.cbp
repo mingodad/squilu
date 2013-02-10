@@ -212,6 +212,7 @@
 			<Add directory="../dadbiz++/third-party/sqlite3" />
 			<Add directory="../dadbiz++/third-party/discount-2.1.2" />
 			<Add directory="/usr/include/postgresql" />
+			<Add directory="/usr/lib/jvm/default-java/include" />
 		</Compiler>
 		<Linker>
 			<Add library="m" />
@@ -247,6 +248,7 @@
 		<Unit filename="ext/sq_fs.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="ext/sq_java.cpp" />
 		<Unit filename="ext/sq_markdown.cpp" />
 		<Unit filename="ext/sq_mix.cpp" />
 		<Unit filename="ext/sq_mongoose.cpp" />

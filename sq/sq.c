@@ -451,6 +451,7 @@ SQRESULT sqext_register_tinyxml2(HSQUIRRELVM v);
 SQRESULT sqext_register_decimal(HSQUIRRELVM v);
 SQRESULT sqext_register_markdown(HSQUIRRELVM v);
 SQRESULT sqext_register_PostgreSQL(HSQUIRRELVM v);
+SQRESULT sqext_register_Java(HSQUIRRELVM v);
 
 int main(int argc, char* argv[])
 {
@@ -494,6 +495,7 @@ int main(int argc, char* argv[])
 	sqext_register_markdown(v);
 
 	sqext_register_sq_zmq3(v);
+	sqext_register_Java(v);
 
 	sqext_register_rs232(v);
 #ifdef WITH_FLTK
