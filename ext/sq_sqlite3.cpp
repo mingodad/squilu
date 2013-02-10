@@ -1987,17 +1987,17 @@ static SQRegFunction sq_sqlite3_methods[] =
 	_DECL_FUNC(create_function,  4, _SC("xsic")),
 	_DECL_FUNC(create_aggregate,  5, _SC("xsicc")),
 #ifndef WIN32
-	_DECL_FUNC(temp_directory,  -2, _SC("xs")),
+	_DECL_FUNC(temp_directory,  2, _SC("xs")),
 #endif
 	_DECL_FUNC(enable_shared_cache,  2, _SC("xb")),
 	_DECL_FUNC(changes,  1, _SC("x")),
-	_DECL_FUNC(exec,  -2, _SC("xs")),
-	_DECL_FUNC(exec_dml,  -2, _SC("xs")),
-	_DECL_FUNC(exec_get_first_row,  -2, _SC("xs")),
-	_DECL_FUNC(exec_get_one,  -2, _SC("xs")),
+	_DECL_FUNC(exec,  2, _SC("xs")),
+	_DECL_FUNC(exec_dml,  2, _SC("xs")),
+	_DECL_FUNC(exec_get_first_row,  2, _SC("xs")),
+	_DECL_FUNC(exec_get_one,  2, _SC("xs")),
 	_DECL_FUNC(get_db_name,  1, _SC("x")),
 	_DECL_FUNC(last_row_id,  1, _SC("x")),
-	_DECL_FUNC(prepare,  -2, _SC("xs")),
+	_DECL_FUNC(prepare,  2, _SC("xs")),
 	_DECL_FUNC(set_busy_timeout,  -1, _SC("xi")),
 	_DECL_FUNC(total_changes,  1, _SC("x")),
 #ifdef SQLITE_HAS_CODEC
