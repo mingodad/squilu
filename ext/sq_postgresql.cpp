@@ -446,6 +446,59 @@ static SQRegFunction sq_pgsql_result_methods[] =
 };
 #undef _DECL_FUNC
 
+struct PgSqlStatement {
+    PGconn *db;
+    PGresult *result;
+    char name[64];
+};
+
+static const SQChar *PostgreSQL_Statement_TAG = _SC("PostgreSQL_Statement");
+
+static SQRESULT get_pgsql_statement_instance(HSQUIRRELVM v, SQInteger idx, PgSqlStatement **self){
+    SQRESULT _rc_;
+	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)self,(void*)PostgreSQL_Statement_TAG)) < 0) return _rc_;
+	if(!*self) return sq_throwerror(v, _SC("PGstatement is closed"));
+	return _rc_;
+}
+
+#define GET_pgsql_statement_INSTANCE_AT(idx) \
+	PgSqlStatement *self=NULL; \
+	if((_rc_ = get_pgsql_statement_instance(v,idx,&self)) < 0) return _rc_;
+
+#define GET_pgsql_statement_INSTANCE() GET_pgsql_statement_INSTANCE_AT(1)
+
+static SQRESULT sq_pgsql_statement_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+{
+	PgSqlStatement *self = ((PgSqlStatement *)p);
+	if (self && self->result){
+        char sql[128];
+        snprintf(sql, sizeof(sql), "DEALLOCATE '%s'", self->name);
+        PGresult *qres = dlPQexec(self->db, sql);
+        bool is_ok = dlPQresultStatus(qres) != PGRES_BAD_RESPONSE;
+        dlPQclear(qres);
+        if(is_ok) dlPQclear(self->result);
+        sq_free(self, sizeof(PgSqlStatement));
+	}
+	return 0;
+}
+
+static SQRESULT sq_pgsql_statement_close(HSQUIRRELVM v){
+	SQ_FUNC_VARS_NO_TOP(v);
+	GET_pgsql_statement_INSTANCE();
+	sq_pgsql_statement_releasehook(self, 0, v);
+    sq_setinstanceup(v, 1, 0); //next calls will fail with "Pgstatement is closed"
+	return 0;
+}
+
+
+#define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_pgsql_statement_##name,nparams,tycheck}
+static SQRegFunction sq_pgsql_statement_methods[] =
+{
+	_DECL_FUNC(close,  1, _SC("x")),
+	{0,0}
+};
+#undef _DECL_FUNC
+
 static SQRESULT sq_pgsql_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	PGconn *self = ((PGconn *)p);
@@ -545,6 +598,32 @@ static SQRESULT sq_pgsql_exec_query(HSQUIRRELVM v){
             }
         }
     }
+    return sq_throwerror(v, dlPQerrorMessage(self));
+}
+
+static SQRESULT sq_pgsql_prepare(HSQUIRRELVM v){
+	SQ_FUNC_VARS_NO_TOP(v);
+	GET_pgsql_INSTANCE();
+    SQ_GET_STRING(v, 2, szSQL);
+
+    PgSqlStatement *stmt = (PgSqlStatement*)sq_malloc(sizeof(PgSqlStatement));
+    stmt->db = self;
+    snprintf(stmt->name, sizeof(stmt->name), "sq_pg_preared_stmt_%p", stmt);
+
+    stmt->result = dlPQprepare(self, stmt->name, szSQL, 0, NULL);
+
+    if(dlPQresultStatus(stmt->result) == PGRES_COMMAND_OK){
+        sq_pushroottable(v);
+        sq_pushstring(v, PostgreSQL_Statement_TAG, -1);
+        if(sq_get(v, -2) == SQ_OK){
+            if(sq_createinstance(v, -1) == SQ_OK){
+                sq_setinstanceup(v, -1, stmt);
+                sq_setreleasehook(v, -1, sq_pgsql_statement_releasehook);
+                return 1;
+            }
+        }
+    }
+    sq_free(stmt, sizeof(PgSqlStatement));
     return sq_throwerror(v, dlPQerrorMessage(self));
 }
 
@@ -696,6 +775,7 @@ static SQRegFunction sq_pgsql_methods[] =
 	_DECL_FUNC(exec_dml,  2, _SC("xs")),
 	_DECL_FUNC(exec_scalar,  2, _SC("xs")),
 	_DECL_FUNC(exec_query,  2, _SC("xs")),
+	_DECL_FUNC(prepare,  2, _SC("xs")),
 	_DECL_FUNC(error_message,  1, _SC("x")),
 	_DECL_FUNC(version,  1, _SC("x")),
 	_DECL_FUNC(get_blob_field,  2, _SC("xi")),
@@ -717,6 +797,12 @@ SQRESULT sqext_register_PostgreSQL(HSQUIRRELVM v)
     sq_newclass(v,SQFalse);
     sq_settypetag(v,-1,(void*)PostgreSQL_TAG);
     sq_insert_reg_funcs(v, sq_pgsql_methods);
+    sq_newslot(v,-3,SQTrue);
+
+    sq_pushstring(v,PostgreSQL_Statement_TAG,-1);
+    sq_newclass(v,SQFalse);
+    sq_settypetag(v,-1,(void*)PostgreSQL_Statement_TAG);
+    sq_insert_reg_funcs(v, sq_pgsql_statement_methods);
     sq_newslot(v,-3,SQTrue);
 
     sq_pushstring(v,PostgreSQL_Result_TAG,-1);
