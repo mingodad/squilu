@@ -895,6 +895,7 @@ extern "C" {
     SQRESULT sqext_register_decimal(HSQUIRRELVM v);
     SQRESULT sqext_register_fltklib(HSQUIRRELVM v);
     SQRESULT sqext_register_markdown(HSQUIRRELVM v);
+    SQRESULT sqext_register_PostgreSQL(HSQUIRRELVM v);
 }
 
 
@@ -957,6 +958,7 @@ int main(int argc, char **argv) {
 	sqext_register_base64(v);
 	sqext_register_Sq_Fpdf(v);
 	sqext_register_SQLite3(v);
+	sqext_register_PostgreSQL(v);
 	//sqext_register_dad_utils(v);
 	sqext_register_mix(v);
 	sqext_register_sqfs(v);

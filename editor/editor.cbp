@@ -73,6 +73,7 @@
 			<Add directory="../../dadbiz++/third-party/flu" />
 			<Add directory="../../dadbiz++/third-party/libharu/include" />
 			<Add directory="../../dadbiz++/third-party/discount-2.1.2" />
+			<Add directory="/usr/include/postgresql" />
 		</Compiler>
 		<Linker>
 			<Add library="fltk_images" />
@@ -102,6 +103,8 @@
 			<Add directory="../../dadbiz++/third-party/discount-2.1.2" />
 		</Linker>
 		<Unit filename="editor.cxx" />
+		<Unit filename="../ext/dynamic_library.cpp" />
+		<Unit filename="../ext/dynamic_library.h" />
 		<Unit filename="../ext/fpdf.cpp" />
 		<Unit filename="../ext/fpdf.h" />
 		<Unit filename="../ext/lua_socket.cpp" />
@@ -125,6 +128,7 @@
 		<Unit filename="../ext/sq_markdown.cpp" />
 		<Unit filename="../ext/sq_mix.cpp" />
 		<Unit filename="../ext/sq_mongoose.cpp" />
+		<Unit filename="../ext/sq_postgresql.cpp" />
 		<Unit filename="../ext/sq_rs232.c">
 			<Option compilerVar="CC" />
 		</Unit>
