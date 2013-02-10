@@ -181,8 +181,6 @@ static PQconnectdb_t dlPQconnectdb = 0;
 #define LIBPQ_NAME "libpq.so"
 #endif
 
-#define DONT_DELETE_MSG 1
-
 static bool load_libpq()
 {
     if(dlPQconnectdb) return true;
