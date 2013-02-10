@@ -17,9 +17,9 @@
 #define INIT_TEMP_STRING() { _longstr.resize(0);}
 #define APPEND_CHAR(c) { _longstr.push_back(c);}
 #define TERMINATE_BUFFER() {_longstr.push_back(_SC('\0'));}
-#define ADD_KEYWORD(key,id) _keywords->NewSlot( SQString::Create(ss, _SC(#key)) ,SQInteger(id))
+#define ADD_KEYWORD(key,id) tbl->NewSlot( SQString::Create(_sharedstate, _SC(#key)) ,SQInteger(id))
 
-SQLexer::SQLexer(){}
+SQLexer::SQLexer(){_keywords=0;}
 SQLexer::~SQLexer()
 {
 	_keywords->Release();
@@ -30,7 +30,20 @@ void SQLexer::Init(SQSharedState *ss, SQLEXREADFUNC rg, SQUserPointer up,Compile
 	_errfunc = efunc;
 	_errtarget = ed;
 	_sharedstate = ss;
-	_keywords = SQTable::Create(ss, 26);
+	if(_keywords) _keywords->Release();
+    _keywords = GetKeywords();
+	_readf = rg;
+	_up = up;
+	_lasttokenline = _currentline = 1;
+	_currentcolumn = 0;
+	_prevtoken = -1;
+	_reached_eof = SQFalse;
+	Next();
+}
+
+SQTable * SQLexer::GetKeywords()
+{
+	SQTable *tbl = SQTable::Create(_sharedstate, 58 /*26*/);
 	ADD_KEYWORD(while, TK_WHILE);
 	ADD_KEYWORD(do, TK_DO);
 	ADD_KEYWORD(if, TK_IF);
@@ -93,16 +106,11 @@ void SQLexer::Init(SQSharedState *ss, SQLEXREADFUNC rg, SQUserPointer up,Compile
 	ADD_KEYWORD(enum,TK_ENUM);
 	ADD_KEYWORD(const,TK_CONST);
 	ADD_KEYWORD(__LINE__,TK___LINE__);
+	ADD_KEYWORD(__FUNCTION__,TK___FUNCTION__);
 	ADD_KEYWORD(__FILE__,TK___FILE__);
 	ADD_KEYWORD(new,TK_IGNORE);
 
-	_readf = rg;
-	_up = up;
-	_lasttokenline = _currentline = 1;
-	_currentcolumn = 0;
-	_prevtoken = -1;
-	_reached_eof = SQFalse;
-	Next();
+	return tbl;
 }
 
 void SQLexer::Error(const SQChar *err)
