@@ -1145,7 +1145,8 @@ public:
                     case TK_LOCAL_DOUBLE_T:
                     case TK_LOCAL_LONG_DOUBLE_T:
                         //default value 0.0
-                        _fs->AddInstruction(_OP_LOADFLOAT, dest,0);
+                        //_OP_LOADFLOAT is only valid when SQFloat size == SQInt32 size
+                        _fs->AddInstruction(_OP_LOADINT, dest,0);
                         declType = _VAR_FLOAT;
                         break;
                     //case TK_LOCAL:
