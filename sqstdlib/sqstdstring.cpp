@@ -7,17 +7,6 @@
 #include <ctype.h>
 #include <assert.h>
 
-#ifdef SQUNICODE
-#define scstrchr wcschr
-#define scsnprintf wsnprintf
-#define scatoi _wtoi
-#define scstrtok wcstok
-#else
-#define scstrchr strchr
-#define scsnprintf snprintf
-#define scatoi atoi
-#define scstrtok strtok
-#endif
 #define MAX_FORMAT_LEN	20
 #define MAX_WFORMAT_LEN	3
 #define ADDITIONAL_FORMAT_SPACE (100*sizeof(SQChar))

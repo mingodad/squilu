@@ -130,6 +130,8 @@ typedef wchar_t SQChar;
 typedef wchar_t USQChar;
 #define uchar(c)    ((unsigned short)(c))
 #define _SC(a) L##a
+#define scstrchr wcschr
+#define scsnprintf wsnprintf
 #define	scstrcmp	wcscmp
 #define scsprintf	swprintf
 #define scsnprintf	swnprintf
@@ -159,6 +161,8 @@ typedef char SQChar;
 typedef unsigned char USQChar;
 #define uchar(c)    ((unsigned char)(c))
 #define _SC(a) a
+#define scstrchr strchr
+#define scsnprintf snprintf
 #define	scstrcmp	strcmp
 #define scsprintf	sprintf
 #define scsnprintf	snprintf
