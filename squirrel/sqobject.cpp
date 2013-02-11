@@ -313,10 +313,18 @@ bool WriteObjectAsCode(HSQUIRRELVM v,SQUserPointer up,SQWRITEFUNC write,SQObject
 	SQInteger sz;
 	switch(type(o)){
 	case OT_STRING:{
+            const SQChar *str = _stringval(o);
+            const SQChar *needQuote = scstrchr(str, _SC('"'));
+            if(!needQuote) withQuotes = true;
+            else
+            {
+                needQuote = scstrchr(str, _SC('\n'));
+                if(!needQuote) withQuotes = true;
+            }
             const SQChar *d1 = withQuotes ? _SC("\"") : _SC("[==[");
             const SQChar *d2 = withQuotes ? _SC("\"") : _SC("]==]");
             _CHECK_IO(SafeWrite(v,write,up, (void*)d1, scstrlen(d1)));
-            _CHECK_IO(SafeWrite(v,write,up, _stringval(o),rsl(_string(o)->_len)));
+            _CHECK_IO(SafeWrite(v,write,up, (void*)str,rsl(_string(o)->_len)));
             _CHECK_IO(SafeWrite(v,write,up, (void*)d2, scstrlen(d2)));
         }
 		break;
@@ -570,7 +578,43 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
             default:
                 str_op = _SC("???");
 	    }
-		SafeWriteFmt(v,write,up,"\t\t/*%d*/[\"%s\", %d, %d, %d, %d, %d],\n", i, str_op, inst.op, inst._arg0, inst._arg1, inst._arg2, inst._arg3);
+		SafeWriteFmt(v,write,up,"\t\t/*%d*/[\"%s\", %d, %d, %d, %d, %d],", i, str_op, inst.op, inst._arg0, inst._arg1, inst._arg2, inst._arg3);
+
+        switch(inst.op){
+            case _OP_LOAD:
+            case _OP_DLOAD:
+            case _OP_PREPCALLK:
+            case _OP_GETK:{
+                SQInteger lidx = inst._arg1;
+                if(lidx >= 0xFFFFFFFF) SafeWriteFmt(v,write,up," /* null */");
+                else
+                {
+                    SafeWriteFmt(v,write,up," /*");
+                    _CHECK_IO(WriteObjectAsCode(v,up,write,_literals[lidx], false));
+                    SafeWriteFmt(v,write,up," */");
+                }
+                if(inst.op == _OP_DLOAD) {
+                    lidx = inst._arg3;
+                    if(lidx >= 0xFFFFFFFF)  SafeWriteFmt(v,write,up," /* null */");
+                    else {
+                        SafeWriteFmt(v,write,up," /*");
+                        _CHECK_IO(WriteObjectAsCode(v,up,write,_literals[lidx], false));
+                        SafeWriteFmt(v,write,up," */");
+                    }
+                }
+            }
+            break;
+            case _OP_LOADFLOAT:
+                    SafeWriteFmt(v,write,up," /* %f */", *((SQFloat*)&inst._arg1));
+            break;
+            case _OP_GETOUTER:
+                        SafeWriteFmt(v,write,up," /*");
+                        _CHECK_IO(WriteObjectAsCode(v,up,write,_outervalues[inst._arg1]._name, false));
+                        SafeWriteFmt(v,write,up," */");
+            break;
+            //default:
+        }
+        SafeWriteFmt(v,write,up,"\n");
 	}
     SafeWriteFmt(v,write,up,"\t],\n");
 
