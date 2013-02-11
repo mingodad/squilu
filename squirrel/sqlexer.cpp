@@ -43,7 +43,7 @@ void SQLexer::Init(SQSharedState *ss, SQLEXREADFUNC rg, SQUserPointer up,Compile
 
 SQTable * SQLexer::GetKeywords()
 {
-	SQTable *tbl = SQTable::Create(_sharedstate, 58 /*26*/);
+	SQTable *tbl = SQTable::Create(_sharedstate, (TK_LAST_ENUM_TOKEN - TK_FIRST_ENUM_TOKEN - 1) /*26*/);
 	ADD_KEYWORD(while, TK_WHILE);
 	ADD_KEYWORD(do, TK_DO);
 	ADD_KEYWORD(if, TK_IF);

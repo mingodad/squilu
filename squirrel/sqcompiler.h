@@ -5,7 +5,12 @@
 struct SQVM;
 
 enum SQKeywordsEnum {
-    TK_IDENTIFIER = 258,
+    TK_FIRST_ENUM_TOKEN = 258,
+    /*
+    the above token is only for internal purposes
+    like calculate total enum_tokens = TK_LAST_ENUM_TOKEN - TK_FIRST_ENUM_TOKEN -1
+    */
+    TK_IDENTIFIER,
     TK_STRING_LITERAL,
     TK_INTEGER,
     TK_FLOAT,
@@ -104,6 +109,11 @@ enum SQKeywordsEnum {
     TK_BIT_XOR_EQ,
     TK_BIT_SHIFT_LEFT_EQ,
     TK_BIT_SHIFT_RIGHT_EQ,
+    /*
+    the next token is only for internal purposes
+    like calculate total enum_tokens = TK_LAST_ENUM_TOKEN - TK_FIRST_ENUM_TOKEN -1
+    */
+    TK_LAST_ENUM_TOKEN
 };
 
 typedef void(*CompilerErrorFunc)(void *ud, const SQChar *s);
