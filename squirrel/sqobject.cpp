@@ -553,7 +553,7 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 
 	SafeWriteFmt(v,write,up,"\tliterals = [\n");
 	for(i=0;i<nliterals;i++){
-		SafeWriteFmt(v,write,up,"\t\t/*%d*/", i);
+		SafeWriteFmt(v,write,up,"\t\t/*%d*/ ", i);
 		_CHECK_IO(WriteObjectAsCode(v,up,write,_literals[i], false));
 		SafeWriteFmt(v,write,up,",\n");
 	}
@@ -561,7 +561,7 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 
 	SafeWriteFmt(v,write,up,"\tparameters = [\n");
 	for(i=0;i<nparameters;i++){
-		SafeWriteFmt(v,write,up,"\t\t/*%d*/", i);
+		SafeWriteFmt(v,write,up,"\t\t/*%d*/ ", i);
 		_CHECK_IO(WriteObjectAsCode(v,up,write,_parameters[i]));
 		SafeWriteFmt(v,write,up,",\n");
 	}
@@ -569,7 +569,7 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 
 	SafeWriteFmt(v,write,up,"\toutervalues = [\n\t\t//[type, src, name],\n");
 	for(i=0;i<noutervalues;i++){
-		SafeWriteFmt(v,write,up,"\t\t/*%d*/[%d, ", i, _outervalues[i]._type);
+		SafeWriteFmt(v,write,up,"\t\t/*%d*/ [%d, ", i, _outervalues[i]._type);
 		_CHECK_IO(WriteObjectAsCode(v,up,write,_outervalues[i]._src));
 		SafeWriteFmt(v,write,up,", ");
 		_CHECK_IO(WriteObjectAsCode(v,up,write,_outervalues[i]._name));
@@ -580,7 +580,7 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 	SafeWriteFmt(v,write,up,"\tlocalvarinfos = [\n\t\t//[pos, name, start_op, end_op, scope, type],\n");
 	for(i=0;i<nlocalvarinfos;i++){
 	    SQLocalVarInfo &lvi=_localvarinfos[i];
-		SafeWriteFmt(v,write,up,"\t\t/*%d*/[", i);
+		SafeWriteFmt(v,write,up,"\t\t/*%d*/ [", i);
 		SafeWriteFmt(v,write,up,"%d, ", lvi._pos);
 		_CHECK_IO(WriteObjectAsCode(v,up,write,lvi._name));
 		SafeWriteFmt(v,write,up,", %d", lvi._start_op);
@@ -593,7 +593,7 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 	SafeWriteFmt(v,write,up,"\tlineinfos = [\n\t\t//[op, line],\n");
 	for(i=0;i<nlineinfos;i++){
 	    SQLineInfo &li=_lineinfos[i];
-		SafeWriteFmt(v,write,up,"\t\t/*%d*/[%d, %d],\n", i, li._op, li._line);
+		SafeWriteFmt(v,write,up,"\t\t/*%d*/ [%d, %d],\n", i, li._op, li._line);
 	}
     SafeWriteFmt(v,write,up,"\t],\n");
 
@@ -615,7 +615,7 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
             default:
                 str_op = _SC("???");
 	    }
-		SafeWriteFmt(v,write,up,"\t\t/*%d*/[\"%s\", %d, %d, %d, %d, %d],", i, str_op, inst.op, inst._arg0, inst._arg1, inst._arg2, inst._arg3);
+		SafeWriteFmt(v,write,up,"\t\t/*%d*/ [\"%s\", %d, %d, %d, %d, %d],", i, str_op, inst.op, inst._arg0, inst._arg1, inst._arg2, inst._arg3);
 
         switch(inst.op){
             case _OP_LOAD:
@@ -638,7 +638,7 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
             break;
             case _OP_PREPCALLK:
             case _OP_PREPCALL:
-                    SafeWriteFmt(v,write,up,"\t\t/* closure_at_stk[%d], stk[%d].get(%s[%d]) -> stk[%d] */",
+                    SafeWriteFmt(v,write,up,"\t/* closure_at_stk[%d], stk[%d].get(%s[%d]) -> stk[%d] */",
                                  inst._arg0, inst._arg2, inst.op == _OP_PREPCALLK ? "literals" : "stk", inst._arg1, inst._arg3);
             break;
             case _OP_LOADFLOAT:
@@ -655,19 +655,20 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
                         SafeWriteFmt(v,write,up,"\t\t/* stk[%d] <- stk[%d] */", inst._arg0, inst._arg1);
             break;
             case _OP_DMOVE:
-                        SafeWriteFmt(v,write,up,"\t\t/* stk[%d] <- stk[%d], stk[%d] <- stk[%d] */",
+                        SafeWriteFmt(v,write,up,"\t/* stk[%d] <- stk[%d], stk[%d] <- stk[%d] */",
                                      inst._arg0, inst._arg1, inst._arg2, inst._arg3);
             break;
             case _OP_LOADINT:
                         SafeWriteFmt(v,write,up,"\t/* stk[%d] <- arg1(%d) */", inst._arg0, inst._arg1);
             break;
             case _OP_EQ:
-                        SafeWriteFmt(v,write,up,"\t\t/* ?[%d], literals|stk[%d], stk[%d], arg3 !=0 ? literals[%d] : STK(%d) */",
-                                     inst._arg0, inst._arg1, inst._arg2, inst._arg1, inst._arg1);
+                        SafeWriteFmt(v,write,up,"\t\t/* ?arg0[%d], stk_at_arg2[%d] == (arg3(%d) !=0 ? literals_at_arg1[%d] : STK_at_arg1[%d]) */",
+                                     inst._arg0, inst._arg2, inst._arg3, inst._arg1, inst._arg1);
             break;
             case _OP_JZ:
-                        SafeWriteFmt(v,write,up,"\t\t\t/* IsFalse(STK(%d) (ci->_ip+=(%d) -> goto[%d]) */",
+                        SafeWriteFmt(v,write,up,"\t\t/* IsFalse(STK(%d) (ci->_ip+=(%d) -> goto[%d]) */",
                                      inst._arg0, inst._arg1, i + inst._arg1 + 1);
+            break;
             case _OP_RETURN:
                         SafeWriteFmt(v,write,up,"\t/* _arg0 != 0xFF ? stk[%d] : null */",
                                      inst._arg1);
@@ -697,7 +698,7 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
             case _OP_DIV:
             case _OP_MUL:
             case _OP_MOD:
-                        SafeWriteFmt(v,write,up,"\t/* stk[%d] = stk[%d] %s stk[%d] */",
+                        SafeWriteFmt(v,write,up,"\t\t/* stk[%d] = stk[%d] %s stk[%d] */",
                                      inst._arg0, inst._arg1, get_arith_op(inst.op), inst._arg2);
             break;
             //default:
