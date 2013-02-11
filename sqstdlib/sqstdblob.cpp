@@ -209,7 +209,7 @@ static SQInteger _blob__get(HSQUIRRELVM v)
 	SETUP_BLOB(v);
 	SQInteger idx;
 	SQObjectType ptype = sq_gettype(v, 2);
-	if( !(ptype == OT_INTEGER || ptype == OT_FLOAT) ){
+	if( !(ptype & SQOBJECT_NUMERIC) ){
 	    //allow call metatable methods indexed by strings
 	    sq_reseterror(v);
 	    return SQ_ERROR;

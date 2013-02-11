@@ -75,7 +75,7 @@ static SQInteger get_int_field (HSQUIRRELVM v, const SQChar *key, int dflt) {
     sq_pushstring(v, key, -1);
     if(sq_get(v, -2) == SQ_OK){
         stype = sq_gettype(v, -1);
-        if (stype == OT_INTEGER || stype == OT_FLOAT){
+        if (stype & SQOBJECT_NUMERIC){
             sq_getinteger(v, -1, &res);
             sq_poptop(v);
             return res;
