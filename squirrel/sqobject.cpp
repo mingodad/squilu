@@ -504,6 +504,43 @@ bool SQFunctionProto::Save(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 	return true;
 }
 
+static const SQChar *get_array_append_type(int it){
+#define SCASE(x) case x: return _SC(#x); break;
+    switch(it){
+        SCASE(AAT_STACK)
+        SCASE(AAT_LITERAL)
+        SCASE(AAT_INT)
+        SCASE(AAT_FLOAT)
+        SCASE(AAT_BOOL)
+        default: return _SC("?");
+    }
+#undef SCASE
+}
+
+static const SQChar *get_new_object_type(int it){
+#define SCASE(x) case x: return _SC(#x); break;
+    switch(it){
+        SCASE(NOT_TABLE)
+        SCASE(NOT_ARRAY)
+        SCASE(NOT_CLASS)
+        default: return _SC("?");
+    }
+#undef SCASE
+}
+
+static const SQChar *get_arith_op(int it){
+#define SCASE(x, z) case x: return _SC(#z); break;
+    switch(it){
+        SCASE(_OP_ADD, +)
+        SCASE(_OP_SUB, -)
+        SCASE(_OP_MUL, *)
+        SCASE(_OP_DIV, /)
+        SCASE(_OP_MOD, %)
+        default: return _SC("?");
+    }
+#undef SCASE
+}
+
 bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 {
 	SQInteger i,nliterals = _nliterals,nparameters = _nparameters;
@@ -583,34 +620,85 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
         switch(inst.op){
             case _OP_LOAD:
             case _OP_DLOAD:
-            case _OP_PREPCALLK:
             case _OP_GETK:{
                 SQInteger lidx = inst._arg1;
-                if(lidx >= 0xFFFFFFFF) SafeWriteFmt(v,write,up," /* null */");
+                if(lidx >= 0xFFFFFFFF) SafeWriteFmt(v,write,up,"\t\t/* stk[%d] <- null */", inst._arg0);
                 else
                 {
-                    SafeWriteFmt(v,write,up," /*");
-                    _CHECK_IO(WriteObjectAsCode(v,up,write,_literals[lidx], false));
-                    SafeWriteFmt(v,write,up," */");
+                    SafeWriteFmt(v,write,up,"\t\t/* stk[%d] <- literals[%d] */", inst._arg0, lidx);
                 }
                 if(inst.op == _OP_DLOAD) {
                     lidx = inst._arg3;
-                    if(lidx >= 0xFFFFFFFF)  SafeWriteFmt(v,write,up," /* null */");
+                    if(lidx >= 0xFFFFFFFF)  SafeWriteFmt(v,write,up," /* stk[%d] <- null */", inst._arg2);
                     else {
-                        SafeWriteFmt(v,write,up," /*");
-                        _CHECK_IO(WriteObjectAsCode(v,up,write,_literals[lidx], false));
-                        SafeWriteFmt(v,write,up," */");
+                        SafeWriteFmt(v,write,up," /* stk[%d] <- literals[%d] */", inst._arg2, lidx);
                     }
                 }
             }
             break;
+            case _OP_PREPCALLK:
+            case _OP_PREPCALL:
+                    SafeWriteFmt(v,write,up,"\t\t/* closure_at_stk[%d], stk[%d].get(%s[%d]) -> stk[%d] */",
+                                 inst._arg0, inst._arg2, inst.op == _OP_PREPCALLK ? "literals" : "stk", inst._arg1, inst._arg3);
+            break;
             case _OP_LOADFLOAT:
-                    SafeWriteFmt(v,write,up," /* %f */", *((SQFloat*)&inst._arg1));
+                    SafeWriteFmt(v,write,up,"\t/* %f */", *((SQFloat*)&inst._arg1));
             break;
             case _OP_GETOUTER:
-                        SafeWriteFmt(v,write,up," /*");
-                        _CHECK_IO(WriteObjectAsCode(v,up,write,_outervalues[inst._arg1]._name, false));
-                        SafeWriteFmt(v,write,up," */");
+                        SafeWriteFmt(v,write,up,"\t/* stk[%d] <- outervalues[%d] */", inst._arg0, inst._arg1);
+            break;
+            case _OP_CALL:
+                        SafeWriteFmt(v,write,up,"\t\t/* target[%d], closure[%d], stackbase[%d], nargs[%d] */",
+                                     inst._arg0, inst._arg1, inst._arg2, inst._arg3);
+            break;
+            case _OP_MOVE:
+                        SafeWriteFmt(v,write,up,"\t\t/* stk[%d] <- stk[%d] */", inst._arg0, inst._arg1);
+            break;
+            case _OP_DMOVE:
+                        SafeWriteFmt(v,write,up,"\t\t/* stk[%d] <- stk[%d], stk[%d] <- stk[%d] */",
+                                     inst._arg0, inst._arg1, inst._arg2, inst._arg3);
+            break;
+            case _OP_LOADINT:
+                        SafeWriteFmt(v,write,up,"\t/* stk[%d] <- arg1(%d) */", inst._arg0, inst._arg1);
+            break;
+            case _OP_EQ:
+                        SafeWriteFmt(v,write,up,"\t\t/* ?[%d], literals|stk[%d], stk[%d], arg3 !=0 ? literals[%d] : STK(%d) */",
+                                     inst._arg0, inst._arg1, inst._arg2, inst._arg1, inst._arg1);
+            break;
+            case _OP_JZ:
+                        SafeWriteFmt(v,write,up,"\t\t\t/* IsFalse(STK(%d) (ci->_ip+=(%d) -> goto[%d]) */",
+                                     inst._arg0, inst._arg1, i + inst._arg1 + 1);
+            case _OP_RETURN:
+                        SafeWriteFmt(v,write,up,"\t/* _arg0 != 0xFF ? stk[%d] : null */",
+                                     inst._arg1);
+            break;
+            case _OP_NEWOBJ:
+                        SafeWriteFmt(v,write,up,"\t/* stk[%d], len(%d), %s(%d) */",
+                                     inst._arg0, inst._arg1, get_new_object_type(inst._arg3), inst._arg3);
+            break;
+            case _OP_APPENDARRAY:
+                        SafeWriteFmt(v,write,up,"\t/* array_at_stk(%d), %s(%d), type(%d) */",
+                                     inst._arg0, get_array_append_type(inst._arg2), inst._arg1, inst._arg2);
+            break;
+            case _OP_NEWSLOT:
+                        SafeWriteFmt(v,write,up,"\t/* flags(%d), table_at_stk(%d),  key_at_stk(%d), val_at_stk(%d) */",
+                                     inst._arg0, inst._arg1, inst._arg2, inst._arg3);
+            break;
+            case _OP_LOADBOOL:
+                        SafeWriteFmt(v,write,up,"\t/* stk[%d] <- bool(%d) */",
+                                     inst._arg0, inst._arg2);
+            break;
+            case _OP_CLOSURE:
+                        SafeWriteFmt(v,write,up,"\t/* stk[%d], size(%d), isLanbda(%d) */",
+                                     inst._arg0, inst._arg1, inst._arg2);
+            break;
+            case _OP_ADD:
+            case _OP_SUB:
+            case _OP_DIV:
+            case _OP_MUL:
+            case _OP_MOD:
+                        SafeWriteFmt(v,write,up,"\t/* stk[%d] = stk[%d] %s stk[%d] */",
+                                     inst._arg0, inst._arg1, get_arith_op(inst.op), inst._arg2);
             break;
             //default:
         }
