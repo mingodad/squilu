@@ -164,7 +164,8 @@ class DB_Manager {
 	has_mdate = null;
 	has_version = null;
 	
-	constructor(ptable_name, peditable_fields = ["is_active", "code", "description"]){
+	constructor(ptable_name, peditable_fields = null){
+		if(!peditable_fields) peditable_fields =  ["is_active", "code", "description"];
 		table_name = ptable_name;
 		editable_fields = peditable_fields;
 		has_mdate = true;
