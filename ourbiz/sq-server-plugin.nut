@@ -177,7 +177,8 @@ function multipart_data_get_boundary(content_type){
 	return "--" + boundary;
 }
 
-function parse_multipart_data(input, input_type, tab={}){
+function parse_multipart_data(input, input_type, tab=null){
+	if(!tab) tab = {};
 	local state = {};
 	state.boundary <- get_boundary(input_type);
 	input.find_lua(state.boundary, function(start, end){state.pos = end+1;return false;}, 0, true);
@@ -189,7 +190,8 @@ function parse_multipart_data(input, input_type, tab={}){
 	return tab;
 }
 
-function parse_qs(qs, tab={}){
+function parse_qs(qs, tab=null){
+	if(!tab) tab = {};
 	if (type(qs) == "string") {
 		//debug_print(qs)
 		qs.gmatch("([^&=]+)=([^&=]*)&?", function(key,val){
@@ -203,7 +205,8 @@ function parse_qs(qs, tab={}){
 	return tab;
 }
 
-function parse_qs_to_table(qs, tab={}){
+function parse_qs_to_table(qs, tab=null){
+	if(!tab) tab = {};
 	if (type(qs) == "string") {
 		//debug_print(qs)
 		qs.gmatch("([^&=]+)=([^&=]*)&?", function(key,val){
@@ -218,7 +221,9 @@ function parse_qs_to_table(qs, tab={}){
 	return tab;
 }
 
-function parse_qs_to_table_k(qs, tab={}, tabk=[]){
+function parse_qs_to_table_k(qs, tab=null, tabk=null){
+	if(!tab) tab = {};
+	if(!tabk) tabk = [];
 	if (type(qs) == "string") {
 		qs.gmatch("([^&=]+)=([^&=]*)&?", function(key, val){
 		//debug_print(key, "->", val)
@@ -232,7 +237,8 @@ function parse_qs_to_table_k(qs, tab={}, tabk=[]){
 	return tab;
 }
 
-function parse_post_data(input_type, data, tab = {}){
+function parse_post_data(input_type, data, tab = null){
+	if(!tab) tab = {};
 	local length = data.len();
 	if (input_type.find("x-www-form-urlencoded") >= 0) parse_qs(data, tab);
 	else if (input_type.find("multipart/form-data") >= 0) parse_multipart_data(data, input_type, tab);
@@ -306,7 +312,8 @@ function isExtensionAllowed(fname){
 	return false;
 }
 
-function getFilesInPath(path, files=[], prefix=""){
+function getFilesInPath(path, files=null, prefix=""){
+	if(!files) files = [];
 	foreach( file in sqfs.dir(path) ){
 		if(file != "." && file != ".." ){
 			local f = path + "/" + file;
