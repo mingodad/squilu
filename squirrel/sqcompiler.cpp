@@ -1080,10 +1080,17 @@ public:
 			varname = Expect(TK_IDENTIFIER);
 			checkLocalNameScope(varname, _scope.nested);
 			Expect(_SC('('));
+			//the following is an attempt to allow local declared functions be called recursivelly
+			SQInteger old_pos = _fs->GetCurrentPos(); //save current instructions position
+			_fs->PushLocalVariable(varname, _scope.nested, _VAR_CLOSURE); //add function name to find it as outer var if needed
 			CreateFunction(varname,false);
 			_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
+			//rellocate any stack operation (default parameters & _OP_Closure)
+			for(int i=old_pos+1, curr_pos = _fs->GetCurrentPos(); i <= curr_pos; ++i){
+			    SQInstruction & inst = _fs->GetInstruction(i);
+			    _fs->SetIntructionParam(i, 0, inst._arg0 -1);
+			}
 			_fs->PopTarget();
-			_fs->PushLocalVariable(varname, _scope.nested, _VAR_CLOSURE);
 			return;
 		}
 

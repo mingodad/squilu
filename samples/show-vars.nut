@@ -11,6 +11,10 @@ local function getMembersNotInBaseClass(klass, klass_members){
 	klass_members.push([base_class_key, gettypetag(bklass)]);
 }
 
+/** Make a human readable representation of a bit encoded integer.
+@param pc is an array of bit encoded integers 
+@return string representing the parameters
+*/
 local function getParamsCheck(pc){
 	local mask_values = {
 		["NULL"]		=	0x00000001,
@@ -49,7 +53,7 @@ local function getParamsCheck(pc){
 }
 
 /*local do not allow recursion*/
-function showVars(avar, myvars, prefix=null){
+local function showVars(avar, myvars, prefix=null){
 	local isClass = type(avar) == "class";
 	local isTable = type(avar) == "table";
 
@@ -144,25 +148,3 @@ local function hideFromGlobals(){
 }
 hideFromGlobals();
 
-/*
-//bug in passing array as default parameter ??????
-function showVars(avar, prefix=null, myvars=[]){
-	local isClass = type(avar) == "class";
-	local isTable = type(avar) == "table";
-	//local  myvars=[];
-	foreach(k,v in avar) {
-		if(isClass || isTable){
-			if(avar.rawin(k)) myvars.push([k,v]);
-		}
-		else myvars.push([k,v]);
-	}
-	myvars.sort(@(a,b) a[0] <=> b[0]);
-	foreach(v in myvars) {
-		if(prefix) print1(prefix);
-		print(v[0], type(v[1]), v[1]);
-		local vtype = type(v[1]);
-		if(vtype == "class" || vtype == "table") showVars(v[1], prefix ? prefix + "\t" : "\t");
-	}
-}
-showVars(this);
-*/
