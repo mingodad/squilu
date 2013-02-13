@@ -243,7 +243,7 @@ function parse_post_data(input_type, data, tab = null){
 	if (input_type.find("x-www-form-urlencoded") >= 0) parse_qs(data, tab);
 	else if (input_type.find("multipart/form-data") >= 0) parse_multipart_data(data, input_type, tab);
 	else if (input_type.find("SLE") >= 0) {
-		local vv = sqlite3.sle2vecOfvec(data);
+		local vv = sle2vecOfvec(data);
 		if (vv.len() > 0) {
 			local names = vv[0];
 			local values = vv[1];

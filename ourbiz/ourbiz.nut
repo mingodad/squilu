@@ -1456,7 +1456,7 @@ constants.SLE <- "\xff";
 
 function add2sle(out_result, str){
 	str = str.tostring();
-	out_result.write(SQLite3Stmt.get_sle_size(str.len()), str);
+	out_result.write(get_sle_size(str.len()), str);
 }
 
 function dump_group_tree_childs(parent, out_result, parent_map, data_map){

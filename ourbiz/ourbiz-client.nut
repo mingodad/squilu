@@ -156,7 +156,7 @@ class HTTPConnAuthBase extends HTTPConnBase
                 if(body && bodysize) send( body, bodysize );
                 while( outstanding() )
                 {
-                    //if(globals.get("Fl", false)) Fl.check();//check_idle();
+                    if(globals.get("Fl", false)) Fl.check();//check_idle();
                     pump();
                 }
                 break;
