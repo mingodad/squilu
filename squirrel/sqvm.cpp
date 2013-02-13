@@ -1329,6 +1329,9 @@ bool SQVM::Set(const SQObjectPtr &self,const SQObjectPtr &key,const SQObjectPtr 
 	case OT_TABLE:
 		if(_table(self)->Set(key,val)) return true;
 		break;
+	case OT_CLASS:
+		if(_class(self)->Set(key,val)) return true;
+		break;
 	case OT_INSTANCE:
 		if(_instance(self)->Set(key,val)) return true;
 		break;

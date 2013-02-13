@@ -48,6 +48,23 @@ public:
 	bool Exists(const SQObjectPtr &key) {
 		return _members->Exists(key);
 	}
+	bool Set(const SQObjectPtr &key,const SQObjectPtr &val) {
+		SQObjectPtr idx;
+		if(_members->Get(key,idx) && !_isfield(idx)) {
+            //if(_isfield(idx)) _members->Set(key, val);
+            //else
+            return Set(idx, val);
+		}
+		return false;
+	}
+    bool Set(SQObjectPtr &idx, const SQObjectPtr &val){
+        SQClassMember &m = _methods[_member_idx(idx)];
+        if(!(type(m.val) == OT_CLOSURE || type(m.val) == OT_NATIVECLOSURE)){
+            m.val = val;
+            return true;
+        }
+        return false;
+    }
 	bool GetConstructor(SQObjectPtr &ctor)
 	{
 		if(_constructoridx != -1) {
@@ -131,9 +148,15 @@ public:
 	}
 	bool Set(const SQObjectPtr &key,const SQObjectPtr &val) {
 		SQObjectPtr idx;
-		if(_class->_members->Get(key,idx) && _isfield(idx)) {
-            _values[_member_idx(idx)] = val;
-			return true;
+		if(_class->_members->Get(key,idx)){
+            if(_isfield(idx)) {
+                _values[_member_idx(idx)] = val;
+                return true;
+            }
+            else
+            {
+                return _class->Set(idx, val);
+            }
 		}
 		return false;
 	}
