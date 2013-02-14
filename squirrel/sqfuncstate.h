@@ -49,7 +49,6 @@ struct SQFuncState
 	bool IsLocal(SQUnsignedInteger stkpos);
 	SQObject CreateString(const SQChar *s,SQInteger len = -1);
 	SQObject CreateTable();
-	bool IsConstant(const SQObject &name,SQObject &e);
 	SQInteger _returnexp;
 	SQLocalVarInfoVec _vlocals;
 	SQIntVec _targetstack;

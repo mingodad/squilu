@@ -35,7 +35,8 @@ struct SQScope {
 #define BEGIN_SCOPE() SQScope __oldscope__ = _scope; \
 					 ++_scope.nested; \
 					 _scope.outers = _fs->_outers; \
-					 _scope.stacksize = _fs->GetStackSize();
+					 _scope.stacksize = _fs->GetStackSize();\
+					 _scope_consts.push_back(SQTable::Create(_ss(_vm),0));
 
 #define RESOLVE_OUTERS() if(_fs->GetStackSize() != _scope.stacksize) { \
 							if(_fs->CountOuters(_scope.stacksize)) { \
@@ -47,6 +48,7 @@ struct SQScope {
 							_fs->SetStackSize(_scope.stacksize); \
 						} \
 						_scope = __oldscope__; \
+						_scope_consts.pop_back();\
 					}
 
 #define END_SCOPE() {	SQInteger oldouters = _fs->_outers;\
@@ -103,6 +105,34 @@ public:
 		va_start(vl, s);
 		scvfprintf(stderr, s, vl);
 		va_end(vl);
+	}
+	bool IsConstant(const SQObject &name,SQObject &e){
+        SQObjectPtr val;
+	    for(int i=_scope.nested-1; i >= 0; --i){
+	        if(_table(_scope_consts[i])->Get(name,val)) {
+	            e = val;
+	            return true;
+	        }
+	    }
+        if(_table(_ss(_vm)->_consts)->Get(name,val)) {
+            e = val;
+            return true;
+        }
+        return false;
+	}
+	bool ConstsExists(const SQObjectPtr &key){
+        if(_scope.nested && _table(_scope_consts[_scope.nested-1])->Exists(key)) return true;
+        return _table(_ss(_vm)->_consts)->Exists(key);
+	}
+	bool ConstsGet(const SQObjectPtr &key,SQObjectPtr &val){
+	    for(int i=_scope.nested-1; i >= 0; --i){
+	        if(_table(_scope_consts[i])->Get(key,val)) return true;
+	    }
+	    return _table(_ss(_vm)->_consts)->Get(key,val);
+	}
+	bool ConstsNewSlot(const SQObjectPtr &key, const SQObjectPtr &val){
+	    if(_scope.nested) return _table(_scope_consts[_scope.nested-1])->NewSlot(key,val);
+	    return _table(_ss(_vm)->_consts)->NewSlot(key,val);
 	}
 	void Lex(){	_token = _lex.Lex();}
 	SQObjectPtr GetTokenObject(SQInteger tok)
@@ -335,15 +365,14 @@ public:
 			Lex();
 			SQObject id = Expect(TK_IDENTIFIER);
 			Expect('=');
-			SQTable *enums = _table(_ss(_vm)->_consts);
 			SQObjectPtr strongid = id;
-			if(enums->Exists(strongid)) {
+			if(ConstsExists(strongid)) {
 			    strongid.Null();
 			    Error(_SC("constant '%s' already exists"), _stringval(id));
 			}
 			SQObject val = ExpectScalar();
 			OptionalSemicolon();
-			enums->NewSlot(strongid,SQObjectPtr(val));
+			ConstsNewSlot(strongid,SQObjectPtr(val));
 			strongid.Null();
 
 			}
@@ -802,7 +831,7 @@ public:
 					}
 				}
 
-				else if(_fs->IsConstant(id, constant)) {
+				else if(IsConstant(id, constant)) {
 					/* Handle named constant */
 					SQObjectPtr constval;
 					SQObject    constid;
@@ -1483,9 +1512,8 @@ if(color == "yellow"){
 		Expect(_SC('{'));
 
         //checkLocalNameScope(id, _scope.nested);
-		SQTable *enums = _table(_ss(_vm)->_consts);
 		SQObjectPtr strongid = id;
-		if(enums->Exists(strongid)) {
+		if(ConstsExists(strongid)) {
 		    strongid.Null();
 		    Error(_SC("constant '%s' already exists"), _stringval(id));
 		}
@@ -1511,7 +1539,7 @@ if(color == "yellow"){
 			if(_token == ',') Lex();
 		}
 
-		enums->NewSlot(SQObjectPtr(strongid),SQObjectPtr(table));
+		ConstsNewSlot(SQObjectPtr(strongid),SQObjectPtr(table));
 		strongid.Null();
 		Lex();
 	}
@@ -1716,6 +1744,7 @@ private:
 	SQChar *compilererror;
 	jmp_buf _errorjmp;
 	SQVM *_vm;
+	SQObjectPtrVec _scope_consts;
 };
 
 bool Compile(SQVM *vm,SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, SQObjectPtr &out, bool raiseerror, bool lineinfo)
