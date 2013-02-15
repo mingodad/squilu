@@ -133,7 +133,7 @@ class CalendarBase {
 				if (asec > 0 && asec < 60) adate.sec = asec;
 			}
 			//print(value);
-			local avalue = value.split(" ");
+			local avalue = value.split(' ');
 			avalue[0].gmatch("(%d+)", set_matches);
 			switch(nums.len()){
 				case 1: //day in current month
