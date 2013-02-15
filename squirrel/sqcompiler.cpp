@@ -84,11 +84,18 @@ public:
 		_scope.stacksize = 0;
 		_scope.nested = 0;
 		compilererror = NULL;
+		_globals = SQTable::Create(_ss(_vm),0);
 	}
+	~SQCompiler(){
+	    _table(_globals)->Finalize();
+	    _globals.Null();
+	}
+
 	static void ThrowError(void *ud, const SQChar *s) {
 		SQCompiler *c = (SQCompiler *)ud;
 		c->Error(s);
 	}
+
 	void Error(const SQChar *s, ...)
 	{
 		static SQChar temp[256];
@@ -99,6 +106,7 @@ public:
 		compilererror = temp;
 		longjmp(_errorjmp,1);
 	}
+
 	void Warning(const SQChar *s, ...)
 	{
 		va_list vl;
@@ -106,6 +114,39 @@ public:
 		scvfprintf(stderr, s, vl);
 		va_end(vl);
 	}
+
+	void CheckGlobalName(const SQObject &name, bool addIfNotExists=false, bool checkLocals=true){
+	    if(_table(_globals)->Exists(name)){
+            if(checkLocals) Error(_SC("global '%s' already declared"), _stringval(name));
+            else Warning(_SC("WARNING: %s:%d:%d global '%s' already declared will be shadowed\n"),
+                        _stringval(_sourcename), _lex._currentline, _lex._currentcolumn, _stringval(name));
+	    }
+	    else if(checkLocals) CheckLocalNameScope(name, -1, false);
+	    if(addIfNotExists) {
+	        SQObjectPtr oname = name, otrue = true;
+	        _table(_globals)->NewSlot(oname, otrue);
+	    }
+	}
+
+	void CheckLocalNameScope(const SQObject &name, SQInteger scope, bool checkGlobals=true){
+	    SQInteger found = _fs->GetLocalVariable(name);
+	    if(found >= 0){
+	        SQLocalVarInfo &lvi = _fs->_vlocals[found];
+	        if(lvi._scope == scope)
+                Error(_SC("local '%s' already declared"), _stringval(name));
+            else
+                Warning(_SC("WARNING: %s:%d:%d local '%s' already declared will be shadowed\n"),
+                        _stringval(_sourcename), _lex._currentline, _lex._currentcolumn, _stringval(name));
+	    }
+	    else
+	    {
+	        found = _fs->FindOuterVariable(name);
+	        if(found >= 0) Warning(_SC("WARNING: %s:%d:%d outer variable '%s' already declared will be shadowed\n"),
+                        _stringval(_sourcename), _lex._currentline, _lex._currentcolumn, _stringval(name));
+	    }
+	    if(checkGlobals) CheckGlobalName(name, false, false);
+	}
+
 	bool IsConstant(const SQObject &name,SQObject &e){
         SQObjectPtr val;
 	    for(int i=_scope.nested-1; i >= 0; --i){
@@ -120,20 +161,35 @@ public:
         }
         return false;
 	}
-	bool ConstsExists(const SQObjectPtr &key){
-        if(_scope.nested && _table(_scope_consts[_scope.nested-1])->Exists(key)) return true;
-        return _table(_ss(_vm)->_consts)->Exists(key);
+
+	void CheckConstsExists(const SQObjectPtr &key){
+	    int found = -1;
+	    for(int i=_scope.nested-1; i >= 0; --i){
+	        if(_table(_scope_consts[i])->Exists(key)) {
+	            found = i+1;
+	            break;
+	        }
+	    }
+	    if(found < 0 && _table(_ss(_vm)->_consts)->Exists(key)) found = 0;
+        if(found == _scope.nested) {
+            Error(_SC("constant '%s' already exists\n"), _stringval(key));
+        }
+        if(found >= 0) Warning(_SC("WARNING: %s:%d:%d an already defined constant '%s' will be shadowed\n"),
+            _stringval(_sourcename), _lex._currentline, _lex._currentcolumn,  _stringval(key));
 	}
+
 	bool ConstsGet(const SQObjectPtr &key,SQObjectPtr &val){
 	    for(int i=_scope.nested-1; i >= 0; --i){
 	        if(_table(_scope_consts[i])->Get(key,val)) return true;
 	    }
 	    return _table(_ss(_vm)->_consts)->Get(key,val);
 	}
+
 	bool ConstsNewSlot(const SQObjectPtr &key, const SQObjectPtr &val){
 	    if(_scope.nested) return _table(_scope_consts[_scope.nested-1])->NewSlot(key,val);
 	    return _table(_ss(_vm)->_consts)->NewSlot(key,val);
 	}
+
 	void Lex(){	_token = _lex.Lex();}
 	SQObjectPtr GetTokenObject(SQInteger tok)
 	{
@@ -366,10 +422,8 @@ public:
 			SQObject id = Expect(TK_IDENTIFIER);
 			Expect('=');
 			SQObjectPtr strongid = id;
-			if(ConstsExists(strongid)) {
-			    strongid.Null();
-			    Error(_SC("constant '%s' already exists"), _stringval(id));
-			}
+			CheckLocalNameScope(id, _scope.nested);
+			CheckConstsExists(strongid);
 			SQObject val = ExpectScalar();
 			OptionalSemicolon();
 			ConstsNewSlot(strongid,SQObjectPtr(val));
@@ -1080,23 +1134,6 @@ public:
 			_fs->SetIntructionParam(tpos, 1, nkeys);
 		Lex();
 	}
-	void checkLocalNameScope(const SQObject &name, SQInteger scope){
-	    SQInteger found = _fs->GetLocalVariable(name);
-	    if(found >= 0){
-	        SQLocalVarInfo &lvi = _fs->_vlocals[found];
-	        if(lvi._scope == scope)
-                Error(_SC("local '%s' already declared"), _stringval(name));
-            else
-                Warning(_SC("WARNING: at line %d:%d local '%s' already declared will be shadowed\n"),
-                        _lex._currentline, _lex._currentcolumn, _stringval(name));
-	    }
-	    else
-	    {
-	        found = _fs->FindOuterVariable(name);
-	        if(found >= 0) Warning(_SC("WARNING: at line %d:%d outer variable '%s' already declared will be shadowed\n"),
-                        _lex._currentline, _lex._currentcolumn, _stringval(name));
-	    }
-	}
 	void LocalDeclStatement()
 	{
 		SQObject varname;
@@ -1107,7 +1144,7 @@ public:
 		if( _token == TK_FUNCTION) {
 			Lex();
 			varname = Expect(TK_IDENTIFIER);
-			checkLocalNameScope(varname, _scope.nested);
+			CheckLocalNameScope(varname, _scope.nested);
 			Expect(_SC('('));
 			//the following is an attempt to allow local declared functions be called recursivelly
 			SQInteger old_pos = _fs->GetCurrentPos(); //save current instructions position
@@ -1129,7 +1166,7 @@ public:
 		        Lex();
 		    }
 			varname = Expect(TK_IDENTIFIER);
-			checkLocalNameScope(varname, _scope.nested);
+			CheckLocalNameScope(varname, _scope.nested);
 			if(_token == _SC('=')) {
 				Lex(); Expression();
 				SQInteger src = _fs->PopTarget();
@@ -1431,6 +1468,7 @@ if(color == "yellow"){
 	{
 		SQObject id;
 		Lex(); id = Expect(TK_IDENTIFIER);
+		CheckGlobalName(id, true);
 		_fs->PushTarget(0);
 		_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(id));
 		if(_token == TK_DOUBLE_COLON) Emit2ArgsOP(_OP_GET);
@@ -1451,6 +1489,10 @@ if(color == "yellow"){
 	{
 		SQExpState es;
 		Lex();
+		if(_token == TK_IDENTIFIER) {
+		    SQObjectPtr str = SQString::Create(_ss(_vm), _lex._svalue);
+		    CheckGlobalName(str, true);
+		}
 		es = _es;
 		_es.donot_get = true;
 		PrefixedExpr();
@@ -1511,13 +1553,10 @@ if(color == "yellow"){
 		SQObject id = Expect(TK_IDENTIFIER);
 		Expect(_SC('{'));
 
-        //checkLocalNameScope(id, _scope.nested);
+        //CheckLocalNameScope(id, _scope.nested);
 		SQObjectPtr strongid = id;
-		if(ConstsExists(strongid)) {
-		    strongid.Null();
-		    Error(_SC("constant '%s' already exists"), _stringval(id));
-		}
-
+		CheckLocalNameScope(id, _scope.nested);
+        CheckConstsExists(strongid);
 		SQObject table = _fs->CreateTable();
 		//_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(),0,NOT_TABLE);
 		SQInteger nval = 0;
@@ -1745,6 +1784,7 @@ private:
 	jmp_buf _errorjmp;
 	SQVM *_vm;
 	SQObjectPtrVec _scope_consts;
+	SQObjectPtr _globals;
 };
 
 bool Compile(SQVM *vm,SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, SQObjectPtr &out, bool raiseerror, bool lineinfo)
