@@ -553,8 +553,8 @@ function sortTable(id, col, numeric){
 <? if (this.get("extra_data", false) && extra_data.len() > 0){ ?>
         <table>
           <tr><th>Doc. Type</th><th>Date</th><th>Description</th></tr>
-          <? foreach(k,v in extra_data.split("\n")){
-              local rec = v.split("|");
+          <? foreach(k,v in extra_data.split('\n')){
+              local rec = v.split('|');
           ?>
           <tr><td><?=rec[0]?></td><td><?=rec[1]?></td><td><?=rec[2]?></td></tr>
           <? } ?>
