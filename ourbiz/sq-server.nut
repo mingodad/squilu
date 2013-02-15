@@ -1,6 +1,8 @@
 local globals = getroottable();
 if(!globals.get("APP_CODE_FOLDER", false)) ::APP_CODE_FOLDER <- ".";
 
+WIN32 <- os.getenv("WINDIR") != null;
+
 /*
 local _old_import = import;
 ::__imported_files <-  {};
@@ -15,19 +17,19 @@ function getUserCallbackSetup(fn){
 	local code = fd.read(fd.len());
 	fd.close();
 	local extra_code = format("APP_CODE_FOLDER <- \"%s\";\n", APP_CODE_FOLDER);
-	
+
 	if (globals.get("VIEW_MD5_PASSWORD", false)){
 		extra_code += format("VIEW_MD5_PASSWORD <- \"%s\";\n", VIEW_MD5_PASSWORD);
 	} else extra_code += "VIEW_MD5_PASSWORD <- nul;\n";
-	
+
 	if (globals.get("EDIT_MD5_PASSWORD", false)){
 		extra_code += format("EDIT_MD5_PASSWORD <- \"%s\";\n", EDIT_MD5_PASSWORD);
 	} else extra_code += "EDIT_MD5_PASSWORD <- null;\n";
-	
+
 	if (globals.get("AT_DEV_DBG", false)){
 		extra_code += "AT_DEV_DBG <- true;\n"
 	} else extra_code += "AT_DEV_DBG <- false;\n"
-	
+
 	return compilestring(format("%s\n%s", extra_code, code));
 }
 
@@ -68,7 +70,7 @@ local mongoose_start_params = {
 			//return true;
 			return false;
 		}
-		else if(event == "MG_HTTP_ERROR" 
+		else if(event == "MG_HTTP_ERROR"
 			|| event == "MG_INIT_SSL"){
 				return false;
 		}
