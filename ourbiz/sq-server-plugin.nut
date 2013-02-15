@@ -1,5 +1,6 @@
 local globals = getroottable();
 if(!globals.get("APP_CODE_FOLDER", false)) ::APP_CODE_FOLDER <- ".";
+WIN32 <- os.getenv("WINDIR") != null;
 
 //local AT_DEV_DBG=true;
 
@@ -9,6 +10,7 @@ if(!globals.get("APP_CODE_FOLDER", false)) ::APP_CODE_FOLDER <- ".";
 
 function checkCompaniesUkDBFile(){
 	if (globals.get("jniLog", false)) return APP_CODE_FOLDER + "/companies-uk-RG.db";
+	if (globals.get("WIN32", false)) return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-RG.db";
 	return "/media/USBHD320/bo/uk/companies-uk-RG.db";
 }
 
@@ -17,7 +19,7 @@ if(!globals.get("__tplCache", false)) ::__tplCache <- {};
 if(!globals.get("__stmtCache", false)) ::__stmtCache <- {};
 if(!globals.get("db", false)) ::db <- SQLite3(checkCompaniesUkDBFile());
 ::db.exec_dml("PRAGMA cache_size = 4000;");
-	
+
 function getTemplate(fname, nocache){
 	local mixBase = ::__tplCache.get(fname, false);
 	if (!mixBase || nocache){
@@ -29,7 +31,7 @@ function getTemplate(fname, nocache){
 			debug_print("\n", e);
 		}
 		::__tplCache[fname] <- mixBase;
-	}		
+	}
 	return mixBase;
 }
 
@@ -90,7 +92,7 @@ function split_filename(path){
 function insert_field (dest, key, value){
   local fld = dest.get(key, null);
   if (!fld) dest[key] <- value;
-  else 
+  else
   {
 	if (type (fld) == "array") fld.push(value);
 	else  dest[key] <- [fld, value];
@@ -152,7 +154,7 @@ function multipart_data_file_value(file_contents, file_name, file_size, headers)
 
 function multipart_data_parse_field(input, state){
 	local headers, value;
-	
+
 	headers = multipart_data_read_field_headers(input, state);
 	if (headers) {
 		local name_value=[];
@@ -251,7 +253,7 @@ function parse_post_data(input_type, data, tab = null){
 				tab[names[i]] = values[i];
 			}
 		}
-	}  
+	}
 	return tab;
 }
 
@@ -266,7 +268,7 @@ function get_post_fields(request, max_len=1024*1000){
 		fd.write(data, data.len());
 		fd.close();
 		debug_print(conn_get_header("Content-Type"), "\n");
-*/		
+*/
 		parse_post_data(content_type, data, post_fields);
 	}
 	return post_fields;
@@ -322,7 +324,7 @@ function getFilesInPath(path, files=null, prefix=""){
 			else pf = file;
 
 			local attr = sqfs.attributes (f);
-			
+
 			if(attr.mode == "directory") getFilesInPath (f, files, pf);
 			else
 			{
@@ -358,7 +360,7 @@ function getDbListFromStmt(stmt, maxSeconds=0){
 	} catch(e){
 		error_code = db.error_code();
 	}
-	
+
 	if (maxSeconds) db.progress_handler(null);
 	stmt.reset();
 	//debug_print("\n", rows.len(), "\n");
@@ -370,10 +372,10 @@ function strHasContent(v){
 	return false;
 }
 
-function getCiaUkSearchList(search_str, search_post_code, search_sic_code, 
+function getCiaUkSearchList(search_str, search_post_code, search_sic_code,
 			search_origin_post_code, search_around_post_code , sic_street, page, limit){
 	local offset = page * limit;
-	local post_code_radius = strHasContent(search_around_post_code) ? search_around_post_code.tointeger() : 0; 
+	local post_code_radius = strHasContent(search_around_post_code) ? search_around_post_code.tointeger() : 0;
 	local stmt, stmt_count, bind_str;
 	local hasSicSearch = false;
 	local bind_names;
@@ -436,8 +438,8 @@ limit ? offset ?
 			hasSicSearch = true;
 			local sic_code_sql;
 			if (search_sic_code.find_lua("%d+") == 0){
-				stmt = getCachedStmt("getCiaUkSearchList5", @() format([==[ 
-%s, companies_sic_codes csc 
+				stmt = getCachedStmt("getCiaUkSearchList5", @() format([==[
+%s, companies_sic_codes csc
 where csc.sic_code like :sic_code
 and c.id = csc.company_id
 and c.post_code like :post_code
@@ -447,7 +449,7 @@ limit :limit offset :offset
 			}
 			else
 			{
-				stmt = getCachedStmt("getCiaUkSearchList6", @() format([==[ 
+				stmt = getCachedStmt("getCiaUkSearchList6", @() format([==[
 %s , companies_sic_codes csc , sic_codes_fts sc
 where sic_codes_fts match :sic_code
 and csc.sic_code = sc.docid
@@ -460,7 +462,7 @@ limit :limit offset :offset
 		}
 		else
 		{
-			stmt = getCachedStmt("getCiaUkSearchList7", @() format([==[ 
+			stmt = getCachedStmt("getCiaUkSearchList7", @() format([==[
 %s, companies_fts cf
 where companies_fts match ?
 and c.id = cf.docid
@@ -488,14 +490,14 @@ limit ? offset ?
 	else
 	{
 		bind_str = search_str;
-		stmt = getCachedStmt("getCiaUkSearchList11", @() format([==[ 
+		stmt = getCachedStmt("getCiaUkSearchList11", @() format([==[
 %s, companies_fts cf
 where cf.name match ?
 and c.id = cf.docid
 limit ? offset ?
 ]==], base_sql));
 	}
-	
+
 	local xp = 1;
 	stmt.reset();
 //debug_print("\n", bind_str, ":", limit, ":", offset);
@@ -545,8 +547,8 @@ function getCiaUkByIdOldNames(id){
 function getDistances(search_origin_post_code, rows){
 	if (rows.len() > 0){
 		local stmt = getCachedStmt("getDistances", [==[
-select 
-	round(distance(ref.easting, ref.northing, pc.easting, pc.northing)), 
+select
+	round(distance(ref.easting, ref.northing, pc.easting, pc.northing)),
 	ifnull(round(bearing(ref.easting, ref.northing, pc.easting, pc.northing)), 0)
 from companies c left join post_codes pc on c.post_code = pc.post_code,
 	post_codes ref
@@ -659,17 +661,17 @@ function osGridToLatLong(easting, northing){
   local dE5 = dE3*dE2;
   local dE6 = dE4*dE2;
   local dE7 = dE5*dE2;
-  
+
   lat = lat - VII*dE2 + VIII*dE4 - IX*dE6;
   local lon = lon0 + X*dE - XI*dE3 + XII*dE5 - XIIA*dE7;
-  
+
   return [toDeg(lat), toDeg(lon)];
   //return lat, lon
 }
 
 function osGridToLatLongAdjusted(easting, northing){
 	local lat_long = osGridToLatLong(easting, northing)
-	//adjust lat, lon 
+	//adjust lat, lon
 	lat_long[0] += 0.0024;
 	lat_long[1] -=  0.00145;
 	return lat_long;
@@ -689,7 +691,7 @@ function downloadChunked(host, file, extra_header=null){
 	local req;
 	if (extra_header) req = extra_header;
 	else req = format("GET %s HTTP/1.1\r\nHost: %s\r\n\r\n", file, host);
-	
+
 	//print("REQUEST:", req)
 	sock.send(req);
 	local s;
@@ -719,7 +721,7 @@ function getExtraCompanyDataOnNet(cnum){
 	} catch(e){
 	}
 	if (!page) return "";
-	
+
 	local cookie1, cookie2;
 	local function getCookie(){
 		page.gmatch("Set%-Cookie: (chcookie=[^;]+)", function(m){ cookie1=m; return false});
@@ -728,7 +730,7 @@ function getExtraCompanyDataOnNet(cnum){
 	}
 	local location;
 	page.gmatch("Location: http://wck2.companieshouse.gov.uk(.-)wcframe", function(m) {location=m; return false;});
-	
+
 	//print("LOCATION:", getCookie(), location, page)
 
 	//http://wck2.companieshouse.gov.uk/466fc35f66bf9ef61decbe1581a24080/companysearch
@@ -783,7 +785,7 @@ User-Agent:Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.11 (KHTML, like Gecko) 
 	if (!data) return "";
 
 	data.gmatch([==[<!%-%- FILE_END::.-tmpl %-%->.-<td align="left" class="text">(.-)</td>.-<td align="left"><span class="text">(.-)</span>.-<td class="text">(.-)</td>]==],
-		function(vtype, vdate, vdesc){ tdata.push(format("%s|%s|%s", vtype, vdate, vdesc)); return true;}); 
+		function(vtype, vdate, vdesc){ tdata.push(format("%s|%s|%s", vtype, vdate, vdesc)); return true;});
 
 	data = tdata.concat("\n");
 	data = data.gsub("<[^>]->", "");
@@ -798,7 +800,7 @@ function getExtraCompanyData(cid, cnum){
 	local stmt = ::db.prepare("select data from company_extra_data where id = ?");
 	stmt.reset();
 	stmt.bind(1, cid);
-	
+
 	if (stmt.step() == stmt.SQLITE_ROW){
 		data = stmt.col(0);
 	}
@@ -840,7 +842,7 @@ local uri_handlers = {
 		}
 		request.print("</ul></body></html>");
 		return true;
-	},	
+	},
 	["/SQ/logout"] = function(request){
 		request.close_session();
 		request.print(format("HTTP/1.1 302 Found\r\nLocation: http://%s\r\n\r\n", request.info.http_headers.Host))
@@ -852,12 +854,12 @@ local uri_handlers = {
 		//print("EDIT_MD5_PASSWORD=", EDIT_MD5_PASSWORD, "\n")
 		bool_t isViewOnly = VIEW_MD5_PASSWORD && request.check_password(VIEW_MD5_PASSWORD);
 		if (!isViewOnly) canEdit = EDIT_MD5_PASSWORD && request.check_password(EDIT_MD5_PASSWORD);
-	
+
 		if(!(canEdit || isViewOnly) ) {
 			request.send_authorization_request("r.dadbiz.es");
 			return true;
 		}
-		 
+
 		table_t data = {
 			file_name=null,
 			content=null,
@@ -883,7 +885,7 @@ local uri_handlers = {
 			}
 		}
 		else if( query_string ) data.file_name <- request.get_var(query_string, "file");
-		
+
 		//debug_print(data.search_id, "\n")
 		if( data.file_name ){
 			data.file_name = sanitizePath(data.file_name);
@@ -897,9 +899,9 @@ local uri_handlers = {
 				}
 			}
 		}
-				
+
 		//debug_tprint(data.company)
-		
+
 		local mFile = gmFile;
 		mFile.clear(); //allways reset global vars
 		data.mix_write <- function(str){ mFile.write(str || "")}
@@ -914,7 +916,7 @@ local uri_handlers = {
 		data.limit <- 25;
 		local query_string = request.info.query_string;
 		bool_t isPost = request.info.request_method == "POST";
-		local filed_names = ["search_str", "search_post_code", "search_origin_post_code", 
+		local filed_names = ["search_str", "search_post_code", "search_origin_post_code",
 			"search_around_post_code", "search_sic_code", "sic_street", "page"];
 		if (isPost) {
 			local post_fields =  get_post_fields(request);
@@ -926,13 +928,13 @@ local uri_handlers = {
 		else foreach(k in filed_names) data[k] <- null;
 		if(!data.get("page", null))  data.page <- 0;
 		else data.page = data.page.tointeger();
-		
+
 		local errcode;
 		if (strHasContent(data.search_str) || strHasContent(data.search_post_code) || strHasContent(data.search_sic_code)) {
 			data.sicSearchResults <- strHasContent(data.search_sic_code) && !(strHasContent(data.search_str) || strHasContent(data.search_post_code))
-			local result = getCiaUkSearchList(data.search_str, data.search_post_code, data.search_sic_code, 
+			local result = getCiaUkSearchList(data.search_str, data.search_post_code, data.search_sic_code,
 				data.search_origin_post_code, data.search_around_post_code , data.sic_street, data.page, data.limit);
-				
+
 			if (result[1] /*errcode*/ == SQLite3.SQLITE_INTERRUPT) {
 				data.queryWasInterrupted <- true;
 			}
@@ -940,13 +942,13 @@ local uri_handlers = {
 			data.limit <- result[2];
 			if (!data.sicSearchResults && data.rows.len() == 1) {
 					request.print(format("HTTP/1.1 302 Found\r\nLocation: /view?id=%d\r\n\r\n", data.rows[0][0]));
-					return true;			
+					return true;
 			}
 			if (strHasContent(data.search_origin_post_code)) {
 				getDistances(data.search_origin_post_code, data.rows);
 			}
 		}
-		
+
 		local mFile = gmFile;
 		mFile.clear();
 		data.mix_write <- function(str) {if(str) mFile.write(str);}
@@ -975,12 +977,12 @@ local uri_handlers = {
 				data.longitude <- lat_long[1];
 			}
 		}
-		local filed_names = ["search_str", "search_post_code", "search_origin_post_code", 
+		local filed_names = ["search_str", "search_post_code", "search_origin_post_code",
 			"search_around_post_code", "search_sic_code", "sic_street", "page"];
 		foreach(k in filed_names) data[k] <- null;
-		
+
 		//debug_tprint(data.company)
-		
+
 		local mFile = gmFile;
 		mFile.clear();
 		data.mix_write <- function(str) {mFile.write(str || "");}

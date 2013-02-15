@@ -2,7 +2,7 @@
 <!--
 Design by Free Responsive Templates
 http://www.free-responsive-templates.com
-Released for free under a Creative Commons Attribution 3.0 Unported License (CC BY 3.0) 
+Released for free under a Creative Commons Attribution 3.0 Unported License (CC BY 3.0)
 -->
 <html>
 <head>
@@ -21,7 +21,7 @@ article table.dist td:nth-child(3), td:nth-child(4), td:nth-child(5)  {
 	text-align: right;
 }
 table {
-	margin-left:auto; 
+	margin-left:auto;
     margin-right:auto;
 }
 table, th, td
@@ -41,7 +41,7 @@ table td {
 	padding:0;
 }
 </style>
-  
+
 <?
   local account_categories = [
 ["TOTAL EXEMPTION SMALL","1,417,506","46.38%"],
@@ -54,7 +54,7 @@ table td {
 ["MEDUM","5,523","0.18%"],
 ["ACCOUNTS TYPE NOT AVAILABLE","5,099","0.17%"],
 ["PARTIAL EXEMPTION","230","0.01%"],
-["INITIAL","7","0%"],  
+["INITIAL","7","0%"],
   ]
 
   local company_categories = [
@@ -108,7 +108,7 @@ local company_ages = [
 ["3","233,894","7.65%"],
 ["2","316,072","10.34%"],
 ["1","451,577","14.78%"],
-["-1","233,976","7.66%"],    
+["-1","233,976","7.66%"],
 ]
 
 function emptyOnNull(key){
@@ -118,12 +118,12 @@ function emptyOnNull(key){
 
 function getPageLink(page){
 	local fmt = "/?search_str=%s&search_post_code=%s&search_sic_code=%s&search_origin_post_code=%s&search_around_post_code=%s&page=%d";
-	return format(fmt, 
-		url_encode(emptyOnNull("search_str")),  
-		url_encode(emptyOnNull("search_post_code")),  
+	return format(fmt,
+		url_encode(emptyOnNull("search_str")),
+		url_encode(emptyOnNull("search_post_code")),
 		url_encode(emptyOnNull("search_sic_code")),
-		url_encode(emptyOnNull("search_origin_post_code")), 
-		url_encode(emptyOnNull("search_around_post_code")), 
+		url_encode(emptyOnNull("search_origin_post_code")),
+		url_encode(emptyOnNull("search_around_post_code")),
 		page);
 }
 
@@ -163,7 +163,7 @@ function getPageLink(page){
         // Instantiate and draw our chart, passing in some options.
         var chart = new google.visualization.PieChart(document.getElementById('chart_div'));
         chart.draw(data, options);
-        
+
         // Create the data table.
         var data2 = new google.visualization.DataTable();
         data2.addColumn('string', 'Topping');
@@ -183,7 +183,7 @@ function getPageLink(page){
         // Instantiate and draw our chart, passing in some options.
         var chart2 = new google.visualization.PieChart(document.getElementById('chart2_div'));
         chart2.draw(data2, options2);
-        
+
         // Create the data table.
         var data3 = new google.visualization.DataTable();
         data3.addColumn('string', 'Topping');
@@ -203,7 +203,7 @@ function getPageLink(page){
         // Instantiate and draw our chart, passing in some options.
         var chart3 = new google.visualization.PieChart(document.getElementById('chart3_div'));
         chart3.draw(data3, options3);
-        
+
         // Create the data table.
         var data4 = new google.visualization.DataTable();
         data4.addColumn('string', 'Topping');
@@ -223,7 +223,7 @@ function getPageLink(page){
         // Instantiate and draw our chart, passing in some options.
         var chart4 = new google.visualization.PieChart(document.getElementById('chart4_div'));
         chart4.draw(data4, options4);
-	
+
         var data5 = google.visualization.arrayToDataTable([
           ['Year', 'Survive', 'Registered'],
 ["2000",50134,210350],
@@ -247,7 +247,7 @@ function getPageLink(page){
         };
 
         var chart5 = new google.visualization.ColumnChart(document.getElementById('chart5_div'));
-        chart5.draw(data5, options5);	
+        chart5.draw(data5, options5);
       }
     </script>
 <? } ?>
@@ -289,7 +289,7 @@ function loadFormFields(){
 		for(var i=0; i< saveLoadFormFields.length; ++i){
 			 frm[saveLoadFormFields[i]].value = getCookie(saveLoadFormFields[i]) || '';
 		}
-	}	
+	}
 }
 
 function show_location(position) {
@@ -334,7 +334,7 @@ function sortTable(id, col, numeric){
 		return (str1 < str2 ? -1 : (str1 > str2 ? 1 : 0));
 	});
     }
-    
+
     for(var i=0, len=store.length; i<len; i++){
         tbl.appendChild(store[i]);
     }
@@ -387,7 +387,7 @@ function sortTable(id, col, numeric){
 
 <? if (this.get("sic_street", null)  == "street"){ ?>
 
-<header><h1 id="results">Street Search Results</h1></header> 
+<header><h1 id="results">Street Search Results</h1></header>
 <? if (this.get("queryWasInterrupted", false)){ ?>
 <p>Please try again with more specific search terms, it took too long !</p>
 <? } ?>
@@ -415,11 +415,11 @@ function sortTable(id, col, numeric){
 </td></tr>
 <? } ?>
 </table>
-<? 
-	} 
+<?
+	}
 } else if (this.get("sicSearchResults", false)) { ?>
 
-<header><h1 id="results">SIC Code Search Results</h1></header> 
+<header><h1 id="results">SIC Code Search Results</h1></header>
 <? if (this.get("queryWasInterrupted", false)){ ?>
 <p>Please try again with more specific search terms, it took too long !</p>
 <? } ?>
@@ -447,11 +447,11 @@ function sortTable(id, col, numeric){
 </td></tr>
 <? } ?>
 </table>
-<? 
-	} 
+<?
+	}
 } else { ?>
 
-<header><h1 id="results">Companies Search Results</h1></header> 
+<header><h1 id="results">Companies Search Results</h1></header>
 <? if (this.get("queryWasInterrupted",false)) { ?>
 <p>Please try again with more specific search terms, it took too long !</p>
 <? } ?>
@@ -460,9 +460,9 @@ function sortTable(id, col, numeric){
 <tr><th><a href="" onclick="return sortTable('tblcr', 0)">Number</a></th>
 	<th><a href="" onclick="return sortTable('tblcr', 1)">Name</a></th>
 	<th><a href="" onclick="return sortTable('tblcr', 2, true)">Age (years)</a></th>
-<? 
-	local hasDistances = this.get("search_origin_post_code", false) && search_origin_post_code.len() > 0; 
-	if (hasDistances){ 
+<?
+	local hasDistances = this.get("search_origin_post_code", false) && search_origin_post_code.len() > 0;
+	if (hasDistances){
 ?>
 <th><a href="" onclick="return sortTable('tblcr', 3, true)">Dist. Meters</a></th>
 <? } ?>
@@ -496,9 +496,9 @@ function sortTable(id, col, numeric){
 <td>&nbsp;</td></tr>
 <? } ?>
 </table>
-<? 		
-		} 
-	} 
+<?
+		}
+	}
  }
    else if (page_name == "view_company") {
        var pc1, pc2, google_map_url, geo_link;
@@ -510,7 +510,7 @@ function sortTable(id, col, numeric){
 	if (longitude) geo_link = format("geo:%f,%f&z=16", latitude,longitude);
 	else  geo_link = "#";
 ?>
-    
+
 <header><h1 id="results"><?=company.number?> - <?=company.name?></h1></header>
 <table class="nj dist">
 <tr><td>Address</td><td>
@@ -553,20 +553,20 @@ function sortTable(id, col, numeric){
 <? if (this.get("extra_data", false) && extra_data.len() > 0){ ?>
         <table>
           <tr><th>Doc. Type</th><th>Date</th><th>Description</th></tr>
-          <? foreach(k,v in extra_data.split("\n")){
-              local rec = v.split("|");
+          <? foreach(k,v in extra_data.split('\n')){
+              local rec = v.split('|');
           ?>
           <tr><td><?=rec[0]?></td><td><?=rec[1]?></td><td><?=rec[2]?></td></tr>
           <? } ?>
         </table>
 <? } ?>
-      
+
 <?
   if (this.get("show_map", false) && pc1 && pc2){
 ?>
 <br />
 <div style="margin: 0 auto; width: 425px;">
-<iframe width="425" height="350" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" 
+<iframe width="425" height="350" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"
 src="https://maps.google.co.uk/maps?key=AIzaSyAF53Wut8B5cvaUDY-pfegBhbftJdRHovM&amp;channel=cs&amp;q=<?=pc1?>+<?=pc2?>&amp;ie=UTF8&amp;hq=&amp;hnear=<?=pc1?>+<?=pc2?>,+United+Kingdom&amp;gl=uk&amp;t=m&amp;z=14&amp;output=embed"></iframe>
   <br /><small><a href="<?=google_map_url?>" style="color:#0000FF;text-align:left">View Larger Map</a></small>
 </div>
@@ -587,7 +587,7 @@ src="https://maps.google.co.uk/maps?key=AIzaSyAF53Wut8B5cvaUDY-pfegBhbftJdRHovM&
         </table>
     <!--Div that will hold the pie chart-->
     <div id="chart_div"></div>
-      
+
         <div class="clearfloat"></div>
     </article>
     <article class="post">
@@ -652,8 +652,8 @@ src="https://maps.google.co.uk/maps?key=AIzaSyAF53Wut8B5cvaUDY-pfegBhbftJdRHovM&
 </div>
 <footer>
 	<p>
-        Copyright &copy; Domingo Alvarez Duarte. All rights reserved. Designed by <a href="http://www.free-responsive-templates.com" title="free responsive templates">Free Responsive Templates</a>, Validation 
-        <a class="footerLink" href="http://validator.w3.org/check/referer" title="This page validates as HTML5"><abbr title="HyperText Markup Language">HTML5</abbr></a> | 
+        Copyright &copy; Domingo Alvarez Duarte. All rights reserved. Designed by <a href="http://www.free-responsive-templates.com" title="free responsive templates">Free Responsive Templates</a>, Validation
+        <a class="footerLink" href="http://validator.w3.org/check/referer" title="This page validates as HTML5"><abbr title="HyperText Markup Language">HTML5</abbr></a> |
         <a class="footerLink" href="http://jigsaw.w3.org/css-validator/check/referer" title="This page validates as CSS"><abbr title="Cascading Style Sheets">CSS3</abbr></a>
     </p>
 </footer>

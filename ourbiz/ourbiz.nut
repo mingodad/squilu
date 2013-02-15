@@ -4,7 +4,8 @@ if(!globals.get("APP_CODE_FOLDER", false)) ::APP_CODE_FOLDER <- ".";
 local constants = getconsttable();
 
 function getOurbizDBFileName(){
-	if (globals.get("jniLog", false)) return APP_CODE_FOLDER + "/ourbiz.db";
+	if(globals.get("jniLog", false)) return APP_CODE_FOLDER + "/ourbiz.db";
+	if(globals.get("WIN32", false)) return APP_CODE_FOLDER + "/../../ourbiz-uk/ourbiz.db";
 	return "/home/mingo/dev/FrontAccountLua/ourbiz.db";
 }
 
@@ -15,7 +16,7 @@ function getOurbizDB(){
 	//return checkCachedDB(APP_CODE_FOLDER + "/ourbiz.db");
 }
 
-if(AT_DEV_DBG || !globals.get("PdfSqlTable", false)) {
+if(globals.get("AT_DEV_DBG", false) || !globals.get("PdfSqlTable", false)) {
 	dofile(APP_CODE_FOLDER + "/pdf-table.nut");
 }
 
@@ -163,7 +164,7 @@ class DB_Manager {
 	editable_fields = null;
 	has_mdate = null;
 	has_version = null;
-	
+
 	constructor(ptable_name, peditable_fields = null){
 		if(!peditable_fields) peditable_fields =  ["is_active", "code", "description"];
 		table_name = ptable_name;
@@ -171,7 +172,7 @@ class DB_Manager {
 		has_mdate = true;
 		has_version = true;
 	}
-	
+
 	function db_action(db, data){
 		local action = data.__action__;
 		if (action == "insert") return db_insert(db,data);
@@ -200,14 +201,14 @@ class DB_Manager {
 			}
 		}
 		mf.write(")");
-		
+
 		local stmt = db.prepare(mf.tostring());
 		local x = 0;
 		foreach( k,v in editable_fields) {
 			if (data.get(v, false)){
 				stmt.bind_empty_null(++x, data[v]);
 			}
-		}			
+		}
 		local result = stmt.step();
 		stmt.finalize()
 		if (result == sqlite3.DONE) return db.last_insert_rowid();
@@ -230,17 +231,17 @@ class DB_Manager {
 
 		mf.write(" where id=? ");
 		if (self.has_version) mf.write(" and _version_=?");
-		
+
 		local stmt = db.prepare(mf.tostring());
 		local x = 0;
 		foreach( k,v in editable_fields) {
 			if (data.get(v, false)) {
 				stmt.bind_empty_null(++x, data[v]);
 			}
-		}			
+		}
 		stmt.bind(++x, data.__id__);
 		if (has_version) stmt.bind(++x, data.__version__);
-		
+
 		local result = stmt.step();
 		stmt.finalize();
 		if (result == sqlite3.SQLITE_DONE) return db.changes();
@@ -251,7 +252,7 @@ class DB_Manager {
 		local mf = blob();
 		mf.write("delete from ", table_name, " where id=? ");
 		if (has_version) mf.write(" and _version_=?");
-		
+
 		local stmt = db.prepare(mf.tostring());
 		stmt.bind(1, data.__id__);
 		if (has_version) stmt.bind(2, data.__version__);
@@ -261,23 +262,23 @@ class DB_Manager {
 		if (result == sqlite3.DONE) return db.changes();
 		throw db.error_message();
 	}
-	
+
 	function sql_get_one(req) {
-		return format("select * from %s where id=?", table_name); 
+		return format("select * from %s where id=?", table_name);
 	}
-	
+
 	function sql_list(qs_tbl=null, post_tbl=null) {
-		return format("select id, code, description, is_active from %s order by description", table_name); 
+		return format("select id, code, description, is_active from %s order by description", table_name);
 	}
-	
+
 	function sql_short_list(req) {
-		return format("select id, description from %s where is_active=1 order by 2", table_name); 
+		return format("select id, description from %s where is_active=1 order by 2", table_name);
 	}
 
 	function get_bar_chart_statistics_sql_core(aId, sab, str1, str2){
 		local mf = blob();
 
-		mf.write("SELECT ", str1, " as qm, sum(subtotal - total_discount + total_sales_tax1 + total_sales_tax2) as q, '", 
+		mf.write("SELECT ", str1, " as qm, sum(subtotal - total_discount + total_sales_tax1 + total_sales_tax2) as q, '",
 			sab, [==[' as sab
 FROM orders as o
 WHERE entity_id = ]==], aId);
@@ -309,7 +310,7 @@ class DB_Entities extends DB_Manager {
 		"tags", "tax_number", "use_sales_tax2", "user_code", "web", "zip",
 		"irpf_pct_retention"]);
 	}
-	
+
 	function past_products_sql(entity_id){
 		return format([==[
 SELECT
@@ -362,7 +363,7 @@ LEFT JOIN payment_types as pt
 			mf.write([==[
 select product_id as 'product_id|ID|8|R', description as "description|Product|-1",
 	sum(quantity) as 'quantity|Qty.|9|R|N', sum(]==], strTmp2, [==[) as "amount|Amount|9|R|M",
-]==], strTmp3, [==[ as "order_type_code|Type|6|C" 
+]==], strTmp3, [==[ as "order_type_code|Type|6|C"
 from ]==], strTmp, [==[
 group by product_id, description, ]==], strTmp3);
 		}
@@ -374,7 +375,7 @@ group by product_id, description, ]==], strTmp3);
 			case 4: mf.write(" order by 4 desc "); break;
 			case 5: mf.write(" order by 3 desc "); break;
 		}
-	
+
 		mf.write(" limit ", query_limit.tointeger());
 		//debug_print(tostring(mf), "\n");
 		return mf.tostring();
@@ -406,7 +407,7 @@ group by product_id, description, ]==], strTmp3);
 		local so = get_search_options(post_tbl);
 		checkQueryStringSAB(qs_tbl, so);
 		local mf = blob();
-		
+
 		mf.write(" select e.id, e.name, e.contact, e.phone, e.is_active, e.image_id ");
 		if (so.with_images) mf.write(", i.thumbnail, i.mime_type ");
 		mf.write(" from entities as e ");
@@ -421,7 +422,7 @@ group by product_id, description, ]==], strTmp3);
 			}
 			if (so.sales) mf.write("'S'");
 			else if (so.buys) mf.write("'B'");
-		
+
 			mf.write(" order by o.id desc");
 			if (so.query_limit != 0) mf.write(" limit ", so.query_limit);
 			mf.write(") order by 2");
@@ -517,8 +518,8 @@ from entities order by name
 			local sql = [==[
 select id as 'id|ID|6|R', name as 'name|Name|-1',
 	contact as 'contact|Contact|12',
-	phone as 'phone|Phone|12' 
-from entities 
+	phone as 'phone|Phone|12'
+from entities
 order by name
 ]==]
 			local db = getOurbizDB();
@@ -537,7 +538,7 @@ db_ourbiz_tables.entities <- new DB_Entities();
 // orders
 //
 
-if(AT_DEV_DBG || !globals.get("PDF_Order", false)) {
+if(globals.get("AT_DEV_DBG", false) || !globals.get("PDF_Order", false)) {
 	dofile(APP_CODE_FOLDER + "/pdf-order.nut");
 }
 
@@ -647,13 +648,13 @@ class CalcOrderLine
 		use_sales_tax2 = map.get("use_sales_tax2", false) == "1";
 		tax_exempt = map.get("tax_exempt", false) == "1";
 		price_decimals = map.get("price_decimals", 2).tointeger();
-		
+
 		foreach(field in fields){
 			this[field] = map.get(field, 0.0).tofloat();
 		}
 
 		calc();
-		
+
 		foreach(field in fields){
 			map[field] <- this[field];
 		}
@@ -739,7 +740,7 @@ class CalcOrderLine
 		}
 		line_total = round(line_subtotal + sales_tax1_amt + sales_tax2_amt, price_decimals);
 	}
-	
+
 	function calc2()
 	{
 		local num100 = Decimal(100);
@@ -785,7 +786,7 @@ class  CalcOrderTotals
 	total_amt = null;
 	weight_total = null;
 	lines_count = null;
-    
+
 	constructor()
 	{
 		clear();
@@ -814,7 +815,7 @@ class  CalcOrderTotals
 		add2sle(out_result, "sales_tax2_amt");
 		add2sle(out_result, "total_amt");
 	}
-	
+
 	function dumpSLEFieldValues(out_result)
 	{
 		add2sle(out_result, lines_count);
@@ -825,7 +826,7 @@ class  CalcOrderTotals
 		add2sle(out_result, sales_tax2_amt);
 		add2sle(out_result, total_amt);
 	}
-    
+
 	function dumpSLEArray(out_result)
 	{
 		out_result.write("[[");
@@ -873,7 +874,7 @@ from orders_lines where order_id=?]==]);
 		sales_tax2_amt += calc_line.sales_tax2_amt;
 		total_amt += calc_line.line_total;
 	}
-	
+
 	function number_format_trim(num){
 		local snum = math.number_format(num);
 		return snum;
@@ -925,7 +926,7 @@ from orders_lines where order_id=?]==]);
 		local stmt = db.prepare("select * from orders where id=?", id);
 		if(stmt.next_row())
 		{
-			local order_type_id = stmt.col("order_type_id");		
+			local order_type_id = stmt.col("order_type_id");
 			pdf_order.labelNumber = db.exec_get_one(
 				format("select description_to_print from order_types where id=%d",
 					order_type_id));
@@ -956,7 +957,7 @@ class MyCalcOrderTotals
 	order_totals = null;
 	calc_line = null;
 	db = null;
-    
+
 	constructor(adb)
 	{
 		db = adb;
@@ -987,7 +988,7 @@ class DB_Orders extends DB_Manager {
 		local so = get_search_options(post_tbl);
 		checkQueryStringSAB(qs_tbl, so);
 		local mf = blob();
-		
+
 		mf.write("SELECT o.id, o.order_date, ot.code, o.series, o.order_number,",
 			//" o.entity_name, get_order_total(o.id) as total_amt, pt.code "
 			" o.entity_name, ",
@@ -1032,7 +1033,7 @@ class DB_Orders extends DB_Manager {
 						" description like "" , search_str , "" order by id desc limit " , so.query_limit , ")");
 				}
 				else mf.write(" and ");
-				
+
 				if (so.notes) mf.write(" o.notes ");
 				else if (so.date) mf.write(" o.order_date ");
 				//lo_search_str = escapeSqlLikeSearchStr(dbDate(search_str))
@@ -1047,7 +1048,7 @@ class DB_Orders extends DB_Manager {
 		if (so.order_by_modification) mf.write(" and o.mdate is not null order by o.mdate desc ");
 		else if (so.order_by_creation) mf.write(" order by o.id desc ");
 		else mf.write(" order by o.order_date desc, o.id desc ");
-	    
+
 		if (so.query_limit && so.query_limit != 0) mf.write(" limit " , so.query_limit);
 		//debug_print(tostring(mf), "\n")
 		return  mf.tostring();
@@ -1070,7 +1071,7 @@ class DB_Orders extends DB_Manager {
 			strPU2 = ", pt ";
 		}
 		else strPU1 = strPU2 = "";
-		
+
 		local rc = get_sql_bar_chart_statistics_periodes(periode_count, periode_type);
 		local speriode = rc[0],  speriode_count = rc[1];
 
@@ -1139,9 +1140,9 @@ class DB_Products extends DB_Manager {
 		local so = get_search_options(post_tbl);
 		checkQueryStringSAB(qs_tbl, so);
 		local mf = blob();
-		
+
 		mf.write([==[
-select p.id, 
+select p.id,
 	p.reference_code,
 	p.sell_description,
 	ifnull(p.kit,  0)  as kit,
@@ -1159,7 +1160,7 @@ select p.id,
 		if ( (!so.group_id) && (!so.entity_id) && (! (so.search_str && (so.search_str.len() > 0)))){
 			//special case where we get the latest entities that made any transaction
 			mf.write(" p.id in(select distinct product_id from orders_lines where order_id in (select o.id from orders as o ");
-		
+
 			if (so.sales || so.buys){
 				mf.write(", order_types as ot where o.order_type_id = ot.id and ot.group_order =");
 				if (so.sales) mf.write("'S'");
@@ -1183,7 +1184,7 @@ select p.id,
 			mf.write(" and p.group_id=" , so.group_id , " ");
 
 		if (so.active) mf.write(" and p.is_active = 1 ");
-		
+
 		if (so.only_prices_older){
 			//local adate = parse_date(optNum)
 			//mf.write(" and p.price_update_date < '" ,
@@ -1247,14 +1248,14 @@ select product_id from orders_lines where order_id in (
 		}
 		else if (qs_tbl.get("print_list", false)){
 			return [==[
-select 
-    p.id  as 'id|ID|6|R', 
-    case when p.user_code isnull then ' ' else p.user_code end as 'reference|Reference|9', 
-    p.sell_description as 'sell_description|Description|-1', 
-    cast(case when p.kit isnull then 0 else kit end as text) as 'kit|Kit|4|C', 
-    round((p.sell_price * (1 + (st.rate1/100.0))),p.price_decimals) as 'price_taxed|Price+V.A.T.|12|R|M', 
-    round(case when p.kit > 0 then p.kit_onhand else p.quantity_onhand end, 4) as 'quantity_onhand|Onhand|10|R|N' 
-from products_onhand as p left join sales_tax_rates as st 
+select
+    p.id  as 'id|ID|6|R',
+    case when p.user_code isnull then ' ' else p.user_code end as 'reference|Reference|9',
+    p.sell_description as 'sell_description|Description|-1',
+    cast(case when p.kit isnull then 0 else kit end as text) as 'kit|Kit|4|C',
+    round((p.sell_price * (1 + (st.rate1/100.0))),p.price_decimals) as 'price_taxed|Price+V.A.T.|12|R|M',
+    round(case when p.kit > 0 then p.kit_onhand else p.quantity_onhand end, 4) as 'quantity_onhand|Onhand|10|R|N'
+from products_onhand as p left join sales_tax_rates as st
 on p.sales_tax_id = st.id order by 3
 ]==];
 		}
@@ -1265,14 +1266,14 @@ on p.sales_tax_id = st.id order by 3
 			pdf.water_mark = "T H I S   I S   A   D E M O";
 
 			local sql = [==[
-select 
-    p.id  as 'id|ID|6|R', 
-    case when p.user_code isnull then ' ' else p.user_code end as 'reference|Reference|9', 
-    p.sell_description as 'sell_description|Description|-1', 
-    cast(case when p.kit isnull then 0 else kit end as text) as 'kit|Kit|4|C', 
-    round((p.sell_price * (1 + (st.rate1/100.0))),p.price_decimals) as 'price_taxed|Price+V.A.T.|12|R|M', 
-    round(case when p.kit > 0 then p.kit_onhand else p.quantity_onhand end, 4) as 'quantity_onhand|Onhand|10|R|N' 
-from products_onhand as p left join sales_tax_rates as st 
+select
+    p.id  as 'id|ID|6|R',
+    case when p.user_code isnull then ' ' else p.user_code end as 'reference|Reference|9',
+    p.sell_description as 'sell_description|Description|-1',
+    cast(case when p.kit isnull then 0 else kit end as text) as 'kit|Kit|4|C',
+    round((p.sell_price * (1 + (st.rate1/100.0))),p.price_decimals) as 'price_taxed|Price+V.A.T.|12|R|M',
+    round(case when p.kit > 0 then p.kit_onhand else p.quantity_onhand end, 4) as 'quantity_onhand|Onhand|10|R|N'
+from products_onhand as p left join sales_tax_rates as st
 on p.sales_tax_id = st.id order by 3
 ]==]
 			local db = getOurbizDB();
@@ -1294,7 +1295,7 @@ class DB_Images extends DB_Manager {
 	constructor(){
 		base.constructor("images", ["mime_type", "name", "description", "group_set", "image", "thumbnail"]);
 	}
-	
+
 	function sql_list(qs_tbl, post_tbl){
 		local so = get_search_options(post_tbl);
 		local mf = blob();
@@ -1313,7 +1314,7 @@ class DB_Images extends DB_Manager {
 		//debug_print(tostring(mf), "\n")
 		return  mf.tostring();
 	}
-	
+
 	function sql_get_one(req){
 		local mf = blob();
 		mf.write("select id, _version_, mime_type, name, description, group_set, cdate, mdate, length(image) as img_size ");
@@ -1333,7 +1334,7 @@ class DB_order_types extends DB_Manager {
             "with_credit", "with_inventory", "with_payment", "with_ordered",
             "with_sales_tax", "with_sales_tax_included", "with_quote"]);
 	}
-	
+
 	function sql_list(qs_tbl, post_tbl){
 		if (qs_tbl.get("short_list", false)){
 			local sql = "select id, description from order_types where is_active = 1 ";
@@ -1374,7 +1375,7 @@ db_ourbiz_tables.payment_types <- new DB_Manager("payment_types", ["is_active", 
 function check_payment_terms(txt){
 	local init = 0;
 	local pct = 0.0;
-	txt.gmatch("(%d+)%s+(%d+%.?%d*)%D+(%d+)%s+(%S+)", function(n, v, p, pt){ 
+	txt.gmatch("(%d+)%s+(%d+%.?%d*)%D+(%d+)%s+(%S+)", function(n, v, p, pt){
 		// n ->decimal number expected
 		// v -> pct number expected
 		pct += v.tofloat();
@@ -1392,14 +1393,14 @@ class DB_sales_tax_rates extends DB_Manager {
 	constructor(){
 		base.constructor("sales_tax_rates", ["is_active", "rate1", "rate2", "description"]);
 	}
-	
+
 	function sql_list(qs_tbl=null, post_tbl=null) {
 		return "select id,rate1,rate2,description,is_active from sales_tax_rates order by rate1";
 	}
 }
 
 db_ourbiz_tables.sales_tax_rates <- new DB_sales_tax_rates();
- 
+
 db_ourbiz_tables.warranty_types <- new DB_Manager("warranty_types")
 
 
@@ -1433,10 +1434,10 @@ function products_kit_list_sql (kit_id, partOf=false){
 		str2 = "and pk.product_id = p.id order by p.sell_description";
 	}
 	return format([==[
-select pk.id, 
+select pk.id,
 	p.id,
 	p.sell_description,
-	pk.quantity, 
+	pk.quantity,
 	round((p.sell_price*pk.quantity),4) as amount,
 	p.quantity_onhand
 from product_kits as pk, products as p
@@ -1508,7 +1509,7 @@ function ourbizDbMobile(request){
 	local data = {};
 	data.page_name = "list_products";
 	local query_string = request.info.query_string;
-	
+
 	local db = getOurbizDB();
 	local sql = "select id, reference_code, sell_description, sell_price, image_id from products ";
 	local search_str;
@@ -1544,10 +1545,10 @@ function ourbizDbGetList(request){
 		local sql, post_tbl, data;
 		if (isPost) post_tbl = get_post_fields(request, 1024);
 		else post_tbl = {};
-	
+
 		if (!post_tbl.get("query_limit", false)) post_tbl.query_limit <- 50;
 		gmFile.clear();
-		
+
 		if (list == "entity_groups") group_dump_data(db, gmFile, "entity_groups");
 		else if (list == "product_groups") group_dump_data(db, gmFile, "product_groups");
 		else if (list == "config") sql = "select key,value from config";
@@ -1567,7 +1568,7 @@ Content-Length: %d
 				return true;
 			}
 		}
-		
+
 		if (sql){
 			local stmt = db.prepare(sql);
 			//debug_print(sql, "\n", db.error_message(), "\n")
@@ -1577,7 +1578,7 @@ Content-Length: %d
 		else if (gmFile.len() > 0){
 			data = gmFile.tostring();
 		}
-		
+
 		if (data){
 			//using string.format with binary data gives wrong results
 			gmFile.clear()
@@ -1599,9 +1600,9 @@ function ourbizDbGetOne(request){
 		local tbl = tbl_keys[0];
 		local rec_id = tbl_qs[tbl];
 		local sql, data;
-		
+
 		gmFile.clear()
-		
+
 		if (tbl == "orders"){
 			if (request.get_var(query_string, "with_lines")){
 				sql = "select * from orders where id=?";
@@ -1639,14 +1640,14 @@ function ourbizDbGetOne(request){
 				stmt.bind(1, rec_id);
 				gmFile.write(stmt.asSleArray());
 				stmt.finalize();
-				
+
 				stmt = db.prepare(product_prices_list_sql(rec_id));
 				gmFile.write(stmt.asSleArray());
 				stmt.finalize();
-				
+
 				stmt = db.prepare(products_kit_list_sql(rec_id));
 				gmFile.write(stmt.asSleArray());
-				stmt.finalize();			
+				stmt.finalize();
 
 				stmt = db.prepare(products_kit_details_get_one(rec_id));
 				gmFile.write(stmt.asSleArray());
@@ -1656,7 +1657,7 @@ function ourbizDbGetOne(request){
 		}
 		else if (tbl == "config") sql = "select * from config where id=?";
 		else if (db_ourbiz_tables.get(tbl, false)) sql = db_ourbiz_tables[tbl].sql_get_one(tbl_qs);
-		
+
 		if (sql){
 			local stmt = db.prepare(sql);
 			stmt.bind(1, rec_id);
@@ -1665,7 +1666,7 @@ function ourbizDbGetOne(request){
 			stmt.finalize();
 		}
 		else if (gmFile.len() > 0) data = gmFile.tostring();
-		
+
 		if (data){
 			//using string.format with binary data gives wrong results
 			gmFile.clear();
@@ -1684,7 +1685,7 @@ function ourbizDbGetBin(request){
 		local image = request.get_var(query_string, "image");
 		local thumbnail = request.get_var(query_string, "thumbnail");
 		local stmt;
-		gmFile.clear();	
+		gmFile.clear();
 
 		if (image){
 			gmFile.write("select ");
@@ -1694,7 +1695,7 @@ function ourbizDbGetBin(request){
 			gmFile.write(", mime_type from images where id=",  image.tointeger());
 			stmt = db.prepare(gmFile.tostring());
 		}
-		
+
 		if (stmt){
 			local result = stmt.step() == stmt.SQLITE_ROW;
 			if (result){
