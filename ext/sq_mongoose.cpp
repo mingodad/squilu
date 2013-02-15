@@ -1049,7 +1049,13 @@ void sq_printfunc(HSQUIRRELVM v,const SQChar *s,...)
 {
 	va_list vl;
 	va_start(vl, s);
+#ifdef JNI_ENABLE_LOG
+    char buf[2048];
+    vsnprintf(buf, sizeof(buf), s, vl);
+    jniLog(-1, buf);
+#else
 	vfprintf(stdout, s, vl);
+#endif
 	va_end(vl);
 }
 
@@ -1057,7 +1063,13 @@ void sq_errorfunc(HSQUIRRELVM v,const SQChar *s,...)
 {
 	va_list vl;
 	va_start(vl, s);
+#ifdef JNI_ENABLE_LOG
+    char buf[2048];
+    vsnprintf(buf, sizeof(buf), s, vl);
+    jniLog(-2, buf);
+#else
 	vfprintf(stderr, s, vl);
+#endif
 	va_end(vl);
 }
 
