@@ -20,18 +20,31 @@ static const SQChar SQSTD_STREAM_TYPE_TAG[] = _SC("std_stream");
 
 SQInteger _stream_read_line(HSQUIRRELVM v) {
 	SETUP_STREAM(v);
-	SQBlob b(0,BLOB_BUFSIZE);
-    char c;
-    int len = sizeof(char);
-    while(!self->EOS()){
-        if(self->Read(&c, len) != len){
-            if(!self->EOS()) return sq_throwerror(v,_SC("io error"));
-            c = '\n';
+    SQChar c = _SC('\0'), nl = _SC('\n');
+    int len = sizeof(SQChar);
+    SQInteger start_pos = self->Tell();
+    SQInteger read_size = 0, size = 2048;
+    SQChar *buf = sq_getscratchpad(v, size);
+    for(int m=0; !self->EOS() && c != nl; ++m){
+        read_size = self->Read(buf, size);
+        if(read_size == 0) break;
+        for(int i=0; i<read_size; ++i){
+            if(buf[i] == nl){
+                read_size = (m*size) + i+1;
+                c = nl;
+                break;
+            }
         }
-        if(c == '\n') break;
-        b.Write(&c, sizeof(char));
     }
-    if(b.Len() > 0) sq_pushstring(v, (const SQChar*)b.GetBuf(), b.Len());
+    if(read_size > 0) {
+        if(read_size > size){
+            buf = sq_getscratchpad(v, read_size);
+            self->Seek(start_pos, SQ_SEEK_SET);
+            self->Read(buf, read_size);
+        }
+        else self->Seek(start_pos + read_size, SQ_SEEK_SET);
+        sq_pushstring(v, buf, c == _SC('\n') ? read_size-len : read_size);
+    }
     else sq_pushnull(v);
     return 1;
 }
@@ -137,7 +150,6 @@ SQInteger _stream_readn(HSQUIRRELVM v)
 SQInteger _stream_write_str(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
-	SQInteger total_size, size;
 	SETUP_STREAM(v);
     SQ_GET_STRING(v, 2, str);
     SQ_OPT_INTEGER(v, 3, start, 0);
