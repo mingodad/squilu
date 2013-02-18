@@ -25,14 +25,14 @@ static const SQChar SSL_Tag[]   = _SC("sq_axtls_ssl");
 #define GET_ssl_INSTANCE() SQ_GET_INSTANCE(v, 1, SSL, SSL_Tag) \
     if(self == NULL) return sq_throwerror(v, _SC("ssl object already closed"));
 
-static SQInteger ssl_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT ssl_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
     SSL *self = (SSL*)p;
     if(self) ssl_free(self);
 	return 0;
 }
 
-static SQInteger sq_ssl_free(HSQUIRRELVM v)
+static SQRESULT sq_ssl_free(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_ssl_INSTANCE();
@@ -41,7 +41,7 @@ static SQInteger sq_ssl_free(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger ssl_constructor(HSQUIRRELVM v, SSL *ssl, int free_on_gc)
+static SQRESULT ssl_constructor(HSQUIRRELVM v, SSL *ssl, int free_on_gc)
 {
     if(!ssl)
         return sq_throwerror(v, _SC("Could'nt create an ssl object."));
@@ -236,14 +236,14 @@ static int sq_axtls_get_error(HSQUIRRELVM v){
 	return 1;
 }
 
-static SQInteger ssl_ctx_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT ssl_ctx_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
     SSL_CTX *self = (SSL_CTX*)p;
     if(self) ssl_ctx_free(self);
 	return 0;
 }
 
-static SQInteger sq_ssl_ctx_free(HSQUIRRELVM v)
+static SQRESULT sq_ssl_ctx_free(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_ssl_ctx_INSTANCE();
@@ -253,7 +253,7 @@ static SQInteger sq_ssl_ctx_free(HSQUIRRELVM v)
 }
 
 
-static SQInteger sq_ssl_ctx_constructor(HSQUIRRELVM v)
+static SQRESULT sq_ssl_ctx_constructor(HSQUIRRELVM v)
 {
 	SQInteger options, num_sessions;
     sq_getinteger(v, 2, &options);

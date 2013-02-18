@@ -110,13 +110,13 @@ private:
 	bool _owns;
 };
 
-static SQInteger _file__typeof(HSQUIRRELVM v)
+static SQRESULT _file__typeof(HSQUIRRELVM v)
 {
 	sq_pushstring(v,_SC("file"),-1);
 	return 1;
 }
 
-static SQInteger _file_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT _file_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	SQFile *self = (SQFile*)p;
 	self->~SQFile();
@@ -124,7 +124,7 @@ static SQInteger _file_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM 
 	return 1;
 }
 
-static SQInteger _file_constructor(HSQUIRRELVM v)
+static SQRESULT _file_constructor(HSQUIRRELVM v)
 {
 	const SQChar *filename,*mode;
 	bool owns = true;
@@ -152,7 +152,7 @@ static SQInteger _file_constructor(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _file_close(HSQUIRRELVM v)
+static SQRESULT _file_close(HSQUIRRELVM v)
 {
 	SQFile *self = NULL;
 	if(SQ_SUCCEEDED(sq_getinstanceup(v,1,(SQUserPointer*)&self,(SQUserPointer)SQSTD_FILE_TYPE_TAG))
@@ -210,7 +210,7 @@ SQRESULT sqstd_getfile(HSQUIRRELVM v, SQInteger idx, SQFILE *file)
 
 
 
-static SQInteger _io_file_lexfeed_PLAIN(SQUserPointer file)
+static SQRESULT _io_file_lexfeed_PLAIN(SQUserPointer file)
 {
 	SQInteger ret;
 	char c;
@@ -220,7 +220,7 @@ static SQInteger _io_file_lexfeed_PLAIN(SQUserPointer file)
 }
 
 #ifdef SQUNICODE
-static SQInteger _io_file_lexfeed_UTF8(SQUserPointer file)
+static SQRESULT _io_file_lexfeed_UTF8(SQUserPointer file)
 {
 #define READ() \
 	if(sqstd_fread(&inchar,sizeof(inchar),1,(FILE *)file) != 1) \
@@ -258,7 +258,7 @@ static SQInteger _io_file_lexfeed_UTF8(SQUserPointer file)
 }
 #endif
 
-static SQInteger _io_file_lexfeed_UCS2_LE(SQUserPointer file)
+static SQRESULT _io_file_lexfeed_UCS2_LE(SQUserPointer file)
 {
 	SQInteger ret;
 	wchar_t c;
@@ -267,7 +267,7 @@ static SQInteger _io_file_lexfeed_UCS2_LE(SQUserPointer file)
 	return 0;
 }
 
-static SQInteger _io_file_lexfeed_UCS2_BE(SQUserPointer file)
+static SQRESULT _io_file_lexfeed_UCS2_BE(SQUserPointer file)
 {
 	SQInteger ret;
 	unsigned short c;

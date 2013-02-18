@@ -11,7 +11,7 @@
 #define MAX_WFORMAT_LEN	3
 #define ADDITIONAL_FORMAT_SPACE (100*sizeof(SQChar))
 
-static SQInteger validate_format(HSQUIRRELVM v, SQChar *fmt, const SQChar *src, SQInteger n,SQInteger &width)
+static SQRESULT validate_format(HSQUIRRELVM v, SQChar *fmt, const SQChar *src, SQInteger n,SQInteger &width)
 {
 	SQChar swidth[MAX_WFORMAT_LEN];
 	SQInteger wc = 0;
@@ -199,7 +199,7 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
 	return SQ_OK;
 }
 
-static SQInteger _string_format(HSQUIRRELVM v)
+static SQRESULT _string_format(HSQUIRRELVM v)
 {
 	SQChar *dest = NULL;
 	SQInteger length = 0;
@@ -209,7 +209,7 @@ static SQInteger _string_format(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _string_printf(HSQUIRRELVM v)
+static SQRESULT _string_printf(HSQUIRRELVM v)
 {
 	SQChar *dest = NULL;
 	SQInteger length = 0;
@@ -228,14 +228,14 @@ static SQInteger _string_printf(HSQUIRRELVM v)
 	SQRex *self = NULL; \
 	sq_getinstanceup(v,1,(SQUserPointer *)&self,0);
 
-static SQInteger _rexobj_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT _rexobj_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	SQRex *self = ((SQRex *)p);
 	sqstd_rex_free(self);
 	return 1;
 }
 
-static SQInteger _regexp_match(HSQUIRRELVM v)
+static SQRESULT _regexp_match(HSQUIRRELVM v)
 {
 	SETUP_REX(v);
 	const SQChar *str;
@@ -249,7 +249,7 @@ static SQInteger _regexp_match(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _regexp_gmatch(HSQUIRRELVM v)
+static SQRESULT _regexp_gmatch(HSQUIRRELVM v)
 {
 	SETUP_REX(v);
 	const SQChar *str;
@@ -278,7 +278,7 @@ static SQInteger _regexp_gmatch(HSQUIRRELVM v)
 }
 
 #include "sqstdblobimpl.h"
-static SQInteger _regexp_gsub(HSQUIRRELVM v)
+static SQRESULT _regexp_gsub(HSQUIRRELVM v)
 {
 	SETUP_REX(v);
 	const SQChar *str;
@@ -364,7 +364,7 @@ static void _addrexmatch(HSQUIRRELVM v,const SQChar *str,const SQChar *begin,con
 	sq_rawset(v,-3);
 }
 
-static SQInteger _regexp_search(HSQUIRRELVM v)
+static SQRESULT _regexp_search(HSQUIRRELVM v)
 {
 	SETUP_REX(v);
 	const SQChar *str,*begin,*end;
@@ -378,7 +378,7 @@ static SQInteger _regexp_search(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _regexp_capture(HSQUIRRELVM v)
+static SQRESULT _regexp_capture(HSQUIRRELVM v)
 {
 	SETUP_REX(v);
 	const SQChar *str,*begin,*end;
@@ -402,7 +402,7 @@ static SQInteger _regexp_capture(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _regexp_xcapture(HSQUIRRELVM v)
+static SQRESULT _regexp_xcapture(HSQUIRRELVM v)
 {
 	SETUP_REX(v);
 	const SQChar *str,*begin,*end;
@@ -416,7 +416,7 @@ static SQInteger _regexp_xcapture(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _regexp_getxcapture(HSQUIRRELVM v)
+static SQRESULT _regexp_getxcapture(HSQUIRRELVM v)
 {
 	SETUP_REX(v);
 	SQInteger n, start;
@@ -437,14 +437,14 @@ static SQInteger _regexp_getxcapture(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _regexp_subexpcount(HSQUIRRELVM v)
+static SQRESULT _regexp_subexpcount(HSQUIRRELVM v)
 {
 	SETUP_REX(v);
 	sq_pushinteger(v,sqstd_rex_getsubexpcount(self));
 	return 1;
 }
 
-static SQInteger _regexp_constructor(HSQUIRRELVM v)
+static SQRESULT _regexp_constructor(HSQUIRRELVM v)
 {
 	const SQChar *error,*pattern;
 	sq_getstring(v,2,&pattern);
@@ -455,7 +455,7 @@ static SQInteger _regexp_constructor(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _regexp__typeof(HSQUIRRELVM v)
+static SQRESULT _regexp__typeof(HSQUIRRELVM v)
 {
 	sq_pushstring(v,_SC("regexp"),-1);
 	return 1;

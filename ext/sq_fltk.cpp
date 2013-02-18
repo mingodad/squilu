@@ -170,7 +170,7 @@ static SQRESULT fltk_get_registered_instance(HSQUIRRELVM v, void *cptr){
     return SQ_ERROR;
 }
 
-static SQInteger getInstance_for_Fl_Klass(HSQUIRRELVM v, const SQChar *klass, SQUserPointer *ptr){
+static SQRESULT getInstance_for_Fl_Klass(HSQUIRRELVM v, const SQChar *klass, SQUserPointer *ptr){
     if(!ptr) return SQ_ERROR;
     if(SQ_SUCCEEDED(fltk_get_registered_instance(v, ptr))) return SQ_OK;
     sq_pushstring(v, klass, -1);
@@ -198,7 +198,7 @@ static SQInteger getInstance_for_Fl_Klass(HSQUIRRELVM v, const SQChar *klass, SQ
 #define AS_IS(a) a
 
 #define FLTK_CONSTRUCTOR_RELEASE_WINDOW(Klass, RELEASE_HOOK, _release_hook)\
-static SQInteger _##Klass##_constructor(HSQUIRRELVM v)\
+static SQRESULT _##Klass##_constructor(HSQUIRRELVM v)\
 {\
 	const SQChar *label = NULL;\
 	SQInteger argc, x,y,w,h;\
@@ -225,7 +225,7 @@ static SQInteger _##Klass##_constructor(HSQUIRRELVM v)\
 }
 
 #define FLTK_CONSTRUCTOR_RELEASE(Klass, RELEASE_HOOK, _release_hook)\
-static SQInteger _##Klass##_constructor(HSQUIRRELVM v)\
+static SQRESULT _##Klass##_constructor(HSQUIRRELVM v)\
 {\
 	const SQChar *label = NULL;\
 	SQInteger argc, x,y,w,h;\
@@ -249,7 +249,7 @@ static SQInteger _##Klass##_constructor(HSQUIRRELVM v)\
 #define FLTK_CONSTRUCTOR(Klass) FLTK_CONSTRUCTOR_RELEASE(Klass, NOTHING, a)
 
 #define FUNC_GETSET_STR(prefix, getSelf, selfPtr, funcNAME) \
-static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
+static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
 {\
     getSelf(v);\
     SQInteger argc = sq_gettop(v);\
@@ -266,7 +266,7 @@ static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
 }
 
 #define FUNC_GETSET_INT(prefix, getSelf, selfPtr, funcNAME, typeCast) \
-static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
+static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
 {\
     getSelf(v);\
     SQInteger argc = sq_gettop(v);\
@@ -281,7 +281,7 @@ static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
 }
 
 #define FUNC_GETSET_INT_ONE_CALL(prefix, getSelf, selfPtr, funcNAME, typeCast) \
-static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
+static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
 {\
     getSelf(v);\
     SQInteger argc = sq_gettop(v);\
@@ -295,10 +295,10 @@ static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
 }
 
 #define FUNC_DUMMY(prefix, funcNAME)\
-static SQInteger prefix##funcNAME(HSQUIRRELVM v) {return 0;}
+static SQRESULT prefix##funcNAME(HSQUIRRELVM v) {return 0;}
 
 #define FUNC_GETSET_INT_BOOL(prefix, getSelf, selfPtr, funcNAME, typeCast) \
-static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
+static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
 {\
     getSelf(v);\
     SQInteger argc = sq_gettop(v);\
@@ -318,7 +318,7 @@ static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
 }
 
 #define FUNC_VOID_CALL(prefix, getSelf, selfPtr, funcNAME) \
-static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
+static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
 {\
     getSelf(v);\
     selfPtr funcNAME();\
@@ -326,7 +326,7 @@ static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
 }
 
 #define FUNC_VOID_CALL_2INT(prefix, getSelf, funcNAME) \
-static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
+static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
 {\
     getSelf(v);\
     SQInteger i1, i2;\
@@ -337,7 +337,7 @@ static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
 }
 
 #define FUNC_VOID_CALL_4INT(prefix, getSelf, funcNAME) \
-static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
+static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
 {\
     getSelf(v);\
     SQInteger i1, i2, i3, i4;\
@@ -350,7 +350,7 @@ static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
 }
 
 #define FUNC_INT_CALL(prefix, getSelf, funcNAME) \
-static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
+static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
 {\
     getSelf(v);\
     sq_pushinteger(v, self->funcNAME());\
@@ -358,7 +358,7 @@ static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
 }
 
 #define FUNC_SET_INT(prefix, getSelf, funcNAME) \
-static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
+static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
 {\
     getSelf(v);\
     SQInteger iparam; sq_getinteger(v, 2, &iparam);\
@@ -367,7 +367,7 @@ static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
 }
 
 #define FUNC_SET_STR(prefix, getSelf, funcNAME) \
-static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
+static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
 {\
     getSelf(v);\
     const SQChar *str; sq_getstring(v, 2, &str);\
@@ -376,7 +376,7 @@ static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
 }
 
 #define FUNC_STR_CALL(prefix, getSelf, funcNAME) \
-static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
+static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
 {\
     getSelf(v);\
     sq_pushstring(v, self->funcNAME(), -1);\
@@ -384,7 +384,7 @@ static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
 }
 
 #define FUNC_BOOL_CALL(prefix, getSelf, funcNAME) \
-static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
+static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
 {\
     getSelf(v);\
     sq_pushbool(v, self->funcNAME());\
@@ -392,7 +392,7 @@ static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
 }
 
 #define FUNC_GET_BOOL(prefix, getSelf, funcNAME) \
-static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
+static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
 {\
     getSelf(v);\
     sq_pushbool(v, self->funcNAME());\
@@ -400,7 +400,7 @@ static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
 }
 
 #define FUNC_GETSET_BOOL(prefix, getSelf, selfPtr, funcNAME) \
-static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
+static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
 {\
     getSelf(v);\
     SQInteger argc = sq_gettop(v);\
@@ -432,7 +432,7 @@ static SQInteger prefix##funcNAME(HSQUIRRELVM v) \
 #define FL_WIDGET_STR_CALL(funcNAME) FUNC_STR_CALL(_Fl_Widget_, SETUP_FL_WIDGET, funcNAME)
 
 #define GETINSTANCE_FOR_FL_KLASS(Klass)\
-static SQInteger getInstance_for_##Klass(HSQUIRRELVM v, Klass *widget){\
+static SQRESULT getInstance_for_##Klass(HSQUIRRELVM v, Klass *widget){\
     if(!widget) return SQ_ERROR;\
     if(fltk_get_registered_instance(v, widget) == SQ_OK) return SQ_OK;\
     int rc;\
@@ -569,7 +569,7 @@ static void fltk_calback_hook(Fl_Widget *sender, void* udata){
     sq_settop(v, savedTop);
 }
 
-static SQInteger _Fl_Widget_callback(HSQUIRRELVM v)
+static SQRESULT _Fl_Widget_callback(HSQUIRRELVM v)
 {
 //printf("%d %s\n", __LINE__, __FILE__);
     SETUP_FL_WIDGET(v);
@@ -650,7 +650,7 @@ FL_WIDGET_VOID_CALL(clear_changed2);
 
 //FL_WIDGET_STR_CALL(classId);
 
-static SQInteger _Fl_Widget_classId(HSQUIRRELVM v)
+static SQRESULT _Fl_Widget_classId(HSQUIRRELVM v)
 {
     SETUP_FL_WIDGET(v);
     if(!self) return sq_throwerror(v, _SC("attempt to call method with null object"));
@@ -659,7 +659,7 @@ static SQInteger _Fl_Widget_classId(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _Fl_Widget_classRTTI(HSQUIRRELVM v)
+static SQRESULT _Fl_Widget_classRTTI(HSQUIRRELVM v)
 {
     SETUP_FL_WIDGET(v);
     if(!self) return sq_throwerror(v, _SC("attempt to call method with null object"));
@@ -667,7 +667,7 @@ static SQInteger _Fl_Widget_classRTTI(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _Fl_Widget_inherits_from(HSQUIRRELVM v)
+static SQRESULT _Fl_Widget_inherits_from(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_WIDGET(v);
@@ -677,7 +677,7 @@ static SQInteger _Fl_Widget_inherits_from(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _Fl_Widget_parent(HSQUIRRELVM v)
+static SQRESULT _Fl_Widget_parent(HSQUIRRELVM v)
 {
     SETUP_FL_WIDGET(v);
     if(!self) return sq_throwerror(v, _SC("attempt to call method with null object"));
@@ -685,7 +685,7 @@ static SQInteger _Fl_Widget_parent(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _Fl_Widget_parent_root(HSQUIRRELVM v)
+static SQRESULT _Fl_Widget_parent_root(HSQUIRRELVM v)
 {
     SETUP_FL_WIDGET(v);
     if(!self) return sq_throwerror(v, _SC("attempt to call method with null object"));
@@ -693,7 +693,7 @@ static SQInteger _Fl_Widget_parent_root(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _Fl_Widget_window(HSQUIRRELVM v)
+static SQRESULT _Fl_Widget_window(HSQUIRRELVM v)
 {
     SETUP_FL_WIDGET(v);
     if(!self) return sq_throwerror(v, _SC("attempt to call method with null object"));
@@ -701,7 +701,7 @@ static SQInteger _Fl_Widget_window(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _Fl_Widget_handle(HSQUIRRELVM v)
+static SQRESULT _Fl_Widget_handle(HSQUIRRELVM v)
 {
     SETUP_FL_WIDGET(v);
     SQInteger event;
@@ -717,7 +717,7 @@ FL_WIDGET_VOID_CALL(redraw_label);
 FL_WIDGET_VOID_CALL(hide);
 FL_WIDGET_VOID_CALL(show);
 
-static SQInteger _Fl_Widget_image(HSQUIRRELVM v)
+static SQRESULT _Fl_Widget_image(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SETUP_FL_WIDGET(v);
@@ -806,7 +806,7 @@ MY_FL_CLASS(Fl_Box,
     }
 )
 
-static SQInteger _MyFl_Box_draw(HSQUIRRELVM v)
+static SQRESULT _MyFl_Box_draw(HSQUIRRELVM v)
 {
     SETUP_FL_WIDGET(v);
     ((MyFl_Box*)self)->Fl_Box::draw();
@@ -922,7 +922,7 @@ static SQRegFunction fl_menu_item_obj_funcs[]={
 FLTK_CONSTRUCTOR(Fl_Menu_);
 #define SETUP_FL_MENU_(v) SETUP_FL_KLASS(v, Fl_Menu_)
 
-static SQInteger _Fl_Menu__copy(HSQUIRRELVM v)
+static SQRESULT _Fl_Menu__copy(HSQUIRRELVM v)
 {
     SETUP_FL_MENU_(v);
     SQInteger menu_size = sq_getsize(v, 2);
@@ -957,7 +957,7 @@ static SQInteger _Fl_Menu__copy(HSQUIRRELVM v)
     return 0;
 }
 
-static SQInteger _Fl_Menu__add(HSQUIRRELVM v)
+static SQRESULT _Fl_Menu__add(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SETUP_FL_MENU_(v);
@@ -971,14 +971,7 @@ static SQInteger _Fl_Menu__add(HSQUIRRELVM v)
     return 0;
 }
 
-static SQInteger _Fl_Menu__value(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS_NO_TOP(v);
-    SETUP_FL_MENU_(v);
-    sq_pushinteger(v, self->value());
-    return 1;
-}
-
+FUNC_GETSET_INT(_Fl_Menu__, SETUP_FL_MENU_, self->, value, int);
 FUNC_GETSET_INT(_Fl_Menu__, SETUP_FL_MENU_, self->, down_box, Fl_Boxtype);
 
 CHEAP_RTTI_FOR(Fl_Menu_);
@@ -988,7 +981,7 @@ static SQRegFunction fl_menu__obj_funcs[]={
 	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	_DECL_FUNC(copy,-2,_SC("xa."),SQFalse),
 	_DECL_FUNC(add,-2,_SC("xs s|i|o c|n .i"),SQFalse),
-	_DECL_FUNC(value,1,_SC("x"),SQFalse),
+	_DECL_FUNC(value,-1,_SC("xi"),SQFalse),
 	_DECL_FUNC(down_box,-1,_SC("xi"), SQFalse),
 	{0,0}
 };
@@ -1007,7 +1000,7 @@ static SQRegFunction fl_menu_bar_obj_funcs[]={
 FLTK_CONSTRUCTOR(Fl_Menu_Button);
 #define SETUP_FL_MENU_BUTTON(v) SETUP_FL_KLASS(v, Fl_Menu_Button)
 
-static SQInteger _Fl_Menu_Button_popup(HSQUIRRELVM v)
+static SQRESULT _Fl_Menu_Button_popup(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SETUP_FL_MENU_BUTTON(v);
@@ -1063,7 +1056,7 @@ MY_FL_CLASS(Fl_Input,
 
 #define SETUP_FL_INPUT(v) SETUP_FL_KLASS(v, Fl_Input)
 
-static SQInteger _MyFl_Input_handle(HSQUIRRELVM v)
+static SQRESULT _MyFl_Input_handle(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_INPUT(v);
@@ -1161,28 +1154,28 @@ static SQRESULT _Fl_Group_dispatcher(HSQUIRRELVM v, _Fl_Group_Funcs func_idx){
 }
 */
 
-static SQInteger _Fl_Group_begin(HSQUIRRELVM v)
+static SQRESULT _Fl_Group_begin(HSQUIRRELVM v)
 {
     SETUP_FL_GROUP(v);
     self->begin();
 	return 0;
 }
 
-static SQInteger _Fl_Group_end(HSQUIRRELVM v)
+static SQRESULT _Fl_Group_end(HSQUIRRELVM v)
 {
     SETUP_FL_GROUP(v);
     self->end();
 	return 0;
 }
 
-static SQInteger _Fl_Group_current(HSQUIRRELVM v)
+static SQRESULT _Fl_Group_current(HSQUIRRELVM v)
 {
     Fl_Group *grp = Fl_Group::current();
     if(!grp || getInstance_for_Fl_Group(v, grp) != SQ_OK) sq_pushnull(v);
 	return 1;
 }
 
-static SQInteger _Fl_Group_resizable(HSQUIRRELVM v)
+static SQRESULT _Fl_Group_resizable(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SETUP_FL_GROUP(v);
@@ -1194,7 +1187,7 @@ static SQInteger _Fl_Group_resizable(HSQUIRRELVM v)
     return fltk_pushinstance(v, FLTK_TAG(Fl_Widget), self->resizable());
 }
 
-static SQInteger _Fl_Group_add(HSQUIRRELVM v)
+static SQRESULT _Fl_Group_add(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_GROUP(v);
@@ -1203,7 +1196,7 @@ static SQInteger _Fl_Group_add(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _Fl_Group_insert(HSQUIRRELVM v)
+static SQRESULT _Fl_Group_insert(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_GROUP(v);
@@ -1225,7 +1218,7 @@ static SQInteger _Fl_Group_insert(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _Fl_Group_remove(HSQUIRRELVM v)
+static SQRESULT _Fl_Group_remove(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_GROUP(v);
@@ -1303,7 +1296,7 @@ static SQRESULT _Flu_Combo_Box_get_data_at(HSQUIRRELVM v){
 }
 
 static SQRESULT _Flu_Combo_Box_select_by_data(HSQUIRRELVM v){
-    SQ_FUNC_VARS(v);
+    SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FLU_COMBO_BOX(v);
     SQ_GET_INTEGER(v, 2, idx);
     self->select_by_data((void*)idx);
@@ -1419,13 +1412,13 @@ static SQRegFunction flu_combo_tree_browser_obj_funcs[]={
 
 //no constructor for Flv_Style
 /*
-static SQInteger Flv_Style_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v){
+static SQRESULT Flv_Style_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v){
     Flv_Style *self = (Flv_Style*)p;
     if(self) delete self;
     return 0;
 }
 
-static SQInteger Flv_Style_constructor(HSQUIRRELVM v){
+static SQRESULT Flv_Style_constructor(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FLV_STYLE(v);
     self = new Flv_Style();
@@ -1442,7 +1435,7 @@ static SQInteger Flv_Style_constructor(HSQUIRRELVM v){
 #define GET_SET_INT_IF(n, nc, nm) if(name[n] == nc) {if(_top_ > 1) {SQ_GET_INTEGER(v, 2, iparm); self->nm(iparm); return 0;} \
     else {sq_pushinteger(v, self->nm()); return 1;}}
 
-static SQInteger Flv_Style_class(HSQUIRRELVM v){
+static SQRESULT Flv_Style_class(HSQUIRRELVM v){
     SQ_FUNC_VARS(v);
     Flv_Style *self;
     if(sq_getinstanceup(v, 1, (void**)&self, (void*)FLTK_TAG(Flv_Style)) < 0) return SQ_ERROR;
@@ -1963,7 +1956,7 @@ public:
     }
 };
 
-static SQInteger _Flv_Data_Table_handle(HSQUIRRELVM v)
+static SQRESULT _Flv_Data_Table_handle(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FLV_DATA_TABLE(v);
@@ -1972,7 +1965,7 @@ static SQInteger _Flv_Data_Table_handle(HSQUIRRELVM v)
     return 1;
 }
 
-static SQInteger _Flv_Data_Table_resize(HSQUIRRELVM v)
+static SQRESULT _Flv_Data_Table_resize(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FLV_DATA_TABLE(v);
@@ -1984,7 +1977,7 @@ static SQInteger _Flv_Data_Table_resize(HSQUIRRELVM v)
     return 0;
 }
 
-static SQInteger _Flv_Data_Table_draw_offset(HSQUIRRELVM v)
+static SQRESULT _Flv_Data_Table_draw_offset(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SETUP_FLV_DATA_TABLE(v);
@@ -2077,7 +2070,7 @@ FLTK_CONSTRUCTOR(Fl_Browser);
 #define SETUP_FL_BROWSER(v) SETUP_KLASS(v, 1, self, Fl_Browser, FLTK_TAG(Fl_Browser))
 
 static SQRESULT _Fl_Browser_clear(HSQUIRRELVM v){
-    SQ_FUNC_VARS(v);
+    SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_BROWSER(v);
     self->clear();
     return 0;
@@ -2105,14 +2098,14 @@ static SQRegFunction fl_hold_browser_obj_funcs[]={
 #undef _DECL_FUNC
 
 
-static SQInteger _Fl_Image_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT _Fl_Image_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	Fl_Image *self = ((Fl_Image *)p);
 	delete self;
 	return 0;
 }
 
-static SQInteger _Fl_Image_constructor(HSQUIRRELVM v)
+static SQRESULT _Fl_Image_constructor(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_IMAGE(v);
@@ -2126,7 +2119,7 @@ static SQInteger _Fl_Image_constructor(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _Fl_Image_copy(HSQUIRRELVM v)
+static SQRESULT _Fl_Image_copy(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SETUP_FL_IMAGE(v);
@@ -2147,14 +2140,14 @@ FUNC_FL_IMAGE_INT_CALL(d);
 FUNC_FL_IMAGE_INT_CALL(ld);
 FUNC_FL_IMAGE_INT_CALL(count);
 
-static SQInteger _Fl_Image_data(HSQUIRRELVM v)
+static SQRESULT _Fl_Image_data(HSQUIRRELVM v)
 {
     SETUP_FL_IMAGE(v);
     sq_pushuserpointer(v, (SQUserPointer)self->data());
 	return 1;
 }
 
-static SQInteger _Fl_Image_uncache(HSQUIRRELVM v)
+static SQRESULT _Fl_Image_uncache(HSQUIRRELVM v)
 {
     SETUP_FL_IMAGE(v);
     self->uncache();
@@ -2180,7 +2173,7 @@ static SQRegFunction fl_image_obj_funcs[]={
 static SQChar Fl_RGB_Image_TAG[] = _SC("Fl_RGB_Image");
 #define SETUP_FL_RGB_IMAGE(v) SETUP_KLASS(v, 1, self, Fl_RGB_Image, Fl_RGB_Image_TAG)
 
-static SQInteger _Fl_RGB_Image_constructor(HSQUIRRELVM v)
+static SQRESULT _Fl_RGB_Image_constructor(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SETUP_FL_RGB_IMAGE(v);
@@ -2196,7 +2189,7 @@ static SQInteger _Fl_RGB_Image_constructor(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _Fl_RGB_Image_max_size(HSQUIRRELVM v)
+static SQRESULT _Fl_RGB_Image_max_size(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     if(_top_ > 1){
@@ -2220,7 +2213,7 @@ static SQRegFunction fl_rgb_image_obj_funcs[]={
 static SQChar Fl_JPEG_Image_TAG[] = _SC("Fl_JPEG_Image");
 #define SETUP_FL_JPEG_IMAGE(v) SETUP_KLASS(v, 1, self, Fl_JPEG_Image, Fl_JPEG_Image_TAG)
 
-static SQInteger _Fl_JPEG_Image_constructor(HSQUIRRELVM v)
+static SQRESULT _Fl_JPEG_Image_constructor(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SETUP_FL_JPEG_IMAGE(v);
@@ -2236,9 +2229,9 @@ static SQInteger _Fl_JPEG_Image_constructor(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _Fl_JPEG_Image_encode(HSQUIRRELVM v)
+static SQRESULT _Fl_JPEG_Image_encode(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS(v);
+    SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_IMAGE_AT(v, 2, img);
     SQ_GET_INTEGER(v, 3, quality);
     unsigned char *outbuffer;
@@ -2262,7 +2255,7 @@ static SQRegFunction fl_jpeg_image_obj_funcs[]={
 static SQChar Fl_PNG_Image_TAG[] = _SC("Fl_PNG_Image");
 #define SETUP_FL_PNG_IMAGE(v) SETUP_KLASS(v, 1, self, Fl_PNG_Image, Fl_PNG_Image_TAG)
 
-static SQInteger _Fl_PNG_Image_constructor(HSQUIRRELVM v)
+static SQRESULT _Fl_PNG_Image_constructor(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SETUP_FL_PNG_IMAGE(v);
@@ -2279,9 +2272,9 @@ static SQInteger _Fl_PNG_Image_constructor(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _Fl_PNG_Image_encode(HSQUIRRELVM v)
+static SQRESULT _Fl_PNG_Image_encode(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS(v);
+    SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_IMAGE_AT(v, 2, img);
     unsigned char *outbuffer;
     int outlen;
@@ -2304,14 +2297,14 @@ static SQRegFunction fl_png_image_obj_funcs[]={
 
 static SQChar Fl_Text_Buffer_TAG[] = _SC("Fl_Text_Buffer");
 
-static SQInteger _Fl_Text_Buffer_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT _Fl_Text_Buffer_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	Fl_Text_Buffer *self = ((Fl_Text_Buffer *)p);
 	delete self;
 	return 0;
 }
 
-static SQInteger _Fl_Text_Buffer_constructor(HSQUIRRELVM v)
+static SQRESULT _Fl_Text_Buffer_constructor(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SQ_OPT_INTEGER(v, 2, requestedSize, 0);
@@ -2327,7 +2320,7 @@ static SQInteger _Fl_Text_Buffer_constructor(HSQUIRRELVM v)
 FUNC_GETSET_STR(_Fl_Text_Buffer_, SETUP_FL_TEXT_BUFFER, self->, text);
 FUNC_INT_CALL(_Fl_Text_Buffer_, SETUP_FL_TEXT_BUFFER, length);
 
-static SQInteger _Fl_Text_Buffer_loadfile(HSQUIRRELVM v)
+static SQRESULT _Fl_Text_Buffer_loadfile(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SETUP_FL_TEXT_BUFFER(v);
@@ -2337,7 +2330,7 @@ static SQInteger _Fl_Text_Buffer_loadfile(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _Fl_Text_Buffer_input_file_was_transcoded(HSQUIRRELVM v)
+static SQRESULT _Fl_Text_Buffer_input_file_was_transcoded(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_TEXT_BUFFER(v);
@@ -2346,7 +2339,7 @@ static SQInteger _Fl_Text_Buffer_input_file_was_transcoded(HSQUIRRELVM v)
 }
 
 //int search_forward(int startPos, const char* searchString, int* foundPos, int matchCase = 0) const;
-static SQInteger _Fl_Text_Buffer_search_forward(HSQUIRRELVM v)
+static SQRESULT _Fl_Text_Buffer_search_forward(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SETUP_FL_TEXT_BUFFER(v);
@@ -2360,9 +2353,9 @@ static SQInteger _Fl_Text_Buffer_search_forward(HSQUIRRELVM v)
 }
 
 //void select(int start, int end);
-static SQInteger _Fl_Text_Buffer_select(HSQUIRRELVM v)
+static SQRESULT _Fl_Text_Buffer_select(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS(v);
+    SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_TEXT_BUFFER(v);
     SQ_GET_INTEGER(v, 2, start);
     SQ_GET_INTEGER(v, 3, end);
@@ -2386,7 +2379,7 @@ static SQRegFunction fl_text_buffer_obj_funcs[]={
 FLTK_CONSTRUCTOR(Fl_Text_Display);
 #define SETUP_FL_TEXT_DISPLAY(v) SETUP_FL_KLASS(v, Fl_Text_Display)
 
-static SQInteger _Fl_Text_Display_buffer(HSQUIRRELVM v)
+static SQRESULT _Fl_Text_Display_buffer(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SETUP_FL_TEXT_DISPLAY(v);
@@ -2399,7 +2392,7 @@ static SQInteger _Fl_Text_Display_buffer(HSQUIRRELVM v)
     return fltk_pushinstance(v, Fl_Text_Buffer_TAG, self->buffer());
 }
 
-static SQInteger _Fl_Text_Display_highlight_data(HSQUIRRELVM v)
+static SQRESULT _Fl_Text_Display_highlight_data(HSQUIRRELVM v)
 {
     SETUP_FL_TEXT_DISPLAY(v);
     SQUserPointer rsz;
@@ -2407,7 +2400,7 @@ static SQInteger _Fl_Text_Display_highlight_data(HSQUIRRELVM v)
 }
 
 //void wrap_mode(int wrap, int wrap_margin);
-static SQInteger _Fl_Text_Display_wrap_mode(HSQUIRRELVM v)
+static SQRESULT _Fl_Text_Display_wrap_mode(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_TEXT_DISPLAY(v);
@@ -2417,7 +2410,7 @@ static SQInteger _Fl_Text_Display_wrap_mode(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _Fl_Text_Display_insert_position(HSQUIRRELVM v)
+static SQRESULT _Fl_Text_Display_insert_position(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SETUP_FL_TEXT_DISPLAY(v);
@@ -2430,9 +2423,8 @@ static SQInteger _Fl_Text_Display_insert_position(HSQUIRRELVM v)
     return 1;
 }
 
-static SQInteger _Fl_Text_Display_show_insert_position(HSQUIRRELVM v)
+static SQRESULT _Fl_Text_Display_show_insert_position(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS(v);
     SETUP_FL_TEXT_DISPLAY(v);
     self->show_insert_position();
     return 0;
@@ -2465,7 +2457,7 @@ static SQRegFunction fl_text_editor_obj_funcs[]={
 FLTK_CONSTRUCTOR(Fl_Text_Editor_Buffered);
 #define SETUP_FL_TEXT_EDITOR_BUFFERED(v) SETUP_FL_KLASS(v, Fl_Text_Editor_Buffered)
 
-static SQInteger _Fl_Text_Editor_Buffered_value(HSQUIRRELVM v)
+static SQRESULT _Fl_Text_Editor_Buffered_value(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     const SQChar *txt;
@@ -2492,7 +2484,7 @@ FLTK_CONSTRUCTOR(Fl_Help_View);
 #define SETUP_FL_HELP_VIEW(v) SETUP_FL_KLASS(v, Fl_Help_View)
 #define SETUP_FL_HELP_VIEW_GETSET_INT_CAST(funcNAME, typeNAME) FUNC_GETSET_INT(_Fl_Help_View_, SETUP_FL_HELP_VIEW, self->, funcNAME, typeNAME)
 
-static SQInteger _Fl_Help_View_value(HSQUIRRELVM v)
+static SQRESULT _Fl_Help_View_value(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SETUP_FL_HELP_VIEW(v);
@@ -2505,14 +2497,14 @@ static SQInteger _Fl_Help_View_value(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _Fl_Help_View_reformat(HSQUIRRELVM v)
+static SQRESULT _Fl_Help_View_reformat(HSQUIRRELVM v)
 {
     SETUP_FL_HELP_VIEW(v);
     self->reformat();
 	return 0;
 }
 
-static SQInteger _Fl_Help_View_topline(HSQUIRRELVM v)
+static SQRESULT _Fl_Help_View_topline(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SETUP_FL_HELP_VIEW(v);
@@ -2531,7 +2523,7 @@ static SQInteger _Fl_Help_View_topline(HSQUIRRELVM v)
 }
 
 //int find(const char *sp, int pos = 0);
-static SQInteger _Fl_Help_View_find(HSQUIRRELVM v)
+static SQRESULT _Fl_Help_View_find(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SETUP_FL_HELP_VIEW(v);
@@ -2569,7 +2561,7 @@ static const char *help_func_hook(Fl_Widget *sender, const char *uri, const char
     return result;
 }
 
-static SQInteger _Fl_Help_View_link(HSQUIRRELVM v)
+static SQRESULT _Fl_Help_View_link(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_HELP_VIEW(v);
@@ -2685,7 +2677,7 @@ class MyFl_Window : public Fl_Double_Window {
     }
 };
 
-static SQInteger _MyFl_Window_handle(HSQUIRRELVM v)
+static SQRESULT _MyFl_Window_handle(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_WINDOW(v);
@@ -2694,7 +2686,7 @@ static SQInteger _MyFl_Window_handle(HSQUIRRELVM v)
     return 1;
 }
 
-static SQInteger _MyFl_Window_hide(HSQUIRRELVM v)
+static SQRESULT _MyFl_Window_hide(HSQUIRRELVM v)
 {
     SETUP_FL_WINDOW(v);
     self->Fl_Double_Window::hide();
@@ -2704,7 +2696,7 @@ static SQInteger _MyFl_Window_hide(HSQUIRRELVM v)
 extern int sq_main_argc;
 extern char **sq_main_argv;
 
-static SQInteger _MyFl_Window_show_main(HSQUIRRELVM v)
+static SQRESULT _MyFl_Window_show_main(HSQUIRRELVM v)
 {
     SETUP_FL_WINDOW(v);
     int i;
@@ -2713,12 +2705,12 @@ static SQInteger _MyFl_Window_show_main(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _MyFl_Window_on_first_time_show(HSQUIRRELVM v)
+static SQRESULT _MyFl_Window_on_first_time_show(HSQUIRRELVM v)
 {
 	return 0;
 }
 
-static SQInteger _fl_window_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT _fl_window_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	MyFl_Window *self = ((MyFl_Window *)p);
 	Fl::delete_widget(self);
@@ -2726,14 +2718,14 @@ static SQInteger _fl_window_releasehook(SQUserPointer p, SQInteger size, HSQUIRR
 	return 0;
 }
 
-static SQInteger _MyFl_Window_set_non_modal(HSQUIRRELVM v)
+static SQRESULT _MyFl_Window_set_non_modal(HSQUIRRELVM v)
 {
     SETUP_FL_WINDOW(v);
     self->set_non_modal();
 	return 0;
 }
 
-static SQInteger _MyFl_Window_shown(HSQUIRRELVM v)
+static SQRESULT _MyFl_Window_shown(HSQUIRRELVM v)
 {
     SETUP_FL_WINDOW(v);
     sq_pushbool(v, self->shown());
@@ -2756,7 +2748,7 @@ static SQRegFunction fl_window_obj_funcs[]={
 };
 #undef _DECL_FUNC
 
-static SQInteger _fl_double_window_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT _fl_double_window_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	Fl_Double_Window *self = ((Fl_Double_Window *)p);
 	Fl::delete_widget(self);
@@ -2894,14 +2886,14 @@ static SQRegFunction fl_paged_device_obj_funcs[]={
 
 #define SETUP_FL_PDF_FILE_DEVICE(v) SETUP_FL_KLASS(v, Fl_Pdf_File_Device)
 
-static SQInteger _Fl_Pdf_File_Device_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT _Fl_Pdf_File_Device_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	Fl_Pdf_File_Device *self = ((Fl_Pdf_File_Device *)p);
 	delete self;
 	return 0;
 }
 
-static SQInteger _Fl_Pdf_File_Device_constructor(HSQUIRRELVM v)
+static SQRESULT _Fl_Pdf_File_Device_constructor(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_PDF_FILE_DEVICE(v);
@@ -2983,14 +2975,14 @@ static SQRegFunction fl_postscript_file_device_obj_funcs[]={
 
 static SQChar Fl_File_Chooser_TAG[] = _SC("Fl_File_Chooser");
 
-static SQInteger _Fl_File_Chooser_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT _Fl_File_Chooser_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	Fl_File_Chooser *self = ((Fl_File_Chooser *)p);
 	delete self;
 	return 0;
 }
 
-static SQInteger _Fl_File_Chooser_constructor(HSQUIRRELVM v)
+static SQRESULT _Fl_File_Chooser_constructor(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 2, pathname);
@@ -3014,14 +3006,14 @@ static SQRegFunction fl_file_chooser_obj_funcs[]={
 
 static SQChar Fl_Native_File_Chooser_TAG[] = _SC("Fl_Native_File_Chooser");
 
-static SQInteger _Fl_Native_File_Chooser_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT _Fl_Native_File_Chooser_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	Fl_Native_File_Chooser *self = ((Fl_Native_File_Chooser *)p);
 	delete self;
 	return 0;
 }
 
-static SQInteger _Fl_Native_File_Chooser_constructor(HSQUIRRELVM v)
+static SQRESULT _Fl_Native_File_Chooser_constructor(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SQ_OPT_INTEGER(v, 2, type, Fl_Native_File_Chooser::BROWSE_FILE);
@@ -3048,11 +3040,11 @@ static SQRegFunction fl_native_file_chooser_obj_funcs[]={
 #undef _DECL_FUNC
 
 
-#define FL_FUNC_NO_ARG_NO_RET(fn) static SQInteger _fl_##fn(HSQUIRRELVM v){Fl::fn();return 0;}
+#define FL_FUNC_NO_ARG_NO_RET(fn) static SQRESULT _fl_##fn(HSQUIRRELVM v){Fl::fn();return 0;}
 FL_FUNC_NO_ARG_NO_RET(check);
 FL_FUNC_NO_ARG_NO_RET(do_widget_deletion);
 
-#define FL_FUNC_NO_ARG_RET_INT(fn) static SQInteger _fl_##fn(HSQUIRRELVM v){sq_pushinteger(v, Fl::fn());return 1;}
+#define FL_FUNC_NO_ARG_RET_INT(fn) static SQRESULT _fl_##fn(HSQUIRRELVM v){sq_pushinteger(v, Fl::fn());return 1;}
 FL_FUNC_NO_ARG_RET_INT(run);
 FL_FUNC_NO_ARG_RET_INT(event);
 FL_FUNC_NO_ARG_RET_INT(event_alt);
@@ -3096,7 +3088,7 @@ FL_FUNC_GETSET_INT_BOOL(option);
 #define FL_FUNC_GETSET_STR(fn) FUNC_GETSET_STR(_fl_, NOTHING, Fl::, fn)
 FL_FUNC_GETSET_STR(scheme);
 
-static SQInteger _fl_delete_widget(HSQUIRRELVM v)
+static SQRESULT _fl_delete_widget(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_INSTANCE_VAR(v, 2, Fl_Widget, widget, FLTK_TAG(Fl_Widget));
@@ -3124,7 +3116,7 @@ static void fltk_cb_hook(void* udata, bool freeAfter){
     sq_settop(v, savedTop);
 }
 
-static SQInteger fltk_add_cb(HSQUIRRELVM v, int idx, st_mycb **cb)
+static SQRESULT fltk_add_cb(HSQUIRRELVM v, int idx, st_mycb **cb)
 {
     int ptype = sq_gettype(v, idx);
     if(ptype == OT_CLOSURE || ptype == OT_NATIVECLOSURE){
@@ -3149,7 +3141,7 @@ static void fltk_add_idle_hook(void* udata){
     fltk_cb_hook(udata, false);
 }
 
-static SQInteger _fl_add_timeout(HSQUIRRELVM v)
+static SQRESULT _fl_add_timeout(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_FLOAT(v, 2, delay);
@@ -3159,7 +3151,7 @@ static SQInteger _fl_add_timeout(HSQUIRRELVM v)
     return 0;
 }
 
-static SQInteger _fl_add_idle(HSQUIRRELVM v)
+static SQRESULT _fl_add_idle(HSQUIRRELVM v)
 {
     st_mycb *mycb = 0;
     fltk_add_cb(v, 2, &mycb);
@@ -3188,7 +3180,7 @@ static int flfk_focus_changing_handler_hook(Fl_Widget *to, Fl_Widget *from){
     return 0;
 }
 
-static SQInteger _fl_add_focus_changing_handler(HSQUIRRELVM v)
+static SQRESULT _fl_add_focus_changing_handler(HSQUIRRELVM v)
 {
     sq_pushregistrytable(v);
     sq_pushuserpointer(v, (void*)flfk_focus_changing_handler_hook);
@@ -3198,7 +3190,7 @@ static SQInteger _fl_add_focus_changing_handler(HSQUIRRELVM v)
     return 0;
 }
 
-static SQInteger _fl_set_fonts(HSQUIRRELVM v)
+static SQRESULT _fl_set_fonts(HSQUIRRELVM v)
 {
     const SQChar *filter = 0;
     if(sq_gettop(v) > 1) sq_getstring(v, 2, &filter);
@@ -3206,7 +3198,7 @@ static SQInteger _fl_set_fonts(HSQUIRRELVM v)
     return 1;
 }
 
-static SQInteger _fl_set_font(HSQUIRRELVM v)
+static SQRESULT _fl_set_font(HSQUIRRELVM v)
 {
     const SQChar *fname = 0;
     SQInteger font, new_font;
@@ -3224,7 +3216,7 @@ static SQInteger _fl_set_font(HSQUIRRELVM v)
     return 0;
 }
 
-static SQInteger _fl_get_font(HSQUIRRELVM v)
+static SQRESULT _fl_get_font(HSQUIRRELVM v)
 {
     SQInteger font;
     sq_getinteger(v, 2, &font);
@@ -3232,7 +3224,7 @@ static SQInteger _fl_get_font(HSQUIRRELVM v)
     return 1;
 }
 
-static SQInteger _fl_get_font_name(HSQUIRRELVM v)
+static SQRESULT _fl_get_font_name(HSQUIRRELVM v)
 {
     SQInteger font, attributes = 0;
     sq_getinteger(v, 2, &font);
@@ -3303,7 +3295,7 @@ static SQRegFunction fl_obj_funcs[]={
 #undef _DECL_FUNC
 
 
-static SQInteger _fl_globals_fl_alert(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_alert(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 2, msg);
@@ -3311,7 +3303,7 @@ static SQInteger _fl_globals_fl_alert(HSQUIRRELVM v)
     return 0;
 }
 
-static SQInteger _fl_globals_fl_font(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_font(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     if(_top_ > 1){
@@ -3324,13 +3316,13 @@ static SQInteger _fl_globals_fl_font(HSQUIRRELVM v)
     return 1;
 }
 
-static SQInteger _fl_globals_fl_size(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_size(HSQUIRRELVM v)
 {
     sq_pushinteger(v, fl_size());
     return 1;
 }
 
-static SQInteger _fl_globals_fl_height(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_height(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     if(_top_ > 1){
@@ -3342,7 +3334,7 @@ static SQInteger _fl_globals_fl_height(HSQUIRRELVM v)
     return 1;
 }
 
-static SQInteger _fl_globals_fl_width(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_width(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SQ_GET_STRING(v, 2, str);
@@ -3351,14 +3343,14 @@ static SQInteger _fl_globals_fl_width(HSQUIRRELVM v)
     return 1;
 }
 
-static SQInteger _fl_globals_fl_descent(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_descent(HSQUIRRELVM v)
 {
     sq_pushinteger(v, fl_descent());
     return 1;
 }
 
 //void fl_cursor(Fl_Cursor, Fl_Color fg=FL_BLACK, Fl_Color bg=FL_WHITE);
-static SQInteger _fl_globals_fl_cursor(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_cursor(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SQ_GET_INTEGER(v, 2, cursor);
@@ -3369,7 +3361,7 @@ static SQInteger _fl_globals_fl_cursor(HSQUIRRELVM v)
 }
 
 //void	fl_color(Fl_Color c)
-static SQInteger _fl_globals_fl_color(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_color(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     if(_top_ > 1){
@@ -3382,7 +3374,7 @@ static SQInteger _fl_globals_fl_color(HSQUIRRELVM v)
 }
 
 //void fl_draw(int angle,const char* str, int n, int x, int y)
-static SQInteger _fl_globals_fl_draw(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_draw(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     if(sq_gettype(v, 2) == OT_INTEGER){
@@ -3423,7 +3415,7 @@ static SQInteger _fl_globals_fl_draw(HSQUIRRELVM v)
 }
 
 //inline void fl_rect(int x, int y, int w, int h, Fl_Color c)
-static SQInteger _fl_globals_fl_rect(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_rect(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SQ_GET_INTEGER(v, 2, ix);
@@ -3439,7 +3431,7 @@ static SQInteger _fl_globals_fl_rect(HSQUIRRELVM v)
 }
 
 //inline void fl_rectf(int x, int y, int w, int h, Fl_Color c)
-static SQInteger _fl_globals_fl_rectf(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_rectf(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SQ_GET_INTEGER(v, 2, ix);
@@ -3455,7 +3447,7 @@ static SQInteger _fl_globals_fl_rectf(HSQUIRRELVM v)
 }
 
 //void fl_line(int x, int y, int x1, int y1, int x2, int y2)
-static SQInteger _fl_globals_fl_line(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_line(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SQ_GET_INTEGER(v, 2, x);
@@ -3472,7 +3464,7 @@ static SQInteger _fl_globals_fl_line(HSQUIRRELVM v)
 }
 
 //void fl_line_style(int style, int width=0, char* dashes=0)
-static SQInteger _fl_globals_fl_line_style(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_line_style(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SQ_GET_INTEGER(v, 2, style);
@@ -3486,7 +3478,7 @@ static SQInteger _fl_globals_fl_line_style(HSQUIRRELVM v)
 }
 
 //void fl_loop(int x, int y, int x1, int y1, int x2, int y2, int x3, int y3)
-static SQInteger _fl_globals_fl_loop(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_loop(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SQ_GET_INTEGER(v, 2, x);
@@ -3505,7 +3497,7 @@ static SQInteger _fl_globals_fl_loop(HSQUIRRELVM v)
 }
 
 //void fl_measure(const char* str, int& x, int& y, int draw_symbols = 1);
-static SQInteger _fl_globals_fl_measure(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_measure(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SQ_GET_STRING(v, 2, str);
@@ -3522,7 +3514,7 @@ static SQInteger _fl_globals_fl_measure(HSQUIRRELVM v)
     return 0;
 }
 
-static SQInteger _fl_globals_fl_point(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_point(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_INTEGER(v, 2, x);
@@ -3532,7 +3524,7 @@ static SQInteger _fl_globals_fl_point(HSQUIRRELVM v)
 }
 
 //void fl_polygon(int x, int y, int x1, int y1, int x2, int y2, int x3, int y3)
-static SQInteger _fl_globals_fl_polygon(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_polygon(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SQ_GET_INTEGER(v, 2, x);
@@ -3551,7 +3543,7 @@ static SQInteger _fl_globals_fl_polygon(HSQUIRRELVM v)
 }
 
 //void fl_push_clip(int x, int y, int w, int h)
-static SQInteger _fl_globals_fl_push_clip(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_push_clip(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_INTEGER(v, 2, x);
@@ -3562,20 +3554,20 @@ static SQInteger _fl_globals_fl_push_clip(HSQUIRRELVM v)
     return 0;
 }
 
-static SQInteger _fl_globals_fl_push_no_clip(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_push_no_clip(HSQUIRRELVM v)
 {
     fl_push_no_clip();
     return 0;
 }
 
-static SQInteger _fl_globals_fl_pop_clip(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_pop_clip(HSQUIRRELVM v)
 {
     fl_pop_clip();
     return 0;
 }
 
 //int fl_not_clipped(int x, int y, int w, int h)
-static SQInteger _fl_globals_fl_not_clipped(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_not_clipped(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_INTEGER(v, 2, x);
@@ -3587,7 +3579,7 @@ static SQInteger _fl_globals_fl_not_clipped(HSQUIRRELVM v)
 }
 
 //Fl_Color fl_color_average(Fl_Color c1, Fl_Color c2, float weight)
-static SQInteger _fl_globals_fl_color_average(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_color_average(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_INTEGER(v, 2, c1);
@@ -3597,9 +3589,9 @@ static SQInteger _fl_globals_fl_color_average(HSQUIRRELVM v)
     return 1;
 }
 
-static SQInteger _fl_globals_fl_preferences(HSQUIRRELVM v)
+static SQRESULT _fl_globals_fl_preferences(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS(v);
+    SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_INTEGER(v, 2, ptype);
     SQ_GET_STRING(v, 3, vendor);
     SQ_GET_STRING(v, 4, application);

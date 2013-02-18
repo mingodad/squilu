@@ -121,7 +121,7 @@ bool SQBlob::SetLen(SQInteger len){
 		return sq_throwerror(v,_SC("the blob is invalid"));
 
 
-static SQInteger _blob_resize(HSQUIRRELVM v)
+static SQRESULT _blob_resize(HSQUIRRELVM v)
 {
 	SETUP_BLOB(v);
 	SQInteger size;
@@ -131,7 +131,7 @@ static SQInteger _blob_resize(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _blob_reserve(HSQUIRRELVM v)
+static SQRESULT _blob_reserve(HSQUIRRELVM v)
 {
 	SETUP_BLOB(v);
 	SQInteger size;
@@ -154,7 +154,7 @@ static void __swap_word(unsigned short *n)
 	*n=(unsigned short)((*n>>8)&0x00FF)| ((*n<<8)&0xFF00);
 }
 
-static SQInteger _blob_swap4(HSQUIRRELVM v)
+static SQRESULT _blob_swap4(HSQUIRRELVM v)
 {
 	SETUP_BLOB(v);
 	SQInteger num=(self->Len()-(self->Len()%4))>>2;
@@ -165,7 +165,7 @@ static SQInteger _blob_swap4(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _blob_swap2(HSQUIRRELVM v)
+static SQRESULT _blob_swap2(HSQUIRRELVM v)
 {
 	SETUP_BLOB(v);
 	SQInteger num=(self->Len()-(self->Len()%2))>>1;
@@ -176,7 +176,7 @@ static SQInteger _blob_swap2(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _blob_memset(HSQUIRRELVM v)
+static SQRESULT _blob_memset(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
 	SETUP_BLOB(v);
@@ -191,7 +191,7 @@ static SQInteger _blob_memset(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _blob__set(HSQUIRRELVM v)
+static SQRESULT _blob__set(HSQUIRRELVM v)
 {
 	SETUP_BLOB(v);
 	SQInteger idx,val;
@@ -204,7 +204,7 @@ static SQInteger _blob__set(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _blob__get(HSQUIRRELVM v)
+static SQRESULT _blob__get(HSQUIRRELVM v)
 {
 	SETUP_BLOB(v);
 	SQInteger idx;
@@ -221,7 +221,7 @@ static SQInteger _blob__get(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _blob__nexti(HSQUIRRELVM v)
+static SQRESULT _blob__nexti(HSQUIRRELVM v)
 {
 	SETUP_BLOB(v);
 	if(sq_gettype(v,2) == OT_NULL) {
@@ -240,13 +240,13 @@ static SQInteger _blob__nexti(HSQUIRRELVM v)
 	return sq_throwerror(v,_SC("internal error (_nexti) wrong argument type"));
 }
 
-static SQInteger _blob__typeof(HSQUIRRELVM v)
+static SQRESULT _blob__typeof(HSQUIRRELVM v)
 {
 	sq_pushstring(v,_SC("blob"),-1);
 	return 1;
 }
 
-static SQInteger _blob_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT _blob_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	SQBlob *self = (SQBlob*)p;
 	self->~SQBlob();
@@ -254,7 +254,7 @@ static SQInteger _blob_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM 
 	return 1;
 }
 
-static SQInteger _blob_constructor(HSQUIRRELVM v)
+static SQRESULT _blob_constructor(HSQUIRRELVM v)
 {
 	SQInteger nparam = sq_gettop(v);
 	SQInteger size = 0, allocate = 0;
@@ -278,7 +278,7 @@ static SQInteger _blob_constructor(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _blob__cloned(HSQUIRRELVM v)
+static SQRESULT _blob__cloned(HSQUIRRELVM v)
 {
 	SQBlob *other = NULL;
 	{
@@ -297,19 +297,19 @@ static SQInteger _blob__cloned(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _blob__tostring(HSQUIRRELVM v)
+static SQRESULT _blob__tostring(HSQUIRRELVM v)
 {
     SETUP_BLOB(v);
 	sq_pushstring(v, (const SQChar*)self->GetBuf(), self->Len());
 	return 1;
 }
 
-static SQInteger _blob_tostring(HSQUIRRELVM v)
+static SQRESULT _blob_tostring(HSQUIRRELVM v)
 {
     return _blob__tostring(v);
 }
 
-static SQInteger _blob_setLen(HSQUIRRELVM v)
+static SQRESULT _blob_setLen(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SETUP_BLOB(v);
@@ -318,7 +318,7 @@ static SQInteger _blob_setLen(HSQUIRRELVM v)
     return 0;
 }
 
-static SQInteger _blob_clear(HSQUIRRELVM v)
+static SQRESULT _blob_clear(HSQUIRRELVM v)
 {
     SETUP_BLOB(v);
     self->SetLen(0);
@@ -349,7 +349,7 @@ static SQRegFunction _blob_methods[] = {
 
 //GLOBAL FUNCTIONS
 
-static SQInteger _g_blob_casti2f(HSQUIRRELVM v)
+static SQRESULT _g_blob_casti2f(HSQUIRRELVM v)
 {
 	SQInteger i;
 	sq_getinteger(v,2,&i);
@@ -357,7 +357,7 @@ static SQInteger _g_blob_casti2f(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _g_blob_castf2i(HSQUIRRELVM v)
+static SQRESULT _g_blob_castf2i(HSQUIRRELVM v)
 {
 	SQFloat f;
 	sq_getfloat(v,2,&f);
@@ -365,7 +365,7 @@ static SQInteger _g_blob_castf2i(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _g_blob_swap2(HSQUIRRELVM v)
+static SQRESULT _g_blob_swap2(HSQUIRRELVM v)
 {
 	SQInteger i;
 	sq_getinteger(v,2,&i);
@@ -374,7 +374,7 @@ static SQInteger _g_blob_swap2(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _g_blob_swap4(HSQUIRRELVM v)
+static SQRESULT _g_blob_swap4(HSQUIRRELVM v)
 {
 	SQInteger i;
 	sq_getinteger(v,2,&i);
@@ -384,7 +384,7 @@ static SQInteger _g_blob_swap4(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger _g_blob_swapfloat(HSQUIRRELVM v)
+static SQRESULT _g_blob_swapfloat(HSQUIRRELVM v)
 {
 	SQFloat f;
 	sq_getfloat(v,2,&f);

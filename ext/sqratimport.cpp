@@ -278,7 +278,7 @@ SQRESULT sqrat_import(HSQUIRRELVM v) {
     return res;
 }
 
-static SQInteger sqratbase_import(HSQUIRRELVM v) {
+static SQRESULT sqratbase_import(HSQUIRRELVM v) {
     SQInteger args = sq_gettop(v);
     switch(args) {
     case 2:

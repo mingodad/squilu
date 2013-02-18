@@ -965,7 +965,7 @@ push_request(HSQUIRRELVM v, const struct mg_request_info *ri)
     sq_poptop(v); //remove data table
 }
 
-static SQInteger
+static SQRESULT
 sq_mg_pcall_master_plugin(HSQUIRRELVM v)
 {
 #if 0

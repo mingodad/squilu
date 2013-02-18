@@ -31,7 +31,7 @@
 
 SQ_OPT_STRING_STRLEN();
 
-static SQInteger _system_getenv(HSQUIRRELVM v)
+static SQRESULT _system_getenv(HSQUIRRELVM v)
 {
 	const SQChar *s;
 	if(SQ_SUCCEEDED(sq_getstring(v,2,&s))){
@@ -42,7 +42,7 @@ static SQInteger _system_getenv(HSQUIRRELVM v)
 }
 
 
-static SQInteger _system_system(HSQUIRRELVM v)
+static SQRESULT _system_system(HSQUIRRELVM v)
 {
 	const SQChar *s;
 	if(SQ_SUCCEEDED(sq_getstring(v,2,&s))){
@@ -53,14 +53,14 @@ static SQInteger _system_system(HSQUIRRELVM v)
 }
 
 
-static SQInteger _system_clock(HSQUIRRELVM v)
+static SQRESULT _system_clock(HSQUIRRELVM v)
 {
 	sq_pushfloat(v,((SQFloat)clock())/(SQFloat)CLOCKS_PER_SEC);
 	return 1;
 }
 
 /*
-static SQInteger _system_time(HSQUIRRELVM v)
+static SQRESULT _system_time(HSQUIRRELVM v)
 {
 	time_t t;
 	time(&t);
@@ -69,7 +69,7 @@ static SQInteger _system_time(HSQUIRRELVM v)
 }
 */
 
-static SQInteger get_int_field (HSQUIRRELVM v, const SQChar *key, int dflt) {
+static SQRESULT get_int_field (HSQUIRRELVM v, const SQChar *key, int dflt) {
     SQInteger res;
     SQObjectType stype;
     sq_pushstring(v, key, -1);
@@ -86,7 +86,7 @@ static SQInteger get_int_field (HSQUIRRELVM v, const SQChar *key, int dflt) {
   return dflt;
 }
 
-static SQInteger _system_time(HSQUIRRELVM v) {
+static SQRESULT _system_time(HSQUIRRELVM v) {
   time_t t;
   if (sq_gettop(v) == 1)  /* called without args? */
     t = time(NULL);  /* get current time */
@@ -145,7 +145,7 @@ static SQRESULT _system_difftime (HSQUIRRELVM v) {
   return 1;
 }
 
-static SQInteger _system_remove(HSQUIRRELVM v)
+static SQRESULT _system_remove(HSQUIRRELVM v)
 {
 	const SQChar *s;
 	sq_getstring(v,2,&s);
@@ -154,7 +154,7 @@ static SQInteger _system_remove(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQInteger _system_rename(HSQUIRRELVM v)
+static SQRESULT _system_rename(HSQUIRRELVM v)
 {
 	const SQChar *oldn,*newn;
 	sq_getstring(v,2,&oldn);
@@ -171,7 +171,7 @@ static void _set_integer_slot(HSQUIRRELVM v,const SQChar *name,SQInteger val)
 	sq_rawset(v,-3);
 }
 
-static SQInteger _system_date(HSQUIRRELVM v)
+static SQRESULT _system_date(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SQ_OPT_STRING(v, 2, arg_format, _SC("%c"));

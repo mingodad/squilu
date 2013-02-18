@@ -758,7 +758,7 @@ static SQRESULT sq_sqlite3_stmt_asJsonObject(HSQUIRRELVM v) {
 
 static SQRESULT sle2array(HSQUIRRELVM v, const unsigned char *p, size_t sle_size, const unsigned char **next)
 {
-    size_t size, data_count = 1, data_len = 0;
+    size_t size, data_len = 0;
 
     if(sle_size == 0) {
         *next = 0;

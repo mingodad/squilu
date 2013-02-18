@@ -96,7 +96,7 @@ void sqstd_printcallstack(HSQUIRRELVM v)
 	}
 }
 
-static SQInteger _sqstd_aux_printerror(HSQUIRRELVM v)
+static SQRESULT _sqstd_aux_printerror(HSQUIRRELVM v)
 {
 	SQPRINTFUNCTION pf = sq_geterrorfunc(v);
 	if(pf) {
