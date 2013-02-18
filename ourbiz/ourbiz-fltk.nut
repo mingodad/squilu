@@ -100,9 +100,42 @@ class Fl_Box_ClearLabel extends Fl_Box {
 }
 
 class Fl_Choice_Int extends Fl_Choice {
-	constructor(px, py, pw, ph, pl=""){
+	my_values = null;
+	
+	constructor(px, py, pw, ph, pl=null){
 		base.constructor(px, py, pw, ph, pl);
+		my_values = [];
 	}
+	function my_add (akey, avalue){
+		my_values.push(akey);
+		add(avalue);
+	}
+	function my_add_tr (akey,  avalue){
+		my_values.push(akey);
+		add(_tr(avalue));
+	}
+	function my_get_value (pos=-1){
+		if(pos == -1) pos = value();
+		if(pos == -1) return -1;
+		return my_values[pos];
+	}
+	function my_get_value_str (pos=-1){
+		if(pos == -1) pos = value();
+		if(pos == -1) return "";
+		return my_values[pos].tostring();
+	}
+	function my_set_value (akey){
+		my_clear();
+		for(local i = 0, len = my_values.size(); i < len; ++i )
+		{
+		    if(my_values[i] == akey)
+		    {
+			value(i);
+			break;
+		    }
+		}
+	}
+	function my_clear (){ value(-1);}
 }
 
 enum DbAction_Enum {
@@ -278,8 +311,11 @@ class EditWindow extends MyBaseWindow {
 		base.constructor(px, py, pw, ph, pl);
 		_record = {};
 	}
-	function show_id(id){
+	function get_record(id){
 		appServer.get_record(_record, _main_table, 0, id);
+	}
+	function show_id(id){
+		get_record(id);
 		_id = id;
 		local tbl_map = _db_map.get(_main_table, false);
 		if(tbl_map){
@@ -293,6 +329,11 @@ class EditWindow extends MyBaseWindow {
 					else if(classId == Fl_Check_Button.className()){
 						//set_widget_value((Fl_Check_Button*)wdg, fld_name);
 						wdg->value(value == "1" ? 1 : 0);
+					}
+					else if(classId == Fl_Choice.className() && wdg instanceof Fl_Choice_Int){
+						//set_widget_value((Fl_Choice_Int*)wdg, fld_name);
+						if(value && value.len()) wdg->my_set_value(value.tointeger());
+						else wdg->my_clear();
 					}
 					/*
 					else if(classId == Fl_Choice_Str.className()){
@@ -316,6 +357,15 @@ class EditWindow extends MyBaseWindow {
 			}
 		}
 	}
+	function fill_choice_by_data (choice, data)
+	{
+		for(local i=0, max_count = data.size(); i<max_count; ++i)
+		{
+			local rec = data[i];
+			choice->my_add(rec[0].tointeger(), rec[1]);
+			//choice->add(rec[1]);
+		}
+	}	
 }
 
 enum Fl_Data_Table_Events {e_none, e_event, e_select, e_insert, e_update, e_delete};
@@ -943,6 +993,36 @@ class MyEditProductWindow extends EditProductWindow {
 	constructor(){
 		base.constructor();
 		_main_table = "products";
+		load_aux_data();
+	}
+	function show_id(id){
+		base.show_id(id);
+		local image_id = _record.get("image_id", false);
+		if(image_id) button_show_db_image(btnImage, image_id.tointeger(), null, false, false);
+		else {
+			btnImage->hide();
+			//btnImage->image(&jpegNophoto);
+			btnImage->image(null);
+			btnImage->show();
+		}
+	}
+	function load_aux_data(){
+		//local tree = db_products_group_id;
+		//setup_tree_browser_for_selection(tree);
+		//treeLoadChilds(tree, 0, 0, "product_groups");
+
+		local sales_tax_data = [], measure_units_data = [], warranty_data = [];
+
+		appServer.get_product_aux_data(
+				    sales_tax_data,
+				    measure_units_data,
+				    warranty_data);
+
+		fill_choice_by_data(db_products_sales_tax_id, sales_tax_data);
+
+		fill_choice_by_data(db_products_measure_unit_id, measure_units_data);
+
+		fill_choice_by_data(db_products_warranty_id, warranty_data);
 	}
 }
 
@@ -1086,6 +1166,9 @@ class MyEditOrderWindow extends EditOrderWindow {
 		_main_table = "orders";
 		btnCalcDelivery.callback(cb_btnCalcDelivery);
 		btnShowCalendar.callback(cb_btnShowCalendar);
+	}
+	function get_record(id){
+		appServer.get_record(_record, _main_table, 0, id, "&with_lines=1");
 	}
 	function cb_btnCalcDelivery(sender, udata){
 		this = sender->window();
