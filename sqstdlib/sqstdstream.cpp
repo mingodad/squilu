@@ -21,21 +21,24 @@ static const SQChar SQSTD_STREAM_TYPE_TAG[] = _SC("std_stream");
 SQInteger _stream_read_line(HSQUIRRELVM v) {
 	SETUP_STREAM(v);
     SQChar c = _SC('\0'), nl = _SC('\n');
-    int len = sizeof(SQChar);
+    int m = 0, len = sizeof(SQChar);
     SQInteger start_pos = self->Tell();
     SQInteger read_size = 0, size = 2048;
     SQChar *buf = sq_getscratchpad(v, size);
-    for(int m=0; !self->EOS() && c != nl; ++m){
+    while(!self->EOS() && c != nl){
         read_size = self->Read(buf, size);
         if(read_size == 0) break;
         for(int i=0; i<read_size; ++i){
             if(buf[i] == nl){
-                read_size = (m*size) + i+1;
+                read_size = i+1;
                 c = nl;
-                break;
+                goto done;
             }
         }
+        ++m;
     }
+done:
+    read_size += (m*size);
     if(read_size > 0) {
         if(read_size > size){
             buf = sq_getscratchpad(v, read_size);
