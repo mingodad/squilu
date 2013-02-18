@@ -842,7 +842,7 @@ static SQRESULT sq_sle2vecOfvec(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
 	SQBlob *blob = NULL;
-    const SQChar *sle;
+    const SQChar *sle, *sle_start;
     SQInteger sle_size;
 
     SQObjectType ptype = sq_gettype(v, 2);
@@ -865,24 +865,27 @@ static SQRESULT sq_sle2vecOfvec(HSQUIRRELVM v)
         return sq_throwerror(v,_SC("invalid parameter 2 of type %s"), sq_gettypename(v, 3));
 
     SQ_OPT_INTEGER(v, 4, start, 0);
+    if(start < 0) return sq_throwerror(v, _SC("invalid start position (%d)"), start);
     sq_push(v, 3);
 
     int rc, data_count = 1;
 
     const unsigned char *next;
-    if(sle[0] != '[') {
+    sle_start = sle + start;
+    sle_size -= start;
+    if(sle_start[0] != '[') {
         return sq_throwerror(v, "Invalid encoded vector !");
     }
-    if(sle[1] == ']') {
+    if(sle_start[1] == ']') {
         //sq_pushinteger(v, start+2);
         return 1; //empty array
     }
     int saved_top = sq_gettop(v);
-    if((rc=sle2vec(v, (const unsigned char *)sle+1, sle_size-1, &next)) < 0) return rc;
+    if((rc=sle2vec(v, (const unsigned char *)sle_start+1, sle_size-1, &next)) < 0) return rc;
     while(next && *next == '['){
         sq_arrayappend(v, -2);
         data_count++;
-        if((rc=sle2vec(v, next, sle_size - (next - (const unsigned char *)sle), &next)) < 0) return rc;
+        if((rc=sle2vec(v, next, sle_size - (next - (const unsigned char *)sle_start), &next)) < 0) return rc;
     }
     if(sq_gettop(v) != saved_top){
         //last added table left
