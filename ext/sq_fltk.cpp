@@ -5,7 +5,7 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Widget.H>
 #include <FL/Fl_Box.H>
-#include <FL/Fl_Button.H>
+#include <FL/Fl_Progress.H>
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Double_Window.H>
@@ -70,6 +70,7 @@ struct MyFltkUData {
 
 CREATE_TAG(Fl);
 CREATE_TAG(Fl_Widget);
+CREATE_TAG(Fl_Progress);
 CREATE_TAG(Fl_Button);
 CREATE_TAG(Fl_Light_Button);
 CREATE_TAG(Fl_Check_Button);
@@ -84,6 +85,7 @@ CREATE_TAG(Fl_Menu_Item);
 CREATE_TAG(Fl_Choice);
 CREATE_TAG(Fl_Input_);
 CREATE_TAG(Fl_Float_Input);
+CREATE_TAG(Fl_Float_Input_Fmt);
 CREATE_TAG(Fl_Int_Input);
 CREATE_TAG(Fl_Output);
 CREATE_TAG(Fl_Secret_Input);
@@ -315,6 +317,21 @@ static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
         return 1;\
     }\
 	return sq_throwerror(v, _SC("invalid number of parameters"));\
+}
+
+#define FUNC_GETSET_FLOAT(prefix, getSelf, selfPtr, funcNAME, typeCast) \
+static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
+{\
+    getSelf(v);\
+    SQInteger argc = sq_gettop(v);\
+    SQFloat fparm;\
+    if(argc > 1){\
+        sq_getfloat(v, 2, &fparm);\
+        selfPtr funcNAME((typeCast)fparm);\
+        return 0;\
+    }\
+    sq_pushfloat(v, selfPtr funcNAME());\
+	return 1;\
 }
 
 #define FUNC_VOID_CALL(prefix, getSelf, selfPtr, funcNAME) \
@@ -824,6 +841,31 @@ static SQRegFunction fl_box_obj_funcs[]={
 };
 #undef _DECL_FUNC
 
+FLTK_CONSTRUCTOR(Fl_Progress);
+#define SETUP_FL_PROGRESS(v) SETUP_FL_KLASS(v, Fl_Progress)
+#define FL_PROGRESS_GETSET_FLOAT(funcNAME) FUNC_GETSET_FLOAT(_Fl_Progress_, SETUP_FL_PROGRESS, self->, funcNAME, float)
+FL_PROGRESS_GETSET_FLOAT(maximum);
+FL_PROGRESS_GETSET_FLOAT(minimum);
+
+static SQRESULT _Fl_Progress_value(HSQUIRRELVM v){
+    SETUP_FL_PROGRESS(v);
+    sq_pushfloat(v, self->value());
+    return 0;
+}
+
+CHEAP_RTTI_FOR(Fl_Progress);
+
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Progress_##name,nparams,pmask,isStatic}
+static SQRegFunction fl_progress_obj_funcs[]={
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Progress)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	_DECL_FUNC(maximum,-1,_SC("xn"), SQFalse),
+	_DECL_FUNC(minimum,-1,_SC("xn"), SQFalse),
+	_DECL_FUNC(value,1,_SC("x"), SQFalse),
+	{0,0}
+};
+#undef _DECL_FUNC
+
 FLTK_CONSTRUCTOR(Fl_Button);
 #define SETUP_FL_BUTTON(v) SETUP_FL_KLASS(v, Fl_Button)
 #define FL_BUTTON_GETSET_INT_CAST(funcNAME, typeNAME) FUNC_GETSET_INT(_Fl_Button_, SETUP_FL_BUTTON, self->, funcNAME, typeNAME)
@@ -1101,6 +1143,14 @@ static SQRegFunction fl_float_input_obj_funcs[]={
 };
 #undef _DECL_FUNC
 
+FLTK_CONSTRUCTOR(Fl_Float_Input_Fmt);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Float_Input_Fmt_##name,nparams,pmask,isStatic}
+static SQRegFunction fl_float_input_fmt_obj_funcs[]={
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	{0,0}
+};
+#undef _DECL_FUNC
+
 FLTK_CONSTRUCTOR(Fl_Int_Input);
 CHEAP_RTTI_FOR(Fl_Int_Input);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Int_Input_##name,nparams,pmask,isStatic}
@@ -1242,6 +1292,20 @@ static SQRESULT _Fl_Group_remove(HSQUIRRELVM v)
 	return 0;
 }
 
+/*
+static SQRESULT _Fl_Group_resize(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_GROUP(v);
+    SQ_GET_INTEGER(v, 2, x);
+    SQ_GET_INTEGER(v, 3, y);
+    SQ_GET_INTEGER(v, 4, w);
+    SQ_GET_INTEGER(v, 5, h);
+    self->resize(x, y, w, h);
+    return 0;
+}
+*/
+
 CHEAP_RTTI_FOR(Fl_Group);
 #define _DECL_FUNC(name,nparams,pmask, isStatic) {_SC(#name),_Fl_Group_##name,nparams,pmask, isStatic}
 static SQRegFunction fl_group_obj_funcs[]={
@@ -1254,6 +1318,7 @@ static SQRegFunction fl_group_obj_funcs[]={
 	_DECL_FUNC(insert,3,_SC("xx x|i"), SQTrue),
 	_DECL_FUNC(remove,2,_SC("x x|i"), SQTrue),
 	_DECL_FUNC(current,1,_SC("y"), SQTrue),
+	//_DECL_FUNC(resize,5,_SC("xiiii"), SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -4007,6 +4072,8 @@ SQRESULT sqext_register_fltklib(HSQUIRRELVM v)
 	//Fl_Box class
 	PUSH_FL_CLASS(Fl_Box, Fl_Widget, fl_box_obj_funcs);
 
+	PUSH_FL_CLASS(Fl_Progress, Fl_Widget, fl_progress_obj_funcs);
+
 	//Fl_Button class
 	PUSH_FL_CLASS(Fl_Button, Fl_Widget, fl_button_obj_funcs);
 	PUSH_FL_CLASS(Fl_Light_Button, Fl_Button, fl_light_button_obj_funcs);
@@ -4036,13 +4103,23 @@ SQRESULT sqext_register_fltklib(HSQUIRRELVM v)
 	PUSH_FL_CLASS(Fl_Input_, Fl_Widget, fl_input__obj_funcs);
 	PUSH_FL_CLASS(Fl_Input, Fl_Input_, fl_input_obj_funcs);
 	PUSH_FL_CLASS(Fl_Float_Input, Fl_Input, fl_float_input_obj_funcs);
+	PUSH_FL_CLASS(Fl_Float_Input_Fmt, Fl_Float_Input, fl_float_input_fmt_obj_funcs);
 	PUSH_FL_CLASS(Fl_Int_Input, Fl_Input, fl_int_input_obj_funcs);
 	PUSH_FL_CLASS(Fl_Output, Fl_Input, fl_output_obj_funcs);
 	PUSH_FL_CLASS(Fl_Secret_Input, Fl_Input, fl_secret_input_obj_funcs);
 
 	//Fl_Group class
 	PUSH_FL_CLASS(Fl_Group, Fl_Widget, fl_group_obj_funcs);
+
 	PUSH_FL_CLASS(Fl_Pack, Fl_Group, fl_pack_obj_funcs);
+	sq_pushnewclass(v, FLTK_TAG(Fl_Pack), FLTK_TAG(Fl_Group), (void*)FLTK_TAG(Fl_Pack),
+                 fl_pack_obj_funcs, SQTrue);
+#define FL_PACK_INT_CONST(key) INT_CONST_PREFIX(Fl_Pack::, key)
+
+	FL_PACK_INT_CONST(VERTICAL);
+	FL_PACK_INT_CONST(HORIZONTAL);
+	sq_poptop(v); //remove Fl_Pack
+
 	PUSH_FL_CLASS(Fl_Tabs, Fl_Group, fl_tabs_obj_funcs);
 	PUSH_FL_CLASS(Fl_Scroll, Fl_Group, fl_scroll_obj_funcs);
 	PUSH_FL_CLASS(Fl_Text_Display, Fl_Group, fl_text_display_obj_funcs);
@@ -4085,7 +4162,6 @@ SQRESULT sqext_register_fltklib(HSQUIRRELVM v)
     sq_pushnewclass(v, FLTK_TAG(Fl_PostScript_File_Device), FLTK_TAG(Fl_Paged_Device), (void*)FLTK_TAG(Fl_PostScript_File_Device), fl_postscript_file_device_obj_funcs, SQFalse);
 
     sq_pushconsttable(v);
-    INT_CONST_PREFIX_VALUE(, FL_SHADOW_LABEL, FL_SHADOW_LABEL);
     /* add constants to global table */
     int i=0;
     while (fltk_constants[i].name) {
