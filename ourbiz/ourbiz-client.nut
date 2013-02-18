@@ -426,9 +426,9 @@ class AppServer
         }
     }
     
-    function sle2map(sle_str, rec){
+    function sle2map(sle_str, rec, pos=0){
 	local ar = [];
-	sle2vecOfvec(sle_str, ar);
+	sle2vecOfvec(sle_str, ar, pos);
 	local keys = ar[0];
 	local values = ar[1];
 	foreach(idx, k in keys) rec[k] <- values[idx]; 
@@ -680,15 +680,15 @@ class AppServer
 */
         if(js[0] != '[') throw "Invalid sle encoded !";
         local start = 0;
-        local pos = sle2map(start, js.len(), rec);
-        pos = sle2vecOfvec(pos, js.len() - (pos - start), prices_list);
-        pos = sle2vecOfvec(pos, js.len() - (pos - start), kit_list);
-        sle2map(pos, js.len() - (pos - start), kit_details);
+        local pos = sle2map(js, rec, start);
+        pos = sle2vecOfvec(js, prices_list, pos);
+        pos = sle2vecOfvec(js, kit_list, pos);
+        sle2map(js, kit_details, pos);
         prices_list.remove(0); //remove header
         kit_list.remove(0); //remove header
     }
     function get_product_aux_data(sales_tax_data, measure_units_data, warranty_data){
-        local qs, js;
+        local qs, js = blob(0, 8192);
         qs = "/DB/GetOne?products=0&product_aux_data=1";
         _get_data("GET", qs, 0, js);
 /*
@@ -704,9 +704,9 @@ class AppServer
 */
         if(js[0] != '[') throw "Invalid sle encoded !";
         local start = 0;
-        local pos = sle2vecOfvec(start, js.len(), sales_tax_data);
-        pos = sle2vecOfvec(pos, js.len() - (pos - start), measure_units_data);
-        pos = sle2vecOfvec(pos, js.len() - (pos - start), warranty_data);
+        local pos = sle2vecOfvec(js, sales_tax_data, start);
+        pos = sle2vecOfvec(js,  measure_units_data, pos);
+        pos = sle2vecOfvec(js, warranty_data, pos);
         //now deleting header data
         sales_tax_data.remove(0);
         measure_units_data.remove(0);
