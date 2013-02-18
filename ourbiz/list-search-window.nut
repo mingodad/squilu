@@ -1,38 +1,3 @@
-class Fl_Image_Box extends Fl_Box {
-	image_id = null;
-	image_type = null;
-	thumbIMG = null;
-	
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
-
-class Fl_Float_Input_Fmt extends Fl_Float_Input {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
-class My_Fl_Float_Input extends Fl_Float_Input {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
-class My_Fl_Return_Button extends Fl_Button {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
-class Fl_Choice_Str extends Fl_Button {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-	
 //class BaseReportA4 extends Fl_Group {
 class ListSearch extends MyBaseWindow {
 	topGroup=null;

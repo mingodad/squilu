@@ -1,28 +1,3 @@
-class Fl_Float_Input_Fmt extends Fl_Float_Input {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
-class My_Fl_Float_Input extends Fl_Float_Input {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
-
-class My_Fl_Return_Button extends Fl_Button {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
-class Fl_Choice_Str extends Fl_Button {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
 //class EditOrderWindow extends Fl_Group {
 class EditOrderWindow extends EditWindow {
 	delivery_calc_window = 0;
@@ -1295,6 +1270,7 @@ calendar_window = 0;
 db_orders_order_type_id->textfont(db_orders_order_type_id->labelfont());
 db_orders_order_type_id->textsize(db_orders_order_type_id->labelsize());
 end();
+print(__FILE__, "db_orders_entity_id :", db_orders_entity_id->x(), db_orders_entity_id->y(), db_orders_entity_id->w(), db_orders_entity_id->h());
 }
 
 function cb_Wrap(){}

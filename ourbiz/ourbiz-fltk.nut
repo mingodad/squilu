@@ -99,6 +99,29 @@ class Fl_Box_ClearLabel extends Fl_Box {
 	}
 }
 
+class Fl_Image_Box extends Fl_Box {
+	image_id = null;
+	image_type = null;
+	thumbIMG = null;
+	
+	constructor(px, py, pw, ph, pl=""){
+		base.constructor(px, py, pw, ph, pl);
+	}
+}
+
+class My_Fl_Float_Input extends Fl_Float_Input {
+	constructor(px, py, pw, ph, pl=""){
+		base.constructor(px, py, pw, ph, pl);
+	}
+}
+
+
+class My_Fl_Return_Button extends Fl_Button {
+	constructor(px, py, pw, ph, pl=""){
+		base.constructor(px, py, pw, ph, pl);
+	}
+}
+
 class Fl_Choice_Int extends Fl_Choice {
 	my_values = null;
 	
@@ -136,6 +159,12 @@ class Fl_Choice_Int extends Fl_Choice {
 		}
 	}
 	function my_clear (){ value(-1);}
+}
+
+class Fl_Choice_Str extends Fl_Choice_Int {	
+	constructor(px, py, pw, ph, pl=null){
+		base.constructor(px, py, pw, ph, pl);
+	}
 }
 
 enum DbAction_Enum {
@@ -330,10 +359,15 @@ class EditWindow extends MyBaseWindow {
 						//set_widget_value((Fl_Check_Button*)wdg, fld_name);
 						wdg->value(value == "1" ? 1 : 0);
 					}
-					else if(classId == Fl_Choice.className() && wdg instanceof Fl_Choice_Int){
-						//set_widget_value((Fl_Choice_Int*)wdg, fld_name);
-						if(value && value.len()) wdg->my_set_value(value.tointeger());
-						else wdg->my_clear();
+					else if(classId == Fl_Choice.className()){
+						if(wdg instanceof Fl_Choice_Str){
+							if(value && value.len()) wdg->my_set_value(value);
+							else wdg->my_clear();
+						}
+						else if(wdg instanceof Fl_Choice_Int){
+							if(value && value.len()) wdg->my_set_value(value.tointeger());
+							else wdg->my_clear();
+						}
 					}
 					/*
 					else if(classId == Fl_Choice_Str.className()){
@@ -1166,6 +1200,8 @@ class MyEditOrderWindow extends EditOrderWindow {
 		_main_table = "orders";
 		btnCalcDelivery.callback(cb_btnCalcDelivery);
 		btnShowCalendar.callback(cb_btnShowCalendar);
+		btnSearchEntity.callback(cb_btnSearchEntity);
+		print(__LINE__, "db_orders_entity_id :", db_orders_entity_id->x(), db_orders_entity_id->y(), db_orders_entity_id->w(), db_orders_entity_id->h());
 	}
 	function get_record(id){
 		appServer.get_record(_record, _main_table, 0, id, "&with_lines=1");
@@ -1179,6 +1215,11 @@ class MyEditOrderWindow extends EditOrderWindow {
 		this = sender->window();
 		local dc = getChildWindow("Calendar", MyCalendarWindow);
 		dc.show();
+	}
+	function cb_btnSearchEntity(sender, udata){
+		this = sender->window();
+		print("Fl_Pack :", pack_line2->x(), pack_line2->y(), pack_line2->w(), pack_line2->h());
+		print("db_orders_entity_id :", db_orders_entity_id->x(), db_orders_entity_id->y(), db_orders_entity_id->w(), db_orders_entity_id->h());
 	}
 }
 

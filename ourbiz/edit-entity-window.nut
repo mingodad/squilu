@@ -1,10 +1,3 @@
-class Fl_Progress extends Fl_Box {
-	constructor(px, py, pw, ph, pl=""){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
-
 class EditEntityWindow extends EditWindow {
 	db_entities_id=null;
 	db_entities_name_ro=null;

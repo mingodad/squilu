@@ -39,7 +39,6 @@ function setAppFont(fontName)
                         font1 = FL_HELVETICA;
                         font2 = FL_TIMES;
                     }
-                    //print(bit.band(my_font_attr, FL_BOLD), my_font_attr, font1, font2)
                     Fl.set_font(font1, i);
                     Fl.set_font(font2, i);
                     //break
@@ -52,7 +51,6 @@ function setAppFont(fontName)
 function widget_focus_changing_Match(widget){
 	if (widget){
 		local ttype = widget.classId();
-		//print(ttype);
 		if (ttype.find("_Input")) return 1;
 		if (ttype.find("_Browser")) return 2;
 		if (ttype.find("_Tree")) return false;
@@ -66,9 +64,6 @@ function widget_focus_changing_Match(widget){
 }
 		
 function fltk_focus_changing(wfrom, wto){
-	//print(wfrom.classId(), wto.classId());
-	//print(wfrom, wto);
-	
 	if (widget_focus_changing_Match(wfrom)){
 		wfrom.color(FL_WHITE);
 		wfrom.redraw();
@@ -77,7 +72,6 @@ function fltk_focus_changing(wfrom, wto){
 	if (wt) {
 		wto.color(FL_YELLOW);
 		wto.redraw();
-		//if (wt == 1) wto.position(0,10000);
 	}
 	
 	return 0;
