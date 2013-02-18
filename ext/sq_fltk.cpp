@@ -1024,11 +1024,14 @@ static SQRegFunction fl_menu_button_obj_funcs[]={
 #undef _DECL_FUNC
 
 FLTK_CONSTRUCTOR(Fl_Choice);
+#define SETUP_FL_CHOICE(v) SETUP_FL_KLASS(v, Fl_Choice)
+FUNC_GETSET_INT(_Fl_Choice_, SETUP_FL_CHOICE, self->, value, int);
 CHEAP_RTTI_FOR(Fl_Choice);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Choice_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_choice_obj_funcs[]={
     CHEAP_RTTI_REG_FUN_FOR(Fl_Choice)
 	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	_DECL_FUNC(value,-1,_SC("xi"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
