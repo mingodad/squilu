@@ -1098,13 +1098,13 @@ STRING_TOFUNCZ(toupper)
 //DAD start
 #include "lua-regex.h"
 
-static int process_string_gsub(LuaMatchState *ms, void *udata, char_buffer_st **b) {
+static SQRESULT process_string_gsub(LuaMatchState *ms, void *udata, char_buffer_st **b) {
     const char *str;
     SQInteger str_size;
     HSQUIRRELVM v = (HSQUIRRELVM)udata;
     SQObjectType rtype = sq_gettype(v, 3);
     SQInteger top = sq_gettop(v);
-    int result = 1;
+    SQInteger result = 1;
     switch(rtype){
         case OT_CLOSURE:{
             sq_push(v, 3); //push the function
@@ -1196,10 +1196,10 @@ static SQRESULT string_gsub(HSQUIRRELVM v)
 	return sq_throwerror(v,"invalid type for parameter 3 function/table/array/string expected");
 }
 
-static int process_string_gmatch_find(LuaMatchState *ms, void *udata, char_buffer_st **b, bool isFind) {
+static SQRESULT process_string_gmatch_find(LuaMatchState *ms, void *udata, char_buffer_st **b, bool isFind) {
     HSQUIRRELVM v = (HSQUIRRELVM)udata;
     SQInteger top = sq_gettop(v);
-    int result = 1;
+    SQInteger result = 1;
     int i=0;
     sq_push(v, 3); //push the function
     sq_pushroottable(v); //this en, function already on top of stack
@@ -1231,7 +1231,7 @@ static int process_string_gmatch_find(LuaMatchState *ms, void *udata, char_buffe
     return result; //returning non zero means continue
 }
 
-static int process_string_gmatch(LuaMatchState *ms, void *udata, char_buffer_st **b) {
+static SQRESULT process_string_gmatch(LuaMatchState *ms, void *udata, char_buffer_st **b) {
     return process_string_gmatch_find(ms, udata, b, false);
 }
 
@@ -1274,7 +1274,7 @@ static SQRESULT string_gmatch(HSQUIRRELVM v)
     return 1;
 }
 
-static int process_string_find_lua(LuaMatchState *ms, void *udata, char_buffer_st **b) {
+static SQRESULT process_string_find_lua(LuaMatchState *ms, void *udata, char_buffer_st **b) {
     return process_string_gmatch_find(ms, udata, b, true);
 }
 
@@ -1447,7 +1447,7 @@ static SQRESULT string_find_close_quote(HSQUIRRELVM v) {
     return 1;
 }
 
-static SQInteger string_reverse (HSQUIRRELVM v) {
+static SQRESULT string_reverse (HSQUIRRELVM v) {
   int i;
   SQ_FUNC_VARS_NO_TOP(v);
   SQ_GET_STRING(v, 1, s)
@@ -1461,7 +1461,7 @@ static SQInteger string_reverse (HSQUIRRELVM v) {
 }
 
 
-static SQInteger string_rep (HSQUIRRELVM v) {
+static SQRESULT string_rep (HSQUIRRELVM v) {
   int i;
   SQ_FUNC_VARS_NO_TOP(v);
   SQ_GET_STRING(v, 1, s)
@@ -1512,7 +1512,7 @@ static void __strip_r(const SQChar *str,SQInteger len,const SQChar **end)
 	*end = t + 1;
 }
 
-static SQInteger string_strip(HSQUIRRELVM v)
+static SQRESULT string_strip(HSQUIRRELVM v)
 {
 	const SQChar *str,*start,*end;
 	sq_getstring(v,1,&str);
@@ -1523,7 +1523,7 @@ static SQInteger string_strip(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger string_lstrip(HSQUIRRELVM v)
+static SQRESULT string_lstrip(HSQUIRRELVM v)
 {
 	const SQChar *str,*start;
 	sq_getstring(v,1,&str);
@@ -1532,7 +1532,7 @@ static SQInteger string_lstrip(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger string_rstrip(HSQUIRRELVM v)
+static SQRESULT string_rstrip(HSQUIRRELVM v)
 {
 	const SQChar *str,*end;
 	sq_getstring(v,1,&str);
@@ -1542,7 +1542,7 @@ static SQInteger string_rstrip(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQInteger string_split_by_strtok(HSQUIRRELVM v)
+static SQRESULT string_split_by_strtok(HSQUIRRELVM v)
 {
 	const SQChar *str,*seps;
 	SQChar *stemp,*tok;
@@ -1562,7 +1562,7 @@ static SQInteger string_split_by_strtok(HSQUIRRELVM v)
 	return 1;
 }
 
-static int string_split(HSQUIRRELVM v) {
+static SQRESULT string_split(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, str);
     SQ_GET_INTEGER(v, 2, sep);
@@ -1578,7 +1578,7 @@ static int string_split(HSQUIRRELVM v) {
     return 1;
 }
 
-static SQInteger string_empty(HSQUIRRELVM v)
+static SQRESULT string_empty(HSQUIRRELVM v)
 {
 	sq_pushbool(v,sq_getsize(v,1) == 0);
 	return 1;
@@ -1587,14 +1587,14 @@ static SQInteger string_empty(HSQUIRRELVM v)
 #ifdef SQ_SUBLATIN
 #include "sublatin.h"
 
-static int string_sl_len (HSQUIRRELVM v) {
+static SQRESULT string_sl_len (HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, str);
     sq_pushinteger(v, strLenSubSetLatinUtf8(str));
     return 1;
 }
 
-static int string_sl_lower (HSQUIRRELVM v) {
+static SQRESULT string_sl_lower (HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, str);
     SQChar *s = sq_getscratchpad(v, str_size);
@@ -1605,7 +1605,7 @@ static int string_sl_lower (HSQUIRRELVM v) {
 }
 
 
-static int string_sl_upper (HSQUIRRELVM v) {
+static SQRESULT string_sl_upper (HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, str);
     SQChar *s = sq_getscratchpad(v, str_size);
@@ -1615,7 +1615,7 @@ static int string_sl_upper (HSQUIRRELVM v) {
     return 1;
 }
 
-static int string_sl_deaccent (HSQUIRRELVM v) {
+static SQRESULT string_sl_deaccent (HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, str);
     SQChar *s = sq_getscratchpad(v, str_size);
@@ -1625,7 +1625,7 @@ static int string_sl_deaccent (HSQUIRRELVM v) {
     return 1;
 }
 
-static int string_sl_lower_deaccent (HSQUIRRELVM v) {
+static SQRESULT string_sl_lower_deaccent (HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, str);
     SQChar *s = sq_getscratchpad(v, str_size);
@@ -1635,7 +1635,7 @@ static int string_sl_lower_deaccent (HSQUIRRELVM v) {
     return 1;
 }
 
-static int string_sl_icmp (HSQUIRRELVM v) {
+static SQRESULT string_sl_icmp (HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, sl);
     SQ_GET_STRING(v, 2, sr);
@@ -1643,7 +1643,7 @@ static int string_sl_icmp (HSQUIRRELVM v) {
     return 1;
 }
 
-static int string_sl_icmp_noaccents (HSQUIRRELVM v) {
+static SQRESULT string_sl_icmp_noaccents (HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, sl);
     SQ_GET_STRING(v, 2, sr);
@@ -1651,7 +1651,7 @@ static int string_sl_icmp_noaccents (HSQUIRRELVM v) {
     return 1;
 }
 
-static int string_sl_cmp_noaccents (HSQUIRRELVM v) {
+static SQRESULT string_sl_cmp_noaccents (HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, sl);
     SQ_GET_STRING(v, 2, sr);
@@ -1659,7 +1659,7 @@ static int string_sl_cmp_noaccents (HSQUIRRELVM v) {
     return 1;
 }
 
-static int string_sl_like_cmp (HSQUIRRELVM v) {
+static SQRESULT string_sl_like_cmp (HSQUIRRELVM v) {
     SQ_FUNC_VARS(v);
     SQ_GET_STRING(v, 1, sl);
     SQ_GET_STRING(v, 2, sr);
@@ -1668,7 +1668,7 @@ static int string_sl_like_cmp (HSQUIRRELVM v) {
     return 1;
 }
 
-static int string_sl_like_cmp_noaccents (HSQUIRRELVM v) {
+static SQRESULT string_sl_like_cmp_noaccents (HSQUIRRELVM v) {
     SQ_FUNC_VARS(v);
     SQ_GET_STRING(v, 1, sl);
     SQ_GET_STRING(v, 2, sr);
