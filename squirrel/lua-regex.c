@@ -29,6 +29,7 @@ http://code.google.com/p/lua-regex-standalone/
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <inttypes.h>
 
 #include "lua-regex.h"
 
@@ -520,7 +521,7 @@ static int add_value (LuaMatchState *ms, char_buffer_st **b, const char *s,
             }
             if (cl == CAP_POSITION){
                 char buf[32];
-                snprintf(buf, sizeof(buf), "%d", ms->capture[il].init - ms->src_init + 1);
+                snprintf(buf, sizeof(buf), PRIdPTR, ms->capture[il].init - ms->src_init + 1);
                 if(!char_buffer_add_str(ms, b, buf, strlen(buf))) return 0;
             }
             else
