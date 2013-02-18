@@ -527,9 +527,7 @@ static SQRESULT table_rawdelete(HSQUIRRELVM v)
 
 static SQRESULT container_rawexists(HSQUIRRELVM v)
 {
-	if(SQ_SUCCEEDED(sq_rawexists(v,-2))) {
-		sq_pushbool(v,SQTrue);
-	} else sq_pushbool(v,SQFalse);
+	sq_pushbool(v, sq_rawexists(v,-2));
 	return 1;
 }
 

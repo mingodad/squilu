@@ -1196,29 +1196,25 @@ SQBool sq_rawexists(HSQUIRRELVM v,SQInteger idx)
 {
 	SQObjectPtr &self=stack_get(v,idx);
 	SQObjectPtr &obj = v->GetUp(-1);
+	SQBool result = SQFalse;
 	switch(type(self)) {
 	case OT_TABLE:
-		if(_table(self)->Exists(obj))
-			return SQTrue;
+		result = _table(self)->Exists(obj);
 		break;
 	case OT_CLASS:
-		if(_class(self)->Exists(obj))
-			return SQTrue;
+		result = _class(self)->Exists(obj);
 		break;
 	case OT_INSTANCE:
-		if(_instance(self)->Exists(obj))
-			return SQTrue;
+		result = _instance(self)->Exists(obj);
 		break;
 	case OT_ARRAY:
 		if(sq_isnumeric(obj)){
-			if(_array(self)->Exists(tointeger(obj))) {
-				return SQTrue;
-			}
+			result = _array(self)->Exists(tointeger(obj));
 		}
-	default:
-		v->Pop();
+		break;
 	}
-	return SQFalse;
+	v->Pop();
+	return result;
 }
 
 SQRESULT sq_getstackobj(HSQUIRRELVM v,SQInteger idx,HSQOBJECT *po)
