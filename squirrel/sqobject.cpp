@@ -338,7 +338,7 @@ bool WriteObjectAsCode(HSQUIRRELVM v,SQUserPointer up,SQWRITEFUNC write,SQObject
         }
 		break;
 	case OT_INTEGER:
-        sz = scsnprintf(buf, sizeof(buf), "%d", _integer(o));
+        sz = scsnprintf(buf, sizeof(buf), _PRINT_INT_FMT, _integer(o));
 		_CHECK_IO(SafeWrite(v,write,up,buf,sz));break;
 	case OT_FLOAT:
         sz = scsnprintf(buf, sizeof(buf), "%f", _float(o));
