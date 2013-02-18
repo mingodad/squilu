@@ -1,6 +1,7 @@
 local str = "AÁÀÂÄEÉÈÊËIÍÌÎÏOÓÒÔÖUÚÙÛÜaáàâäeéèêëiíìîïoóòôöuúùûüNÑnñÇç";
 print(str.len(), str.sl_len(), str);
-print(str.sl_lower());
+local tmp = str.sl_lower();
+print(tmp.len(), tmp.sl_len(), tmp);
 print(str.sl_upper());
 print(str.sl_deaccent());
 print(str.sl_lower_deaccent());
