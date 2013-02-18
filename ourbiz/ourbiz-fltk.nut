@@ -1,3 +1,6 @@
+local WIN32 = os.getenv("WINDIR") != null
+if(WIN32) socket.open();
+
 dofile("ourbiz-client.nut");
 local appServer = AppServer.getAppServer();
 appServer.credentials("mingote", "tr14pink");
@@ -103,7 +106,7 @@ class Fl_Image_Box extends Fl_Box {
 	image_id = null;
 	image_type = null;
 	thumbIMG = null;
-	
+
 	constructor(px, py, pw, ph, pl=""){
 		base.constructor(px, py, pw, ph, pl);
 	}
@@ -124,7 +127,7 @@ class My_Fl_Return_Button extends Fl_Button {
 
 class Fl_Choice_Int extends Fl_Choice {
 	my_values = null;
-	
+
 	constructor(px, py, pw, ph, pl=null){
 		base.constructor(px, py, pw, ph, pl);
 		my_values = [];
@@ -161,7 +164,7 @@ class Fl_Choice_Int extends Fl_Choice {
 	function my_clear (){ value(-1);}
 }
 
-class Fl_Choice_Str extends Fl_Choice_Int {	
+class Fl_Choice_Str extends Fl_Choice_Int {
 	constructor(px, py, pw, ph, pl=null){
 		base.constructor(px, py, pw, ph, pl);
 	}
@@ -171,7 +174,7 @@ enum DbAction_Enum {
 		e_none, e_insert, e_update, e_delete,
 		e_export, e_import, e_refresh, e_copy, e_last
 		};
-	
+
 class Fl_Choice_dbAction extends Fl_Choice {
 	constructor(px, py, pw, ph, pl=null){
 		base.constructor(px, py, pw, ph, pl);
@@ -250,13 +253,13 @@ class MyBaseWindow extends Fl_Window {
 		}
 		return win;
 	}
-	
+
 	function showChildWindow(winName, WindowClass){
 		local win = getChildWindow(winName, WindowClass);
 		win->show();
 		return win;
 	}
-	
+
 	function fill_parent_size(wdg, xOffset=0, yOffset=0){
 		local my_parent = wdg->parent();
 		local newWidth =0;
@@ -291,7 +294,7 @@ class MyBaseWindow extends Fl_Window {
 		    );
 		}
 	}
-	
+
 	function copy_widget_properties(src, dest){
 		dest->labeltype(src->labeltype());
 		dest->label(src->label());
@@ -320,7 +323,7 @@ class MyBaseWindow extends Fl_Window {
 		wnew->resize(wold->x(), wold->y(), wold->w(), wold->h());
 		//delete wold;
 	}
-	
+
 	function fill_combolist_by_data (choice, data)
 	{
 		for(local i=0, max_count = data.size(); i<max_count; ++i)
@@ -328,14 +331,14 @@ class MyBaseWindow extends Fl_Window {
 			local rec = data[i];
 			choice->add_item(rec[0].tointeger(), rec[1]);
 		}
-	}		
+	}
 }
 
 class EditWindow extends MyBaseWindow {
 	_record = null;
 	_id = null;
 	_main_table = null;
-	
+
 	constructor(px, py, pw, ph, pl){
 		base.constructor(px, py, pw, ph, pl);
 		_record = {};
@@ -399,7 +402,7 @@ class EditWindow extends MyBaseWindow {
 			choice->my_add(rec[0].tointeger(), rec[1]);
 			//choice->add(rec[1]);
 		}
-	}	
+	}
 }
 
 enum Fl_Data_Table_Events {e_none, e_event, e_select, e_insert, e_update, e_delete};
@@ -416,9 +419,9 @@ class Fl_Data_Table extends Flv_Data_Table {
 		_data = [];
 		_forPrint = false;
 	}
-	
+
 	function for_print(bval){_forPrint = bval; }
-	
+
 	function resize(ax, ay, aw, ah){
 		base.resize(ax, ay, aw, ah);
 		calc_cols();
@@ -431,14 +434,14 @@ class Fl_Data_Table extends Flv_Data_Table {
 		rows(_data.size());
 		redraw();
 	}
-	
+
 	function set_data(data_array){
 		_data = data_array;
 		recalc_data();
 	}
-	
+
 	function get_data_value(arow, acol){ return _data[arow][acol];}
-	
+
 	function get_value(arow, acol){
 		if(acol < 0)
 		{
@@ -479,7 +482,7 @@ class Fl_Data_Table extends Flv_Data_Table {
 		}
 		return value;
 	}
-	
+
 	function get_style(style, Row, Col){
 		base.get_style(style, Row, Col);
 		if(Row >= 0 && Col >= 0)
@@ -512,7 +515,7 @@ class Fl_Data_Table extends Flv_Data_Table {
 		    style.frame(FL_NO_BOX);
 		}
 	}
-	
+
 	function handle(event){
 		switch(event){
 			case FL_RELEASE:{
@@ -705,17 +708,17 @@ class MyListSearchWindow extends ListSearch {
 		grid->callback(grid_cb);
 		grid->_call_this = this;
 	}
-	
+
 	function grid_cb(sender, udata){}
 	function get_edit_window(){return null;}
-	
+
 	function row_selected(ev){
 		local edit_window = get_edit_window();
 		if(edit_window){
 			edit_window.show();
 			edit_window.show_id(grid->get_row_id());
 			switch(ev){
-				case Fl_Data_Table_Events.e_select:					
+				case Fl_Data_Table_Events.e_select:
 				break;
 				case Fl_Data_Table_Events.e_insert:
 				break;
@@ -740,7 +743,7 @@ class MyListSearchWindow extends ListSearch {
 		this = sender.window();
 		fill_grid();
 	}
-	
+
 	function create_search_by0(name, Klass, pack){
 		local sb = Klass(0,0,25,20, _tr(name));
 		sb->labelsize(pack->labelsize());
@@ -766,7 +769,7 @@ class MyListSearchWindow extends ListSearch {
 		mk_popup();
 		//Fl::add_timeout(0.1, &do_delayed_on_search, this);
 	}
-	
+
 	function get_data_group_filter(data){}
 	function mk_popup(){}
 	function fill_group_filter(data)
@@ -781,7 +784,7 @@ class MyListSearchWindow extends ListSearch {
 		this = sender.window();
 		cb_btnSearch(sender, udata);
 	}
-	
+
 	function setFilterComboTree(){
 		local ctree = new Flu_Combo_Tree(0,0, 25,25);
 		replace_widget_by(group_filter, ctree);
@@ -860,7 +863,7 @@ function print_entities_list_contact_report()
 
 	local rptData = report.rpt_Body->_data;
 	local iter1, iter2, iter0 = 0;
-	
+
 	local function array_assign(dest, src, start, end){
 		dest.clear();
 		dest.extend(src.slice(start, end));
@@ -904,7 +907,7 @@ class EntitiesListSearch extends MyListSearchWindow {
 	_search_by_product = null;
 	_search_by_id = null;
 	_search_by_active = null;
-	
+
 	constructor() {
 		base.constructor();
 		label(_tr("Entities List Search"));
@@ -941,9 +944,9 @@ class EntitiesListSearch extends MyListSearchWindow {
 		_search_options.group_id = group_filter->get_data_at();
 		appServer.entities_get_list(grid->_data, _search_options);
 	}
-	
+
 	function get_edit_window(){return getChildWindow("Entity Edit", MyEditEntityWindow);}
-	
+
 	function cb_btnInsert(sender, udata){
 		this = sender.window();
 		local win = showChildWindow("Entity Edit", EditEntitiesWindow);
@@ -988,7 +991,7 @@ function print_products_list()
 
 	local rptData = report.rpt_Body->_data;
 	local iter1, iter2, iter0 = 0;
-	
+
 	local function array_assign(dest, src, start, end){
 		dest.clear();
 		dest.extend(src.slice(start, end));
@@ -1013,11 +1016,11 @@ function print_products_list()
 	    printer.origin(30,25);
 	    printer.print_widget(report);
 	    printer.end_page();
-	    
+
             //to allow user do something meanwhile
             Fl_Display_Device.display_device()->set_current();
             Fl.check();
-            printer.set_current();	    
+            printer.set_current();
 	}
 	printer.end_job();
 	fl_cursor(FL_CURSOR_DEFAULT);
@@ -1069,7 +1072,7 @@ class ProductsListSearch extends MyListSearchWindow {
 	_search_by_active = null;
 	_last_image_id = null;
 	_image_window = null;
-	
+
 	constructor() {
 		_last_image_id = 0;
 		base.constructor();
@@ -1099,7 +1102,7 @@ class ProductsListSearch extends MyListSearchWindow {
 		_search_by_active->value(1);
 		fill_grid();
 	}
-	
+
 	function get_search_data(data){
 		_search_options.search_str = search_str.value();
 		_search_options.description = _search_by_description.value() == 1;
@@ -1115,10 +1118,10 @@ class ProductsListSearch extends MyListSearchWindow {
 	function get_edit_window(){return getChildWindow("Product Edit", MyEditProductWindow);}
 
 	function cb_btnInsert(sender, udata){
-		this = sender.windw();
+		this = sender.window();
 		local win = showChildWindow("Product Edit", EditProductWindow);
 	}
-	
+
 	function grid_cb(sender, udata){
 		//print("on_row_changed", sender, row);
 		if(sender->why_event() == FLVE_ROW_CHANGED){
@@ -1132,7 +1135,7 @@ class ProductsListSearch extends MyListSearchWindow {
 						_last_image_id = img_id;
 					}
 				}
-			}	
+			}
 		}
 	}
 	function cb_btnUpdate(sender, udata){
@@ -1142,7 +1145,7 @@ class ProductsListSearch extends MyListSearchWindow {
 
 class MyDeliveryCalcWindow extends DeliveryCalcWindow {
 	_delivery_data = null;
-	
+
 	constructor(){
 		base.constructor();
 		_delivery_data = dofile("delivery-info.json.nut");
@@ -1168,7 +1171,7 @@ class MyCalendarWindow extends CalendarWindow {
 	_last_row = null;
 	_last_col = null;
 	static _week_days_abbr = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-	
+
 	constructor(){
 		base.constructor();
 		grid->has_scrollbar( FLVS_AUTOMATIC );
@@ -1191,7 +1194,7 @@ class MyCalendarWindow extends CalendarWindow {
 	}
 	function cb_gui_destination_zone(sender, udata){
 		this = sender->window();
-	}	
+	}
 }
 
 class MyEditOrderWindow extends EditOrderWindow {
@@ -1254,12 +1257,12 @@ class OrdersListSearch extends MyListSearchWindow {
 		_search_by_entities->setonly();
 		fill_grid();
 	}
-	
+
 	function get_data_group_filter(data)
 	{
 		appServer.order_types_list_short(data, 0);
 	}
-	
+
 	function get_search_data(data){
 		_search_options.search_str = search_str.value();
 		_search_options.entities = _search_by_entities.value() == 1;
@@ -1286,7 +1289,7 @@ class OrdersListSearch extends MyListSearchWindow {
 		_popup->add(_tr("Copy grouping"));
 		_popup->add(_tr("Clear selection"));
 	}
-	
+
 	function on_popupmenu_cb(sender, udata){
 		//printf("%p : %d : %s\n", sender, popup->value(),
 		//       popup->menu_at(popup->value())->label());
@@ -1314,7 +1317,7 @@ class OrdersListSearch extends MyListSearchWindow {
 			break;
 		}
 	}
-	
+
 	function copy_order(ar_ids, grouping, sab){
 	}
 }
@@ -1335,3 +1338,4 @@ win->resizable(win);
 win->show_main();
 
 Fl.run();
+if(WIN32) socket.close();

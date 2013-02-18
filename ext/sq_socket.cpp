@@ -151,6 +151,18 @@ static int inet_aton(const char *cp, struct in_addr *inp)
 //#define inet_aton(a,b) inet_pton(a,b, AF_INET)
 #endif
 
+static int socket_open(HSQUIRRELVM v)
+{
+    lua_socket_open();
+    return 0;
+}
+
+static int socket_close(HSQUIRRELVM v)
+{
+    lua_socket_close();
+    return 0;
+}
+
 static int opt_setmembership(HSQUIRRELVM v, p_socket ps, int level, int name)
 {
     SQ_FUNC_VARS_NO_TOP(v);
@@ -1537,6 +1549,8 @@ extern "C" {
         INT_CONST(v, IO_UNKNOWN);
         INT_CONST(v, IO_SSL);
 
+        sq_insertfunc(v, _SC("open"), socket_open, 1, _SC("."), SQTrue);
+        sq_insertfunc(v, _SC("close"), socket_close, 1, _SC("."), SQTrue);
         sq_insertfunc(v, _SC("gethostname"), inet_global_gethostname, 1, _SC("."), SQTrue);
         sq_insertfunc(v, _SC("gettime"), timeout_lua_gettime, 1, _SC("."), SQTrue);
         sq_insertfunc(v, _SC("select"), global_select, -3, _SC(".aan"), SQTrue);
