@@ -1597,8 +1597,9 @@ static SQRESULT string_sl_len (HSQUIRRELVM v) {
 static SQRESULT string_sl_lower (HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, str);
-    SQChar *s = sq_getscratchpad(v, str_size);
-    memcpy(s, str, str_size);
+    SQInteger size = str_size+sizeof(SQChar); //'\0' terminator
+    SQChar *s = sq_getscratchpad(v, size);
+    memcpy(s, str, size);
     toLowerSubSetLatinUtf8(s);
     sq_pushstring(v, s, -1);
     return 1;
@@ -1608,8 +1609,9 @@ static SQRESULT string_sl_lower (HSQUIRRELVM v) {
 static SQRESULT string_sl_upper (HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, str);
-    SQChar *s = sq_getscratchpad(v, str_size);
-    memcpy(s, str, str_size);
+    SQInteger size = str_size+sizeof(SQChar); //'\0' terminator
+    SQChar *s = sq_getscratchpad(v, size);
+    memcpy(s, str, size);
     toUpperSubSetLatinUtf8(s);
     sq_pushstring(v, s, -1);
     return 1;
@@ -1618,8 +1620,9 @@ static SQRESULT string_sl_upper (HSQUIRRELVM v) {
 static SQRESULT string_sl_deaccent (HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, str);
-    SQChar *s = sq_getscratchpad(v, str_size);
-    memcpy(s, str, str_size);
+    SQInteger size = str_size+sizeof(SQChar); //'\0' terminator
+    SQChar *s = sq_getscratchpad(v, size);
+    memcpy(s, str, size);
     deAccentSubSetLatinUtf8(s);
     sq_pushstring(v, s, -1);
     return 1;
@@ -1628,8 +1631,9 @@ static SQRESULT string_sl_deaccent (HSQUIRRELVM v) {
 static SQRESULT string_sl_lower_deaccent (HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, str);
-    SQChar *s = sq_getscratchpad(v, str_size);
-    memcpy(s, str, str_size);
+    SQInteger size = str_size+sizeof(SQChar); //'\0' terminator
+    SQChar *s = sq_getscratchpad(v, size);
+    memcpy(s, str, size);
     toLowerDeaccentSubSetLatinUtf8(s);
     sq_pushstring(v, s, -1);
     return 1;
