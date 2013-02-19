@@ -14,10 +14,10 @@
 				<Option parameters="test-weakref.nut" />
 				<Compiler>
 					<Add option="-g" />
-					<Add directory="../zeromq-3.2.2/include" />
+					<Add directory="../../zeromq-3.2.2/include" />
 				</Compiler>
 				<Linker>
-					<Add library="../zeromq-3.2.2/libzmq3.a" />
+					<Add library="../../zeromq-3.2.2/libzmq3.a" />
 					<Add library="pthread" />
 					<Add library="rt" />
 					<Add library="dl" />
@@ -35,18 +35,18 @@
 					<Add option="-Wall" />
 					<Add option="-fno-rtti" />
 					<Add option="-fno-strict-aliasing" />
-					<Add directory="../zeromq-3.2.2/include" />
+					<Add directory="../../zeromq-3.2.2/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="../zeromq-3.2.2/libzmq3.a" />
+					<Add library="../../zeromq-3.2.2/libzmq3.a" />
 					<Add library="pthread" />
 					<Add library="rt" />
 					<Add library="dl" />
 					<Add library="axtls" />
 					<Add library="mpdecimal" />
 					<Add library="discount" />
-					<Add directory="../zeromq-3.2.2" />
+					<Add directory="../../zeromq-3.2.2" />
 				</Linker>
 			</Target>
 			<Target title="Release clang">
@@ -103,14 +103,14 @@
 					<Add option="-fno-rtti" />
 					<Add option="-fno-strict-aliasing" />
 					<Add option="-DWITH_FLTK=1" />
-					<Add directory="../zeromq-3.2.2/include" />
-					<Add directory="../dadbiz++/third-party/fltk" />
-					<Add directory="../dadbiz++/third-party/flu" />
-					<Add directory="../dadbiz++/third-party/libharu/include" />
+					<Add directory="../../zeromq-3.2.2/include" />
+					<Add directory="../../dadbiz++/third-party/fltk" />
+					<Add directory="../../dadbiz++/third-party/flu" />
+					<Add directory="../../dadbiz++/third-party/libharu/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="../zeromq-3.2.2/libzmq3.a" />
+					<Add library="../../zeromq-3.2.2/libzmq3.a" />
 					<Add library="pthread" />
 					<Add library="rt" />
 					<Add library="dl" />
@@ -127,10 +127,10 @@
 					<Add library="mpdecimal" />
 					<Add library="hpdfs" />
 					<Add library="discount" />
-					<Add directory="../zeromq-3.2.2" />
-					<Add directory="../dadbiz++/third-party/fltk/lib" />
-					<Add directory="../dadbiz++/third-party/flu" />
-					<Add directory="../dadbiz++/third-party/libharu/src" />
+					<Add directory="../../zeromq-3.2.2" />
+					<Add directory="../../dadbiz++/third-party/fltk/lib" />
+					<Add directory="../../dadbiz++/third-party/flu" />
+					<Add directory="../../dadbiz++/third-party/libharu/src" />
 				</Linker>
 			</Target>
 			<Target title="Debug FLTK">
@@ -146,10 +146,10 @@
 					<Add option="-fno-rtti" />
 					<Add option="-fno-strict-aliasing" />
 					<Add option="-DWITH_FLTK=1" />
-					<Add directory="../zeromq-3.2.2/include" />
-					<Add directory="../dadbiz++/third-party/fltk" />
-					<Add directory="../dadbiz++/third-party/flu" />
-					<Add directory="../dadbiz++/third-party/libharu/include" />
+					<Add directory="../../zeromq-3.2.2/include" />
+					<Add directory="../../dadbiz++/third-party/fltk" />
+					<Add directory="../../dadbiz++/third-party/flu" />
+					<Add directory="../../dadbiz++/third-party/libharu/include" />
 				</Compiler>
 				<Linker>
 					<Add library="../zeromq-3.2.2/libzmq3.a" />
@@ -169,10 +169,10 @@
 					<Add library="mpdecimal" />
 					<Add library="hpdfs" />
 					<Add library="discount" />
-					<Add directory="../zeromq-3.2.2" />
-					<Add directory="../dadbiz++/third-party/fltk/lib" />
-					<Add directory="../dadbiz++/third-party/flu" />
-					<Add directory="../dadbiz++/third-party/libharu/src" />
+					<Add directory="../../zeromq-3.2.2" />
+					<Add directory="../../dadbiz++/third-party/fltk/lib" />
+					<Add directory="../../dadbiz++/third-party/flu" />
+					<Add directory="../../dadbiz++/third-party/libharu/src" />
 				</Linker>
 			</Target>
 		</Build>
@@ -214,68 +214,68 @@
 			<Add option="-DRS232_STATIC=1" />
 			<Add directory="include" />
 			<Add directory="sqstdlib" />
-			<Add directory="ext" />
-			<Add directory="ext/myaxtls" />
-			<Add directory="../dadbiz++/third-party/sqlite3" />
-			<Add directory="../dadbiz++/third-party/discount-2.1.2" />
+			<Add directory="../myaxtls" />
+			<Add directory="../../dadbiz++/third-party/sqlite3" />
+			<Add directory="../../dadbiz++/third-party/discount-2.1.2" />
 			<Add directory="/usr/include/postgresql" />
 			<Add directory="/usr/lib/jvm/default-java/include" />
 			<Add directory="/usr/lib/llvm-3.1/include" />
-			<Add directory="ext/threadObject" />
+			<Add directory="../SquiLu-ext/threadObject" />
+			<Add directory=".." />
 		</Compiler>
 		<Linker>
 			<Add library="m" />
 			<Add library="z" />
 			<Add directory="lib" />
-			<Add directory="ext/myaxtls" />
-			<Add directory="ext/mpdecimal" />
-			<Add directory="../dadbiz++/third-party/discount-2.1.2" />
+			<Add directory="../myaxtls" />
+			<Add directory="../mpdecimal" />
+			<Add directory="../../dadbiz++/third-party/discount-2.1.2" />
 		</Linker>
-		<Unit filename="ext/dynamic_library.cpp" />
-		<Unit filename="ext/dynamic_library.h" />
-		<Unit filename="ext/fpdf.cpp" />
-		<Unit filename="ext/fpdf.h" />
-		<Unit filename="ext/lua_socket.cpp" />
-		<Unit filename="ext/lua_socket.h" />
-		<Unit filename="ext/mongoose.c">
+		<Unit filename="../SquiLu-ext/dynamic_library.cpp" />
+		<Unit filename="../SquiLu-ext/dynamic_library.h" />
+		<Unit filename="../SquiLu-ext/fpdf.cpp" />
+		<Unit filename="../SquiLu-ext/fpdf.h" />
+		<Unit filename="../SquiLu-ext/lua_socket.cpp" />
+		<Unit filename="../SquiLu-ext/lua_socket.h" />
+		<Unit filename="../SquiLu-ext/mongoose.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="ext/mongoose.h" />
-		<Unit filename="ext/pdf-font.cpp" />
-		<Unit filename="ext/pdf-font.h" />
-		<Unit filename="ext/sq_alien_struct.cpp">
+		<Unit filename="../SquiLu-ext/mongoose.h" />
+		<Unit filename="../SquiLu-ext/pdf-font.cpp" />
+		<Unit filename="../SquiLu-ext/pdf-font.h" />
+		<Unit filename="../SquiLu-ext/sq_alien_struct.cpp">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="ext/sq_axtls.c">
+		<Unit filename="../SquiLu-ext/sq_axtls.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="ext/sq_base64.cpp" />
-		<Unit filename="ext/sq_decimal.cpp" />
-		<Unit filename="ext/sq_fltk.cpp" />
-		<Unit filename="ext/sq_fpdf.cpp" />
-		<Unit filename="ext/sq_fs.c">
+		<Unit filename="../SquiLu-ext/sq_base64.cpp" />
+		<Unit filename="../SquiLu-ext/sq_decimal.cpp" />
+		<Unit filename="../SquiLu-ext/sq_fltk.cpp" />
+		<Unit filename="../SquiLu-ext/sq_fpdf.cpp" />
+		<Unit filename="../SquiLu-ext/sq_fs.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="ext/sq_java.cpp" />
-		<Unit filename="ext/sq_markdown.cpp" />
-		<Unit filename="ext/sq_mix.cpp" />
-		<Unit filename="ext/sq_mongoose.cpp" />
-		<Unit filename="ext/sq_parsecsv.cpp" />
-		<Unit filename="ext/sq_postgresql.cpp" />
-		<Unit filename="ext/sq_rs232.c">
+		<Unit filename="../SquiLu-ext/sq_java.cpp" />
+		<Unit filename="../SquiLu-ext/sq_markdown.cpp" />
+		<Unit filename="../SquiLu-ext/sq_mix.cpp" />
+		<Unit filename="../SquiLu-ext/sq_mongoose.cpp" />
+		<Unit filename="../SquiLu-ext/sq_parsecsv.cpp" />
+		<Unit filename="../SquiLu-ext/sq_postgresql.cpp" />
+		<Unit filename="../SquiLu-ext/sq_rs232.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="ext/sq_slave_vm.cpp" />
-		<Unit filename="ext/sq_socket.cpp" />
-		<Unit filename="ext/sq_sqlite3.cpp" />
-		<Unit filename="ext/sq_tinyxml2.cpp" />
-		<Unit filename="ext/sq_zlib.cpp" />
-		<Unit filename="ext/sq_zmq3.cpp" />
-		<Unit filename="ext/sqmodule.h" />
-		<Unit filename="ext/sqratimport.cpp" />
-		<Unit filename="ext/sqratimport.h" />
-		<Unit filename="ext/tinyxml2.cpp" />
-		<Unit filename="ext/tinyxml2.h" />
+		<Unit filename="../SquiLu-ext/sq_slave_vm.cpp" />
+		<Unit filename="../SquiLu-ext/sq_socket.cpp" />
+		<Unit filename="../SquiLu-ext/sq_sqlite3.cpp" />
+		<Unit filename="../SquiLu-ext/sq_tinyxml2.cpp" />
+		<Unit filename="../SquiLu-ext/sq_zlib.cpp" />
+		<Unit filename="../SquiLu-ext/sq_zmq3.cpp" />
+		<Unit filename="../SquiLu-ext/sqmodule.h" />
+		<Unit filename="../SquiLu-ext/sqratimport.cpp" />
+		<Unit filename="../SquiLu-ext/sqratimport.h" />
+		<Unit filename="../SquiLu-ext/tinyxml2.cpp" />
+		<Unit filename="../SquiLu-ext/tinyxml2.h" />
 		<Unit filename="sq/sq.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -283,7 +283,6 @@
 		<Unit filename="sqstdlib/sqstdblob.cpp" />
 		<Unit filename="sqstdlib/sqstdblobimpl.h" />
 		<Unit filename="sqstdlib/sqstdio.cpp" />
-		<Unit filename="sqstdlib/sqstdlib.dsp" />
 		<Unit filename="sqstdlib/sqstdmath.cpp" />
 		<Unit filename="sqstdlib/sqstdrex.cpp" />
 		<Unit filename="sqstdlib/sqstdstream.cpp" />
@@ -326,10 +325,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="squirrel/sublatin.h" />
-		<Unit filename="../dadbiz++/third-party/sqlite3/sqlite3.c">
+		<Unit filename="../../dadbiz++/third-party/sqlite3/sqlite3.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="../dadbiz++/third-party/sqlite3/sqlite3.h" />
+		<Unit filename="../../dadbiz++/third-party/sqlite3/sqlite3.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

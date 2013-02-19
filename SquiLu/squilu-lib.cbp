@@ -69,18 +69,19 @@
 			<Add directory="include" />
 			<Add directory="sqstdlib" />
 			<Add directory="squirrel" />
-			<Add directory="../zeromq-3.2.2/include" />
+			<Add directory="../../zeromq-3.2.2/include" />
+			<Add directory="../SquiLu" />
 		</Compiler>
 		<Linker>
 			<Add directory="../dadbiz++/third-party/fltk/lib" />
 			<Add directory="../dadbiz++/third-party/myaxtls" />
 		</Linker>
-		<Unit filename="ext/mongoose.h" />
-		<Unit filename="ext/sq_fs.c">
+		<Unit filename="../SquiLu-ext/mongoose.h" />
+		<Unit filename="../SquiLu-ext/sq_fs.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="ext/sq_zmq3.cpp" />
-		<Unit filename="ext/sqfs.h" />
+		<Unit filename="../SquiLu-ext/sq_zmq3.cpp" />
+		<Unit filename="../SquiLu-ext/sqfs.h" />
 		<Unit filename="include/sqstdaux.h" />
 		<Unit filename="include/sqstdblob.h" />
 		<Unit filename="include/sqstdio.h" />
