@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="libdiscount" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="libdiscount" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Debug/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="libdiscount" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="Release win32">
+				<Option output="libdiscount-win32" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release-win32/" />
+				<Option type="2" />
+				<Option compiler="mingw32_compiler" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add directory="G:/c/discount-2.1.2/" />
+		</Compiler>
+		<Unit filename="Csio.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="basename.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="css.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="docheader.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="dumptree.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="emmatch.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="flags.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="generate.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="html5.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="markdown.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="markdown.h" />
+		<Unit filename="mkdio.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="mkdio.h" />
+		<Unit filename="pgm_options.h" />
+		<Unit filename="resource.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="setup.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tags.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="toc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="version.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="xml.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="xmlpage.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<debugger />
+			<envvars />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
