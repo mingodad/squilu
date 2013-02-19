@@ -515,7 +515,8 @@ Write.widget_class <- function(t, ind){
 	Output(ind+1, strCreateWidget);
 	local ar = t.attr.xywh;
 	local x = ar[0], y = ar[1], w = ar[2], h = ar[3];
-	Output(ind+2, "base.constructor(%d, %d, %d, %d);\n", x, y, w, h);
+	local wlabel = t.attr.get("label", false);
+	Output(ind+2, "base.constructor(%d, %d, %d, %d%s);\n", x, y, w, h, wlabel ? format(", _tr(\"%s\")", wlabel): "");
 	if (! (t.attr.get("class", "")).match("_Window$") ) {
 		t.xoffset <- "_x + ";
 		t.yoffset <- "_y + ";
@@ -584,7 +585,14 @@ function WriteVariables(ind, vars, type){
 		else {
 			local multi_decl = i[0].strip().split(';');
 			if(multi_decl.len() > 1){
-				foreach(d in multi_decl) Output(ind, "local %s;\n", d.strip());
+				foreach(d in multi_decl) {
+					d = d.strip();
+					local isPointer = d.find("*");
+					if( isPointer >= 0){
+						Output(ind, "%s = null;\n", d.slice(isPointer+1));
+					}
+					else Output(ind, "%s;\n", d);
+				}
 			}
 			else Output(ind, "local %s = %s;\n", i[0], i.get(2, "null"));
 		}
@@ -668,4 +676,4 @@ if (vargv.len() > 0){
 	local config = rc[0], infile = rc[1], outfile = rc.get(2, "-"); 
 	Fluid2SquiLu(infile, outfile, config);
 }
-Fluid2SquiLu("orders-edit-gui.fl", "-", {});
+//Fluid2SquiLu("orders-edit-gui.fl", "-", {});
