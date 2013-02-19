@@ -104,9 +104,9 @@
 					<Add option="-fno-strict-aliasing" />
 					<Add option="-DWITH_FLTK=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
-					<Add directory="../../dadbiz++/third-party/fltk" />
-					<Add directory="../../dadbiz++/third-party/flu" />
-					<Add directory="../../dadbiz++/third-party/libharu/include" />
+					<Add directory="../fltk" />
+					<Add directory="../third-party/flu" />
+					<Add directory="../libharu/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -128,9 +128,9 @@
 					<Add library="hpdfs" />
 					<Add library="discount" />
 					<Add directory="../../zeromq-3.2.2" />
-					<Add directory="../../dadbiz++/third-party/fltk/lib" />
-					<Add directory="../../dadbiz++/third-party/flu" />
-					<Add directory="../../dadbiz++/third-party/libharu/src" />
+					<Add directory="../fltk/lib" />
+					<Add directory="../flu" />
+					<Add directory="../libharu/src" />
 				</Linker>
 			</Target>
 			<Target title="Debug FLTK">

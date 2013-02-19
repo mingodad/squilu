@@ -63,16 +63,15 @@
 			<Add option="-DSSL_STATIC_LIBRARY=1" />
 			<Add option="-DPDF_USING_ZLIB=1" />
 			<Add option="-DRS232_STATIC=1" />
-			<Add directory="../../dadbiz++/third-party/fltk" />
+			<Add directory="../fltk" />
 			<Add directory="../SquiLu/include" />
 			<Add directory="../myaxtls" />
 			<Add directory="../SquiLu/sqstdlib" />
 			<Add directory="../SquiLu-ext" />
-			<Add directory="../../dadbiz++/third-party/sqlite3" />
 			<Add directory="../../zeromq-3.2.2/include" />
-			<Add directory="../../dadbiz++/third-party/flu" />
-			<Add directory="../../dadbiz++/third-party/libharu/include" />
-			<Add directory="../../dadbiz++/third-party/discount-2.1.2" />
+			<Add directory="../flu" />
+			<Add directory="../libharu/include" />
+			<Add directory="../discount" />
 			<Add directory="/usr/include/postgresql" />
 			<Add directory="../SquiLu-editor" />
 			<Add directory=".." />
@@ -96,15 +95,18 @@
 			<Add library="rt" />
 			<Add library="hpdfs" />
 			<Add library="discount" />
-			<Add directory="../../dadbiz++/third-party/fltk/lib" />
+			<Add directory="../fltk/lib" />
 			<Add directory="../mpdecimal" />
 			<Add directory="../myaxtls" />
 			<Add directory="../../zeromq-3.2.2" />
-			<Add directory="../../dadbiz++/third-party/flu" />
-			<Add directory="../../dadbiz++/third-party/libharu/src" />
-			<Add directory="../../dadbiz++/third-party/discount-2.1.2" />
+			<Add directory="../flu" />
+			<Add directory="../libharu/src" />
+			<Add directory="../discount" />
 		</Linker>
 		<Unit filename="editor.cxx" />
+		<Unit filename="../SquiLu-ext/code_mix_prep.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="../SquiLu-ext/dynamic_library.cpp" />
 		<Unit filename="../SquiLu-ext/dynamic_library.h" />
 		<Unit filename="../SquiLu-ext/fpdf.cpp" />
@@ -141,6 +143,10 @@
 		<Unit filename="../SquiLu-ext/sq_zlib.cpp" />
 		<Unit filename="../SquiLu-ext/sq_zmq3.cpp" />
 		<Unit filename="../SquiLu-ext/sqfs.h" />
+		<Unit filename="../SquiLu-ext/sqlite3.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sqlite3.h" />
 		<Unit filename="../SquiLu-ext/sqmodule.h" />
 		<Unit filename="../SquiLu-ext/sqratimport.cpp" />
 		<Unit filename="../SquiLu-ext/sqratimport.h" />
@@ -192,10 +198,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../SquiLu/squirrel/sublatin.h" />
-		<Unit filename="../../dadbiz++/third-party/sqlite3/sqlite3.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../dadbiz++/third-party/sqlite3/sqlite3.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />
