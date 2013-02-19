@@ -109,6 +109,7 @@ CREATE_TAG(Fl_Browser);
 CREATE_TAG(Fl_Hold_Browser);
 
 CREATE_TAG(Fl_Image);
+CREATE_TAG(Fl_RGB_Image);
 CREATE_TAG(Fl_PNG_Image);
 CREATE_TAG(Fl_JPEG_Image);
 
@@ -472,8 +473,7 @@ static SQRESULT _##Klass##_cheap_rtti_info(HSQUIRRELVM v){sq_pushuserpointer(v, 
 GETINSTANCE_FOR_FL_KLASS(Fl_Widget);
 GETINSTANCE_FOR_FL_KLASS(Fl_Group);
 
-static SQChar Fl_Image_TAG[] = _SC("Fl_Image");
-#define SETUP_FL_IMAGE_AT(v, idx, Var) SETUP_KLASS(v, idx, Var, Fl_Image, Fl_Image_TAG)
+#define SETUP_FL_IMAGE_AT(v, idx, Var) SETUP_KLASS(v, idx, Var, Fl_Image, FLTK_TAG(Fl_Image))
 #define SETUP_FL_IMAGE(v) SETUP_FL_IMAGE_AT(v, 1, self)
 
 
@@ -736,9 +736,8 @@ FL_WIDGET_VOID_CALL(show);
 
 static SQRESULT _Fl_Widget_image(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS(v);
     SETUP_FL_WIDGET(v);
-    if(_top_ > 1){
+    if(sq_gettop(v) > 1){
         if(sq_gettype(v, 2) == OT_NULL) self->image(0);
         else
         {
@@ -748,7 +747,7 @@ static SQRESULT _Fl_Widget_image(HSQUIRRELVM v)
         return 0;
     }
     Fl_Image *img = self->image();
-    if(img) return fltk_pushinstance(v, Fl_Image_TAG, self->image());
+    if(img) return fltk_pushinstance(v, FLTK_TAG(Fl_Image), self->image());
     sq_pushnull(v);
     return 1;
 }
@@ -1230,9 +1229,8 @@ static SQRESULT _Fl_Group_current(HSQUIRRELVM v)
 
 static SQRESULT _Fl_Group_resizable(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS(v);
     SETUP_FL_GROUP(v);
-    if(_top_ > 1){
+    if(sq_gettop(v) > 1){
         SETUP_FL_WIDGET_AT(v, 2, wdg);
         self->resizable(wdg);
         return 0;
@@ -1242,7 +1240,6 @@ static SQRESULT _Fl_Group_resizable(HSQUIRRELVM v)
 
 static SQRESULT _Fl_Group_add(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_GROUP(v);
     SETUP_FL_WIDGET_AT(v, 2, wdg);
     self->add(wdg);
@@ -1406,7 +1403,6 @@ FLTK_CONSTRUCTOR(Flu_Combo_Tree);
 #define SETUP_FLU_COMBO_TREE(v) SETUP_FL_KLASS(v, Flu_Combo_Tree)
 
 static SQRESULT _Flu_Combo_Tree_tree(HSQUIRRELVM v){
-    SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FLU_COMBO_TREE(v);
     return fltk_pushinstance(v, FLTK_TAG(Flu_Tree_Browser), self);
 }
@@ -1700,13 +1696,11 @@ FLV_LIST_GETSET_INT(why_event);
 FLV_LIST_GETSET_INT(callback_when);
 
 static SQRESULT _Flv_List_global_style(HSQUIRRELVM v){
-    SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FLV_LIST(v);
     return fltk_pushinstance(v, FLTK_TAG(Flv_Style), &self->global_style);
 }
 
 static SQRESULT _Flv_List_row_style(HSQUIRRELVM v){
-    SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FLV_LIST(v);
     return fltk_pushinstance(v, FLTK_TAG(Flv_Style_List), &self->row_style);
 }
@@ -1770,7 +1764,6 @@ FLV_TABLE_GETSET_INT(cols);
 FLV_TABLE_GETSET_INT(col);
 
 static SQRESULT _Flv_Table_col_style(HSQUIRRELVM v){
-    SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FLV_TABLE(v);
     return fltk_pushinstance(v, FLTK_TAG(Flv_Style_List), &self->col_style);
 }
@@ -2096,9 +2089,8 @@ FLTK_CONSTRUCTOR(Fl_Tabs);
 #define SETUP_FL_TABS(v) SETUP_KLASS(v, 1, self, Fl_Tabs, FLTK_TAG(Fl_Tabs))
 
 static SQRESULT _Fl_Tabs_value(HSQUIRRELVM v){
-    SQ_FUNC_VARS(v);
     SETUP_FL_TABS(v);
-    if(_top_ > 1){
+    if(sq_gettop(v) > 1){
         SETUP_FL_WIDGET_AT(v, 2, wdg);
         self->value(wdg);
         return 0;
@@ -2116,7 +2108,7 @@ static SQRegFunction fl_tabs_obj_funcs[]={
 };
 #undef _DECL_FUNC
 
-#define SETUP_FL_BROWSER_(v) SETUP_KLASS(v, 1, self, Fl_Browser_, FLTK_TAG(Fl_Browser_))
+#define SETUP_FL_BROWSER_(v) SETUP_FL_KLASS(v, Fl_Browser_)
 #define SETUP_FL_BROWSER__GETSET_INT_CAST(funcNAME, typeNAME) FUNC_GETSET_INT(_Fl_Browser__, SETUP_FL_BROWSER_, self->, funcNAME, typeNAME)
 
 SETUP_FL_BROWSER__GETSET_INT_CAST(textcolor, Fl_Color);
@@ -2135,10 +2127,9 @@ static SQRegFunction fl_browser__obj_funcs[]={
 #undef _DECL_FUNC
 
 FLTK_CONSTRUCTOR(Fl_Browser);
-#define SETUP_FL_BROWSER(v) SETUP_KLASS(v, 1, self, Fl_Browser, FLTK_TAG(Fl_Browser))
+#define SETUP_FL_BROWSER(v) SETUP_FL_KLASS(v, Fl_Browser)
 
 static SQRESULT _Fl_Browser_clear(HSQUIRRELVM v){
-    SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_BROWSER(v);
     self->clear();
     return 0;
@@ -2155,7 +2146,7 @@ static SQRegFunction fl_browser_obj_funcs[]={
 #undef _DECL_FUNC
 
 FLTK_CONSTRUCTOR(Fl_Hold_Browser);
-#define SETUP_FL_HOLD_BROWSER(v) SETUP_KLASS(v, 1, self, Fl_Hold_Browser, FLTK_TAG(Fl_Hold_Browser))
+#define SETUP_FL_HOLD_BROWSER(v) SETUP_FL_KLASS(v, Fl_Hold_Browser)
 CHEAP_RTTI_FOR(Fl_Hold_Browser);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Hold_Browser_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_hold_browser_obj_funcs[]={
@@ -2198,7 +2189,7 @@ static SQRESULT _Fl_Image_copy(HSQUIRRELVM v)
         img = self->copy(iw, ih);
     }
     else img = self->copy();
-	return fltk_pushinstance(v, Fl_Image_TAG, img);
+	return fltk_pushinstance(v, FLTK_TAG(Fl_Image), img);
 }
 
 #define FUNC_FL_IMAGE_INT_CALL(fn) FUNC_INT_CALL(_Fl_Image_, SETUP_FL_IMAGE, fn)
@@ -2238,8 +2229,7 @@ static SQRegFunction fl_image_obj_funcs[]={
 };
 #undef _DECL_FUNC
 
-static SQChar Fl_RGB_Image_TAG[] = _SC("Fl_RGB_Image");
-#define SETUP_FL_RGB_IMAGE(v) SETUP_KLASS(v, 1, self, Fl_RGB_Image, Fl_RGB_Image_TAG)
+#define SETUP_FL_RGB_IMAGE(v) SETUP_FL_KLASS(v, Fl_RGB_Image)
 
 static SQRESULT _Fl_RGB_Image_constructor(HSQUIRRELVM v)
 {
@@ -2278,8 +2268,7 @@ static SQRegFunction fl_rgb_image_obj_funcs[]={
 };
 #undef _DECL_FUNC
 
-static SQChar Fl_JPEG_Image_TAG[] = _SC("Fl_JPEG_Image");
-#define SETUP_FL_JPEG_IMAGE(v) SETUP_KLASS(v, 1, self, Fl_JPEG_Image, Fl_JPEG_Image_TAG)
+#define SETUP_FL_JPEG_IMAGE(v) SETUP_FL_KLASS(v, Fl_JPEG_Image)
 
 static SQRESULT _Fl_JPEG_Image_constructor(HSQUIRRELVM v)
 {
@@ -2320,8 +2309,7 @@ static SQRegFunction fl_jpeg_image_obj_funcs[]={
 };
 #undef _DECL_FUNC
 
-static SQChar Fl_PNG_Image_TAG[] = _SC("Fl_PNG_Image");
-#define SETUP_FL_PNG_IMAGE(v) SETUP_KLASS(v, 1, self, Fl_PNG_Image, Fl_PNG_Image_TAG)
+#define SETUP_FL_PNG_IMAGE(v) SETUP_FL_KLASS(v, Fl_PNG_Image)
 
 static SQRESULT _Fl_PNG_Image_constructor(HSQUIRRELVM v)
 {
@@ -2342,7 +2330,6 @@ static SQRESULT _Fl_PNG_Image_constructor(HSQUIRRELVM v)
 
 static SQRESULT _Fl_PNG_Image_encode(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_IMAGE_AT(v, 2, img);
     unsigned char *outbuffer;
     int outlen;
@@ -2363,8 +2350,6 @@ static SQRegFunction fl_png_image_obj_funcs[]={
 };
 #undef _DECL_FUNC
 
-static SQChar Fl_Text_Buffer_TAG[] = _SC("Fl_Text_Buffer");
-
 static SQRESULT _Fl_Text_Buffer_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	Fl_Text_Buffer *self = ((Fl_Text_Buffer *)p);
@@ -2384,7 +2369,7 @@ static SQRESULT _Fl_Text_Buffer_constructor(HSQUIRRELVM v)
 	return 1;
 }
 
-#define SETUP_FL_TEXT_BUFFER(v) SETUP_KLASS(v, 1, self, Fl_Text_Buffer, Fl_Text_Buffer_TAG)
+#define SETUP_FL_TEXT_BUFFER(v) SETUP_FL_KLASS(v, Fl_Text_Buffer)
 FUNC_GETSET_STR(_Fl_Text_Buffer_, SETUP_FL_TEXT_BUFFER, self->, text);
 FUNC_INT_CALL(_Fl_Text_Buffer_, SETUP_FL_TEXT_BUFFER, length);
 
@@ -2400,7 +2385,6 @@ static SQRESULT _Fl_Text_Buffer_loadfile(HSQUIRRELVM v)
 
 static SQRESULT _Fl_Text_Buffer_input_file_was_transcoded(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_TEXT_BUFFER(v);
     sq_pushinteger(v, self->input_file_was_transcoded);
 	return 1;
@@ -2449,15 +2433,14 @@ FLTK_CONSTRUCTOR(Fl_Text_Display);
 
 static SQRESULT _Fl_Text_Display_buffer(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS(v);
     SETUP_FL_TEXT_DISPLAY(v);
-    if(_top_ > 1){
+    if(sq_gettop(v) > 1){
         SQUserPointer rsz;
         sq_getinstanceup(v, -1, &rsz, 0);
         self->buffer((Fl_Text_Buffer*)rsz);
         return 0;
     }
-    return fltk_pushinstance(v, Fl_Text_Buffer_TAG, self->buffer());
+    return fltk_pushinstance(v, FLTK_TAG(Fl_Text_Buffer), self->buffer());
 }
 
 static SQRESULT _Fl_Text_Display_highlight_data(HSQUIRRELVM v)
@@ -2527,10 +2510,9 @@ FLTK_CONSTRUCTOR(Fl_Text_Editor_Buffered);
 
 static SQRESULT _Fl_Text_Editor_Buffered_value(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS(v);
     const SQChar *txt;
     SETUP_FL_TEXT_EDITOR_BUFFERED(v);
-    if(_top_ > 1){
+    if(sq_gettop(v) > 1){
         sq_getstring(v, 2, &txt);
         self->buffer()->text(txt);
         return 0;
@@ -2631,7 +2613,6 @@ static const char *help_func_hook(Fl_Widget *sender, const char *uri, const char
 
 static SQRESULT _Fl_Help_View_link(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_HELP_VIEW(v);
     self->link(sq_gettype(v, 2) == OT_NULL ? NULL : help_func_hook);
     sq_pushstring(v, Fl_Help_View_Links, -1);
@@ -2963,7 +2944,6 @@ static SQRESULT _Fl_Pdf_File_Device_releasehook(SQUserPointer p, SQInteger size,
 
 static SQRESULT _Fl_Pdf_File_Device_constructor(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_PDF_FILE_DEVICE(v);
 	self = new Fl_Pdf_File_Device();
     sq_setinstanceup(v, 1, self);
@@ -3041,8 +3021,6 @@ static SQRegFunction fl_postscript_file_device_obj_funcs[]={
 #undef _DECL_FUNC
 
 
-static SQChar Fl_File_Chooser_TAG[] = _SC("Fl_File_Chooser");
-
 static SQRESULT _Fl_File_Chooser_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	Fl_File_Chooser *self = ((Fl_File_Chooser *)p);
@@ -3071,8 +3049,6 @@ static SQRegFunction fl_file_chooser_obj_funcs[]={
 	{0,0}
 };
 #undef _DECL_FUNC
-
-static SQChar Fl_Native_File_Chooser_TAG[] = _SC("Fl_Native_File_Chooser");
 
 static SQRESULT _Fl_Native_File_Chooser_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
@@ -4022,8 +3998,15 @@ static const struct {
 
 #undef INT_CONST
 
-#define PUSH_FL_CLASS(klass, parent, method_funcs) \
-    sq_pushnewclass(v, _SC(#klass), _SC(#parent), (void*)FLTK_TAG(klass), method_funcs, SQFalse)
+#define PUSH_FL_CLASS_NO_PARENT0(klass, method_funcs, leaveOnTop) \
+    sq_pushnewclass(v, _SC(#klass), NULL, (void*)FLTK_TAG(klass), method_funcs, leaveOnTop)
+
+#define PUSH_FL_CLASS_NO_PARENT(klass, method_funcs) PUSH_FL_CLASS_NO_PARENT0(klass, method_funcs, SQFalse)
+
+#define PUSH_FL_CLASS0(klass, parent, method_funcs, leaveOnTop) \
+    sq_pushnewclass(v, _SC(#klass), _SC(#parent), (void*)FLTK_TAG(klass), method_funcs,  leaveOnTop)
+
+#define PUSH_FL_CLASS(klass, parent, method_funcs) PUSH_FL_CLASS0(klass, parent, method_funcs, SQFalse)
 
 #ifdef __cplusplus
 extern "C" {
@@ -4047,7 +4030,7 @@ SQRESULT sqext_register_fltklib(HSQUIRRELVM v)
 #define INT_CONST(key) INT_CONST_PREFIX(, key)
 
     //Fl class
-    sq_pushnewclass(v, _SC("Fl"), NULL, (void*)FLTK_TAG(Fl), fl_obj_funcs, SQTrue);
+    PUSH_FL_CLASS_NO_PARENT0(Fl, fl_obj_funcs, SQTrue);
 
     INT_CONST_PREFIX(Fl::, OPTION_ARROW_FOCUS);
     INT_CONST_PREFIX(Fl::, OPTION_VISIBLE_FOCUS);
@@ -4060,14 +4043,14 @@ SQRESULT sqext_register_fltklib(HSQUIRRELVM v)
 	sq_poptop(v); //remove Fl class
 
 	//Fl_Widget class
-	sq_pushnewclass(v, FLTK_TAG(Fl_Widget), NULL, (void*)FLTK_TAG(Fl_Widget), fl_widget_obj_funcs, SQTrue);
+	PUSH_FL_CLASS_NO_PARENT0(Fl_Widget, fl_widget_obj_funcs, SQTrue);
 	sq_pushuserpointer(v, (void*)FLTK_TAG(Fl_Widget)); //push a key to be used on registrytable
 	sq_push(v, -2);
 	sq_setonregistrytable(v); //save a reference on registry to easy access, this will pop the Fl_Widget class
 	sq_poptop(v);
 
-	sq_pushnewclass(v, FLTK_TAG(Flv_Style), NULL, (void*)FLTK_TAG(Flv_Style), flv_style_obj_funcs, SQFalse);
-	sq_pushnewclass(v, FLTK_TAG(Flv_Style_List), NULL, (void*)FLTK_TAG(Flv_Style_List), flv_style_list_obj_funcs, SQFalse);
+	PUSH_FL_CLASS_NO_PARENT(Flv_Style, flv_style_obj_funcs);
+	PUSH_FL_CLASS_NO_PARENT(Flv_Style_List, flv_style_list_obj_funcs);
 
 	//Fl_Box class
 	PUSH_FL_CLASS(Fl_Box, Fl_Widget, fl_box_obj_funcs);
@@ -4086,8 +4069,7 @@ SQRESULT sqext_register_fltklib(HSQUIRRELVM v)
 	PUSH_FL_CLASS(Fl_Menu_, Fl_Widget, fl_menu__obj_funcs);
 	PUSH_FL_CLASS(Fl_Menu_Bar, Fl_Menu_, fl_menu_bar_obj_funcs);
 	PUSH_FL_CLASS(Fl_Choice, Fl_Menu_, fl_choice_obj_funcs);
-	sq_pushnewclass(v, FLTK_TAG(Fl_Menu_Button), FLTK_TAG(Fl_Menu_), (void*)FLTK_TAG(Fl_Menu_Button),
-                 fl_menu_button_obj_funcs, SQTrue);
+	PUSH_FL_CLASS0(Fl_Menu_Button, Fl_Menu_, fl_menu_button_obj_funcs, SQTrue);
 #define POPUP_INT_CONST(key) INT_CONST_PREFIX(Fl_Menu_Button::, key)
 
 	POPUP_INT_CONST(POPUP1);
@@ -4111,9 +4093,7 @@ SQRESULT sqext_register_fltklib(HSQUIRRELVM v)
 	//Fl_Group class
 	PUSH_FL_CLASS(Fl_Group, Fl_Widget, fl_group_obj_funcs);
 
-	PUSH_FL_CLASS(Fl_Pack, Fl_Group, fl_pack_obj_funcs);
-	sq_pushnewclass(v, FLTK_TAG(Fl_Pack), FLTK_TAG(Fl_Group), (void*)FLTK_TAG(Fl_Pack),
-                 fl_pack_obj_funcs, SQTrue);
+	PUSH_FL_CLASS0(Fl_Pack, Fl_Group, fl_pack_obj_funcs, SQTrue);
 #define FL_PACK_INT_CONST(key) INT_CONST_PREFIX(Fl_Pack::, key)
 
 	FL_PACK_INT_CONST(VERTICAL);
@@ -4147,19 +4127,22 @@ SQRESULT sqext_register_fltklib(HSQUIRRELVM v)
 
 	PUSH_FL_CLASS(Fl_Help_View, Fl_Group, fl_help_view_obj_funcs);
 
-    sq_pushnewclass(v, Fl_Text_Buffer_TAG, NULL, (void*)Fl_Text_Buffer_TAG, fl_text_buffer_obj_funcs, SQFalse);
+    PUSH_FL_CLASS_NO_PARENT(Fl_Text_Buffer, fl_text_buffer_obj_funcs);
 
-    sq_pushnewclass(v, Fl_Image_TAG, NULL, (void*)Fl_Image_TAG, fl_image_obj_funcs, SQFalse);
-    sq_pushnewclass(v, Fl_RGB_Image_TAG, Fl_Image_TAG, (void*)Fl_RGB_Image_TAG, fl_rgb_image_obj_funcs, SQFalse);
-    sq_pushnewclass(v, Fl_JPEG_Image_TAG, Fl_RGB_Image_TAG, (void*)Fl_JPEG_Image_TAG, fl_jpeg_image_obj_funcs, SQFalse);
-    sq_pushnewclass(v, Fl_PNG_Image_TAG, Fl_RGB_Image_TAG, (void*)Fl_PNG_Image_TAG, fl_png_image_obj_funcs, SQFalse);
+    PUSH_FL_CLASS_NO_PARENT(Fl_Image, fl_image_obj_funcs);
+    PUSH_FL_CLASS(Fl_RGB_Image, Fl_Image, fl_rgb_image_obj_funcs);
+    PUSH_FL_CLASS(Fl_JPEG_Image, Fl_RGB_Image, fl_jpeg_image_obj_funcs);
+    PUSH_FL_CLASS(Fl_PNG_Image, Fl_RGB_Image, fl_png_image_obj_funcs);
 
-    sq_pushnewclass(v, FLTK_TAG(Fl_Device), NULL, (void*)FLTK_TAG(Fl_Device), fl_device_obj_funcs, SQFalse);
-    sq_pushnewclass(v, FLTK_TAG(Fl_Surface_Device), FLTK_TAG(Fl_Device), (void*)FLTK_TAG(Fl_Surface_Device), fl_surface_device_obj_funcs, SQFalse);
-    sq_pushnewclass(v, FLTK_TAG(Fl_Display_Device), FLTK_TAG(Fl_Surface_Device), (void*)FLTK_TAG(Fl_Display_Device), fl_display_device_obj_funcs, SQFalse);
-    sq_pushnewclass(v, FLTK_TAG(Fl_Paged_Device), FLTK_TAG(Fl_Surface_Device), (void*)FLTK_TAG(Fl_Paged_Device), fl_paged_device_obj_funcs, SQFalse);
-    sq_pushnewclass(v, FLTK_TAG(Fl_Pdf_File_Device), FLTK_TAG(Fl_Paged_Device), (void*)FLTK_TAG(Fl_Pdf_File_Device), fl_pdf_file_device_obj_funcs, SQFalse);
-    sq_pushnewclass(v, FLTK_TAG(Fl_PostScript_File_Device), FLTK_TAG(Fl_Paged_Device), (void*)FLTK_TAG(Fl_PostScript_File_Device), fl_postscript_file_device_obj_funcs, SQFalse);
+    PUSH_FL_CLASS_NO_PARENT(Fl_File_Chooser, fl_file_chooser_obj_funcs);
+    PUSH_FL_CLASS_NO_PARENT(Fl_Native_File_Chooser, fl_native_file_chooser_obj_funcs);
+
+    PUSH_FL_CLASS_NO_PARENT(Fl_Device, fl_device_obj_funcs);
+    PUSH_FL_CLASS(Fl_Surface_Device, Fl_Device, fl_surface_device_obj_funcs);
+    PUSH_FL_CLASS(Fl_Display_Device, Fl_Surface_Device, fl_display_device_obj_funcs);
+    PUSH_FL_CLASS(Fl_Paged_Device, Fl_Surface_Device, fl_paged_device_obj_funcs);
+    PUSH_FL_CLASS(Fl_Pdf_File_Device, Fl_Paged_Device, fl_pdf_file_device_obj_funcs);
+    PUSH_FL_CLASS(Fl_PostScript_File_Device, Fl_Paged_Device, fl_postscript_file_device_obj_funcs);
 
     sq_pushconsttable(v);
     /* add constants to global table */
