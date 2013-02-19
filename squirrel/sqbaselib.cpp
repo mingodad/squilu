@@ -1571,8 +1571,10 @@ static SQRESULT string_split(HSQUIRRELVM v) {
         sq_arrayappend(v, -2);
         str = token + 1;
     }
-    sq_pushstring(v, str, -1);
-    sq_arrayappend(v, -2);
+    if(*str){ //there is anything left ?
+        sq_pushstring(v, str, -1);
+        sq_arrayappend(v, -2);
+    }
     return 1;
 }
 
