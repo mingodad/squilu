@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="Release WIN32" />
+	<File name="asn1.c" open="0" top="0" tabpos="0">
+		<Cursor position="5743" topLine="180" />
+	</File>
+	<File name="bigint.c" open="0" top="0" tabpos="0">
+		<Cursor position="24681" topLine="919" />
+	</File>
+	<File name="config.h" open="0" top="0" tabpos="0">
+		<Cursor position="2811" topLine="54" />
+	</File>
+	<File name="crypto.h" open="1" top="0" tabpos="5">
+		<Cursor position="1776" topLine="33" />
+	</File>
+	<File name="crypto_misc.c" open="0" top="0" tabpos="0">
+		<Cursor position="3197" topLine="74" />
+	</File>
+	<File name="loader.c" open="0" top="0" tabpos="2">
+		<Cursor position="4868" topLine="137" />
+	</File>
+	<File name="openssl.c" open="1" top="0" tabpos="3">
+		<Cursor position="1853" topLine="31" />
+	</File>
+	<File name="os_int.h" open="1" top="1" tabpos="6">
+		<Cursor position="1763" topLine="0" />
+	</File>
+	<File name="os_port.h" open="1" top="0" tabpos="4">
+		<Cursor position="1903" topLine="39" />
+	</File>
+	<File name="rsa.c" open="0" top="0" tabpos="0">
+		<Cursor position="6459" topLine="182" />
+	</File>
+	<File name="ssl.h" open="1" top="0" tabpos="1">
+		<Cursor position="12248" topLine="281" />
+	</File>
+	<File name="tls1.c" open="1" top="0" tabpos="2">
+		<Cursor position="34194" topLine="1373" />
+	</File>
+	<File name="tls1.h" open="0" top="0" tabpos="11">
+		<Cursor position="5263" topLine="172" />
+	</File>
+</CodeBlocks_layout_file>

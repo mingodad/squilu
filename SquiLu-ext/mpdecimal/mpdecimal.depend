@@ -1,0 +1,225 @@
+# depslib dependency file v1.0
+1328128189 source:/home/mingo/dev/SquiLu/ext/mpdecimal/basearith.c
+	"mpdecimal.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<assert.h>
+	"constants.h"
+	"memory.h"
+	"typearith.h"
+	"basearith.h"
+
+1358964297 /home/mingo/dev/SquiLu/ext/mpdecimal/mpdecimal.h
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<limits.h>
+	<assert.h>
+	<stdint.h>
+
+1328128189 /home/mingo/dev/SquiLu/ext/mpdecimal/constants.h
+	"mpdecimal.h"
+
+1328128189 /home/mingo/dev/SquiLu/ext/mpdecimal/memory.h
+	"mpdecimal.h"
+
+1328128189 /home/mingo/dev/SquiLu/ext/mpdecimal/basearith.h
+	"mpdecimal.h"
+	<stdio.h>
+	"typearith.h"
+
+1328128189 source:/home/mingo/dev/SquiLu/ext/mpdecimal/constants.c
+	"mpdecimal.h"
+	<stdio.h>
+	"constants.h"
+
+1328128189 source:/home/mingo/dev/SquiLu/ext/mpdecimal/convolute.c
+	"mpdecimal.h"
+	<stdio.h>
+	"bits.h"
+	"constants.h"
+	"fnt.h"
+	"fourstep.h"
+	"numbertheory.h"
+	"sixstep.h"
+	"umodarith.h"
+	"convolute.h"
+
+1328128189 /home/mingo/dev/SquiLu/ext/mpdecimal/fnt.h
+	"mpdecimal.h"
+	<stdio.h>
+
+1328128189 /home/mingo/dev/SquiLu/ext/mpdecimal/fourstep.h
+	"mpdecimal.h"
+	<stdio.h>
+
+1328128189 /home/mingo/dev/SquiLu/ext/mpdecimal/numbertheory.h
+	"constants.h"
+	"mpdecimal.h"
+
+1328128189 /home/mingo/dev/SquiLu/ext/mpdecimal/sixstep.h
+	"mpdecimal.h"
+	<stdio.h>
+
+1328128189 /home/mingo/dev/SquiLu/ext/mpdecimal/convolute.h
+	"mpdecimal.h"
+	<stdio.h>
+
+1328128189 source:/home/mingo/dev/SquiLu/ext/mpdecimal/crt.c
+	"mpdecimal.h"
+	<stdio.h>
+	<assert.h>
+	"numbertheory.h"
+	"umodarith.h"
+	"crt.h"
+
+1328128189 /home/mingo/dev/SquiLu/ext/mpdecimal/crt.h
+	"mpdecimal.h"
+	<stdio.h>
+
+1328128189 source:/home/mingo/dev/SquiLu/ext/mpdecimal/difradix2.c
+	"mpdecimal.h"
+	<stdio.h>
+	<assert.h>
+	"bits.h"
+	"numbertheory.h"
+	"umodarith.h"
+	"difradix2.h"
+
+1328128189 /home/mingo/dev/SquiLu/ext/mpdecimal/difradix2.h
+	"mpdecimal.h"
+	<stdio.h>
+	"numbertheory.h"
+
+1328128189 source:/home/mingo/dev/SquiLu/ext/mpdecimal/fnt.c
+	"mpdecimal.h"
+	<stdio.h>
+	<stdlib.h>
+	<assert.h>
+	"bits.h"
+	"difradix2.h"
+	"numbertheory.h"
+	"fnt.h"
+
+1328128189 source:/home/mingo/dev/SquiLu/ext/mpdecimal/fourstep.c
+	"mpdecimal.h"
+	<assert.h>
+	"numbertheory.h"
+	"sixstep.h"
+	"transpose.h"
+	"umodarith.h"
+	"fourstep.h"
+
+1328128189 /home/mingo/dev/SquiLu/ext/mpdecimal/transpose.h
+	"mpdecimal.h"
+	<stdio.h>
+
+1328128189 source:/home/mingo/dev/SquiLu/ext/mpdecimal/io.c
+	"mpdecimal.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<ctype.h>
+	<limits.h>
+	<assert.h>
+	<errno.h>
+	<locale.h>
+	"bits.h"
+	"constants.h"
+	"memory.h"
+	"typearith.h"
+	"io.h"
+
+1328128189 /home/mingo/dev/SquiLu/ext/mpdecimal/io.h
+	<errno.h>
+	"mpdecimal.h"
+
+1328128189 source:/home/mingo/dev/SquiLu/ext/mpdecimal/memory.c
+	"mpdecimal.h"
+	<stdio.h>
+	<stdlib.h>
+	"typearith.h"
+	"memory.h"
+
+1328128189 source:/home/mingo/dev/SquiLu/ext/mpdecimal/mpdecimal.c
+	"mpdecimal.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<limits.h>
+	<math.h>
+	"basearith.h"
+	"bits.h"
+	"convolute.h"
+	"crt.h"
+	"errno.h"
+	"memory.h"
+	"typearith.h"
+	"umodarith.h"
+	"mptest.h"
+	"mptypes.h"
+	<float.h>
+	<fenv.h>
+
+1328128189 source:/home/mingo/dev/SquiLu/ext/mpdecimal/mpsignal.c
+	"mpdecimal.h"
+
+1328128189 source:/home/mingo/dev/SquiLu/ext/mpdecimal/numbertheory.c
+	"mpdecimal.h"
+	<stdlib.h>
+	<assert.h>
+	"bits.h"
+	"umodarith.h"
+	"numbertheory.h"
+
+1328128189 source:/home/mingo/dev/SquiLu/ext/mpdecimal/sixstep.c
+	"mpdecimal.h"
+	<stdio.h>
+	<stdlib.h>
+	<assert.h>
+	"bits.h"
+	"difradix2.h"
+	"mptypes.h"
+	"numbertheory.h"
+	"transpose.h"
+	"umodarith.h"
+	"sixstep.h"
+
+1328128189 source:/home/mingo/dev/SquiLu/ext/mpdecimal/transpose.c
+	"mpdecimal.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<limits.h>
+	<assert.h>
+	"bits.h"
+	"constants.h"
+	"typearith.h"
+	"transpose.h"
+
+1328128189 /home/mingo/dev/SquiLu/ext/mpdecimal/typearith.h
+	"mpdecimal.h"
+	<intrin.h>
+
+1328128189 /home/mingo/dev/SquiLu/ext/mpdecimal/bits.h
+	"mpdecimal.h"
+	<stdio.h>
+	<intrin.h>
+
+1328128189 /home/mingo/dev/SquiLu/ext/mpdecimal/umodarith.h
+	"constants.h"
+	"mpdecimal.h"
+	"typearith.h"
+
+1328128189 /home/mingo/dev/SquiLu/ext/mpdecimal/mptest.h
+	"mpdecimal.h"
+
+1328128189 /home/mingo/dev/SquiLu/ext/mpdecimal/mptypes.h
+
+1328128189 source:/home/mingo/dev/SquiLu/ext/mpdecimal/context.c
+	"mpdecimal.h"
+	<stdio.h>
+	<string.h>
+	<signal.h>
+

@@ -1,0 +1,377 @@
+ # data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+i18n_type 1 
+i18n_include i18n_function.h 
+i18n_function _tr 
+header_name {.h} 
+code_name {.cxx}
+widget_class EditEntitiesWindow {
+  label {Edit Entity} selected
+  xywh {54 85 800 560} type Double hide resizable
+  class Edit_Base_Window
+} {
+  Fl_Output db_entities_id {
+    macro_name {db entities id}
+    dirty_name db_entities_id
+    xywh {5 5 96 25} labeltype NO_LABEL labelsize 16 textsize 16
+    code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+  }
+  Fl_Output db_entities_name_ro {
+    dirty_name db_entities_name_ro
+    xywh {110 5 545 25} labeltype NO_LABEL labelsize 16 textsize 16
+  }
+  Fl_Output db_entities_mdate {
+    macro_name {db entities mdate}
+    dirty_name db_entities_mdate
+    tooltip {This record last update date} xywh {666 5 130 25} labeltype NO_LABEL labelsize 16 textsize 16
+    code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+  }
+  Fl_Output db_entities_cdate {
+    macro_name {db entities cdate}
+    dirty_name db_entities_cdate
+    tooltip {This record creation date} xywh {665 35 130 25} labeltype NO_LABEL labelsize 16 textsize 16
+    code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+  }
+  Fl_Tabs tabs {open
+    xywh {5 35 790 521} selection_color 4 labelsize 16 labelcolor 7 resizable
+  } {
+    Fl_Group tabMain {
+      label Main open
+      xywh {5 62 790 494} color 246 labelsize 16 resizable
+    } {
+      Fl_Input db_entities_name {
+        label Name
+        macro_name {db entities name}
+        dirty_name db_entities_name
+        xywh {115 70 670 25} labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_entities_company {
+        label Company
+        macro_name {db entities company}
+        dirty_name db_entities_company
+        xywh {115 100 670 25} labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_entities_address {
+        label Address
+        macro_name {db entities address}
+        dirty_name db_entities_address
+        xywh {115 130 670 25} labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_entities_zip {
+        label ZIP
+        macro_name {db entities zip}
+        dirty_name db_entities_zip
+        xywh {115 160 95 25} labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_entities_city {
+        label City
+        macro_name {db entities city}
+        dirty_name db_entities_city
+        xywh {311 160 474 25} labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_entities_state {
+        label State
+        macro_name {db entities state}
+        dirty_name db_entities_state
+        xywh {115 189 390 25} labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_entities_country {
+        label Country
+        macro_name {db entities country}
+        dirty_name db_entities_country
+        xywh {585 190 200 25} labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_entities_tax_number {
+        label {Tax Num.}
+        macro_name {db entities tax_number}
+        dirty_name db_entities_tax_number
+        xywh {115 220 200 25} labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Check_Button db_entities_show_on_sales {
+        label Sales
+        macro_name {db entities show_on_sales}
+        dirty_name db_entities_show_on_sales
+        xywh {325 220 115 25} down_box DOWN_BOX labelsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Check_Button db_entities_show_on_buys {
+        label Buys
+        macro_name {db entities show_on_buys}
+        dirty_name db_entities_show_on_buys
+        xywh {445 220 125 25} down_box DOWN_BOX labelsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Check_Button db_entities_is_active {
+        label Active
+        macro_name {db entities is_active}
+        dirty_name db_entities_is_active
+        xywh {585 220 155 25} down_box DOWN_BOX labelsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_entities_phone {
+        label Phone
+        macro_name {db entities phone}
+        dirty_name db_entities_phone
+        xywh {115 249 200 25} labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_entities_fax {
+        label Fax
+        macro_name {db entities fax}
+        dirty_name db_entities_fax
+        xywh {370 249 200 25} labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Check_Button db_entities_use_sales_tax2 {
+        label {Use Sales Tax II}
+        macro_name {db entities use_sales_tax2}
+        dirty_name db_entities_use_sales_tax2
+        xywh {585 250 155 25} down_box DOWN_BOX labelsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_entities_email {
+        label Email
+        macro_name {db entities email}
+        dirty_name db_entities_email
+        xywh {115 280 455 25} labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Check_Button db_entities_sales_tax_exempt {
+        label {Sales Tax Exempt}
+        macro_name {db entities sales_tax_exempt}
+        dirty_name db_entities_sales_tax_exempt
+        xywh {585 280 155 25} down_box DOWN_BOX labelsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_entities_web {
+        label Web
+        macro_name {db entities web}
+        dirty_name db_entities_web
+        xywh {115 310 455 25} labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_entities_irpf_pct_retention {
+        label {I.R.P.F. %}
+        macro_name {db entities irpf_pct_retention}
+        xywh {585 310 60 25} type Float labelsize 16 align 8 textsize 16
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+        class Fl_Float_Input_Fmt
+      }
+      Fl_Input db_entities_contact {
+        label Contact
+        macro_name {db entities contact}
+        dirty_name db_entities_contact
+        xywh {115 340 455 25} labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_entities_gps_coordinates {
+        label GPS
+        macro_name {db entities gps_coordinates}
+        dirty_name db_entities_gps_coordinates
+        xywh {630 340 155 25} labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Group {} {open
+        xywh {675 394 110 151}
+      } {
+        Fl_Box {} {
+          label Spacer
+          xywh {675 394 110 73} labeltype NO_LABEL resizable
+        }
+        Fl_Button btnDbAction {
+          label Action
+          dirty_name {@btnDbAction}
+          xywh {675 470 110 25} labelsize 16
+        }
+        Fl_Choice dbAction {
+          label Action
+          dirty_name {@dbAction} open
+          xywh {675 520 110 25} down_box BORDER_BOX labelsize 16 align 1 textsize 16
+        } {}
+      }
+      Fl_Tabs {} {open
+        xywh {15 375 650 181} selection_color 4 labelsize 16 labelcolor 7
+      } {
+        Fl_Group tabNotes {
+          label Notes open
+          xywh {15 405 650 150} labelsize 16
+        } {
+          Fl_Input db_entities_notes {
+            macro_name {db entities notes}
+            dirty_name db_entities_notes
+            xywh {15 405 650 150} type Multiline labeltype NO_LABEL labelsize 16 align 5 textsize 16 resizable
+            code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+            class Fl_Text_Editor_Buffered
+          }
+        }
+        Fl_Group tabTags {
+          label Tags
+          dirty_name tabTags open
+          xywh {15 405 650 150} labelsize 16 hide
+        } {
+          Fl_Input db_entities_tags {
+            macro_name {db entities tags}
+            dirty_name db_entities_tags
+            xywh {15 405 650 150} type Multiline labeltype NO_LABEL labelsize 16 align 5 textsize 16 resizable
+            code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+            class Fl_Text_Editor_Buffered
+          }
+        }
+        Fl_Group tabGroups {
+          label Groups
+          dirty_name tabGroups open
+          xywh {15 400 650 156} hide
+        } {
+          Fl_Tree db_entities_group_id {
+            macro_name {db entities group_id}
+            dirty_name db_entities_group_id
+            xywh {15 405 650 150} labelsize 16
+            code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+            class Flu_Tree_Browser
+          }
+        }
+      }
+      Fl_Check_Button {} {
+        label {Wrap lines}
+        callback {db_entities_notes->wrap_mode(o->value(), 0);
+db_entities_tags->wrap_mode(o->value(), 0);}
+        xywh {375 380 102 25} down_box DOWN_BOX value 1 labelsize 16
+      }
+    }
+    Fl_Group tabTotals {
+      label Totals
+      dirty_name tabTotals open
+      xywh {5 62 790 493} color 246 labelsize 16 hide
+    } {
+      Fl_Input db_entities_credit_allowed {
+        label Credit
+        macro_name {db entities credit_allowed}
+        xywh {140 75 110 25} type Float labelsize 16 textsize 16
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+        class Fl_Float_Input_Fmt
+      }
+      Fl_Input db_entities_balance {
+        label Balance
+        macro_name {db entities balance}
+        xywh {140 110 110 25} type Float labelsize 16 textsize 16
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+        class Fl_Float_Input_Fmt
+      }
+      Fl_Input db_entities_sales_quoted {
+        label {Sales Quoted}
+        macro_name {db entities sales_quoted}
+        xywh {140 155 110 25} type Float labelsize 16 textsize 16
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+        class Fl_Float_Input_Fmt
+      }
+      Fl_Input db_entities_sales_ordered {
+        label {Sales Ordered}
+        macro_name {db entities sales_ordered}
+        xywh {140 190 110 25} type Float labelsize 16 textsize 16
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+        class Fl_Float_Input_Fmt
+      }
+      Fl_Input db_entities_sales_delivered {
+        label {Sales Delivered}
+        macro_name {db entities sales_delivered}
+        xywh {140 225 110 25} type Float labelsize 16 textsize 16
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+        class Fl_Float_Input_Fmt
+      }
+      Fl_Input db_entities_sales_invoiced {
+        label {Sales Invoiced}
+        macro_name {db entities sales_invoiced}
+        xywh {140 260 110 25} type Float labelsize 16 textsize 16
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+        class Fl_Float_Input_Fmt
+      }
+      Fl_Input db_entities_sales_discount {
+        label {Sales Discount}
+        macro_name {db entities sales_discount}
+        xywh {140 295 110 25} type Float labelsize 16 textsize 16
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+        class Fl_Float_Input_Fmt
+      }
+      Fl_Input db_entities_sales_paid {
+        label {Sales Paid}
+        macro_name {db entities sales_paid}
+        xywh {140 330 110 25} type Float labelsize 16 textsize 16
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+        class Fl_Float_Input_Fmt
+      }
+      Fl_Input db_entities_buys_quoted {
+        label {Buys Quoted}
+        macro_name {db entities buys_quoted}
+        xywh {410 155 110 25} type Float labelsize 16 textsize 16
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+        class Fl_Float_Input_Fmt
+      }
+      Fl_Input db_entities_buys_ordered {
+        label {Buys Ordered}
+        macro_name {db entities buys_ordered}
+        xywh {410 190 110 25} type Float labelsize 16 textsize 16
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+        class Fl_Float_Input_Fmt
+      }
+      Fl_Input db_entities_buys_received {
+        label {Buys Received}
+        macro_name {db entities buys_received}
+        xywh {410 225 110 25} type Float labelsize 16 textsize 16
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+        class Fl_Float_Input_Fmt
+      }
+      Fl_Input db_entities_buys_invoiced {
+        label {Buys Invoiced}
+        macro_name {db entities buys_invoiced}
+        xywh {410 260 110 25} type Float labelsize 16 textsize 16
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+        class Fl_Float_Input_Fmt
+      }
+      Fl_Input db_entities_buys_paid {
+        label {Buys Paid}
+        macro_name {db entities buys_paid}
+        xywh {410 330 110 25} type Float labelsize 16 textsize 16
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+        class Fl_Float_Input_Fmt
+      }
+      Fl_Input db_entities_buys_discount {
+        label {Buys Discount}
+        macro_name {db entities buys_discount}
+        dirty_name db_entities_buys_discount
+        xywh {410 295 110 25} type Float labelsize 16 textsize 16
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+        class Fl_Float_Input_Fmt
+      }
+    }
+    Fl_Group tabChartStatistics {
+      label Statistics
+      dirty_name tabChartStatistics open
+      xywh {5 62 790 493} color 246 labelsize 16 hide
+    } {}
+    Fl_Group tabHistory {
+      label History open
+      xywh {5 59 790 496} color 246 labelsize 16 hide
+    } {}
+    Fl_Group tabReports {
+      label Reports open
+      xywh {5 59 790 496} color 246 labelsize 16 hide
+    } {
+      Fl_Button btnEntitesListContactReport {
+        label {Entities List Contact Report}
+        xywh {255 100 215 25}
+      }
+      Fl_Progress print_progress {
+        label {Printing Progress}
+        xywh {255 140 215 25}
+      }
+    }
+  }
+} 

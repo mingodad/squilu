@@ -1,0 +1,2 @@
+squilu -c squiluc.nut ourbiz-fltk.nut -L chartstatistics.lua dadbiz-gui.lua entities-db.lua entities.lua groupsedit.lua historystatistics.lua images-db.lua images.lua invoice-types.lua invoices-db.lua invoices.lua delivery_calc.lua printinghtml.lua products-db.lua products.lua  ../lib/dadlib.lua ../lib/app-utils.lua ../lib/db-utils.lua ../lib/mycalendar-gui.lua ../lib/mycalendar.lua ../lib/mywidgets.lua  ../lib/mybarchart.lua ../lib/json.lua printing.lua
+squilu squilufreeze.nut /home/mingo/bin/squilu luac.out ourbiz
