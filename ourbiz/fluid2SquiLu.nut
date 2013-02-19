@@ -76,7 +76,7 @@ function BuildGrammar(){
 		"i18n_type", "i18n_include", "i18n_function", "i18n_file", "i18n_set" ];
 	local str_methods = [ "tooltip", "type", "box", "down_box", "xclass", "labeltype" ];
 	local str_ext_methods = [ "label", "callback", "after", "image", "user_data", "class",
-		"code0", "code1", "code2", "code3", ":" ];
+		"code0", "code1", "code2", "code3", ":", "macro_name" ];
 	local number_methods = [ "labelsize", "align", "value", "textcolor", "selection_color",
 		"labelcolor", "color", "labelfont", "textfont", "when", "textsize", "step", 
 		"maximum", "minimum", "shortcut" ];
@@ -224,6 +224,7 @@ function OpenOutput(out){
 }
 
 Write.Function <- function(t, ind){
+	if(t.name.startswith("__constructor")) return;
 	Output(ind, "function %s\n", t.name);
 	t.varname <- "res";
 	Write.group(t.body, ind+1);
@@ -327,8 +328,26 @@ Write.widget <- function(t, ind){
 	if (t.attr.get("modal", false)) Output(ind, "%s.set_modal();\n", name);
 	if (t.attr.get("non_modal", false)) Output(ind, "%s.set_non_modal();\n", name);
 	for(local i=0; i <= 3; ++i){
-		local l = t.attr.get("code" + i, false);
-		if (l) Output(ind, "%s\n", l);
+		local code = t.attr.get("code" + i, false);
+		if (code) {
+			if(code[0] == '='){
+				code = code.slice(1);
+				local macro = t.attr.get("macro_name", false);
+				if(macro){
+					macro = macro.split(' ');
+					code = code.gsub("$%((%d+)%)", function(m){
+						local idx = m.tointeger();
+						return macro.get(idx, "?");
+					});
+					code = code.gsub("$%(([^)]+)%)", function(m){
+						if(m == "name") return t.name;
+						return "?";
+					});					
+					Output(ind, "%s\n", code);
+				}
+			}
+			else Output(ind, "%s\n", code);
+		}
 	}
 	if (t.attr.get("noborder", false)) Output(ind, "%s.clear_border();\n", name);
 	if (t.attr.get("size_range", false)) Output(ind, "%s.size_range(%s);\n", name, table.concat(t.attr.size_range, ", "));
@@ -529,7 +548,7 @@ FindMembers.Function <- function(t, list){
 	local name = t.name.match("[%w_]+");
 	if (t.parent.name == name) { // constructor
 		t.name = "__constructor()";
-		t.parent.constructor = t.name;
+		t.parent.constructor <- t.name;
 	}
 	else 	list.push([ name, GetAccessMode(t, "public") ]);
 	FindMembers.group(t.body, list);
@@ -562,7 +581,13 @@ function WriteVariables(ind, vars, type){
 	foreach(i in vars) {
 		if (defined.get(i[0], false)) {}
 		else if (i[1] == "public") Output(ind, "%s = null;\n", i[0]);
-		else Output(ind, "local %s = %s\n", i[0], i.get(2, "null"));
+		else {
+			local multi_decl = i[0].strip().split(';');
+			if(multi_decl.len() > 1){
+				foreach(d in multi_decl) Output(ind, "local %s;\n", d.strip());
+			}
+			else Output(ind, "local %s = %s;\n", i[0], i.get(2, "null"));
+		}
 		defined[i[0]] <- true;
 	}
 	Output(ind, "\n");
@@ -643,4 +668,4 @@ if (vargv.len() > 0){
 	local config = rc[0], infile = rc[1], outfile = rc.get(2, "-"); 
 	Fluid2SquiLu(infile, outfile, config);
 }
-//Fluid2SquiLu("dadbiz-gui.fl", "-", {});
+Fluid2SquiLu("orders-edit-gui.fl", "-", {});
