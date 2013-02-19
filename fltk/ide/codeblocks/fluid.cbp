@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="fluid" />
+		<Option pch_mode="2" />
+		<Option compiler="tdmingw_gnu_gcc_compiler" />
+		<Build>
+			<Target title="Debug Win32">
+				<Option output="..\..\fluid\fluidd" prefix_auto="1" extension_auto="1" />
+				<Option object_output="fluid__0" />
+				<Option type="0" />
+				<Option compiler="tdmingw_gnu_gcc_compiler" />
+				<Compiler>
+					<Add option="/D_CRT_SECURE_NO_DEPRECATE" />
+					<Add option="/DWIN32" />
+					<Add option="/D_DEBUG" />
+					<Add option="/D_WINDOWS" />
+					<Add option="/DWIN32_LEAN_AND_MEAN" />
+					<Add option="/DVC_EXTRA_LEAN" />
+					<Add option="/DWIN32_EXTRA_LEAN" />
+					<Add option="/W" />
+					<Add option="/Zi" />
+					<Add option="/Od" />
+					<Add option="/MDd" />
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="/NODEFAULTLIB:libcmtd" />
+					<Add option="/INCREMENTAL:NO" />
+					<Add option="/pdb:.\fluid__0\fluidd.pdb" />
+					<Add library="comctl32" />
+					<Add directory="..\..\lib" />
+				</Linker>
+			</Target>
+			<Target title="Release Win32">
+				<Option output="..\..\fluid\fluid" prefix_auto="1" extension_auto="1" />
+				<Option object_output="fluid___" />
+				<Option type="0" />
+				<Option compiler="tdmingw_gnu_gcc_compiler" />
+				<Compiler>
+					<Add option="/D_CRT_SECURE_NO_DEPRECATE" />
+					<Add option="/DWIN32" />
+					<Add option="/DNDEBUG" />
+					<Add option="/D_WINDOWS" />
+					<Add option="/DWIN32_LEAN_AND_MEAN" />
+					<Add option="/DVC_EXTRA_LEAN" />
+					<Add option="/DWIN32_EXTRA_LEAN" />
+					<Add option="/W" />
+					<Add option="/MD" />
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="/NODEFAULTLIB:libcmt" />
+					<Add option="/INCREMENTAL:NO" />
+					<Add option="/pdb:.\fluid___\fluid.pdb" />
+					<Add library="comctl32" />
+					<Add directory="..\..\lib" />
+				</Linker>
+			</Target>
+			<Target title="Debug Cairo Win32">
+				<Option output="..\fluid\fluidd" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Debug Cairo Win32" />
+				<Option type="0" />
+				<Option compiler="tdmingw_gnu_gcc_compiler" />
+				<Compiler>
+					<Add option="/DHAVE_CAIRO=1" />
+					<Add option="/D_CRT_SECURE_NO_DEPRECATE" />
+					<Add option="/DWIN32" />
+					<Add option="/D_DEBUG" />
+					<Add option="/D_WINDOWS" />
+					<Add option="/DWIN32_LEAN_AND_MEAN" />
+					<Add option="/DVC_EXTRA_LEAN" />
+					<Add option="/DWIN32_EXTRA_LEAN" />
+					<Add option="/W" />
+					<Add option="/Zi" />
+					<Add option="/Od" />
+					<Add option="/MDd" />
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="/NODEFAULTLIB:libcmtd" />
+					<Add option="/INCREMENTAL:NO" />
+					<Add option="/pdb:.\fluid__0\fluidd.pdb" />
+					<Add library="cairo" />
+					<Add library="comctl32" />
+					<Add directory="..\..\lib" />
+				</Linker>
+			</Target>
+			<Target title="Release Cairo Win32">
+				<Option output="..\fluid\fluid" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release Cairo Win32" />
+				<Option type="0" />
+				<Option compiler="tdmingw_gnu_gcc_compiler" />
+				<Compiler>
+					<Add option="/DHAVE_CAIRO=1" />
+					<Add option="/D_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;WIN32_LEAN_AND_MEAN;VC_EXTRA_LEAN;WIN32_EXTRA_LEAN" />
+					<Add option="/W" />
+					<Add option="/MD" />
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="/NODEFAULTLIB:libcmt" />
+					<Add option="/INCREMENTAL:NO" />
+					<Add option="/pdb:.\fluid___\fluid.pdb" />
+					<Add library="comctl32" />
+					<Add library="cairo" />
+					<Add directory="..\..\lib" />
+				</Linker>
+			</Target>
+		</Build>
+		<Unit filename="..\..\fluid\about_panel.cxx" />
+		<Unit filename="..\..\fluid\align_widget.cxx" />
+		<Unit filename="..\..\fluid\alignment_panel.cxx" />
+		<Unit filename="..\..\fluid\code.cxx" />
+		<Unit filename="..\..\fluid\CodeEditor.cxx" />
+		<Unit filename="..\..\fluid\factory.cxx" />
+		<Unit filename="..\..\fluid\file.cxx" />
+		<Unit filename="..\..\fluid\Fl_Function_Type.cxx" />
+		<Unit filename="..\..\fluid\Fl_Group_Type.cxx" />
+		<Unit filename="..\..\fluid\Fl_Menu_Type.cxx" />
+		<Unit filename="..\..\fluid\Fl_Type.cxx" />
+		<Unit filename="..\..\fluid\Fl_Widget_Type.cxx" />
+		<Unit filename="..\..\fluid\Fl_Window_Type.cxx" />
+		<Unit filename="..\..\fluid\fluid.cxx" />
+		<Unit filename="..\..\fluid\Fluid_Image.cxx" />
+		<Unit filename="..\..\fluid\function_panel.cxx" />
+		<Unit filename="..\..\fluid\template_panel.cxx" />
+		<Unit filename="..\..\fluid\undo.cxx" />
+		<Unit filename="..\..\fluid\widget_panel.cxx" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

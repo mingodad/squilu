@@ -1,0 +1,452 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="fltk" />
+		<Option pch_mode="2" />
+		<Option compiler="gnu_gcc_compiler_fltk" />
+		<Build>
+			<Target title="Debug Win32">
+				<Option output="..\..\lib\libfltkd" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="Debug" />
+				<Option type="2" />
+				<Option compiler="gnu_gcc_compiler_fltk" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="/D_CRT_SECURE_NO_DEPRECATE" />
+					<Add option="/DWIN32" />
+					<Add option="/D_DEBUG" />
+					<Add option="/D_WINDOWS" />
+					<Add option="/DWIN32_LEAN_AND_MEAN" />
+					<Add option="/DVC_EXTRA_LEAN" />
+					<Add option="/DWIN32_EXTRA_LEAN" />
+					<Add option="/W" />
+					<Add option="/Zi" />
+					<Add option="/Od" />
+					<Add option="/MDd" />
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</ResourceCompiler>
+			</Target>
+			<Target title="Release Win32">
+				<Option output="..\..\lib\libfltk" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="Release" />
+				<Option type="2" />
+				<Option compiler="gnu_gcc_compiler_fltk" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</ResourceCompiler>
+				<Linker>
+					<Add library="ws2_32" />
+				</Linker>
+			</Target>
+			<Target title="Debug Cairo Win32">
+				<Option output="..\..\lib\libfltkd" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="Debug Cairo Win32" />
+				<Option type="2" />
+				<Option compiler="gnu_gcc_compiler_fltk" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="/DHAVE_CAIRO=1" />
+					<Add option="/D_CRT_SECURE_NO_DEPRECATE" />
+					<Add option="/DWIN32" />
+					<Add option="/D_DEBUG" />
+					<Add option="/D_WINDOWS" />
+					<Add option="/DWIN32_LEAN_AND_MEAN" />
+					<Add option="/DVC_EXTRA_LEAN" />
+					<Add option="/DWIN32_EXTRA_LEAN" />
+					<Add option="/W" />
+					<Add option="/Zi" />
+					<Add option="/Od" />
+					<Add option="/MDd" />
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</ResourceCompiler>
+			</Target>
+			<Target title="Release Cairo Win32">
+				<Option output="..\..\lib\libfltk" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="Release Cairo Win32" />
+				<Option type="2" />
+				<Option compiler="gnu_gcc_compiler_fltk" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="/DHAVE_CAIRO=1" />
+					<Add option="/D_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;WIN32_LEAN_AND_MEAN;VC_EXTRA_LEAN;WIN32_EXTRA_LEAN" />
+					<Add option="/W" />
+					<Add option="/MD" />
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</ResourceCompiler>
+			</Target>
+		</Build>
+		<Unit filename="..\..\FL\Enumerations.H" />
+		<Unit filename="..\..\FL\Fl.H" />
+		<Unit filename="..\..\FL\Fl_Adjuster.H" />
+		<Unit filename="..\..\FL\Fl_BMP_Image.H" />
+		<Unit filename="..\..\FL\Fl_Bitmap.H" />
+		<Unit filename="..\..\FL\Fl_Box.H" />
+		<Unit filename="..\..\FL\Fl_Browser.H" />
+		<Unit filename="..\..\FL\Fl_Browser_.H" />
+		<Unit filename="..\..\FL\Fl_Button.H" />
+		<Unit filename="..\..\FL\Fl_Chart.H" />
+		<Unit filename="..\..\FL\Fl_Check_Browser.H" />
+		<Unit filename="..\..\FL\Fl_Check_Button.H" />
+		<Unit filename="..\..\FL\Fl_Choice.H" />
+		<Unit filename="..\..\FL\Fl_Clock.H" />
+		<Unit filename="..\..\FL\Fl_Color_Chooser.H" />
+		<Unit filename="..\..\FL\Fl_Counter.H" />
+		<Unit filename="..\..\FL\Fl_Device.H" />
+		<Unit filename="..\..\FL\Fl_Dial.H" />
+		<Unit filename="..\..\FL\Fl_Double_Window.H" />
+		<Unit filename="..\..\FL\Fl_Export.H" />
+		<Unit filename="..\..\FL\Fl_File_Browser.H" />
+		<Unit filename="..\..\FL\Fl_File_Chooser.H" />
+		<Unit filename="..\..\FL\Fl_File_Icon.H" />
+		<Unit filename="..\..\FL\Fl_File_Input.H" />
+		<Unit filename="..\..\FL\Fl_Fill_Dial.H" />
+		<Unit filename="..\..\FL\Fl_Fill_Slider.H" />
+		<Unit filename="..\..\FL\Fl_Float_Input.H" />
+		<Unit filename="..\..\FL\Fl_FormsBitmap.H" />
+		<Unit filename="..\..\FL\Fl_FormsPixmap.H" />
+		<Unit filename="..\..\FL\Fl_Free.H" />
+		<Unit filename="..\..\FL\Fl_GIF_Image.H" />
+		<Unit filename="..\..\FL\Fl_Gl_Window.H" />
+		<Unit filename="..\..\FL\Fl_Group.H" />
+		<Unit filename="..\..\FL\Fl_Help_Dialog.H" />
+		<Unit filename="..\..\FL\Fl_Help_View.H" />
+		<Unit filename="..\..\FL\Fl_Hold_Browser.H" />
+		<Unit filename="..\..\FL\Fl_Hor_Fill_Slider.H" />
+		<Unit filename="..\..\FL\Fl_Hor_Nice_Slider.H" />
+		<Unit filename="..\..\FL\Fl_Hor_Slider.H" />
+		<Unit filename="..\..\FL\Fl_Hor_Value_Slider.H" />
+		<Unit filename="..\..\FL\Fl_Image.H" />
+		<Unit filename="..\..\FL\Fl_Input.H" />
+		<Unit filename="..\..\FL\Fl_Input_.H" />
+		<Unit filename="..\..\FL\Fl_Input_Choice.H" />
+		<Unit filename="..\..\FL\Fl_Int_Input.H" />
+		<Unit filename="..\..\FL\Fl_JPEG_Image.H" />
+		<Unit filename="..\..\FL\Fl_Layouter.H" />
+		<Unit filename="..\..\FL\Fl_Light_Button.H" />
+		<Unit filename="..\..\FL\Fl_Line_Dial.H" />
+		<Unit filename="..\..\FL\Fl_Menu.H" />
+		<Unit filename="..\..\FL\Fl_Menu_.H" />
+		<Unit filename="..\..\FL\Fl_Menu_Bar.H" />
+		<Unit filename="..\..\FL\Fl_Menu_Button.H" />
+		<Unit filename="..\..\FL\Fl_Menu_Item.H" />
+		<Unit filename="..\..\FL\Fl_Menu_Window.H" />
+		<Unit filename="..\..\FL\Fl_Multi_Browser.H" />
+		<Unit filename="..\..\FL\Fl_Multi_Label.H" />
+		<Unit filename="..\..\FL\Fl_Multiline_Input.H" />
+		<Unit filename="..\..\FL\Fl_Multiline_Output.H" />
+		<Unit filename="..\..\FL\Fl_Native_File_Chooser.H" />
+		<Unit filename="..\..\FL\Fl_Native_File_Chooser_FLTK.H" />
+		<Unit filename="..\..\FL\Fl_Native_File_Chooser_WIN32.H" />
+		<Unit filename="..\..\FL\Fl_Nice_Slider.H" />
+		<Unit filename="..\..\FL\Fl_Object.H" />
+		<Unit filename="..\..\FL\Fl_Output.H" />
+		<Unit filename="..\..\FL\Fl_Overlay_Window.H" />
+		<Unit filename="..\..\FL\Fl_PNG_Image.H" />
+		<Unit filename="..\..\FL\Fl_PNM_Image.H" />
+		<Unit filename="..\..\FL\Fl_Pack.H" />
+		<Unit filename="..\..\FL\Fl_Paged_Device.H" />
+		<Unit filename="..\..\FL\Fl_Pdf.H" />
+		<Unit filename="..\..\FL\Fl_Pixmap.H" />
+		<Unit filename="..\..\FL\Fl_Positioner.H" />
+		<Unit filename="..\..\FL\Fl_PostScript.H" />
+		<Unit filename="..\..\FL\Fl_Preferences.H" />
+		<Unit filename="..\..\FL\Fl_Printer.H" />
+		<Unit filename="..\..\FL\Fl_Progress.H" />
+		<Unit filename="..\..\FL\Fl_RGB_Image.H" />
+		<Unit filename="..\..\FL\Fl_Radio_Button.H" />
+		<Unit filename="..\..\FL\Fl_Radio_Light_Button.H" />
+		<Unit filename="..\..\FL\Fl_Radio_Round_Button.H" />
+		<Unit filename="..\..\FL\Fl_Rectangle.H" />
+		<Unit filename="..\..\FL\Fl_Repeat_Button.H" />
+		<Unit filename="..\..\FL\Fl_Return_Button.H" />
+		<Unit filename="..\..\FL\Fl_Roller.H" />
+		<Unit filename="..\..\FL\Fl_Round_Button.H" />
+		<Unit filename="..\..\FL\Fl_Round_Clock.H" />
+		<Unit filename="..\..\FL\Fl_Scroll.H" />
+		<Unit filename="..\..\FL\Fl_Scrollbar.H" />
+		<Unit filename="..\..\FL\Fl_Secret_Input.H" />
+		<Unit filename="..\..\FL\Fl_Select_Browser.H" />
+		<Unit filename="..\..\FL\Fl_Shared_Image.H" />
+		<Unit filename="..\..\FL\Fl_Simple_Counter.H" />
+		<Unit filename="..\..\FL\Fl_Single_Window.H" />
+		<Unit filename="..\..\FL\Fl_Slider.H" />
+		<Unit filename="..\..\FL\Fl_Spinner.H" />
+		<Unit filename="..\..\FL\Fl_Sys_Menu_Bar.H" />
+		<Unit filename="..\..\FL\Fl_Table.H" />
+		<Unit filename="..\..\FL\Fl_Table_Row.H" />
+		<Unit filename="..\..\FL\Fl_Tabs.H" />
+		<Unit filename="..\..\FL\Fl_Text_Buffer.H" />
+		<Unit filename="..\..\FL\Fl_Text_Display.H" />
+		<Unit filename="..\..\FL\Fl_Text_Editor.H" />
+		<Unit filename="..\..\FL\Fl_Tile.H" />
+		<Unit filename="..\..\FL\Fl_Tiled_Image.H" />
+		<Unit filename="..\..\FL\Fl_Timer.H" />
+		<Unit filename="..\..\FL\Fl_Toggle_Button.H" />
+		<Unit filename="..\..\FL\Fl_Toggle_Light_Button.H" />
+		<Unit filename="..\..\FL\Fl_Toggle_Round_Button.H" />
+		<Unit filename="..\..\FL\Fl_Tooltip.H" />
+		<Unit filename="..\..\FL\Fl_Tree.H" />
+		<Unit filename="..\..\FL\Fl_Tree_Item_Array.H" />
+		<Unit filename="..\..\FL\Fl_Tree_Prefs.H" />
+		<Unit filename="..\..\FL\Fl_Valuator.H" />
+		<Unit filename="..\..\FL\Fl_Value_Input.H" />
+		<Unit filename="..\..\FL\Fl_Value_Output.H" />
+		<Unit filename="..\..\FL\Fl_Value_Slider.H" />
+		<Unit filename="..\..\FL\Fl_Widget.H" />
+		<Unit filename="..\..\FL\Fl_WidgetAssociation.H" />
+		<Unit filename="..\..\FL\Fl_Window.H" />
+		<Unit filename="..\..\FL\Fl_Wizard.H" />
+		<Unit filename="..\..\FL\Fl_XBM_Image.H" />
+		<Unit filename="..\..\FL\Fl_XPM_Image.H" />
+		<Unit filename="..\..\FL\Flv_CStyle.H" />
+		<Unit filename="..\..\FL\Flv_Data_Source.H" />
+		<Unit filename="..\..\FL\Flv_List.H" />
+		<Unit filename="..\..\FL\Flv_Style.H" />
+		<Unit filename="..\..\FL\Flv_Table.H" />
+		<Unit filename="..\..\FL\Flve_Check_Button.H" />
+		<Unit filename="..\..\FL\Flve_Combo.H" />
+		<Unit filename="..\..\FL\Flve_Input.H" />
+		<Unit filename="..\..\FL\fl_ask.H" />
+		<Unit filename="..\..\FL\fl_draw.H" />
+		<Unit filename="..\..\FL\fl_message.H" />
+		<Unit filename="..\..\FL\fl_show_colormap.H" />
+		<Unit filename="..\..\FL\fl_show_input.H" />
+		<Unit filename="..\..\FL\fl_utf8.H" />
+		<Unit filename="..\..\cairo\Fl_Cairo.cxx" />
+		<Unit filename="..\..\src\Fl.cxx" />
+		<Unit filename="..\..\src\Fl_Adjuster.cxx" />
+		<Unit filename="..\..\src\Fl_Bitmap.cxx" />
+		<Unit filename="..\..\src\Fl_Box.cxx" />
+		<Unit filename="..\..\src\Fl_Browser.cxx" />
+		<Unit filename="..\..\src\Fl_Browser_.cxx" />
+		<Unit filename="..\..\src\Fl_Browser_load.cxx" />
+		<Unit filename="..\..\src\Fl_Button.cxx" />
+		<Unit filename="..\..\src\Fl_Chart.cxx" />
+		<Unit filename="..\..\src\Fl_Check_Browser.cxx" />
+		<Unit filename="..\..\src\Fl_Check_Button.cxx" />
+		<Unit filename="..\..\src\Fl_Choice.cxx" />
+		<Unit filename="..\..\src\Fl_Clock.cxx" />
+		<Unit filename="..\..\src\Fl_Color_Chooser.cxx" />
+		<Unit filename="..\..\src\Fl_Counter.cxx" />
+		<Unit filename="..\..\src\Fl_Device.cxx" />
+		<Unit filename="..\..\src\Fl_Dial.cxx" />
+		<Unit filename="..\..\src\Fl_Double_Window.cxx" />
+		<Unit filename="..\..\src\Fl_File_Browser.cxx" />
+		<Unit filename="..\..\src\Fl_File_Chooser.cxx" />
+		<Unit filename="..\..\src\Fl_File_Chooser2.cxx" />
+		<Unit filename="..\..\src\Fl_File_Icon.cxx" />
+		<Unit filename="..\..\src\Fl_File_Input.cxx" />
+		<Unit filename="..\..\src\Fl_GDI_Printer.cxx" />
+		<Unit filename="..\..\src\Fl_Gl_Device_Plugin.cxx" />
+		<Unit filename="..\..\src\Fl_Group.cxx" />
+		<Unit filename="..\..\src\Fl_Help_View.cxx" />
+		<Unit filename="..\..\src\Fl_Image.cxx" />
+		<Unit filename="..\..\src\Fl_Input.cxx" />
+		<Unit filename="..\..\src\Fl_Input_.cxx" />
+		<Unit filename="..\..\src\Fl_Layouter.cxx" />
+		<Unit filename="..\..\src\Fl_Light_Button.cxx" />
+		<Unit filename="..\..\src\Fl_Menu.cxx" />
+		<Unit filename="..\..\src\Fl_Menu_.cxx" />
+		<Unit filename="..\..\src\Fl_Menu_Bar.cxx" />
+		<Unit filename="..\..\src\Fl_Menu_Button.cxx" />
+		<Unit filename="..\..\src\Fl_Menu_Window.cxx" />
+		<Unit filename="..\..\src\Fl_Menu_add.cxx" />
+		<Unit filename="..\..\src\Fl_Menu_global.cxx" />
+		<Unit filename="..\..\src\Fl_Multi_Label.cxx" />
+		<Unit filename="..\..\src\Fl_Native_File_Chooser.cxx" />
+		<Unit filename="..\..\src\Fl_Native_File_Chooser_FLTK.cxx" />
+		<Unit filename="..\..\src\Fl_Native_File_Chooser_WIN32.cxx" />
+		<Unit filename="..\..\src\Fl_Overlay_Window.cxx" />
+		<Unit filename="..\..\src\Fl_Pack.cxx" />
+		<Unit filename="..\..\src\Fl_Paged_Device.cxx" />
+		<Unit filename="..\..\src\Fl_Pdf.cxx" />
+		<Unit filename="..\..\src\Fl_Pixmap.cxx" />
+		<Unit filename="..\..\src\Fl_Positioner.cxx" />
+		<Unit filename="..\..\src\Fl_PostScript.cxx" />
+		<Unit filename="..\..\src\Fl_Preferences.cxx" />
+		<Unit filename="..\..\src\Fl_Printer.cxx" />
+		<Unit filename="..\..\src\Fl_Progress.cxx" />
+		<Unit filename="..\..\src\Fl_Repeat_Button.cxx" />
+		<Unit filename="..\..\src\Fl_Return_Button.cxx" />
+		<Unit filename="..\..\src\Fl_Roller.cxx" />
+		<Unit filename="..\..\src\Fl_Round_Button.cxx" />
+		<Unit filename="..\..\src\Fl_Scroll.cxx" />
+		<Unit filename="..\..\src\Fl_Scrollbar.cxx" />
+		<Unit filename="..\..\src\Fl_Shared_Image.cxx" />
+		<Unit filename="..\..\src\Fl_Single_Window.cxx" />
+		<Unit filename="..\..\src\Fl_Slider.cxx" />
+		<Unit filename="..\..\src\Fl_Table.cxx" />
+		<Unit filename="..\..\src\Fl_Table_Row.cxx" />
+		<Unit filename="..\..\src\Fl_Tabs.cxx" />
+		<Unit filename="..\..\src\Fl_Text_Buffer.cxx" />
+		<Unit filename="..\..\src\Fl_Text_Display.cxx" />
+		<Unit filename="..\..\src\Fl_Text_Editor.cxx" />
+		<Unit filename="..\..\src\Fl_Tile.cxx" />
+		<Unit filename="..\..\src\Fl_Tiled_Image.cxx" />
+		<Unit filename="..\..\src\Fl_Tooltip.cxx" />
+		<Unit filename="..\..\src\Fl_Tree.cxx" />
+		<Unit filename="..\..\src\Fl_Tree_Item.cxx" />
+		<Unit filename="..\..\src\Fl_Tree_Item_Array.cxx" />
+		<Unit filename="..\..\src\Fl_Tree_Prefs.cxx" />
+		<Unit filename="..\..\src\Fl_Valuator.cxx" />
+		<Unit filename="..\..\src\Fl_Value_Input.cxx" />
+		<Unit filename="..\..\src\Fl_Value_Output.cxx" />
+		<Unit filename="..\..\src\Fl_Value_Slider.cxx" />
+		<Unit filename="..\..\src\Fl_Widget.cxx" />
+		<Unit filename="..\..\src\Fl_WidgetAssociation.cxx" />
+		<Unit filename="..\..\src\Fl_Window.cxx" />
+		<Unit filename="..\..\src\Fl_Window_fullscreen.cxx" />
+		<Unit filename="..\..\src\Fl_Window_hotspot.cxx" />
+		<Unit filename="..\..\src\Fl_Window_iconize.cxx" />
+		<Unit filename="..\..\src\Fl_Wizard.cxx" />
+		<Unit filename="..\..\src\Fl_XBM_Image.cxx" />
+		<Unit filename="..\..\src\Fl_XPM_Image.cxx" />
+		<Unit filename="..\..\src\Fl_abort.cxx" />
+		<Unit filename="..\..\src\Fl_add_idle.cxx" />
+		<Unit filename="..\..\src\Fl_arg.cxx" />
+		<Unit filename="..\..\src\Fl_compose.cxx" />
+		<Unit filename="..\..\src\Fl_display.cxx" />
+		<Unit filename="..\..\src\Fl_get_key.cxx" />
+		<Unit filename="..\..\src\Fl_get_system_colors.cxx" />
+		<Unit filename="..\..\src\Fl_grab.cxx" />
+		<Unit filename="..\..\src\Fl_lock.cxx" />
+		<Unit filename="..\..\src\Fl_own_colormap.cxx" />
+		<Unit filename="..\..\src\Fl_visual.cxx" />
+		<Unit filename="..\..\src\Fl_win32.cxx" />
+		<Unit filename="..\..\src\Fl_x.cxx" />
+		<Unit filename="..\..\src\Flv_CStyle.cxx" />
+		<Unit filename="..\..\src\Flv_Data_Source.cxx" />
+		<Unit filename="..\..\src\Flv_List.cxx" />
+		<Unit filename="..\..\src\Flv_Style.cxx" />
+		<Unit filename="..\..\src\Flv_Table.cxx" />
+		<Unit filename="..\..\src\Flve_Check_Button.cxx" />
+		<Unit filename="..\..\src\Flve_Combo.cxx" />
+		<Unit filename="..\..\src\Flve_Input.cxx" />
+		<Unit filename="..\..\src\filename_absolute.cxx" />
+		<Unit filename="..\..\src\filename_expand.cxx" />
+		<Unit filename="..\..\src\filename_ext.cxx" />
+		<Unit filename="..\..\src\filename_isdir.cxx" />
+		<Unit filename="..\..\src\filename_list.cxx" />
+		<Unit filename="..\..\src\filename_match.cxx" />
+		<Unit filename="..\..\src\filename_setext.cxx" />
+		<Unit filename="..\..\src\fl_arc.cxx" />
+		<Unit filename="..\..\src\fl_arci.cxx" />
+		<Unit filename="..\..\src\fl_ask.cxx" />
+		<Unit filename="..\..\src\fl_boxtype.cxx" />
+		<Unit filename="..\..\src\fl_call_main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\fl_color.cxx" />
+		<Unit filename="..\..\src\fl_cursor.cxx" />
+		<Unit filename="..\..\src\fl_curve.cxx" />
+		<Unit filename="..\..\src\fl_diamond_box.cxx" />
+		<Unit filename="..\..\src\fl_dnd.cxx" />
+		<Unit filename="..\..\src\fl_draw.cxx" />
+		<Unit filename="..\..\src\fl_draw_image.cxx" />
+		<Unit filename="..\..\src\fl_draw_pixmap.cxx" />
+		<Unit filename="..\..\src\fl_engraved_label.cxx" />
+		<Unit filename="..\..\src\fl_file_dir.cxx" />
+		<Unit filename="..\..\src\fl_font.cxx" />
+		<Unit filename="..\..\src\fl_gtk.cxx" />
+		<Unit filename="..\..\src\fl_labeltype.cxx" />
+		<Unit filename="..\..\src\fl_line_style.cxx" />
+		<Unit filename="..\..\src\fl_open_uri.cxx" />
+		<Unit filename="..\..\src\fl_oval_box.cxx" />
+		<Unit filename="..\..\src\fl_overlay.cxx" />
+		<Unit filename="..\..\src\fl_overlay_visual.cxx" />
+		<Unit filename="..\..\src\fl_plastic.cxx" />
+		<Unit filename="..\..\src\fl_read_image.cxx" />
+		<Unit filename="..\..\src\fl_rect.cxx" />
+		<Unit filename="..\..\src\fl_round_box.cxx" />
+		<Unit filename="..\..\src\fl_rounded_box.cxx" />
+		<Unit filename="..\..\src\fl_scroll_area.cxx" />
+		<Unit filename="..\..\src\fl_set_font.cxx" />
+		<Unit filename="..\..\src\fl_set_fonts.cxx" />
+		<Unit filename="..\..\src\fl_shadow_box.cxx" />
+		<Unit filename="..\..\src\fl_shortcut.cxx" />
+		<Unit filename="..\..\src\fl_show_colormap.cxx" />
+		<Unit filename="..\..\src\fl_symbols.cxx" />
+		<Unit filename="..\..\src\fl_utf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\fl_utf8.cxx" />
+		<Unit filename="..\..\src\fl_vertex.cxx" />
+		<Unit filename="..\..\src\flstring.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\numericsort.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\ps_image.cxx" />
+		<Unit filename="..\..\src\scandir.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\screen_xywh.cxx" />
+		<Unit filename="..\..\src\vsnprintf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\xutf8\case.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\xutf8\is_right2left.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\src\xutf8\is_spacing.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

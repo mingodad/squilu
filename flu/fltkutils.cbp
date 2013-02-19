@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="fltkutils" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="libfltkutils" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Debug/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="libfltkutils" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add directory="../flu" />
+			<Add directory="../fltk" />
+		</Compiler>
+		<Unit filename="FLU/FBase.H" />
+		<Unit filename="FLU/FDate.H" />
+		<Unit filename="FLU/FSocket.H" />
+		<Unit filename="FLU/Fl_Time.H" />
+		<Unit filename="FLU/Fl_Time_Input.H" />
+		<Unit filename="FLU/FluSimpleString.H" />
+		<Unit filename="FLU/FluVectorClass.h" />
+		<Unit filename="FLU/Flu_Button.H" />
+		<Unit filename="FLU/Flu_Chat_Buffer.H" />
+		<Unit filename="FLU/Flu_Choice_Group.H" />
+		<Unit filename="FLU/Flu_Collapsable_Group.H" />
+		<Unit filename="FLU/Flu_Combo_Box.H" />
+		<Unit filename="FLU/Flu_Combo_List.H" />
+		<Unit filename="FLU/Flu_Combo_Tree.H" />
+		<Unit filename="FLU/Flu_DND.H" />
+		<Unit filename="FLU/Flu_Dual_Progress_Meter.H" />
+		<Unit filename="FLU/Flu_Dual_Slider.H" />
+		<Unit filename="FLU/Flu_Enumerations.H" />
+		<Unit filename="FLU/Flu_File_Chooser.H" />
+		<Unit filename="FLU/Flu_Float_Input.H" />
+		<Unit filename="FLU/Flu_GL_Canvas.H" />
+		<Unit filename="FLU/Flu_GL_Window.H" />
+		<Unit filename="FLU/Flu_Helpers.H" />
+		<Unit filename="FLU/Flu_Int_Input.H" />
+		<Unit filename="FLU/Flu_Label.H" />
+		<Unit filename="FLU/Flu_Link_Button.H" />
+		<Unit filename="FLU/Flu_Output.H" />
+		<Unit filename="FLU/Flu_Progress.H" />
+		<Unit filename="FLU/Flu_Progress_Meter.H" />
+		<Unit filename="FLU/Flu_Return_Button.H" />
+		<Unit filename="FLU/Flu_Separator.H" />
+		<Unit filename="FLU/Flu_Simple_Group.H" />
+		<Unit filename="FLU/Flu_Spinner.H" />
+		<Unit filename="FLU/Flu_Toggle_Group.H" />
+		<Unit filename="FLU/Flu_Tree_Browser.H" />
+		<Unit filename="FLU/Flu_Wrap_Group.H" />
+		<Unit filename="FLU/fl_html_label.h" />
+		<Unit filename="FLU/flu_export.h" />
+		<Unit filename="FLU/flu_file_chooser_pixmaps.h" />
+		<Unit filename="FLU/flu_pixmaps.h" />
+		<Unit filename="src/FDate.cxx" />
+		<Unit filename="src/FSocket.cxx" />
+		<Unit filename="src/Fl_Time.cxx" />
+		<Unit filename="src/Fl_Time_Input.cxx" />
+		<Unit filename="src/FluSimpleString.cpp" />
+		<Unit filename="src/Flu_Button.cpp" />
+		<Unit filename="src/Flu_Chat_Buffer.cpp" />
+		<Unit filename="src/Flu_Choice_Group.cpp" />
+		<Unit filename="src/Flu_Collapsable_Group.cpp" />
+		<Unit filename="src/Flu_Combo_Box.cpp" />
+		<Unit filename="src/Flu_Combo_List.cpp" />
+		<Unit filename="src/Flu_Combo_Tree.cpp" />
+		<Unit filename="src/Flu_DND.cpp" />
+		<Unit filename="src/Flu_Dual_Progress_Meter.cpp" />
+		<Unit filename="src/Flu_Dual_Slider.cpp" />
+		<Unit filename="src/Flu_File_Chooser.cpp" />
+		<Unit filename="src/Flu_Float_Input.cpp" />
+		<Unit filename="src/Flu_GL_Canvas.cpp" />
+		<Unit filename="src/Flu_GL_Window.cpp" />
+		<Unit filename="src/Flu_Helpers.cpp" />
+		<Unit filename="src/Flu_Int_Input.cpp" />
+		<Unit filename="src/Flu_Label.cpp" />
+		<Unit filename="src/Flu_Link_Button.cpp" />
+		<Unit filename="src/Flu_Output.cpp" />
+		<Unit filename="src/Flu_Progress.cpp" />
+		<Unit filename="src/Flu_Progress_Meter.cpp" />
+		<Unit filename="src/Flu_Return_Button.cpp" />
+		<Unit filename="src/Flu_Separator.cpp" />
+		<Unit filename="src/Flu_Simple_Group.cpp" />
+		<Unit filename="src/Flu_Spinner.cpp" />
+		<Unit filename="src/Flu_Toggle_Group.cpp" />
+		<Unit filename="src/Flu_Tree_Browser.cpp" />
+		<Unit filename="src/Flu_Wrap_Group.cpp" />
+		<Unit filename="src/flu_file_chooser_pixmaps.cpp" />
+		<Unit filename="src/flu_pixmaps.cpp" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+			<envvars />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

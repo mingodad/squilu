@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="Debug Win32" />
+	<File name="..\..\src\Fl_BMP_Image.cxx" open="0" top="0" tabpos="0">
+		<Cursor position="94" topLine="0" />
+	</File>
+	<File name="..\..\src\Fl_File_Icon2.cxx" open="0" top="0" tabpos="6">
+		<Cursor position="11993" topLine="439" />
+	</File>
+	<File name="..\..\src\Fl_JPEG_Image.cxx" open="1" top="0" tabpos="1">
+		<Cursor position="11732" topLine="378" />
+	</File>
+	<File name="..\..\src\Fl_PNG_Image.cxx" open="1" top="0" tabpos="2">
+		<Cursor position="7813" topLine="313" />
+	</File>
+	<File name="..\..\src\fl_images_core.cxx" open="0" top="0" tabpos="3">
+		<Cursor position="268" topLine="43" />
+	</File>
+</CodeBlocks_layout_file>

@@ -1,0 +1,3 @@
+cp config-mingw.h config.h
+cp makeinclude-cross-mingw makeinclude
+mingw make

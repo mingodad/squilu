@@ -1,0 +1,134 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0300 
+header_name {.h} 
+code_name {.cxx}
+block {namespace lua} {open public file_name {} before {\{} after {\}}
+} {
+  block {extern "C"} {open public file_name {} before {\{} after {\}}
+  } {
+    decl {\#include <lua.h>} {public global
+    }
+    decl {\#include <lauxlib.h>} {public global
+    }
+    decl {\#include <lualib.h>} {public global
+    }
+    decl {\#include <stdarg.h>} {private local
+    }
+    decl {\#include <string.h>} {private local
+    }
+  }
+  Function {call_va(lua_State *L, const char *table, const char *func, const char *sig, ...)} {open private return_type int
+  } {
+    code {va_list vl;
+int narg, nres;  /* number of arguments and results */
+
+va_start(vl, sig);
+if(table){
+ lua_getglobal(L, table);
+ lua_getfield(L, -1, func);
+} else {
+	lua_getglobal(L, func);  /* get function */
+}
+
+/* push arguments */
+narg = 0;
+while (*sig) {  /* push arguments */
+	switch (*sig++) {
+
+	  case 'd':  /* double argument */
+		lua_pushnumber(L, va_arg(vl, double));
+		break;
+
+	  case 'i':  /* int argument */
+		lua_pushnumber(L, va_arg(vl, int));
+		break;
+
+	  case 's':  /* string argument */
+		lua_pushstring(L, va_arg(vl, char *));
+		break;
+
+	  case '>':
+		goto endwhile;
+
+	  default:
+		return -1;
+	}
+	narg++;
+	luaL_checkstack(L, 1, "too many arguments");
+} endwhile:
+
+/* do the call */
+nres = strlen(sig);  /* number of expected results */
+if (lua_pcall(L, narg, nres, 0) != 0)  /* do the call */
+	return -2;
+
+/* retrieve results */
+nres = -nres;  /* stack index of first result */
+while (*sig) {  /* get results */
+	switch (*sig++) {
+
+	  case 'd':  /* double result */
+		if (!lua_isnumber(L, nres))
+		  return -10;
+		*va_arg(vl, double *) = lua_tonumber(L, nres);
+		break;
+
+	  case 'i':  /* int result */
+		if (!lua_isnumber(L, nres))
+		  return -11;
+		*va_arg(vl, int *) = (int)lua_tonumber(L, nres);
+		break;
+
+	  case 's':  /* string result */
+		if (!lua_isstring(L, nres))
+		  return -12;
+		*va_arg(vl, const char **) = lua_tostring(L, nres);
+		break;
+
+	  default:
+			return -3;
+	}
+	nres++;
+}
+va_end(vl);
+return 1; //all went ok} {}
+  }
+  class Lua {
+    comment {Lua interpreter} open
+  } {
+    decl {lua_State *L;} {protected local
+    }
+    Function {Lua()} {open
+    } {
+      code {L = lua_open();   /* opens Lua */
+luaL_openlibs(L); /* opens all standard libraries */} {}
+    }
+    Function {~Lua()} {open
+    } {
+      code {lua_close(L);} {}
+    }
+    Function {gsub(const char* src, const char *re, const char *sub)} {open return_type {char *}
+    } {
+      code {char *ret_value;
+int top = lua_gettop(L); //saves the stack top
+// if(call_va(L, "string","gsub", "sss>s", src, re, sub, &ret_value)) {
+//	ret_value = strdup(ret_value); //allocate a new copy
+// } else ret_value = NULL;
+// lua_settop(L, top);  //returns stack to it's orign
+// return ret_value;
+lua_getglobal(L, "string");
+//if(lua_istable(L,-1))
+lua_getfield(L, -1, "gsub");
+//if(lua_isfunction(L,-1))
+lua_pushstring(L, src);
+lua_pushstring(L, re);
+lua_pushstring(L, sub);
+lua_call(L, 3, 1);
+if (lua_isstring(L, -1)) ret_value = strdup(lua_tostring(L,-1));
+else ret_value = NULL;
+lua_settop(L, top);  //returns stack to it's orign
+return ret_value;} {selected
+      }
+    }
+  }
+} 

@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="jpeg" />
+		<Option pch_mode="2" />
+		<Option compiler="tdmingw_gnu_gcc_compiler" />
+		<Build>
+			<Target title="Debug Win32">
+				<Option output="..\..\lib\libfltkjpegd" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="Debug" />
+				<Option type="2" />
+				<Option compiler="tdmingw_gnu_gcc_compiler" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="/D_CRT_SECURE_NO_DEPRECATE" />
+					<Add option="/DWIN32" />
+					<Add option="/D_DEBUG" />
+					<Add option="/D_WINDOWS" />
+					<Add option="/DWIN32_LEAN_AND_MEAN" />
+					<Add option="/DVC_EXTRA_LEAN" />
+					<Add option="/DWIN32_EXTRA_LEAN" />
+					<Add option="/W" />
+					<Add option="/Zi" />
+					<Add option="/Od" />
+					<Add option="/MDd" />
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</ResourceCompiler>
+			</Target>
+			<Target title="Release Win32">
+				<Option output="..\..\lib\libfltkjpeg" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="Release" />
+				<Option type="2" />
+				<Option compiler="tdmingw_gnu_gcc_compiler" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="/D_CRT_SECURE_NO_DEPRECATE" />
+					<Add option="/DWIN32" />
+					<Add option="/DNDEBUG" />
+					<Add option="/D_WINDOWS" />
+					<Add option="/DWIN32_LEAN_AND_MEAN" />
+					<Add option="/DVC_EXTRA_LEAN" />
+					<Add option="/DWIN32_EXTRA_LEAN" />
+					<Add option="/W3" />
+					<Add option="/MD" />
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</ResourceCompiler>
+			</Target>
+			<Target title="Debug Cairo Win32">
+				<Option output="..\..\lib\libfltkjpegd" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="Debug Cairo Win32" />
+				<Option type="2" />
+				<Option compiler="tdmingw_gnu_gcc_compiler" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="/DHAVE_CAIRO=1" />
+					<Add option="/W" />
+					<Add option="/Zi" />
+					<Add option="/Od" />
+					<Add option="/MDd" />
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</ResourceCompiler>
+			</Target>
+			<Target title="Release Cairo Win32">
+				<Option output="..\..\lib\libfltkjpeg" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="Release Cairo Win32" />
+				<Option type="2" />
+				<Option compiler="tdmingw_gnu_gcc_compiler" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="/D_CRT_SECURE_NO_DEPRECATE" />
+					<Add option="/DWIN32" />
+					<Add option="/DNDEBUG" />
+					<Add option="/D_WINDOWS" />
+					<Add option="/DWIN32_LEAN_AND_MEAN" />
+					<Add option="/DVC_EXTRA_LEAN" />
+					<Add option="/DWIN32_EXTRA_LEAN" />
+					<Add option="/W3" />
+					<Add option="/MD" />
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</ResourceCompiler>
+			</Target>
+		</Build>
+		<Unit filename="..\..\jpeg\jcapimin.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jcapistd.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jccoefct.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jccolor.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jcdctmgr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jchuff.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jcinit.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jcmainct.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jcmarker.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jcmaster.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jcomapi.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jcparam.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jcphuff.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jcprepct.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jcsample.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jctrans.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jdapimin.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jdapistd.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jdatadst.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jdatasrc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jdcoefct.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jdcolor.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jddctmgr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jdhuff.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jdinput.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jdmainct.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jdmarker.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jdmaster.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jdmerge.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jdphuff.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jdpostct.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jdsample.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jdtrans.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jerror.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jfdctflt.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jfdctfst.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jfdctint.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jidctflt.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jidctfst.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jidctint.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jidctred.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jmemmgr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jmemnobs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jquant1.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jquant2.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\jpeg\jutils.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

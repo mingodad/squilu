@@ -1,0 +1,33 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0300 
+header_name {.h} 
+code_name {.cxx}
+block {namespace dad} {open public file_name {} before {\{} after {\}}
+} {
+  widget_class win {open selected
+    xywh {252 114 426 424} type Double resizable
+    class Fl_Window visible
+  } {
+    Fl_Menu_Bar menu_bar {open
+      xywh {0 0 426 20}
+    } {}
+    Fl_Tabs main_tabs {
+      callback {main_tabs_cb(o);} open
+      xywh {0 20 430 408} when 1 resizable
+    } {
+      Fl_Group main_view {
+        label {Main View} open
+        xywh {0 44 430 384} hide
+      } {
+        Fl_Browser main_browser {
+          xywh {0 44 430 384} resizable
+        }
+      }
+      Fl_Group {} {open
+        xywh {25 45 15 15}
+      } {}
+    }
+    decl {int x;} {private local
+    }
+  }
+} 

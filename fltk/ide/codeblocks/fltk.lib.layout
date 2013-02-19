@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="Release Win32" />
+	<File name="..\..\FL\Enumerations.H" open="1" top="1" tabpos="8">
+		<Cursor position="11045" topLine="289" />
+	</File>
+	<File name="..\..\FL\Fl.H" open="0" top="0" tabpos="17">
+		<Cursor position="6736" topLine="205" />
+	</File>
+	<File name="..\..\FL\Fl_Box.H" open="0" top="0" tabpos="0">
+		<Cursor position="1322" topLine="33" />
+	</File>
+	<File name="..\..\FL\Fl_Check_Button.H" open="0" top="0" tabpos="0">
+		<Cursor position="1857" topLine="42" />
+	</File>
+	<File name="..\..\FL\Fl_Choice.H" open="0" top="0" tabpos="0">
+		<Cursor position="3650" topLine="74" />
+	</File>
+	<File name="..\..\FL\Fl_Counter.H" open="0" top="0" tabpos="1">
+		<Cursor position="3645" topLine="54" />
+	</File>
+	<File name="..\..\FL\Fl_Device.H" open="0" top="0" tabpos="11">
+		<Cursor position="2533" topLine="537" />
+	</File>
+	<File name="..\..\FL\Fl_File_Chooser.H" open="0" top="0" tabpos="0">
+		<Cursor position="3867" topLine="102" />
+	</File>
+	<File name="..\..\FL\Fl_File_Input.H" open="0" top="0" tabpos="0">
+		<Cursor position="512" topLine="51" />
+	</File>
+	<File name="..\..\FL\Fl_Float_Input.H" open="0" top="0" tabpos="13">
+		<Cursor position="1805" topLine="31" />
+	</File>
+	<File name="..\..\FL\Fl_Group.H" open="0" top="0" tabpos="2">
+		<Cursor position="3644" topLine="67" />
+	</File>
+	<File name="..\..\FL\Fl_Help_View.H" open="0" top="0" tabpos="1">
+		<Cursor position="9935" topLine="289" />
+	</File>
+	<File name="..\..\FL\Fl_Image.H" open="0" top="0" tabpos="1">
+		<Cursor position="3672" topLine="106" />
+	</File>
+	<File name="..\..\FL\Fl_Input.H" open="0" top="0" tabpos="4">
+		<Cursor position="8109" topLine="267" />
+	</File>
+	<File name="..\..\FL\Fl_Input_.H" open="0" top="0" tabpos="16">
+		<Cursor position="1426" topLine="35" />
+	</File>
+	<File name="..\..\FL\Fl_Int_Input.H" open="0" top="0" tabpos="14">
+		<Cursor position="1164" topLine="30" />
+	</File>
+	<File name="..\..\FL\Fl_JPEG_Image.H" open="0" top="0" tabpos="1">
+		<Cursor position="1663" topLine="35" />
+	</File>
+	<File name="..\..\FL\Fl_Layouter.H" open="0" top="0" tabpos="8">
+		<Cursor position="2845" topLine="88" />
+	</File>
+	<File name="..\..\FL\Fl_Light_Button.H" open="0" top="0" tabpos="0">
+		<Cursor position="1790" topLine="41" />
+	</File>
+	<File name="..\..\FL\Fl_Menu_.H" open="0" top="0" tabpos="7">
+		<Cursor position="1603" topLine="55" />
+	</File>
+	<File name="..\..\FL\Fl_Menu_Button.H" open="0" top="0" tabpos="4">
+		<Cursor position="3250" topLine="57" />
+	</File>
+	<File name="..\..\FL\Fl_Menu_Item.H" open="0" top="0" tabpos="0">
+		<Cursor position="4899" topLine="245" />
+	</File>
+	<File name="..\..\FL\Fl_Multiline_Input.H" open="0" top="0" tabpos="7">
+		<Cursor position="352" topLine="33" />
+	</File>
+	<File name="..\..\FL\Fl_Native_File_Chooser.H" open="0" top="0" tabpos="0">
+		<Cursor position="485" topLine="22" />
+	</File>
+	<File name="..\..\FL\Fl_Native_File_Chooser_FLTK.H" open="0" top="0" tabpos="0">
+		<Cursor position="4882" topLine="118" />
+	</File>
+	<File name="..\..\FL\Fl_Native_File_Chooser_WIN32.H" open="0" top="0" tabpos="0">
+		<Cursor position="1493" topLine="33" />
+	</File>
+	<File name="..\..\FL\Fl_Output.H" open="0" top="0" tabpos="15">
+		<Cursor position="2168" topLine="45" />
+	</File>
+	<File name="..\..\FL\Fl_PNG_Image.H" open="0" top="0" tabpos="2">
+		<Cursor position="1162" topLine="22" />
+	</File>
+	<File name="..\..\FL\Fl_Pack.H" open="0" top="0" tabpos="21">
+		<Cursor position="1885" topLine="45" />
+	</File>
+	<File name="..\..\FL\Fl_Paged_Device.H" open="0" top="0" tabpos="3">
+		<Cursor position="3664" topLine="119" />
+	</File>
+	<File name="..\..\FL\Fl_Pdf.H" open="0" top="0" tabpos="5">
+		<Cursor position="6089" topLine="175" />
+	</File>
+	<File name="..\..\FL\Fl_PostScript.H" open="0" top="0" tabpos="8">
+		<Cursor position="9641" topLine="172" />
+	</File>
+	<File name="..\..\FL\Fl_Printer.H" open="0" top="0" tabpos="10">
+		<Cursor position="5760" topLine="151" />
+	</File>
+	<File name="..\..\FL\Fl_RGB_Image.H" open="0" top="0" tabpos="8">
+		<Cursor position="940" topLine="8" />
+	</File>
+	<File name="..\..\FL\Fl_Radio_Button.H" open="0" top="0" tabpos="0">
+		<Cursor position="1192" topLine="25" />
+	</File>
+	<File name="..\..\FL\Fl_Rectangle.H" open="0" top="0" tabpos="14">
+		<Cursor position="2774" topLine="36" />
+	</File>
+	<File name="..\..\FL\Fl_Repeat_Button.H" open="0" top="0" tabpos="0">
+		<Cursor position="0" topLine="15" />
+	</File>
+	<File name="..\..\FL\Fl_Round_Button.H" open="0" top="0" tabpos="0">
+		<Cursor position="1800" topLine="37" />
+	</File>
+	<File name="..\..\FL\Fl_Scrollbar.H" open="0" top="0" tabpos="28">
+		<Cursor position="3527" topLine="59" />
+	</File>
+	<File name="..\..\FL\Fl_Shared_Image.H" open="0" top="0" tabpos="0">
+		<Cursor position="3329" topLine="78" />
+	</File>
+	<File name="..\..\FL\Fl_Simple_Counter.H" open="0" top="0" tabpos="2">
+		<Cursor position="693" topLine="29" />
+	</File>
+	<File name="..\..\FL\Fl_Table.H" open="0" top="0" tabpos="0">
+		<Cursor position="8592" topLine="210" />
+	</File>
+	<File name="..\..\FL\Fl_Table_Row.H" open="0" top="0" tabpos="0">
+		<Cursor position="2208" topLine="54" />
+	</File>
+	<File name="..\..\FL\Fl_Tabs.H" open="0" top="0" tabpos="0">
+		<Cursor position="2752" topLine="68" />
+	</File>
+	<File name="..\..\FL\Fl_Text_Buffer.H" open="0" top="0" tabpos="0">
+		<Cursor position="4353" topLine="119" />
+	</File>
+	<File name="..\..\FL\Fl_Text_Display.H" open="0" top="0" tabpos="9">
+		<Cursor position="3001" topLine="217" />
+	</File>
+	<File name="..\..\FL\Fl_Text_Editor.H" open="0" top="0" tabpos="8">
+		<Cursor position="5948" topLine="115" />
+	</File>
+	<File name="..\..\FL\Fl_Tree.H" open="0" top="0" tabpos="1">
+		<Cursor position="9406" topLine="204" />
+	</File>
+	<File name="..\..\FL\Fl_Tree_Prefs.H" open="0" top="0" tabpos="1">
+		<Cursor position="10152" topLine="306" />
+	</File>
+	<File name="..\..\FL\Fl_Valuator.H" open="0" top="0" tabpos="3">
+		<Cursor position="616" topLine="123" />
+	</File>
+	<File name="..\..\FL\Fl_Widget.H" open="1" top="0" tabpos="7">
+		<Cursor position="26973" topLine="696" />
+	</File>
+	<File name="..\..\FL\Fl_WidgetAssociation.H" open="0" top="0" tabpos="10">
+		<Cursor position="2020" topLine="39" />
+	</File>
+	<File name="..\..\FL\Fl_Window.H" open="0" top="0" tabpos="24">
+		<Cursor position="14443" topLine="342" />
+	</File>
+	<File name="..\..\FL\Fl_Wizard.H" open="0" top="0" tabpos="0">
+		<Cursor position="1664" topLine="43" />
+	</File>
+	<File name="..\..\FL\Flv_List.H" open="0" top="0" tabpos="1">
+		<Cursor position="2577" topLine="72" />
+	</File>
+	<File name="..\..\FL\Flv_Style.H" open="0" top="0" tabpos="3">
+		<Cursor position="1825" topLine="39" />
+	</File>
+	<File name="..\..\FL\Flv_Table.H" open="0" top="0" tabpos="1">
+		<Cursor position="4336" topLine="101" />
+	</File>
+	<File name="..\..\FL\Flve_Combo.H" open="0" top="0" tabpos="3">
+		<Cursor position="0" topLine="0" />
+	</File>
+	<File name="..\..\FL\fl_draw.H" open="0" top="0" tabpos="3">
+		<Cursor position="30306" topLine="694" />
+	</File>
+	<File name="..\..\src\Fl.cxx" open="0" top="0" tabpos="10">
+		<Cursor position="53594" topLine="1780" />
+	</File>
+	<File name="..\..\src\Fl_Box.cxx" open="0" top="0" tabpos="10">
+		<Cursor position="1126" topLine="20" />
+	</File>
+	<File name="..\..\src\Fl_Button.cxx" open="0" top="0" tabpos="0">
+		<Cursor position="5665" topLine="189" />
+	</File>
+	<File name="..\..\src\Fl_Check_Button.cxx" open="0" top="0" tabpos="0">
+		<Cursor position="1454" topLine="24" />
+	</File>
+	<File name="..\..\src\Fl_Clock.cxx" open="0" top="0" tabpos="6">
+		<Cursor position="2547" topLine="30" />
+	</File>
+	<File name="..\..\src\Fl_Device.cxx" open="0" top="0" tabpos="14">
+		<Cursor position="2084" topLine="18" />
+	</File>
+	<File name="..\..\src\Fl_Double_Window.cxx" open="0" top="0" tabpos="3">
+		<Cursor position="10163" topLine="295" />
+	</File>
+	<File name="..\..\src\Fl_File_Chooser.cxx" open="0" top="0" tabpos="0">
+		<Cursor position="176" topLine="481" />
+	</File>
+	<File name="..\..\src\Fl_File_Chooser2.cxx" open="0" top="0" tabpos="1">
+		<Cursor position="33689" topLine="1316" />
+	</File>
+	<File name="..\..\src\Fl_File_Input.cxx" open="0" top="0" tabpos="0">
+		<Cursor position="519" topLine="0" />
+	</File>
+	<File name="..\..\src\Fl_GDI_Printer.cxx" open="0" top="0" tabpos="13">
+		<Cursor position="3737" topLine="265" />
+	</File>
+	<File name="..\..\src\Fl_Gl_Device_Plugin.cxx" open="0" top="0" tabpos="0">
+		<Cursor position="4117" topLine="135" />
+	</File>
+	<File name="..\..\src\Fl_Group.cxx" open="0" top="0" tabpos="12">
+		<Cursor position="11791" topLine="524" />
+	</File>
+	<File name="..\..\src\Fl_Help_View.cxx" open="0" top="0" tabpos="2">
+		<Cursor position="84980" topLine="3466" />
+	</File>
+	<File name="..\..\src\Fl_Image.cxx" open="0" top="0" tabpos="2">
+		<Cursor position="3987" topLine="127" />
+	</File>
+	<File name="..\..\src\Fl_Input.cxx" open="0" top="0" tabpos="6">
+		<Cursor position="11649" topLine="417" />
+	</File>
+	<File name="..\..\src\Fl_Input_.cxx" open="0" top="0" tabpos="2">
+		<Cursor position="31902" topLine="1054" />
+	</File>
+	<File name="..\..\src\Fl_Layouter.cxx" open="0" top="0" tabpos="1">
+		<Cursor position="5541" topLine="278" />
+	</File>
+	<File name="..\..\src\Fl_Light_Button.cxx" open="0" top="0" tabpos="0">
+		<Cursor position="1712" topLine="135" />
+	</File>
+	<File name="..\..\src\Fl_Menu.cxx" open="0" top="0" tabpos="8">
+		<Cursor position="22164" topLine="676" />
+	</File>
+	<File name="..\..\src\Fl_Menu_.cxx" open="0" top="0" tabpos="6">
+		<Cursor position="10085" topLine="239" />
+	</File>
+	<File name="..\..\src\Fl_Menu_Button.cxx" open="0" top="0" tabpos="5">
+		<Cursor position="2119" topLine="58" />
+	</File>
+	<File name="..\..\src\Fl_Pack.cxx" open="0" top="0" tabpos="18">
+		<Cursor position="4350" topLine="120" />
+	</File>
+	<File name="..\..\src\Fl_Paged_Device.cxx" open="0" top="0" tabpos="3">
+		<Cursor position="1340" topLine="91" />
+	</File>
+	<File name="..\..\src\Fl_Pdf.cxx" open="0" top="0" tabpos="6">
+		<Cursor position="26576" topLine="992" />
+	</File>
+	<File name="..\..\src\Fl_PostScript.cxx" open="0" top="0" tabpos="7">
+		<Cursor position="29991" topLine="952" />
+	</File>
+	<File name="..\..\src\Fl_Printer.cxx" open="0" top="0" tabpos="12">
+		<Cursor position="3283" topLine="61" />
+	</File>
+	<File name="..\..\src\Fl_Scrollbar.cxx" open="0" top="0" tabpos="27">
+		<Cursor position="1096" topLine="261" />
+	</File>
+	<File name="..\..\src\Fl_Shared_Image.cxx" open="0" top="0" tabpos="2">
+		<Cursor position="9815" topLine="212" />
+	</File>
+	<File name="..\..\src\Fl_Tabs.cxx" open="0" top="0" tabpos="0">
+		<Cursor position="14644" topLine="480" />
+	</File>
+	<File name="..\..\src\Fl_Text_Buffer.cxx" open="0" top="0" tabpos="2">
+		<Cursor position="5995" topLine="227" />
+	</File>
+	<File name="..\..\src\Fl_Text_Display.cxx" open="0" top="0" tabpos="5">
+		<Cursor position="5287" topLine="172" />
+	</File>
+	<File name="..\..\src\Fl_Tile.cxx" open="0" top="0" tabpos="0">
+		<Cursor position="998" topLine="184" />
+	</File>
+	<File name="..\..\src\Fl_Widget.cxx" open="0" top="0" tabpos="9">
+		<Cursor position="3549" topLine="128" />
+	</File>
+	<File name="..\..\src\Fl_WidgetAssociation.cxx" open="0" top="0" tabpos="12">
+		<Cursor position="1189" topLine="12" />
+	</File>
+	<File name="..\..\src\Fl_Window.cxx" open="0" top="0" tabpos="23">
+		<Cursor position="4199" topLine="146" />
+	</File>
+	<File name="..\..\src\Fl_arg.cxx" open="0" top="0" tabpos="0">
+		<Cursor position="9355" topLine="386" />
+	</File>
+	<File name="..\..\src\Fl_display.cxx" open="0" top="0" tabpos="16">
+		<Cursor position="1604" topLine="13" />
+	</File>
+	<File name="..\..\src\Fl_win32.cxx" open="0" top="0" tabpos="25">
+		<Cursor position="41075" topLine="1313" />
+	</File>
+	<File name="..\..\src\Fl_x.cxx" open="0" top="0" tabpos="5">
+		<Cursor position="28900" topLine="970" />
+	</File>
+	<File name="..\..\src\Flv_List.cxx" open="0" top="0" tabpos="3">
+		<Cursor position="4980" topLine="166" />
+	</File>
+	<File name="..\..\src\Flv_Style.cxx" open="0" top="0" tabpos="0">
+		<Cursor position="482" topLine="57" />
+	</File>
+	<File name="..\..\src\Flv_Table.cxx" open="0" top="0" tabpos="6">
+		<Cursor position="9887" topLine="857" />
+	</File>
+	<File name="..\..\src\Flve_Combo.cxx" open="0" top="0" tabpos="4">
+		<Cursor position="490" topLine="39" />
+	</File>
+	<File name="..\..\src\fl_draw.cxx" open="0" top="0" tabpos="13">
+		<Cursor position="4346" topLine="108" />
+	</File>
+	<File name="..\..\src\fl_draw_image.cxx" open="0" top="0" tabpos="18">
+		<Cursor position="15554" topLine="517" />
+	</File>
+	<File name="..\..\src\fl_draw_pixmap.cxx" open="0" top="0" tabpos="19">
+		<Cursor position="12169" topLine="406" />
+	</File>
+	<File name="..\..\src\fl_labeltype.cxx" open="0" top="0" tabpos="0">
+		<Cursor position="3380" topLine="97" />
+	</File>
+	<File name="..\..\src\fl_read_image.cxx" open="0" top="0" tabpos="20">
+		<Cursor position="15709" topLine="30" />
+	</File>
+	<File name="..\..\src\fl_rect.cxx" open="0" top="0" tabpos="17">
+		<Cursor position="2758" topLine="324" />
+	</File>
+	<File name="..\..\src\fl_vertex.cxx" open="0" top="0" tabpos="18">
+		<Cursor position="765" topLine="90" />
+	</File>
+	<File name="..\..\src\flstring.c" open="0" top="0" tabpos="0">
+		<Cursor position="0" topLine="84" />
+	</File>
+	<File name="..\..\src\ps_image.cxx" open="0" top="0" tabpos="5">
+		<Cursor position="7377" topLine="205" />
+	</File>
+	<File name="..\..\src\vsnprintf.c" open="0" top="0" tabpos="0">
+		<Cursor position="2959" topLine="38" />
+	</File>
+</CodeBlocks_layout_file>

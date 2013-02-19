@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="utf8" />
+		<Option pch_mode="2" />
+		<Option compiler="tdmingw_gnu_gcc_compiler" />
+		<Build>
+			<Target title="Debug Win32">
+				<Option output="..\..\test\utf8d" prefix_auto="1" extension_auto="1" />
+				<Option object_output="utf8_" />
+				<Option type="0" />
+				<Option compiler="tdmingw_gnu_gcc_compiler" />
+				<Compiler>
+					<Add option="/D_CRT_SECURE_NO_DEPRECATE" />
+					<Add option="/DWIN32" />
+					<Add option="/D_DEBUG" />
+					<Add option="/D_WINDOWS" />
+					<Add option="/DWIN32_LEAN_AND_MEAN" />
+					<Add option="/DVC_EXTRA_LEAN" />
+					<Add option="/DWIN32_EXTRA_LEAN" />
+					<Add option="/W" />
+					<Add option="/Zi" />
+					<Add option="/Od" />
+					<Add option="/MDd" />
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="/NODEFAULTLIB:libcd" />
+					<Add option="/INCREMENTAL:NO" />
+					<Add option="/pdb:.\utf8_\utf8d.pdb" />
+					<Add library="fltkd" />
+					<Add library="comctl32" />
+					<Add library="imm32" />
+					<Add directory="..\..\lib" />
+				</Linker>
+			</Target>
+			<Target title="Release Win32">
+				<Option output="..\..\test\utf8" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release" />
+				<Option type="0" />
+				<Option compiler="tdmingw_gnu_gcc_compiler" />
+				<Compiler>
+					<Add option="/D_CRT_SECURE_NO_DEPRECATE" />
+					<Add option="/DWIN32" />
+					<Add option="/DNDEBUG" />
+					<Add option="/D_WINDOWS" />
+					<Add option="/DWIN32_LEAN_AND_MEAN" />
+					<Add option="/DVC_EXTRA_LEAN" />
+					<Add option="/DWIN32_EXTRA_LEAN" />
+					<Add option="/W" />
+					<Add option="/MD" />
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="/NODEFAULTLIB:libcd" />
+					<Add option="/INCREMENTAL:NO" />
+					<Add option="/pdb:.\Release\utf8.pdb" />
+					<Add library="fltk" />
+					<Add library="comctl32" />
+					<Add library="imm32" />
+					<Add directory="..\..\lib" />
+				</Linker>
+			</Target>
+			<Target title="Debug Cairo Win32">
+				<Option output="..\..\test\utf8d" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Debug Cairo Win32" />
+				<Option type="0" />
+				<Option compiler="tdmingw_gnu_gcc_compiler" />
+				<Compiler>
+					<Add option="/DHAVE_CAIRO=1" />
+					<Add option="/D_CRT_SECURE_NO_DEPRECATE" />
+					<Add option="/DWIN32" />
+					<Add option="/D_DEBUG" />
+					<Add option="/D_WINDOWS" />
+					<Add option="/DWIN32_LEAN_AND_MEAN" />
+					<Add option="/DVC_EXTRA_LEAN" />
+					<Add option="/DWIN32_EXTRA_LEAN" />
+					<Add option="/W" />
+					<Add option="/Zi" />
+					<Add option="/Od" />
+					<Add option="/MDd" />
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="/NODEFAULTLIB:libcd" />
+					<Add option="/INCREMENTAL:NO" />
+					<Add option="/pdb:.\utf8_\utf8d.pdb" />
+					<Add library="cairo" />
+					<Add library="fltkd" />
+					<Add library="comctl32" />
+					<Add library="imm32" />
+					<Add directory="..\..\lib" />
+				</Linker>
+			</Target>
+			<Target title="Release Cairo Win32">
+				<Option output="..\..\test\utf8" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release Cairo Win32" />
+				<Option type="0" />
+				<Option compiler="tdmingw_gnu_gcc_compiler" />
+				<Compiler>
+					<Add option="/DHAVE_CAIRO=1" />
+					<Add option="/D_CRT_SECURE_NO_DEPRECATE;WIN32;NDEBUG;_WINDOWS;WIN32_LEAN_AND_MEAN;VC_EXTRA_LEAN;WIN32_EXTRA_LEAN" />
+					<Add option="/W" />
+					<Add option="/MD" />
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</Compiler>
+				<ResourceCompiler>
+					<Add directory="." />
+					<Add directory="..\..\zlib" />
+					<Add directory="..\..\png" />
+					<Add directory="..\..\jpeg" />
+					<Add directory="..\.." />
+				</ResourceCompiler>
+				<Linker>
+					<Add option="/NODEFAULTLIB:libcd" />
+					<Add option="/INCREMENTAL:NO" />
+					<Add option="/pdb:.\Release\utf8.pdb" />
+					<Add library="fltk" />
+					<Add library="comctl32" />
+					<Add library="imm32" />
+					<Add library="cairo" />
+					<Add directory="..\..\lib" />
+				</Linker>
+			</Target>
+		</Build>
+		<Unit filename="..\..\test\utf8.cxx" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

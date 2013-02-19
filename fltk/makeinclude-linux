@@ -1,0 +1,179 @@
+#
+# "$Id: makeinclude.in 8113 2010-12-23 14:24:29Z manolo $"
+#
+# Make include file for the Fast Light Tool Kit (FLTK).
+#
+# Copyright 1998-2010 by Bill Spitzak and others.
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Library General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Library General Public License for more details.
+#
+# You should have received a copy of the GNU Library General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA.
+#
+# Please report all bugs and problems on the following page:
+#
+#      http://www.fltk.org/str.php
+#
+
+prefix		= /usr/local
+exec_prefix	= ${prefix}
+bindir		= ${exec_prefix}/bin
+datadir		= ${datarootdir}
+datarootdir	= ${prefix}/share
+includedir	= ${prefix}/include
+libdir		= ${exec_prefix}/lib
+mandir		= ${datarootdir}/man
+srcdir		= .
+docdir		= $(datadir)/doc/fltk
+
+USEMMFILES  = No
+# programs we use...
+HTMLDOC		= 
+DOXYDOC		= 
+INSTALL		= /usr/bin/install -c
+LN		= ln -s
+NROFF		= /usr/bin/nroff
+RM		= rm -f
+RMDIR		= rm -rf
+SHELL		= /bin/sh
+STRIP		= strip
+
+# compiler names:
+CXX		= g++
+CC		= gcc
+MAKEDEPEND	= $(CXX) -M
+
+# (Windows) resource compiler
+RC		= 
+
+# flags for C++ compiler:
+ARCHFLAGS	= -I../../libharu/include
+OPTIM		=  -Os -Wall -Wunused -Wno-format-y2k  -fno-exceptions -fno-strict-aliasing
+CFLAGS		= $(OPTIM) -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -D_THREAD_SAFE -D_REENTRANT -I/usr/include/freetype2   
+CXXFLAGS	= $(OPTIM) -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -D_THREAD_SAFE -D_REENTRANT -I/usr/include/freetype2  -I/usr/include/freetype2   $(FLTKFLAGS)
+
+# program to make the archive:
+LIBNAME		= ../lib/libfltk.a
+FLLIBNAME	= ../lib/libfltk_forms.a
+GLLIBNAME	= ../lib/libfltk_gl.a
+IMGLIBNAME	= ../lib/libfltk_images.a
+CAIROLIBNAME	= ../lib/libfltk_cairo.a
+LIBCOMMAND	= /usr/bin/ar cr
+LIBEXT		= .a
+RANLIB		= ranlib
+DSONAME		= 
+FLDSONAME	= 
+GLDSONAME	= 
+IMGDSONAME	= 
+CAIRODSONAME	= 
+DSOCOMMAND	= echo
+
+LIBBASENAME	= libfltk.a
+FLLIBBASENAME	= libfltk_forms.a
+GLLIBBASENAME	= libfltk_gl.a
+IMGLIBBASENAME	= libfltk_images.a
+CAIROLIBBASENAME= libfltk_cairo.a
+
+# libraries to link with:
+AUDIOLIBS	= -lasound
+CAIROLIBS	= 
+CAIROFLAGS	= 
+DSOFLAGS	= -L.  -L../../libharu/src -lhpdfs
+LDFLAGS		= $(OPTIM)  
+LDLIBS		= -lXext -lXft -lfontconfig -lXinerama -lpthread -ldl -lm  -lX11 
+GLDLIBS		= -lGLU -lGL -lXext -lXft -lfontconfig -lXinerama -lpthread -ldl -lm  -lX11 
+LINKFLTK	= ../lib/libfltk.a
+LINKFLTKGL	= ../lib/libfltk_gl.a
+LINKFLTKFORMS	= ../lib/libfltk_forms.a ../lib/libfltk.a
+LINKFLTKIMG	= ../lib/libfltk_images.a ../lib/libfltk.a $(IMAGELIBS)
+LINKFLTKCAIRO	=  $(CAIROLIBS)
+FLTKCAIROOPTION = 
+LINKSHARED	=   ../lib/libfltk_images.a ../lib/libfltk_forms.a ../lib/libfltk.a $(IMAGELIBS) $(CAIROLIBS)
+IMAGELIBS	= -L../lib -lpng -lz -lfltk_jpeg 
+
+# image libraries to build...
+IMAGEDIRS	= jpeg  
+CAIRODIR	= 
+# The extension to use for executables...
+EXEEXT		= 
+
+# Do we build the OpenGL demos?
+GLDEMOS		= gldemos
+
+# Do we build the threads demo?
+THREADS		= threads
+
+# Name of FLUID executable we install
+FLUID		= fluid$(EXEEXT)
+
+# Possible steps for OS X build only
+OSX_ONLY	= :
+
+# Man page extensions...
+CAT1EXT		= 1
+CAT3EXT		= 3
+CAT6EXT		= 6
+
+#
+# Installation programs...
+#
+
+INSTALL_BIN	= $(INSTALL) -m 755
+INSTALL_DATA	= $(INSTALL) -m 644
+INSTALL_DIR	= $(INSTALL) -d 
+INSTALL_LIB	= $(INSTALL) -m 755
+INSTALL_MAN	= $(INSTALL) -m 644
+INSTALL_SCRIPT	= $(INSTALL) -m 755
+
+# Additional GUI install/uninstall targets...
+INSTALL_DESKTOP	= install-linux
+UNINSTALL_DESKTOP = uninstall-linux
+
+# Be quiet when building...
+.SILENT:
+
+# Build commands and filename extensions...
+.SUFFIXES:	.0 .1 .3 .6 .c .cxx .mm .h .fl .man .o .z $(EXEEXT)
+
+.o$(EXEEXT):
+	echo Linking $@...
+	$(CXX) $(ARCHFLAGS) $(LDFLAGS) $< $(LINKFLTK) $(LDLIBS) -o $@
+
+.c.o:
+	echo Compiling $<...
+	$(CC) -I.. $(ARCHFLAGS)  -I../jpeg  $(CFLAGS) -c $< -o $@
+
+.cxx.o:
+	echo Compiling $<...
+	$(CXX) -I.. $(ARCHFLAGS)  -I../jpeg  $(CXXFLAGS) -c $< -o $@
+	
+.mm.o:
+	echo Compiling $<...
+	$(CXX) -I.. $(ARCHFLAGS) $(CXXFLAGS) -x objective-c++ -c $< -o $@
+
+
+.man.0 .man.1 .man.3 .man.6:
+	echo Formatting $<...
+	rm -f $@
+	$(NROFF) -man $< >$@
+
+.man.z:
+	echo Formatting $<...
+	rm -f $@ t.z
+	$(NROFF) -man $< >t
+	pack -f t
+	mv t.z $@
+
+#
+# End of "$Id: makeinclude.in 8113 2010-12-23 14:24:29Z manolo $".
+#

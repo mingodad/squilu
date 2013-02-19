@@ -1,0 +1,51 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0300 
+header_name {.h} 
+code_name {.cxx}
+block {namespace utils} {open public file_name utils before {\{} after {\}}
+} {
+  decl {int x;} {public local
+  }
+  widget_class UserInterface {open
+    xywh {169 189 108 100} type Double visible
+  } {}
+} 
+
+block {//namespace utils} {open public file_name {} before {/*} after {*/}
+} {
+  decl {int x;} {public local
+  }
+} 
+
+declblock {\#if 1} {open public after {\#endif}
+} {} 
+
+widget_class Dad {open
+  xywh {31 51 108 100} type Double resizable
+  class Fl_Window visible inner_struct gui
+} {
+  Function {init()} {open return_type void
+  } {
+    code {printf("Hello, World!\\n");} {}
+  }
+  Fl_Group agroup {open selected
+    xywh {25 25 64 24}
+  } {
+    Fl_Input in {
+      label {input:}
+      xywh {25 25 15 24} color 70
+    }
+    Fl_Button but {
+      label button
+      xywh {25 25 64 20}
+    }
+    Fl_Input age {
+      label {input:}
+      tooltip adsdad xywh {25 25 15 24}
+    }
+  }
+  decl {int x;} {public local
+  }
+  class innerClass {open
+  } {}
+} 

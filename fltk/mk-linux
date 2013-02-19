@@ -1,0 +1,3 @@
+cp config-linux.h config.h
+cp makeinclude-linux makeinclude
+make

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="fluid" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/fluid" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/fluid" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-DUSE_LUA3=1" />
+			<Add option="-DUSE_SQUILU=1" />
+			<Add option="-DUSE_STD_STRING2" />
+			<Add option="-DFL_INTERNALS=1" />
+			<Add directory="../../lua-5.1.4/src" />
+			<Add directory="../../lua-5.1.4/src/ext" />
+			<Add directory="../../fltk" />
+			<Add directory="../png" />
+			<Add directory="../../../../SquiLu/include" />
+		</Compiler>
+		<Linker>
+			<Add library="fltk" />
+			<Add library="fltk_forms" />
+			<Add library="fltk_images" />
+			<Add library="lua" />
+			<Add library="sqlite3" />
+			<Add library="pthread" />
+			<Add library="dl" />
+			<Add library="X11" />
+			<Add library="Xft" />
+			<Add library="Xext" />
+			<Add library="Xinerama" />
+			<Add library="fltk_jpeg" />
+			<Add library="fltk_png" />
+			<Add library="fltk_z" />
+			<Add library="squilu" />
+			<Add directory="../../lua-5.1.4" />
+			<Add directory="../lib" />
+			<Add directory="../../sqlite3-android/.libs" />
+			<Add directory="../../../../SquiLu/lib" />
+		</Linker>
+		<Unit filename="CodeEditor.cxx" />
+		<Unit filename="CodeEditor.h" />
+		<Unit filename="Fl_Function_Type.cxx" />
+		<Unit filename="Fl_Group_Type.cxx" />
+		<Unit filename="Fl_Menu_Type.cxx" />
+		<Unit filename="Fl_Type.cxx" />
+		<Unit filename="Fl_Type.h" />
+		<Unit filename="Fl_Widget_Type.cxx" />
+		<Unit filename="Fl_Widget_Type.h" />
+		<Unit filename="Fl_Window_Type.cxx" />
+		<Unit filename="Fluid_Image.cxx" />
+		<Unit filename="Fluid_Image.h" />
+		<Unit filename="Shortcut_Button.h" />
+		<Unit filename="about_panel.fl">
+			<Option compile="1" />
+		</Unit>
+		<Unit filename="align_widget.cxx" />
+		<Unit filename="alignment_panel.fl">
+			<Option compile="1" />
+		</Unit>
+		<Unit filename="code.cxx" />
+		<Unit filename="comments.h" />
+		<Unit filename="factory.cxx" />
+		<Unit filename="file.cxx" />
+		<Unit filename="fluid.cxx" />
+		<Unit filename="function_panel.fl">
+			<Option compile="1" />
+		</Unit>
+		<Unit filename="luacpp.cxx" />
+		<Unit filename="luacpp.h" />
+		<Unit filename="print_panel.fl">
+			<Option compile="1" />
+		</Unit>
+		<Unit filename="template_panel.fl">
+			<Option compile="1" />
+		</Unit>
+		<Unit filename="undo.cxx" />
+		<Unit filename="undo.h" />
+		<Unit filename="widget_panel.fl">
+			<Option compile="1" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<debugger />
+			<envvars />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
