@@ -1639,6 +1639,7 @@ FLV_STYLE_GETSET_INT_CAST(align, Fl_Align);
 FLV_STYLE_GETSET_INT_CAST(border_color, Fl_Color);
 FLV_STYLE_GETSET_INT_CAST(foreground, Fl_Color);
 FLV_STYLE_GETSET_INT_CAST(background, Fl_Color);
+FLV_STYLE_GETSET_INT_CAST(frame, Fl_Boxtype);
 FLV_STYLE_GETSET_BOOL(resizable);
 FLV_STYLE_GET_BOOL(foreground_defined);
 FLV_STYLE_GET_BOOL(background_defined);
@@ -1661,6 +1662,7 @@ static SQRegFunction flv_style_obj_funcs[]={
 	_DECL_FUNC(background,-1,_SC("xi"),SQFalse),
 	_DECL_FUNC(background_defined,1,_SC("x"),SQFalse),
 	_DECL_FUNC(resizable,-1,_SC("xb"),SQFalse),
+	_DECL_FUNC(frame,-1,_SC("xi"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -3650,6 +3652,21 @@ static SQRESULT _fl_globals_fl_preferences(HSQUIRRELVM v)
     return 0;
 }
 
+static int fl_cursor_wait_count = 0;
+static const SQChar fl_cursor_wait_TAG[] = _SC("fl_cursor_wait");
+static SQRESULT fl_cursor_wait_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+{
+	if (--fl_cursor_wait_count == 0) fl_cursor(FL_CURSOR_DEFAULT);
+	return 0;
+}
+
+static SQRESULT fl_cursor_wait_constructor (HSQUIRRELVM v) {
+    sq_setreleasehook(v, 1, fl_cursor_wait_releasehook);
+    if(fl_cursor_wait_count == 0) fl_cursor(FL_CURSOR_WAIT);
+    fl_cursor_wait_count++;
+    return 1;
+}
+
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_fl_globals_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_globals_funcs[]={
 	_DECL_FUNC(fl_alert, 2,_SC(".s"),SQTrue),
@@ -4163,6 +4180,12 @@ SQRESULT sqext_register_fltklib(HSQUIRRELVM v)
 
     //check to see if we need to release resources
     Fl::do_at_widget_destroy_ = At_Widget_Destroy;
+
+    sq_pushstring(v, fl_cursor_wait_TAG, -1);
+    sq_newclass(v, SQFalse);
+    sq_settypetag(v, -1, (void*)fl_cursor_wait_TAG);
+    sq_insertfunc(v, _SC("constructor"), fl_cursor_wait_constructor, 0, _SC("x"), SQFalse);
+    sq_newslot(v,-3,SQTrue);
 
 	return SQ_OK;
 }
