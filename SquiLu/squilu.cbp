@@ -107,6 +107,7 @@
 					<Add directory="../fltk" />
 					<Add directory="../third-party/flu" />
 					<Add directory="../libharu/include" />
+					<Add directory="../flu" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />

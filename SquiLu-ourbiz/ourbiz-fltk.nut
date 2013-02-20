@@ -2,6 +2,7 @@ local WIN32 = os.getenv("WINDIR") != null
 socket.open();
 
 dofile("ourbiz-client.nut");
+dofile("db-updater.nut");
 local appServer = AppServer.getAppServer();
 appServer.credentials("mingote", "tr14pink");
 appServer.connect("localhost", 8855);
@@ -251,6 +252,8 @@ class MyBaseWindow extends Fl_Window {
 		tbl_map[fldname] <- fld;
 	}
 
+	function get_input_fields(dbname){ return _db_map.get(dbname, null);}
+
 	function getChildWindow(winName, WindowClass){
 		local win = childWindows.get(winName, false);
 		if(!win){
@@ -341,11 +344,82 @@ class MyBaseWindow extends Fl_Window {
 	}
 }
 
+class DBUpdateByWidget extends DBTableUpdate
+{
+	constructor(){
+		base.constructor();
+	}
+
+	function get_widget_value(inputs){
+		foreach(fld_name, wdg in inputs){
+			//printf("%s : %s : %s\n", fld_name, wdg->classId(), Fl_Check_Button.className());
+			if(wdg instanceof Fl_Text_Editor){
+				get_widget_value(wdg, fld_name);
+				if((dbAction == e_insert) || wgt->changed2())
+				{
+					_field_changes.push([fld_name, wgt->buffer()->text()]);
+				}
+			}
+			else if(wdg instanceof Fl_Check_Button){
+				if((dbAction == e_insert) || wgt->changed2())
+				{
+					_field_changes.push([fld_name, wgt->value() ? "1" : "0"]);
+				}
+			}
+			else if(wdg instanceof Fl_Choice_Str){
+				if((dbAction == e_insert) || wgt->changed2())
+				{
+					_field_changes.push([fld_name, wgt->my_get_value()]);
+				}
+			}
+			else if(wdg instanceof Fl_Choice_Int){
+				if((dbAction == e_insert) || wgt->changed2())
+				{
+					_field_changes.push([fld_name, wgt->my_get_value_str()]);
+				}
+			}
+			else if(wdg instanceof Flu_Combo_Box){
+				if((dbAction == e_insert) || wgt->input.changed2())
+				{
+					_field_changes.push([fld_name, wgt->get_data_at().tostring()]);
+				}
+			}
+			else if(wdg instanceof Flu_Tree_Browser){
+				if((dbAction == e_insert) || wdg->changed2())
+				{
+					local tmp = "";
+					local node = wdg->get_hilighted();
+					if(node) {
+						local value = node->user_data();
+						if(value) tmp  = value.tostring();
+					}
+					_field_changes.push([fld_name, tmp]);
+				}
+			}
+			else if(wdg instanceof Fl_Input_){
+				if((dbAction == e_insert) || wgt->changed2())
+				{
+					_field_changes.push([fld_name, wgt->value()]);
+				}
+			}
+		}
+	}
+
+	function validate_regex(wdg,  re, emptyTrue=false)
+	{
+		local value = wdg->value();
+		if(emptyTrue && (!value || !value.len())) return true;
+		if(!re || !value) return false;
+		return value.find_lua(re);
+	}
+}
+
 class EditWindow extends MyBaseWindow {
 	_record = null;
 	_id = null;
 	_main_table = null;
 	_version_ = null;
+	_dbUpdater = null;
 
 	constructor(px, py, pw, ph, pl){
 		base.constructor(px, py, pw, ph, pl);
@@ -411,6 +485,104 @@ class EditWindow extends MyBaseWindow {
 			//choice->add(rec[1]);
 		}
 	}
+	
+	function on_Change_dbAction()
+	{
+		local colors = [255, 95, 79, 90, 238, 238, 238, 238];
+		local idx = dbAction->action();
+		btnDbAction->label(dbAction->text());
+		btnDbAction->color(colors[idx]);
+	}
+	function on_btnDbAction()
+	{
+		local cursor_wait = fl_cursor_wait();
+		switch(dbAction->action())
+		{
+		case DbAction_Enum.e_insert:
+		    do_insert();
+		    break;
+		case DbAction_Enum.e_update:
+		    do_update();
+		    break;
+		case DbAction_Enum.e_delete:
+		    do_delete();
+		    break;
+		case DbAction_Enum.e_export:
+		    do_export();
+		    break;
+		case DbAction_Enum.e_import:
+		    do_import();
+		    break;
+		case DbAction_Enum.e_refresh:
+		    do_refresh();
+		    break;
+		case DbAction_Enum.e_copy:
+		    do_copy();
+		    break;
+		}
+	}
+	function do_edit(aid){
+		local dbu = dbUpdater();
+		dbu->edit_id = aid;
+		dbu->version = 0;
+		dbAction->action(aid ? DbAction_Enum.e_update : Fl_Choice_dbAction::e_insert);
+		on_Change_dbAction();
+		delayed_method_call(this, this.do_edit_delayed, aid);
+	}
+	function do_edit_delayed(udata){}
+	function fill_edit_form(asBlank=false){
+		if(asBlank) _record.clear();
+		local  wfq = WidgetFillByMap(_record);
+		local input_fld_map = get_input_fields(dbUpdater()->get_fields_map_name());
+		wfq.set_widget_value(input_fld_map);
+		wfq.get("_version_", dbUpdater()->version);
+	}
+	function get_widget_changed(uw){
+		local input_fld_map = get_input_fields(dbUpdater()->get_fields_map_name());
+		uw.get_widget_value(input_fld_map);
+	}
+	function do_insert(){
+		//fl_alert("do_insert");
+		local dbu = dbUpdater();
+		dbu->dbAction = edbAction.e_insert;
+		dbu->clear();
+		get_widget_changed(dbu);
+		dbu->insert_table();
+		if(_formGroup) clear_changed_on_group(_formGroup);
+		dbAction->action(DbAction_Enum.e_update);
+		on_Change_dbAction();
+	}
+	function do_update(){
+		//fl_alert("do_update");
+		local dbu = dbUpdater();
+		dbu->dbAction = edbAction.e_update;
+		dbu->clear();
+		get_widget_changed(dbu);
+		dbu->update_table();
+		if(_formGroup) clear_changed_on_group(_formGroup);
+	}
+	function do_delete()	{
+		//fl_alert("do_delete");
+		local dbu = dbUpdater();
+		dbu->dbAction = edbAction.e_delete;
+		dbu->clear();
+		dbu->delete_record();
+		dbAction->action(DbAction_Enum.e_insert);
+		on_Change_dbAction();
+	}
+	function do_export(){/*fl_alert("do_delete");*/}
+	function do_import(){/*fl_alert("do_delete");*/}
+	function do_refresh(){/*fl_alert("do_delete");*/}
+	function do_copy(){/*fl_alert("do_delete");*/}
+	
+	function dbUpdater(dbu){
+		_dbUpdater = dbu;
+	}
+
+	function dbUpdater(){
+		if(!_dbUpdater) _dbUpdater = new DBUpdateByWidget();
+		return _dbUpdater;
+	}	
 }
 
 enum Fl_Data_Table_Events {e_none, e_event, e_select, e_insert, e_update, e_delete};
@@ -739,12 +911,10 @@ class MyListSearchWindow extends ListSearch {
 
 	function get_search_data(data){}
 	function fill_grid(){
-		//SafeCursorWait cursor_wait;
-		fl_cursor(FL_CURSOR_WAIT);
+		local cursor_wait = fl_cursor_wait();
 		grid->clear_data_rows();
 		get_search_data(grid->_data);
 		grid->recalc_data();
-		fl_cursor(FL_CURSOR_DEFAULT);
 	}
 	function cb_btnSearch(sender, udata){
 		this = sender.window();
@@ -830,7 +1000,7 @@ class OurSalesTax extends SalesTaxRatesEditWindow {
 		fill_grid();
 	}
 	function fill_grid(){
-		//SafeCursorWait cursor_wait;
+		local cursor_wait = fl_cursor_wait();
 		grid->clear_data_rows();
 		appServer.sales_tax_rates_get_list(grid->_data);
 		grid->recalc_data();
@@ -839,8 +1009,7 @@ class OurSalesTax extends SalesTaxRatesEditWindow {
 
 function print_entities_list_contact_report()
 {
-	//SafeCursorWait cursor_wait;
-	fl_cursor(FL_CURSOR_WAIT);
+	local cursor_wait = fl_cursor_wait();
 	local mydata = [];
 	appServer.entities_toprint_get_list(mydata);
 
@@ -897,7 +1066,6 @@ function print_entities_list_contact_report()
 	    printer.end_page();
 	}
 	printer.end_job();
-	fl_cursor(FL_CURSOR_DEFAULT);
 }
 
 class MyEditEntityWindow extends EditEntityWindow {
@@ -965,8 +1133,7 @@ class EntitiesListSearch extends MyListSearchWindow {
 
 function print_products_list()
 {
-	//SafeCursorWait cursor_wait;
-	fl_cursor(FL_CURSOR_WAIT);
+	local cursor_wait = fl_cursor_wait();
 	local mydata = [];
 	appServer.products_list_get_list(mydata);
 
@@ -1030,7 +1197,6 @@ function print_products_list()
             printer.set_current();
 	}
 	printer.end_job();
-	fl_cursor(FL_CURSOR_DEFAULT);
 }
 
 class MyEditProductWindow extends EditProductWindow {
@@ -1233,7 +1399,7 @@ class MyEditOrderWindow extends EditOrderWindow {
 		fill_choice_by_data(db_orders_payment_type_id, data);
 	}
 	function do_edit_delayed(udata){
-		fl_cursor(FL_CURSOR_WAIT);
+		local cursor_wait = fl_cursor_wait();
 		local lines = grid_lines->_data;
 		grid_lines->clear_data_rows();
 		_line_edit_id = 0;
@@ -1251,7 +1417,6 @@ class MyEditOrderWindow extends EditOrderWindow {
 		redraw_lines(false);
 		fill_edit_form(_id == 0);
 		delayed_focus(db_orders_entity_id);
-		fl_cursor(FL_CURSOR_DEFAULT);
 	}
 
 	function fill_edit_form(asBlank=false){
