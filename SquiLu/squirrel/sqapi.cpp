@@ -1338,6 +1338,8 @@ SQRESULT sq_call(HSQUIRRELVM v,SQInteger params,SQBool retval,SQBool raiseerror)
 
 		if(!v->_suspended) {
 			v->Pop(params);//pop closure and args
+			//collect garbage right after function call if any
+			_ss(v)->CallDelayedReleaseHooks(v);
 		}
 		if(retval){
 			v->Push(res); return SQ_OK;
