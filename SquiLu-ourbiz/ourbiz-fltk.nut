@@ -902,6 +902,9 @@ dofile("search-options.nut");
 dofile("utils-fltk.nut");
 dofile("help-view-gui.nut");
 dofile("help-view.nut");
+dofile("fl-bar-chart.nut");
+dofile("barchart-gui.nut");
+dofile("history-gui.nut");
 dofile("delivery-calc-gui.nut");
 dofile("calendar-gui.nut");
 dofile("calendar-utils.nut");
@@ -1044,8 +1047,12 @@ class OurSalesTax extends SalesTaxRatesEditWindow {
 	}
 }
 
-function print_entities_list_contact_report()
+function print_entities_list_contact_report(sender=null, udata=null)
 {
+	local mywin = sender ? sender.window() : null;
+	local progress = mywin ? mywin.print_progress : null;
+	if(progress) progress.maximum(10);
+	
 	local cursor_wait = fl_cursor_wait();
 	local mydata = [];
 	appServer.entities_toprint_get_list(mydata);
@@ -1101,22 +1108,63 @@ function print_entities_list_contact_report()
 	    printer.origin(30,25);
 	    printer.print_widget(report);
 	    printer.end_page();
+	    
+            //to allow user do something meanwhile
+            Fl_Display_Device.display_device()->set_current();
+	    if(progress) {
+		progress.label(_tr("Processing page ") + i);
+		progress.value(i % 10);
+	    }
+            Fl.check();
+            printer.set_current();
 	}
 	printer.end_job();
+	if(progress) {
+		progress.label(format(_tr("Processed %d pages"), npages));
+		progress.value(progress.maximum());
+	}
 }
 
 class MyEditEntityWindow extends EditEntityWindow {
 	_sab = null;
+	_ourBarChart = null;
+	_ourHistory = null;
+	static _history_options = [
+		"--- Select one",
+		"Sales by date",
+		"Sales by amount",
+		"Products bought",
+		"Products bought by value",
+		"Products bought by quantity",
+	];
+	
 	constructor(){
 		base.constructor();
 		dbUpdater()->table_name = "entities";
 		_sab = 'A';
 		setDbActionControls(dbAction, btnDbAction);
+		btnEntitesListContactReport.callback(print_entities_list_contact_report);
+		
+		_ourBarChart = new BarChartGroup();
+		replace_widget_for(tabChartStatistics, _ourBarChart);
+		_ourBarChart->btnShowChart.callback(on_show_chart_cb);
+		
+		_ourHistory = new HistoryGroup();
+		replace_widget_for(tabHistory, _ourHistory);
+		local choice =  _ourHistory->history_choice;
+		foreach(opt in _history_options)
+		    choice->add(_tr(opt));
+		choice->value(0);
+		choice.callback(on_history_cb);
 	}
 	function do_edit_delayed(udata)
 	{
 		base.do_edit_delayed(udata);
 		delayed_focus(db_entities_name);
+	}
+	function on_show_chart_cb(sender, udata){
+	}
+	function on_history_cb(sender, udata){
 	}
 }
 
@@ -1176,8 +1224,12 @@ class EntitiesListSearch extends MyListSearchWindow {
 	}
 }
 
-function print_products_list()
+function print_products_list(sender=null, udata=null)
 {
+	local mywin = sender ? sender.window() : null;
+	local progress = mywin ? mywin.print_progress : null;
+	if(progress) progress.maximum(10);
+
 	local cursor_wait = fl_cursor_wait();
 	local mydata = [];
 	appServer.products_list_get_list(mydata);
@@ -1238,10 +1290,18 @@ function print_products_list()
 
             //to allow user do something meanwhile
             Fl_Display_Device.display_device()->set_current();
+	    if(progress) {
+		progress.label(_tr("Processing page ") + i);
+		progress.value(i % 10);
+	    }
             Fl.check();
             printer.set_current();
 	}
 	printer.end_job();
+	if(progress) {
+		progress.label(format(_tr("Processed %d pages"), npages));
+		progress.value(progress.maximum());
+	}
 }
 
 class MyEditProductWindow extends EditProductWindow {
