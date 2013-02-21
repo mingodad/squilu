@@ -16,6 +16,10 @@ class DBTableUpdateBase {
 	useMultiPart = null;
 	useSLE = null;
 	static boundary = "----OurbizZ1X2c3LkUw";
+	static e_none = edbAction.e_none;
+	static e_insert = edbAction.e_insert;
+	static e_update = edbAction.e_update;
+	static e_delete = edbAction.e_delete;
 
 	constructor() {
 		table_name = "no_table_name";
@@ -84,8 +88,9 @@ class DBTableUpdateBase {
 	function afterDbActionHttpConn(request_result){}
     
 	function doDbActionHttpConn(){
-		local my_result;
+		local my_result = blob(0, 8192);
 		local httpRequest = HTTPConn(my_result);
+		local appServer = AppServer.getAppServer();
 		appServer.httpcon_setup(httpRequest);
 
 		local httpBody = blob(0, 8192);
@@ -95,20 +100,20 @@ class DBTableUpdateBase {
 		local body_str = null;
 		local nchanges = _field_changes.size();
 		if(useSLE){
-			httpBodyMemBuf = blob(0, 8192);
+			local httpBodyMemBuf = blob(0, 8192);
 			httpBodyMemBuf.write("[[");
 			for(local i=0; i<nchanges; ++i)
 			{
 				//printf("%s : %s\n", _field_changes[i].key,  _field_changes[i].val);
 				add2sle(httpBodyMemBuf, _field_changes[i][0]);
 			}
-			httpBodyMemBuf.write(SLEEND);
+			httpBodyMemBuf.writen(SLE_SLEEND, 'c');
 			httpBodyMemBuf.write("][");
 			for(local i=0; i<nchanges; ++i)
 			{
 				add2sle(httpBodyMemBuf, _field_changes[i][1]);
 			}
-			httpBodyMemBuf.write(SLEEND);
+			httpBodyMemBuf.writen(SLE_SLEEND, 'c');
 			httpBodyMemBuf.write("]]");
 
 			body_str = httpBodyMemBuf.tostring();
@@ -143,8 +148,8 @@ class DBTableUpdateBase {
 		{
 			version = 0;
 			local rec = {};
-			sle2map(my_result, rec);
-			local new_id = rec.get("id", 0);
+			appServer.asle2map(my_result, rec);
+			local new_id = rec.get("id", 0).tointeger();
 			if(new_id == 0) throw("Could not update this record !");
 			edit_id = new_id;
 		}
@@ -153,10 +158,10 @@ class DBTableUpdateBase {
 		case edbAction.e_delete:
 		{
 			local rec = {};
-			sle2map(my_result, rec);
-			local changes = rec.get("changes", 0);
+			appServer.sle2map(my_result, rec);
+			local changes = rec.get("changes", 0).tointeger();
 			if(changes == 0) {
-				if(dbAction == e_update) throw("Could not update this record !");
+				if(dbAction == edbAction.e_update) throw("Could not update this record !");
 				else throw("Could not delete this record !");
 			}
 			if(dbAction == edbAction.e_update) ++version;

@@ -143,6 +143,7 @@ class HappyHttpConnection {
 		switch(rc[1]){
 			case socket.IO_DONE:
 			case socket.IO_TIMEOUT:
+			//case socket.IO_CLOSED:
 				break;
 			default:
 				if(rc[0].len() == 0) throw(format("socket io error %d", rc[1]));
@@ -262,7 +263,7 @@ class HappyHttpConnection {
 	}
 
 	// return true if socket has data waiting to be read
-	static function datawaiting( sock , milisec=0)
+	static function datawaiting( sock , milisec)
 	{
 		try {
 			local rc = socket.select( [sock], [], milisec ? milisec / 1000.0 : 0);
@@ -414,7 +415,7 @@ class HappyHttpResponse {
 					bytesused = ProcessDataChunked( data, data_idx, count );
 				else
 					bytesused = ProcessDataNonChunked( data, data_idx, count );
-				data += bytesused;
+				data_idx += bytesused;
 				count -= bytesused;
 			}
 		}
@@ -543,7 +544,6 @@ class HappyHttpResponse {
 		// invoke callback to pass out the data
 		m_Connection.response_data( this, data, data_idx, n );
 		m_BytesRead += n;
-
 		// Finish if we know we're done. Else we're waiting for connection close.
 		if( m_Length != -1 && m_BytesRead == m_Length ) Finish();
 		return n;
@@ -582,7 +582,6 @@ class HappyHttpResponse {
 		{
 			m_Length = 0;
 		}
-
 
 		// if we're not using chunked mode, and no length has been specified,
 		// assume connection will close at end.

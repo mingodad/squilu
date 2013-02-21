@@ -33,9 +33,9 @@ function escape_sql_like_search_str(str){
 }
 
 function mkEmptyWhenZero(tbl, key){
-	if (type(key) == "table"){
-		foreach( k,v in key ) {
-			if (tbl[v] == "0") tbl[v] = "";
+	if (type(key) == "array"){
+		foreach( v in key ) {
+			if (tbl.get(v, false) == "0") tbl[v] = "";
 		}
 	}
 	else if (tbl[key] == 0) tbl[key] = "";
@@ -211,8 +211,8 @@ class DB_Manager {
 		}
 		local result = stmt.step();
 		stmt.finalize()
-		if (result == sqlite3.DONE) return db.last_insert_rowid();
-		throw db.error_message();
+		if (result == SQLite3Stmt.DONE) return db.last_insert_rowid();
+		throw db.errmsg();
 	}
 
 	function db_update(db, data){
@@ -230,8 +230,7 @@ class DB_Manager {
 		if (has_version) mf.write(", _version_=_version_+1 ");
 
 		mf.write(" where id=? ");
-		if (self.has_version) mf.write(" and _version_=?");
-
+		if (has_version) mf.write(" and _version_=?");
 		local stmt = db.prepare(mf.tostring());
 		local x = 0;
 		foreach( k,v in editable_fields) {
@@ -244,8 +243,8 @@ class DB_Manager {
 
 		local result = stmt.step();
 		stmt.finalize();
-		if (result == sqlite3.SQLITE_DONE) return db.changes();
-		throw db.error_message();
+		if (result == SQLite3Stmt.SQLITE_DONE) return db.changes();
+		throw db.errmsg();
 	}
 
 	function db_delete(db, data){
@@ -259,8 +258,8 @@ class DB_Manager {
 
 		local result = stmt.step();
 		stmt.finalize();
-		if (result == sqlite3.DONE) return db.changes();
-		throw db.error_message();
+		if (result == SQLite3Stmt.DONE) return db.changes();
+		throw db.errmsg();
 	}
 
 	function sql_get_one(req) {
@@ -831,10 +830,10 @@ class  CalcOrderTotals
 	{
 		out_result.write("[[");
 		dumpSLEFieldNames(out_result);
-		out_result.write(SLEEND);
+		out_result.writen(SLE_SLEEND, 'c');
 		out_result.write("][");
 		dumpSLEFieldValues(out_result);
-		out_result.write(SLEEND);
+		out_result.writen(SLE_SLEEND, 'c');
 		out_result.write("]");
 	}
 
@@ -1453,8 +1452,6 @@ from product_kits as pk left join products as p on pk.product_id = p.id
 where pk.kit_id = %d]==], kit_id);
 }
 
-constants.SLE <- "\xff";
-
 function add2sle(out_result, str){
 	str = str.tostring();
 	out_result.write(get_sle_size(str.len()), str);
@@ -1473,7 +1470,8 @@ function dump_group_tree_childs(parent, out_result, parent_map, data_map){
 				add2sle(out_result, id);
 				add2sle(out_result, myparent);
 				add2sle(out_result, data_map[id]);
-				out_result.write(SLE, "]");
+				out_result.writen(SLE_SLEEND, 'c');
+				out_result.write("]");
 				dump_group_tree_childs(id, out_result, parent_map, data_map);
 			}
 			break;
@@ -1500,7 +1498,8 @@ function group_dump_data(db, out_result, tbl){
 	add2sle(out_result, "id");
 	add2sle(out_result, "parent_id");
 	add2sle(out_result, "description");
-	out_result.write(SLE, "]");
+	out_result.writen(SLE_SLEEND, 'c');
+	out_result.write("]");
 	dump_group_tree_childs(0, out_result, parent_map, group_map);
 	out_result.write("]");
 }
@@ -1571,7 +1570,7 @@ Content-Length: %d
 
 		if (sql){
 			local stmt = db.prepare(sql);
-			//debug_print(sql, "\n", db.error_message(), "\n")
+			//debug_print(sql, "\n", db.errmsg(), "\n")
 			data = stmt.asSleArray();
 			stmt.finalize();
 		}
@@ -1716,7 +1715,7 @@ function ourbizDbGetBin(request){
 function ourbizDbAction(request){
 	local isPost = request.info.request_method == "POST";
 	if (isPost){
-		local data = get_post_fields(10*1024);
+		local data = get_post_fields(request, 10*1024);
 		local db = getOurbizDB();
 		local tbl = data.get("__table__", null);
 		local action = data.get("__action__", null);
@@ -1729,20 +1728,29 @@ function ourbizDbAction(request){
 				result = db_manager.db_action(db, data);
 			} catch(e){
 				err_msg = e;
+				if(AT_DEV_DBG) foreach(k,v in get_last_stackinfo()) debug_print("\n", k, ":", v)
 			}
 		}
-		if (result){
+		if (result != null){
 			gmFile.clear();
 			gmFile.write("[[");
 			if (action == "insert") add2sle(gmFile, "id");
 			else add2sle(gmFile, "changes");
 
-			gmFile.write(SLE, "][");
-			add2sle(gmFile, result);
-			gmFile.write(SLE, "]]");
+			gmFile.writen(SLE_SLEEND, 'c');
+			gmFile.write("][");
+			add2sle(gmFile, result.tostring());
+			gmFile.writen(SLE_SLEEND, 'c');
+			gmFile.write("]]");
 			data = gmFile.tostring();
 		}
-		else if (err_msg) data = err_msg;
+		else if (err_msg) {
+			gmFile.clear();
+			gmFile.write("HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: ", err_msg.len(), "\r\n\r\n", err_msg);
+			//debug_print(tostring(gmFile), "\n")
+			request.write_blob(gmFile);
+			return true;
+		}
 		else data = null;
 
 		//debug_print(data, "\n")

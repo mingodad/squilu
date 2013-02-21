@@ -245,12 +245,13 @@ function parse_post_data(input_type, data, tab = null){
 	if (input_type.find("x-www-form-urlencoded") >= 0) parse_qs(data, tab);
 	else if (input_type.find("multipart/form-data") >= 0) parse_multipart_data(data, input_type, tab);
 	else if (input_type.find("SLE") >= 0) {
-		local vv = sle2vecOfvec(data);
+		local vv = [];
+		sle2vecOfvec(data, vv);
 		if (vv.len() > 0) {
 			local names = vv[0];
 			local values = vv[1];
 			for (local i=0, len = names.len(); i < len; ++i){
-				tab[names[i]] = values[i];
+				tab[names[i]] <- values[i];
 			}
 		}
 	}
@@ -814,7 +815,7 @@ function getExtraCompanyData(cid, cnum){
 		stmt2.bind(1, cid);
 		stmt2.bind(2, data);
 		stmt2.step();
-		//debug_print("company_extra_data", checkCompaniesUkDB():error_message())
+		//debug_print("company_extra_data", checkCompaniesUkDB():errmsg())
 		stmt2.reset();
 		return data;
 	} catch(e){

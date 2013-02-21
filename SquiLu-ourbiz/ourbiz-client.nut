@@ -182,6 +182,7 @@ class HTTPConn extends HTTPConnAuthBase
 
     constructor(aresult_out)
     {
+	assert(aresult_out instanceof stream)
 	base.constructor();
 	result_out = aresult_out;
     }
@@ -237,6 +238,9 @@ class AppServer
     _port = null;
     _conn_type = null;
     _db = null;
+    static e_conn_none = conn_type_e.e_conn_none;
+    static e_conn_http = conn_type_e.e_conn_http;
+    static e_conn_dbfile = conn_type_e.e_conn_dbfile;
     
     constructor()
     {
@@ -457,7 +461,7 @@ class AppServer
             {
                 add2sle(httpBody, k);
             }
-            httpBody.write(SLEEND);
+            httpBody.writen(SLE_SLEEND, 'c');
             httpBody.write("][");
 
             add2sle(httpBody, table);
@@ -468,7 +472,7 @@ class AppServer
             {
                 add2sle(httpBody, v);
             }
-            httpBody.write(SLEEND);
+            httpBody.writen(SLE_SLEEND, 'c');
             httpBody.write("]]");
 
             //printf("%d : %s\n", rec.size(), httpBody.c_str());

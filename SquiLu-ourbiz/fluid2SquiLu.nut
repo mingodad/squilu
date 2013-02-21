@@ -76,7 +76,7 @@ function BuildGrammar(){
 		"i18n_type", "i18n_include", "i18n_function", "i18n_file", "i18n_set" ];
 	local str_methods = [ "tooltip", "type", "box", "down_box", "xclass", "labeltype" ];
 	local str_ext_methods = [ "label", "callback", "after", "image", "user_data", "class",
-		"code0", "code1", "code2", "code3", ":", "macro_name" ];
+		"code0", "code1", "code2", "code3", ":", "macro_name", "dirty_name" ];
 	local number_methods = [ "labelsize", "align", "value", "textcolor", "selection_color",
 		"labelcolor", "color", "labelfont", "textfont", "when", "textsize", "step", 
 		"maximum", "minimum", "shortcut" ];
@@ -137,7 +137,7 @@ function GetItem(pos, type, parent=null){
 	source_file.find_lua("^%s*(%b{})%s+", function(start, end, match){
 		p1 = start; p2 = end; item = match;
 	}, pos);
-	print("pos",pos, source_file.slice(pos, pos+30))
+	//print("pos",pos, source_file.slice(pos, pos+30))
 	assert(p1);
 
 	local content = item.slice(1,-1);
@@ -287,10 +287,24 @@ Write.widget <- function(t, ind){
 	//print(t.key, name, klass)
 	Output(ind, "{\n"); 
 	++ind;
-	Output(ind, "local %s = %s%s(%s%s%d, %s%d, %d, %d", name, 
-		klass, newMethodCallStr, firstParamStr, t.xoffset, x, t.yoffset, y, w, h);
-	if (! isClearLabel && t.attr.get("label", false)) Output(0, ", %s(%q)", configuration.textfilter, t.attr.label);
-	Output(0, ");\n");
+	local dirty_name =  t.attr.get("dirty_name", false);
+	local need_var_assign = true;
+	if(dirty_name && dirty_name[0] == '@'){
+		need_var_assign = false;
+		dirty_name = dirty_name.slice(1);
+		Output(ind, "local o = %s;\n", dirty_name);
+		Output(ind, "Fl_Group.current()->add(o);\n", dirty_name);
+		Output(ind, "o->resize(%s%s%d, %s%d, %d, %d);\n",  firstParamStr, t.xoffset, x, t.yoffset, y, w, h);
+		if (! isClearLabel && t.attr.get("label", false)) 
+			Output(ind, "o->lable(%s(%q));\n", configuration.textfilter, t.attr.label);
+	}
+	else
+	{
+		Output(ind, "local %s = %s%s(%s%s%d, %s%d, %d, %d", name, 
+			klass, newMethodCallStr, firstParamStr, t.xoffset, x, t.yoffset, y, w, h);
+		if (! isClearLabel && t.attr.get("label", false)) Output(0, ", %s(%q)", configuration.textfilter, t.attr.label);
+		Output(0, ");\n");
+	}	
 
 	t.varname <- name;
 	if (t.name.len() > 0){ 
@@ -315,7 +329,7 @@ Write.widget <- function(t, ind){
 		}
 		else obj_name = t.name;
 
-		Output(ind, "%s = %s;\n", obj_name, name);
+		if(need_var_assign) Output(ind, "%s = %s;\n", obj_name, name);
 		t.varname = t.name;
 	}
 	
@@ -677,4 +691,5 @@ if (vargv.len() > 0){
 	local config = rc[0], infile = rc[1], outfile = rc.get(2, "-"); 
 	Fluid2SquiLu(infile, outfile, config);
 }
-Fluid2SquiLu("entity-edit-gui.fl", "-", {});
+//Fluid2SquiLu("entity-edit-gui.fl", "-", {});
+Fluid2SquiLu("orders-edit-gui.fl", "-", {});
