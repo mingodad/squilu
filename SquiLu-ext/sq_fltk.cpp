@@ -664,6 +664,7 @@ FL_WIDGET_VOID_CALL(set_changed);
 FL_WIDGET_VOID_CALL(set_changed2);
 FL_WIDGET_VOID_CALL(clear_changed);
 FL_WIDGET_VOID_CALL(clear_changed2);
+FL_WIDGET_VOID_CALL(clear_changed_all);
 FL_WIDGET_VOID_CALL(take_focus);
 
 //FL_WIDGET_STR_CALL(classId);
@@ -803,6 +804,7 @@ static SQRegFunction fl_widget_obj_funcs[]={
 	_DECL_FUNC(set_changed2,1,_SC("x"), SQFalse),
 	_DECL_FUNC(clear_changed,1,_SC("x"), SQFalse),
 	_DECL_FUNC(clear_changed2,1,_SC("x"), SQFalse),
+	_DECL_FUNC(clear_changed_all,1,_SC("x"), SQFalse),
 	_DECL_FUNC(take_focus,1,_SC("x"), SQFalse),
 	{0,0}
 };
@@ -1006,12 +1008,32 @@ static SQRESULT _Fl_Menu__add(HSQUIRRELVM v)
     SETUP_FL_MENU_(v);
     SQ_GET_STRING(v, 2, label);
     if(_top_ > 2) {
-        //SQObjectType ptype3 = sq_gettype(v, 3);
+        SQObjectType ptype3 = sq_gettype(v, 3);
         SQ_GET_INTEGER(v, 5, udata);
-        self->add(label, 0,0, (void*)udata, 0);
+        if(ptype3 == OT_INTEGER){
+            SQ_GET_INTEGER(v, 3, short_cut);
+            self->add(label, short_cut,0, (void*)udata, 0);
+        }
+        else if(ptype3 == OT_STRING){
+            SQ_GET_STRING(v, 3, short_cut);
+            self->add(label, short_cut,0, (void*)udata, 0);
+        }
+        else self->add(label, 0, 0, (void*)udata, 0);
     }
     else self->add(label);
     return 0;
+}
+
+static SQRESULT _Fl_Menu__text(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SETUP_FL_MENU_(v);
+    if(_top_ > 1) {
+        SQ_GET_INTEGER(v, 2, idx);
+        sq_pushstring(v, self->text(idx), -1);
+    }
+    else sq_pushstring(v, self->text(), -1);
+    return 1;
 }
 
 FUNC_GETSET_INT(_Fl_Menu__, SETUP_FL_MENU_, self->, value, int);
@@ -1026,6 +1048,8 @@ static SQRegFunction fl_menu__obj_funcs[]={
 	_DECL_FUNC(add,-2,_SC("xs s|i|o c|n .i"),SQFalse),
 	_DECL_FUNC(value,-1,_SC("xi"),SQFalse),
 	_DECL_FUNC(down_box,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(text,-1,_SC("xi"), SQFalse),
+	//_DECL_FUNC(value_by_udata,-1,_SC("x."), SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -1408,6 +1432,7 @@ static SQRESULT _Flu_Combo_Tree_tree(HSQUIRRELVM v){
     SETUP_FLU_COMBO_TREE(v);
     return fltk_pushinstance(v, FLTK_TAG(Flu_Tree_Browser), self);
 }
+
 CHEAP_RTTI_FOR(Flu_Combo_Tree);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Flu_Combo_Tree_##name,nparams,pmask,isStatic}
 static SQRegFunction flu_combo_tree_obj_funcs[]={
@@ -1419,15 +1444,15 @@ static SQRegFunction flu_combo_tree_obj_funcs[]={
 #undef _DECL_FUNC
 
 FLTK_CONSTRUCTOR(Flu_Tree_Browser);
-#define SETUP_FLU_COMBO_TREE_BROWSER(v) SETUP_FL_KLASS(v, Flu_Tree_Browser)
+#define SETUP_FLU_TREE_BROWSER(v) SETUP_FL_KLASS(v, Flu_Tree_Browser)
 
-FUNC_GETSET_BOOL(_Flu_Tree_Browser_, SETUP_FLU_COMBO_TREE_BROWSER, self->, auto_branches);
-FUNC_GETSET_BOOL(_Flu_Tree_Browser_, SETUP_FLU_COMBO_TREE_BROWSER, self->, show_branches);
-FUNC_GETSET_BOOL(_Flu_Tree_Browser_, SETUP_FLU_COMBO_TREE_BROWSER, self->, all_branches_always_open);
+FUNC_GETSET_BOOL(_Flu_Tree_Browser_, SETUP_FLU_TREE_BROWSER, self->, auto_branches);
+FUNC_GETSET_BOOL(_Flu_Tree_Browser_, SETUP_FLU_TREE_BROWSER, self->, show_branches);
+FUNC_GETSET_BOOL(_Flu_Tree_Browser_, SETUP_FLU_TREE_BROWSER, self->, all_branches_always_open);
 
 static SQRESULT _Flu_Tree_Browser_shaded_entry_colors(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
-    SETUP_FLU_COMBO_TREE_BROWSER(v);
+    SETUP_FLU_TREE_BROWSER(v);
     SQ_GET_INTEGER(v, 2, color1);
     SQ_GET_INTEGER(v, 3, color2);
     self->shaded_entry_colors(color1, color2);
@@ -1436,7 +1461,7 @@ static SQRESULT _Flu_Tree_Browser_shaded_entry_colors(HSQUIRRELVM v){
 
 static SQRESULT _Flu_Tree_Browser_branch_text(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
-    SETUP_FLU_COMBO_TREE_BROWSER(v);
+    SETUP_FLU_TREE_BROWSER(v);
     SQ_GET_INTEGER(v, 2, color);
     SQ_GET_INTEGER(v, 3, font);
     SQ_GET_INTEGER(v, 3, size);
@@ -1446,13 +1471,46 @@ static SQRESULT _Flu_Tree_Browser_branch_text(HSQUIRRELVM v){
 
 static SQRESULT _Flu_Tree_Browser_leaf_text(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
-    SETUP_FLU_COMBO_TREE_BROWSER(v);
+    SETUP_FLU_TREE_BROWSER(v);
     SQ_GET_INTEGER(v, 2, color);
     SQ_GET_INTEGER(v, 3, font);
     SQ_GET_INTEGER(v, 3, size);
     self->leaf_text(color, font, size);
     return 0;
 }
+
+static SQRESULT _Flu_Tree_Browser_unselect_all(HSQUIRRELVM v){
+    SETUP_FLU_TREE_BROWSER(v);
+    self->unselect_all();
+    return 0;
+}
+
+static SQRESULT _Flu_Tree_Browser_find_by_user_data(HSQUIRRELVM v){
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FLU_TREE_BROWSER(v);
+    SQ_GET_INTEGER(v, 2, udata);
+    Flu_Tree_Browser::Node* node = self->find_by_user_data( (void *) udata);
+    sq_pushuserpointer(v, node);
+    return 1;
+}
+
+static SQRESULT _Flu_Tree_Browser_set_hilighted(HSQUIRRELVM v){
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FLU_TREE_BROWSER(v);
+    SQ_GET_USERPOINTER(v, 2, node);
+    self->set_hilighted( (Flu_Tree_Browser::Node*) node);
+    return 0;
+}
+
+static SQRESULT _Flu_Tree_Browser_select(HSQUIRRELVM v){
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FLU_TREE_BROWSER(v);
+    SQ_GET_USERPOINTER(v, 2, node);
+    SQ_GET_BOOL(v, 3, bval);
+    ((Flu_Tree_Browser::Node*)node)->select(bval);
+    return 0;
+}
+
 CHEAP_RTTI_FOR(Flu_Tree_Browser);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Flu_Tree_Browser_##name,nparams,pmask,isStatic}
 static SQRegFunction flu_combo_tree_browser_obj_funcs[]={
@@ -1464,6 +1522,10 @@ static SQRegFunction flu_combo_tree_browser_obj_funcs[]={
 	_DECL_FUNC(branch_text,4,_SC("xiii"),SQFalse),
 	_DECL_FUNC(leaf_text,4,_SC("xiii"),SQFalse),
 	_DECL_FUNC(shaded_entry_colors,3,_SC("xii"),SQFalse),
+	_DECL_FUNC(select,3,_SC("xpb"),SQFalse),
+	_DECL_FUNC(unselect_all,1,_SC("x"),SQFalse),
+	_DECL_FUNC(set_hilighted,2,_SC("xp"),SQFalse),
+	_DECL_FUNC(find_by_user_data,2,_SC("xi"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
