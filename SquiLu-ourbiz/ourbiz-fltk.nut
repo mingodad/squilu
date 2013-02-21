@@ -5,7 +5,7 @@ dofile("ourbiz-client.nut");
 dofile("db-updater.nut");
 local appServer = AppServer.getAppServer();
 appServer.credentials("mingote", "tr14pink");
-appServer.connect("localhost", 8855);
+appServer.connect("localhost", 8855); //8888);//8855);
 
 function _tr(str){ return str;}
 
@@ -349,6 +349,49 @@ class MyBaseWindow extends Fl_Window {
 			choice->add_item(rec[0].tointeger(), rec[1]);
 		}
 	}
+	
+	function insert_group_tree_childs (tree, node, parent, pos, size, data)
+	{
+	    local new_node;
+	    while(pos < size)
+	    {
+		local rec = data[pos];
+		local myparent = rec[1].tointeger();
+		if(myparent != parent) break;
+		local id = rec[0].tointeger();
+
+		local str = rec[2].gsub("/", "\\/");
+		new_node = tree->add(node, str);
+		if(new_node) new_node->user_data(id);
+			else throw ("Try to insert an invalid Tree Node.");
+
+		++pos;
+		pos = insert_group_tree_childs(tree, new_node, id, pos, size, data);
+	    }
+	    return pos;
+	}
+	
+	function setup_tree_browser_for_selection (tree) {
+		tree->show_root(true);
+		tree->auto_branches(true);
+		tree->show_branches(true);
+		tree->all_branches_always_open(true);
+		//tree->selection_mode(FLU_MULTI_SELECT);
+		tree->selection_mode(FLU_SINGLE_SELECT);
+		tree->branch_text(tree->labelcolor(), tree->labelfont(), tree->labelsize());
+		tree->leaf_text(tree->labelcolor(), tree->labelfont(), tree->labelsize());
+		tree->shaded_entry_colors( FL_WHITE, FL_GRAY );
+	}
+	
+	function treeLoadChilds (tree, node, parent, _table_name)
+	{
+		local data = [];
+		tree->clear();
+		appServer.get_list_data(data, _table_name , 0, 0);
+		local pos = 0;
+		if(!node) node = tree->get_root();
+		insert_group_tree_childs(tree, node, 0, pos, data.size(), data);
+	}
 }
 
 class Widget_Fill_By_Map {
@@ -401,7 +444,7 @@ class Widget_Fill_By_Map {
 			local item = wdg->find_by_user_data(value);
 			if(item){
 				wdg->set_hilighted(item);
-				wdg->select(item, true);
+				item->select(true);
 				//clear changed because Flu_Tree_Browser will set it when select
 				wdg->clear_changed_all();
 			}
@@ -555,7 +598,7 @@ class EditWindow extends MyBaseWindow {
 	}
 	function do_edit(aid){
 		local dbu = dbUpdater();
-		dbu->edit_id = aid;
+		dbu->edit_id = aid.tointeger();
 		dbu->version = 0;
 		dbAction->action(aid ? DbAction_Enum.e_update : DbAction_Enum.e_insert);
 		on_Change_dbAction();
@@ -645,6 +688,8 @@ class Fl_Data_Table extends Flv_Data_Table {
 	}
 
 	function clear_data_rows(){
+		row(0);
+		rows(0);
 		_data.clear();
 	}
 	function recalc_data(){
@@ -654,6 +699,15 @@ class Fl_Data_Table extends Flv_Data_Table {
 
 	function set_data(data_array){
 		_data = data_array;
+		recalc_data();
+	}
+
+	function set_new_data(data_array){
+		clear_data_rows();
+		_data = data_array;
+		local mycols = _data[0];
+		_data.remove(0);
+		set_cols(mycols);
 		recalc_data();
 	}
 
@@ -915,6 +969,50 @@ dofile("edit-entity-window.nut");
 dofile("edit-order-window.nut");
 dofile("list-search-window.nut");
 
+class MyBarChart extends BarChartGroup {
+	
+	constructor(){
+		base.constructor();
+	}
+
+	function periode_type ()
+	{
+		return btn_periode_is_years->value() ? "years" :
+		       btn_periode_is_weeks->value() ? "weeks" :
+		       btn_periode_is_days->value() ? "days" :
+		       "months";
+	}
+	
+	function periodes (){
+		local val = periodes_to_show->value();
+		return val.len() ? val.tointeger() : 0;
+	}
+
+	function show_bar_chart(data, byTwo, bySAB)
+	{
+		local cursor_wait = fl_cursor_wait();
+		bar_chart->bar_begin_update();
+		bar_chart->bar_clear();
+		//bar_chart.label(_tr("Sales Statistics"));
+		local cl;
+		for(local i=0, max_count=data.size(); i<max_count;++i)
+		{
+		    local rec = data[i];
+		    if(byTwo){
+			cl = rec[2] == "1" ? FL_BLUE : FL_RED;
+		    }
+		    else if(bySAB){
+			//printf("%s : %s : %s\n", rec[0].c_str(), rec[1].c_str(), rec[2].c_str());
+			cl = rec[2] == "S" ? FL_BLUE : FL_GREEN;
+		    } else {
+			cl = FL_BLUE;
+		    }
+		    bar_chart->bar_add(rec[0], rec[1].tofloat(), cl);
+		}
+		bar_chart->bar_end_update();
+	}
+}
+
 class MyListSearchWindow extends ListSearch {
 	_popup = null;
 	_search_options = null;
@@ -1141,11 +1239,11 @@ class MyEditEntityWindow extends EditEntityWindow {
 	constructor(){
 		base.constructor();
 		dbUpdater()->table_name = "entities";
-		_sab = 'A';
+		_sab = "A";
 		setDbActionControls(dbAction, btnDbAction);
 		btnEntitesListContactReport.callback(print_entities_list_contact_report);
 		
-		_ourBarChart = new BarChartGroup();
+		_ourBarChart = new MyBarChart();
 		replace_widget_for(tabChartStatistics, _ourBarChart);
 		_ourBarChart->btnShowChart.callback(on_show_chart_cb);
 		
@@ -1163,8 +1261,25 @@ class MyEditEntityWindow extends EditEntityWindow {
 		delayed_focus(db_entities_name);
 	}
 	function on_show_chart_cb(sender, udata){
+		this = sender->window();
+		local cursor_wait = fl_cursor_wait();
+		local mydata = [];
+		appServer.entities_get_bar_chart_statistics_list(mydata,
+			dbUpdater()->edit_id, _sab, _ourBarChart->periodes(),
+			_ourBarChart->periode_type());
+		_ourBarChart->show_bar_chart(mydata, false, (_sab == "A"));
 	}
 	function on_history_cb(sender, udata){
+		this = sender->window();
+		local cursor_wait = fl_cursor_wait();
+		local data = [];
+		local tbl = _ourHistory->grid_history;
+		local query_limit = _ourHistory->history_query_limit->value();
+		query_limit = query_limit.len() ? query_limit.tointeger() : 0;
+		appServer.entities_get_sales_history_list(data,
+					_ourHistory->history_choice->value(),
+					query_limit, dbUpdater()->edit_id);
+		tbl->set_new_data(data);
 	}
 }
 
@@ -1322,10 +1437,10 @@ class MyEditProductWindow extends EditProductWindow {
 	constructor(){
 		base.constructor();
 		dbUpdater()->table_name = "products";
-		_sab = 'A';
+		_sab = "A";
 		setDbActionControls(dbAction, btnDbAction);
 
-		_ourBarChart = new BarChartGroup();
+		_ourBarChart = new MyBarChart();
 		replace_widget_for(tabChartStatistics, _ourBarChart);
 		_ourBarChart->btnShowChart.callback(on_show_chart_cb);
 		
@@ -1353,9 +1468,9 @@ class MyEditProductWindow extends EditProductWindow {
 		}
 	}
 	function load_aux_data(){
-		//local tree = db_products_group_id;
-		//setup_tree_browser_for_selection(tree);
-		//treeLoadChilds(tree, 0, 0, "product_groups");
+		local tree = db_products_group_id;
+		setup_tree_browser_for_selection(tree);
+		treeLoadChilds(tree, 0, 0, "product_groups");
 
 		local sales_tax_data = [], measure_units_data = [], warranty_data = [];
 
@@ -1370,9 +1485,27 @@ class MyEditProductWindow extends EditProductWindow {
 
 		fill_choice_by_data(db_products_warranty_id, warranty_data);
 	}
+	
 	function on_show_chart_cb(sender, udata){
+		this = sender->window();
+		local cursor_wait = fl_cursor_wait();
+		local mydata = [];
+		appServer.products_get_bar_chart_statistics_list(mydata,
+			dbUpdater()->edit_id, _sab, _ourBarChart->periodes(),
+			_ourBarChart->periode_type());
+		_ourBarChart->show_bar_chart(mydata, false, (_sab == "A"));
 	}
 	function on_history_cb(sender, udata){
+		this = sender->window();
+		local cursor_wait = fl_cursor_wait();
+		local data = [];
+		local tbl = _ourHistory->grid_history;
+		local query_limit = _ourHistory->history_query_limit->value();
+		query_limit = query_limit.len() ? query_limit.tointeger() : 0;
+		appServer.products_get_sales_history_list(data,
+					_ourHistory->history_choice->value(),
+					query_limit, dbUpdater()->edit_id);
+		tbl->set_new_data(data);
 	}
 }
 
@@ -1404,7 +1537,7 @@ class ProductsListSearch extends MyListSearchWindow {
 			"image_id|image_id|0",
 		];
 		grid->set_cols(cols_info);
-		//setFilterComboTree();
+		setFilterComboTree();
 		_search_by_description = create_search_by("Description");
 		_search_by_notes = create_search_by("Notes");
 		_search_by_reference = create_search_by("Reference");
@@ -1414,6 +1547,14 @@ class ProductsListSearch extends MyListSearchWindow {
 		_search_by_description->setonly();
 		_search_by_active->value(1);
 		fill_grid();
+		delayed_method_call(this, this.fill_group_filter, 0);
+	}
+
+	function fill_group_filter(udata)
+	{
+		local tree = group_filter->tree();
+		treeLoadChilds(tree, 0, 0, "product_groups");
+		tree->label("----");
 	}
 
 	function get_search_data(data){
@@ -1535,10 +1676,10 @@ class MyEditOrderWindow extends EditOrderWindow {
 		grid_lines->set_cols(cols_info);
 		
 		dbUpdater()->table_name = "orders";
-		_sab = 'A';
+		_sab = "A";
 		setDbActionControls(dbAction, btnDbAction);
 
-		_ourBarChart = new BarChartGroup();
+		_ourBarChart = new MyBarChart();
 		replace_widget_for(tabChartStatistics, _ourBarChart);
 		_ourBarChart->btnShowChart.callback(on_show_chart_cb);
 		
@@ -1615,6 +1756,15 @@ class MyEditOrderWindow extends EditOrderWindow {
 		appServer.get_record(_record, _main_table, 0, id, "&with_lines=1");
 	}
 	
+	function set_decimal_places(dp){
+		db_orders_lines_price->decimal_places(dp);
+		db_orders_lines_first_total->decimal_places(dp);
+		db_orders_lines_discount_amt->decimal_places(dp);
+		db_orders_lines_line_subtotal->decimal_places(dp);
+		db_orders_lines_sales_tax1_amt->decimal_places(dp);
+		db_orders_lines_line_total->decimal_places(dp);
+	}
+	
 	function fill_edit_form_entity(myrec, asBlank=false, setChanged=false){
 	}
 	
@@ -1640,12 +1790,27 @@ class MyEditOrderWindow extends EditOrderWindow {
 	}
 	function cb_btnSearchEntity(sender, udata){
 		this = sender->window();
-		print("Fl_Pack :", pack_line2->x(), pack_line2->y(), pack_line2->w(), pack_line2->h());
-		print("db_orders_entity_id :", db_orders_entity_id->x(), db_orders_entity_id->y(), db_orders_entity_id->w(), db_orders_entity_id->h());
 	}
+		
 	function on_show_chart_cb(sender, udata){
+		this = sender->window();
+		local paidUpaid = _ourBarChart->chkOpt->value();
+		local cursor_wait = fl_cursor_wait();
+		local mydata = [];
+		appServer.orders_get_bar_chart_statistics_list(mydata, _sab, 
+			_ourBarChart->periodes(), _ourBarChart->periode_type() , paidUpaid);
+		_ourBarChart->show_bar_chart(mydata, paidUpaid, (_sab == "A"));	
 	}
 	function on_history_cb(sender, udata){
+		this = sender->window();
+		local cursor_wait = fl_cursor_wait();
+		local data = [];
+		local tbl = _ourHistory->grid_history;
+		local query_limit = _ourHistory->history_query_limit->value();
+		query_limit = query_limit.len() ? query_limit.tointeger() : 0;
+		appServer.orders_get_sales_history_list(data,
+					_ourHistory->history_choice->value(), query_limit);
+		tbl->set_new_data(data);
 	}
 }
 
@@ -1716,7 +1881,7 @@ class OrdersListSearch extends MyListSearchWindow {
 	function on_popupmenu_cb(sender, udata){
 		//printf("%p : %d : %s\n", sender, popup->value(),
 		//       popup->menu_at(popup->value())->label());
-		this = sender.windw();
+		this = sender.window();
 		local row = grid->row();
 		if(row < 0) return;
 		switch(_popup->value()){

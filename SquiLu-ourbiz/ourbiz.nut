@@ -1243,7 +1243,7 @@ select product_id from orders_lines where order_id in (
 			local periode_count = qs_tbl.get("periode_count", 12).tointeger();
 			local periode_type = getStatisticsPeriodeType(qs_tbl.periode_type);
 			local sab = qs_tbl.get("sab", "S");
-			return DB_Entities.sql_bar_chart_statistics(tonumber(qs_tbl.statistics), sab, periode_count, periode_type);
+			return DB_Entities.sql_bar_chart_statistics(qs_tbl.statistics.tointeger(), sab, periode_count, periode_type);
 		}
 		else if (qs_tbl.get("print_list", false)){
 			return [==[

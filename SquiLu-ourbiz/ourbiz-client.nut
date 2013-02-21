@@ -158,6 +158,7 @@ class HTTPConnAuthBase extends HTTPConnBase
                 {
                     if(globals.get("Fl", false)) Fl.check();//check_idle();
                     pump();
+		    //os.sleep(0.01);
                 }
                 break;
             }
@@ -229,6 +230,13 @@ enum conn_type_e {e_conn_none, e_conn_http, e_conn_dbfile};
 
 constants.rawdelete("TimePeriode");
 enum TimePeriode {is_years = 1, is_months, is_weeks, is_days};
+
+function getStatisticsPeriodeType(speriode){
+	if(speriode == "years") return TimePeriode.is_years;
+	else if(speriode == "weeks") return TimePeriode.is_weeks;
+	else if(speriode == "days") return TimePeriode.is_days;
+	return TimePeriode.is_months;
+}
 
 local _the_app_server = null;
 class AppServer
@@ -557,11 +565,10 @@ class AppServer
     }
 
     function entities_get_bar_chart_statistics_list(data, entity_id, sab, periode_count=12,
-            periode=TimePeriode.is_months)
+            periode="months")
     {
-        local qs = format("&statistics=%d&periode_type=%s&periode_count=%d&sab=%c",
-                           entity_id, getStatisticsPeriodeType(periode),
-                           periode_count, sab);
+        local qs = format("&statistics=%d&periode_type=%s&periode_count=%d&sab=%s",
+                           entity_id, periode, periode_count, sab);
         get_list_data(data, "entities", qs, 0);
     }
 
@@ -639,10 +646,10 @@ class AppServer
     }
 
     function orders_get_bar_chart_statistics_list(data, sab, periode_count=12,
-            periode=TimePeriode.is_months, paidUnpaid=false)
+            periode="months", paidUnpaid=false)
     {
         local myUrl = format("&statistics=1&periode_type=%s&periode_count=%d&paid_unpaid=%s&sab=%s", 
-		getStatisticsPeriodeType(periode), periode_count, paidUnpaid ? "1" : "0", sab);
+		periode, periode_count, paidUnpaid ? "1" : "0", sab);
         get_list_data(data, "orders", myUrl, 0);
     }
 
@@ -759,10 +766,10 @@ class AppServer
     }
 
     function products_get_bar_chart_statistics_list(data, product_id, sab, periode_count=12,
-            periode=TimePeriode.is_months)
+            periode="months")
     {
         local myUrl = format("&statistics=%d&periode_type=%s&periode_count=%d&sab=%s", product_id, 
-		getStatisticsPeriodeType(periode), periode_count, sab);
+		periode, periode_count, sab);
         get_list_data(data, "products", myUrl, 0);
     }
 

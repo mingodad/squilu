@@ -139,7 +139,7 @@ class HappyHttpConnection {
 
 		if( !datawaiting( m_Sock, milisec) ) return;	// recv will block
 
-		local rc = m_Sock.receive(2048);
+		local rc = m_Sock.receive(8192); //2048
 		switch(rc[1]){
 			case socket.IO_DONE:
 			case socket.IO_TIMEOUT:
