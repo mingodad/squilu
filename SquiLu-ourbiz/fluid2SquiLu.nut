@@ -519,8 +519,8 @@ Write.widget_class <- function(t, ind){
 	//else  
 	typeName = t.attr["class"];
 
-	Output(ind, "class %s extends %s {\n", t.name, typeName);
 	local widgetType = typeName || "Fl_Group";
+	Output(ind, "class %s extends %s {\n", t.name, widgetType);
 	Output(ind+1, "\n")	;
 
 	FindMembers.group(t.body, vars);
@@ -692,4 +692,6 @@ if (vargv.len() > 0){
 	Fluid2SquiLu(infile, outfile, config);
 }
 //Fluid2SquiLu("entity-edit-gui.fl", "-", {});
-Fluid2SquiLu("orders-edit-gui.fl", "-", {});
+//Fluid2SquiLu("orders-edit-gui.fl", "-", {});
+//Fluid2SquiLu("barchart-gui.fl", "-", {});
+Fluid2SquiLu("history-gui.fl", "-", {});
