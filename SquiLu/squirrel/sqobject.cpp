@@ -247,7 +247,7 @@ SQInteger SQFunctionProto::GetLine(SQInstruction *curr)
         }
     }
 
-    while(_lineinfos[mid]._op >= op && mid >= 0) mid--;
+    while(_lineinfos[mid]._op > op && mid >= 0) mid--;
 
     return _lineinfos[mid]._line;
 }
