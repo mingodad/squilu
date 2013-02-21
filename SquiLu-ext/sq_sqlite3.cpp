@@ -974,6 +974,16 @@ static int add2sle(SQBlob &sle, const char *str, size_t size){
     return size;
 }
 
+static SQRESULT sq_add2sle(HSQUIRRELVM v) {
+	SQ_FUNC_VARS(v);
+    SQ_GET_INSTANCE_VAR(v, 2, SQBlob, blob, SQBlob::SQBlob_TAG);
+    SQ_GET_STRING(v, 3, str);
+    SQ_OPT_INTEGER(v, 4, size, str_size);
+    if(size < 0) return sq_throwerror(v, _SC("invalid size value (%d)"), size);
+    sq_pushinteger(v, add2sle(*blob, str, size));
+	return 1;
+}
+
 static SQRESULT sq_sqlite3_stmt_asSleArray(HSQUIRRELVM v) {
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_sqlite3_stmt_INSTANCE();
@@ -2024,6 +2034,21 @@ SQRESULT sqext_register_SQLite3(HSQUIRRELVM v)
 {
     sq_insertfunc(v, _SC("sle2vecOfvec"), sq_sle2vecOfvec, -2, _SC(". s|x a i"), SQTrue);
     sq_insertfunc(v, _SC("get_sle_size"), sq_get_sle_size, -2, _SC(".i"), SQTrue);
+    sq_insertfunc(v, _SC("add2sle"), sq_add2sle, -3, _SC(".xsi"), SQTrue);
+    sq_pushconsttable(v);
+#define INT_SLE_CONST(num) 	sq_pushstring(v,_SC("SLE_" #num),-1);sq_pushinteger(v,num);sq_newslot(v,-3,SQTrue);
+    INT_SLE_CONST(IBYTE1);
+    INT_SLE_CONST(IBYTE2);
+    INT_SLE_CONST(IBYTE3);
+    INT_SLE_CONST(IBYTE4);
+    INT_SLE_CONST(SIZE1BYTE);
+    INT_SLE_CONST(SIZE2BYTE);
+    INT_SLE_CONST(SIZE3BYTE);
+    INT_SLE_CONST(SIZE4BYTE);
+    INT_SLE_CONST(SLEMARK);
+    INT_SLE_CONST(SLEEND);
+
+    sq_poptop(v); //remove const table
 
 
     HSQOBJECT sqlite3_NULL;
