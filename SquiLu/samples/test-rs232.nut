@@ -1,8 +1,9 @@
-local __WIN32__ = os.getenv("WINDIR") != null
+__WIN32__ <- os.getenv("WINDIR") != null
 
 //local port_name = __WIN32__ ?  "COM1" : "/dev/ttyUSB0";
-local port_name = __WIN32__ ?  "COM1" : "/dev/ttyS0";
-local platform = __WIN32__ ? "win32" : "linux";
+//local port_name = __WIN32__ ?  "COM1" : "/dev/ttyS0";
+port_name <- __WIN32__ ?  "COM1" : "/dev/ttyACM0";
+platform <- __WIN32__ ? "win32" : "linux";
 
 function time_stamp(){
 	local t = os.date("*t");
@@ -36,7 +37,7 @@ function format_test(text, err){
 	local si = get_last_stackinfo();
 	local line_err = si.line;
 	
-	foreach( line in text.split("\n")) {
+	foreach( line in text.split('\n')) {
 		if (line_number == line_err.tointeger())
 			ret += format("-->   %d. %s (%s)\n", line_number, line, err);
 		else
@@ -269,44 +270,44 @@ foreach(baud in baud_rates) {
 				local e = p.flush();
 				assert(e == SqRs232.RS232_ERR_NOERROR);
 				 
-				e, d, l = p.read(1, timeout);
-				assert(e == SqRs232.RS232_ERR_TIMEOUT);
-				assert(d == nil);
-				assert(l == 0);
+				local data = p.read(1, timeout);
+				if(type(data) == "integer") assert(data == SqRs232.RS232_ERR_TIMEOUT);
+				//assert(d == nil);
+				//assert(l == 0);
 				 
 				// not implemented yet...
 				if (platform != "win32"){
-					local forced = 1;
-					e, d, l = p.read(1, timeout, forced)
-					assert(e == SqRs232.RS232_ERR_TIMEOUT)
-					assert(d == nil)
-					assert(l == 0)
+					local forced = true;
+					data = p.read(1, timeout, forced)
+					if(type(data) == "integer") assert(data == SqRs232.RS232_ERR_TIMEOUT)
+					//assert(d == nil)
+					//assert(l == 0)
 				}
 				 
-				local forced = 0;
-				e, d, l = p.read(1, timeout, forced);
-				assert(e == SqRs232.RS232_ERR_TIMEOUT)
-				assert(d == nil)
-				assert(l == 0)
+				local forced = false;
+				data = p.read(1, timeout, forced);
+				if(type(data) == "integer") assert(data == SqRs232.RS232_ERR_TIMEOUT)
+				//assert(d == nil)
+				//assert(l == 0)
 				 
-				e, l = p.write("ynezz")
-				assert(e == SqRs232.RS232_ERR_NOERROR)
-				 
-				// althought the write is successful it returns 0 bytes written
-				// in some baud/data/stop/flow combinations...
-				 
-				if (platform != "win32") assert(l == 5);
-				 
-				e, l = p.write("ynezz", timeout)
-				assert(e == SqRs232.RS232_ERR_NOERROR);
+				e = p.write("ynezz")
+				if(e < 0) assert(e == SqRs232.RS232_ERR_NOERROR)
 				 
 				// althought the write is successful it returns 0 bytes written
 				// in some baud/data/stop/flow combinations...
 				 
-				if (platform != "win32") assert(l == 5);
+				if (platform != "win32") assert(e == 5);
+				 
+				e = p.write("ynezz", timeout)
+				if(e < 0) assert(e == SqRs232.RS232_ERR_NOERROR);
+				 
+				// althought the write is successful it returns 0 bytes written
+				// in some baud/data/stop/flow combinations...
+				 
+				if (platform != "win32") assert(e == 5);
 				 
 				local text = p.tostring();
-				assert(text != niull)
+				assert(text != null)
 				print("tostring(p): " + text);
 				 
 				assert(p.close() == SqRs232.RS232_ERR_NOERROR);

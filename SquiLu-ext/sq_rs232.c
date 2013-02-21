@@ -98,7 +98,6 @@ static SQRESULT sq_rs232_open(HSQUIRRELVM v){
 static SQRESULT sq_rs232_close(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
 	GET_sq_rs232_INSTANCE(v, 1);
-	if(self == NULL) return sq_throwerror(v, _SC("rs232 port already closed"));
 	_rc_ = sq_rs232_release_hook(self, 0, v);
 	sq_setinstanceup(v, 1, 0); //next calls will fail with "rs232 port already closed"
 	sq_pushinteger(v, _rc_);
@@ -108,7 +107,6 @@ static SQRESULT sq_rs232_close(HSQUIRRELVM v){
 static SQRESULT sq_rs232_read(HSQUIRRELVM v){
     SQ_FUNC_VARS(v);
 	GET_sq_rs232_INSTANCE(v, 1);
-	if(self == NULL) return sq_throwerror(v, _SC("rs232 port already closed"));
 	SQ_GET_INTEGER(v, 2, len);
 	unsigned int bytes_read = 0;
 	SQChar *data = NULL;
@@ -143,7 +141,6 @@ static SQRESULT sq_rs232_read(HSQUIRRELVM v){
 static SQRESULT sq_rs232_write(HSQUIRRELVM v){
     SQ_FUNC_VARS(v);
 	GET_sq_rs232_INSTANCE(v, 1);
-	if(self == NULL) return sq_throwerror(v, _SC("rs232 port already closed"));
     SQ_GET_STRING(v, 2, data);
 	unsigned int wlen = 0;
 
@@ -169,7 +166,6 @@ static SQRESULT sq_rs232_write(HSQUIRRELVM v){
 static SQRESULT sq_rs232_flush(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
 	GET_sq_rs232_INSTANCE(v, 1);
-	if(self == NULL) return sq_throwerror(v, _SC("rs232 port already closed"));
 	sq_pushinteger(v, rs232_flush(self));
 	return 1;
 }
@@ -177,7 +173,6 @@ static SQRESULT sq_rs232_flush(HSQUIRRELVM v){
 static SQRESULT sq_rs232_device(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
 	GET_sq_rs232_INSTANCE(v, 1);
-	if(self == NULL) return sq_throwerror(v, _SC("rs232 port already closed"));
 	const char *ret = rs232_get_device(self);
 	if (ret == NULL) sq_pushnull(v);
 	else sq_pushstring(v, ret, -1);
@@ -187,7 +182,6 @@ static SQRESULT sq_rs232_device(HSQUIRRELVM v){
 static SQRESULT sq_rs232_fd(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
 	GET_sq_rs232_INSTANCE(v, 1);
-	if(self == NULL) return sq_throwerror(v, _SC("rs232 port already closed"));
 	sq_pushinteger(v, rs232_fd(self));
 	return 1;
 }
@@ -196,6 +190,13 @@ static SQRESULT sq_rs232_strerror(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_INTEGER(v, 2, error_code);
     sq_pushstring(v, rs232_strerror(error_code), -1);
+	return 1;
+}
+
+static SQRESULT sq_rs232__tostring(HSQUIRRELVM v){
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sq_rs232_INSTANCE(v, 1);
+    sq_pushstring(v, rs232_to_string(self), -1);
 	return 1;
 }
 
@@ -247,27 +248,28 @@ static SQRegFunction rs232_methods[] =
     _DECL_FUNC(device,1,_SC("x")),
     _DECL_FUNC(fd,1,_SC("x")),
     _DECL_FUNC(strerror,2,_SC(".i")),
+    _DECL_FUNC(_tostring,1,_SC("x")),
 	/* baud */
     _DECL_FUNC(baud_rate,-1,_SC("xi")),
-    _DECL_FUNC(baud_rate_tostring,2,_SC(".i")),
+    _DECL_FUNC(baud_rate_tostring,-1,_SC(".i")),
 	/* data */
     _DECL_FUNC(data_bits,-1,_SC("xi")),
-    _DECL_FUNC(data_bits_tostring,2,_SC(".i")),
+    _DECL_FUNC(data_bits_tostring,-1,_SC(".i")),
 	/* stop */
     _DECL_FUNC(stop_bits,-1,_SC("xi")),
-    _DECL_FUNC(stop_bits_tostring,2,_SC(".i")),
+    _DECL_FUNC(stop_bits_tostring,-1,_SC(".i")),
 	/* parity */
     _DECL_FUNC(parity,-1,_SC("xi")),
-    _DECL_FUNC(parity_tostring,2,_SC(".i")),
+    _DECL_FUNC(parity_tostring,-1,_SC(".i")),
 	/* flow */
     _DECL_FUNC(flow_control,-1,_SC("xi")),
-    _DECL_FUNC(flow_control_tostring,2,_SC(".i")),
+    _DECL_FUNC(flow_control_tostring,-1,_SC(".i")),
 	/* dtr */
     _DECL_FUNC(dtr,-1,_SC("xi")),
-    _DECL_FUNC(dtr_tostring,2,_SC(".i")),
+    _DECL_FUNC(dtr_tostring,-1,_SC(".i")),
 	/* rts */
     _DECL_FUNC(rts,-1,_SC("xi")),
-    _DECL_FUNC(rts_tostring,2,_SC(".i")),
+    _DECL_FUNC(rts_tostring,-1,_SC(".i")),
     {0,0}
 };
 
