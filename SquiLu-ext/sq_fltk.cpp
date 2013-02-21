@@ -849,12 +849,7 @@ FLTK_CONSTRUCTOR(Fl_Progress);
 #define FL_PROGRESS_GETSET_FLOAT(funcNAME) FUNC_GETSET_FLOAT(_Fl_Progress_, SETUP_FL_PROGRESS, self->, funcNAME, float)
 FL_PROGRESS_GETSET_FLOAT(maximum);
 FL_PROGRESS_GETSET_FLOAT(minimum);
-
-static SQRESULT _Fl_Progress_value(HSQUIRRELVM v){
-    SETUP_FL_PROGRESS(v);
-    sq_pushfloat(v, self->value());
-    return 0;
-}
+FL_PROGRESS_GETSET_FLOAT(value);
 
 CHEAP_RTTI_FOR(Fl_Progress);
 
@@ -864,7 +859,7 @@ static SQRegFunction fl_progress_obj_funcs[]={
 	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	_DECL_FUNC(maximum,-1,_SC("xn"), SQFalse),
 	_DECL_FUNC(minimum,-1,_SC("xn"), SQFalse),
-	_DECL_FUNC(value,1,_SC("x"), SQFalse),
+	_DECL_FUNC(value,-1,_SC("xn"), SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -3897,6 +3892,7 @@ static const struct {
 	INT_CONST(FL_RED)
 	INT_CONST(FL_RGB)
 	INT_CONST(FL_RGB8)
+	INT_CONST(FL_ROUND_DOWN_BOX)
 	INT_CONST(FL_SELECTION_COLOR)
 	INT_CONST(FL_SHADOW_LABEL)
 	INT_CONST(FL_SHIFT)
