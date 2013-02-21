@@ -1306,11 +1306,37 @@ function print_products_list(sender=null, udata=null)
 
 class MyEditProductWindow extends EditProductWindow {
 	_sab = null;
+	_ourBarChart = null;
+	_ourHistory = null;
+	static _history_options = [
+		"--- Select one",
+		"Sales by date",
+		"Sales by amount",
+		"Entities that bought",
+		"Entities that bought by value",
+		"Entities that bought by quantity",
+		"Price history",
+		"Price history fora all products",
+	];
+
 	constructor(){
 		base.constructor();
 		dbUpdater()->table_name = "products";
 		_sab = 'A';
 		setDbActionControls(dbAction, btnDbAction);
+
+		_ourBarChart = new BarChartGroup();
+		replace_widget_for(tabChartStatistics, _ourBarChart);
+		_ourBarChart->btnShowChart.callback(on_show_chart_cb);
+		
+		_ourHistory = new HistoryGroup();
+		replace_widget_for(tabHistory, _ourHistory);
+		local choice =  _ourHistory->history_choice;
+		foreach(opt in _history_options)
+		    choice->add(_tr(opt));
+		choice->value(0);
+		choice.callback(on_history_cb);
+		
 		load_aux_data();
 	}
 	function do_edit_delayed(udata)
@@ -1343,6 +1369,10 @@ class MyEditProductWindow extends EditProductWindow {
 		fill_choice_by_data(db_products_measure_unit_id, measure_units_data);
 
 		fill_choice_by_data(db_products_warranty_id, warranty_data);
+	}
+	function on_show_chart_cb(sender, udata){
+	}
+	function on_history_cb(sender, udata){
 	}
 }
 
@@ -1481,7 +1511,16 @@ class MyCalendarWindow extends CalendarWindow {
 }
 
 class MyEditOrderWindow extends EditOrderWindow {
+	_sab = null;
 	_line_edit_id = null;
+	_ourBarChart = null;
+	_ourHistory = null;
+	static _history_options = [
+		"--- Select one",
+		"Sales by 80\\/20",
+		"Sales by 80\\/20 alphabetical",
+	];
+
 	
 	constructor(){
 		base.constructor();
@@ -1495,7 +1534,22 @@ class MyEditOrderWindow extends EditOrderWindow {
 		];
 		grid_lines->set_cols(cols_info);
 		
-		_main_table = "orders";
+		dbUpdater()->table_name = "orders";
+		_sab = 'A';
+		setDbActionControls(dbAction, btnDbAction);
+
+		_ourBarChart = new BarChartGroup();
+		replace_widget_for(tabChartStatistics, _ourBarChart);
+		_ourBarChart->btnShowChart.callback(on_show_chart_cb);
+		
+		_ourHistory = new HistoryGroup();
+		replace_widget_for(tabHistory, _ourHistory);
+		local choice =  _ourHistory->history_choice;
+		foreach(opt in _history_options)
+		    choice->add(_tr(opt));
+		choice->value(0);
+		choice.callback(on_history_cb);
+
 		btnCalcDelivery.callback(cb_btnCalcDelivery);
 		btnShowCalendar.callback(cb_btnShowCalendar);
 		btnSearchEntity.callback(cb_btnSearchEntity);
@@ -1507,28 +1561,25 @@ class MyEditOrderWindow extends EditOrderWindow {
 		appServer.payment_types_get_short_list(data);
 		fill_choice_by_data(db_orders_payment_type_id, data);
 	}
-	function do_edit_delayed(udata){
-		local cursor_wait = fl_cursor_wait();
+	
+	function get_record_by_id(id){
 		local lines = grid_lines->_data;
 		grid_lines->clear_data_rows();
+		appServer.get_record_and_array(_record, lines, dbUpdater()->table_name, 0, 
+			dbUpdater()->edit_id, "&with_lines=1");
+	}
+	
+	function do_edit_delayed(udata){
+		base.do_edit_delayed(udata);
+		local lines = grid_lines->_data;
 		_line_edit_id = 0;
-		if(_id){
-		    appServer.get_record_and_array(_record, lines,
-			"orders", 0, _id,
-			"&with_lines=1");
-		}
-		else
-		{
-		    //default values here
-		    _record.clear();
-		}
 		if(lines.size()) lines.remove(0); //remove headers from data vector
 		redraw_lines(false);
-		fill_edit_form(_id == 0);
 		delayed_focus(db_orders_entity_id);
 	}
 
 	function fill_edit_form(asBlank=false){
+		base.fill_edit_form(asBlank);
 		fill_edit_lines_form(true, false); //clear lines entries
 		fill_edit_form_totals(_record, asBlank);
 		fill_edit_form_entity(_record, asBlank);
@@ -1591,6 +1642,10 @@ class MyEditOrderWindow extends EditOrderWindow {
 		this = sender->window();
 		print("Fl_Pack :", pack_line2->x(), pack_line2->y(), pack_line2->w(), pack_line2->h());
 		print("db_orders_entity_id :", db_orders_entity_id->x(), db_orders_entity_id->y(), db_orders_entity_id->w(), db_orders_entity_id->h());
+	}
+	function on_show_chart_cb(sender, udata){
+	}
+	function on_history_cb(sender, udata){
 	}
 }
 

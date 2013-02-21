@@ -432,11 +432,19 @@ class AppServer
     
     function sle2map(sle_str, rec, pos=0){
 	local ar = [];
-	sle2vecOfvec(sle_str, ar, pos);
+	pos = sle2vecOfvec(sle_str, ar, pos);
 	local keys = ar[0];
 	local values = ar[1];
-	foreach(idx, k in keys) rec[k] <- values[idx]; 
+	foreach(idx, k in keys) rec[k] <- values[idx];
+	return pos;
     }
+    
+	function sle2RecordAndArray(sle, rec, data)
+	{
+	    if(sle[0] != '[') throw "Invalid sle encoded !";
+	    local pos = sle2map(sle, rec);
+	    pos = sle2vecOfvec(sle, data, pos);
+	}    
 
     function do_dbaction(rec, action, table, aid, version, query_string=0)
     {

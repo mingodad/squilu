@@ -743,10 +743,10 @@ class EditOrderWindow extends EditWindow {
               o.labelsize(16);
             }
             {
-              local o = Fl_Choice(9, 525, 119, 25);
+              local o = Fl_Choice_dbAction(9, 525, 119, 25);
               dbAction = o;
+	      o->label(_tr("Action"));
               o.textsize(16);
-              o.labeltype(FL_NO_LABEL);
               o.down_box(FL_BORDER_BOX);
               o.labelsize(16);
             }
