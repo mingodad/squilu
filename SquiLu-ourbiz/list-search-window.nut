@@ -50,9 +50,9 @@ this->when(FL_WHEN_RELEASE);
     query_limit->textsize(16);
     o->value("50");
   } // Fl_Int_Input* query_limit
-  { btnNotes = new Fl_Button(760, 6, 35, 25, _tr("?"));
+  { btnNotes = new My_Fl_Return_Button(760, 6, 35, 25, _tr("?"));
     btnNotes->labelsize(16);
-  } // Fl_Button* btnNotes
+  } // My_Fl_Return_Button* btnNotes
   topGroup->end();
 } // Fl_Group* topGroup
 { middleGroup = new Fl_Group(0, 41, 800, 409);
@@ -93,22 +93,22 @@ this->when(FL_WHEN_RELEASE);
     search_str->callback(cb_search_str);
     search_str->when(FL_WHEN_ENTER_KEY);
   } // Fl_Input* search_str
-  { btnSearch = new Fl_Button(345, 485, 100, 25, _tr("Search"));
+  { btnSearch = new My_Fl_Return_Button(345, 485, 100, 25, _tr("Search"));
     btnSearch->labelsize(16);
     btnSearch->callback(cb_btnSearch);
-  } // Fl_Button* btnSearch
-  { btnSelect = new Fl_Button(14, 520, 100, 25, _tr("Select"));
+  } // My_Fl_Return_Button* btnSearch
+  { btnSelect = new My_Fl_Return_Button(14, 520, 100, 25, _tr("Select"));
     btnSelect->labelsize(16);
     btnSelect->callback(cb_btnSelect);
-  } // Fl_Button* btnSelect
-  { btnUpdate = new Fl_Button(124, 520, 100, 25, _tr("Update"));
+  } // My_Fl_Return_Button* btnSelect
+  { btnUpdate = new My_Fl_Return_Button(124, 520, 100, 25, _tr("Update"));
     btnUpdate->labelsize(16);
     btnUpdate->callback(cb_btnUpdate);
-  } // Fl_Button* btnUpdate
-  { btnInsert = new Fl_Button(234, 520, 100, 25, _tr("Insert"));
+  } // My_Fl_Return_Button* btnUpdate
+  { btnInsert = new My_Fl_Return_Button(234, 520, 100, 25, _tr("Insert"));
     btnInsert->labelsize(16);
     btnInsert->callback(cb_btnInsert);
-  } // Fl_Button* btnInsert
+  } // My_Fl_Return_Button* btnInsert
   { btnThumbImage = new Fl_Image_Box(663, 445, 125, 105);
     btnThumbImage->box(FL_NO_BOX);
     btnThumbImage->color(FL_BACKGROUND_COLOR);

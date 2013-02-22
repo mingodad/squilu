@@ -71,7 +71,6 @@ struct MyFltkUData {
 CREATE_TAG(Fl);
 CREATE_TAG(Fl_Widget);
 CREATE_TAG(Fl_Progress);
-CREATE_TAG(Fl_Button);
 CREATE_TAG(Fl_Light_Button);
 CREATE_TAG(Fl_Check_Button);
 CREATE_TAG(Fl_Radio_Button);
@@ -576,6 +575,8 @@ static void At_Widget_Destroy(Fl_Widget *widget){
 
 static void fltk_calback_hook(Fl_Widget *sender, void* udata){
 //printf("Sender %p, data %p\n", sender, udata);
+    if(!udata) return;
+    char buf[128];
     HSQUIRRELVM v = (HSQUIRRELVM) Fl::user_data;
     SQInteger savedTop = sq_gettop(v);
     st_mycb *mycb = (st_mycb *)udata;
@@ -583,9 +584,10 @@ static void fltk_calback_hook(Fl_Widget *sender, void* udata){
     sq_pushroottable(v); //’this’ (function environment object)
     if(fltk_get_registered_instance(v, sender) != SQ_OK) sq_pushnull(v);
     sq_pushobject(v, mycb->udata);
-    sq_call(v, 3, SQFalse, SQTrue);
-//printf("%d\n", sq_call(v, 3, SQFalse, SQTrue));
+    int rc = sq_call(v, 3, SQFalse, SQTrue);
+    if(rc != SQ_OK) snprintf(buf, sizeof(buf), "%s", sq_getlasterror_str(v));
     sq_settop(v, savedTop);
+    if(rc != SQ_OK) fl_alert("%s", buf);
 }
 
 static SQRESULT _Fl_Widget_callback(HSQUIRRELVM v)
@@ -633,6 +635,25 @@ static SQRESULT _Fl_Widget_callback(HSQUIRRELVM v)
         }
     }
 	return 0;
+}
+
+static SQRESULT _Fl_Widget_do_callback(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SETUP_FL_WIDGET(v);
+    if(_top_ > 1){
+        SETUP_FL_WIDGET_AT(v, 2, wdg);
+/*No userdata right now
+        if(_top_ > 2){
+            SQ_GET_INTEGER(v, 3, udata);
+            self->do_callback(wdg, udata);
+        }
+        else
+*/
+        self->do_callback(wdg);
+    }
+    self->do_callback();
+    return 0;
 }
 
 FL_WIDGET_GETSET_INT(align);
@@ -756,6 +777,24 @@ static SQRESULT _Fl_Widget_image(HSQUIRRELVM v)
     return 1;
 }
 
+static SQRESULT _Fl_Widget_as_group(HSQUIRRELVM v)
+{
+    SETUP_FL_WIDGET(v);
+    Fl_Group *grp = self->as_group();
+    if(grp) return fltk_pushinstance(v, FLTK_TAG(Fl_Group), grp);
+    sq_pushnull(v);
+	return 1;
+}
+
+static SQRESULT _Fl_Widget_as_window(HSQUIRRELVM v)
+{
+    SETUP_FL_WIDGET(v);
+    Fl_Window *win = self->as_window();
+    if(win) return fltk_pushinstance(v, FLTK_TAG(Fl_Window), win);
+    sq_pushnull(v);
+	return 1;
+}
+
 CHEAP_RTTI_FOR(Fl_Widget);
 
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Widget_##name,nparams,pmask,isStatic}
@@ -767,6 +806,7 @@ static SQRegFunction fl_widget_obj_funcs[]={
 	_DECL_FUNC(argument,-1,_SC("xi"), SQFalse),
 	_DECL_FUNC(box,-1,_SC("xi"), SQFalse),
 	_DECL_FUNC(callback,-1,_SC("xc."), SQFalse),
+	_DECL_FUNC(do_callback,-1,_SC("xx"), SQFalse),
 	_DECL_FUNC(color,-1,_SC("xi"), SQFalse),
 	_DECL_FUNC(selection_color,-1,_SC("xi"), SQFalse),
 	_DECL_FUNC(copy_label,2,_SC("xs"), SQFalse),
@@ -808,6 +848,8 @@ static SQRegFunction fl_widget_obj_funcs[]={
 	_DECL_FUNC(clear_changed2,1,_SC("x"), SQFalse),
 	_DECL_FUNC(clear_changed_all,1,_SC("x"), SQFalse),
 	_DECL_FUNC(take_focus,1,_SC("x"), SQFalse),
+	_DECL_FUNC(as_group,1,_SC("x"), SQFalse),
+	_DECL_FUNC(as_window,1,_SC("x"), SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -866,13 +908,30 @@ static SQRegFunction fl_progress_obj_funcs[]={
 };
 #undef _DECL_FUNC
 
-FLTK_CONSTRUCTOR(Fl_Button);
+MY_FL_CLASS(Fl_Button,
+    int handle(int event){
+        int rc;
+        if(sq_call_fl_virtual_va(this, "handle", "i>i", event, &rc) == 0) return rc;
+        return Fl_Button::handle(event);
+    }
+)
+
 #define SETUP_FL_BUTTON(v) SETUP_FL_KLASS(v, Fl_Button)
-#define FL_BUTTON_GETSET_INT_CAST(funcNAME, typeNAME) FUNC_GETSET_INT(_Fl_Button_, SETUP_FL_BUTTON, self->, funcNAME, typeNAME)
+
+static SQRESULT _MyFl_Button_handle(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_BUTTON(v);
+    SQ_GET_INTEGER(v, 2, event);
+    sq_pushinteger(v, ((MyFl_Button*)self)->Fl_Button::handle(event));
+    return 1;
+}
+
+#define FL_BUTTON_GETSET_INT_CAST(funcNAME, typeNAME) FUNC_GETSET_INT(_MyFl_Button_, SETUP_FL_BUTTON, self->, funcNAME, typeNAME)
 FL_BUTTON_GETSET_INT_CAST(down_box, Fl_Boxtype);
 FL_BUTTON_GETSET_INT_CAST(value, int);
 
-static SQRESULT _Fl_Button_setonly(HSQUIRRELVM v){
+static SQRESULT _MyFl_Button_setonly(HSQUIRRELVM v){
     SETUP_FL_BUTTON(v);
     self->setonly();
     return 0;
@@ -880,13 +939,14 @@ static SQRESULT _Fl_Button_setonly(HSQUIRRELVM v){
 
 CHEAP_RTTI_FOR(Fl_Button);
 
-#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Button_##name,nparams,pmask,isStatic}
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_MyFl_Button_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_button_obj_funcs[]={
     CHEAP_RTTI_REG_FUN_FOR(Fl_Button)
 	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	_DECL_FUNC(down_box,-1,_SC("xi"), SQFalse),
 	_DECL_FUNC(value,-1,_SC("xi"), SQFalse),
 	_DECL_FUNC(setonly,1,_SC("x"), SQFalse),
+	_DECL_FUNC(handle,2,_SC("xi"), SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -1544,6 +1604,15 @@ static SQRESULT _Flu_Tree_Browser_set_hilighted(HSQUIRRELVM v){
     return 0;
 }
 
+static SQRESULT _Flu_Tree_Browser_get_hilighted(HSQUIRRELVM v){
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FLU_TREE_BROWSER(v);
+    Flu_Tree_Browser::Node* node = self->get_hilighted();
+    if(node) return fltk_pushinstance(v, FLTK_TAG(Flu_Tree_Browser_Node), node);
+    sq_pushnull(v);
+    return 1;
+}
+
 static SQRESULT _Flu_Tree_Browser_clear(HSQUIRRELVM v){
     SETUP_FLU_TREE_BROWSER(v);
     self->clear();
@@ -1552,7 +1621,10 @@ static SQRESULT _Flu_Tree_Browser_clear(HSQUIRRELVM v){
 
 static SQRESULT _Flu_Tree_Browser_get_root(HSQUIRRELVM v){
     SETUP_FLU_TREE_BROWSER(v);
-    return fltk_pushinstance(v, FLTK_TAG(Flu_Tree_Browser_Node), self->get_root());
+    Flu_Tree_Browser::Node* node = self->get_root();
+    if(node) return fltk_pushinstance(v, FLTK_TAG(Flu_Tree_Browser_Node), node);
+    sq_pushnull(v);
+    return 1;
 }
 
 static SQRESULT _Flu_Tree_Browser_add(HSQUIRRELVM v){
@@ -1561,7 +1633,9 @@ static SQRESULT _Flu_Tree_Browser_add(HSQUIRRELVM v){
     SETUP_FLU_TREE_BROWSER_NODE_AT(v, 2, node);
     SQ_GET_STRING(v, 3, label);
     Flu_Tree_Browser::Node* new_node = self->add(node, label);
-    return fltk_pushinstance(v, FLTK_TAG(Flu_Tree_Browser_Node), new_node);
+    if(new_node) return fltk_pushinstance(v, FLTK_TAG(Flu_Tree_Browser_Node), new_node);
+    sq_pushnull(v);
+    return 1;
 }
 
 CHEAP_RTTI_FOR(Flu_Tree_Browser);
@@ -1581,6 +1655,7 @@ static SQRegFunction flu_tree_browser_obj_funcs[]={
 	_DECL_FUNC(clear,1,_SC("x"),SQFalse),
 	_DECL_FUNC(find_by_user_data,2,_SC("xi"),SQFalse),
 	_DECL_FUNC(set_hilighted,2,_SC("xx"),SQFalse),
+	_DECL_FUNC(get_hilighted,1,_SC("x"),SQFalse),
 	_DECL_FUNC(get_root,1,_SC("x"),SQFalse),
 	_DECL_FUNC(add,3,_SC("xxs"),SQFalse),
 	{0,0}
@@ -2761,6 +2836,7 @@ static SQRESULT _Fl_Help_View_link(HSQUIRRELVM v)
 SETUP_FL_HELP_VIEW_GETSET_INT_CAST(textcolor, Fl_Color);
 SETUP_FL_HELP_VIEW_GETSET_INT_CAST(textfont, int);
 SETUP_FL_HELP_VIEW_GETSET_INT_CAST(textsize, int);
+SETUP_FL_HELP_VIEW_GETSET_INT_CAST(scrollbar_size, int);
 
 CHEAP_RTTI_FOR(Fl_Help_View);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Help_View_##name,nparams,pmask,isStatic}
@@ -2775,6 +2851,7 @@ static SQRegFunction fl_help_view_obj_funcs[]={
 	_DECL_FUNC(textcolor,-1,_SC("xi"),SQFalse),
 	_DECL_FUNC(textfont,-1,_SC("xi"),SQFalse),
 	_DECL_FUNC(textsize,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(scrollbar_size,-1,_SC("xi"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -3268,23 +3345,24 @@ static SQRESULT _fl_delete_widget(HSQUIRRELVM v)
 }
 
 static void fltk_cb_hook(void* udata, bool freeAfter){
+    char buf[128];
     HSQUIRRELVM v = (HSQUIRRELVM) Fl::user_data;
     SQInteger savedTop = sq_gettop(v);
     st_mycb *mycb = (st_mycb *)udata;
     sq_pushobject(v, mycb->callback);
     sq_pushroottable(v); //’this’ (function environment object)
     sq_pushobject(v, mycb->udata);
-    sq_call(v, 2, SQFalse, SQTrue);
-
+    int rc = sq_call(v, 2, SQFalse, SQTrue);
+    if(rc != SQ_OK) snprintf(buf, sizeof(buf), "%s", sq_getlasterror_str(v));
     if(freeAfter){
         //cleanup
         sq_release(v, &mycb->callback);
         sq_release(v, &mycb->udata);
         sq_free(mycb, sizeof(st_mycb));
     }
-
     //restore stack
     sq_settop(v, savedTop);
+    if(rc != SQ_OK) fl_alert("%s", buf);
 }
 
 static SQRESULT fltk_add_cb(HSQUIRRELVM v, int idx, st_mycb **cb)

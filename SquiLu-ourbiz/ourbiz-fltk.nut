@@ -131,6 +131,21 @@ class My_Fl_Return_Button extends Fl_Button {
 	constructor(px, py, pw, ph, pl=""){
 		base.constructor(px, py, pw, ph, pl);
 	}
+	function handle(event)
+	{
+		if(event == FL_KEYBOARD)
+		{
+
+		    switch(Fl.event_key())
+		    {
+		    case FL_Enter:
+		    case FL_KP_Enter:
+			do_callback();
+			return 0;
+		    }
+		}
+		return base.handle(event);
+	}
 }
 
 class Fl_Choice_Int extends Fl_Choice {
@@ -231,20 +246,23 @@ class MyBaseWindow extends Fl_Window {
 		childWindows = {};
 		_db_map = {};
 	}
+	
+	function show_help_window(sender=null, udata=null){
+		if(sender) this = sender->window();
+		if(!app_help_window){
+			app_help_window = OurHelpWindow();
+		}
+		app_help_window.show();
+		//Fl_Group *grp = wdg->as_group();
+		app_help_window->search_help_file(label(), true);
+	}
 
 	function handle(event){
 		if(event == FL_KEYBOARD && Fl.event_command() == 0){
 			local key = Fl.event_key();
 			switch(key){
 				//case FL_Menu:  menu_bar_navigate();break;
-				case FL_F+1:
-					if(!app_help_window){
-						app_help_window = OurHelpWindow();
-					}
-					app_help_window.show();
-					//Fl_Group *grp = wdg->as_group();
-					app_help_window->search_help_file(label(), true);
-				break;
+				case FL_F+1: show_help_window(); break;
 			}
 		}
 		return base.handle(event);
@@ -353,6 +371,7 @@ class MyBaseWindow extends Fl_Window {
 	function insert_group_tree_childs (tree, node, parent, pos, size, data)
 	{
 	    local new_node;
+	    assert(node);
 	    while(pos < size)
 	    {
 		local rec = data[pos];
@@ -363,7 +382,7 @@ class MyBaseWindow extends Fl_Window {
 		local str = rec[2].gsub("/", "\\/");
 		new_node = tree->add(node, str);
 		if(new_node) new_node->user_data(id);
-			else throw ("Try to insert an invalid Tree Node.");
+		else throw ("Try to insert an invalid Tree Node : " + str);
 
 		++pos;
 		pos = insert_group_tree_childs(tree, new_node, id, pos, size, data);
@@ -390,7 +409,13 @@ class MyBaseWindow extends Fl_Window {
 		appServer.get_list_data(data, _table_name , 0, 0);
 		local pos = 0;
 		if(!node) node = tree->get_root();
-		insert_group_tree_childs(tree, node, 0, pos, data.size(), data);
+		insert_group_tree_childs(tree, node, parent, pos, data.size(), data);
+	}
+	function delete_on_window_close_cb (sender, udata){
+		if(sender){
+			if(!sender.as_window()) throw(_tr("Only windows can use this callback !"));
+			Fl.delete_widget(sender);
+		}
 	}
 }
 
@@ -919,7 +944,7 @@ class Fl_Data_Table extends Flv_Data_Table {
 	}
 	function get_row_id(arow=null){
 		if(arow == null) arow = row();
-		return _data[arow][0];
+		return _data[arow][0].tointeger();
 	}
 }
 
@@ -1024,45 +1049,73 @@ class MyListSearchWindow extends ListSearch {
 		grid->callback_when(FLVEcb_ROW_CHANGED | FLVEcb_CLICKED | FLVEcb_ROW_HEADER_CLICKED);
 		grid->callback(grid_cb);
 		grid->_call_this = this;
+		btnSelect->deactivate();
+		btnNotes.callback(show_help_window);
 	}
 
+	function cb_btnUpdate(sender, udata){
+		this = sender->window();
+		row_selected(Fl_Data_Table_Events.e_update);
+	}
+	function cb_btnInsert(sender, udata){
+		this = sender->window();
+		row_selected(Fl_Data_Table_Events.e_insert);
+	}
 	function grid_cb(sender, udata){}
 	function get_edit_window(){return null;}
+	
+	function show_edit_window(edit_id){
+		local win = get_edit_window();
+		win.show();
+		win.do_edit(edit_id);
+	}
 
 	function row_selected(ev){
-		local edit_window = get_edit_window();
-		if(edit_window){
-			edit_window.show();
-			edit_window.do_edit(grid->get_row_id());
-			switch(ev){
-				case Fl_Data_Table_Events.e_select:
-				break;
-				case Fl_Data_Table_Events.e_insert:
-				break;
-				case Fl_Data_Table_Events.e_update:
-				break;
-				case Fl_Data_Table_Events.e_delete:
-				break;
-			}
+		switch(ev){
+			case Fl_Data_Table_Events.e_select:
+			break;
+			case Fl_Data_Table_Events.e_insert:
+				show_edit_window(0);
+			break;
+			case Fl_Data_Table_Events.e_update:
+				show_edit_window(grid->get_row_id());
+			break;
+			case Fl_Data_Table_Events.e_delete:
+				show_edit_window(grid->get_row_id());
+			break;
 		}
 	}
 
-	function get_search_data(data){}
-	function fill_grid(){
+	function get_search_data(data, search_otions){}
+	function get_search_options(){ return null;}
+	function fill_grid(search_otions = null){
 		local cursor_wait = fl_cursor_wait();
+		if(!search_otions) search_otions = get_search_options();
 		grid->clear_data_rows();
-		get_search_data(grid->_data);
+		get_search_data(grid->_data, search_otions);
 		grid->recalc_data();
+	}
+	function cb_search_str(sender, udata){
+		this = sender->window();
+		cb_btnSearch(sender, udata);
 	}
 	function cb_btnSearch(sender, udata){
 		this = sender.window();
 		fill_grid();
+		delayed_focus(grid);
 	}
 
 	function create_search_by0(name, Klass, pack){
-		local sb = Klass(0,0,25,20, _tr(name));
-		sb->labelsize(pack->labelsize());
-		sb->w(fl_width(sb.label()) + fl_width("W"));
+		local name_tr = _tr(name);
+		local sb = Klass(0,0,25,20, name_tr);
+		local label_font = pack->labelfont();
+		local label_size = pack->labelsize();
+		sb->labelsize(label_size);
+		local saved_font = fl_font();
+		local saved_font_size = fl_size();
+		fl_font(label_font, label_size);
+		sb->w(fl_width(name_tr) + fl_width("W"));
+		fl_font(saved_font, saved_font_size);
 		pack->add(sb);
 		return sb;
 	}
@@ -1290,8 +1343,9 @@ class EntitiesListSearch extends MyListSearchWindow {
 	_search_by_product = null;
 	_search_by_id = null;
 	_search_by_active = null;
+	_sales_orders_list = null;
 
-	constructor() {
+	constructor(doInitialSearch=true) {
 		base.constructor();
 		label(_tr("Entities List Search"));
 		local cols_info = [
@@ -1311,12 +1365,12 @@ class EntitiesListSearch extends MyListSearchWindow {
 		_search_by_active = create_search_by2("Active");
 		_search_by_name->setonly();
 		_search_by_active->value(1);
-		fill_grid();
+		if(doInitialSearch) delayed_method_call(this, this.fill_grid, null);
 	}
 	function fill_search_options(){
 		pack_search_options.add(Fl_Radio_Button());
 	}
-	function get_search_data(data){
+	function get_search_options(){
 		_search_options.search_str = search_str.value();
 		_search_options.name = _search_by_name.value() == 1;
 		_search_options.notes = _search_by_notes.value() == 1;
@@ -1325,17 +1379,50 @@ class EntitiesListSearch extends MyListSearchWindow {
 		_search_options.id = _search_by_id.value() == 1;
 		_search_options.active = _search_by_active.value() == 1;
 		_search_options.group_id = group_filter->get_data_at();
-		appServer.entities_get_list(grid->_data, _search_options);
+		return _search_options;
+	}
+	function get_search_data(data, so){
+		appServer.entities_get_list(grid->_data, so);
 	}
 
 	function get_edit_window(){return getChildWindow("Entity Edit", MyEditEntityWindow);}
+	function mk_popup()
+	{
+		_popup = create_popup_menu_for(grid, grid->global_style().height());
+		_popup.callback(on_popupmenu_cb);
 
-	function cb_btnInsert(sender, udata){
-		this = sender.window();
-		local win = showChildWindow("Entity Edit", EditEntitiesWindow);
+		_popup->add(_tr("Orders"));
+		_popup->add(_tr("Products"));
 	}
-	function cb_btnUpdate(sender, udata){
-		print_entities_list_contact_report();
+
+	function on_popupmenu_cb(sender, udata){
+		this = sender.window();
+		local row = grid->row();
+		if(row < 0) return;
+		switch(_popup->value()){
+			case 0:{
+				_sales_orders_list = OrdersListSearch(false);
+				//_sales_orders_list.callback(delete_on_window_close_cb);
+				local so = OurBizSearchOptions();
+				so.entity_id = grid->get_row_id(row);
+				so.sales = _search_options.sales;
+				so.buys = _search_options.buys;
+				_sales_orders_list->fill_grid(so);
+				_sales_orders_list->show();
+			}
+			break;
+			case 1:{
+				local products_list = ProductsListSearch();
+				//products_list.callback(delete_on_window_close_cb);
+				local so = OurBizSearchOptions();
+				so.entity_id = grid->get_row_id(row);
+				so.sales = _search_options.sales;
+				so.buys = _search_options.buys;
+				products_list->fill_grid(so);
+				products_list->show();
+			}
+			break;
+		}
 	}
 }
 
@@ -1470,7 +1557,7 @@ class MyEditProductWindow extends EditProductWindow {
 	function load_aux_data(){
 		local tree = db_products_group_id;
 		setup_tree_browser_for_selection(tree);
-		treeLoadChilds(tree, 0, 0, "product_groups");
+		treeLoadChilds(tree, null, 0, "product_groups");
 
 		local sales_tax_data = [], measure_units_data = [], warranty_data = [];
 
@@ -1519,7 +1606,7 @@ class ProductsListSearch extends MyListSearchWindow {
 	_last_image_id = null;
 	_image_window = null;
 
-	constructor() {
+	constructor(doInitialSearch=true) {
 		_last_image_id = 0;
 		base.constructor();
 		_search_options = OurBizSearchOptions();
@@ -1546,18 +1633,18 @@ class ProductsListSearch extends MyListSearchWindow {
 		_search_by_active = create_search_by2("Active");
 		_search_by_description->setonly();
 		_search_by_active->value(1);
-		fill_grid();
+		if(doInitialSearch) delayed_method_call(this, this.fill_grid, null);
 		delayed_method_call(this, this.fill_group_filter, 0);
 	}
 
 	function fill_group_filter(udata)
 	{
 		local tree = group_filter->tree();
-		treeLoadChilds(tree, 0, 0, "product_groups");
+		treeLoadChilds(tree, null, 0, "product_groups");
 		tree->label("----");
 	}
 
-	function get_search_data(data){
+	function get_search_options(){
 		_search_options.search_str = search_str.value();
 		_search_options.description = _search_by_description.value() == 1;
 		_search_options.notes = _search_by_notes.value() == 1;
@@ -1566,15 +1653,14 @@ class ProductsListSearch extends MyListSearchWindow {
 		_search_options.id = _search_by_id.value() == 1;
 		_search_options.active = _search_by_active.value() == 1;
 		_search_options.group_id = group_filter->get_data_at();
-		appServer.products_get_list(grid->_data, _search_options);
+		return _search_options;
+	}
+
+	function get_search_data(data, so){
+		appServer.products_get_list(grid->_data, so);
 	}
 
 	function get_edit_window(){return getChildWindow("Product Edit", MyEditProductWindow);}
-
-	function cb_btnInsert(sender, udata){
-		this = sender.window();
-		local win = showChildWindow("Product Edit", EditProductWindow);
-	}
 
 	function grid_cb(sender, udata){
 		//print("on_row_changed", sender, row);
@@ -1591,9 +1677,6 @@ class ProductsListSearch extends MyListSearchWindow {
 				}
 			}
 		}
-	}
-	function cb_btnUpdate(sender, udata){
-		print_products_list();
 	}
 }
 
@@ -1822,7 +1905,7 @@ class OrdersListSearch extends MyListSearchWindow {
 	_search_by_total = null;
 	_search_wp = null;
 
-	constructor() {
+	constructor(doInitialSearch=true) {
 		base.constructor();
 		label(_tr("Orders List Search"));
 		local cols_info = [
@@ -1843,7 +1926,7 @@ class OrdersListSearch extends MyListSearchWindow {
 		_search_by_total = create_search_by("Total");
 		_search_wp = create_search_by2("WP");
 		_search_by_entities->setonly();
-		fill_grid();
+		if(doInitialSearch) delayed_method_call(this, this.fill_grid, null);
 	}
 
 	function get_data_group_filter(data)
@@ -1851,7 +1934,7 @@ class OrdersListSearch extends MyListSearchWindow {
 		appServer.order_types_list_short(data, 0);
 	}
 
-	function get_search_data(data){
+	function get_search_options(){
 		_search_options.search_str = search_str.value();
 		_search_options.entities = _search_by_entities.value() == 1;
 		_search_options.notes = _search_by_notes.value() == 1;
@@ -1859,15 +1942,15 @@ class OrdersListSearch extends MyListSearchWindow {
 		_search_options.date = _search_by_date.value() == 1;
 		_search_options.total = _search_by_total.value() == 1;
 		_search_options.group_id = group_filter->get_data_at();
-		appServer.orders_get_list(grid->_data, _search_options);
+		return _search_options;
+	}
+
+	function get_search_data(data, so){
+		appServer.orders_get_list(grid->_data, so);
 	}
 
 	function get_edit_window(){return getChildWindow("Order Edit", MyEditOrderWindow);}
 
-	function cb_btnInsert(sender, udata){
-		this = sender.windw();
-		local win = showChildWindow("Order Edit", EditOrderWindow);
-	}
 	function mk_popup()
 	{
 		_popup = create_popup_menu_for(grid, grid->global_style().height());

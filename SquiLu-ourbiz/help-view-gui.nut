@@ -16,7 +16,7 @@ class HelpWindow extends MyBaseWindow {
   btnFontBigger = null;
   
   constructor(){
-    base.constructor(76, 128, 600, 400);
+    base.constructor(76, 128, 600, 400, _tr("Help"));
     // Create member functions and widgets
     {
       local o = Fl_Tabs(5, 5, 590, 355);

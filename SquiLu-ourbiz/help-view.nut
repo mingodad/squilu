@@ -15,6 +15,7 @@ class OurHelpWindow extends HelpWindow
 		_help_text_buffer = help_text->buffer();
 		view_html->textsize(view_html->labelsize());
 		view_html->link(hlp_link);
+		view_html->scrollbar_size(fl_width("W").tointeger());
 		btnSavehelp.callback(save_help_file);
 		btnSearchHelp.callback(on_search);
 		words_to_search.callback(on_search);
@@ -49,19 +50,20 @@ class OurHelpWindow extends HelpWindow
 		refresh_html();
 	}
 
-	function save_help_file() {
+	function save_help_file(sender, udata) {
+		this = sender->window();
 		_help_text_buffer->savefile(_help_file_name);
 		btnSavehelp->deactivate();
 	}
 
-	function on_search(){
+	function on_search(sender, udata){
+		this = sender->window();
 		search_help_file(words_to_search->value());
 	}
 
 	function search_help_file(topic, fromStart=false) {
 		words_to_search->value(topic);
 		if(!topic) return;
-
 		if(!_help_text_buffer->length()) load_help_file();
 
 		if(fromStart || words_to_search->changed2()){
@@ -75,6 +77,7 @@ class OurHelpWindow extends HelpWindow
 			foundPos = view_html->find(topic, _last_found_pos);
 			if(foundPos >= 0) _last_found_pos = foundPos;
 			else foundPos = 0;
+			view_html->redraw();
 		}
 		else
 		{

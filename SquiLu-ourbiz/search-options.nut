@@ -72,12 +72,13 @@ class OurBizSearchOptions
 		ar.push(url_encode(select_fields));
         }
 	foreach(k,v in OurBizSearchOptions){
-		local ktype = type(v);
+		local val = this[k];
+		local ktype = type(val);
 		if(ktype == "integer") {
-			if(v) ar.push(format("&%s=%d", k, v));
+			if(val) ar.push(format("&%s=%d", k, val));
 		}
 		else if(ktype == "bool"){
-			if(v) ar.push(format("&%s=1", k));
+			if(val) ar.push(format("&%s=1", k));
 		}
 	}
         return ar.concat();

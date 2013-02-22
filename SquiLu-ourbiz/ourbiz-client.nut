@@ -125,11 +125,13 @@ class HTTPConnAuthBase extends HTTPConnBase
     function response_begin( r )
     {
         base.response_begin(r);
+/*
         if(my_status != 200)
         {
 	    //foreach(k,v in get_last_stackinfo()) print(k,v)
             throw (format("HTTP Error %d", my_status));
         }
+*/
     }
 
     function send_my_request(method, uri, body=null, bodysize=null, boundary=null, useSLE=false)
@@ -171,7 +173,10 @@ class HTTPConnAuthBase extends HTTPConnBase
                 }
                 else if(my_status == 200)
                         break;
-                else throw e;
+                else {
+			//foreach(k,v in get_last_stackinfo()) print(k, v);
+			throw e;
+		}
             }
         }
     }
@@ -442,8 +447,11 @@ class AppServer
 	local ar = [];
 	pos = sle2vecOfvec(sle_str, ar, pos);
 	local keys = ar[0];
-	local values = ar[1];
-	foreach(idx, k in keys) rec[k] <- values[idx];
+	if(ar.len() > 1){
+		local values = ar[1];
+		foreach(idx, k in keys) rec[k] <- values[idx];
+	}
+	else foreach(idx, k in keys) rec[k] <- null;
 	return pos;
     }
     

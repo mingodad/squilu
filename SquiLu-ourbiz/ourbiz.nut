@@ -984,6 +984,7 @@ class DB_Orders extends DB_Manager {
 	}
 
 	function sql_search_list(qs_tbl, post_tbl){
+		//foreach(k,v in post_tbl) debug_print("\n", k, ":", v)
 		local so = get_search_options(post_tbl);
 		checkQueryStringSAB(qs_tbl, so);
 		local mf = blob();
@@ -1467,8 +1468,8 @@ function dump_group_tree_childs(parent, out_result, parent_map, data_map){
 				//debug_print(myparent, "\t", parent, "\n");
 				if (myparent != parent) break;
 				out_result.write("[");
-				add2sle(out_result, id);
-				add2sle(out_result, myparent);
+				add2sle(out_result, id.tostring());
+				add2sle(out_result, myparent.tostring());
 				add2sle(out_result, data_map[id]);
 				out_result.writen(SLE_SLEEND, 'c');
 				out_result.write("]");
@@ -1488,9 +1489,9 @@ function group_dump_data(db, out_result, tbl){
 	while (stmt.next_row()) {
 		id = stmt.col(0);
 		parent_id = stmt.col(1);
-		if (type(parent_id) == "string") parent_id = 0;
-		//debug_print(parent_id, "\t", id, "\n");
-		parent_map.push([parent_id == SQLite3.Null ? null : parent_id, id]);
+		if (type(parent_id) != "integer") parent_id = 0;
+		//debug_print("\n", parent_id, "\t", id);
+		parent_map.push([parent_id, id]);
 		group_map[id] <- stmt.col(2);
 	}
 	parent_map.sort(@(a,b) a[0] <=> b[0] );
@@ -1502,6 +1503,18 @@ function group_dump_data(db, out_result, tbl){
 	out_result.write("]");
 	dump_group_tree_childs(0, out_result, parent_map, group_map);
 	out_result.write("]");
+}
+
+function send_http_error_500(request, err_msg){
+	if(AT_DEV_DBG) {
+		foreach(k,v in get_last_stackinfo()) debug_print("\n", k, ":", v);
+		debug_print("\n", err_msg, "\n")
+	}
+	gmFile.clear();
+	gmFile.write("HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: ", err_msg.len(), "\r\n\r\n", err_msg);
+	//debug_print(tostring(gmFile), "\n")
+	request.write_blob(gmFile);
+	return true;
 }
 
 function ourbizDbMobile(request){
@@ -1569,10 +1582,15 @@ Content-Length: %d
 		}
 
 		if (sql){
-			local stmt = db.prepare(sql);
-			//debug_print(sql, "\n", db.errmsg(), "\n")
-			data = stmt.asSleArray();
-			stmt.finalize();
+			try {
+				local stmt = db.prepare(sql);
+				//debug_print(sql, "\n", db.errmsg(), "\n")
+				data = stmt.asSleArray();
+				stmt.finalize();
+			}
+			catch(e){
+				return send_http_error_500(request, e);
+			}
 		}
 		else if (gmFile.len() > 0){
 			data = gmFile.tostring();
@@ -1719,7 +1737,7 @@ function ourbizDbAction(request){
 		local db = getOurbizDB();
 		local tbl = data.get("__table__", null);
 		local action = data.get("__action__", null);
-		local result, err_msg;
+		local result;
 		//debug_print(tbl, "\n", action, "\n", data.__id__, "\n")
 		gmFile.clear();
 		local db_manager = db_ourbiz_tables.get(tbl, null);
@@ -1727,8 +1745,7 @@ function ourbizDbAction(request){
 			try {
 				result = db_manager.db_action(db, data);
 			} catch(e){
-				err_msg = e;
-				if(AT_DEV_DBG) foreach(k,v in get_last_stackinfo()) debug_print("\n", k, ":", v)
+				return send_http_error_500(request, e);
 			}
 		}
 		if (result != null){
@@ -1743,13 +1760,6 @@ function ourbizDbAction(request){
 			gmFile.writen(SLE_SLEEND, 'c');
 			gmFile.write("]]");
 			data = gmFile.tostring();
-		}
-		else if (err_msg) {
-			gmFile.clear();
-			gmFile.write("HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: ", err_msg.len(), "\r\n\r\n", err_msg);
-			//debug_print(tostring(gmFile), "\n")
-			request.write_blob(gmFile);
-			return true;
 		}
 		else data = null;
 
