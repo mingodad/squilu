@@ -989,6 +989,10 @@ dofile("calendar-gui.nut");
 dofile("calendar-utils.nut");
 dofile("base-report-A4.nut");
 dofile("invoice-A4.nut");
+dofile("order-page-gui.nut");
+dofile("print-preview-gui.nut");
+dofile("product-kit-gui.nut");
+dofile("product-prices-gui.nut");
 dofile("edit-product-window.nut");
 dofile("edit-entity-window.nut");
 dofile("edit-order-window.nut");
@@ -1042,6 +1046,7 @@ class MyListSearchWindow extends ListSearch {
 	_popup = null;
 	_search_options = null;
 	_sab = null;
+	_callee_cb = null;
 
 	constructor(){
 		base.constructor();
@@ -1061,6 +1066,10 @@ class MyListSearchWindow extends ListSearch {
 		this = sender->window();
 		row_selected(Fl_Data_Table_Events.e_insert);
 	}
+	function cb_btnSelect(sender, udata){
+		this = sender->window();
+		row_selected(Fl_Data_Table_Events.e_select);
+	}
 	function grid_cb(sender, udata){}
 	function get_edit_window(){return null;}
 	
@@ -1069,10 +1078,24 @@ class MyListSearchWindow extends ListSearch {
 		win.show();
 		win.do_edit(edit_id);
 	}
+	
+	function search_for_me(search_for_str, callee_func){
+		_callee_cb = callee_func;
+		btnSelect->activate();
+		search_str->value(search_for_str);
+		show();
+		fill_grid();
+	}
 
 	function row_selected(ev){
 		switch(ev){
 			case Fl_Data_Table_Events.e_select:
+				if(_callee_cb) {
+					_callee_cb(grid->get_row_id());
+					_callee_cb = null;
+					btnSelect->deactivate();
+					hide();
+				}
 			break;
 			case Fl_Data_Table_Events.e_insert:
 				show_edit_window(0);
@@ -1510,6 +1533,8 @@ class MyEditProductWindow extends EditProductWindow {
 	_sab = null;
 	_ourBarChart = null;
 	_ourHistory = null;
+	_ourProductKit = null;
+	_ourProductPrices = null;
 	static _history_options = [
 		"--- Select one",
 		"Sales by date",
@@ -1539,6 +1564,13 @@ class MyEditProductWindow extends EditProductWindow {
 		choice->value(0);
 		choice.callback(on_history_cb);
 		
+		_ourProductKit = new ProductKitGroup();
+		replace_widget_for(tabKit, _ourProductKit);
+		//_ourProductKit->btnShowChart.callback(on_show_chart_cb);
+
+		_ourProductPrices = new ProductPricesGroup();
+		replace_widget_for(productPrices, _ourProductPrices);
+
 		load_aux_data();
 	}
 	function do_edit_delayed(udata)
@@ -1739,12 +1771,14 @@ class MyEditOrderWindow extends EditOrderWindow {
 	_line_edit_id = null;
 	_ourBarChart = null;
 	_ourHistory = null;
+	_search_entities_window = null;
+	_search_products_window = null;
+	_ourPrintPreview = null;
 	static _history_options = [
 		"--- Select one",
 		"Sales by 80\\/20",
 		"Sales by 80\\/20 alphabetical",
 	];
-
 	
 	constructor(){
 		base.constructor();
@@ -1774,9 +1808,13 @@ class MyEditOrderWindow extends EditOrderWindow {
 		choice->value(0);
 		choice.callback(on_history_cb);
 
+		_ourPrintPreview = new PrintPreviewGroup();
+		replace_widget_for(tabPrintPreview, _ourPrintPreview);
+
 		btnCalcDelivery.callback(cb_btnCalcDelivery);
 		btnShowCalendar.callback(cb_btnShowCalendar);
 		btnSearchEntity.callback(cb_btnSearchEntity);
+		btnSearchProduct.callback(cb_btnSearchProduct);
 	}
 	function on_first_time_show(){
 		local data = [];
@@ -1871,8 +1909,65 @@ class MyEditOrderWindow extends EditOrderWindow {
 		local dc = getChildWindow("Calendar", MyCalendarWindow);
 		dc.show();
 	}
+	function getEntitiesListSearchWindow(){
+		if(!_search_entities_window){
+			_search_entities_window = new EntitiesListSearch();
+		}
+		return _search_entities_window;
+	}
+	function validate_enity_id(entity_id){
+		db_orders_entity_id->value(entity_id.tostring());
+	}
 	function cb_btnSearchEntity(sender, udata){
 		this = sender->window();
+		if(sender == db_orders_entity_name && db_orders_entity_id->value())
+		{
+		    //if we have a valid entity id we accept direct changes to entity name
+		    linesTab->value(group_lines);
+		    delayed_focus(db_orders_lines_description);
+		    return;
+		}
+		local swin = getEntitiesListSearchWindow();
+		local cb = function(entity_id) {
+				show();
+				validate_enity_id(entity_id);
+			}
+		cb.setenv(this);
+		swin->search_for_me(db_orders_entity_name->value(), cb);		
+	}
+	
+	function getProductsListSearchWindow(){
+		if(!_search_products_window){
+			_search_products_window = new ProductsListSearch();
+		}
+		return _search_products_window;
+	}
+	function validate_product_id(product_id){
+		db_orders_lines_product_id->value(product_id.tostring());
+	}
+	function cb_btnSearchProduct(sender, udata){
+		this = sender->window();
+		if(sender == db_orders_lines_description)
+		{
+		    if(db_orders_lines_product_id->value())
+		    {
+			//if we have a valid product id we accept direct changes to product description
+			return;
+		    }
+		    local description = db_orders_lines_description->value();
+		    if(!description.len())
+		    {
+			//empty description do nothing
+			return;
+		    }
+		}
+		local swin = getProductsListSearchWindow();
+		local cb = function(product_id) {
+				show();
+				validate_product_id(product_id);
+			}
+		cb.setenv(this);
+		swin->search_for_me(db_orders_lines_description->value(), cb);		
 	}
 		
 	function on_show_chart_cb(sender, udata){

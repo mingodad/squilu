@@ -71,7 +71,7 @@ function BuildGrammar(){
 	local list1 = [  "comment", "code", "decl", "MenuItem", "Fl_" ];
 	local list2 = [ "class", "codeblock", "declblock", "Fl_Window", "Fl_Group", "widget_class",
 		"Fl_Choice", "Fl_Input_Choice", "Submenu", "Function", "Fl_Scroll", "Fl_Menu_Bar", 
-		"Fl_Tabs", "Fl_Menu_Button", "Fl_Wizard", "Fl_Pack", "Fl_Tile", "Fl_Table", "Fl_Tree" ];
+		"Fl_Tabs", "Fl_Menu_Button", "Fl_Wizard", "Fl_Pack", "Fl_Tile", "Fl_Table" /*, "Fl_Tree"*/ ];
 	local list3 = [ "version", "header_name", "code_name", "gridx", "gridy", "snap", 
 		"i18n_type", "i18n_include", "i18n_function", "i18n_file", "i18n_set" ];
 	local str_methods = [ "tooltip", "type", "box", "down_box", "xclass", "labeltype" ];
@@ -137,7 +137,6 @@ function GetItem(pos, type, parent=null){
 	source_file.find_lua("^%s*(%b{})%s+", function(start, end, match){
 		p1 = start; p2 = end; item = match;
 	}, pos);
-	//print("pos",pos, source_file.slice(pos, pos+30))
 	assert(p1);
 
 	local content = item.slice(1,-1);
@@ -230,7 +229,7 @@ Write.Function <- function(t, ind){
 	t.varname <- "res";
 	Write.group(t.body, ind+1);
 	local names = [];
-	foreach(i in t.body) names.push(i.varname);
+	foreach(i in t.body) names.push(i.get("varname", null));
 	if (names.len() > 0) Output(ind+1, "return %s;\n", names.concat(", "));
 	Output(ind, "}\n\n");
 }
@@ -344,7 +343,7 @@ Write.widget <- function(t, ind){
 	if (t.attr.get("non_modal", false)) Output(ind, "%s.set_non_modal();\n", name);
 	for(local i=0; i <= 3; ++i){
 		local code = t.attr.get("code" + i, false);
-		if (code) {
+		if (code && code.len()) {
 			if(code[0] == '='){
 				code = code.slice(1);
 				local macro = t.attr.get("macro_name", false);
@@ -517,21 +516,23 @@ Write.widget_class <- function(t, ind){
 	local typeName;
 	//if (t.attr.get("class", false) && t.attr["class"].match("^Fl_")) typeName = "fltk." + t.attr["class"];
 	//else  
-	typeName = t.attr["class"];
+	typeName = t.attr.get("class", "Fl_Group");
 
-	local widgetType = typeName || "Fl_Group";
+	local widgetType = typeName;
 	Output(ind, "class %s extends %s {\n", t.name, widgetType);
 	Output(ind+1, "\n")	;
 
 	FindMembers.group(t.body, vars);
 	WriteVariables(ind+1, vars, "class members");
 	
-	local strCreateWidget = format("constructor(){\n");
-	Output(ind+1, strCreateWidget);
 	local ar = t.attr.xywh;
 	local x = ar[0], y = ar[1], w = ar[2], h = ar[3];
 	local wlabel = t.attr.get("label", false);
-	Output(ind+2, "base.constructor(%d, %d, %d, %d%s);\n", x, y, w, h, wlabel ? format(", _tr(\"%s\")", wlabel): "");
+
+	local strCreateWidget = format("constructor(px=%d, py=%d, pw=%d, ph=%d, pl=%s){\n",
+		x, y, w, h, wlabel ? format("_tr(\"%s\")", wlabel): "null");
+	Output(ind+1, strCreateWidget);
+	Output(ind+2, "base.constructor(px, py, pw, ph, pl);\n");
 	if (! (t.attr.get("class", "")).match("_Window$") ) {
 		t.xoffset <- "_x + ";
 		t.yoffset <- "_y + ";
@@ -691,7 +692,70 @@ if (vargv.len() > 0){
 	local config = rc[0], infile = rc[1], outfile = rc.get(2, "-"); 
 	Fluid2SquiLu(infile, outfile, config);
 }
+
+local isDebugging = false;
+
+function mydebughook(event_type,sourcefile,line,funcname)
+{
+	if(line == 140 || (isDebugging && event_type == 'l')){
+/*
+		foreach(k,v in getstackinfos(2)) {
+			if(type(v) == "table") {
+				foreach(k2, v2 in v) print(k2,v2);
+			}
+			else print(k,v);
+		}
+*/
+		local pos = getstackinfos(2).locals.get("pos", false);
+		if(isDebugging || pos == 8926) {
+			foreach(k,v in getstackinfos(2)) {
+				if(type(v) == "table") {
+					foreach(k2, v2 in v) {
+						local val = v2;
+						if(type(val) == "string"){
+							if(val.len() > 30) val = val.slice(0,30);
+						}
+						print(k2,val);
+					}
+				}
+				else print(k,v);
+			}
+			print("Debug stop. Press 'c' to continue, 'n' to line step !", line);
+			local cmd = stdin.readn('c');
+			switch(cmd){
+				case 'c': isDebugging = false; break;
+				case 'n': isDebugging = true; break;
+			}
+		}
+	}
+/*
+	local fname=funcname ? funcname:"unknown";
+	local srcfile=sourcefile ? sourcefile:"unknown"
+	switch (event_type) {
+		case 'l': //called every line(that contains some code)
+			::print("LINE line [" + line + "] func [" + fname + "]");
+			::print("file [" + srcfile + "]\n");
+		break;
+		case 'c': //called when a function has been called
+			::print("LINE line [" + line + "] func [" + fname + "]");
+			::print("file [" + srcfile + "]\n");
+		break;
+		case 'r': //called when a function returns
+			::print("LINE line [" + line + "] func [" + fname + "]");
+			::print("file [" + srcfile + "]\n");
+		break;
+	}
+*/
+}
+//enabledebuginfo(true);
+//setdebughook(mydebughook);
+
+//Fluid2SquiLu("ourbiz-gui.fl", "-", {});
 //Fluid2SquiLu("entity-edit-gui.fl", "-", {});
 //Fluid2SquiLu("orders-edit-gui.fl", "-", {});
 //Fluid2SquiLu("barchart-gui.fl", "-", {});
-Fluid2SquiLu("history-gui.fl", "-", {});
+//Fluid2SquiLu("history-gui.fl", "-", {});
+//Fluid2SquiLu("product-kit-gui.fl", "-", {});
+//Fluid2SquiLu("product-prices-gui.fl", "-", {});
+//Fluid2SquiLu("print-preview-gui.fl", "-", {});
+//Fluid2SquiLu("order-page-gui.fl", "-", {});

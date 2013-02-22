@@ -1,4 +1,4 @@
- # data file for the Fltk User Interface Designer (fluid)
+# data file for the Fltk User Interface Designer (fluid)
 version 1.0302 
 i18n_type 1 
 i18n_include i18n_function.h 
@@ -6,9 +6,9 @@ i18n_function _tr
 header_name {.h} 
 code_name {.cxx}
 widget_class EditEntitiesWindow {
-  label {Edit Entity} selected
-  xywh {54 85 800 560} type Double hide resizable
-  class Edit_Base_Window
+  label {Edit Entity} open
+  xywh {54 85 800 560} type Double resizable
+  class Edit_Base_Window visible
 } {
   Fl_Output db_entities_id {
     macro_name {db entities id}
@@ -188,20 +188,21 @@ widget_class EditEntitiesWindow {
         }
         Fl_Button btnDbAction {
           label Action
-          dirty_name {@btnDbAction}
+          dirty_name btnDbAction
           xywh {675 470 110 25} labelsize 16
         }
         Fl_Choice dbAction {
           label Action
-          dirty_name {@dbAction} open
+          dirty_name dbAction open
           xywh {675 520 110 25} down_box BORDER_BOX labelsize 16 align 1 textsize 16
+          class Fl_Choice_dbAction
         } {}
       }
       Fl_Tabs {} {open
         xywh {15 375 650 181} selection_color 4 labelsize 16 labelcolor 7
       } {
         Fl_Group tabNotes {
-          label Notes open
+          label Notes open selected
           xywh {15 405 650 150} labelsize 16
         } {
           Fl_Input db_entities_notes {
@@ -241,8 +242,6 @@ widget_class EditEntitiesWindow {
       }
       Fl_Check_Button {} {
         label {Wrap lines}
-        callback {db_entities_notes->wrap_mode(o->value(), 0);
-db_entities_tags->wrap_mode(o->value(), 0);}
         xywh {375 380 102 25} down_box DOWN_BOX value 1 labelsize 16
       }
     }
