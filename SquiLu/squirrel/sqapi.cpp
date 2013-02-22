@@ -1303,7 +1303,7 @@ void sq_getlaststackinfo(HSQUIRRELVM v)
 
 const SQChar *sq_getlasterror_str(HSQUIRRELVM v)
 {
-	return _string(v->_lasterror)->_val;
+	return _stringval(v->_lasterror);
 }
 
 SQRESULT sq_reservestack(HSQUIRRELVM v,SQInteger nsize)
