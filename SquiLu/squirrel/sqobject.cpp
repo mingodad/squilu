@@ -223,6 +223,15 @@ const SQChar* SQFunctionProto::GetLocal(SQVM *vm,SQUnsignedInteger stackbase,SQU
 
 SQInteger SQFunctionProto::GetLine(SQInstruction *curr)
 {
+	SQInteger op = (SQInteger)(curr-_instructions);
+	SQInteger line=_lineinfos[0]._line;
+	for(SQInteger i=1;i<_nlineinfos;i++){
+		if(_lineinfos[i]._op>=op)
+			return line;
+		line=_lineinfos[i]._line;
+	}
+	return line;
+#if 0
     SQInteger op = (SQInteger)(curr-_instructions);
     SQInteger low = 0;
     SQInteger high = _nlineinfos - 1;
@@ -250,6 +259,7 @@ SQInteger SQFunctionProto::GetLine(SQInstruction *curr)
     while(_lineinfos[mid]._op > op && mid >= 0) mid--;
 
     return _lineinfos[mid]._line;
+#endif
 }
 
 SQClosure::~SQClosure()
