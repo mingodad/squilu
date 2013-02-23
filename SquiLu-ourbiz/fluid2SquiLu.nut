@@ -421,7 +421,7 @@ Write.MenuItem <- function(t, ind){
 	else
 	{
 		//Output(ind, "%s:add(%q", w.varname, t.path)
-		Output(ind, "%s(%q)", configuration.textfilter, t.path);
+		Output(ind, "o.add(%s(%q)", configuration.textfilter, t.path);
 	}
 
 	Output(0, ", %s", t.attr.get("shortcut", "0").tostring());
