@@ -1055,9 +1055,25 @@ static SQRESULT _Fl_Menu_Item_pulldown(HSQUIRRELVM v)
     return 1;
 }
 
+static SQRESULT _Fl_Menu_Item_activate(HSQUIRRELVM v)
+{
+    SETUP_FL_MENU_ITEM(v);
+    self->activate();
+    return 0;
+}
+
+static SQRESULT _Fl_Menu_Item_deactivate(HSQUIRRELVM v)
+{
+    SETUP_FL_MENU_ITEM(v);
+    self->deactivate();
+    return 0;
+}
+
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Menu_Item_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_menu_item_obj_funcs[]={
 	_DECL_FUNC(pulldown,-5, _SC("xiiii x|o x|o x|o i"), SQFalse),
+	_DECL_FUNC(activate,1, _SC("x"), SQFalse),
+	_DECL_FUNC(deactivate,1, _SC("x"), SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC

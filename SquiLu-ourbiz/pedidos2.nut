@@ -294,11 +294,20 @@ class Fl_Multiline_Input extends Fl_Input {
 	}
 }
 
+local function _do_delayed_focus (widget){
+	widget->take_focus();
+}
+function delayed_focus (widget){
+	Fl.add_timeout(0.05, _do_delayed_focus, widget);
+}
+
 dofile("pedidos2-gui.nut");
 
 class Pedidos2 extends PedidosWindow {
   
 	// Declaration of class members
+	menu_bar_deactivated_menus = null;
+	pedidos_edit_record = null;
   
 	constructor(){
 		base.constructor();
@@ -325,6 +334,22 @@ class Pedidos2 extends PedidosWindow {
 		
 		return base.handle(event);
 	}
+	
+	function reset_menus_desactivados(){
+		if (menu_bar_deactivated_menus){
+			local mb = menu_bar;
+			foreach(k,v in menu_bar_deactivated_menus) mb.menu_at(v).deactivate();
+		}
+	}
+	
+	function reset_menus_desactivados_activando(list){
+		if (menu_bar){
+			local mb = menu_bar;
+			reset_menus_desactivados();
+			foreach(k,v in list) mb.menu_at(v).activate();
+		}
+	}
+	
 	function menu_bar_navigate(){
 		local mb = menu_bar;
 		local v = mb.menu().pulldown(mb.x(), mb.y(), mb.w(), mb.h(), mb.menu_at(0), mb, null, 1);
@@ -334,6 +359,16 @@ class Pedidos2 extends PedidosWindow {
 	}
 	function mostrar_ventana_pedido(){
 		tabs.value(tab_pedido);
+		if (pedidos_edit_record && pedidos_edit_record.id)
+			delayed_focus(pedido_lineas_codigo);
+		else
+			delayed_focus(pedidos_cliente_codigo_r);
+
+		reset_menus_desactivados_activando([
+				menu_pedido_guardar,
+				menu_pedido_borrar,
+				menu_pedido_imprimir,
+			]);
 	}
 	function mostrar_ventana_pedidos(){
 		tabs.value(tab_pedidos_lista);
