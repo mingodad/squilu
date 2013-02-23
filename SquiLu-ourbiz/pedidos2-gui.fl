@@ -1,0 +1,524 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+header_name {.h} 
+code_name {.cxx}
+widget_class PedidosWindow {
+  label Pedidos open
+  xywh {74 62 800 560} type Double labelsize 16 resizable
+  class Base_Window visible
+} {
+  Fl_Menu_Bar menu_bar {open
+    xywh {0 0 800 25} labelsize 16 textsize 16
+  } {
+    Submenu menu_pedido {
+      label {&Pedido (F2)}
+      callback {on_menu_pedido_cb(self)} open
+      xywh {15 15 77 25} labelsize 16
+    } {
+      MenuItem menu_pedido_nuevo {
+        label {Crear un nuevo Pedido}
+        xywh {15 15 37 25} shortcut 0x4006e labelsize 16
+      }
+      MenuItem menu_pedido_guardar {
+        label {Guardar el Pedido}
+        xywh {15 15 37 25} labelsize 16 deactivate
+      }
+      MenuItem menu_pedido_borrar {
+        label {Borrar el  Pedido}
+        xywh {15 15 37 25} labelsize 16 deactivate divider
+      }
+      MenuItem menu_pedido_imprimir {
+        label {Imprimir el Pedido}
+        xywh {15 15 37 25} labelsize 16 deactivate
+      }
+    }
+    Submenu menu_pedidos {
+      label {Pedidos (F3)} open
+      xywh {0 0 77 25} labelsize 16
+    } {
+      MenuItem menu_pedidos_mostrar_existentes {
+        label {Listado de Pedidos existentes}
+        xywh {0 0 37 25} labelsize 16
+      }
+      MenuItem menu_pedidos_modificar_existente {
+        label {Modificar el Pedido selecionado}
+        xywh {0 0 37 25} labelsize 16
+      }
+      MenuItem menu_pedidos_borrar_existente {
+        label {Borrar el Pedido selecionado}
+        xywh {0 0 37 25} labelsize 16 deactivate divider
+      }
+      MenuItem menu_pedidos_imprimir_selecionados {
+        label {Imprimir los Pedidos selecionados}
+        xywh {10 10 37 25} labelsize 16
+      }
+      MenuItem menu_pedidos_imprimir_todos {
+        label {Imprimir todos pedidos aun no impresos}
+        xywh {0 0 37 25} labelsize 16
+      }
+    }
+    Submenu menu_clientes {
+      label {&Clientes (F4)} open
+      xywh {20 20 77 25} labelsize 16
+    } {
+      MenuItem menu_clientes_mostrar_existentes {
+        label {Listado de clientes existentes}
+        xywh {20 20 37 25} labelsize 16
+      }
+      MenuItem menu_clientes_nuevo {
+        label {Añadir un nuevo cliente}
+        xywh {20 20 37 25} labelsize 16
+      }
+      MenuItem menu_clientes_guardar {
+        label {Modificar un cliente existente}
+        xywh {20 20 37 25} labelsize 16 deactivate
+      }
+      MenuItem menu_clientes_borrar {
+        label {Borrar un cliente existente}
+        xywh {20 20 37 25} labelsize 16 deactivate divider
+      }
+      MenuItem menu_clientes_importar {
+        label {Importar clientes}
+        xywh {20 20 37 25} labelsize 16
+      }
+      MenuItem menu_clientes_exportar {
+        label {Exportar clientes}
+        xywh {10 10 37 25} labelsize 16
+      }
+    }
+    Submenu menu_articulos {
+      label {&Artículos (F5)} open
+      xywh {10 10 77 25} labelsize 16
+    } {
+      MenuItem menu_articulos_mostrar_existentes {
+        label {Listado de articulos existentes}
+        xywh {10 10 37 25} labelsize 16
+      }
+      MenuItem menu_articulos_nuevo {
+        label {Añadir un nuevo artículo}
+        xywh {10 10 37 25} labelsize 16
+      }
+      MenuItem menu_articulos_guardar {
+        label {Modificar un artículo existente}
+        xywh {10 10 37 25} labelsize 16 deactivate
+      }
+      MenuItem menu_articulos_borrar {
+        label {Borrar un artículo existente}
+        xywh {10 10 37 25} labelsize 16 deactivate divider
+      }
+      MenuItem menu_articulos_importar {
+        label {Importar artículos}
+        xywh {10 10 37 25} labelsize 16
+      }
+      MenuItem menu_articulos_exportar {
+        label {Exportar artículos}
+        xywh {0 0 37 25} labelsize 16
+      }
+    }
+    Submenu menu_totales {
+      label {&Totales (F6)} open
+      xywh {35 35 77 25} labelsize 16
+    } {
+      MenuItem menu_totales_mostrar_existentes {
+        label {Listado de totales existentes}
+        xywh {35 35 37 25} labelsize 16
+      }
+      MenuItem menu_articulos_imprimir {
+        label {Exportar totales}
+        xywh {25 25 37 25} labelsize 16
+      }
+    }
+    Submenu menu_opciones {
+      label {&Opciones (F9)} open
+      xywh {0 0 77 25} labelsize 16
+    } {
+      MenuItem menu_preguntar_por_impresora {
+        label {Preguntar por impresora}
+        xywh {0 0 37 25} type Toggle labelsize 16 divider
+      }
+      MenuItem menu_imprimir_papel_A4 {
+        label {Imprimir en papel A4}
+        xywh {0 0 37 25} type Radio value 1 labelsize 16
+      }
+      MenuItem menu_imprimir_papel_A5 {
+        label {Imprimir en papel A5}
+        xywh {10 10 37 25} type Radio labelsize 16 divider
+      }
+      MenuItem theme_default {
+        label {Tema por defecto}
+        xywh {0 0 37 25} type Radio value 1
+      }
+      MenuItem theme_gtk {
+        label {Tema GTK+}
+        xywh {10 10 37 25} type Radio
+      }
+      MenuItem theme_plastic {
+        label {Tema Plastico}
+        xywh {20 20 37 25} type Radio
+      }
+    }
+    MenuItem menu_salir {
+      label {&Salir}
+      xywh {0 0 37 25} shortcut 0x80073 labelsize 16
+    }
+  }
+  Fl_Tabs tabs {open
+    xywh {0 25 800 504} labeltype NO_LABEL labelsize 16 labelcolor 7 resizable
+  } {
+    Fl_Group tab_pedido {
+      label {Pedido (F2)} open selected
+      xywh {0 25 800 504} labeltype NO_LABEL labelsize 16
+    } {
+      Fl_Group grupo_pedido_cliente {
+        label {@2 Cliente @2} open
+        xywh {10 47 780 88} box ENGRAVED_BOX color 246 labelsize 16 labelcolor 66
+      } {
+        Fl_Input pedidos_cliente_codigo_r {
+          label {Código}
+          macro_name {pedidos cliente_codigo r}
+          xywh {91 59 100 28} labelsize 16 textsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+        Fl_Output pedidos_numero_r {
+          label {Número}
+          macro_name {pedidos numero r}
+          xywh {425 59 134 28} labelsize 16 textsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+        Fl_Output pedidos_fecha_r {
+          label Fecha
+          macro_name {pedidos fecha r}
+          xywh {646 59 134 28} labelsize 16 textsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+        Fl_Input pedidos_cliente_nombre_r {
+          label Nombre
+          macro_name {pedidos cliente_nombre r}
+          xywh {91 97 694 28} labelsize 16 textsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+      }
+      Fl_Browser grid_pedido_lineas {
+        label {@2 Lineas del Pedido @2}
+        xywh {10 145 780 230} type Multi box ENGRAVED_BOX color 175 labelsize 16 align 1 textsize 16 resizable
+        class Fl_Data_Table
+      }
+      Fl_Group grupo_pedido_lineas {
+        label {@2 Añadir / Editar / Borar Artículo @2} open
+        xywh {10 403 780 121} box ENGRAVED_BOX color 167 labelsize 16 labelcolor 57
+      } {
+        Fl_Input pedido_lineas_descripcion {
+          label Descripcion
+          macro_name {pedido_lineas descripcion}
+          xywh {24 430 756 28} labelsize 16 align 5 textsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+        Fl_Input pedido_lineas_codigo_r {
+          label {Código}
+          macro_name {pedido_lineas codigo r}
+          tooltip {Para un nuevo pedido pulsar +} xywh {24 486 100 28} labelsize 16 align 5 when 1 textsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+        Fl_Input pedido_lineas_bultos {
+          label Bultos
+          macro_name {pedido_lineas bultos}
+          xywh {134 486 90 28} type Float labelsize 16 align 5 textsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+        Fl_Choice pedido_lineas_envase {
+          label Envase
+          macro_name {pedido_lineas envase} open
+          xywh {234 486 141 28} down_box BORDER_BOX labelsize 16 align 5 textsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        } {}
+        Fl_Input pedido_lineas_peso {
+          label Kilos
+          macro_name {pedido_lineas peso}
+          xywh {385 486 90 28} type Float labelsize 16 align 5 textsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+        Fl_Input pedido_lineas_cantidad {
+          label Unidades
+          macro_name {pedido_lineas cantidad}
+          xywh {485 486 90 28} type Float labelsize 16 align 5 textsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+        Fl_Button btnImprimirPedido {
+          label {&Imprimir}
+          xywh {660 486 120 28} labelsize 16
+        }
+      }
+      Fl_Output lines_count {
+        label {@<- Lineas}
+        xywh {20 374 30 28} box NO_BOX labelsize 16 align 8 textsize 16
+      }
+    }
+    Fl_Group tab_pedidos_lista {
+      label {Pedidos (F3)} open
+      xywh {0 25 800 504} labeltype NO_LABEL labelsize 16 hide
+    } {
+      Fl_Browser grid_pedidos {
+        label {@2 Lista de Pedidos @2}
+        tooltip {Para ver o editar un pedido seleccionar y presionar la barra de espacio} xywh {10 38 780 405} type Multi box ENGRAVED_BOX color 175 labelsize 16 align 17 textsize 16 resizable
+        class Fl_Data_Table
+      }
+      Fl_Button btnActualizarPedidos {
+        label Actualizar
+        xywh {10 453 120 28} labelsize 16
+      }
+      Fl_Button btnImprimirTodosPedidos {
+        label {Imprimir Todos}
+        xywh {140 453 145 28} labelsize 16
+      }
+      Fl_Button btnExportarPedidos {
+        label Exportar
+        xywh {295 453 120 28} labelsize 16
+      }
+      Fl_Button btnImportarPedidos {
+        label Importar
+        xywh {425 453 120 28} labelsize 16
+      }
+      Fl_Button btnBorrarTodosPedidos {
+        label {Borrar Todos}
+        xywh {670 453 120 28} color 90 labelsize 16 labelcolor 7
+      }
+    }
+    Fl_Group tab_clientes_lista {
+      label {Clientes (F4)} open
+      xywh {0 25 800 504} labeltype NO_LABEL labelsize 16 hide
+    } {
+      Fl_Browser grid_clientes {
+        label {@2 Lista de Clientes @2}
+        xywh {10 38 780 249} type Multi box ENGRAVED_BOX color 175 labelsize 16 align 17 textsize 16 resizable
+        class Fl_Data_Table
+      }
+      Fl_Group editClienteGroup {
+        label {@2 Datos del Cliente @2} open
+        xywh {10 336 780 185} box ENGRAVED_BOX color 246 labelsize 16 labelcolor 66 align 5
+      } {
+        Fl_Input clientes_nombre {
+          label Nombre
+          macro_name {clientes nombre}
+          xywh {91 348 684 28} labelsize 16 textsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+        Fl_Input clientes_codigo {
+          label {Código}
+          macro_name {clientes codigo}
+          xywh {91 386 100 28} labelsize 16 textsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+        Fl_Input clientes_telefono {
+          label {Teléfono}
+          macro_name {clientes telefono}
+          xywh {285 386 100 28} labelsize 16 textsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+        Fl_Check_Button clientes_activo {
+          label Activo
+          macro_name {clientes activo}
+          xywh {405 390 82 20} down_box DOWN_BOX labelsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+        Fl_Button btnGuardarCliente {
+          label Guardar
+          xywh {655 386 120 28} labelsize 16
+        }
+        Fl_Input clientes_observaciones {
+          label {Obs.}
+          macro_name {clientes observaciones}
+          xywh {90 422 685 86} type Multiline labelsize 16 align 7 textsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+      }
+      Fl_Button btnActualizarClientes {
+        label Actualizar
+        xywh {540 300 120 28} labelsize 16
+      }
+      Fl_Button btnImportarClientes {
+        label Importar
+        xywh {670 300 120 28} labelsize 16
+      }
+    }
+    Fl_Group tab_articulos_lista {
+      label {Artículos (F5)} open
+      xywh {0 25 800 504} labeltype NO_LABEL labelsize 15 hide
+    } {
+      Fl_Browser grid_articulos {
+        label {@2 Lista de Artículos @2}
+        xywh {10 38 780 254} type Multi box ENGRAVED_BOX color 175 labelsize 16 align 17 textsize 16 resizable
+        class Fl_Data_Table
+      }
+      Fl_Group articuloEditGroup {
+        label {@2 Datos del Artículo @2} open
+        xywh {10 338 780 183} box ENGRAVED_BOX color 246 labelsize 16 labelcolor 66 align 5
+      } {
+        Fl_Input articulos_descripcion {
+          label {Descripción}
+          macro_name {articulos descripcion}
+          xywh {108 348 672 28} labelsize 16 textsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+        Fl_Input articulos_codigo {
+          label {Código}
+          macro_name {articulos codigo}
+          xywh {90 386 100 28} labelsize 16 textsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+        Fl_Check_Button articulos_activo {
+          label Activo
+          macro_name {articulos activo}
+          xywh {205 390 82 20} down_box DOWN_BOX labelsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+        Fl_Button btnGuardarArticulo {
+          label Guardar
+          xywh {660 386 120 28} labelsize 16 when 8
+        }
+        Fl_Input articulos_observaciones {
+          label {Obs.}
+          macro_name {articulos observaciones}
+          xywh {90 422 690 86} type Multiline labelsize 16 align 7 textsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+        Fl_Check_Button articulos_activo {
+          label Unidades
+          macro_name {articulos activo}
+          xywh {297 390 95 20} down_box DOWN_BOX labelsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+        Fl_Check_Button articulos_use_peso {
+          label Peso
+          macro_name {articulos use_peso}
+          xywh {402 390 95 20} down_box DOWN_BOX labelsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+        Fl_Check_Button articulos_use_bultos {
+          label Bultos
+          macro_name {articulos use_bultos}
+          xywh {507 390 95 20} down_box DOWN_BOX labelsize 16
+          code0 {=add_input_field_to_map("$(0)", "$(1)", $(name));}
+        }
+      }
+      Fl_Button btnActualizarArticulos {
+        label Actualizar
+        xywh {540 302 120 28} labelsize 16
+      }
+      Fl_Button btnImportarArticulos {
+        label Importar
+        xywh {670 302 120 28} labelsize 16
+      }
+    }
+    Fl_Group tab_totales {
+      label {Totales (F6)} open
+      xywh {0 25 800 504} labeltype NO_LABEL labelsize 16 hide
+    } {
+      Fl_Browser grid_totales {
+        label {@2 Totales @2}
+        xywh {10 35 780 202} type Multi box ENGRAVED_BOX color 175 labelsize 16 align 17 textsize 16 resizable
+        class Fl_Data_Table
+      }
+      Fl_Browser grid_detalle_totales {
+        label {@2 Detalle del Total @2}
+        xywh {10 241 780 202} type Multi box ENGRAVED_BOX color 175 labelsize 16 align 17 textsize 16
+        class Fl_Data_Table
+      }
+      Fl_Button btnActualizarTotales {
+        label Actualizar
+        xywh {10 453 120 28} labelsize 16
+      }
+      Fl_Button btnImprimirTotales {
+        label Imprimir
+        xywh {140 453 120 28} labelsize 16
+      }
+      Fl_Button btnCrearCierreTotales {
+        label {Crear Cierre}
+        xywh {670 453 120 28} labelsize 16
+      }
+    }
+    Fl_Group tab_opciones {
+      label {Opciones (F9)} open
+      xywh {0 25 800 504} labeltype NO_LABEL labelsize 16 hide
+    } {
+      Fl_Group grupo_opciones_impresora {
+        label {Impresión} open
+        xywh {10 60 255 95} box ENGRAVED_BOX color 246 labelsize 18
+      } {
+        Fl_Check_Button preguntar_por_impresora {
+          label {Preguntar por impresora}
+          xywh {20 70 235 28} down_box DOWN_BOX labelsize 16
+        }
+        Fl_Round_Button imprimir_papel_A4 {
+          label {Papel A4}
+          xywh {20 100 100 20} type Radio down_box ROUND_DOWN_BOX value 1 labelsize 16
+        }
+        Fl_Round_Button imprimir_papel_A5 {
+          label {Papel A5}
+          xywh {20 125 100 20} type Radio down_box ROUND_DOWN_BOX labelsize 16
+        }
+      }
+      Fl_Button btnFechaTrabajo {
+        label Fecha
+        xywh {10 165 65 28} labelsize 16
+        code0 {o.hide();}
+      }
+      Fl_Input fecha_de_trabajo {
+        xywh {85 165 118 28} labeltype NO_LABEL labelsize 16 textsize 16
+        code0 {o.hide();}
+      }
+      Fl_Input lista_de_envases {
+        label {Envases (uno por linea)}
+        xywh {10 224 251 258} type Multiline labelsize 16 align 5 textsize 16
+      }
+      Fl_Button btnGuardarEnvases {
+        label {Guardar Envases}
+        xywh {10 492 251 28} labelsize 16
+      }
+    }
+  }
+  Fl_Group status_bar {open
+    xywh {0 530 800 30} box ENGRAVED_BOX color 7 labelsize 16 align 20
+  } {}
+} 
+
+widget_class AyudaWindow {
+  label Ayuda open
+  xywh {31 51 470 390} type Double hide
+  class Fl_Double_Window
+} {
+  Fl_Input ayuda_texto {
+    label Ayuda
+    xywh {10 25 452 313} type Multiline labelsize 16 align 5 textsize 16
+  }
+  Fl_Button btnGuardarAyuda {
+    label Guardar
+    xywh {178 348 115 33} labelsize 16
+  }
+} 
+
+widget_class Ayuda2Window {
+  label Ayuda open
+  xywh {75 157 565 390} type Double hide resizable
+  class Fl_Double_Window
+} {
+  Fl_Group {} {open
+    xywh {10 348 549 34}
+  } {
+    Fl_Input texto_a_buscar {
+      label {Texto a buscar}
+      xywh {10 349 299 33} labelsize 18 align 5 textsize 18 resizable
+    }
+    Fl_Button btnBuscarAyuda {
+      label Buscar
+      xywh {319 349 115 33} labelsize 16
+    }
+    Fl_Button btnGuardarAyuda {
+      label Guardar
+      xywh {444 349 115 33} labelsize 16
+    }
+  }
+  Fl_Text_Editor ayuda_texto {
+    xywh {10 10 550 308} labelsize 18 textsize 18 resizable
+    class Fl_Text_Editor_Buffered
+  }
+} 
