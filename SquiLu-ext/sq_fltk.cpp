@@ -480,7 +480,7 @@ GETINSTANCE_FOR_FL_KLASS(Fl_Group);
 #define SETUP_FL_IMAGE(v) SETUP_FL_IMAGE_AT(v, 1, self)
 
 
-static SQRESULT fltk_pushinstance(HSQUIRRELVM v, const SQChar *klass, SQUserPointer self){
+static SQRESULT fltk_pushinstance(HSQUIRRELVM v, const SQChar *klass, const SQUserPointer self){
 	if(fltk_get_registered_instance(v, self) == SQ_OK) return 1;
 	sq_pushstring(v, klass,-1);
 	if(sq_getonroottable(v) == SQ_OK){
@@ -1014,17 +1014,55 @@ static SQRegFunction fl_round_button_obj_funcs[]={
 };
 #undef _DECL_FUNC
 
-/*
-FLTK_CONSTRUCTOR(Fl_Menu_Item);
-#define _DECL_FL_MENU_ITEM_FUNC(name,nparams,pmask) {_SC(#name),_Fl_Menu_Item_##name,nparams,pmask,isStatic}
+#define SETUP_FL_MENU__AT(v, idx, Var) SETUP_FL_KLASS_AT(v, idx, Var, Fl_Menu_)
+#define SETUP_FL_MENU_(v) SETUP_FL_MENU__AT(v, 1, self)
+
+#define SETUP_FL_MENU_ITEM_AT(v, idx, Var) SETUP_FL_KLASS_AT(v, idx, Var, Fl_Menu_Item)
+#define SETUP_FL_MENU_ITEM(v) SETUP_FL_MENU_ITEM_AT(v, 1, self)
+#define FL_MENU_ITEM_GETSET_INT_CAST(funcNAME, typeNAME) FUNC_GETSET_INT(_Fl_Menu_Item_, SETUP_FL_MENU_ITEM, self->, funcNAME, typeNAME)
+#define FL_MENU_ITEM_GETSET_INT(funcNAME) FL_MENU_ITEM_GETSET_INT_CAST(funcNAME, int)
+#define FL_MENU_ITEM_GETSET_BOOL(funcNAME) FUNC_GETSET_BOOL(_Fl_Menu_Item_, SETUP_FL_MENU_ITEM, self->,funcNAME)
+#define FL_MENU_ITEM_GET_BOOL(funcNAME) FUNC_GET_BOOL(_Fl_Menu_Item_, SETUP_FL_MENU_ITEM, funcNAME)
+
+static SQRESULT _Fl_Menu_Item_pulldown(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SETUP_FL_MENU_ITEM(v);
+    const Fl_Menu_Item *mi = 0;
+    SQ_GET_INTEGER(v, 2, x);
+    SQ_GET_INTEGER(v, 3, y);
+    SQ_GET_INTEGER(v, 4, w);
+    SQ_GET_INTEGER(v, 5, h);
+    if(_top_ > 5) {
+        Fl_Menu_Item *picked =0, *title = 0;
+        Fl_Menu_ *mn = 0;
+
+        if(sq_gettype(v, 6) != OT_NULL)
+            if(SQ_FAILED(sq_getinstanceup(v,6,(SQUserPointer*)&picked,(void*)FLTK_TAG(Fl_Menu_Item)))) return SQ_ERROR;
+
+        if(sq_gettype(v, 7) != OT_NULL)
+            if(SQ_FAILED(sq_getinstanceup(v,7,(SQUserPointer*)&mn,(void*)FLTK_TAG(Fl_Menu_)))) return SQ_ERROR;
+
+        if(sq_gettype(v, 8) != OT_NULL)
+            if(SQ_FAILED(sq_getinstanceup(v,8,(SQUserPointer*)&title,(void*)FLTK_TAG(Fl_Menu_Item)))) return SQ_ERROR;
+
+        SQ_OPT_INTEGER(v, 9, menubar, 0);
+        mi = self->pulldown(x, y, w, h, picked, mn, title, menubar);
+    }
+    else mi = self->pulldown(x, y, w, h);
+    if(mi) return fltk_pushinstance(v, FLTK_TAG(Fl_Menu_Item), (void*)mi);
+    sq_pushnull(v);
+    return 1;
+}
+
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Menu_Item_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_menu_item_obj_funcs[]={
-	_DECL_FL_MENU_ITEM_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	_DECL_FUNC(pulldown,-5, _SC("xiiii x|o x|o x|o i"), SQFalse),
 	{0,0}
 };
-*/
+#undef _DECL_FUNC
 
 FLTK_CONSTRUCTOR(Fl_Menu_);
-#define SETUP_FL_MENU_(v) SETUP_FL_KLASS(v, Fl_Menu_)
 
 static SQRESULT _Fl_Menu__copy(HSQUIRRELVM v)
 {
@@ -1096,6 +1134,38 @@ static SQRESULT _Fl_Menu__text(HSQUIRRELVM v)
     return 1;
 }
 
+static SQRESULT _Fl_Menu__menu(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_MENU_(v);
+    const Fl_Menu_Item *mi = self->menu();
+    if(mi) return fltk_pushinstance(v, FLTK_TAG(Fl_Menu_Item), (void*)mi);
+    sq_pushnull(v);
+    return 1;
+}
+
+static SQRESULT _Fl_Menu__menu_at(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_MENU_(v);
+    SQ_GET_INTEGER(v, 2, idx);
+    const Fl_Menu_Item *mi = self->menu_at(idx);
+    if(mi) return fltk_pushinstance(v, FLTK_TAG(Fl_Menu_Item), (void*)mi);
+    sq_pushnull(v);
+    return 1;
+}
+
+static SQRESULT _Fl_Menu__picked(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_MENU_(v);
+    SETUP_FL_MENU_ITEM_AT(v, 2, arg_mi);
+    const Fl_Menu_Item *mi = self->picked(arg_mi);
+    if(mi) return fltk_pushinstance(v, FLTK_TAG(Fl_Menu_Item), (void*)mi);
+    sq_pushnull(v);
+    return 1;
+}
+
 FUNC_GETSET_INT(_Fl_Menu__, SETUP_FL_MENU_, self->, value, int);
 FUNC_GETSET_INT(_Fl_Menu__, SETUP_FL_MENU_, self->, down_box, Fl_Boxtype);
 
@@ -1109,6 +1179,9 @@ static SQRegFunction fl_menu__obj_funcs[]={
 	_DECL_FUNC(value,-1,_SC("xi"),SQFalse),
 	_DECL_FUNC(down_box,-1,_SC("xi"), SQFalse),
 	_DECL_FUNC(text,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(menu,1,_SC("x"), SQFalse),
+	_DECL_FUNC(menu_at,2,_SC("xi"), SQFalse),
+	_DECL_FUNC(picked,2,_SC("xx"), SQFalse),
 	//_DECL_FUNC(value_by_udata,-1,_SC("x."), SQFalse),
 	{0,0}
 };
@@ -1321,7 +1394,10 @@ static SQRESULT _Fl_Group_resizable(HSQUIRRELVM v)
         self->resizable(wdg);
         return 0;
     }
-    return fltk_pushinstance(v, FLTK_TAG(Fl_Widget), self->resizable());
+    Fl_Widget *wdg = self->resizable();
+    if(wdg) return fltk_pushinstance(v, FLTK_TAG(Fl_Widget), wdg);
+    sq_pushnull(v);
+    return 1;
 }
 
 static SQRESULT _Fl_Group_add(HSQUIRRELVM v)
@@ -4350,6 +4426,7 @@ SQRESULT sqext_register_fltklib(HSQUIRRELVM v)
 	PUSH_FL_CLASS(Fl_Repeat_Button, Fl_Button, fl_repeat_button_obj_funcs);
 	PUSH_FL_CLASS(Fl_Round_Button, Fl_Light_Button, fl_round_button_obj_funcs);
 
+	PUSH_FL_CLASS_NO_PARENT(Fl_Menu_Item, fl_menu_item_obj_funcs);
 	PUSH_FL_CLASS(Fl_Menu_, Fl_Widget, fl_menu__obj_funcs);
 	PUSH_FL_CLASS(Fl_Menu_Bar, Fl_Menu_, fl_menu_bar_obj_funcs);
 	PUSH_FL_CLASS(Fl_Choice, Fl_Menu_, fl_choice_obj_funcs);
