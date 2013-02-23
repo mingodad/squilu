@@ -1582,15 +1582,15 @@ Content-Length: %d
 		}
 
 		if (sql){
-			try {
+			//try {
 				local stmt = db.prepare(sql);
 				//debug_print(sql, "\n", db.errmsg(), "\n")
 				data = stmt.asSleArray();
 				stmt.finalize();
-			}
-			catch(e){
-				return send_http_error_500(request, e);
-			}
+			//}
+			//catch(e){
+			//	return send_http_error_500(request, e);
+			//}
 		}
 		else if (gmFile.len() > 0){
 			data = gmFile.tostring();
@@ -1742,11 +1742,11 @@ function ourbizDbAction(request){
 		gmFile.clear();
 		local db_manager = db_ourbiz_tables.get(tbl, null);
 		if (db_manager){
-			try {
+			//try {
 				result = db_manager.db_action(db, data);
-			} catch(e){
-				return send_http_error_500(request, e);
-			}
+			//} catch(e){
+			//	return send_http_error_500(request, e);
+			//}
 		}
 		if (result != null){
 			gmFile.clear();

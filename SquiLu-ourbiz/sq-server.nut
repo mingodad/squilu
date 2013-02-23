@@ -63,7 +63,19 @@ local mongoose_start_params = {
 			if(AT_DEV_DBG || !this.get("handle_request", false)) {
 				dofile(APP_CODE_FOLDER + "/sq-server-plugin.nut");
 			}
-			return handle_request(request);
+			try {
+				return handle_request(request);
+			}
+			catch(exep){
+				if(AT_DEV_DBG) {
+					foreach(k,v in get_last_stackinfo()) debug_print("\n", k, ":", v);
+					debug_print("\n", exep, "\n")
+				}
+				local response = format("HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: %d\r\n\r\n%s", 
+					exep.len(),  exep);
+				request.write(response, response.len());
+				return true;
+			}
 		}
 		else if(event == "MG_EVENT_LOG"){
 			//debug_print("\n", request.info.log_message);
