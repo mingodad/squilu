@@ -32,6 +32,7 @@
 #include <FL/Fl_Text_Editor.H>
 #include <FL/Fl_Pack.H>
 #include <FL/Fl_Tabs.H>
+#include <FL/Fl_Tile.H>
 #include <FL/Flv_List.H>
 #include <FL/Flv_Table.H>
 #include <FL/Fl_Image.H>
@@ -92,6 +93,7 @@ CREATE_TAG(Fl_Scroll);
 CREATE_TAG(Fl_Group);
 CREATE_TAG(Fl_Pack);
 CREATE_TAG(Fl_Tabs);
+CREATE_TAG(Fl_Tile);
 CREATE_TAG(Flv_Style);
 CREATE_TAG(Flv_Style_List);
 CREATE_TAG(Flv_List);
@@ -1065,20 +1067,21 @@ static SQRESULT _Fl_Menu__add(HSQUIRRELVM v)
     SETUP_FL_MENU_(v);
     SQ_GET_STRING(v, 2, label);
     if(_top_ > 2) {
+        //SQ_OPT_INTEGER(v, 5, udata, 0);
+        SQ_OPT_INTEGER(v, 6, flags, 0);
         SQObjectType ptype3 = sq_gettype(v, 3);
-        SQ_GET_INTEGER(v, 5, udata);
         if(ptype3 == OT_INTEGER){
             SQ_GET_INTEGER(v, 3, short_cut);
-            self->add(label, short_cut,0, (void*)udata, 0);
+            sq_pushinteger(v, self->add(label, short_cut, 0, 0/*(void*)udata*/, flags));
         }
         else if(ptype3 == OT_STRING){
             SQ_GET_STRING(v, 3, short_cut);
-            self->add(label, short_cut,0, (void*)udata, 0);
+            sq_pushinteger(v, self->add(label, short_cut, 0, 0/*(void*)udata*/, flags));
         }
-        else self->add(label, 0, 0, (void*)udata, 0);
+        else sq_pushinteger(v, self->add(label, 0, 0, 0/*(void*)udata*/, flags));
     }
-    else self->add(label);
-    return 0;
+    else sq_pushinteger(v, self->add(label));
+    return 1;
 }
 
 static SQRESULT _Fl_Menu__text(HSQUIRRELVM v)
@@ -1102,7 +1105,7 @@ static SQRegFunction fl_menu__obj_funcs[]={
     CHEAP_RTTI_REG_FUN_FOR(Fl_Menu_)
 	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	_DECL_FUNC(copy,-2,_SC("xa."),SQFalse),
-	_DECL_FUNC(add,-2,_SC("xs s|i|o c|n .i"),SQFalse),
+	_DECL_FUNC(add,-2,_SC("xs s|i|o c|n|o i|o i"),SQFalse),
 	_DECL_FUNC(value,-1,_SC("xi"),SQFalse),
 	_DECL_FUNC(down_box,-1,_SC("xi"), SQFalse),
 	_DECL_FUNC(text,-1,_SC("xi"), SQFalse),
@@ -2306,6 +2309,18 @@ static SQRegFunction fl_tabs_obj_funcs[]={
     CHEAP_RTTI_REG_FUN_FOR(Fl_Tabs)
 	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	_DECL_FUNC(value,-1, _SC("xx"), SQFalse),
+	{0,0}
+};
+#undef _DECL_FUNC
+
+FLTK_CONSTRUCTOR(Fl_Tile);
+#define SETUP_FL_TILE(v) SETUP_KLASS(v, 1, self, Fl_Tile, FLTK_TAG(Fl_Tile))
+
+CHEAP_RTTI_FOR(Fl_Tile);
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Tile_##name,nparams,pmask,isStatic}
+static SQRegFunction fl_tile_obj_funcs[]={
+    CHEAP_RTTI_REG_FUN_FOR(Fl_Tile)
+	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -4326,6 +4341,7 @@ SQRESULT sqext_register_fltklib(HSQUIRRELVM v)
 	sq_poptop(v); //remove Fl_Pack
 
 	PUSH_FL_CLASS(Fl_Tabs, Fl_Group, fl_tabs_obj_funcs);
+	PUSH_FL_CLASS(Fl_Tile, Fl_Group, fl_tile_obj_funcs);
 	PUSH_FL_CLASS(Fl_Scroll, Fl_Group, fl_scroll_obj_funcs);
 	PUSH_FL_CLASS(Fl_Text_Display, Fl_Group, fl_text_display_obj_funcs);
 	PUSH_FL_CLASS(Fl_Text_Editor, Fl_Text_Display, fl_text_editor_obj_funcs);
