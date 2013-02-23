@@ -3000,6 +3000,12 @@ static SQRESULT _MyFl_Window_shown(HSQUIRRELVM v)
 	return 1;
 }
 
+#define FL_WINDOW_SET_STR(funcNAME) FUNC_SET_STR(_MyFl_Window_, SETUP_FL_WINDOW, funcNAME)
+#define FL_WINDOW_GETSET_STR(funcNAME) FUNC_GETSET_STR(_MyFl_Window_, SETUP_FL_WINDOW, self->, funcNAME)
+
+FL_WINDOW_SET_STR(copy_label);
+FL_WINDOW_GETSET_STR(label);
+
 FLTK_CONSTRUCTOR_RELEASE_WINDOW(MyFl_Window, AS_IS, _fl_window_releasehook);
 CHEAP_RTTI_FOR(Fl_Window);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_MyFl_Window_##name,nparams,pmask,isStatic}
@@ -3012,6 +3018,8 @@ static SQRegFunction fl_window_obj_funcs[]={
 	_DECL_FUNC(handle,2,_SC("xi"),SQFalse),
 	_DECL_FUNC(set_non_modal,1,_SC("x"),SQFalse),
 	_DECL_FUNC(on_first_time_show,1,_SC("x"),SQFalse),
+	_DECL_FUNC(copy_label,2,_SC("xs"),SQFalse),
+	_DECL_FUNC(label,-1,_SC("xs"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -3853,6 +3861,40 @@ static SQRESULT _fl_globals_fl_color_average(HSQUIRRELVM v)
     return 1;
 }
 
+//fl_dir_chooser(const char *message,const char *fname,int relative=0);
+static SQRESULT _fl_globals_fl_dir_chooser(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SQ_GET_STRING(v, 2, message);
+    SQ_GET_STRING(v, 3, fname);
+    SQ_OPT_BOOL(v, 4, relative, false);
+    sq_pushstring(v, fl_dir_chooser(message, fname, relative), -1);
+    return 1;
+}
+
+//char *fl_file_chooser(const char *message,const char *pat,const char *fname,int relative=0);
+static SQRESULT _fl_globals_fl_file_chooser(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SQ_GET_STRING(v, 2, message);
+    SQ_GET_STRING(v, 3, pat);
+    const SQChar *fname = 0;
+    if(sq_gettype(v, 4) == OT_STRING) sq_getstring(v, 4, &fname);
+    SQ_OPT_BOOL(v, 5, relative, false);
+    sq_pushstring(v, fl_file_chooser(message, pat, fname, relative), -1);
+    return 1;
+}
+
+//const char *fl_input(const char *label, const char *deflt = 0, ...) __fl_attr((__format__ (__printf__, 1, 3)));
+static SQRESULT _fl_globals_fl_input(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SQ_GET_STRING(v, 2, label);
+    SQ_GET_STRING(v, 3, message);
+    sq_pushstring(v, fl_input(label, message), -1);
+    return 1;
+}
+
 static SQRESULT _fl_globals_fl_preferences(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
@@ -3904,7 +3946,9 @@ static SQRegFunction fl_globals_funcs[]={
 	_DECL_FUNC(fl_rect,-5,_SC(".nnnni"),SQTrue),
 	_DECL_FUNC(fl_rectf,-5,_SC(".nnnni"),SQTrue),
 	_DECL_FUNC(fl_preferences,4,_SC(".iss"),SQTrue),
-
+	_DECL_FUNC(fl_dir_chooser,-3,_SC(".ssb"),SQTrue),
+	_DECL_FUNC(fl_file_chooser,-4,_SC(".ss s|o b"),SQTrue),
+	_DECL_FUNC(fl_input,3,_SC(".ss"),SQTrue),
 	{0,0}
 };
 #undef _DECL_FUNC
