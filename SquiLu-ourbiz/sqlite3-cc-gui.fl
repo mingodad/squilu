@@ -1,0 +1,300 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+i18n_type 1 
+i18n_include i18n_function.h 
+i18n_function _tr 
+header_name {.h} 
+code_name {.cxx}
+widget_class Sqlite3cc_Window {
+  label SQLiteCC open
+  xywh {103 78 780 520} type Double labelsize 16 resizable
+  class Fl_Double_Window visible
+} {
+  Fl_Menu_Bar menuBar {open
+    xywh {0 0 780 25} labelsize 16 textsize 16
+  } {
+    Submenu menu_file {
+      label File open
+      xywh {0 0 62 20} labelsize 16
+    } {
+      MenuItem menu_file_new {
+        label {New DB}
+        xywh {0 0 30 20} shortcut 0x4006e labelsize 16
+      }
+      MenuItem menu_file_open {
+        label {Open DB}
+        xywh {0 0 30 20} shortcut 0x4006f labelsize 16
+      }
+      MenuItem menu_file_attach {
+        label {Attach DB}
+        xywh {0 0 30 20} shortcut 0x40061 labelsize 16
+      }
+      MenuItem menu_file_close {
+        label {Close DB}
+        xywh {0 0 30 20} shortcut 0x40077 labelsize 16 divider
+      }
+      MenuItem menu_file_execute {
+        label Execute
+        xywh {0 0 30 20} shortcut 0x40065 labelsize 16 divider
+      }
+      MenuItem menu_file_exit {
+        label Exit
+        xywh {0 0 30 20} shortcut 0x80078 labelsize 16
+      }
+    }
+    Submenu menu_settings {
+      label Settings open
+      xywh {0 0 62 20} labelsize 16
+    } {
+      Submenu menu_settings_encoding {
+        label Encoding open
+        xywh {0 0 62 20} labelsize 16
+      } {
+        MenuItem menu_settings_encoding {
+          label {Unicode UTF-8}
+          xywh {0 0 30 20} type Radio value 1 labelsize 16
+        }
+        MenuItem menu_settings_encoding {
+          label {Unicode UTF-16}
+          xywh {10 10 30 20} type Radio labelsize 16
+        }
+        MenuItem menu_settings_encoding {
+          label {ISO Latin2}
+          xywh {20 20 30 20} type Radio labelsize 16
+        }
+        MenuItem menu_settings_encoding {
+          label {Windows 1251}
+          xywh {30 30 30 20} type Radio labelsize 16
+        }
+      }
+      MenuItem menu_settings_preferences {
+        label Preferences
+        xywh {0 0 30 20} labelsize 16
+      }
+    }
+    Submenu menu_help {
+      label Help open
+      xywh {0 0 62 20} labelsize 16
+    } {
+      MenuItem menu_help_about {
+        label About
+        xywh {0 0 30 20} labelsize 16
+      }
+      MenuItem menu_squilu_edit {
+        label {SquiLu Edit}
+        dirty_name menu_squilu_edit
+        xywh {0 0 30 20}
+      }
+    }
+  }
+  Fl_Tile tile {open
+    xywh {0 25 780 495}
+  } {
+    Fl_Table grid_tables {
+      dirty_name grid_tables open
+      xywh {5 25 160 280}
+      class Fl_Data_Table
+    } {}
+    Fl_Group {} {open
+      xywh {165 25 615 280}
+    } {
+      Fl_Group group_sql {open
+        xywh {165 25 615 170} box DOWN_BOX labeltype NO_LABEL labelsize 16 resizable
+      } {
+        Fl_Group group_buttons {open
+          xywh {165 25 615 35} box DOWN_FRAME labelsize 16
+        } {
+          Fl_Input iMaxRows {
+            label {Max Rows}
+            xywh {265 30 49 25} type Int labelsize 16 textsize 16
+          }
+          Fl_Choice option_query {
+            label Query open
+            xywh {370 30 120 25} down_box BORDER_BOX labelsize 16 textsize 16
+          } {}
+          Fl_Button btnCreateQuery {
+            label {@->}
+            callback {dispatch_func(create_sql_query, self)}
+            xywh {500 30 25 25} labelsize 16
+          }
+          Fl_Button btnExecute {
+            label Execute
+            callback {dispatch_func(execute_sql, self)}
+            xywh {535 30 75 25} labelsize 16
+          }
+          Fl_Button btnLoad {
+            label Load
+            callback {dispatch_func(load_sql_from_file, self)}
+            xywh {620 30 70 25} labelsize 16
+          }
+          Fl_Button btnSave {
+            label Save
+            callback {dispatch_func(save_sql_to_file, self)}
+            xywh {700 30 70 25} labelsize 16
+          }
+        }
+        Fl_Text_Editor edit_queries {
+          xywh {165 60 610 135} box NO_BOX labelsize 15 textsize 16 resizable
+          class Fl_Text_Editor_Buffered
+        }
+      }
+      Fl_Group group_log {open
+        xywh {165 195 615 110} box DOWN_BOX
+      } {
+        Fl_Tabs tabsLog {open
+          xywh {165 195 610 110} labelsize 16 align 2
+        } {
+          Fl_Group groupMessages {
+            label Messages open
+            xywh {165 220 610 85} labelsize 16 hide resizable
+          } {
+            Fl_Output output_messages {
+              xywh {165 220 610 85} type Multiline labelsize 16 textsize 16
+            }
+          }
+          Fl_Group groupHistory {
+            label History open
+            xywh {165 220 610 85} labelsize 16
+          } {
+            Fl_Browser browser_history {
+              callback {dispatch_func(history_to_edit_query, self)}
+              xywh {165 220 610 85} type Hold labelsize 16 textsize 16
+            }
+          }
+        }
+      }
+    }
+    Fl_Group group_bottom {open
+      xywh {0 305 780 215} box DOWN_BOX
+    } {
+      Fl_Tabs tabView {
+        xywh {0 305 780 215} labelsize 16 resizable
+      } {
+        Fl_Group groupData {
+          label Data open
+          xywh {0 333 780 187} labelsize 16 resizable
+        } {
+          Fl_Table grid_data {
+            dirty_name grid_data open selected
+            xywh {0 333 780 187}
+            class Fl_Data_Table
+          } {}
+        }
+        Fl_Group viewFields {
+          label Fields open
+          xywh {0 333 780 187} labelsize 16 hide
+        } {
+          Fl_Browser grid_fields {
+            xywh {0 333 780 187} labelsize 16 textsize 16
+            class Fl_Data_Table
+          }
+        }
+        Fl_Group viewIndexes {
+          label Indexes open
+          xywh {0 333 780 187} labelsize 16 hide
+        } {
+          Fl_Browser gridIndexes {
+            xywh {0 333 780 187} labelsize 16 textsize 16
+            class Fl_Data_Table
+          }
+        }
+        Fl_Group viewTriggers {
+          label Triggers open
+          xywh {0 333 780 187} labelsize 16 hide
+        } {
+          Fl_Browser gridTriggers {
+            xywh {0 333 780 187} labelsize 16 textsize 16
+            class Fl_Data_Table
+          }
+        }
+        Fl_Group groupSchema {
+          label Schema open
+          xywh {0 333 780 187} labelsize 16 hide
+        } {
+          Fl_Text_Editor edit_schema {
+            xywh {5 333 770 185} labelsize 16 textsize 16
+            class Fl_Text_Editor_Buffered
+          }
+        }
+        Fl_Group tabDefaults {
+          label Defaults open
+          xywh {0 333 780 187} labelsize 16 hide
+        } {
+          Fl_Input iDefaultHash {
+            label {Hash for queries}
+            xywh {145 375 135 24} labelsize 16 textsize 16
+          }
+          Fl_Check_Button iDefaultRubyStyle {
+            label {Ruby Style}
+            xywh {145 414 135 25} down_box DOWN_BOX labelsize 16
+          }
+          Fl_Check_Button iDefaultWithNL {
+            label {Use new lines}
+            xywh {145 439 135 25} down_box DOWN_BOX labelsize 16
+          }
+          Fl_Input iDefaultFieldPrefix {
+            label {Field prefix}
+            xywh {410 375 135 25} labelsize 16 textsize 15
+          }
+          Fl_Input iDefaultFieldSufix {
+            label {Field sufix}
+            xywh {410 405 135 25} labelsize 16 textsize 16
+          }
+          Fl_Check_Button iDefaultStrip {
+            label strip
+            xywh {410 435 135 25} down_box DOWN_BOX labelsize 16
+          }
+          Fl_Check_Button iDefaultEscapeSQL {
+            label {escape sql}
+            xywh {410 459 135 25} down_box DOWN_BOX labelsize 16
+          }
+          Fl_Check_Button iDefaultFieldConvert {
+            label {convert (to_i)}
+            xywh {410 485 135 25} down_box DOWN_BOX labelsize 16
+          }
+        }
+      }
+    }
+  }
+} 
+
+widget_class SquiLuEditWindow {
+  label {Lua Edit} open
+  xywh {286 113 569 540} type Double hide resizable
+  class Fl_Double_Window
+} {
+  Fl_Text_Editor code_editor {
+    dirty_name code_editor
+    xywh {10 10 550 308} labelsize 18 textsize 18
+    class Fl_Text_Editor_Buffered
+  }
+  Fl_Group {} {open
+    xywh {10 350 549 35}
+  } {
+    Fl_Input words_to_search {
+      label {Words to search}
+      dirty_name words_to_search
+      xywh {10 350 150 33} labelsize 18 align 5 textsize 18 resizable
+    }
+    Fl_Button btnSearch {
+      label Search
+      dirty_name btnSearch
+      xywh {170 350 115 33} labelsize 16
+    }
+    Fl_Button btnSavehelp {
+      label Save
+      dirty_name btnSavehelp
+      xywh {444 350 115 33} labelsize 16
+    }
+    Fl_Button btnRun {
+      label Run
+      dirty_name btnRun
+      xywh {310 350 115 33} labelsize 16
+    }
+  }
+  Fl_Text_Editor output_editor {
+    dirty_name output_editor
+    xywh {10 397 550 133} labelsize 18 textsize 18 resizable
+    class Fl_Text_Editor_Buffered
+  }
+} 
