@@ -710,6 +710,7 @@ class Fl_Data_Table extends Flv_Data_Table {
 		_cols_info = [];
 		_data = [];
 		_forPrint = false;
+		//has_scrollbar(FLVS_BOTH);
 	}
 
 	function for_print(bval){_forPrint = bval; }
@@ -859,7 +860,7 @@ class Fl_Data_Table extends Flv_Data_Table {
 		local rc = base.handle(event);
 		return rc;
 	}
-	function row_selected(ev){ if(_call_this) _call_this.row_selected(ev);}
+	function row_selected(ev){ if(_call_this) _call_this.row_selected(this, ev);}
 	function set_cols(mycols, size_absolute=false){
 		_cols_info.clear();
 		for(local i=0, max_cols=mycols.size(); i < max_cols; ++i){
@@ -881,6 +882,10 @@ class Fl_Data_Table extends Flv_Data_Table {
 		col_info.format <- (ci_size > curr_ci++) ? ci[curr_ci-1][0] : '\0';
 		col_info.color <- (ci_size > curr_ci++) ? ci[curr_ci-1].tointeger() : 0;
 		col_info.bgcolor <- (ci_size > curr_ci++) ? ci[curr_ci-1].tointeger() : 0;
+		if(ci_size == 1) {
+			col_info.colname = str;
+			col_info.header = str;
+		}
 	}
 	function calc_cols(size_absolute=false){
 		calc_cols_width(size_absolute);
@@ -1070,15 +1075,15 @@ class MyListSearchWindow extends ListSearch {
 
 	function cb_btnUpdate(sender, udata){
 		this = sender->window();
-		row_selected(Fl_Data_Table_Events.e_update);
+		row_selected(sender, Fl_Data_Table_Events.e_update);
 	}
 	function cb_btnInsert(sender, udata){
 		this = sender->window();
-		row_selected(Fl_Data_Table_Events.e_insert);
+		row_selected(sender, Fl_Data_Table_Events.e_insert);
 	}
 	function cb_btnSelect(sender, udata){
 		this = sender->window();
-		row_selected(Fl_Data_Table_Events.e_select);
+		row_selected(sender, Fl_Data_Table_Events.e_select);
 	}
 	function grid_cb(sender, udata){}
 	function get_edit_window(){return null;}
@@ -1097,7 +1102,7 @@ class MyListSearchWindow extends ListSearch {
 		fill_grid();
 	}
 
-	function row_selected(ev){
+	function row_selected(sender, ev){
 		switch(ev){
 			case Fl_Data_Table_Events.e_select:
 				if(_callee_cb) {
