@@ -95,6 +95,7 @@ enum e_type_result {tr_first_row_first_col, tr_first_row, tr_all_rows, tr_ddml};
 
 #define AS_STRING_ALWAYS 0x01
 #define NULL_AS_EMPTY_STR 0x02
+#define WITH_COL_NAMES 0x04
 
 static void sqlite3_stmt_push_string(HSQUIRRELVM v, sqlite3_stmt *stmt, int col, int flags){
     const char *value = (const char*) sqlite3_column_text(stmt, col);
@@ -163,6 +164,16 @@ static void sqlite3_stmt_row_asTable(HSQUIRRELVM v, sqlite3_stmt *stmt, int flag
 
 static void sqlite3_stmt_asArrayOfArrays(HSQUIRRELVM v, sqlite3_stmt *stmt, int flags){
     sq_newarray(v, 0);
+    if(flags & WITH_COL_NAMES){
+        int col_count = sqlite3_column_count(stmt);
+        sq_newarray(v, col_count);
+        for(int i=0; i<col_count; ++i){
+            sq_pushinteger(v, i);
+            sq_pushstring(v, sqlite3_column_name(stmt, i), -1);
+            sq_rawset(v, -3);
+        }
+        sq_arrayappend(v, -2);
+    }
     while(sqlite3_step(stmt) == SQLITE_ROW){
         sqlite3_stmt_row_asArray(v, stmt, flags);
         sq_arrayappend(v, -2);
@@ -439,7 +450,7 @@ static SQRESULT sq_sqlite3_stmt_col_count(HSQUIRRELVM v){
 }
 
 static SQRESULT sq_sqlite3_stmt_colsAsArray(HSQUIRRELVM v){
-	SQ_FUNC_VARS_NO_TOP(v);
+	SQ_FUNC_VARS(v);
 	GET_sqlite3_stmt_INSTANCE();
 	int col_count = sqlite3_column_count(self);
 	sq_newarray(v, col_count);
@@ -596,7 +607,6 @@ static SQRESULT sq_sqlite3_stmt_asArrayOfArrays(HSQUIRRELVM v){
 	SQ_OPT_INTEGER(v, 2, flags, 0);
 	sqlite3_stmt_asArrayOfArrays(v, self, flags);
 	sqlite3_reset(self);
-
 	return 1;
 }
 
@@ -2100,6 +2110,7 @@ SQRESULT sqext_register_SQLite3(HSQUIRRELVM v)
     INT_CONST(v,SQLITE_DONE);
     INT_CONST(v,AS_STRING_ALWAYS);
     INT_CONST(v,NULL_AS_EMPTY_STR);
+    INT_CONST(v,WITH_COL_NAMES);
 
     //push sqlite3_NULL as a member
     sq_pushstring(v, nullName,-1);
