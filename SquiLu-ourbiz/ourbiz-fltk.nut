@@ -104,6 +104,13 @@ class Fl_Multiline_Input extends Fl_Input {
 	}
 }
 
+class Fl_Multiline_Output extends Fl_Output {
+	constructor(px, py, pw, ph, pl=null){
+		base.constructor(px, py, pw, ph, pl);
+		type(4);
+	}
+}
+
 class Fl_Box_ClearLabel extends Fl_Box {
 	constructor(px, py, pw, ph, pl=null){
 		base.constructor(px, py, pw, ph, pl);
@@ -1048,7 +1055,10 @@ class MyListSearchWindow extends ListSearch {
 	_sab = null;
 	_callee_cb = null;
 
-	constructor(){
+	//the parameter is here only to remember derived classes that it can be called
+	//without to create a new instance that do not start with default search results
+	//mainly when it is called asyncronously (in that case a undesirable mix of both data will happen)
+	constructor(doInitialSearch){
 		base.constructor();
 		_search_options = OurBizSearchOptions();
 		grid->callback_when(FLVEcb_ROW_CHANGED | FLVEcb_CLICKED | FLVEcb_ROW_HEADER_CLICKED);
@@ -1369,7 +1379,7 @@ class EntitiesListSearch extends MyListSearchWindow {
 	_sales_orders_list = null;
 
 	constructor(doInitialSearch=true) {
-		base.constructor();
+		base.constructor(doInitialSearch);
 		label(_tr("Entities List Search"));
 		local cols_info = [
 			"id|ID|6|R",
@@ -1435,7 +1445,7 @@ class EntitiesListSearch extends MyListSearchWindow {
 			}
 			break;
 			case 1:{
-				local products_list = ProductsListSearch();
+				local products_list = ProductsListSearch(false);
 				//products_list.callback(delete_on_window_close_cb);
 				local so = OurBizSearchOptions();
 				so.entity_id = grid->get_row_id(row);
@@ -1640,7 +1650,7 @@ class ProductsListSearch extends MyListSearchWindow {
 
 	constructor(doInitialSearch=true) {
 		_last_image_id = 0;
-		base.constructor();
+		base.constructor(doInitialSearch);
 		_search_options = OurBizSearchOptions();
 		label(_tr("Products List Search"));
 		local cols_info = [
@@ -2001,7 +2011,7 @@ class OrdersListSearch extends MyListSearchWindow {
 	_search_wp = null;
 
 	constructor(doInitialSearch=true) {
-		base.constructor();
+		base.constructor(doInitialSearch);
 		label(_tr("Orders List Search"));
 		local cols_info = [
 			"id|ID|6|R",

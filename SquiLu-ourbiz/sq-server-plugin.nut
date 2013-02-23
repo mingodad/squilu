@@ -827,6 +827,17 @@ if(AT_DEV_DBG || !globals.get("ourbizDB", false)) {
 	dofile(APP_CODE_FOLDER + "/ourbiz.nut");
 }
 
+function send_http_error_500(request, err_msg){
+	if(AT_DEV_DBG) {
+		foreach(k,v in get_last_stackinfo()) debug_print("\n", k, ":", v);
+		debug_print("\n", err_msg, "\n")
+	}
+	local response = format("HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: %d\r\n\r\n%s", 
+		err_msg.len(),  err_msg);
+	request.write(response, response.len());
+	return true;
+}
+
 local uri_handlers = {
 	["/SQ/testParams"] = function(request){
 		request.print("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\n\r\n")

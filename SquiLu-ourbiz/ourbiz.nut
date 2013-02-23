@@ -1197,8 +1197,7 @@ select p.id,
 			mf.write([==[
 and p.id in(
 select product_id from orders_lines where order_id in (
-	select id from orders where entity_id = " , so.entity_id
-	order by id desc)) ]==]);
+	select id from orders where entity_id = ]==] , so.entity_id, " order by id desc)) ");
 		}
 		else if (search_str && search_str.len() > 0){
 			if (so.id && so.id != 0) mf.write(" and p.id = " , so.search_str.tointeger());
@@ -1228,7 +1227,7 @@ select product_id from orders_lines where order_id in (
 		else mf.write(" order by 3 ");
 
 		if (so.query_limit && so.query_limit != 0) mf.write(" limit " , so.query_limit);
-		//debug_print(tostring(mf), "\n")
+		//debug_print("\n", mf.tostring(), "\n")
 		return  mf.tostring();
 	}
 
@@ -1505,18 +1504,6 @@ function group_dump_data(db, out_result, tbl){
 	out_result.write("]");
 }
 
-function send_http_error_500(request, err_msg){
-	if(AT_DEV_DBG) {
-		foreach(k,v in get_last_stackinfo()) debug_print("\n", k, ":", v);
-		debug_print("\n", err_msg, "\n")
-	}
-	gmFile.clear();
-	gmFile.write("HTTP/1.1 500 Internal Server Error\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: ", err_msg.len(), "\r\n\r\n", err_msg);
-	//debug_print(tostring(gmFile), "\n")
-	request.write_blob(gmFile);
-	return true;
-}
-
 function ourbizDbMobile(request){
 	local data = {};
 	data.page_name = "list_products";
@@ -1582,15 +1569,10 @@ Content-Length: %d
 		}
 
 		if (sql){
-			//try {
-				local stmt = db.prepare(sql);
-				//debug_print(sql, "\n", db.errmsg(), "\n")
-				data = stmt.asSleArray();
-				stmt.finalize();
-			//}
-			//catch(e){
-			//	return send_http_error_500(request, e);
-			//}
+			local stmt = db.prepare(sql);
+			//debug_print(sql, "\n", db.errmsg(), "\n")
+			data = stmt.asSleArray();
+			stmt.finalize();
 		}
 		else if (gmFile.len() > 0){
 			data = gmFile.tostring();
@@ -1742,11 +1724,7 @@ function ourbizDbAction(request){
 		gmFile.clear();
 		local db_manager = db_ourbiz_tables.get(tbl, null);
 		if (db_manager){
-			//try {
-				result = db_manager.db_action(db, data);
-			//} catch(e){
-			//	return send_http_error_500(request, e);
-			//}
+			result = db_manager.db_action(db, data);
 		}
 		if (result != null){
 			gmFile.clear();
