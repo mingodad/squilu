@@ -90,11 +90,11 @@ widget_class Sqlite3cc_Window {
   Fl_Tile tile {open
     xywh {0 25 780 495}
   } {
-    Fl_Table grid_tables {
-      dirty_name grid_tables open selected
-      xywh {5 25 160 280} labelsize 16
+    Fl_Browser grid_tables {
+      dirty_name grid_tables
+      xywh {5 25 160 280} labelsize 16 textsize 16
       class Fl_Data_Table
-    } {}
+    }
     Fl_Group {} {open
       xywh {165 25 615 280}
     } {
@@ -105,31 +105,45 @@ widget_class Sqlite3cc_Window {
           xywh {165 25 615 35} box DOWN_FRAME labelsize 16
         } {
           Fl_Input iMaxRows {
-            label {Max Rows}
+            label {Max Rows} selected
             xywh {265 30 49 25} type Int labelsize 16 textsize 16
+            code0 {o->value("50");}
           }
           Fl_Choice option_query {
             label Query open
             xywh {370 30 120 25} down_box BORDER_BOX labelsize 16 textsize 16
-          } {}
+          } {
+            MenuItem {} {
+              label select
+              xywh {0 0 36 21}
+            }
+            MenuItem {} {
+              label insert
+              xywh {0 0 36 21}
+            }
+            MenuItem {} {
+              label update
+              xywh {0 0 36 21}
+            }
+            MenuItem {} {
+              label delete
+              xywh {0 0 36 21}
+            }
+          }
           Fl_Button btnCreateQuery {
             label {@->}
-            callback {dispatch_func(create_sql_query, self)}
             xywh {500 30 25 25} labelsize 16
           }
           Fl_Button btnExecute {
             label Execute
-            callback {dispatch_func(execute_sql, self)}
             xywh {535 30 75 25} labelsize 16
           }
           Fl_Button btnLoad {
             label Load
-            callback {dispatch_func(load_sql_from_file, self)}
             xywh {620 30 70 25} labelsize 16
           }
           Fl_Button btnSave {
             label Save
-            callback {dispatch_func(save_sql_to_file, self)}
             xywh {700 30 70 25} labelsize 16
           }
         }
@@ -167,18 +181,18 @@ widget_class Sqlite3cc_Window {
     Fl_Group group_bottom {open
       xywh {0 305 780 215} box DOWN_BOX
     } {
-      Fl_Tabs tabView {
+      Fl_Tabs tabView {open
         xywh {0 305 780 215} labelsize 16 resizable
       } {
         Fl_Group groupData {
           label Data open
-          xywh {0 333 780 187} labelsize 16 resizable
+          xywh {0 333 780 187} labelsize 16 hide resizable
         } {
-          Fl_Table grid_data {
-            dirty_name grid_data open
-            xywh {0 333 780 187}
+          Fl_Browser grid_data {
+            dirty_name grid_data
+            xywh {0 333 780 187} labelsize 16 textsize 16
             class Fl_Data_Table
-          } {}
+          }
         }
         Fl_Group viewFields {
           label Fields open
@@ -200,7 +214,7 @@ widget_class Sqlite3cc_Window {
         }
         Fl_Group viewTriggers {
           label Triggers open
-          xywh {0 333 780 187} labelsize 16 hide
+          xywh {0 333 780 187} labelsize 16
         } {
           Fl_Browser gridTriggers {
             xywh {0 333 780 187} labelsize 16 textsize 16

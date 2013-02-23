@@ -20,6 +20,7 @@ class Fl_Data_Table extends Flv_Data_Table {
 		_cols_info = [];
 		_data = [];
 		_forPrint = false;
+		has_scrollbar(FLVS_BOTH);
 	}
 
 	function for_print(bval){_forPrint = bval; }
@@ -169,7 +170,7 @@ class Fl_Data_Table extends Flv_Data_Table {
 		local rc = base.handle(event);
 		return rc;
 	}
-	function row_selected(ev){ if(_call_this) _call_this.row_selected(ev);}
+	function row_selected(ev){ if(_call_this) _call_this.row_selected(this, ev);}
 	function set_cols(mycols, size_absolute=false){
 		_cols_info.clear();
 		for(local i=0, max_cols=mycols.size(); i < max_cols; ++i){
@@ -191,6 +192,10 @@ class Fl_Data_Table extends Flv_Data_Table {
 		col_info.format <- (ci_size > curr_ci++) ? ci[curr_ci-1][0] : '\0';
 		col_info.color <- (ci_size > curr_ci++) ? ci[curr_ci-1].tointeger() : 0;
 		col_info.bgcolor <- (ci_size > curr_ci++) ? ci[curr_ci-1].tointeger() : 0;
+		if(ci_size == 1) {
+			col_info.colname = str;
+			col_info.header = str;
+		}
 	}
 	function calc_cols(size_absolute=false){
 		calc_cols_width(size_absolute);
@@ -279,6 +284,48 @@ class Sqlite3CC extends Sqlite3cc_Window {
 	constructor(){
 		base.constructor();
 		menuBar.callback(menuBar_cb);
+		btnExecute.callback(btnExecute_cb);
+		btnCreateQuery.callback(btnCreateQuery_cb);
+		grid_tables._call_this = this;
+	}
+	
+	function row_selected(sender, ev){
+		if(sender == grid_tables, ev){
+			if(ev == Fl_Data_Table_Events.e_update){
+				local tbl = grid_tables.get_value(grid_tables.row(), 1);
+				local sql = "select * from " + tbl;
+				local limit = iMaxRows.value();
+				if(limit && limit.len()) sql += " limit " + limit;
+				get_records_by_sql(grid_data, sql, true);
+			}
+		}
+	}
+  
+	function btnExecute_cb(sender, udata){
+		this = sender->window();
+		local sql = edit_queries->value();
+		if(sql && sql.len()) get_records_by_sql(grid_data, sql, true);
+	}
+  
+	function btnCreateQuery_cb(sender, udata){
+		this = sender->window();
+		if(db){
+			local tbl = grid_tables.get_value(grid_tables.row(), 1);
+			local sql = option_query.text();
+			local stmt = db.prepare("select * from " + tbl);
+			local fields = stmt.colsAsArray();
+			local str_fields =  fields.concat(", ");
+			stmt.finalize();
+			if(sql == "select") sql = format("select %s\nfrom %s", str_fields, tbl);
+			else if(sql == "insert") sql = format("insert into %s(%s)\nvalues(%s)", tbl, str_fields, str_fields);
+			else if(sql == "update") {
+				str_fields = fields.concat("=?, ");
+				sql = format("update %s set %s=?\nwhere id=?", tbl, str_fields);
+			}
+			else if(sql == "delete") sql = format("delete from %s where id=?", tbl);
+			else return;
+			edit_queries->value(sql);
+		}
 	}
   
 	function set_label_dbf(dbf){
@@ -288,10 +335,11 @@ class Sqlite3CC extends Sqlite3cc_Window {
 		label(label_title);
 	}
 
-	function get_records_by_sql(grid, sql , named){
+	function get_records_by_sql(grid, sql , named=false){
+		local cursor_wait = fl_cursor_wait();
 		local stmt = db.prepare(sql);
-		local rec_list = stmt.asArrayOfArrays();
-		rec_list.insert(0, stmt.colsAsArray());
+		local rec_list = stmt.asArrayOfArrays(SQLite3Stmt.WITH_COL_NAMES | 
+			SQLite3Stmt.AS_STRING_ALWAYS | SQLite3Stmt.NULL_AS_EMPTY_STR);
 		grid.set_new_data(rec_list);
 	}
 
@@ -363,6 +411,10 @@ class Sqlite3CC extends Sqlite3cc_Window {
 	}
 }
 
+Fl.scheme("gtk+");
+Fl.visual(FL_RGB);
+//allow arrow keys navigation
+Fl.option(Fl.OPTION_ARROW_FOCUS, true);
 
 local win = new Sqlite3CC();
 //local win = new SalesTaxRatesEditWindow();

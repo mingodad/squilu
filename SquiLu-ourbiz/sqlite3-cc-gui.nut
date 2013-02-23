@@ -86,9 +86,9 @@ class Sqlite3cc_Window extends Fl_Double_Window {
         {
           local o = Fl_Data_Table(5, 25, 160, 280);
           grid_tables = o;
-	  o.label(_tr("Database"));
-	  o.labelsize(16);
-	  o.textsize(16);
+          o.textsize(16);
+          o.labelsize(16);
+          o.end();
         }
         {
           local o = Fl_Group(165, 25, 615, 280);
@@ -111,6 +111,7 @@ class Sqlite3cc_Window extends Fl_Double_Window {
                       iMaxRows = o;
                       o.textsize(16);
                       o.labelsize(16);
+                      o->value("50");
                     }
                     {
                       local o = Fl_Choice(370, 30, 120, 25, _tr("Query"));
@@ -118,38 +119,32 @@ class Sqlite3cc_Window extends Fl_Double_Window {
                       o.textsize(16);
                       o.labelsize(16);
                       o.down_box(FL_BORDER_BOX);
+                      {
+                        o.add(_tr("select"), 0);
+                        o.add(_tr("insert"), 0);
+                        o.add(_tr("update"), 0);
+                        o.add(_tr("delete"), 0);
+                      }
                     }
                     {
                       local o = Fl_Button(500, 30, 25, 25, _tr("@->"));
                       btnCreateQuery = o;
                       o.labelsize(16);
-                      o.callback(function(sender, udata){
-                        dispatch_func(create_sql_query, self)
-                      });
                     }
                     {
                       local o = Fl_Button(535, 30, 75, 25, _tr("Execute"));
                       btnExecute = o;
                       o.labelsize(16);
-                      o.callback(function(sender, udata){
-                        dispatch_func(execute_sql, self)
-                      });
                     }
                     {
                       local o = Fl_Button(620, 30, 70, 25, _tr("Load"));
                       btnLoad = o;
                       o.labelsize(16);
-                      o.callback(function(sender, udata){
-                        dispatch_func(load_sql_from_file, self)
-                      });
                     }
                     {
                       local o = Fl_Button(700, 30, 70, 25, _tr("Save"));
                       btnSave = o;
                       o.labelsize(16);
-                      o.callback(function(sender, udata){
-                        dispatch_func(save_sql_to_file, self)
-                      });
                     }
                   }
                   o.end();
@@ -237,6 +232,9 @@ class Sqlite3cc_Window extends Fl_Double_Window {
                     {
                       local o = Fl_Data_Table(0, 333, 780, 187);
                       grid_data = o;
+                      o.textsize(16);
+                      o.labelsize(16);
+                      o.end();
                     }
                   }
                   o.end();
@@ -380,7 +378,7 @@ class SquiLuEditWindow extends Fl_Double_Window {
   btnRun = null;
   output_editor = null;
   
-  constructor(px=286, py=113, pw=569, ph=540, pl=_tr("SquiLu Edit")){
+  constructor(px=286, py=113, pw=565, ph=540, pl=_tr("SquiLu Edit")){
     base.constructor(px, py, pw, ph, pl);
     // Create member functions and widgets
     {
@@ -427,3 +425,4 @@ class SquiLuEditWindow extends Fl_Double_Window {
     }
   }
 }
+
