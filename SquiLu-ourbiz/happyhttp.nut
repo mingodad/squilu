@@ -168,6 +168,7 @@ class HappyHttpConnection {
 			{
 				local r = m_Outstanding[0];
 				local u = r->pump( buf, used, a-used );
+				if(u == 0) throw("Bad data received !");
 
 				// delete response once completed
 				if( r->completed() )	m_Outstanding.remove(0);
@@ -364,9 +365,11 @@ class HappyHttpResponse {
 		assert( datasize != 0 );
 		local count = datasize;
 		local data_idx = 0;
-		//print(data);
-		while( count > 0 && m_State != Response_state.COMPLETE )
+		local last_count = 0;
+		
+		while( count > 0 && m_State != Response_state.COMPLETE  && last_count != count)
 		{
+			last_count = count;
 			if( m_State == Response_state.STATUSLINE ||
 				m_State == Response_state.HEADERS ||
 				m_State == Response_state.TRAILERS ||
@@ -418,6 +421,7 @@ class HappyHttpResponse {
 				data_idx += bytesused;
 				count -= bytesused;
 			}
+			//os.sleep(0.001);
 		}
 		// return number of bytes used
 		return datasize - count;
