@@ -7,8 +7,8 @@ header_name {.h}
 code_name {.cxx}
 widget_class Sqlite3cc_Window {
   label SQLiteCC open
-  xywh {103 78 780 520} type Double labelsize 16 resizable
-  class Fl_Double_Window visible
+  xywh {103 78 780 520} type Double labelsize 16 hide resizable
+  class Fl_Double_Window
 } {
   Fl_Menu_Bar menuBar {open
     xywh {0 0 780 25} labelsize 16 textsize 16
@@ -91,8 +91,8 @@ widget_class Sqlite3cc_Window {
     xywh {0 25 780 495}
   } {
     Fl_Table grid_tables {
-      dirty_name grid_tables open
-      xywh {5 25 160 280}
+      dirty_name grid_tables open selected
+      xywh {5 25 160 280} labelsize 16
       class Fl_Data_Table
     } {}
     Fl_Group {} {open
@@ -175,7 +175,7 @@ widget_class Sqlite3cc_Window {
           xywh {0 333 780 187} labelsize 16 resizable
         } {
           Fl_Table grid_data {
-            dirty_name grid_data open selected
+            dirty_name grid_data open
             xywh {0 333 780 187}
             class Fl_Data_Table
           } {}
@@ -259,8 +259,8 @@ widget_class Sqlite3cc_Window {
 } 
 
 widget_class SquiLuEditWindow {
-  label {Lua Edit} open
-  xywh {286 113 569 540} type Double hide resizable
+  label {SquiLu Edit} open
+  xywh {286 113 565 540} type Double hide resizable
   class Fl_Double_Window
 } {
   Fl_Text_Editor code_editor {

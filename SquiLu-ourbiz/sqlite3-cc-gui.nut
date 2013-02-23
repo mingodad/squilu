@@ -1,18 +1,3 @@
-function _tr(str) {return str;}
-
-class Fl_Data_Table extends Flv_Data_Table {
-	constructor(px, py, pw, ph, pl=null){
-		base.constructor(px, py, pw, ph, pl);
-	}
-}
-
-class Fl_Multiline_Output extends Fl_Output {
-	constructor(px, py, pw, ph, pl=null){
-		base.constructor(px, py, pw, ph, pl);
-		type(4);
-	}
-}
-
 class Sqlite3cc_Window extends Fl_Double_Window {
   
   // Declaration of class members
@@ -101,6 +86,9 @@ class Sqlite3cc_Window extends Fl_Double_Window {
         {
           local o = Fl_Data_Table(5, 25, 160, 280);
           grid_tables = o;
+	  o.label(_tr("Database"));
+	  o.labelsize(16);
+	  o.textsize(16);
         }
         {
           local o = Fl_Group(165, 25, 615, 280);
@@ -392,7 +380,7 @@ class SquiLuEditWindow extends Fl_Double_Window {
   btnRun = null;
   output_editor = null;
   
-  constructor(px=286, py=113, pw=569, ph=540, pl=_tr("Lua Edit")){
+  constructor(px=286, py=113, pw=569, ph=540, pl=_tr("SquiLu Edit")){
     base.constructor(px, py, pw, ph, pl);
     // Create member functions and widgets
     {
@@ -439,17 +427,3 @@ class SquiLuEditWindow extends Fl_Double_Window {
     }
   }
 }
-
-function menuBar_cb(sender, udata){
-	this = sender->window();
-	fl_alert(format("%d = %s", sender.value(), sender.text()));
-	//print(sender, udata, sender.value(), menu_file_exit);
-}
-
-local win = new Sqlite3cc_Window();
-win.menuBar.callback(menuBar_cb);
-//local win = new SalesTaxRatesEditWindow();
-win->resizable(win);
-win->show_main();
-
-Fl.run();
