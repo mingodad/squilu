@@ -396,8 +396,8 @@ Write.widget <- function(t, ind){
 }
 
 Write.Submenu <- function(t, ind){
-	if (t.parent.path) t.path = t.parent.path + "/" + t.attr.label;
-	else t.path = t.attr.label;
+	if (t.parent.get("path", false)) t.path <- t.parent.path + "/" + t.attr.label;
+	else t.path <- t.attr.label;
 
 	Output(ind, "//%s %s\n", t.name, t.path);
 	if (t.body.len() > 0) Write.group(t.body, ind);
@@ -405,63 +405,64 @@ Write.Submenu <- function(t, ind){
 }
 
 Write.MenuItem <- function(t, ind){
-	if (t.parent.path) t.path = t.parent.path + "/" +  (t.attr.label || "");
-	else t.path = t.attr.label;
+	if (t.parent.get("path", false)) t.path <- t.parent.path + "/" +  t.attr.get("label", "");
+	else t.path <- t.attr.label;
 
 	local w = t;
-	while (!w.varname) w = w.parent;
+	while (!w.get("varname", false)) w = w.parent;
 
-	local cb = t.attr.callback;
+	local cb = t.attr.get("callback", false);
 	
 	if (!cb && t.name > ""){
-		cb = "dispatch_func(" + t.name + "_cb, self)";
+		//cb = "dispatch_func(" + t.name + "_cb, self)";
 		//Output(ind, "%s = %s:add(%q", t.name, w.varname, t.path)
-		Output(ind, "%s = o.add(%q", t.name, t.path);
+		Output(ind, "%s = o.add(%s(%q)", t.name, configuration.textfilter, t.path);
 	}
 	else
 	{
 		//Output(ind, "%s:add(%q", w.varname, t.path)
-		Output(ind, "o.add(%q", t.path);
+		Output(ind, "%s(%q)", configuration.textfilter, t.path);
 	}
 
-	Output(ind, ", %s", t.attr.shortcut || "null");
+	Output(0, ", %s", t.attr.get("shortcut", "0").tostring());
 	if (cb){
 		if (cb.match("^[%w_]+$")) Output(ind, ", %s", cb);
 		else
 		{
-			Output(ind, ", function(self){\n");
+			Output(0, ", function(sender, udata){\n");
 			Output(ind+1, "%s\n", cb);
 			Output(ind, "}");
 		}
 
 		if (t.name > ""){
 			local ind2 = 0;
-			if (t.attr.deactivate) Output2(ind2, "// deactivated base_class.%s\n", t.name);
+			if (t.attr.get("deactivate", false)) Output2(ind2, "// deactivated base_class.%s\n", t.name);
 			Output2(ind2, "function base_class.%s_cb(sender);\n", t.name);
 			Output2(ind2+2, "fl_alert(\"%s en construccion\");\n", t.name);
 			Output2(ind2, "}\n\n", t.name);
 		}
 	}
-	local type = Grammar.menu_const[t.attr.type];
-	if (t.attr.divider){ 
+	local type = null;
+	if(t.attr.get("type", false)) type = Grammar.menu_const[t.attr.type];
+	if (t.attr.get("divider", false)){ 
 		if (type) type = type + Grammar.menu_const.divider;
 		else type = Grammar.menu_const.divider;
 	}
-	if (t.attr.deactivate){ 
+	if (t.attr.get("deactivate", false)){ 
 		if (type) type = type + Grammar.menu_const.deactivate;
 		else type = Grammar.menu_const.deactivate ;
 	}
-	if (t.attr.hide) { 
+	if (t.attr.get("hide", false)) { 
 		if (type) type = type + Grammar.menu_const.hide;
 		else type = Grammar.menu_const.hide;
 	}
-	if (t.attr.value){
+	if (t.attr.get("value", false)){
 		if (type) type = type + 4; // FL_MENU_VALUE = 4
 		else type = 4; // FL_MENU_VALUE = 4 
 	}
 	if (type) {
-		Output(ind, ", null".rep(cb && 1 || 3));
-		Output(ind, ", %s", type);
+		Output(0, ", null".rep(cb && 1 || 2));
+		Output(0, ", %d", type);
 	}
 	Output(0, ");\n");
 }
@@ -495,7 +496,7 @@ Write.decl <- function(t, ind){}
 Write.declblock <- function(t, ind){
 	Output(ind, "%s\n", t.name);
 	Write.group(t.body, ind+1);
-	Output(ind, "%s\n", t.attr.after || "}");
+	Output(ind, "%s\n", t.attr.get("after", "}"));
 }
 
 Write["class"] <- function(t, ind){
@@ -530,7 +531,7 @@ Write.widget_class <- function(t, ind){
 	local wlabel = t.attr.get("label", false);
 
 	local strCreateWidget = format("constructor(px=%d, py=%d, pw=%d, ph=%d, pl=%s){\n",
-		x, y, w, h, wlabel ? format("_tr(\"%s\")", wlabel): "null");
+		x, y, w, h, wlabel ? format( "%s(%q)", configuration.textfilter, wlabel): "null");
 	Output(ind+1, strCreateWidget);
 	Output(ind+2, "base.constructor(px, py, pw, ph, pl);\n");
 	if (! (t.attr.get("class", "")).match("_Window$") ) {
@@ -552,6 +553,7 @@ FindMembers.group <- function(t, list){
 	foreach(i in t){
 		if (FindMembers.get(i.key, false)) FindMembers[i.key](i, list);
 		else if (i.key.match("^Fl_")) FindMembers.widget(i, list);
+		else if (i.key == "Submenu") FindMembers.submenu(i, list);
 	}
 }
 
@@ -589,6 +591,21 @@ FindMembers.widget <- function(t, list){
 
 FindMembers.decl <- function(t, list){
 	list.push([ t.name, GetAccessMode(t, "private") ]);
+}
+
+FindMembers.submenu <- function(t, list){
+	foreach(k,v in t) {
+		//print("submenu", k,v);
+		if(type(v) == "array"){
+			foreach(k2,v2 in v) {
+				//print("body", k2, v2);
+				if(type(v2) == "table"){
+					//foreach(k3,v3 in v2) print("menuitem", k3,v3);
+					if(v2.get("name", false)) list.push([ v2.name, GetAccessMode(t, "public") ]);
+				}
+			}
+		}
+	}
 }
 
 function WriteVariables(ind, vars, type){
@@ -750,6 +767,7 @@ function mydebughook(event_type,sourcefile,line,funcname)
 //enabledebuginfo(true);
 //setdebughook(mydebughook);
 
+//Fluid2SquiLu("sqlite3-cc-gui.fl", "-", {});
 //Fluid2SquiLu("ourbiz-gui.fl", "-", {});
 //Fluid2SquiLu("entity-edit-gui.fl", "-", {});
 //Fluid2SquiLu("orders-edit-gui.fl", "-", {});
