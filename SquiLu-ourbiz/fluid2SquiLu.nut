@@ -554,6 +554,7 @@ FindMembers.group <- function(t, list){
 		if (FindMembers.get(i.key, false)) FindMembers[i.key](i, list);
 		else if (i.key.match("^Fl_")) FindMembers.widget(i, list);
 		else if (i.key == "Submenu") FindMembers.submenu(i, list);
+		else if (i.key == "MenuItem") FindMembers.menuitem(i, list);
 	}
 }
 
@@ -595,7 +596,7 @@ FindMembers.decl <- function(t, list){
 
 FindMembers.submenu <- function(t, list){
 	foreach(k,v in t) {
-		//print("submenu", k,v);
+		//print("submenu", k,v, t.name);
 		if(type(v) == "array"){
 			foreach(k2,v2 in v) {
 				//print("body", k2, v2);
@@ -606,6 +607,10 @@ FindMembers.submenu <- function(t, list){
 			}
 		}
 	}
+}
+
+FindMembers.menuitem <- function(t, list){
+	list.push([ t.name, GetAccessMode(t, "public") ]);
 }
 
 function WriteVariables(ind, vars, type){
@@ -767,6 +772,7 @@ function mydebughook(event_type,sourcefile,line,funcname)
 //enabledebuginfo(true);
 //setdebughook(mydebughook);
 
+Fluid2SquiLu("pedidos2-gui.fl", "-", {});
 //Fluid2SquiLu("sqlite3-cc-gui.fl", "-", {});
 //Fluid2SquiLu("ourbiz-gui.fl", "-", {});
 //Fluid2SquiLu("entity-edit-gui.fl", "-", {});
