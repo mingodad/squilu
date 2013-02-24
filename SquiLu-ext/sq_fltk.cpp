@@ -3752,7 +3752,7 @@ static SQRESULT _fl_globals_fl_height(HSQUIRRELVM v)
     SQ_FUNC_VARS(v);
     if(_top_ > 1){
         SQ_GET_INTEGER(v, 2, font);
-        SQ_GET_INTEGER(v, 2, font_size);
+        SQ_GET_INTEGER(v, 3, font_size);
         sq_pushinteger(v, fl_height(font, font_size));
     }
     else sq_pushinteger(v, fl_height());
