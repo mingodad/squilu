@@ -306,7 +306,7 @@ class Fl_Choice_dbAction extends Fl_Choice {
 
 local app_help_window = null;
 
-class MyBaseWindow extends Fl_Window {
+class Base_Window extends Fl_Window {
 	childWindows=null;
 	_db_map = null;
 
@@ -625,7 +625,7 @@ class DBUpdateByWidget extends DBTableUpdate
 	}
 }
 
-class EditWindow extends MyBaseWindow {
+class Edit_Base_Window extends Base_Window {
 	_record = null;
 	_dbUpdater = null;
 	_choiceDbAction = null;
@@ -781,7 +781,10 @@ class Fl_Data_Table extends Flv_Data_Table {
 		//has_scrollbar(FLVS_BOTH);
 	}
 
-	function for_print(bval){_forPrint = bval; }
+	function for_print(bval){
+		_forPrint = bval; 
+		if(_forPrint) box(FL_NO_BOX);
+	}
 
 	function resize(ax, ay, aw, ah){
 		base.resize(ax, ay, aw, ah);
@@ -1059,25 +1062,10 @@ class Fl_Data_Table_Calendar extends Fl_Data_Table {
 
 dofile("search-options.nut");
 dofile("utils-fltk.nut");
-dofile("help-view-gui.nut");
+dofile("ourbiz-gui.nut");
 dofile("help-view.nut");
 dofile("fl-bar-chart.nut");
-dofile("barchart-gui.nut");
-dofile("history-gui.nut");
-dofile("delivery-calc-gui.nut");
-dofile("calendar-gui.nut");
 dofile("calendar-utils.nut");
-dofile("base-report-A4.nut");
-dofile("invoice-A4.nut");
-dofile("order-page-gui.nut");
-dofile("print-preview-gui.nut");
-dofile("groups-tree-gui.nut");
-dofile("product-kit-gui.nut");
-dofile("product-prices-gui.nut");
-dofile("edit-product-window.nut");
-dofile("edit-entity-window.nut");
-dofile("edit-order-window.nut");
-dofile("list-search-window.nut");
 
 class MyBarChart extends BarChartGroup {
 	
@@ -1123,7 +1111,7 @@ class MyBarChart extends BarChartGroup {
 	}
 }
 
-class MyListSearchWindow extends ListSearch {
+class MyListSearchWindow extends ListSearchWindow {
 	_popup = null;
 	_search_options = null;
 	_sab = null;
@@ -1386,8 +1374,6 @@ class OurEntityGroups extends OurTreeGroups
 	}
 };
 
-
-dofile("sales-tax-window.nut");
 
 class OurSalesTax extends SalesTaxRatesEditWindow {
 	constructor(){
@@ -2284,7 +2270,7 @@ class OrdersListSearch extends MyListSearchWindow {
 	}
 }
 
-class PaymentsListSearch extends ListSearch {
+class PaymentsListSearch extends ListSearchWindow {
 
 	constructor() {
 		base.constructor();
@@ -2292,10 +2278,116 @@ class PaymentsListSearch extends ListSearch {
 	}
 }
 
-dofile("main-window.nut");
+class MyMainWindow extends MainWindow {
+	constructor() {
+		base.constructor();
+		label(_tr("OurBiz"));
+		btnOrdersSales->callback(cb_btnOrdersSales);
+		btnPaymentsSales->callback(cb_btnPaymentsSales);
+		btnEntitiesSales->callback(cb_btnEntitiesSales);
+		btnProductsSales->callback(cb_btnProductsSales);
+		btnOrdersBuys->callback(cb_btnOrdersBuys);
+		btnPaymentsBuys->callback(cb_btnPaymentsBuys);
+		btnProductsBuys->callback(cb_btnProductsBuys);
+		btnEntitiesBuys->callback(cb_btnEntitiesBuys);
+		btnOrders->callback(cb_btnOrders);
+		btnPayments->callback(cb_btnPayments);
+		btnEntities->callback(cb_btnEntities);
+		btnProducts->callback(cb_btnProducts);
+		btnGLGroups->callback(cb_btnGLGroups);
+		btnGLChart->callback(cb_btnGLChart);
+		btnGLTransactions->callback(cb_btnGLTransactions);
+		btnOrdersSum->callback(cb_btnOrdersSum);
+		btnSalesTaxRates->callback(cb_btnSalesTaxRates);
+		btnOrderTypes->callback(cb_btnOrderTypes);
+		btnPaymentTypes->callback(cb_btnPaymentTypes);
+		btnMeasureUnits->callback(cb_btnMeasureUnits);
+		btnWarrantyTypes->callback(cb_btnWarrantyTypes);
+		btnImages->callback(cb_btnImages);
+		btnProductGroups->callback(cb_btnProductGroups);
+		btnEntityGroups->callback(cb_btnEntityGroups);
+		btnConfig->callback(cb_btnConfig);
+		btnOpenDB->callback(cb_btnOpenDB);
+		btnTranslations->callback(cb_btnTranslations);
+		btnAppUsers->callback(cb_btnAppUsers);
+	}
+	function cb_btnEntitiesSales(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("Entities Sales List/Search", EntitiesListSearch);
+	}
+	function cb_btnPaymentsSales(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("Payments Sales List/Search", PaymentsListSearch);
+	}
+	function cb_btnOrdersSales(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("Orders Sales List/Search", OrdersListSearch);
+	}
+	function cb_btnProductsSales(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("Products Sales List/Search", ProductsListSearch);
+	}
+	function cb_btnOrdersBuys(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("Orders Buys List/Search", OrdersListSearch);
+	}
+	function cb_btnPaymentsBuys(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("Payments Buys List/Search", PaymentsListSearch);
+	}
+	function cb_btnProductsBuys(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("Products Buys List/Search", ProductsListSearch);
+	}
+	function cb_btnEntitiesBuys(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("Entities Buys List/Search", EntitiesListSearch);
+	}
+	function cb_btnOrders(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("Orders List/Search", OrdersListSearch);
+	}
+	function cb_btnPayments(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("Payments List/Search", PaymentsListSearch);
+	}
+	function cb_btnEntities(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("Entities List/Search", EntitiesListSearch);
+	}
+	function cb_btnProducts(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("Products List/Search", ProductsListSearch);
+	}
+	function cb_btnGLGroups(){print(__LINE__);}
+	function cb_btnGLChart(){print(__LINE__);}
+	function cb_btnGLTransactions(){print(__LINE__);}
+	function cb_btnOrdersSum(){print(__LINE__);}
+	function cb_btnSalesTaxRates(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("Sales Tax Rates List/Edit", OurSalesTax);
+	}
+	function cb_btnOrderTypes(){print(__LINE__);}
+	function cb_btnPaymentTypes(){print(__LINE__);}
+	function cb_btnMeasureUnits(){print(__LINE__);}
+	function cb_btnWarrantyTypes(){print(__LINE__);}
+	function cb_btnImages(){print(__LINE__);}
+	function cb_btnProductGroups(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("Product Groups", OurProductGroups);
+	}
+	function cb_btnEntityGroups(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("Entity Groups", OurEntityGroups);
+	}
+	function cb_btnConfig(){print(__LINE__);}
+	function cb_btnOpenDB(){print(__LINE__);}
+	function cb_btnTranslations(){print(__LINE__);}
+	function cb_btnAppUsers(){print(__LINE__);}
+	function reset_all_child_windows_ptr(){print(__LINE__);}
+}
 
-local win = new MainWindow(10, 50, 330, 320, "OURBIZ");
-//local win = new SalesTaxRatesEditWindow();
+local win = new MyMainWindow();
 win->resizable(win);
 win->show_main();
 

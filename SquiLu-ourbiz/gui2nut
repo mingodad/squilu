@@ -1,0 +1,2 @@
+#!/bin/sh
+squilu fluid2SquiLu.nut ourbiz-gui.fl ourbiz-gui.nut
