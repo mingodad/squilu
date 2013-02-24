@@ -1,273 +1,263 @@
 class EditEntityWindow extends EditWindow {
 
   // Declaration of class members
-  db_products_id = null;
-  db_products_description_ro = null;
-  db_products_mdate = null;
-  db_products_cdate = null;
+  db_entities_id = null;
+  db_entities_name_ro = null;
+  db_entities_mdate = null;
+  db_entities_cdate = null;
   tabs = null;
   tabMain = null;
-  db_products_reference_code = null;
-  db_products_supplier_code = null;
-  db_products_bar_code = null;
-  db_products_sell_description = null;
-  db_products_buy_description = null;
-  db_products_sell_price = null;
-  db_products_measure_unit_id = null;
-  db_products_sales_tax_id = null;
-  db_products_warranty_id = null;
-  db_products_sell_quantity_min = null;
-  db_products_units_by_package = null;
-  db_products_weight = null;
-  db_products_sell_without_stock = null;
-  db_products_is_active = null;
-  db_products_show_on_sales = null;
-  db_products_show_on_buys = null;
-  db_products_show_on_web = null;
-  db_products_show_price_on_web = null;
-  dbAction = null;
+  db_entities_name = null;
+  db_entities_company = null;
+  db_entities_address = null;
+  db_entities_zip = null;
+  db_entities_city = null;
+  db_entities_state = null;
+  db_entities_country = null;
+  db_entities_tax_number = null;
+  db_entities_show_on_sales = null;
+  db_entities_show_on_buys = null;
+  db_entities_is_active = null;
+  db_entities_phone = null;
+  db_entities_fax = null;
+  db_entities_use_sales_tax2 = null;
+  db_entities_email = null;
+  db_entities_sales_tax_exempt = null;
+  db_entities_web = null;
+  db_entities_irpf_pct_retention = null;
+  db_entities_contact = null;
+  db_entities_gps_coordinates = null;
   btnDbAction = null;
-  tabsMoreData = null;
+  dbAction = null;
   tabNotes = null;
-  db_products_sell_notes = null;
-  tabNotesSupplier = null;
-  db_products_buy_notes = null;
+  db_entities_notes = null;
   tabTags = null;
-  db_products_tags = null;
-  db_products_group_id = null;
-  btnImage = null;
-  db_products_quantity_onhand = null;
-  tabPrices = null;
-  db_products_buy_price = null;
-  db_products_buy_discount = null;
-  db_products_buy_other_costs = null;
-  db_products_sell_markup = null;
-  markup_to_discount = null;
-  db_products_sell_price_ro = null;
-  db_products_price_decimals = null;
-  btnSaveProrduct = null;
-  db_products_stock_min = null;
-  db_products_stock_max = null;
-  db_products_buy_quantity_min = null;
-  db_products_price_formula = null;
-  db_products_price_date = null;
-  productPrices = null;
-  tabKit = null;
+  db_entities_tags = null;
+  tabGroups = null;
+  db_entities_group_id = null;
+  tabTotals = null;
+  db_entities_credit_allowed = null;
+  db_entities_balance = null;
+  db_entities_sales_quoted = null;
+  db_entities_sales_ordered = null;
+  db_entities_sales_delivered = null;
+  db_entities_sales_invoiced = null;
+  db_entities_sales_discount = null;
+  db_entities_sales_paid = null;
+  db_entities_buys_quoted = null;
+  db_entities_buys_ordered = null;
+  db_entities_buys_received = null;
+  db_entities_buys_invoiced = null;
+  db_entities_buys_paid = null;
+  db_entities_buys_discount = null;
   tabChartStatistics = null;
   tabHistory = null;
   tabReports = null;
-  grpExportImport = null;
-  btnProductsExport = null;
-  btnProductsImport = null;
-  chkWithoutPrices = null;
-  chkWebOnly = null;
-  boxExportImportCount = null;
-  btnProductGroupsExport = null;
-  btnProductGroupsImport = null;
-  btnUpdateWeb = null;
-  grpPrintPriceList = null;
-  chkPriceListWithVAT = null;
-  chkPriceListSellOnWeb = null;
-  btnPrintPriceList = null;
-  chkPriceListSellSales = null;
-  chkPriceListSellPDF = null;
-  tabTotals = null;
-  db_products_quantity_quoted_sales = null;
-  db_products_quantity_ordered_sales = null;
-  db_products_quantity_delivered = null;
-  db_products_quantity_invoiced_sales = null;
-  db_products_quantity_lost = null;
-  db_products_quantity_quoted_buys = null;
-  db_products_quantity_ordered_buys = null;
-  db_products_quantity_received = null;
-  db_products_quantity_invoiced_buys = null;
+  btnEntitesListContactReport = null;
+  print_progress = null;
   
-  constructor(px=34, py=28, pw=800, ph=560, pl=_tr("Edit Products")){
+  constructor(px=54, py=85, pw=800, ph=560, pl=_tr("Edit Entity")){
     base.constructor(px, py, pw, ph, pl);
     // Create member functions and widgets
     {
       local o = Fl_Output(5, 5, 96, 25);
-      db_products_id = o;
+      db_entities_id = o;
       o.textsize(16);
       o.labelsize(16);
       o.labeltype(FL_NO_LABEL);
-      add_input_field_to_map("products", "id", db_products_id);
+      add_input_field_to_map("entities", "id", db_entities_id);
     }
     {
       local o = Fl_Output(110, 5, 545, 25);
-      db_products_description_ro = o;
+      db_entities_name_ro = o;
       o.textsize(16);
       o.labeltype(FL_NO_LABEL);
       o.labelsize(16);
     }
     {
       local o = Fl_Output(666, 5, 130, 25);
-      db_products_mdate = o;
+      db_entities_mdate = o;
       o.textsize(16);
-      o.labelsize(16);
       o.labeltype(FL_NO_LABEL);
-      add_input_field_to_map("products", "mdate", db_products_mdate);
+      o.tooltip(_tr("This record last update date"));
+      o.labelsize(16);
+      add_input_field_to_map("entities", "mdate", db_entities_mdate);
     }
     {
       local o = Fl_Output(665, 35, 130, 25);
-      db_products_cdate = o;
+      db_entities_cdate = o;
       o.textsize(16);
       o.labeltype(FL_NO_LABEL);
+      o.tooltip(_tr("This record creation date"));
       o.labelsize(16);
-      add_input_field_to_map("products", "cdate", db_products_cdate);
+      add_input_field_to_map("entities", "cdate", db_entities_cdate);
     }
     {
-      local o = Fl_Tabs(5, 35, 790, 520);
+      local o = Fl_Tabs(5, 35, 790, 521);
       tabs = o;
       o.labelcolor(7);
       o.selection_color(4);
       o.labelsize(16);
       {
         {
-          local o = Fl_Group(5, 60, 790, 495, _tr("Main"));
+          local o = Fl_Group(5, 62, 790, 494, _tr("Main"));
           tabMain = o;
           o.labelsize(16);
           o.color(246);
           {
             {
-              local o = Fl_Input(115, 70, 165, 25, _tr("Reference"));
-              db_products_reference_code = o;
+              local o = Fl_Input(115, 70, 670, 25, _tr("Name"));
+              db_entities_name = o;
               o.textsize(16);
               o.labelsize(16);
-              add_input_field_to_map("products", "reference_code", db_products_reference_code);
+              add_input_field_to_map("entities", "name", db_entities_name);
             }
             {
-              local o = Fl_Input(380, 70, 165, 25, _tr("Ref. Supp."));
-              db_products_supplier_code = o;
+              local o = Fl_Input(115, 100, 670, 25, _tr("Company"));
+              db_entities_company = o;
               o.textsize(16);
               o.labelsize(16);
-              add_input_field_to_map("products", "supplier_code", db_products_supplier_code);
+              add_input_field_to_map("entities", "company", db_entities_company);
             }
             {
-              local o = Fl_Input(620, 70, 165, 25, _tr("Barcode"));
-              db_products_bar_code = o;
+              local o = Fl_Input(115, 130, 670, 25, _tr("Address"));
+              db_entities_address = o;
               o.textsize(16);
               o.labelsize(16);
-              add_input_field_to_map("products", "bar_code", db_products_bar_code);
+              add_input_field_to_map("entities", "address", db_entities_address);
             }
             {
-              local o = Fl_Input(115, 100, 670, 25, _tr("Description"));
-              db_products_sell_description = o;
+              local o = Fl_Input(115, 160, 95, 25, _tr("ZIP"));
+              db_entities_zip = o;
               o.textsize(16);
               o.labelsize(16);
-              add_input_field_to_map("products", "sell_description", db_products_sell_description);
+              add_input_field_to_map("entities", "zip", db_entities_zip);
             }
             {
-              local o = Fl_Input(115, 130, 670, 25, _tr("Desc. Supp."));
-              db_products_buy_description = o;
+              local o = Fl_Input(311, 160, 474, 25, _tr("City"));
+              db_entities_city = o;
               o.textsize(16);
               o.labelsize(16);
-              add_input_field_to_map("products", "buy_description", db_products_buy_description);
+              add_input_field_to_map("entities", "city", db_entities_city);
             }
             {
-              local o = Fl_Float_Input_Fmt(115, 160, 110, 25, _tr("Sales Price"));
-              db_products_sell_price = o;
+              local o = Fl_Input(115, 189, 390, 25, _tr("State"));
+              db_entities_state = o;
               o.textsize(16);
               o.labelsize(16);
-              add_input_field_to_map("products", "sell_price", db_products_sell_price);
+              add_input_field_to_map("entities", "state", db_entities_state);
             }
             {
-              local o = Fl_Choice_Int(370, 160, 110, 25, _tr("Measure Unit"));
-              db_products_measure_unit_id = o;
-              o.textsize(16);
-              o.down_box(FL_BORDER_BOX);
-              o.labelsize(16);
-              add_input_field_to_map("products", "measure_unit_id", db_products_measure_unit_id);
-            }
-            {
-              local o = Fl_Choice_Int(115, 190, 110, 25, _tr("V.A.T."));
-              db_products_sales_tax_id = o;
-              o.textsize(16);
-              o.down_box(FL_BORDER_BOX);
-              o.labelsize(16);
-              add_input_field_to_map("products", "sales_tax_id", db_products_sales_tax_id);
-            }
-            {
-              local o = Fl_Choice_Int(370, 190, 110, 25, _tr("Warranty"));
-              db_products_warranty_id = o;
-              o.textsize(16);
-              o.down_box(FL_BORDER_BOX);
-              o.labelsize(16);
-              add_input_field_to_map("products", "warranty_id", db_products_warranty_id);
-            }
-            {
-              local o = Fl_Float_Input(370, 250, 110, 25, _tr("Sell Min. Qty."));
-              db_products_sell_quantity_min = o;
+              local o = Fl_Input(585, 190, 200, 25, _tr("Country"));
+              db_entities_country = o;
               o.textsize(16);
               o.labelsize(16);
-              o->decimal_places(-6);
-              add_input_field_to_map("products", "sell_quantity_min", db_products_sell_quantity_min);
+              add_input_field_to_map("entities", "country", db_entities_country);
             }
             {
-              local o = Fl_Float_Input(370, 280, 110, 25, _tr("Units by Pack."));
-              db_products_units_by_package = o;
+              local o = Fl_Input(115, 220, 200, 25, _tr("Tax Num."));
+              db_entities_tax_number = o;
               o.textsize(16);
               o.labelsize(16);
-              o->decimal_places(-6);
-              add_input_field_to_map("products", "units_by_package", db_products_units_by_package);
+              add_input_field_to_map("entities", "tax_number", db_entities_tax_number);
             }
             {
-              local o = Fl_Float_Input(370, 220, 110, 25, _tr("Weight"));
-              db_products_weight = o;
-              o.textsize(16);
-              o.labelsize(16);
-              o->decimal_places(-6);
-              add_input_field_to_map("products", "weight", db_products_weight);
-            }
-            {
-              local o = Fl_Check_Button(10, 250, 215, 25, _tr("Sell without stock"));
-              db_products_sell_without_stock = o;
+              local o = Fl_Check_Button(325, 220, 115, 25, _tr("Sales"));
+              db_entities_show_on_sales = o;
               o.labelsize(16);
               o.down_box(FL_DOWN_BOX);
-              add_input_field_to_map("products", "sell_without_stock", db_products_sell_without_stock);
+              add_input_field_to_map("entities", "show_on_sales", db_entities_show_on_sales);
             }
             {
-              local o = Fl_Check_Button(10, 280, 110, 25, _tr("Active"));
-              db_products_is_active = o;
+              local o = Fl_Check_Button(445, 220, 125, 25, _tr("Buys"));
+              db_entities_show_on_buys = o;
               o.labelsize(16);
               o.down_box(FL_DOWN_BOX);
-              add_input_field_to_map("products", "is_active", db_products_is_active);
+              add_input_field_to_map("entities", "show_on_buys", db_entities_show_on_buys);
             }
             {
-              local o = Fl_Check_Button(10, 310, 105, 25, _tr("Sales"));
-              db_products_show_on_sales = o;
+              local o = Fl_Check_Button(585, 220, 155, 25, _tr("Active"));
+              db_entities_is_active = o;
               o.labelsize(16);
               o.down_box(FL_DOWN_BOX);
-              add_input_field_to_map("products", "show_on_sales", db_products_show_on_sales);
+              add_input_field_to_map("entities", "is_active", db_entities_is_active);
             }
             {
-              local o = Fl_Check_Button(10, 340, 95, 25, _tr("Buys"));
-              db_products_show_on_buys = o;
+              local o = Fl_Input(115, 249, 200, 25, _tr("Phone"));
+              db_entities_phone = o;
+              o.textsize(16);
+              o.labelsize(16);
+              add_input_field_to_map("entities", "phone", db_entities_phone);
+            }
+            {
+              local o = Fl_Input(370, 249, 200, 25, _tr("Fax"));
+              db_entities_fax = o;
+              o.textsize(16);
+              o.labelsize(16);
+              add_input_field_to_map("entities", "fax", db_entities_fax);
+            }
+            {
+              local o = Fl_Check_Button(585, 250, 155, 25, _tr("Use Sales Tax II"));
+              db_entities_use_sales_tax2 = o;
               o.labelsize(16);
               o.down_box(FL_DOWN_BOX);
-              add_input_field_to_map("products", "show_on_buys", db_products_show_on_buys);
+              add_input_field_to_map("entities", "use_sales_tax2", db_entities_use_sales_tax2);
             }
             {
-              local o = Fl_Check_Button(115, 310, 120, 25, _tr("Web"));
-              db_products_show_on_web = o;
+              local o = Fl_Input(115, 280, 455, 25, _tr("Email"));
+              db_entities_email = o;
+              o.textsize(16);
+              o.labelsize(16);
+              add_input_field_to_map("entities", "email", db_entities_email);
+            }
+            {
+              local o = Fl_Check_Button(585, 280, 155, 25, _tr("Sales Tax Exempt"));
+              db_entities_sales_tax_exempt = o;
               o.labelsize(16);
               o.down_box(FL_DOWN_BOX);
-              add_input_field_to_map("products", "show_on_web", db_products_show_on_web);
+              add_input_field_to_map("entities", "sales_tax_exempt", db_entities_sales_tax_exempt);
             }
             {
-              local o = Fl_Check_Button(115, 340, 100, 25, _tr("Web price"));
-              db_products_show_price_on_web = o;
+              local o = Fl_Input(115, 310, 455, 25, _tr("Web"));
+              db_entities_web = o;
+              o.textsize(16);
               o.labelsize(16);
-              o.down_box(FL_DOWN_BOX);
-              add_input_field_to_map("products", "show_price_on_web", db_products_show_price_on_web);
+              add_input_field_to_map("entities", "web", db_entities_web);
             }
             {
-              local o = Fl_Group(675, 402, 110, 143);
+              local o = Fl_Float_Input_Fmt(585, 310, 60, 25, _tr("I.R.P.F. %"));
+              db_entities_irpf_pct_retention = o;
+              o.textsize(16);
+              o.align(8);
+              o.labelsize(16);
+              add_input_field_to_map("entities", "irpf_pct_retention", db_entities_irpf_pct_retention);
+            }
+            {
+              local o = Fl_Input(115, 340, 455, 25, _tr("Contact"));
+              db_entities_contact = o;
+              o.textsize(16);
+              o.labelsize(16);
+              add_input_field_to_map("entities", "contact", db_entities_contact);
+            }
+            {
+              local o = Fl_Input(630, 340, 155, 25, _tr("GPS"));
+              db_entities_gps_coordinates = o;
+              o.textsize(16);
+              o.labelsize(16);
+              add_input_field_to_map("entities", "gps_coordinates", db_entities_gps_coordinates);
+            }
+            {
+              local o = Fl_Group(675, 394, 110, 151);
               {
                 {
-                  local o = Fl_Box(675, 402, 110, 68, _tr("Spacer"));
+                  local o = Fl_Box(675, 394, 110, 73, _tr("Spacer"));
                   o.labeltype(FL_NO_LABEL);
                   Fl_Group.current().resizable(o);
+                }
+                {
+                  local o = Fl_Button(675, 470, 110, 25, _tr("Action"));
+                  btnDbAction = o;
+                  o.labelsize(16);
                 }
                 {
                   local o = Fl_Choice_dbAction(675, 520, 110, 25, _tr("Action"));
@@ -277,442 +267,211 @@ class EditEntityWindow extends EditWindow {
                   o.down_box(FL_BORDER_BOX);
                   o.labelsize(16);
                 }
-                {
-                  local o = Fl_Button(675, 470, 110, 25, _tr("Action"));
-                  btnDbAction = o;
-                  o.labelsize(16);
-                }
               }
               o.end();
             }
             {
-              local o = Fl_Tabs(10, 370, 650, 181);
-              tabsMoreData = o;
+              local o = Fl_Tabs(15, 375, 650, 181);
               o.labelcolor(7);
-              o.labelsize(16);
               o.selection_color(4);
+              o.labelsize(16);
               {
                 {
-                  local o = Fl_Group(10, 400, 650, 150, _tr("Notes"));
+                  local o = Fl_Group(15, 405, 650, 150, _tr("Notes"));
                   tabNotes = o;
                   o.labelsize(16);
                   {
                     {
-                      local o = Fl_Text_Editor_Buffered(10, 400, 650, 150);
-                      db_products_sell_notes = o;
+                      local o = Fl_Text_Editor_Buffered(15, 405, 650, 150);
+                      db_entities_notes = o;
                       o.textsize(16);
                       o.align(5);
                       o.labeltype(FL_NO_LABEL);
                       o.labelsize(16);
-                      add_input_field_to_map("products", "sell_notes", db_products_sell_notes);
+                      add_input_field_to_map("entities", "notes", db_entities_notes);
                       Fl_Group.current().resizable(o);
                     }
                   }
                   o.end();
                 }
                 {
-                  local o = Fl_Group(10, 400, 650, 150, _tr("Notes Supplier"));
-                  tabNotesSupplier = o;
-                  o.labelsize(16);
-                  {
-                    {
-                      local o = Fl_Text_Editor_Buffered(10, 400, 650, 150);
-                      db_products_buy_notes = o;
-                      o.textsize(16);
-                      o.align(5);
-                      o.labeltype(FL_NO_LABEL);
-                      o.labelsize(16);
-                      add_input_field_to_map("products", "buy_notes", db_products_buy_notes);
-                      Fl_Group.current().resizable(o);
-                    }
-                  }
-                  o.end();
-                }
-                {
-                  local o = Fl_Group(10, 400, 650, 150, _tr("Tags"));
+                  local o = Fl_Group(15, 405, 650, 150, _tr("Tags"));
                   tabTags = o;
                   o.labelsize(16);
                   {
                     {
-                      local o = Fl_Text_Editor_Buffered(10, 400, 650, 150);
-                      db_products_tags = o;
+                      local o = Fl_Text_Editor_Buffered(15, 405, 650, 150);
+                      db_entities_tags = o;
                       o.textsize(16);
                       o.align(5);
                       o.labeltype(FL_NO_LABEL);
                       o.labelsize(16);
-                      add_input_field_to_map("products", "tags", db_products_tags);
+                      add_input_field_to_map("entities", "tags", db_entities_tags);
                       Fl_Group.current().resizable(o);
                     }
                   }
                   o.end();
                 }
                 {
-                  local o = Flu_Tree_Browser(10, 400, 650, 150, _tr("Groups"));
-                  db_products_group_id = o;
-                  o.selection_color(23);
-                  o.labelsize(16);
-                  add_input_field_to_map("products", "group_id", db_products_group_id);
+                  local o = Fl_Group(15, 400, 650, 156, _tr("Groups"));
+                  tabGroups = o;
+                  {
+                    {
+                      local o = Flu_Tree_Browser(15, 405, 650, 150);
+                      db_entities_group_id = o;
+                      o.labelsize(16);
+                      add_input_field_to_map("entities", "group_id", db_entities_group_id);
+                    }
+                  }
+                  o.end();
                 }
               }
               o.end();
             }
             {
-              local o = Fl_Image_Box(485, 158, 300, 232);
-              btnImage = o;
-              o.box(FL_ENGRAVED_BOX);
-              o.align(80);
-              o.color(7);
-            }
-            {
-              local o = Fl_Check_Button(370, 375, 102, 25, _tr("Wrap lines"));
+              local o = Fl_Check_Button(375, 380, 102, 25, _tr("Wrap lines"));
               o.labelsize(16);
               o.value(1);
               o.down_box(FL_DOWN_BOX);
-            }
-            {
-              local o = Fl_Float_Input(115, 220, 110, 25, _tr("Onhand"));
-              db_products_quantity_onhand = o;
-              o.textsize(16);
-              o.labelsize(16);
-              o->decimal_places(-6);
-              add_input_field_to_map("products", "quantity_onhand", db_products_quantity_onhand);
             }
           }
           o.end();
           Fl_Group.current().resizable(o);
         }
         {
-          local o = Fl_Group(5, 60, 790, 495, _tr("Prices"));
-          tabPrices = o;
+          local o = Fl_Group(5, 62, 790, 493, _tr("Totals"));
+          tabTotals = o;
           o.labelsize(16);
           o.color(246);
           {
             {
-              local o = Fl_Group(15, 88, 770, 201, _tr("Sales Price"));
+              local o = Fl_Float_Input_Fmt(140, 75, 110, 25, _tr("Credit"));
+              db_entities_credit_allowed = o;
+              o.textsize(16);
               o.labelsize(16);
-              o.color(166);
-              o.box(FL_UP_BOX);
-              {
-                {
-                  local o = Fl_Float_Input_Fmt(25, 115, 115, 25, _tr("Buy $"));
-                  db_products_buy_price = o;
-                  o.textsize(16);
-                  o.align(5);
-                  o.labelsize(16);
-                  add_input_field_to_map("products", "buy_price", db_products_buy_price);
-                }
-                {
-                  local o = Fl_Float_Input_Fmt(151, 115, 115, 25, _tr("Buy Disc. %"));
-                  db_products_buy_discount = o;
-                  o.textsize(16);
-                  o.align(5);
-                  o.labelsize(16);
-                  add_input_field_to_map("products", "buy_discount", db_products_buy_discount);
-                  o->decimal_places(-6);
-                }
-                {
-                  local o = Fl_Float_Input_Fmt(278, 115, 115, 25, _tr("Other Costs $"));
-                  db_products_buy_other_costs = o;
-                  o.textsize(16);
-                  o.align(5);
-                  o.labelsize(16);
-                  add_input_field_to_map("products", "buy_other_costs", db_products_buy_other_costs);
-                }
-                {
-                  local o = Fl_Float_Input_Fmt(404, 115, 115, 25, _tr("Markup %"));
-                  db_products_sell_markup = o;
-                  o.textsize(16);
-                  o.align(5);
-                  o.labelsize(16);
-                  add_input_field_to_map("products", "sell_markup", db_products_sell_markup);
-                  //o->decimal_places(-6);
-                }
-                {
-                  local o = Fl_Float_Input_Fmt(531, 115, 115, 25, _tr("Margin %"));
-                  markup_to_discount = o;
-                  o.textsize(16);
-                  o.align(5);
-                  o.labelsize(16);
-                  //o->decimal_places(-6);
-                }
-                {
-                  local o = Fl_Float_Input_Fmt(658, 115, 115, 25, _tr("Sales $"));
-                  db_products_sell_price_ro = o;
-                  o.textsize(16);
-                  o.align(5);
-                  o.labelsize(16);
-                }
-                {
-                  local o = Fl_Int_Input(530, 150, 30, 25, _tr("Decimals for calculation"));
-                  db_products_price_decimals = o;
-                  o.textsize(16);
-                  o.labelfont(1);
-                  o.textfont(1);
-                  o.labelsize(16);
-                  add_input_field_to_map("products", "price_decimals", db_products_price_decimals);
-                  //o->decimal_places(-6);
-                }
-                {
-                  local o = Fl_Button(662, 150, 111, 25, _tr("Save"));
-                  btnSaveProrduct = o;
-                  o.labelsize(16);
-                }
-                {
-                  local o = Fl_Float_Input(665, 195, 110, 25, _tr("Stock Min."));
-                  db_products_stock_min = o;
-                  o.textsize(16);
-                  o.labelsize(16);
-                  add_input_field_to_map("products", "stock_min", db_products_stock_min);
-                  o->decimal_places(-6);
-                }
-                {
-                  local o = Fl_Float_Input(665, 225, 110, 25, _tr("Stock Max."));
-                  db_products_stock_max = o;
-                  o.textsize(16);
-                  o.labelsize(16);
-                  add_input_field_to_map("products", "stock_max", db_products_stock_max);
-                  o->decimal_places(-6);
-                }
-                {
-                  local o = Fl_Float_Input(665, 255, 110, 25, _tr("Buy Min. Qty."));
-                  db_products_buy_quantity_min = o;
-                  o.textsize(16);
-                  o.labelsize(16);
-                  add_input_field_to_map("products", "buy_quantity_min", db_products_buy_quantity_min);
-                  o->decimal_places(-6);
-                }
-                {
-                  local o = Fl_Multiline_Input(25, 197, 495, 83, _tr("Price formula"));
-                  db_products_price_formula = o;
-                  o.textsize(16);
-                  o.align(5);
-                  o.labelsize(16);
-                  add_input_field_to_map("products", "price_formula", db_products_price_formula);
-                }
-                {
-                  local o = Fl_Output(25, 150, 130, 25, _tr("Last Update"));
-                  db_products_price_date = o;
-                  o.textsize(16);
-                  o.align(8);
-                  o.labelsize(16);
-                }
-              }
-              o.end();
+              add_input_field_to_map("entities", "credit_allowed", db_entities_credit_allowed);
             }
             {
-              local o = Fl_Box(15, 290, 770, 40, _tr("Spacer"));
-              o.labeltype(FL_NO_LABEL);
-              Fl_Group.current().resizable(o);
+              local o = Fl_Float_Input_Fmt(140, 110, 110, 25, _tr("Balance"));
+              db_entities_balance = o;
+              o.textsize(16);
+              o.labelsize(16);
+              add_input_field_to_map("entities", "balance", db_entities_balance);
             }
             {
-              local o = Fl_Group(15, 332, 770, 212);
-              productPrices = o;
-              o.box(FL_UP_BOX);
+              local o = Fl_Float_Input_Fmt(140, 155, 110, 25, _tr("Sales Quoted"));
+              db_entities_sales_quoted = o;
+              o.textsize(16);
               o.labelsize(16);
-              o.color(166);
-              o.labeltype(FL_NO_LABEL);
-              o.end();
+              add_input_field_to_map("entities", "sales_quoted", db_entities_sales_quoted);
+            }
+            {
+              local o = Fl_Float_Input_Fmt(140, 190, 110, 25, _tr("Sales Ordered"));
+              db_entities_sales_ordered = o;
+              o.textsize(16);
+              o.labelsize(16);
+              add_input_field_to_map("entities", "sales_ordered", db_entities_sales_ordered);
+            }
+            {
+              local o = Fl_Float_Input_Fmt(140, 225, 110, 25, _tr("Sales Delivered"));
+              db_entities_sales_delivered = o;
+              o.textsize(16);
+              o.labelsize(16);
+              add_input_field_to_map("entities", "sales_delivered", db_entities_sales_delivered);
+            }
+            {
+              local o = Fl_Float_Input_Fmt(140, 260, 110, 25, _tr("Sales Invoiced"));
+              db_entities_sales_invoiced = o;
+              o.textsize(16);
+              o.labelsize(16);
+              add_input_field_to_map("entities", "sales_invoiced", db_entities_sales_invoiced);
+            }
+            {
+              local o = Fl_Float_Input_Fmt(140, 295, 110, 25, _tr("Sales Discount"));
+              db_entities_sales_discount = o;
+              o.textsize(16);
+              o.labelsize(16);
+              add_input_field_to_map("entities", "sales_discount", db_entities_sales_discount);
+            }
+            {
+              local o = Fl_Float_Input_Fmt(140, 330, 110, 25, _tr("Sales Paid"));
+              db_entities_sales_paid = o;
+              o.textsize(16);
+              o.labelsize(16);
+              add_input_field_to_map("entities", "sales_paid", db_entities_sales_paid);
+            }
+            {
+              local o = Fl_Float_Input_Fmt(410, 155, 110, 25, _tr("Buys Quoted"));
+              db_entities_buys_quoted = o;
+              o.textsize(16);
+              o.labelsize(16);
+              add_input_field_to_map("entities", "buys_quoted", db_entities_buys_quoted);
+            }
+            {
+              local o = Fl_Float_Input_Fmt(410, 190, 110, 25, _tr("Buys Ordered"));
+              db_entities_buys_ordered = o;
+              o.textsize(16);
+              o.labelsize(16);
+              add_input_field_to_map("entities", "buys_ordered", db_entities_buys_ordered);
+            }
+            {
+              local o = Fl_Float_Input_Fmt(410, 225, 110, 25, _tr("Buys Received"));
+              db_entities_buys_received = o;
+              o.textsize(16);
+              o.labelsize(16);
+              add_input_field_to_map("entities", "buys_received", db_entities_buys_received);
+            }
+            {
+              local o = Fl_Float_Input_Fmt(410, 260, 110, 25, _tr("Buys Invoiced"));
+              db_entities_buys_invoiced = o;
+              o.textsize(16);
+              o.labelsize(16);
+              add_input_field_to_map("entities", "buys_invoiced", db_entities_buys_invoiced);
+            }
+            {
+              local o = Fl_Float_Input_Fmt(410, 330, 110, 25, _tr("Buys Paid"));
+              db_entities_buys_paid = o;
+              o.textsize(16);
+              o.labelsize(16);
+              add_input_field_to_map("entities", "buys_paid", db_entities_buys_paid);
+            }
+            {
+              local o = Fl_Float_Input_Fmt(410, 295, 110, 25, _tr("Buys Discount"));
+              db_entities_buys_discount = o;
+              o.textsize(16);
+              o.labelsize(16);
+              add_input_field_to_map("entities", "buys_discount", db_entities_buys_discount);
             }
           }
           o.end();
         }
         {
-          local o = Fl_Group(5, 59, 790, 495, _tr("Kit"));
-          tabKit = o;
-          o.labelsize(16);
-          o.color(246);
-          o.end();
-        }
-        {
-          local o = Fl_Group(5, 60, 790, 495, _tr("Statistics"));
+          local o = Fl_Group(5, 62, 790, 493, _tr("Statistics"));
           tabChartStatistics = o;
           o.labelsize(16);
           o.color(246);
           o.end();
         }
         {
-          local o = Fl_Group(5, 60, 790, 495, _tr("History"));
+          local o = Fl_Group(5, 59, 790, 496, _tr("History"));
           tabHistory = o;
           o.labelsize(16);
           o.color(246);
           o.end();
         }
         {
-          local o = Fl_Group(5, 60, 790, 495, _tr("Reports"));
+          local o = Fl_Group(5, 59, 790, 496, _tr("Reports"));
           tabReports = o;
           o.labelsize(16);
           o.color(246);
-          o.box(FL_UP_BOX);
           {
             {
-              local o = Fl_Group(15, 465, 770, 80, _tr("Export / Import"));
-              grpExportImport = o;
-              o.labelsize(16);
-              o.box(FL_ENGRAVED_FRAME);
-              {
-                {
-                  local o = Fl_Button(25, 475, 175, 25, _tr("Products Export"));
-                  btnProductsExport = o;
-                  o.labelsize(16);
-                }
-                {
-                  local o = Fl_Button(25, 510, 175, 25, _tr("Products Import"));
-                  btnProductsImport = o;
-                  o.labelsize(16);
-                }
-                {
-                  local o = Fl_Check_Button(225, 480, 150, 25, _tr("Withouth Prices"));
-                  chkWithoutPrices = o;
-                  o.labelsize(16);
-                  o.down_box(FL_DOWN_BOX);
-                }
-                {
-                  local o = Fl_Check_Button(225, 510, 150, 25, _tr("WEB Only"));
-                  chkWebOnly = o;
-                  o.labelsize(16);
-                  o.down_box(FL_DOWN_BOX);
-                }
-                {
-                  local o = Fl_Box(405, 499, 42, 25, _tr("0"));
-                  boxExportImportCount = o;
-                  o.labelsize(16);
-                }
-                {
-                  local o = Fl_Button(555, 475, 220, 25, _tr("Product Groups Export"));
-                  btnProductGroupsExport = o;
-                  o.labelsize(16);
-                }
-                {
-                  local o = Fl_Button(555, 510, 220, 25, _tr("Product Groups import"));
-                  btnProductGroupsImport = o;
-                  o.labelsize(16);
-                }
-              }
-              o.end();
+              local o = Fl_Button(255, 100, 215, 25, _tr("Entities List Contact Report"));
+              btnEntitesListContactReport = o;
             }
             {
-              local o = Fl_Button(610, 70, 175, 25, _tr("Update WEB"));
-              btnUpdateWeb = o;
-              o.labelsize(16);
-            }
-            {
-              local o = Fl_Group(10, 85, 195, 165, _tr("Price List"));
-              grpPrintPriceList = o;
-              o.labelsize(16);
-              o.box(FL_ENGRAVED_FRAME);
-              {
-                {
-                  local o = Fl_Check_Button(20, 95, 175, 25, _tr("With V.A.T."));
-                  chkPriceListWithVAT = o;
-                  o.labelsize(16);
-                  o.down_box(FL_DOWN_BOX);
-                }
-                {
-                  local o = Fl_Check_Button(20, 125, 170, 25, _tr("Sell on WEB"));
-                  chkPriceListSellOnWeb = o;
-                  o.labelsize(16);
-                  o.down_box(FL_DOWN_BOX);
-                }
-                {
-                  local o = Fl_Button(20, 215, 175, 25, _tr("Print"));
-                  btnPrintPriceList = o;
-                  o.labelsize(16);
-                }
-                {
-                  local o = Fl_Check_Button(20, 155, 175, 25, _tr("Sales"));
-                  chkPriceListSellSales = o;
-                  o.labelsize(16);
-                  o.down_box(FL_DOWN_BOX);
-                }
-                {
-                  local o = Fl_Check_Button(20, 185, 175, 25, _tr("PDF"));
-                  chkPriceListSellPDF = o;
-                  o.labelsize(16);
-                  o.down_box(FL_DOWN_BOX);
-                }
-              }
-              o.end();
-            }
-          }
-          o.end();
-        }
-        {
-          local o = Fl_Group(5, 60, 790, 495, _tr("Totals"));
-          tabTotals = o;
-          o.labelsize(16);
-          o.color(246);
-          {
-            {
-              local o = Fl_Float_Input(220, 80, 110, 25, _tr("Quantity quoted sales"));
-              db_products_quantity_quoted_sales = o;
-              o.textsize(16);
-              o.labelsize(16);
-              o->decimal_places(-6);
-              add_input_field_to_map("products", "quantity_quoted_sales", db_products_quantity_quoted_sales);
-            }
-            {
-              local o = Fl_Float_Input(220, 115, 110, 25, _tr("Quantity ordered sales"));
-              db_products_quantity_ordered_sales = o;
-              o.textsize(16);
-              o.labelsize(16);
-              o->decimal_places(-6);
-              add_input_field_to_map("products", "quantity_ordered_sales", db_products_quantity_ordered_sales);
-            }
-            {
-              local o = Fl_Float_Input(220, 150, 110, 25, _tr("Quantity delivered"));
-              db_products_quantity_delivered = o;
-              o.textsize(16);
-              o.labelsize(16);
-              o->decimal_places(-6);
-              add_input_field_to_map("products", "quantity_delivered", db_products_quantity_delivered);
-            }
-            {
-              local o = Fl_Float_Input(220, 185, 110, 25, _tr("Quantity invoiced sales"));
-              db_products_quantity_invoiced_sales = o;
-              o.textsize(16);
-              o.labelsize(16);
-              o->decimal_places(-6);
-              add_input_field_to_map("products", "quantity_invoiced_sales", db_products_quantity_invoiced_sales);
-            }
-            {
-              local o = Fl_Float_Input(220, 220, 110, 25, _tr("Quantity lost"));
-              db_products_quantity_lost = o;
-              o.textsize(16);
-              o.labelsize(16);
-              o->decimal_places(-6);
-              add_input_field_to_map("products", "quantity_lost", db_products_quantity_lost);
-            }
-            {
-              local o = Fl_Float_Input(665, 85, 110, 25, _tr("Quantity quoted buys"));
-              db_products_quantity_quoted_buys = o;
-              o.textsize(16);
-              o.labelsize(16);
-              o->decimal_places(-6);
-              add_input_field_to_map("products", "quantity_quoted_buys", db_products_quantity_quoted_buys);
-            }
-            {
-              local o = Fl_Float_Input(665, 120, 110, 25, _tr("Quantity ordered buys"));
-              db_products_quantity_ordered_buys = o;
-              o.textsize(16);
-              o.labelsize(16);
-              o->decimal_places(-6);
-              add_input_field_to_map("products", "quantity_ordered_buys", db_products_quantity_ordered_buys);
-            }
-            {
-              local o = Fl_Float_Input(665, 155, 110, 25, _tr("Quantity received"));
-              db_products_quantity_received = o;
-              o.textsize(16);
-              o.labelsize(16);
-              o->decimal_places(-6);
-              add_input_field_to_map("products", "quantity_received", db_products_quantity_received);
-            }
-            {
-              local o = Fl_Float_Input(665, 190, 110, 25, _tr("Quantity invoiced buys"));
-              db_products_quantity_invoiced_buys = o;
-              o.textsize(16);
-              o.labelsize(16);
-              o->decimal_places(-6);
-              add_input_field_to_map("products", "quantity_invoiced_buys", db_products_quantity_invoiced_buys);
+              local o = Fl_Progress(255, 140, 215, 25, _tr("Printing Progress"));
+              print_progress = o;
             }
           }
           o.end();
