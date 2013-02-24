@@ -772,13 +772,17 @@ function mydebughook(event_type,sourcefile,line,funcname)
 //enabledebuginfo(true);
 //setdebughook(mydebughook);
 
-Fluid2SquiLu("pedidos2-gui.fl", "-", {});
+//Fluid2SquiLu("report-a4-gui.fl", "-", {});
+//Fluid2SquiLu("groups-tree-gui.fl", "-", {});
+//Fluid2SquiLu("list-search-gui.fl", "-", {});
+//Fluid2SquiLu("pedidos2-gui.fl", "-", {});
 //Fluid2SquiLu("sqlite3-cc-gui.fl", "-", {});
 //Fluid2SquiLu("ourbiz-gui.fl", "-", {});
 //Fluid2SquiLu("entity-edit-gui.fl", "-", {});
 //Fluid2SquiLu("orders-edit-gui.fl", "-", {});
 //Fluid2SquiLu("barchart-gui.fl", "-", {});
 //Fluid2SquiLu("history-gui.fl", "-", {});
+//Fluid2SquiLu("product-edit-gui.fl", "-", {});
 //Fluid2SquiLu("product-kit-gui.fl", "-", {});
 //Fluid2SquiLu("product-prices-gui.fl", "-", {});
 //Fluid2SquiLu("print-preview-gui.fl", "-", {});
