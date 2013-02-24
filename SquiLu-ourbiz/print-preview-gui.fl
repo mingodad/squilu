@@ -1,0 +1,52 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+i18n_type 1 
+i18n_include i18n_function.h 
+i18n_function _tr 
+header_name {.h} 
+code_name {.cxx}
+decl {\#include "My_Base_App.h"
+\#include "order-page-gui.h"} {public global
+} 
+
+widget_class PrintPreviewGroup {
+  label {Print Preview} open
+  xywh {181 165 770 440} type Double labelsize 16 hide resizable position_relative
+} {
+  Fl_Group {} {open
+    xywh {0 0 80 440}
+  } {
+    Fl_Button btnRefresh {
+      label Refresh
+      xywh {0 5 80 25} labelsize 16
+    }
+    Fl_Button btnPrinter {
+      label Printer
+      xywh {0 35 80 25} labelsize 16
+    }
+    Fl_Button btnPrint {
+      label Print
+      xywh {0 65 80 25} labelsize 16
+    }
+    Fl_Check_Button chkOnlyData {
+      label {Only Data}
+      xywh {30 118 20 25} down_box DOWN_BOX labelsize 16 align 1
+    }
+    Fl_Check_Button chkA4 {
+      label A4
+      xywh {30 165 20 25} down_box DOWN_BOX labelsize 16 align 1
+    }
+    Fl_Input iNumCopies {
+      label Copies
+      xywh {10 211 56 24} type Int labelsize 16 align 1 textsize 16
+    }
+    Fl_Browser brwPages {
+      label Pages
+      xywh {5 260 70 180} type Hold labelsize 16 align 1 textsize 16 resizable
+    }
+  }
+  Fl_Scroll PreviewScroll {open selected
+    xywh {90 0 680 440} box ENGRAVED_FRAME color 7 resizable
+    class OrderPageGroup
+  } {}
+} 

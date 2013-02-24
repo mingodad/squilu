@@ -327,8 +327,14 @@ function cb_btnPaymentTypes(){print(__LINE__);}
 function cb_btnMeasureUnits(){print(__LINE__);}
 function cb_btnWarrantyTypes(){print(__LINE__);}
 function cb_btnImages(){print(__LINE__);}
-function cb_btnProductGroups(){print(__LINE__);}
-function cb_btnEntityGroups(){print(__LINE__);}
+function cb_btnProductGroups(sender, udata){
+	this = sender.window();
+	local win = showChildWindow("Product Groups", OurProductGroups);
+}
+function cb_btnEntityGroups(sender, udata){
+	this = sender.window();
+	local win = showChildWindow("Entity Groups", OurEntityGroups);
+}
 function cb_btnConfig(){print(__LINE__);}
 function cb_btnOpenDB(){print(__LINE__);}
 function cb_btnTranslations(){print(__LINE__);}

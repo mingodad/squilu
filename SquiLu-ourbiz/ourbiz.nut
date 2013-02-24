@@ -1402,6 +1402,83 @@ db_ourbiz_tables.sales_tax_rates <- new DB_sales_tax_rates();
 
 db_ourbiz_tables.warranty_types <- new DB_Manager("warranty_types")
 
+class DB_groups_tree extends DB_Manager
+{
+	constructor(){
+		base.constructor("groups_tree", ["description", "parent_id", "notes"]);
+	}
+
+	function dump_group_tree_childs(parent, out_result, parent_map, data_map){
+		for(int_t iter=0, count = parent_map.len(); iter < count; ++iter){
+			if (parent_map[iter][0] == parent){
+				for (local found=iter, parent_count = parent_map.len(); found < parent_count; ++found){
+					local map = parent_map[found];
+					local id = map[1];
+					local myparent = map[0];
+					//debug_print(myparent, "\t", parent, "\n");
+					if (myparent != parent) break;
+					out_result.write("[");
+					add2sle(out_result, id.tostring());
+					add2sle(out_result, myparent.tostring());
+					add2sle(out_result, data_map[id]);
+					out_result.writen(SLE_SLEEND, 'c');
+					out_result.write("]");
+					dump_group_tree_childs(id, out_result, parent_map, data_map);
+				}
+				break;
+			}
+		}
+	}
+
+	function group_dump_data(db, out_result, tbl){
+		out_result.clear();
+		local parent_map = [];
+		local  group_map = {};
+		local id, parent_id;
+		local stmt = db.prepare(format("select id, parent_id, description from %s order by 3", tbl));
+		while (stmt.next_row()) {
+			id = stmt.col(0);
+			parent_id = stmt.col(1);
+			if (type(parent_id) != "integer") parent_id = 0;
+			//debug_print("\n", parent_id, "\t", id);
+			parent_map.push([parent_id, id]);
+			group_map[id] <- stmt.col(2);
+		}
+		parent_map.sort(@(a,b) a[0] <=> b[0] );
+		out_result.write("[[");
+		add2sle(out_result, "id");
+		add2sle(out_result, "parent_id");
+		add2sle(out_result, "description");
+		out_result.writen(SLE_SLEEND, 'c');
+		out_result.write("]");
+		dump_group_tree_childs(0, out_result, parent_map, group_map);
+		out_result.write("]");
+	}
+
+	function get_list(db, mFile)
+	{
+		group_dump_data(db, mFile, table_name);
+	};
+};
+
+class DB_product_groups extends DB_groups_tree
+{
+	constructor(){
+		base.constructor();
+		table_name = "product_groups";
+	}
+};
+db_ourbiz_tables.product_groups <- new DB_product_groups();
+
+class DB_entity_groups  extends DB_groups_tree
+{
+	constructor(){
+		base.constructor();
+		table_name = "entity_groups";
+	}
+};
+db_ourbiz_tables.entity_groups <- new DB_entity_groups();
+
 
 function product_prices_list_sql (product_id){
 	product_id = product_id.tointeger();
@@ -1457,53 +1534,6 @@ function add2sle(out_result, str){
 	out_result.write(get_sle_size(str.len()), str);
 }
 
-function dump_group_tree_childs(parent, out_result, parent_map, data_map){
-	for(int_t iter=0, count = parent_map.len(); iter < count; ++iter){
-		if (parent_map[iter][0] == parent){
-			for (local found=iter, parent_count = parent_map.len(); found < parent_count; ++found){
-				local map = parent_map[found];
-				local id = map[1];
-				local myparent = map[0];
-				//debug_print(myparent, "\t", parent, "\n");
-				if (myparent != parent) break;
-				out_result.write("[");
-				add2sle(out_result, id.tostring());
-				add2sle(out_result, myparent.tostring());
-				add2sle(out_result, data_map[id]);
-				out_result.writen(SLE_SLEEND, 'c');
-				out_result.write("]");
-				dump_group_tree_childs(id, out_result, parent_map, data_map);
-			}
-			break;
-		}
-	}
-}
-
-function group_dump_data(db, out_result, tbl){
-	out_result.clear();
-	local parent_map = [];
-	local  group_map = {};
-	local id, parent_id;
-	local stmt = db.prepare(format("select id, parent_id, description from %s order by 3", tbl));
-	while (stmt.next_row()) {
-		id = stmt.col(0);
-		parent_id = stmt.col(1);
-		if (type(parent_id) != "integer") parent_id = 0;
-		//debug_print("\n", parent_id, "\t", id);
-		parent_map.push([parent_id, id]);
-		group_map[id] <- stmt.col(2);
-	}
-	parent_map.sort(@(a,b) a[0] <=> b[0] );
-	out_result.write("[[");
-	add2sle(out_result, "id");
-	add2sle(out_result, "parent_id");
-	add2sle(out_result, "description");
-	out_result.writen(SLE_SLEEND, 'c');
-	out_result.write("]");
-	dump_group_tree_childs(0, out_result, parent_map, group_map);
-	out_result.write("]");
-}
-
 function ourbizDbMobile(request){
 	local data = {};
 	data.page_name = "list_products";
@@ -1548,8 +1578,8 @@ function ourbizDbGetList(request){
 		if (!post_tbl.get("query_limit", false)) post_tbl.query_limit <- 50;
 		gmFile.clear();
 
-		if (list == "entity_groups") group_dump_data(db, gmFile, "entity_groups");
-		else if (list == "product_groups") group_dump_data(db, gmFile, "product_groups");
+		if (list == "entity_groups") db_ourbiz_tables.entity_groups.get_list(db, gmFile);
+		else if (list == "product_groups") db_ourbiz_tables.product_groups.get_list(db, gmFile);
 		else if (list == "config") sql = "select key,value from config";
 		else if (db_ourbiz_tables.get(list, false)){
 			sql = db_ourbiz_tables[list].sql_list(qs_tbl, post_tbl);

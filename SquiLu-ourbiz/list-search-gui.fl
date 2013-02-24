@@ -1,0 +1,82 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+i18n_type 1 
+i18n_include i18n_function.h 
+i18n_function _tr 
+header_name {.h} 
+code_name {.cxx}
+decl {\#include "My_Base_App.h"} {public global
+} 
+
+widget_class ListSearchWindow {
+  label {List Search} open
+  xywh {132 118 800 560} type Double labelsize 16 resizable
+  class List_Search_Base_Window visible
+} {
+  Fl_Group topGroup {open
+    xywh {0 0 800 35} labelsize 16
+  } {
+    Fl_Input group_filter {
+      dirty_name group_filter selected
+      xywh {5 5 675 25} labeltype NO_LABEL labelsize 16 textsize 16
+      class Flu_Combo_List
+    }
+    Fl_Input query_limit {
+      xywh {690 6 60 25} type Int labeltype NO_LABEL labelsize 16 textsize 16
+      code0 {o->value("50");}
+    }
+    Fl_Button btnNotes {
+      label {?}
+      xywh {760 6 35 25} labelsize 16
+    }
+  }
+  Fl_Group middleGroup {open
+    xywh {0 41 800 409} labelsize 16 resizable
+  } {
+    Fl_Browser grid {
+      dirty_name grid
+      xywh {5 41 790 389} type Multi labeltype NO_LABEL labelsize 16 textsize 16 resizable
+      class Fl_Data_Table
+    }
+  }
+  Fl_Group bottomGroup {open
+    xywh {4 440 790 115} box ENGRAVED_BOX color 246 labelsize 16
+  } {
+    Fl_Pack pack_search_options {open
+      xywh {14 450 320 25} type HORIZONTAL labelsize 16
+      code0 {o->spacing(10);}
+    } {}
+    Fl_Input search_str {
+      label {@search}
+      dirty_name search_str
+      xywh {35 485 299 25} labelsize 16 when 8 textsize 16
+    }
+    Fl_Button btnSearch {
+      label Search
+      xywh {345 485 100 25} labelsize 16
+    }
+    Fl_Button btnSelect {
+      label Select
+      xywh {14 520 100 25} labelsize 16
+    }
+    Fl_Button btnUpdate {
+      label Update
+      xywh {124 520 100 25} labelsize 16
+    }
+    Fl_Button btnInsert {
+      label Insert
+      xywh {234 520 100 25} labelsize 16
+    }
+    Fl_Button btnThumbImage {
+      xywh {663 445 125 105} box NO_BOX align 80
+      class Fl_Image_Box
+    }
+    Fl_Box {} {
+      xywh {650 445 5 105} labeltype NO_LABEL labelsize 16 align 80 resizable
+    }
+    Fl_Pack pack_search_options2 {open
+      xywh {345 520 300 25} type HORIZONTAL labelsize 16
+      code0 {o->spacing(10);}
+    } {}
+  }
+} 

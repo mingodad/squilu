@@ -111,6 +111,69 @@ class Fl_Multiline_Output extends Fl_Output {
 	}
 }
 
+class MyFl_Text_Editor extends Fl_Text_Editor_Buffered
+{
+	constructor(px, py, pw, ph, pl = null){
+		base.constructor(px, py, pw, ph, pl);
+	}
+/*
+	function handle(event){
+		if(event == FL_KEYBOARD){
+			local pos, line;
+			switch(Fl.event_key()){
+				case FL_Up:
+					pos = insert_position();
+					if ( pos == 0 ){
+						if(position_to_line( pos, &line ) && (line == 0)){
+						return Fl_Group::handle(event);
+					}
+				}
+				break;
+			}
+		}
+		return base.handle(event);
+	}
+*/
+};
+
+class MyTree_Browser extends Flu_Tree_Browser {
+
+	constructor(px, py, pw, ph, pl = null){
+		base.constructor(px, py, pw, ph, pl);
+	}
+
+	function handle(event){
+		if(event == FL_PUSH){
+		    if( Fl.event_clicks() > 0 )
+		    {
+			Fl.event_clicks(0);
+			local node = get_hilighted();
+			if(node){
+			    node->do_callback(FLU_DOUBLE_CLICK);
+			    return 1;
+			}
+		    }
+		}
+
+		local result = base.handle(event);
+
+		if(event == FL_KEYBOARD)
+		{
+		    switch(Fl.event_key())
+		    {
+		    case FL_Key_Space:
+		    case FL_Enter:
+		    case FL_KP_Enter:
+			local node = get_hilighted();
+			if(node) node->do_callback(FLU_DOUBLE_CLICK);
+		    break;
+		    }
+		}
+
+		return result;
+	}
+};
+
 class Fl_Box_ClearLabel extends Fl_Box {
 	constructor(px, py, pw, ph, pl=null){
 		base.constructor(px, py, pw, ph, pl);
@@ -398,15 +461,20 @@ class MyBaseWindow extends Fl_Window {
 	}
 	
 	function setup_tree_browser_for_selection (tree) {
+		local node = tree->get_root();
+		if(node) node->always_open(true);
 		tree->show_root(true);
 		tree->auto_branches(true);
 		tree->show_branches(true);
+		tree->show_leaves(true);
 		tree->all_branches_always_open(true);
-		//tree->selection_mode(FLU_MULTI_SELECT);
-		tree->selection_mode(FLU_SINGLE_SELECT);
 		tree->branch_text(tree->labelcolor(), tree->labelfont(), tree->labelsize());
 		tree->leaf_text(tree->labelcolor(), tree->labelfont(), tree->labelsize());
+		//tree->selection_mode(FLU_MULTI_SELECT);
+		tree->selection_mode(FLU_SINGLE_SELECT);
+		tree->selection_drag_mode(FLU_DRAG_TO_SELECT);
 		tree->shaded_entry_colors( FL_WHITE, FL_GRAY );
+		tree->selection_follows_hilight( true );
 	}
 	
 	function treeLoadChilds (tree, node, parent, _table_name)
@@ -687,14 +755,14 @@ class EditWindow extends MyBaseWindow {
 	function do_refresh(){/*fl_alert("do_delete");*/}
 	function do_copy(){/*fl_alert("do_delete");*/}
 	
-	function dbUpdater(dbu){
-		_dbUpdater = dbu;
-	}
-
-	function dbUpdater(){
+	function dbUpdater(dbu=null){
+		if(dbu){
+			_dbUpdater = dbu;
+			return;
+		}
 		if(!_dbUpdater) _dbUpdater = new DBUpdateByWidget();
 		return _dbUpdater;
-	}	
+	}
 }
 
 enum Fl_Data_Table_Events {e_none, e_event, e_select, e_insert, e_update, e_delete};
@@ -1003,6 +1071,7 @@ dofile("base-report-A4.nut");
 dofile("invoice-A4.nut");
 dofile("order-page-gui.nut");
 dofile("print-preview-gui.nut");
+dofile("groups-tree-gui.nut");
 dofile("product-kit-gui.nut");
 dofile("product-prices-gui.nut");
 dofile("edit-product-window.nut");
@@ -1071,6 +1140,11 @@ class MyListSearchWindow extends ListSearch {
 		grid->_call_this = this;
 		btnSelect->deactivate();
 		btnNotes.callback(show_help_window);
+		btnUpdate.callback(cb_btnUpdate);
+		btnInsert.callback(cb_btnInsert);
+		btnSelect.callback(cb_btnSelect);
+		btnSearch.callback(cb_btnSearch);
+		search_str.callback(cb_search_str);
 	}
 
 	function cb_btnUpdate(sender, udata){
@@ -1197,20 +1271,120 @@ class MyListSearchWindow extends ListSearch {
 
 		ctree->textfont(ctree->labelfont());
 		ctree->textsize(ctree->labelsize());
-
-		local tree = ctree->tree();
-		tree.auto_branches(true);
-		tree.show_branches(true);
-		tree.all_branches_always_open(true);
-		tree.branch_text(ctree->labelcolor(), ctree->labelfont(), ctree->labelsize());
-		tree.leaf_text(ctree->labelcolor(), ctree->labelfont(), ctree->labelsize());
-		tree.shaded_entry_colors( FL_WHITE, FL_GRAY );
+		setup_tree_browser_for_selection(ctree->tree());
 		//tree.label("----");
 
 		ctree.callback(on_filter);
 		group_filter = ctree;
 	}
 }
+
+class OurTreeGroups extends GroupsListEditWindow {
+	static GroupDbUpdater = class extends DBUpdateByWidget {
+		constructor(){
+			base.constructor();
+		}
+		function get_fields_map_name(){
+			return "group";
+		}
+	};
+	_table_name = null;
+	
+	constructor(){
+		base.constructor();
+		setup_tree_browser_for_selection(tree);
+		tree.callback(on_tree_cb);
+		btnWrapNotes.callback(on_wrap_notes_cb);
+		btnWrapNotes->do_callback();
+		setDbActionControls(dbAction, btnDbAction);
+		dbAction->action(DbAction_Enum.e_insert);
+		on_Change_dbAction();
+	}
+	
+	function dbUpdater(dbu=null){
+		if(dbu){
+			_dbUpdater = dbu;
+			return;
+		}
+		if(!_dbUpdater) _dbUpdater = new GroupDbUpdater();
+		return _dbUpdater;
+	}		
+
+	function on_tree_cb(sender, udata)
+	{
+		this = sender->window();
+		local tree = sender;
+		local reason = tree->callback_reason();
+		local node = tree->callback_node();
+		switch(reason)
+		{
+		//case FLU_HILIGHTED:
+		//case FLU_UNHILIGHTED:
+		//case FLU_SELECTED:
+		//case FLU_UNSELECTED:
+		//case FLU_OPENED:
+		//case FLU_CLOSED:
+		case FLU_DOUBLE_CLICK:
+		//case FLU_WIDGET_CALLBACK:
+		//case FLU_MOVED_NODE:
+		//case FLU_NEW_NODE:
+		    //Flu_Tree_Browser::Node *node = tree->get_hilighted();
+		    if(node) do_edit(node->user_data().tointeger());
+		break;
+		}
+	}
+
+	function do_edit(id)
+	{
+		if(!_table_name) return;
+		local cursor_wait = fl_cursor_wait();
+		base.do_edit(id);
+		appServer.get_record(_record, dbUpdater()->table_name, 0, id);
+		fill_edit_form();
+		delayed_focus(db_group_description);
+	}
+
+	function on_btnDbAction()
+	{
+		base.on_btnDbAction();
+		treeLoadChilds(tree, 0, 0, _table_name);
+
+		fill_edit_form(true);
+		dbAction->action(DbAction_Enum.e_insert);
+		on_Change_dbAction();
+		delayed_focus(db_group_description);
+	}
+	
+	function on_wrap_notes_cb(sender, udata)
+	{
+		this = sender->window();
+		db_group_notes->wrap_mode(btnWrapNotes->value(), 0);
+	}
+}
+
+class OurProductGroups extends OurTreeGroups
+{
+	constructor(){
+		base.constructor();
+		label(_tr("Product Groups List/Edit"));
+		_table_name = "product_groups";
+		dbUpdater()->table_name = _table_name;
+		treeLoadChilds(tree, 0, 0, _table_name);
+		//tree->label( _tr("Product Groups") );
+	}
+};
+
+class OurEntityGroups extends OurTreeGroups
+{
+	constructor(){
+		base.constructor();        
+		label(_tr("Entity Groups List/Edit"));
+		_table_name = "entity_groups";
+		dbUpdater()->table_name = _table_name;
+		treeLoadChilds(tree, 0, 0, _table_name);
+		//tree->label( _tr("Entity Groups") );
+	}
+};
 
 
 dofile("sales-tax-window.nut");
@@ -1585,6 +1759,8 @@ class MyEditProductWindow extends EditProductWindow {
 
 		_ourProductPrices = new ProductPricesGroup();
 		replace_widget_for(productPrices, _ourProductPrices);
+		
+		tabsMoreData.callback(tabsMoreData_cb);
 
 		load_aux_data();
 	}
@@ -1604,7 +1780,7 @@ class MyEditProductWindow extends EditProductWindow {
 	function load_aux_data(){
 		local tree = db_products_group_id;
 		setup_tree_browser_for_selection(tree);
-		treeLoadChilds(tree, null, 0, "product_groups");
+		treeLoadChilds(tree, 0, 0, "product_groups");
 
 		local sales_tax_data = [], measure_units_data = [], warranty_data = [];
 
@@ -1620,6 +1796,12 @@ class MyEditProductWindow extends EditProductWindow {
 		fill_choice_by_data(db_products_warranty_id, warranty_data);
 	}
 	
+	function tabsMoreData_cb(sender, udata){
+		this = sender->window();
+		if(tabsMoreData->value() == tabGroups){
+			//db_products_group_id.redraw();
+		}
+	}
 	function on_show_chart_cb(sender, udata){
 		this = sender->window();
 		local cursor_wait = fl_cursor_wait();
@@ -1681,13 +1863,12 @@ class ProductsListSearch extends MyListSearchWindow {
 		_search_by_description->setonly();
 		_search_by_active->value(1);
 		if(doInitialSearch) delayed_method_call(this, this.fill_grid, null);
-		delayed_method_call(this, this.fill_group_filter, 0);
 	}
 
 	function fill_group_filter(udata)
 	{
 		local tree = group_filter->tree();
-		treeLoadChilds(tree, null, 0, "product_groups");
+		treeLoadChilds(tree, 0, 0, "product_groups");
 		tree->label("----");
 	}
 

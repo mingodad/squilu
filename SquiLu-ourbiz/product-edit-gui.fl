@@ -1,0 +1,529 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+i18n_type 1 
+i18n_include i18n_function.h 
+i18n_function _tr 
+header_name {.h} 
+code_name {.cxx}
+widget_class EditProductsWindow {
+  label {Edit Products} open
+  xywh {34 28 800 560} type Double resizable
+  class Edit_Base_Window visible
+} {
+  Fl_Output db_products_id {
+    macro_name {db products id}
+    dirty_name db_products_id
+    xywh {5 5 96 25} labeltype NO_LABEL labelsize 16 textsize 16
+    code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+  }
+  Fl_Output db_products_description_ro {
+    dirty_name db_products_description_ro
+    xywh {110 5 545 25} labeltype NO_LABEL labelsize 16 textsize 16
+  }
+  Fl_Output db_products_mdate {
+    macro_name {db products mdate}
+    dirty_name db_products_mdate
+    xywh {666 5 130 25} labeltype NO_LABEL labelsize 16 textsize 16
+    code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+  }
+  Fl_Output db_products_cdate {
+    macro_name {db products cdate}
+    xywh {665 35 130 25} labeltype NO_LABEL labelsize 16 textsize 16
+    code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+  }
+  Fl_Tabs tabs {open
+    xywh {5 35 790 520} selection_color 4 labelsize 16 labelcolor 7 resizable
+  } {
+    Fl_Group tabMain {
+      label Main open
+      xywh {5 60 790 495} color 246 labelsize 16 resizable
+    } {
+      Fl_Input db_products_reference_code {
+        label Reference
+        macro_name {db products reference_code}
+        xywh {115 70 165 25} labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_products_supplier_code {
+        label {Ref. Supp.}
+        macro_name {db products supplier_code}
+        dirty_name db_products_supplier_code
+        xywh {380 70 165 25} labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_products_bar_code {
+        label Barcode
+        macro_name {db products bar_code}
+        dirty_name db_products_bar_code
+        xywh {620 70 165 25} labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_products_sell_description {
+        label Description
+        macro_name {db products sell_description}
+        dirty_name db_products_sell_description
+        xywh {115 100 670 25} labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_products_buy_description {
+        label {Desc. Supp.}
+        macro_name {db products buy_description}
+        dirty_name db_products_buy_description
+        xywh {115 130 670 25} labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_products_sell_price {
+        label {Sales Price}
+        macro_name {db products sell_price}
+        dirty_name db_products_sell_price
+        xywh {115 160 110 25} type Float labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+        class Fl_Float_Input_Fmt
+      }
+      Fl_Choice db_products_measure_unit_id {
+        label {Measure Unit}
+        macro_name {db products measure_unit_id}
+        dirty_name db_products_measure_unit_id open
+        xywh {370 160 110 25} down_box BORDER_BOX labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+        class Fl_Choice_Int
+      } {}
+      Fl_Choice db_products_sales_tax_id {
+        label {V.A.T.}
+        macro_name {db products sales_tax_id}
+        dirty_name db_products_sales_tax_id open
+        xywh {115 190 110 25} down_box BORDER_BOX labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+        class Fl_Choice_Int
+      } {}
+      Fl_Choice db_products_warranty_id {
+        label Warranty
+        macro_name {db products warranty_id}
+        dirty_name db_products_warranty_id open
+        xywh {370 190 110 25} down_box BORDER_BOX labelsize 16 textsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+        class Fl_Choice_Int
+      } {}
+      Fl_Input db_products_sell_quantity_min {
+        label {Sell Min. Qty.}
+        macro_name {db products sell_quantity_min}
+        dirty_name db_products_sell_quantity_min
+        xywh {370 250 110 25} type Float labelsize 16 textsize 16
+        code0 {o->decimal_places(-6);}
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_products_units_by_package {
+        label {Units by Pack.}
+        macro_name {db products units_by_package}
+        dirty_name db_products_units_by_package
+        xywh {370 280 110 25} type Float labelsize 16 textsize 16
+        code0 {o->decimal_places(-6);}
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_products_weight {
+        label Weight
+        macro_name {db products weight}
+        dirty_name db_products_weight
+        xywh {370 220 110 25} type Float labelsize 16 textsize 16
+        code0 {o->decimal_places(-6);}
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Check_Button db_products_sell_without_stock {
+        label {Sell without stock}
+        macro_name {db products sell_without_stock}
+        xywh {10 250 215 25} down_box DOWN_BOX labelsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Check_Button db_products_is_active {
+        label Active
+        macro_name {db products is_active}
+        dirty_name db_products_is_active
+        xywh {10 280 110 25} down_box DOWN_BOX labelsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Check_Button db_products_show_on_sales {
+        label Sales
+        macro_name {db products show_on_sales}
+        dirty_name db_products_show_on_sales
+        xywh {10 310 105 25} down_box DOWN_BOX labelsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Check_Button db_products_show_on_buys {
+        label Buys
+        macro_name {db products show_on_buys}
+        dirty_name db_products_show_on_buys
+        xywh {10 340 95 25} down_box DOWN_BOX labelsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Check_Button db_products_show_on_web {
+        label Web
+        macro_name {db products show_on_web}
+        dirty_name db_products_show_on_web
+        xywh {115 310 120 25} down_box DOWN_BOX labelsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Check_Button db_products_show_price_on_web {
+        label {Web price}
+        macro_name {db products show_price_on_web}
+        dirty_name db_products_show_price_on_web
+        xywh {115 340 100 25} down_box DOWN_BOX labelsize 16
+        code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Group {} {open
+        xywh {675 402 110 143}
+      } {
+        Fl_Box {} {
+          label Spacer
+          xywh {675 402 110 68} labeltype NO_LABEL resizable
+        }
+        Fl_Choice dbAction {
+          label Action
+          dirty_name dbAction open
+          xywh {675 520 110 25} down_box BORDER_BOX labelsize 16 align 1 textsize 16
+          class Fl_Choice_dbAction
+        } {}
+        Fl_Button btnDbAction {
+          label Action
+          dirty_name btnDbAction
+          xywh {675 470 110 25} labelsize 16
+        }
+      }
+      Fl_Tabs tabsMoreData {
+        dirty_name tabsMoreData open selected
+        xywh {10 370 650 181} selection_color 4 labelsize 16 labelcolor 7
+      } {
+        Fl_Group tabNotes {
+          label Notes open
+          xywh {10 400 650 150} labelsize 16
+        } {
+          Fl_Input db_products_sell_notes {
+            macro_name {db products sell_notes}
+            dirty_name db_products_sell_notes
+            xywh {10 400 650 150} type Multiline labeltype NO_LABEL labelsize 16 align 5 textsize 16 resizable
+            code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+            class Fl_Text_Editor_Buffered
+          }
+        }
+        Fl_Group tabNotesSupplier {
+          label {Notes Supplier} open
+          xywh {10 400 650 150} labelsize 16 hide
+        } {
+          Fl_Input db_products_buy_notes {
+            macro_name {db products buy_notes}
+            dirty_name db_products_buy_notes
+            xywh {10 400 650 150} type Multiline labeltype NO_LABEL labelsize 16 align 5 textsize 16 resizable
+            code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+            class Fl_Text_Editor_Buffered
+          }
+        }
+        Fl_Group tabTags {
+          label Tags
+          dirty_name tabTags open
+          xywh {10 400 650 150} labelsize 16 hide
+        } {
+          Fl_Input db_products_tags {
+            macro_name {db products tags}
+            dirty_name db_products_tags
+            xywh {10 400 650 150} type Multiline labeltype NO_LABEL labelsize 16 align 5 textsize 16 resizable
+            code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+            class Fl_Text_Editor_Buffered
+          }
+        }
+        Fl_Group tabGroups {
+          label Groups
+          dirty_name tabGroups open
+          xywh {10 395 650 156} hide
+        } {
+          Fl_Tree db_products_group_id {
+            macro_name {db products group_id}
+            dirty_name db_products_group_id
+            xywh {10 400 650 150} labelsize 16
+            code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+            class Flu_Tree_Browser
+          }
+        }
+      }
+      Fl_Button btnImage {
+        xywh {485 158 300 232} box ENGRAVED_BOX color 7 align 80
+        class Fl_Image_Box
+      }
+      Fl_Check_Button {} {
+        label {Wrap lines}
+        callback {db_products_sell_notes->wrap_mode(o->value(), 0);
+db_products_buy_notes->wrap_mode(o->value(), 0);
+db_products_tags->wrap_mode(o->value(), 0);}
+        xywh {370 375 102 25} down_box DOWN_BOX value 1 labelsize 16
+      }
+      Fl_Input db_products_quantity_onhand {
+        label Onhand
+        macro_name {db products quantity_onhand}
+        dirty_name db_products_quantity_onhand
+        xywh {115 220 110 25} type Float labelsize 16 textsize 16
+        code0 {o->decimal_places(-6);}
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+    }
+    Fl_Group tabPrices {
+      label Prices open
+      xywh {5 60 790 495} color 246 labelsize 16 hide
+    } {
+      Fl_Group {} {
+        label {Sales Price} open
+        xywh {15 88 770 201} box UP_BOX color 166 labelsize 16
+      } {
+        Fl_Input db_products_buy_price {
+          label {Buy $}
+          macro_name {db products buy_price}
+          dirty_name db_products_buy_price
+          xywh {25 115 115 25} type Float labelsize 16 align 5 textsize 16
+          code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+          class Fl_Float_Input_Fmt
+        }
+        Fl_Input db_products_buy_discount {
+          label {Buy Disc. %}
+          macro_name {db products buy_discount}
+          dirty_name db_products_buy_discount
+          xywh {151 115 115 25} type Float labelsize 16 align 5 textsize 16
+          code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+          code1 {o->decimal_places(-6);}
+          class Fl_Float_Input_Fmt
+        }
+        Fl_Input db_products_buy_other_costs {
+          label {Other Costs $}
+          macro_name {db products buy_other_costs}
+          dirty_name db_products_buy_other_costs
+          xywh {278 115 115 25} type Float labelsize 16 align 5 textsize 16
+          code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+          class Fl_Float_Input_Fmt
+        }
+        Fl_Input db_products_sell_markup {
+          label {Markup %}
+          macro_name {db products sell_markup}
+          dirty_name db_products_sell_markup
+          xywh {404 115 115 25} type Float labelsize 16 align 5 textsize 16
+          code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+          code1 {//o->decimal_places(-6);}
+          class Fl_Float_Input_Fmt
+        }
+        Fl_Input markup_to_discount {
+          label {Margin %}
+          xywh {531 115 115 25} type Float labelsize 16 align 5 textsize 16
+          code0 {//o->decimal_places(-6);}
+          class Fl_Float_Input_Fmt
+        }
+        Fl_Input db_products_sell_price_ro {
+          label {Sales $}
+          dirty_name db_products_sell_price_ro
+          xywh {658 115 115 25} type Float labelsize 16 align 5 textsize 16
+          class Fl_Float_Input_Fmt
+        }
+        Fl_Input db_products_price_decimals {
+          label {Decimals for calculation}
+          macro_name {db products price_decimals}
+          dirty_name db_products_price_decimals
+          xywh {530 150 30 25} type Int labelfont 1 labelsize 16 textfont 1 textsize 16
+          code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+          code1 {//o->decimal_places(-6);}
+        }
+        Fl_Button btnSaveProrduct {
+          label Save
+          xywh {662 150 111 25} labelsize 16
+        }
+        Fl_Input db_products_stock_min {
+          label {Stock Min.}
+          macro_name {db products stock_min}
+          dirty_name db_products_stock_min
+          xywh {665 195 110 25} type Float labelsize 16 textsize 16
+          code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+          code1 {o->decimal_places(-6);}
+        }
+        Fl_Input db_products_stock_max {
+          label {Stock Max.}
+          macro_name {db products stock_max}
+          dirty_name db_products_stock_max
+          xywh {665 225 110 25} type Float labelsize 16 textsize 16
+          code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+          code1 {o->decimal_places(-6);}
+        }
+        Fl_Input db_products_buy_quantity_min {
+          label {Buy Min. Qty.}
+          macro_name {db products buy_quantity_min}
+          dirty_name db_products_buy_quantity_min
+          xywh {665 255 110 25} type Float labelsize 16 textsize 16
+          code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+          code1 {o->decimal_places(-6);}
+        }
+        Fl_Input db_products_price_formula {
+          label {Price formula}
+          macro_name {db products price_formula}
+          dirty_name db_products_price_formula
+          xywh {25 197 495 83} type Multiline labelsize 16 align 5 textsize 16
+          code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+        }
+        Fl_Output db_products_price_date {
+          label {Last Update}
+          dirty_name db_products_price_date
+          xywh {25 150 130 25} labelsize 16 align 8 textsize 16
+        }
+      }
+      Fl_Box {} {
+        label Spacer
+        xywh {15 290 770 40} labeltype NO_LABEL resizable
+      }
+      Fl_Group productPrices {
+        dirty_name productPrices open
+        xywh {15 332 770 212} box UP_BOX color 166 labeltype NO_LABEL labelsize 16
+      } {}
+    }
+    Fl_Group tabKit {
+      label Kit
+      dirty_name tabKit open
+      xywh {5 59 790 495} color 246 labelsize 16 hide
+    } {}
+    Fl_Group tabChartStatistics {
+      label Statistics open
+      xywh {5 60 790 495} color 246 labelsize 16 hide
+    } {}
+    Fl_Group tabHistory {
+      label History open
+      xywh {5 60 790 495} color 246 labelsize 16 hide
+    } {}
+    Fl_Group tabReports {
+      label Reports open
+      xywh {5 60 790 495} box UP_BOX color 246 labelsize 16 hide
+    } {
+      Fl_Group grpExportImport {
+        label {Export / Import} open
+        xywh {15 465 770 80} box ENGRAVED_FRAME labelsize 16
+      } {
+        Fl_Button btnProductsExport {
+          label {Products Export}
+          xywh {25 475 175 25} labelsize 16
+        }
+        Fl_Button btnProductsImport {
+          label {Products Import}
+          xywh {25 510 175 25} labelsize 16
+        }
+        Fl_Check_Button chkWithoutPrices {
+          label {Withouth Prices}
+          xywh {225 480 150 25} down_box DOWN_BOX labelsize 16
+        }
+        Fl_Check_Button chkWebOnly {
+          label {WEB Only}
+          xywh {225 510 150 25} down_box DOWN_BOX labelsize 16
+        }
+        Fl_Box boxExportImportCount {
+          label 0
+          xywh {405 499 42 25} labelsize 16
+        }
+        Fl_Button btnProductGroupsExport {
+          label {Product Groups Export}
+          xywh {555 475 220 25} labelsize 16
+        }
+        Fl_Button btnProductGroupsImport {
+          label {Product Groups import}
+          xywh {555 510 220 25} labelsize 16
+        }
+      }
+      Fl_Button btnUpdateWeb {
+        label {Update WEB}
+        xywh {610 70 175 25} labelsize 16
+      }
+      Fl_Group grpPrintPriceList {
+        label {Price List}
+        dirty_name grpPrintPriceList open
+        xywh {10 85 195 165} box ENGRAVED_FRAME labelsize 16
+      } {
+        Fl_Check_Button chkPriceListWithVAT {
+          label {With V.A.T.}
+          xywh {20 95 175 25} down_box DOWN_BOX labelsize 16
+        }
+        Fl_Check_Button chkPriceListSellOnWeb {
+          label {Sell on WEB}
+          xywh {20 125 170 25} down_box DOWN_BOX labelsize 16
+        }
+        Fl_Button btnPrintPriceList {
+          label Print
+          xywh {20 215 175 25} labelsize 16
+        }
+        Fl_Check_Button chkPriceListSellSales {
+          label Sales
+          xywh {20 155 175 25} down_box DOWN_BOX labelsize 16
+        }
+        Fl_Check_Button chkPriceListSellPDF {
+          label PDF
+          xywh {20 185 175 25} down_box DOWN_BOX labelsize 16
+        }
+      }
+    }
+    Fl_Group tabTotals {
+      label Totals
+      dirty_name tabTotals open
+      xywh {5 60 790 495} color 246 labelsize 16 hide
+    } {
+      Fl_Input db_products_quantity_quoted_sales {
+        label {Quantity quoted sales}
+        macro_name {db products quantity_quoted_sales}
+        xywh {220 80 110 25} type Float labelsize 16 textsize 16
+        code0 {o->decimal_places(-6);}
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_products_quantity_ordered_sales {
+        label {Quantity ordered sales}
+        macro_name {db products quantity_ordered_sales}
+        xywh {220 115 110 25} type Float labelsize 16 textsize 16
+        code0 {o->decimal_places(-6);}
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_products_quantity_delivered {
+        label {Quantity delivered}
+        macro_name {db products quantity_delivered}
+        xywh {220 150 110 25} type Float labelsize 16 textsize 16
+        code0 {o->decimal_places(-6);}
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_products_quantity_invoiced_sales {
+        label {Quantity invoiced sales}
+        macro_name {db products quantity_invoiced_sales}
+        xywh {220 185 110 25} type Float labelsize 16 textsize 16
+        code0 {o->decimal_places(-6);}
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_products_quantity_lost {
+        label {Quantity lost}
+        macro_name {db products quantity_lost}
+        xywh {220 220 110 25} type Float labelsize 16 textsize 16
+        code0 {o->decimal_places(-6);}
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_products_quantity_quoted_buys {
+        label {Quantity quoted buys}
+        macro_name {db products quantity_quoted_buys}
+        xywh {665 85 110 25} type Float labelsize 16 textsize 16
+        code0 {o->decimal_places(-6);}
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_products_quantity_ordered_buys {
+        label {Quantity ordered buys}
+        macro_name {db products quantity_ordered_buys}
+        xywh {665 120 110 25} type Float labelsize 16 textsize 16
+        code0 {o->decimal_places(-6);}
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_products_quantity_received {
+        label {Quantity received}
+        macro_name {db products quantity_received}
+        xywh {665 155 110 25} type Float labelsize 16 textsize 16
+        code0 {o->decimal_places(-6);}
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+      Fl_Input db_products_quantity_invoiced_buys {
+        label {Quantity invoiced buys}
+        macro_name {db products quantity_invoiced_buys}
+        xywh {665 190 110 25} type Float labelsize 16 textsize 16
+        code0 {o->decimal_places(-6);}
+        code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+      }
+    }
+  }
+} 

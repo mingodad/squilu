@@ -105,7 +105,6 @@
 					<Add option="-DWITH_FLTK=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 					<Add directory="../fltk" />
-					<Add directory="../third-party/flu" />
 					<Add directory="../libharu/include" />
 					<Add directory="../flu" />
 				</Compiler>
@@ -148,9 +147,9 @@
 					<Add option="-fno-strict-aliasing" />
 					<Add option="-DWITH_FLTK=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
-					<Add directory="../../dadbiz++/third-party/fltk" />
-					<Add directory="../../dadbiz++/third-party/flu" />
-					<Add directory="../../dadbiz++/third-party/libharu/include" />
+					<Add directory="../fltk" />
+					<Add directory="../flu" />
+					<Add directory="../libharu/include" />
 				</Compiler>
 				<Linker>
 					<Add library="../../zeromq-3.2.2/libzmq3.a" />
@@ -171,9 +170,9 @@
 					<Add library="hpdfs" />
 					<Add library="discount" />
 					<Add directory="../../zeromq-3.2.2" />
-					<Add directory="../../dadbiz++/third-party/fltk/lib" />
-					<Add directory="../../dadbiz++/third-party/flu" />
-					<Add directory="../../dadbiz++/third-party/libharu/src" />
+					<Add directory="../fltk/lib" />
+					<Add directory="../flu" />
+					<Add directory="../libharu/src" />
 				</Linker>
 			</Target>
 		</Build>
@@ -216,7 +215,7 @@
 			<Add directory="include" />
 			<Add directory="sqstdlib" />
 			<Add directory="../myaxtls" />
-			<Add directory="../../dadbiz++/third-party/discount-2.1.2" />
+			<Add directory="../discount" />
 			<Add directory="/usr/include/postgresql" />
 			<Add directory="/usr/lib/jvm/default-java/include" />
 			<Add directory="/usr/lib/llvm-3.1/include" />
@@ -229,7 +228,7 @@
 			<Add directory="lib" />
 			<Add directory="../myaxtls" />
 			<Add directory="../mpdecimal" />
-			<Add directory="../../dadbiz++/third-party/discount-2.1.2" />
+			<Add directory="../discount" />
 		</Linker>
 		<Unit filename="../SquiLu-ext/dynamic_library.cpp" />
 		<Unit filename="../SquiLu-ext/dynamic_library.h" />

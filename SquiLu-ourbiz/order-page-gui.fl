@@ -1,0 +1,302 @@
+# data file for the Fltk User Interface Designer (fluid)
+version 1.0302 
+i18n_type 1 
+i18n_include i18n_function.h 
+i18n_function _tr 
+header_name {.h} 
+code_name {.cxx}
+decl {\#include "My_Base_App.h"} {public global
+} 
+
+widget_class OrderPageGroup {
+  label InvoiceA4 open selected
+  xywh {213 39 630 685} type Double resizable
+  class Fl_Scroll visible position_relative
+} {
+  Fl_Group page {open
+    xywh {0 0 634 686} color 7
+  } {
+    Fl_Group pageDesignGroup {open
+      xywh {2 0 630 686} labeltype NO_LABEL
+    } {
+      Fl_Group logoGroupH {
+        dirty_name logoGroupH open
+        xywh {15 10 316 130} hide
+      } {
+        Fl_Box logoH {
+          label FLTK
+          dirty_name logoH
+          xywh {16 10 310 50} labeltype SHADOW_LABEL labelfont 3 labelsize 40 align 660
+        }
+        Fl_Box companyBoxH {
+          label {FLTK (pronounced "fulltick") is a cross-platform C++ GUI toolkit for UNIX®/Linux® (X11), Microsoft® Windows®, and MacOS® X. FLTK provides modern GUI functionality without the bloat and supports 3D graphics via OpenGL® and its built-in GLUT emulation.}
+          dirty_name companyBoxH
+          xywh {16 65 308 75} labelfont 2 labelsize 10 align 144
+          class Fl_Box_ClearLabel
+        }
+      }
+      Fl_Group logoGroupV {
+        dirty_name logoGroupV open
+        xywh {15 10 316 130} hide
+      } {
+        Fl_Box logoV {
+          label FLTK
+          dirty_name logoV
+          xywh {16 10 100 130} labeltype SHADOW_LABEL labelfont 3 labelsize 40 align 660
+        }
+        Fl_Box companyBoxV {
+          label {FLTK (pronounced "fulltick") is a cross-platform C++ GUI toolkit for UNIX®/Linux® (X11), Microsoft® Windows®, and MacOS® X. FLTK provides modern GUI functionality without the bloat and supports 3D graphics via OpenGL® and its built-in GLUT emulation.}
+          dirty_name companyBoxV
+          xywh {120 10 210 130} labelfont 2 labelsize 10 align 144
+          class Fl_Box_ClearLabel
+        }
+      }
+      Fl_Group logoGroupHV {
+        dirty_name logoGroupHV open
+        xywh {15 10 316 130}
+      } {
+        Fl_Box logoHV1 {
+          label FLTK
+          dirty_name logoHV1
+          xywh {16 10 100 130} labeltype SHADOW_LABEL labelfont 3 labelsize 40 align 660
+        }
+        Fl_Box logoHV2 {
+          label FLTK
+          dirty_name logoHV2
+          xywh {120 10 210 50} labeltype SHADOW_LABEL labelfont 3 labelsize 40 align 660
+        }
+        Fl_Box companyBoxHV {
+          label {FLTK (pronounced "fulltick") is a cross-platform C++ GUI toolkit for UNIX®/Linux® (X11), Microsoft® Windows®, and MacOS® X. FLTK provides modern GUI functionality without the bloat and supports 3D graphics via OpenGL® and its built-in GLUT emulation.}
+          dirty_name companyBoxHV
+          xywh {120 50 210 90} labelfont 2 labelsize 9 align 144
+          class Fl_Box_ClearLabel
+        }
+      }
+      Fl_Group OrderNumber {
+        dirty_name OrderNumber open
+        xywh {336 10 286 40} box FLAT_BOX color 39 labeltype NO_LABEL
+      } {
+        Fl_Box box_header_number_date {
+          xywh {337 11 142 18} box FLAT_BOX color 47 labeltype NO_LABEL labelsize 12
+        }
+        Fl_Box box_data_number_date {
+          xywh {337 30 142 19} box FLAT_BOX color 7 labeltype NO_LABEL labelsize 12
+        }
+        Fl_Box header_date_box {
+          label DATE
+          xywh {480 11 141 18} box FLAT_BOX color 47 labelfont 1 labelsize 12
+        }
+        Fl_Box box_data_date_box {
+          xywh {480 30 141 19} box FLAT_BOX color 7 labeltype NO_LABEL labelfont 1 labelsize 12
+        }
+      }
+      Fl_Box box_to {
+        xywh {336 55 286 85} box BORDER_FRAME color 39 labelfont 1 labelsize 16 align 21
+      }
+      Fl_Group orderLines {
+        dirty_name orderLines open
+        xywh {16 148 606 433} box FLAT_BOX color 39 labeltype NO_LABEL resizable
+      } {
+        Fl_Box header_lines_code_box {
+          label CODE
+          xywh {17 149 46 20} box FLAT_BOX color 47 labelfont 1 labelsize 10
+        }
+        Fl_Box header_lines_description_box {
+          label DESCRIPTION
+          xywh {64 149 300 20} box FLAT_BOX color 47 labelfont 1 labelsize 10
+        }
+        Fl_Box header_lines_quantity_box {
+          label {QTY.}
+          xywh {365 149 40 20} box FLAT_BOX color 47 labelfont 1 labelsize 10
+        }
+        Fl_Box header_lines_price_box {
+          label PRICE
+          xywh {406 149 60 20} box FLAT_BOX color 47 labelfont 1 labelsize 10
+        }
+        Fl_Box header_lines_discount_box {
+          label {DISC. %}
+          xywh {467 149 30 20} box FLAT_BOX color 47 labelfont 1 labelsize 8 align 128
+        }
+        Fl_Box header_lines_sales_tax1_box {
+          label {S.T. I %}
+          dirty_name header_lines_sales_tax1_box
+          xywh {498 149 30 20} box FLAT_BOX color 47 labelfont 1 labelsize 8 align 128
+        }
+        Fl_Box header_lines_sales_tax2_box {
+          label {S.T. II %}
+          dirty_name header_lines_sales_tax2_box
+          xywh {529 149 30 20} box FLAT_BOX color 47 labelfont 1 labelsize 8 align 128
+        }
+        Fl_Box header_lines_subtotal_box {
+          label SUBTOTAL
+          xywh {560 149 61 20} box FLAT_BOX color 47 labelfont 1 labelsize 10
+        }
+        Fl_Group designLinesGroup {open
+          xywh {17 170 604 410} labeltype NO_LABEL resizable
+        } {
+          Fl_Box data_lines_code_box {
+            xywh {17 170 46 410} box FLAT_BOX color 7 labeltype NO_LABEL labelfont 1 labelsize 10
+          }
+          Fl_Box data_lines_description_box {
+            xywh {64 170 300 410} box FLAT_BOX color 7 labeltype NO_LABEL labelfont 1 labelsize 10
+          }
+          Fl_Box data_lines_quantity_box {
+            xywh {365 170 40 410} box FLAT_BOX color 7 labeltype NO_LABEL labelfont 1 labelsize 10
+          }
+          Fl_Box data_tlines_price_box {
+            xywh {406 170 60 410} box FLAT_BOX color 7 labeltype NO_LABEL labelfont 1 labelsize 10
+          }
+          Fl_Box data_lines_discount_box {
+            xywh {467 170 30 410} box FLAT_BOX color 7 labeltype NO_LABEL labelfont 1 labelsize 10
+          }
+          Fl_Box data_lines_sales_tax1_box {
+            dirty_name data_lines_sales_tax1_box
+            xywh {498 170 30 410} box FLAT_BOX color 7 labeltype NO_LABEL labelfont 1 labelsize 10
+          }
+          Fl_Box data_lines_sales_tax2_box {
+            dirty_name data_lines_sales_tax2_box
+            xywh {529 170 30 410} box FLAT_BOX color 7 labeltype NO_LABEL labelfont 1 labelsize 10
+          }
+          Fl_Box data_lines_subtotal_box {
+            xywh {560 170 61 410} box FLAT_BOX color 7 labeltype NO_LABEL labelfont 1 labelsize 10
+          }
+        }
+      }
+      Fl_Group orderTotals {
+        dirty_name orderTotals open
+        xywh {16 585 606 46} box FLAT_BOX color 39 labeltype NO_LABEL
+      } {
+        Fl_Box header_PAGENO_box {
+          label PAGE
+          xywh {17 586 65 20} box FLAT_BOX color 47 labelfont 1 labelsize 12
+        }
+        Fl_Box box_data_pageno_box {
+          xywh {17 607 65 23} box FLAT_BOX color 7 labeltype NO_LABEL labelfont 1 labelsize 12
+        }
+        Fl_Box header_totals_subtotal_box {
+          label SUBTOTAL
+          xywh {83 586 150 20} box FLAT_BOX color 47 labelfont 1 labelsize 12
+        }
+        Fl_Box data_totals_subtotal_box {
+          xywh {83 607 150 23} box FLAT_BOX color 7 labeltype NO_LABEL labelfont 1 labelsize 12
+        }
+        Fl_Box header_totals_total_sales_tax1_box {
+          label {Sales Tax I}
+          dirty_name header_totals_total_sales_tax1_box
+          xywh {234 586 120 20} box FLAT_BOX color 47 labelfont 1 labelsize 12
+        }
+        Fl_Box data_totals_total_sales_tax1_box {
+          dirty_name data_totals_total_sales_tax1_box
+          xywh {234 607 120 23} box FLAT_BOX color 7 labeltype NO_LABEL labelfont 1 labelsize 12
+        }
+        Fl_Box header_totals_total_sales_tax2_box {
+          label {Sales Tax II}
+          dirty_name header_totals_total_sales_tax2_box
+          xywh {355 586 115 20} box FLAT_BOX color 47 labelfont 1 labelsize 12
+        }
+        Fl_Box data_totals_total_sales_tax2_box {
+          dirty_name data_totals_total_sales_tax2_box
+          xywh {355 607 115 23} box FLAT_BOX color 7 labeltype NO_LABEL labelfont 1 labelsize 12
+        }
+        Fl_Box header_totals_total_box {
+          label TOTAL
+          xywh {471 586 150 20} box FLAT_BOX color 47 labelfont 1 labelsize 12
+        }
+        Fl_Box data_totals_total_box {
+          xywh {471 607 150 23} box FLAT_BOX color 7 labeltype NO_LABEL labelfont 1 labelsize 12
+        }
+      }
+      Fl_Box notes_box {
+        label {FLTK is provided under the terms of the GNU Library Public License, Version 2 with exceptions that allow for static linking.}
+        xywh {17 638 606 37} labelfont 2 labelsize 9 align 144
+        class Fl_Box_ClearLabel
+      }
+    }
+    Fl_Group printDataGroup {open
+      xywh {3 0 628 637} labeltype NO_LABEL resizable
+    } {
+      Fl_Box orderTypeBox {
+        dirty_name orderTypeBox
+        xywh {338 10 139 20} labelfont 1 labelsize 12
+      }
+      Fl_Box numberBox {
+        xywh {338 33 139 16} labelfont 5 labelsize 15 align 16
+        class Fl_Box_ClearLabel
+      }
+      Fl_Box dateBox {
+        xywh {484 32 133 16} labelfont 5 labelsize 15 align 16
+        class Fl_Box_ClearLabel
+      }
+      Fl_Box entityBox {
+        xywh {338 57 282 82} labelsize 12 align 85
+        class Fl_Box_ClearLabel
+      }
+      Fl_Group dataLinesGroup {open
+        xywh {16 169 605 412} labeltype NO_LABEL align 16 resizable
+      } {
+        Fl_Box codeBox {
+          xywh {16 174 46 404} labelsize 11 align 25
+          class Fl_Box_ClearLabel
+        }
+        Fl_Box descriptionBox {
+          xywh {64 174 300 404} labelsize 11 align 85
+          class Fl_Box_ClearLabel
+        }
+        Fl_Box quantityBox {
+          xywh {365 174 40 404} labelsize 11 align 25
+          class Fl_Box_ClearLabel
+        }
+        Fl_Box priceBox {
+          xywh {406 174 60 404} labelsize 11 align 25
+          class Fl_Box_ClearLabel
+        }
+        Fl_Box discountBox {
+          xywh {467 174 30 404} labelsize 11 align 25
+          class Fl_Box_ClearLabel
+        }
+        Fl_Box sales_tax1Box {
+          dirty_name sales_tax1Box
+          xywh {498 174 30 404} labelsize 11 align 25
+          class Fl_Box_ClearLabel
+        }
+        Fl_Box sales_tax2Box {
+          dirty_name sales_tax2Box
+          xywh {529 174 30 404} labelsize 11 align 25
+          class Fl_Box_ClearLabel
+        }
+        Fl_Box lineTotalBox {
+          xywh {560 174 61 404} labelsize 11 align 25
+          class Fl_Box_ClearLabel
+        }
+      }
+      Fl_Group bottomTotals {
+        dirty_name bottomTotals open
+        xywh {16 585 605 48} labeltype NO_LABEL
+      } {
+        Fl_Box orderPageBox {
+          dirty_name orderPageBox
+          xywh {16 608 65 25} labelfont 5 labelsize 15
+          class Fl_Box_ClearLabel
+        }
+        Fl_Box fisrtTotalBox {
+          xywh {83 608 150 25} labelfont 5 labelsize 15
+          class Fl_Box_ClearLabel
+        }
+        Fl_Box sales_tax1AmountBox {
+          dirty_name sales_tax1AmountBox
+          xywh {234 608 120 25} labelfont 5 labelsize 15
+          class Fl_Box_ClearLabel
+        }
+        Fl_Box sales_tax2AmountBox {
+          dirty_name sales_tax2AmountBox
+          xywh {355 608 115 25} labelfont 5 labelsize 15
+          class Fl_Box_ClearLabel
+        }
+        Fl_Box totalBox {
+          xywh {500 608 121 25} labelfont 5 labelsize 15
+          class Fl_Box_ClearLabel
+        }
+      }
+    }
+  }
+} 
