@@ -331,7 +331,8 @@ void Interactive(HSQUIRRELVM v)
 // end of file is 29: "<DAD:%010d>ooOo(^.^)oOoo", script_len
 #define END_TAG_LEN 29
 
-static SQInteger LoadFrozenScript(HSQUIRRELVM v, const SQChar* filename, int only_check)
+#if 0
+static SQInteger LoadFrozenScript0(HSQUIRRELVM v, const SQChar* filename, int only_check)
 {
     SQInteger retval;
     // lots of debugging to make sure that everything is ok
@@ -398,7 +399,7 @@ static SQInteger LoadFrozenScript(HSQUIRRELVM v, const SQChar* filename, int onl
     //fwrite(script, 1, finalSize, f);
     //fclose(f);
 
-    if(SQ_SUCCEEDED(sq_compilebuffer(v,script, script_len, SQFalse, SQTrue))) {
+    if(SQ_SUCCEEDED(sq_compilebuffer(v,script, script_len, _SC("frozenScript"), SQTrue))) {
         int i, callargs = 1;
         sq_pushroottable(v);
         for(i=0;i<sq_main_argc;i++)
@@ -429,6 +430,76 @@ static SQInteger LoadFrozenScript(HSQUIRRELVM v, const SQChar* filename, int onl
     }
 
     free(script);
+
+    return 0;
+}
+#endif
+
+static SQInteger LoadFrozenScript(HSQUIRRELVM v, const SQChar* filename, int only_check)
+{
+    SQInteger retval;
+    // lots of debugging to make sure that everything is ok
+    //printf("%s\n", filename);
+    FILE *f = fopen(filename, "rb");
+
+    if (!f) return -1;
+
+    if (fseek(f, 0, SEEK_END))
+    {
+        fclose(f);
+        return -1;
+    }
+
+	int fileSize = ftell(f);
+	//printf("%d\n", fileSize);
+    if (fseek(f, fileSize-END_TAG_LEN, SEEK_SET ))
+    {
+        fclose(f);
+        return -1;
+    }
+
+    // do some sanity checking before reading the script length
+
+    char tag_buf[END_TAG_LEN+2] = {0};
+    memset(tag_buf, 0, sizeof(char)*(END_TAG_LEN+2));
+    long script_len = 0;
+
+    if (fread((void*)tag_buf, 1, END_TAG_LEN, f) != END_TAG_LEN)
+    {
+        fclose(f);
+        return -1;
+    }
+
+	//printf("%s\n", tag_buf);
+    if (sscanf(tag_buf, SCRIPT_END_TAG, &script_len) != 1)
+    {
+        fclose(f);
+
+        // they only wanted to know if the script exists, assume it's valid
+        if (only_check) return -2;
+        else return -1;
+    }
+    else if (fseek(f, fileSize-END_TAG_LEN - script_len, SEEK_SET ))
+    {
+        fclose(f);
+        return -1;
+    }
+
+    fclose(f);
+    SQChar srcBoot[192];
+    SQInteger scr_len = scsnprintf(srcBoot, sizeof(srcBoot),
+            _SC("local __fd=file(\"%s\", \"rb\");__fd.seek(%d, 'b');local __zsrc=__fd.read(%d);__fd.close();dostring(zlib.inflate(__zsrc));"),
+            filename, fileSize-END_TAG_LEN - script_len, script_len);
+
+    if(SQ_SUCCEEDED(sq_compilebuffer(v,srcBoot, scr_len, _SC("bootScript"), SQTrue))) {
+        sq_pushroottable(v);
+        if(SQ_SUCCEEDED(sq_call(v, 1,SQFalse, SQTrue))) {
+            return _DONE;
+        }
+        else{
+            return _ERROR;
+        }
+    }
 
     return 0;
 }
