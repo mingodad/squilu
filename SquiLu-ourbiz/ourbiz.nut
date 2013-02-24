@@ -398,7 +398,7 @@ group by product_id, description, ]==], strTmp3);
 		}
 
 	    mf.write(" order by qm, sab")
-	    //debug_print(tostring(mf), "\n")
+	    //debug_print(mf.tostring(), "\n")
 	    return mf.tostring();
 	}
 
@@ -500,7 +500,7 @@ group by product_id, description, ]==], strTmp3);
 			local periode_count = qs_tbl.get("periode_count", 12).tointeger();
 			local periode_type = getStatisticsPeriodeType(qs_tbl.get("periode_type", "months"));
 			local sab = qs_tbl.get("sab", "S");
-			return sql_bar_chart_statistics(qs_tbl.get("statistics", 0).tointeger(), sab, periode_type, periode_count);
+			return sql_bar_chart_statistics(qs_tbl.get("statistics", 0).tointeger(), sab, periode_count, periode_type);
 		}
 		else if (qs_tbl.get("print_list", false)){
 			return [==[
