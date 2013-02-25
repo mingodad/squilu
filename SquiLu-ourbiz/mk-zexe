@@ -1,2 +1,5 @@
-squilu squilufreeze.nut /home/mingo/bin/squilu sqlite3-cc2.nut sqlite3-cc
+#!/bin/sh
+#squilu squilufreeze.nut /home/mingo/bin/squilu sqlite3-cc2.nut sqlite3-cc
+squilu unify-code.nut ourbiz-fltk.nut ourbiz-fltk-unified.nut
+squilu squilufreeze.nut /home/mingo/bin/squilu ourbiz-fltk-unified.nut ourbiz
 
