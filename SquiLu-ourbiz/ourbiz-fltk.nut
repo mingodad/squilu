@@ -1404,6 +1404,67 @@ class OurEntityGroups extends OurTreeGroups
 };
 
 
+class OurImages extends ImagesListEditWindow {
+	_search_options = null;
+	
+	constructor(){
+		base.constructor();
+		dbUpdater()->table_name = "images";
+		local cols_info = [
+			"id|ID|6",
+			"name|Name|-1",
+			"mime_type|Type|12|C",
+			"group_set|Group|6",
+		];
+		grid->set_cols(cols_info);
+		setup_grid(grid, this);
+		setDbActionControls(dbAction, btnDbAction);
+		_search_options = OurBizSearchOptions();
+		fill_grid();
+	}
+	function fill_grid(){
+		_search_options.query_limit = query_limit->value();
+		_search_options.search_str = db_images_name->value();
+		local cursor_wait = fl_cursor_wait();
+		grid->clear_data_rows();
+		appServer.images_get_list(grid->_data, _search_options);
+		grid->recalc_data();
+	}
+	
+	function do_edit(aid){
+		base.do_edit(aid);
+		if(aid) button_show_db_image(btnImage, aid.tointeger(), 0, false, false);
+		else {
+			btnImage->hide();
+			//btnImage->image(&jpegNophoto);
+			btnImage->image(null);
+			btnImage->show();
+		}
+	}
+}
+
+class OurAppConfig extends AppConfigEditWindow {
+	constructor(){
+		base.constructor();
+		dbUpdater()->table_name = "config";
+		local cols_info = [
+			"id|ID|0",
+			"key|Key|26",
+			"value|Value|-1|L|@",
+		];
+		grid->set_cols(cols_info);
+		setup_grid(grid, this);
+		setDbActionControls(dbAction, btnDbAction);
+		fill_grid();
+	}
+	function fill_grid(){
+		local cursor_wait = fl_cursor_wait();
+		grid->clear_data_rows();
+		appServer.config_get_list(grid->_data);
+		grid->recalc_data();
+	}
+}
+
 class OurSalesTax extends SalesTaxRatesEditWindow {
 	constructor(){
 		base.constructor();
@@ -1447,6 +1508,29 @@ class OurWarrantyTypes extends WarrantyTypesEditWindow {
 		local cursor_wait = fl_cursor_wait();
 		grid->clear_data_rows();
 		appServer.warranty_types_get_list(grid->_data);
+		grid->recalc_data();
+	}
+}
+
+class OurMeasureUnits extends MeasureUnitsEditWindow {
+	constructor(){
+		base.constructor();
+		dbUpdater()->table_name = "measure_units";
+		local cols_info = [
+			"id|ID|0",
+			"code|Code|8",
+			"description|Description|-1",
+			"is_active|Active|5|C|B",
+		];
+		grid->set_cols(cols_info);
+		setup_grid(grid, this);
+		setDbActionControls(dbAction, btnDbAction);
+		fill_grid();
+	}
+	function fill_grid(){
+		local cursor_wait = fl_cursor_wait();
+		grid->clear_data_rows();
+		appServer.measure_units_get_list(grid->_data);
 		grid->recalc_data();
 	}
 }
@@ -1518,6 +1602,41 @@ class OurPaymentTypes extends PaymentTypesEditWindow {
 		}
 		db_payment_types_payment_terms->redraw();
 		db_payment_types_payment_terms->set_changed();
+	}
+}
+
+class OurOrderTypes extends OrderTypesEditWindow {
+	constructor(){
+		base.constructor();
+		dbUpdater()->table_name = "order_types";
+		local cols_info = [
+			"id|ID|0|R",
+			"code|Code|6|R",
+			"description|Description|-1",
+			"with_payment|Pay|6|C",
+			"with_inventory|Inv.|6|C",
+			"group_order|Grp. 1|6",
+			"subgroup_order|Grp. 2|6",
+			"is_active|Active|6|C|B",
+		];
+		grid->set_cols(cols_info);
+		setup_grid(grid, this);
+		setDbActionControls(dbAction, btnDbAction);
+		fill_grid();
+	}
+	function fill_grid(){
+		local cursor_wait = fl_cursor_wait();
+		grid->clear_data_rows();
+		appServer.order_types_get_list(grid->_data);
+		grid->recalc_data();
+	}
+	
+	function get_widget_changed(uw)
+	{
+		//if(!uw.validate_regex(db_order_types_with_credit, "[+-]", true))
+		//    throw TWidgetValidateException(db_order_types_with_credit,
+		//				   _tr("Valid options are +- !"));
+		base.get_widget_changed(uw);
 	}
 }
 
@@ -2498,25 +2617,34 @@ class MyMainWindow extends MainWindow {
 		this = sender.window();
 		local win = showChildWindow("Products List/Search", ProductsListSearch);
 	}
-	function cb_btnGLGroups(){print(__LINE__);}
-	function cb_btnGLChart(){print(__LINE__);}
-	function cb_btnGLTransactions(){print(__LINE__);}
-	function cb_btnOrdersSum(){print(__LINE__);}
+	function cb_btnGLGroups(sender, udata){print(__LINE__);}
+	function cb_btnGLChart(sender, udata){print(__LINE__);}
+	function cb_btnGLTransactions(sender, udata){print(__LINE__);}
+	function cb_btnOrdersSum(sender, udata){print(__LINE__);}
 	function cb_btnSalesTaxRates(sender, udata){
 		this = sender.window();
 		local win = showChildWindow("Sales Tax Rates List/Edit", OurSalesTax);
 	}
-	function cb_btnOrderTypes(){print(__LINE__);}
+	function cb_btnOrderTypes(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("Order Types List/Edit", OurOrderTypes);
+	}
 	function cb_btnPaymentTypes(sender, udata){
 		this = sender.window();
 		local win = showChildWindow("Payment Types List/Edit", OurPaymentTypes);
 	}
-	function cb_btnMeasureUnits(){print(__LINE__);}
+	function cb_btnMeasureUnits(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("Measure Units List/Edit", OurMeasureUnits);
+	}
 	function cb_btnWarrantyTypes(sender, udata){
 		this = sender.window();
 		local win = showChildWindow("Warranty Types List/Edit", OurWarrantyTypes);
 	}
-	function cb_btnImages(){print(__LINE__);}
+	function cb_btnImages(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("Images List/Edit", OurImages);
+	}
 	function cb_btnProductGroups(sender, udata){
 		this = sender.window();
 		local win = showChildWindow("Product Groups", OurProductGroups);
@@ -2525,11 +2653,14 @@ class MyMainWindow extends MainWindow {
 		this = sender.window();
 		local win = showChildWindow("Entity Groups", OurEntityGroups);
 	}
-	function cb_btnConfig(){print(__LINE__);}
-	function cb_btnOpenDB(){print(__LINE__);}
-	function cb_btnTranslations(){print(__LINE__);}
-	function cb_btnAppUsers(){print(__LINE__);}
-	function reset_all_child_windows_ptr(){print(__LINE__);}
+	function cb_btnConfig(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("App Config", OurAppConfig);
+	}
+	function cb_btnOpenDB(sender, udata){print(__LINE__);}
+	function cb_btnTranslations(sender, udata){print(__LINE__);}
+	function cb_btnAppUsers(sender, udata){print(__LINE__);}
+	function reset_all_child_windows_ptr(sender, udata){print(__LINE__);}
 }
 
 local win = new MyMainWindow();

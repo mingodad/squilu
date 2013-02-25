@@ -1301,7 +1301,7 @@ class DB_Images extends DB_Manager {
 		mf.write("select id, name, mime_type, group_set ");
 		if (so.with_images) mf.write(", thumbnail ");
 		mf.write(" from images where 1=1 ");
-		if ((so.search_str && so.len().search_str > 0) || so.image_id != 0){
+		if ((so.search_str && so.search_str.len() > 0) || so.image_id != 0){
 			local search_str = escape_sql_like_search_str(so.search_str);
 			if (so.image_id) mf.write(" and id=", so.image_id);
 			else if (so.id) mf.write(" and id=", so.search_str.tointeger());
@@ -1580,7 +1580,7 @@ function ourbizDbGetList(request){
 
 		if (list == "entity_groups") db_ourbiz_tables.entity_groups.get_list(db, gmFile);
 		else if (list == "product_groups") db_ourbiz_tables.product_groups.get_list(db, gmFile);
-		else if (list == "config") sql = "select key,value from config";
+		else if (list == "config") sql = "select id, key,value from config";
 		else if (db_ourbiz_tables.get(list, false)){
 			sql = db_ourbiz_tables[list].sql_list(qs_tbl, post_tbl);
 			local doc_pdf = qs_tbl.get("_doc_pdf_", false);
