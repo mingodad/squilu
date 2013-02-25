@@ -186,7 +186,7 @@ class Fl_Box_ClearLabel extends Fl_Box {
 	}
 }
 
-class Fl_Image_Box extends Fl_Box {
+class Fl_Image_Box extends Fl_Button {
 	image_id = null;
 	image_type = null;
 	thumbIMG = null;
@@ -1421,6 +1421,7 @@ class OurImages extends ImagesListEditWindow {
 		setDbActionControls(dbAction, btnDbAction);
 		_search_options = OurBizSearchOptions();
 		fill_grid();
+		btnImage.callback(on_image_file_browser);
 	}
 	function fill_grid(){
 		_search_options.query_limit = query_limit->value();
@@ -1440,6 +1441,28 @@ class OurImages extends ImagesListEditWindow {
 			btnImage->image(null);
 			btnImage->show();
 		}
+	}
+	
+	function getImgTypeByExtension(ext)
+	{
+/*
+		//if(stricmp(ext, "jpg")==0)
+		if(ext == "jpg") return CXIMAGE_FORMAT_JPG;
+		else if(ext == "png") return CXIMAGE_FORMAT_PNG;
+		else if(ext == "gif")return CXIMAGE_FORMAT_GIF;
+		else return 0;
+*/
+	}
+	
+	function on_image_file_browser(sender, udata)
+	{
+		this = sender->window();
+		local imgf = fl_file_chooser(_tr("Select an image"), "*.{jpg,png}", null, false);
+		//printf("%s\n", imgf);
+		if(!imgf) return;
+		local ext = imgf.match("%.([^.]+)$");
+		db_images_mime_type->value(ext);
+		db_images_mime_type->set_changed();
 	}
 }
 

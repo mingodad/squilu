@@ -104,6 +104,7 @@ Fl.scheme("gtk+");
 Fl.visual(FL_RGB);
 //allow arrow keys navigation
 Fl.option(Fl.OPTION_ARROW_FOCUS, true);
+fl_register_images();
 /*
 setting font this way on linux makes Fl_Pack child misbehave
 setAppFont("erdana");

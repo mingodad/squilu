@@ -4084,6 +4084,11 @@ static SQRESULT fl_cursor_wait_constructor (HSQUIRRELVM v) {
     return 1;
 }
 
+static SQRESULT _fl_globals_fl_register_images (HSQUIRRELVM v) {
+    fl_register_images();
+    return 0;
+}
+
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_fl_globals_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_globals_funcs[]={
 	_DECL_FUNC(fl_alert, 2,_SC(".s"),SQTrue),
@@ -4112,6 +4117,7 @@ static SQRegFunction fl_globals_funcs[]={
 	_DECL_FUNC(fl_dir_chooser,-3,_SC(".ssb"),SQTrue),
 	_DECL_FUNC(fl_file_chooser,-4,_SC(".ss s|o b"),SQTrue),
 	_DECL_FUNC(fl_input,3,_SC(".ss"),SQTrue),
+	_DECL_FUNC(fl_register_images,1,_SC("."),SQTrue),
 	{0,0}
 };
 #undef _DECL_FUNC
