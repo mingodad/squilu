@@ -123,7 +123,7 @@ class CalendarWindow extends Base_Window {
   btnMonth10 = null;
   btnMonth11 = null;
   btnMonth12 = null;
-  calendar_table = null;
+  grid = null;
   btnPrevYear = null;
   btnPrevMonth = null;
   btnToday = null;
@@ -197,8 +197,8 @@ class CalendarWindow extends Base_Window {
       o.end();
     }
     {
-      local o = Fl_Virtual_Table(5, 65, 340, 202);
-      calendar_table = o;
+      local o = Fl_Data_Table(5, 65, 340, 202);
+      grid = o;
       o.labeltype(FL_NO_LABEL);
       o.labelsize(16);
       o.end();

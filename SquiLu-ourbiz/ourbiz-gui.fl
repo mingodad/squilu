@@ -83,7 +83,7 @@ widget_class HelpWindow {
 } 
 
 widget_class CalendarWindow {
-  label Calendar
+  label Calendar open
   xywh {732 184 350 305} type Double labelsize 16 hide
   class Base_Window
 } {
@@ -143,9 +143,10 @@ widget_class CalendarWindow {
       xywh {320 35 25 25}
     }
   }
-  Fl_Browser calendar_table {
+  Fl_Browser grid {
+    dirty_name grid selected
     xywh {5 65 340 202} labeltype NO_LABEL labelsize 16
-    class Fl_Virtual_Table
+    class Fl_Data_Table
   }
   Fl_Group {} {open
     xywh {5 275 340 25} labelsize 16
@@ -407,9 +408,9 @@ widget_class HistoryGroup {
 } 
 
 widget_class BaseReportA4 {
-  label BaseReportA4 open
-  xywh {178 95 420 590} type Double resizable
-  class Fl_Window visible
+  label BaseReportA4
+  xywh {178 95 420 590} type Double hide resizable
+  class Fl_Window
 } {
   Fl_Box rpt_Logo {
     label Ourbiz
@@ -431,7 +432,7 @@ widget_class BaseReportA4 {
     xywh {10 40 405 1} box FLAT_BOX color 34 labeltype NO_LABEL
   }
   Fl_Browser rpt_Body {
-    dirty_name rpt_Body selected
+    dirty_name rpt_Body
     xywh {10 45 408 495} labelsize 8 textsize 8 resizable
     code0 {o->has_scrollbar(FLVS_NONE);}
     code1 {o->feature_remove(FLVF_ROW_SELECT | FLVF_PERSIST_SELECT);}
