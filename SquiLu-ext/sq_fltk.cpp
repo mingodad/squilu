@@ -2785,10 +2785,20 @@ static SQRESULT _Fl_Text_Buffer_select(HSQUIRRELVM v)
     return 0;
 }
 
+static SQRESULT _Fl_Text_Buffer_append(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_TEXT_BUFFER(v);
+    SQ_GET_STRING(v, 2, str);
+    self->append(str);
+    return 0;
+}
+
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Text_Buffer_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_text_buffer_obj_funcs[]={
 	_DECL_FUNC(constructor,-1,_SC("xii"),SQFalse),
 	_DECL_FUNC(text,-1,_SC("xs"),SQFalse),
+	_DECL_FUNC(append,2,_SC("xs"),SQFalse),
 	_DECL_FUNC(length,-1,_SC("xii"),SQFalse),
 	_DECL_FUNC(loadfile,-2,_SC("xsi"),SQFalse),
 	_DECL_FUNC(input_file_was_transcoded,1,_SC("x"),SQFalse),
