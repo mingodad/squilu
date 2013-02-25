@@ -1118,7 +1118,7 @@ class MyListSearchWindow extends ListSearchWindow {
 	_callee_cb = null;
 
 	//the parameter is here only to remember derived classes that it can be called
-	//without to create a new instance that do not start with default search results
+	//to create a new instance that do not start with default search results
 	//mainly when it is called asyncronously (in that case a undesirable mix of both data will happen)
 	constructor(doInitialSearch){
 		base.constructor();
@@ -1820,7 +1820,7 @@ class ProductsListSearch extends MyListSearchWindow {
 	_search_by_active = null;
 	_last_image_id = null;
 	_image_window = null;
-	_fetching_image = null; //flag to prevent stack overflow due to background multiple calls
+	_fetching_image = null; //flag to prevent stack overflow due to multiple background calls
 
 	constructor(doInitialSearch=true) {
 		_last_image_id = 0;
@@ -1883,7 +1883,7 @@ class ProductsListSearch extends MyListSearchWindow {
 			this = sender.window();
 			if(shown() && !_fetching_image){ 
 				try {
-					//flag to prevent stack overflow due to background multiple calls
+					//flag to prevent stack overflow due to multiple background calls
 					_fetching_image = true;
 					local img_id = sender->get_data_value(sender->row(), sender->cols()-1);
 					if(img_id){
