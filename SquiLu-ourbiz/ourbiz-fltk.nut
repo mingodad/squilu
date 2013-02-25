@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2013 by Domingo Alvarez Duarte <mingodad@gmail.com>
+ *
+ * Licensed under GPLv3, see http://www.gnu.org/licenses/gpl.html.
+ */
+
 local WIN32 = os.getenv("WINDIR") != null
 socket.open();
 
@@ -263,6 +269,8 @@ class Fl_Choice_Str extends Fl_Choice_Int {
 	}
 }
 
+enum Fl_Data_Table_Events {e_none, e_event, e_select, e_insert, e_update, e_delete};
+
 enum DbAction_Enum {
 		e_none, e_insert, e_update, e_delete,
 		e_export, e_import, e_refresh, e_copy, e_last
@@ -348,6 +356,13 @@ class Base_Window extends Fl_Window {
 	}
 
 	function get_input_fields(dbname){ return _db_map.get(dbname, null);}
+
+	function setup_grid(grid, pcall_this){
+		grid->callback_when(FLVEcb_ROW_CHANGED | FLVEcb_CLICKED | FLVEcb_ROW_HEADER_CLICKED);
+		grid->callback(grid_cb);
+		grid->_call_this = pcall_this;
+	}	
+	function grid_cb(sender, udata){}
 
 	function getChildWindow(winName, WindowClass){
 		local win = childWindows.get(winName, false);
@@ -636,6 +651,7 @@ class Edit_Base_Window extends Base_Window {
 		base.constructor(px, py, pw, ph, pl);
 		_record = {};
 	}
+	
 	function setDbActionControls(choice, btn){
 		_choiceDbAction = choice;
 		_choiceDbAction.callback(on_Change_dbAction);
@@ -763,9 +779,25 @@ class Edit_Base_Window extends Base_Window {
 		if(!_dbUpdater) _dbUpdater = new DBUpdateByWidget();
 		return _dbUpdater;
 	}
+	
+	function do_edit_by_grid(pid, sender){
+		do_edit(pid);
+	}
+	function row_selected(sender, ev){
+		this = sender->window();
+		switch(ev){
+			case Fl_Data_Table_Events.e_insert:
+				do_edit_by_grid(0, sender);
+			break;
+			case Fl_Data_Table_Events.e_update:
+				do_edit_by_grid(sender->get_row_id(), sender);
+			break;
+			case Fl_Data_Table_Events.e_delete:
+				do_edit_by_grid(sender->get_row_id(), sender);
+			break;
+		}
+	}	
 }
-
-enum Fl_Data_Table_Events {e_none, e_event, e_select, e_insert, e_update, e_delete};
 
 class Fl_Data_Table extends Flv_Data_Table {
 	_cols_info = null;
@@ -1123,9 +1155,7 @@ class MyListSearchWindow extends ListSearchWindow {
 	constructor(doInitialSearch){
 		base.constructor();
 		_search_options = OurBizSearchOptions();
-		grid->callback_when(FLVEcb_ROW_CHANGED | FLVEcb_CLICKED | FLVEcb_ROW_HEADER_CLICKED);
-		grid->callback(grid_cb);
-		grid->_call_this = this;
+		setup_grid(grid, this);
 		btnSelect->deactivate();
 		btnNotes.callback(show_help_window);
 		btnUpdate.callback(cb_btnUpdate);
@@ -1147,7 +1177,6 @@ class MyListSearchWindow extends ListSearchWindow {
 		this = sender->window();
 		row_selected(sender, Fl_Data_Table_Events.e_select);
 	}
-	function grid_cb(sender, udata){}
 	function get_edit_window(){return null;}
 	
 	function show_edit_window(edit_id){
@@ -1378,6 +1407,7 @@ class OurEntityGroups extends OurTreeGroups
 class OurSalesTax extends SalesTaxRatesEditWindow {
 	constructor(){
 		base.constructor();
+		dbUpdater()->table_name = "sales_tax_rates";
 		local cols_info = [
 			"id|ID|0",
 			"rate1|V.A.T. %|8|R",
@@ -1386,6 +1416,8 @@ class OurSalesTax extends SalesTaxRatesEditWindow {
 			"is_active|Active|5|C|B",
 		];
 		grid->set_cols(cols_info);
+		setup_grid(grid, this);
+		setDbActionControls(dbAction, btnDbAction);
 		fill_grid();
 	}
 	function fill_grid(){
@@ -1393,6 +1425,99 @@ class OurSalesTax extends SalesTaxRatesEditWindow {
 		grid->clear_data_rows();
 		appServer.sales_tax_rates_get_list(grid->_data);
 		grid->recalc_data();
+	}
+}
+
+class OurWarrantyTypes extends WarrantyTypesEditWindow {
+	constructor(){
+		base.constructor();
+		dbUpdater()->table_name = "warranty_types";
+		local cols_info = [
+			"id|ID|0",
+			"code|Code|8",
+			"description|Description|-1",
+			"is_active|Active|5|C|B",
+		];
+		grid->set_cols(cols_info);
+		setup_grid(grid, this);
+		setDbActionControls(dbAction, btnDbAction);
+		fill_grid();
+	}
+	function fill_grid(){
+		local cursor_wait = fl_cursor_wait();
+		grid->clear_data_rows();
+		appServer.warranty_types_get_list(grid->_data);
+		grid->recalc_data();
+	}
+}
+
+class OurPaymentTypes extends PaymentTypesEditWindow {
+	constructor(){
+		base.constructor();
+		dbUpdater()->table_name = "payment_types";
+		local cols_info = [
+			"id|ID|0",
+			"code|Code|8",
+			"description|Description|-1",
+			"is_active|Active|5|C|B",
+		];
+		grid->set_cols(cols_info);
+		setup_grid(grid, this);
+		setDbActionControls(dbAction, btnDbAction);
+		payment_periodes->tooltip(_tr("Select a periode to use when generating the payment terms"));
+		payment_periodes->add(_tr("m months"));
+		payment_periodes->add(_tr("w weeks"));
+		payment_periodes->add(_tr("d days"));
+		payment_periodes->add(_tr("dm day of month"));
+		payment_periodes->value(0);
+		fill_grid();
+		btnGenerateTerms.callback(on_generate_terms_cb);
+	}
+	function fill_grid(){
+		local cursor_wait = fl_cursor_wait();
+		grid->clear_data_rows();
+		appServer.payment_types_get_list(grid->_data);
+		grid->recalc_data();
+	}
+
+	function check_payments(){
+		local pattern = "(%d+)%s+(%d+%.?%d*)%D+(%d+)%s+(%S+)";
+		local txt = db_payment_types_payment_terms->buffer()->text();
+	}
+
+	function on_generate_terms_cb(sender, udata){
+		this = sender->window();
+		local nterms = npayments->value();
+		nterms = nterms.len() ? nterms.tointeger() : 1;
+		local pterms = payment_periodes->value();
+		local multiplier = 1;
+		local buf = db_payment_types_payment_terms->buffer();
+		buf->text("");
+		local pct = math.roundf(100.0 / nterms, 2);
+		local first_pct = (100.0 - (pct*(nterms-1)));
+		local periode;
+
+		switch(pterms){
+			case 1: //weeks
+				periode = "w";
+			break;
+			case 2: //days
+				periode = "d";
+				multiplier = 30;
+			break;
+			case 3: //day of month
+				periode = "dm";
+			break;
+			default: //months
+				periode = "m";
+		}
+
+		for(local i=1; i<=nterms; ++i){
+			local str = format("%d\t%0.2f\t%d\t%s\n", i, i == 1 ? first_pct : pct, i*multiplier, periode);
+			buf->append(str);
+		}
+		db_payment_types_payment_terms->redraw();
+		db_payment_types_payment_terms->set_changed();
 	}
 }
 
@@ -2382,9 +2507,15 @@ class MyMainWindow extends MainWindow {
 		local win = showChildWindow("Sales Tax Rates List/Edit", OurSalesTax);
 	}
 	function cb_btnOrderTypes(){print(__LINE__);}
-	function cb_btnPaymentTypes(){print(__LINE__);}
+	function cb_btnPaymentTypes(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("Payment Types List/Edit", OurPaymentTypes);
+	}
 	function cb_btnMeasureUnits(){print(__LINE__);}
-	function cb_btnWarrantyTypes(){print(__LINE__);}
+	function cb_btnWarrantyTypes(sender, udata){
+		this = sender.window();
+		local win = showChildWindow("Warranty Types List/Edit", OurWarrantyTypes);
+	}
 	function cb_btnImages(){print(__LINE__);}
 	function cb_btnProductGroups(sender, udata){
 		this = sender.window();
