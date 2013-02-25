@@ -1,5 +1,7 @@
 #!/bin/sh
 #squilu squilufreeze.nut /home/mingo/bin/squilu sqlite3-cc2.nut sqlite3-cc
-squilu unify-code.nut ourbiz-fltk.nut ourbiz-fltk-unified.nut
-squilu squilufreeze.nut /home/mingo/bin/squilu ourbiz-fltk-unified.nut ourbiz
+SRC_SCRIPT=$1
+squilu unify-code.nut ${SRC_SCRIPT}.nut ${SRC_SCRIPT}-unified.nut
+squilu squilufreeze.nut /home/mingo/bin/squilu ${SRC_SCRIPT}-unified.nut ${SRC_SCRIPT}
+chmod +x ${SRC_SCRIPT}
 
