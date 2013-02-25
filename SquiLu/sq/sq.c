@@ -161,7 +161,7 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 			//sq_createslot(v,-3);
 			//sq_pop(v,1);
 			if(compiles_only) {
-				if(SQ_SUCCEEDED(sqstd_loadfile(v,filename,SQTrue))){
+				if(SQ_SUCCEEDED(sqstd_loadfile(v,filename,SQTrue,SQTrue))){
 					const SQChar *outfile = _SC("out.cnut");
 					if(output) {
 #ifdef SQUNICODE
@@ -177,7 +177,7 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 				}
 			}
 			else if(compiles_as_source_only) {
-				if(SQ_SUCCEEDED(sqstd_loadfile(v,filename,SQTrue))){
+				if(SQ_SUCCEEDED(sqstd_loadfile(v,filename,SQTrue,SQTrue))){
 					const SQChar *outfile = _SC("out.nut");
 					if(output) {
 #ifdef SQUNICODE
@@ -196,7 +196,7 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 				//if(SQ_SUCCEEDED(sqstd_dofile(v,filename,SQFalse,SQTrue))) {
 					//return _DONE;
 				//}
-				if(SQ_SUCCEEDED(sqstd_loadfile(v,filename,SQTrue))) {
+				if(SQ_SUCCEEDED(sqstd_loadfile(v,filename,SQTrue,SQTrue))) {
 					int callargs = 1;
 					sq_pushroottable(v);
 					for(i=arg;i<argc;i++)
@@ -307,7 +307,7 @@ void Interactive(HSQUIRRELVM v)
 		i=scstrlen(buffer);
 		if(i>0){
 			SQInteger oldtop=sq_gettop(v);
-			if(SQ_SUCCEEDED(sq_compilebuffer(v,buffer,i,_SC("interactive console"),SQTrue))){
+			if(SQ_SUCCEEDED(sq_compilebuffer(v,buffer,i,_SC("interactive console"),SQTrue, SQTrue))){
 				sq_pushroottable(v);
 				if(SQ_SUCCEEDED(sq_call(v,1,retval,SQTrue)) &&	retval){
 					scprintf(_SC("\n"));
@@ -488,10 +488,10 @@ static SQInteger LoadFrozenScript(HSQUIRRELVM v, const SQChar* filename, int onl
     fclose(f);
     SQChar srcBoot[192];
     SQInteger scr_len = scsnprintf(srcBoot, sizeof(srcBoot),
-            _SC("local __fd=file(\"%s\", \"rb\");__fd.seek(%d, 'b');local __zsrc=__fd.read(%d);__fd.close();dostring(zlib.inflate(__zsrc));"),
+            _SC("local __fd=file(\"%s\", \"rb\");__fd.seek(%d, 'b');local __zsrc=__fd.read(%d);__fd.close();__zsrc=compilestring(zlib.inflate(__zsrc),\"zsrc\",false);__zsrc();"),
             filename, fileSize-END_TAG_LEN - script_len, script_len);
 
-    if(SQ_SUCCEEDED(sq_compilebuffer(v,srcBoot, scr_len, _SC("bootScript"), SQTrue))) {
+    if(SQ_SUCCEEDED(sq_compilebuffer(v,srcBoot, scr_len, _SC("bootScript"), SQTrue, SQTrue))) {
         sq_pushroottable(v);
         if(SQ_SUCCEEDED(sq_call(v, 1,SQFalse, SQTrue))) {
             return _DONE;

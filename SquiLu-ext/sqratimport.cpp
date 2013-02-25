@@ -196,10 +196,10 @@ static void sqrat_deleteapi(HSQAPI sq) {
 }
 
 static SQRESULT sqrat_importscript(HSQUIRRELVM v, const SQChar* moduleName) {
-    if(SQ_FAILED(sqstd_loadfile(v, moduleName, true))) {
+    if(SQ_FAILED(sqstd_loadfile(v, moduleName, true, true))) {
         std::basic_string<SQChar> filename(moduleName);
         filename += _SC(".nut");
-        if(SQ_FAILED(sqstd_loadfile(v, filename.c_str(), true))) {
+        if(SQ_FAILED(sqstd_loadfile(v, filename.c_str(), true, true))) {
             return SQ_ERROR;
         }
     }

@@ -146,11 +146,12 @@ SQInteger sq_getversion()
 	return SQUIRREL_VERSION_NUMBER;
 }
 
-SQRESULT sq_compile(HSQUIRRELVM v,SQLEXREADFUNC read,SQUserPointer p,const SQChar *sourcename,SQBool raiseerror)
+SQRESULT sq_compile(HSQUIRRELVM v,SQLEXREADFUNC read,SQUserPointer p,const SQChar *sourcename
+                    ,SQBool raiseerror, SQBool show_warnings)
 {
 	SQObjectPtr o;
 #ifndef NO_COMPILER
-	if(Compile(v, read, p, sourcename, o, raiseerror?true:false, _ss(v)->_debuginfo)) {
+	if(Compile(v, read, p, sourcename, o, raiseerror?true:false, _ss(v)->_debuginfo, show_warnings)) {
 		v->Push(SQClosure::Create(_ss(v), _funcproto(o)));
 		return SQ_OK;
 	}
@@ -1742,12 +1743,13 @@ SQInteger buf_lexfeed(SQUserPointer file)
 	return buf->buf[buf->ptr++];
 }
 
-SQRESULT sq_compilebuffer(HSQUIRRELVM v,const SQChar *s,SQInteger size,const SQChar *sourcename,SQBool raiseerror) {
+SQRESULT sq_compilebuffer(HSQUIRRELVM v,const SQChar *s,SQInteger size,const SQChar *sourcename,
+                          SQBool raiseerror, SQBool show_warnings) {
 	BufState buf;
 	buf.buf = s;
 	buf.size = size;
 	buf.ptr = 0;
-	return sq_compile(v, buf_lexfeed, &buf, sourcename, raiseerror);
+	return sq_compile(v, buf_lexfeed, &buf, sourcename, raiseerror, show_warnings);
 }
 
 void sq_move(HSQUIRRELVM dest,HSQUIRRELVM src,SQInteger idx)

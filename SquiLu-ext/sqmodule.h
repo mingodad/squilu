@@ -58,8 +58,10 @@ extern "C" {
         SQInteger       (*getvmstate)(HSQUIRRELVM v);
 
         /*compiler*/
-        SQRESULT        (*compile)(HSQUIRRELVM v,SQLEXREADFUNC read,SQUserPointer p,const SQChar *sourcename,SQBool raiseerror);
-        SQRESULT        (*compilebuffer)(HSQUIRRELVM v,const SQChar *s,SQInteger size,const SQChar *sourcename,SQBool raiseerror);
+        SQRESULT        (*compile)(HSQUIRRELVM v,SQLEXREADFUNC read,SQUserPointer p,const SQChar *sourcename,
+                                   SQBool raiseerror,SQBool show_warnings);
+        SQRESULT        (*compilebuffer)(HSQUIRRELVM v,const SQChar *s,SQInteger size,const SQChar *sourcename,
+                                         SQBool raiseerror,SQBool show_warnings);
         void            (*enabledebuginfo)(HSQUIRRELVM v, SQBool enable);
         void            (*notifyallexceptions)(HSQUIRRELVM v, SQBool enable);
         void            (*setcompilererrorhandler)(HSQUIRRELVM v,SQCOMPILERERROR f);

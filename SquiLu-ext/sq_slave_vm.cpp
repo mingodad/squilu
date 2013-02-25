@@ -220,10 +220,11 @@ static SQRESULT sq_slave_vm_dofile(HSQUIRRELVM v){
     SQ_GET_STRING(v, 2, file_name);
     SQ_OPT_BOOL(v, 3, retval, false);
     SQ_OPT_BOOL(v, 4, printerror, false);
+    SQ_OPT_BOOL(v, 5, show_warnings, false);
 	SQInteger top = sq_gettop(self);
     SQRESULT result = SQ_ERROR;
     sq_pushroottable(self); //important always push the root table, because sqstd_dofile will try to do a sq_push(v, -2)
-    if(sqstd_dofile(self, file_name, retval, printerror) >= 0){
+    if(sqstd_dofile(self, file_name, retval, printerror, show_warnings) >= 0){
         if(retval){
             if(copy_values_between_vms(v, self, 1, sq_gettop(self)) == SQ_OK) result = 1;
         }
@@ -240,11 +241,12 @@ static SQRESULT sq_slave_vm_loadfile(HSQUIRRELVM v){
     SQ_GET_STRING(v, 2, func_name);
     SQ_GET_STRING(v, 3, file_name);
     SQ_OPT_BOOL(v, 4, printerror, false);
+    SQ_OPT_BOOL(v, 5, show_warnings, false);
 	SQInteger top = sq_gettop(self);
     SQRESULT result = SQ_ERROR;
     sq_pushroottable(self);
     sq_pushstring(self, func_name, func_name_size);
-    if(sqstd_loadfile(self, file_name, printerror) >= 0){
+    if(sqstd_loadfile(self, file_name, printerror, show_warnings) >= 0){
         result = sq_newslot(self, -3, SQFalse);
     }
     sq_settop(self, top);
@@ -257,11 +259,12 @@ static SQRESULT sq_slave_vm_compilestring(HSQUIRRELVM v){
     SQ_GET_STRING(v, 2, func_name);
     SQ_GET_STRING(v, 3, str_script);
     SQ_OPT_BOOL(v, 4, printerror, false);
+    SQ_OPT_BOOL(v, 5, show_warnings, false);
 	SQInteger top = sq_gettop(self);
     SQRESULT result = SQ_ERROR;
     sq_pushroottable(self);
     sq_pushstring(self, func_name, func_name_size);
-    if(sq_compilebuffer(self, str_script, str_script_size, func_name, printerror) >= 0){
+    if(sq_compilebuffer(self, str_script, str_script_size, func_name, printerror, show_warnings) >= 0){
         result = sq_newslot(self, -3, SQFalse);
     }
     sq_settop(self, top);
@@ -285,9 +288,9 @@ extern "C" {
         sq_insertfunc(v, _SC("_set"), sq_slave_vm_set, 3, get_set_validation_mask, SQFalse);
         sq_insertfunc(v, _SC("get"), sq_slave_vm_get, -2, get_set_validation_mask, SQFalse);
         sq_insertfunc(v, _SC("_get"), sq_slave_vm_get, -2, get_set_validation_mask, SQFalse);
-        sq_insertfunc(v, _SC("dofile"), sq_slave_vm_dofile, -2, _SC("xsbb"), SQFalse);
-        sq_insertfunc(v, _SC("loadfile"), sq_slave_vm_loadfile, -3, _SC("xssb"), SQFalse);
-        sq_insertfunc(v, _SC("compilestring"), sq_slave_vm_compilestring, -3, _SC("xssb"), SQFalse);
+        sq_insertfunc(v, _SC("dofile"), sq_slave_vm_dofile, -2, _SC("xsbbb"), SQFalse);
+        sq_insertfunc(v, _SC("loadfile"), sq_slave_vm_loadfile, -3, _SC("xssbb"), SQFalse);
+        sq_insertfunc(v, _SC("compilestring"), sq_slave_vm_compilestring, -3, _SC("xssbb"), SQFalse);
         sq_insertfunc(v, _SC("call"), sq_slave_vm_call, -3, _SC("xbs"), SQFalse);
 
         sq_newslot(v,-3,SQTrue); //push sq_slave_vm class

@@ -74,12 +74,14 @@ struct SQScope {
 class SQCompiler
 {
 public:
-	SQCompiler(SQVM *v, SQLEXREADFUNC rg, SQUserPointer up, const SQChar* sourcename, bool raiseerror, bool lineinfo)
+	SQCompiler(SQVM *v, SQLEXREADFUNC rg, SQUserPointer up, const SQChar* sourcename,
+            bool raiseerror, bool lineinfo, bool show_warnings)
 	{
 		_vm=v;
 		_lex.Init(_ss(v), rg, up,ThrowError,this);
 		_sourcename = SQString::Create(_ss(v), sourcename);
 		_lineinfo = lineinfo;_raiseerror = raiseerror;
+		_show_warnings = show_warnings;
 		_scope.outers = 0;
 		_scope.stacksize = 0;
 		_scope.nested = 0;
@@ -109,6 +111,7 @@ public:
 
 	void Warning(const SQChar *s, ...)
 	{
+	    if(!_show_warnings) return;
 		va_list vl;
 		va_start(vl, s);
 		scvfprintf(stderr, s, vl);
@@ -1776,6 +1779,7 @@ private:
 	SQLexer _lex;
 	bool _lineinfo;
 	bool _raiseerror;
+	bool _show_warnings;
 	SQInteger _debugline;
 	SQInteger _debugop;
 	SQExpState   _es;
@@ -1787,9 +1791,10 @@ private:
 	SQObjectPtr _globals;
 };
 
-bool Compile(SQVM *vm,SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, SQObjectPtr &out, bool raiseerror, bool lineinfo)
+bool Compile(SQVM *vm,SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, SQObjectPtr &out,
+             bool raiseerror, bool lineinfo, bool show_warnings)
 {
-	SQCompiler p(vm, rg, up, sourcename, raiseerror, lineinfo);
+	SQCompiler p(vm, rg, up, sourcename, raiseerror, lineinfo, show_warnings);
 	return p.Compile(out);
 }
 

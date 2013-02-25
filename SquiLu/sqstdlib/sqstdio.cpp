@@ -290,7 +290,7 @@ SQInteger file_write(SQUserPointer file,SQUserPointer p,SQInteger size)
 	return sqstd_fwrite(p,1,size,(SQFILE)file);
 }
 
-SQRESULT sqstd_loadfile(HSQUIRRELVM v,const SQChar *filename,SQBool printerror)
+SQRESULT sqstd_loadfile(HSQUIRRELVM v,const SQChar *filename,SQBool printerror,SQBool show_warnings)
 {
 	SQFILE file = sqstd_fopen(filename,_SC("rb"));
 	SQInteger ret;
@@ -334,7 +334,7 @@ SQRESULT sqstd_loadfile(HSQUIRRELVM v,const SQChar *filename,SQBool printerror)
 				default: sqstd_fseek(file,0,SQ_SEEK_SET); break; // ascii
 			}
 
-			if(SQ_SUCCEEDED(sq_compile(v,func,file,filename,printerror))){
+			if(SQ_SUCCEEDED(sq_compile(v,func,file,filename,printerror,show_warnings))){
 				sqstd_fclose(file);
 				return SQ_OK;
 			}
@@ -345,9 +345,9 @@ SQRESULT sqstd_loadfile(HSQUIRRELVM v,const SQChar *filename,SQBool printerror)
 	return sq_throwerror(v,_SC("cannot open the file"));
 }
 
-SQRESULT sqstd_dofile(HSQUIRRELVM v,const SQChar *filename,SQBool retval,SQBool printerror)
+SQRESULT sqstd_dofile(HSQUIRRELVM v,const SQChar *filename,SQBool retval,SQBool printerror,SQBool show_warnings)
 {
-	if(SQ_SUCCEEDED(sqstd_loadfile(v,filename,printerror))) {
+	if(SQ_SUCCEEDED(sqstd_loadfile(v,filename,printerror,show_warnings))) {
 		sq_push(v,-2);
 		if(SQ_SUCCEEDED(sq_call(v,1,retval,SQTrue))) {
 			sq_remove(v,retval?-2:-1); //removes the closure
@@ -384,13 +384,11 @@ SQRESULT sqstd_writeclosuretofile_as_source(HSQUIRRELVM v,const SQChar *filename
 
 SQInteger _g_io_loadfile(HSQUIRRELVM v)
 {
-	const SQChar *filename;
-	SQBool printerror = SQFalse;
-	sq_getstring(v,2,&filename);
-	if(sq_gettop(v) >= 3) {
-		sq_getbool(v,3,&printerror);
-	}
-	if(SQ_SUCCEEDED(sqstd_loadfile(v,filename,printerror)))
+    SQ_FUNC_VARS(v);
+    SQ_GET_STRING(v, 2, filename);
+    SQ_OPT_BOOL(v, 3, printerror, SQFalse);
+    SQ_OPT_BOOL(v, 4, show_warnings, SQTrue);
+	if(SQ_SUCCEEDED(sqstd_loadfile(v,filename,printerror,show_warnings)))
 		return 1;
 	return SQ_ERROR; //propagates the error
 }
@@ -432,18 +430,17 @@ SQInteger _g_io_loadstring(HSQUIRRELVM v)
     }
     else
     {
-        rc = sq_compilebuffer(v, dump, size, "dostring", SQFalse);
+        rc = sq_compilebuffer(v, dump, size, "dostring", SQFalse, SQFalse);
     }
 	return rc < 0 ? rc : 1;
 }
 
 SQInteger _g_io_dostring(HSQUIRRELVM v)
 {
+    SQ_FUNC_VARS(v);
     SQInteger rc = _g_io_loadstring(v);
     if(rc < 0) return rc;
-    SQBool retval;
-    if(sq_gettop(v) > 2) sq_getbool(v, 3, &retval);
-    else retval = SQFalse;
+    SQ_OPT_BOOL(v, 3, retval, SQFalse);
     sq_push(v,1); //this environment
     if(SQ_SUCCEEDED(sq_call(v,1,retval,SQTrue))) {
         sq_remove(v,retval?-2:-1); //removes the closure
@@ -455,25 +452,23 @@ SQInteger _g_io_dostring(HSQUIRRELVM v)
 
 SQInteger _g_io_dofile(HSQUIRRELVM v)
 {
-	const SQChar *filename;
-	SQBool printerror = SQFalse;
-	sq_getstring(v,2,&filename);
-	if(sq_gettop(v) >= 3) {
-		sq_getbool(v,3,&printerror);
-	}
+    SQ_FUNC_VARS(v);
+    SQ_GET_STRING(v, 2, filename);
+    SQ_OPT_BOOL(v, 3, printerror, SQFalse);
+    SQ_OPT_BOOL(v, 4, show_warnings, SQTrue);
 	sq_push(v,1); //repush the this
-	if(SQ_SUCCEEDED(sqstd_dofile(v,filename,SQTrue,printerror)))
+	if(SQ_SUCCEEDED(sqstd_dofile(v,filename,SQTrue,printerror,show_warnings)))
 		return 1;
 	return SQ_ERROR; //propagates the error
 }
 
 #define _DECL_GLOBALIO_FUNC(name,nparams,typecheck) {_SC(#name),_g_io_##name,nparams,typecheck}
 static SQRegFunction iolib_funcs[]={
-	_DECL_GLOBALIO_FUNC(loadfile,-2,_SC(".sb")),
-	_DECL_GLOBALIO_FUNC(dofile,-2,_SC(".sb")),
+	_DECL_GLOBALIO_FUNC(loadfile,-2,_SC(".sbb")),
+	_DECL_GLOBALIO_FUNC(dofile,-2,_SC(".sbb")),
 	_DECL_GLOBALIO_FUNC(writeclosuretofile,3,_SC(".sc")),
-	_DECL_GLOBALIO_FUNC(dostring,-2,_SC(".sb")),
-	_DECL_GLOBALIO_FUNC(loadstring,-2,_SC(".sb")),
+	_DECL_GLOBALIO_FUNC(dostring,-2,_SC(".sbb")),
+	_DECL_GLOBALIO_FUNC(loadstring,-2,_SC(".sbb")),
 	_DECL_GLOBALIO_FUNC(dumpclosure,3,_SC(".sc")),
 	{0,0}
 };

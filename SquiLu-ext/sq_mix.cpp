@@ -31,7 +31,7 @@ static SQRESULT mix_loadbuffer(HSQUIRRELVM sqvm, mix_state_t *S, const SQChar *n
 	}
 	else
 	{
-        res = sq_compile(sqvm, sq_mix_reader_char, S, name, SQTrue);
+        res = sq_compile(sqvm, sq_mix_reader_char, S, name, SQTrue, SQTrue);
         if (S->error != NULL) {
             return sq_throwerror(sqvm, S->error);
         } else if (res != 0) {
