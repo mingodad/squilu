@@ -1094,7 +1094,7 @@ class Fl_Data_Table_Calendar extends Fl_Data_Table {
 
 dofile("search-options.nut");
 dofile("utils-fltk.nut");
-dofile("ourbiz-gui.nut");
+dofile("ourbiz-gui.nut", false, false);
 dofile("help-view.nut");
 dofile("fl-bar-chart.nut");
 dofile("calendar-utils.nut");
