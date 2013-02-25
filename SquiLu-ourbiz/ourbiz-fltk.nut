@@ -1820,6 +1820,7 @@ class ProductsListSearch extends MyListSearchWindow {
 	_search_by_active = null;
 	_last_image_id = null;
 	_image_window = null;
+	_fetching_image = null; //flag to prevent stack overflow due to background multiple calls
 
 	constructor(doInitialSearch=true) {
 		_last_image_id = 0;
@@ -1880,14 +1881,23 @@ class ProductsListSearch extends MyListSearchWindow {
 		//print("on_row_changed", sender, row);
 		if(sender->why_event() == FLVE_ROW_CHANGED){
 			this = sender.window();
-			if(shown()){
-				local img_id = sender->get_data_value(sender->row(), sender->cols()-1);
-				if(img_id){
-					img_id = img_id.tointeger();
-					if(img_id != _last_image_id){
-						button_show_db_image(btnThumbImage, img_id, _image_window, true, false);
-						_last_image_id = img_id;
+			if(shown() && !_fetching_image){ 
+				try {
+					//flag to prevent stack overflow due to background multiple calls
+					_fetching_image = true;
+					local img_id = sender->get_data_value(sender->row(), sender->cols()-1);
+					if(img_id){
+						img_id = img_id.tointeger();
+						if(img_id != _last_image_id){
+							button_show_db_image(btnThumbImage, img_id, _image_window, true, false);
+							_last_image_id = img_id;
+						}
 					}
+					_fetching_image = false;
+				}
+				catch(e){
+					_fetching_image = false;
+					throw(e);
 				}
 			}
 		}
@@ -2286,17 +2296,21 @@ class MyMainWindow extends MainWindow {
 		btnPaymentsSales->callback(cb_btnPaymentsSales);
 		btnEntitiesSales->callback(cb_btnEntitiesSales);
 		btnProductsSales->callback(cb_btnProductsSales);
+		
 		btnOrdersBuys->callback(cb_btnOrdersBuys);
 		btnPaymentsBuys->callback(cb_btnPaymentsBuys);
 		btnProductsBuys->callback(cb_btnProductsBuys);
 		btnEntitiesBuys->callback(cb_btnEntitiesBuys);
+		
 		btnOrders->callback(cb_btnOrders);
 		btnPayments->callback(cb_btnPayments);
 		btnEntities->callback(cb_btnEntities);
 		btnProducts->callback(cb_btnProducts);
+		
 		btnGLGroups->callback(cb_btnGLGroups);
 		btnGLChart->callback(cb_btnGLChart);
 		btnGLTransactions->callback(cb_btnGLTransactions);
+		
 		btnOrdersSum->callback(cb_btnOrdersSum);
 		btnSalesTaxRates->callback(cb_btnSalesTaxRates);
 		btnOrderTypes->callback(cb_btnOrderTypes);
