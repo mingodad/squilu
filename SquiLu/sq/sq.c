@@ -71,6 +71,26 @@ void PrintVersionInfos()
 	scfprintf(stdout,_SC("%s %s (%d bits)\n"),SQUIRREL_VERSION,SQUIRREL_COPYRIGHT,((int)(sizeof(SQInteger)*8)));
 }
 
+SQInteger push_program_args(HSQUIRRELVM v,SQInteger arg, SQInteger argc, char* argv[]){
+    SQInteger i, callargs = 0;
+    for(i=arg;i<argc;i++)
+    {
+        const SQChar *a;
+#ifdef SQUNICODE
+        int alen=(int)strlen(argv[i]);
+        a=sq_getscratchpad(v,(int)(alen*sizeof(SQChar)));
+        mbstowcs(sq_getscratchpad(v,-1),argv[i],alen);
+        sq_getscratchpad(v,-1)[alen] = _SC('\0');
+#else
+        a=argv[i];
+#endif
+        sq_pushstring(v,a,-1);
+        callargs++;
+        //sq_arrayappend(v,-2);
+    }
+    return callargs;
+}
+
 void PrintUsage()
 {
 	scfprintf(stderr,_SC("usage: sq <options> <scriptpath [args]>.\n")
@@ -153,7 +173,7 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 			filename=argv[arg];
 #endif
 
-			arg++;
+			//arg++; //commenting this line to pass the script filename as first parameter in vargv
 
 			//sq_pushstring(v,_SC("ARGS"),-1);
 			//sq_newarray(v,0);
@@ -199,21 +219,7 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 				if(SQ_SUCCEEDED(sqstd_loadfile(v,filename,SQTrue,SQTrue))) {
 					int callargs = 1;
 					sq_pushroottable(v);
-					for(i=arg;i<argc;i++)
-					{
-						const SQChar *a;
-#ifdef SQUNICODE
-						int alen=(int)strlen(argv[i]);
-						a=sq_getscratchpad(v,(int)(alen*sizeof(SQChar)));
-						mbstowcs(sq_getscratchpad(v,-1),argv[i],alen);
-						sq_getscratchpad(v,-1)[alen] = _SC('\0');
-#else
-						a=argv[i];
-#endif
-						sq_pushstring(v,a,-1);
-						callargs++;
-						//sq_arrayappend(v,-2);
-					}
+					callargs += push_program_args(v, arg, argc, argv);
 					if(SQ_SUCCEEDED(sq_call(v,callargs,SQTrue,SQTrue))) {
 						SQObjectType type = sq_gettype(v,-1);
 						if(type == OT_INTEGER) {
@@ -400,23 +406,9 @@ static SQInteger LoadFrozenScript0(HSQUIRRELVM v, const SQChar* filename, int on
     //fclose(f);
 
     if(SQ_SUCCEEDED(sq_compilebuffer(v,script, script_len, _SC("frozenScript"), SQTrue))) {
-        int i, callargs = 1;
+        int callargs = 1;
         sq_pushroottable(v);
-        for(i=0;i<sq_main_argc;i++)
-        {
-            const SQChar *a;
-#ifdef SQUNICODE
-            int alen=(int)strlen(sq_main_argv[i]);
-            a=sq_getscratchpad(v,(int)(alen*sizeof(SQChar)));
-            mbstowcs(sq_getscratchpad(v,-1),sq_main_argv[i],alen);
-            sq_getscratchpad(v,-1)[alen] = _SC('\0');
-#else
-            a=sq_main_argv[i];
-#endif
-            sq_pushstring(v,a,-1);
-            callargs++;
-            //sq_arrayappend(v,-2);
-        }
+        callargs += push_program_args(v, 0, sq_main_argc, sq_main_argv);
         if(SQ_SUCCEEDED(sq_call(v,callargs,SQTrue,SQTrue))) {
             SQObjectType type = sq_gettype(v,-1);
             if(type == OT_INTEGER) {
@@ -486,14 +478,16 @@ static SQInteger LoadFrozenScript(HSQUIRRELVM v, const SQChar* filename, int onl
     }
 
     fclose(f);
-    SQChar srcBoot[192];
+    SQChar srcBoot[256];
     SQInteger scr_len = scsnprintf(srcBoot, sizeof(srcBoot),
-            _SC("local __fd=file(\"%s\", \"rb\");__fd.seek(%d, 'b');local __zsrc=__fd.read(%d);__fd.close();__zsrc=compilestring(zlib.inflate(__zsrc),\"zsrc\",false);__zsrc();"),
+            _SC("local __fd=file(\"%s\", \"rb\");__fd.seek(%d, 'b');local __zsrc=__fd.read(%d);__fd.close();__zsrc=compilestring(zlib.inflate(__zsrc),\"zsrc\",false);__zsrc.acall2(this, vargv);"),
             filename, fileSize-END_TAG_LEN - script_len, script_len);
 
     if(SQ_SUCCEEDED(sq_compilebuffer(v,srcBoot, scr_len, _SC("bootScript"), SQTrue, SQTrue))) {
+        int callargs = 1;
         sq_pushroottable(v);
-        if(SQ_SUCCEEDED(sq_call(v, 1,SQFalse, SQTrue))) {
+        callargs += push_program_args(v, 0, sq_main_argc, sq_main_argv);
+        if(SQ_SUCCEEDED(sq_call(v, callargs,SQFalse, SQTrue))) {
             return _DONE;
         }
         else{
