@@ -83,7 +83,7 @@ widget_class HelpWindow {
 } 
 
 widget_class CalendarWindow {
-  label Calendar open
+  label Calendar
   xywh {732 184 350 305} type Double labelsize 16 hide
   class Base_Window
 } {
@@ -144,7 +144,7 @@ widget_class CalendarWindow {
     }
   }
   Fl_Browser grid {
-    dirty_name grid selected
+    dirty_name grid
     xywh {5 65 340 202} labeltype NO_LABEL labelsize 16
     class Fl_Data_Table
   }
@@ -957,7 +957,7 @@ widget_class AskLoginWindow {
 widget_class AppUsersEditWindow {
   label {App Users List / Edit}
   xywh {282 148 500 500} type Double labelsize 16 hide resizable
-  class Edit_Base_Window
+  class List_Edit_Base_Window
 } {
   Fl_Browser grid {
     xywh {5 5 490 140} type Multi labeltype NO_LABEL labelsize 16 textsize 16 resizable
@@ -1048,7 +1048,7 @@ widget_class AppUsersEditWindow {
 widget_class AppConfigEditWindow {
   label {Application Configuration List / Edit}
   xywh {346 83 500 490} type Double labelsize 16 hide resizable
-  class Edit_Base_Window
+  class List_Edit_Base_Window
 } {
   Fl_Browser grid {
     xywh {5 5 490 200} type Multi labeltype NO_LABEL labelsize 16 textsize 16 resizable
@@ -1115,7 +1115,7 @@ widget_class AppConfigEditWindow {
 widget_class TanslationsWindow {
   label Translations
   xywh {217 76 490 560} type Double hide
-  class Edit_Base_Window
+  class List_Edit_Base_Window
 } {
   Fl_Tabs myTabs {
     dirty_name myTabs open
@@ -1211,7 +1211,7 @@ widget_class TanslationsWindow {
 widget_class PaymentTypesEditWindow {
   label {Payment Types List / Edit}
   xywh {302 168 500 500} type Double labelsize 16 hide resizable
-  class Edit_Base_Window
+  class List_Edit_Base_Window
 } {
   Fl_Browser grid {
     xywh {5 5 490 140} type Multi labeltype NO_LABEL labelsize 16 textsize 16 resizable
@@ -1312,7 +1312,7 @@ widget_class PaymentTypesEditWindow {
 widget_class WarrantyTypesEditWindow {
   label {Warranty Types List / Edit}
   xywh {219 105 500 385} type Double labelsize 16 hide resizable
-  class Edit_Base_Window
+  class List_Edit_Base_Window
 } {
   Fl_Browser grid {
     xywh {5 5 490 200} type Multi labeltype NO_LABEL labelsize 16 textsize 16 resizable
@@ -1379,7 +1379,7 @@ widget_class WarrantyTypesEditWindow {
 widget_class MeasureUnitsEditWindow {
   label {Measure Units List / Edit}
   xywh {286 134 500 385} type Double labelsize 16 hide resizable
-  class Edit_Base_Window
+  class List_Edit_Base_Window
 } {
   Fl_Browser grid {
     xywh {5 5 490 200} type Multi labeltype NO_LABEL labelsize 16 textsize 16 resizable
@@ -1446,7 +1446,7 @@ widget_class MeasureUnitsEditWindow {
 widget_class SalesTaxRatesEditWindow {
   label {Sales Tax Rates List / Edit}
   xywh {266 87 500 385} type Double labelsize 16 hide resizable
-  class Edit_Base_Window
+  class List_Edit_Base_Window
 } {
   Fl_Browser grid {
     tooltip {List of available sales tax} xywh {5 5 490 200} type Multi labeltype NO_LABEL labelsize 16 textsize 16 resizable
@@ -1517,7 +1517,7 @@ widget_class SalesTaxRatesEditWindow {
 widget_class OrderTypesEditWindow {
   label {Order Types List / Edit}
   xywh {100 110 800 535} type Double labelsize 16 hide resizable
-  class Edit_Base_Window
+  class List_Edit_Base_Window
 } {
   Fl_Browser grid {
     xywh {5 5 790 200} type Multi labeltype NO_LABEL labelsize 16 textsize 16 resizable
@@ -1723,9 +1723,9 @@ widget_class DynamicQueryWindow {
 } 
 
 widget_class ImagesListEditWindow {
-  label {Images List / Edit}
+  label {Images List / Edit} selected
   xywh {81 129 800 560} type Double labelsize 16 hide resizable
-  class Edit_Base_Window
+  class List_Edit_Base_Window
 } {
   Fl_Browser grid {
     xywh {5 5 790 295} type Multi labeltype NO_LABEL labelsize 16 textsize 16 resizable

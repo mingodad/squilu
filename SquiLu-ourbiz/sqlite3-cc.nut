@@ -270,7 +270,7 @@ class Fl_Data_Table extends Flv_Data_Table {
 	}
 }
 
-dofile("sqlite3-cc-gui.nut");
+dofile("sqlite3-cc-gui.nut", false, false);
 
 class Sqlite3CC extends Sqlite3cc_Window {
   

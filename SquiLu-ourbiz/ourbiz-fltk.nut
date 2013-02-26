@@ -12,6 +12,7 @@ dofile("db-updater.nut");
 local appServer = AppServer.getAppServer();
 appServer.credentials("mingote", "tr14pink");
 appServer.connect("localhost", 8855); //8888);//8855);
+//appServer.connect("192.168.0.88", 8855); //8888);//8855);
 
 function _tr(str){ return str;}
 
@@ -707,7 +708,10 @@ class Edit_Base_Window extends Base_Window {
 			    break;
 			}
 		}
-		catch(e){ fl_alert(e);}
+		catch(e){ 
+			//foreach(k,v in get_last_stackinfo()) print(k,v);
+			fl_alert(e);
+		}
 	}
 	function get_record_by_id(id){
 		appServer.get_record(_record, dbUpdater()->table_name, 0, dbUpdater()->edit_id);
@@ -1092,6 +1096,23 @@ class Fl_Data_Table_Calendar extends Fl_Data_Table {
 	}
 }
 
+class  List_Edit_Base_Window extends Edit_Base_Window {
+	constructor(px, py, pw, ph, pl){
+		base.constructor(px, py, pw, ph, pl);
+	}
+	function on_btnDbAction(sender, udata)
+	{
+		this = sender->window();
+		base.on_btnDbAction(sender, udata);
+		local saved_row = grid->row();
+		fill_grid();
+		if(grid->rows() > saved_row) grid->row(saved_row);
+		else grid->row(grid->rows()-1);
+	}
+	function fill_grid(){}
+}
+
+
 dofile("search-options.nut");
 dofile("utils-fltk.nut");
 dofile("ourbiz-gui.nut", false, false);
@@ -1361,9 +1382,10 @@ class OurTreeGroups extends GroupsListEditWindow {
 		delayed_focus(db_group_description);
 	}
 
-	function on_btnDbAction()
+	function on_btnDbAction(sender, udata)
 	{
-		base.on_btnDbAction();
+		this = sender->window();
+		base.on_btnDbAction(sender, udata);
 		treeLoadChilds(tree, 0, 0, _table_name);
 
 		fill_edit_form(true);
@@ -1409,6 +1431,8 @@ class OurImages extends ImagesListEditWindow {
 	
 	constructor(){
 		base.constructor();
+		setup_grid(grid, this);
+		setDbActionControls(dbAction, btnDbAction);
 		dbUpdater()->table_name = "images";
 		local cols_info = [
 			"id|ID|6",
@@ -1417,8 +1441,6 @@ class OurImages extends ImagesListEditWindow {
 			"group_set|Group|6",
 		];
 		grid->set_cols(cols_info);
-		setup_grid(grid, this);
-		setDbActionControls(dbAction, btnDbAction);
 		_search_options = OurBizSearchOptions();
 		fill_grid();
 		btnImage.callback(on_image_file_browser);
@@ -1469,6 +1491,8 @@ class OurImages extends ImagesListEditWindow {
 class OurAppConfig extends AppConfigEditWindow {
 	constructor(){
 		base.constructor();
+		setup_grid(grid, this);
+		setDbActionControls(dbAction, btnDbAction);
 		dbUpdater()->table_name = "config";
 		local cols_info = [
 			"id|ID|0",
@@ -1476,8 +1500,6 @@ class OurAppConfig extends AppConfigEditWindow {
 			"value|Value|-1|L|@",
 		];
 		grid->set_cols(cols_info);
-		setup_grid(grid, this);
-		setDbActionControls(dbAction, btnDbAction);
 		fill_grid();
 	}
 	function fill_grid(){
@@ -1491,6 +1513,8 @@ class OurAppConfig extends AppConfigEditWindow {
 class OurSalesTax extends SalesTaxRatesEditWindow {
 	constructor(){
 		base.constructor();
+		setup_grid(grid, this);
+		setDbActionControls(dbAction, btnDbAction);
 		dbUpdater()->table_name = "sales_tax_rates";
 		local cols_info = [
 			"id|ID|0",
@@ -1500,8 +1524,6 @@ class OurSalesTax extends SalesTaxRatesEditWindow {
 			"is_active|Active|5|C|B",
 		];
 		grid->set_cols(cols_info);
-		setup_grid(grid, this);
-		setDbActionControls(dbAction, btnDbAction);
 		fill_grid();
 	}
 	function fill_grid(){
@@ -1515,6 +1537,8 @@ class OurSalesTax extends SalesTaxRatesEditWindow {
 class OurWarrantyTypes extends WarrantyTypesEditWindow {
 	constructor(){
 		base.constructor();
+		setup_grid(grid, this);
+		setDbActionControls(dbAction, btnDbAction);
 		dbUpdater()->table_name = "warranty_types";
 		local cols_info = [
 			"id|ID|0",
@@ -1523,8 +1547,6 @@ class OurWarrantyTypes extends WarrantyTypesEditWindow {
 			"is_active|Active|5|C|B",
 		];
 		grid->set_cols(cols_info);
-		setup_grid(grid, this);
-		setDbActionControls(dbAction, btnDbAction);
 		fill_grid();
 	}
 	function fill_grid(){
@@ -1538,6 +1560,8 @@ class OurWarrantyTypes extends WarrantyTypesEditWindow {
 class OurMeasureUnits extends MeasureUnitsEditWindow {
 	constructor(){
 		base.constructor();
+		setup_grid(grid, this);
+		setDbActionControls(dbAction, btnDbAction);
 		dbUpdater()->table_name = "measure_units";
 		local cols_info = [
 			"id|ID|0",
@@ -1546,8 +1570,6 @@ class OurMeasureUnits extends MeasureUnitsEditWindow {
 			"is_active|Active|5|C|B",
 		];
 		grid->set_cols(cols_info);
-		setup_grid(grid, this);
-		setDbActionControls(dbAction, btnDbAction);
 		fill_grid();
 	}
 	function fill_grid(){
@@ -1561,6 +1583,8 @@ class OurMeasureUnits extends MeasureUnitsEditWindow {
 class OurPaymentTypes extends PaymentTypesEditWindow {
 	constructor(){
 		base.constructor();
+		setup_grid(grid, this);
+		setDbActionControls(dbAction, btnDbAction);
 		dbUpdater()->table_name = "payment_types";
 		local cols_info = [
 			"id|ID|0",
@@ -1569,8 +1593,6 @@ class OurPaymentTypes extends PaymentTypesEditWindow {
 			"is_active|Active|5|C|B",
 		];
 		grid->set_cols(cols_info);
-		setup_grid(grid, this);
-		setDbActionControls(dbAction, btnDbAction);
 		payment_periodes->tooltip(_tr("Select a periode to use when generating the payment terms"));
 		payment_periodes->add(_tr("m months"));
 		payment_periodes->add(_tr("w weeks"));
@@ -1631,6 +1653,8 @@ class OurPaymentTypes extends PaymentTypesEditWindow {
 class OurOrderTypes extends OrderTypesEditWindow {
 	constructor(){
 		base.constructor();
+		setup_grid(grid, this);
+		setDbActionControls(dbAction, btnDbAction);
 		dbUpdater()->table_name = "order_types";
 		local cols_info = [
 			"id|ID|0|R",
@@ -1643,8 +1667,6 @@ class OurOrderTypes extends OrderTypesEditWindow {
 			"is_active|Active|6|C|B",
 		];
 		grid->set_cols(cols_info);
-		setup_grid(grid, this);
-		setDbActionControls(dbAction, btnDbAction);
 		fill_grid();
 	}
 	function fill_grid(){
@@ -2153,12 +2175,18 @@ class ProductsListSearch extends MyListSearchWindow {
 					//flag to prevent stack overflow due to multiple background calls
 					_fetching_image = true;
 					local img_id = sender->get_data_value(sender->row(), sender->cols()-1);
-					if(img_id){
+					if(img_id && img_id.len()){
 						img_id = img_id.tointeger();
 						if(img_id != _last_image_id){
 							button_show_db_image(btnThumbImage, img_id, _image_window, true, false);
 							_last_image_id = img_id;
 						}
+					}
+					else
+					{
+						btnThumbImage.hide();
+						btnThumbImage.image(null);
+						btnThumbImage.show();						
 					}
 					_fetching_image = false;
 				}

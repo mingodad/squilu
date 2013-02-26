@@ -141,7 +141,7 @@ class DBTableUpdateBase {
 			//if(check_idle) Fl.check();
 		}
 
-		if(httpRequest.my_status != 200){throw(my_result);}
+		if(httpRequest.my_status != 200){throw(my_result.tostring());}
 		switch(dbAction)
 		{
 		case edbAction.e_insert:

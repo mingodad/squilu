@@ -1663,7 +1663,7 @@ class AskLoginWindow extends Fl_Double_Window {
   }
 }
 
-class AppUsersEditWindow extends Edit_Base_Window {
+class AppUsersEditWindow extends List_Edit_Base_Window {
   
   // Declaration of class members
   grid = null;
@@ -1809,7 +1809,7 @@ class AppUsersEditWindow extends Edit_Base_Window {
   }
 }
 
-class AppConfigEditWindow extends Edit_Base_Window {
+class AppConfigEditWindow extends List_Edit_Base_Window {
   
   // Declaration of class members
   grid = null;
@@ -1920,7 +1920,7 @@ class AppConfigEditWindow extends Edit_Base_Window {
   }
 }
 
-class TanslationsWindow extends Edit_Base_Window {
+class TanslationsWindow extends List_Edit_Base_Window {
   
   // Declaration of class members
   myTabs = null;
@@ -2066,7 +2066,7 @@ class TanslationsWindow extends Edit_Base_Window {
   }
 }
 
-class PaymentTypesEditWindow extends Edit_Base_Window {
+class PaymentTypesEditWindow extends List_Edit_Base_Window {
   
   // Declaration of class members
   grid = null;
@@ -2215,7 +2215,7 @@ class PaymentTypesEditWindow extends Edit_Base_Window {
   }
 }
 
-class WarrantyTypesEditWindow extends Edit_Base_Window {
+class WarrantyTypesEditWindow extends List_Edit_Base_Window {
   
   // Declaration of class members
   grid = null;
@@ -2317,7 +2317,7 @@ class WarrantyTypesEditWindow extends Edit_Base_Window {
   }
 }
 
-class MeasureUnitsEditWindow extends Edit_Base_Window {
+class MeasureUnitsEditWindow extends List_Edit_Base_Window {
   
   // Declaration of class members
   grid = null;
@@ -2419,7 +2419,7 @@ class MeasureUnitsEditWindow extends Edit_Base_Window {
   }
 }
 
-class SalesTaxRatesEditWindow extends Edit_Base_Window {
+class SalesTaxRatesEditWindow extends List_Edit_Base_Window {
   
   // Declaration of class members
   grid = null;
@@ -2539,7 +2539,7 @@ class SalesTaxRatesEditWindow extends Edit_Base_Window {
   }
 }
 
-class OrderTypesEditWindow extends Edit_Base_Window {
+class OrderTypesEditWindow extends List_Edit_Base_Window {
   
   // Declaration of class members
   grid = null;
@@ -2853,7 +2853,7 @@ class DynamicQueryWindow extends Edit_Base_Window {
   }
 }
 
-class ImagesListEditWindow extends Edit_Base_Window {
+class ImagesListEditWindow extends List_Edit_Base_Window {
   
   // Declaration of class members
   grid = null;
