@@ -666,7 +666,7 @@ function WriteScript(tree){
 
 function DecodeOption(arg){
 	local config = {};
-	for(local i=0, len=arg.len(); i < len; i +=2){
+	for(local i=1, len=arg.len(); i < len; i +=2){
 		if (arg[i].slice(0,1) != "-") {
 			local ar = [config];
 			for(local iv = i, ivlen = arg.len(); iv < ivlen; ++iv) ar.push(arg[iv]);
@@ -709,7 +709,7 @@ function Fluid2SquiLu(infile, outfile, config){
 	return outdata;
 }
 
-if (vargv.len() > 0){ 
+if (vargv.len() > 1){ 
 	local rc = DecodeOption(vargv);
 	local config = rc[0], infile = rc[1], outfile = rc.get(2, "-"); 
 	Fluid2SquiLu(infile, outfile, config);

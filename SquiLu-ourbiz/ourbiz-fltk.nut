@@ -7,6 +7,8 @@
 local WIN32 = os.getenv("WINDIR") != null
 socket.open();
 
+//foreach(i, arg in vargv) print(i, arg);
+
 dofile("ourbiz-client.nut");
 dofile("db-updater.nut");
 local appServer = AppServer.getAppServer();

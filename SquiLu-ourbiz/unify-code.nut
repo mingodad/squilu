@@ -17,9 +17,9 @@ function unify_code(fname){
 
 //print(unify_code("ourbiz-fltk.nut"));
 
-if (vargv.len() > 0){ 
-	local infile = vargv[0], outfile = "-";
-	if(vargv.len() > 1) outfile = vargv[1];
+if (vargv.len() > 1){ 
+	local infile = vargv[1], outfile = "-";
+	if(vargv.len() > 2) outfile = vargv[2];
 	local unified = unify_code(infile);
 	if(outfile == "-") print(unified);
 	else

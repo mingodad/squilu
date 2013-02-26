@@ -10,6 +10,6 @@ function fib(n)
     return fib(n-2) + fib(n-1) 
 }
 
-local n = vargv.len()!=0?vargv[0].tointeger():1
+local n = vargv.len()>1?vargv[1].tointeger():1
 
 print(fib(n)+"\n")

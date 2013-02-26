@@ -41,7 +41,7 @@ function NthToggle::activate ()
 
 
 function main() {
-	local n = vargv.len()!=0?vargv[0].tointeger():1
+	local n = vargv.len()>1?vargv[1].tointeger():1
 	
 	
 	

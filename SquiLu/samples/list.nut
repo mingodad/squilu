@@ -28,7 +28,7 @@ function test()
 	return null;
 }
 
-local n = vargv.len()!=0?vargv[0].tointeger():1
+local n = vargv.len()>1?vargv[1].tointeger():1
 for(local i=0;i<n;i+=1)
 	if(!test())
 	{

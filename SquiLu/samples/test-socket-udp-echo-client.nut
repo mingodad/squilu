@@ -4,12 +4,8 @@
 // Author: Diego Nehab
 // RCS ID: $Id: echoclnt.lua,v 1.10 2005/01/02 22:44:00 diego Exp $
 ////////////////////////////////////////////////////////////////////////////-
-local host = "localhost"
-local port = 20007;
-if (vargv.len() > 0){
-    host = vargv[0] || host;
-    port = vargv[1] || port;
-}
+local host = vargv.len() > 1 ? vargv[1] : "localhost";
+local port = vargv.len() > 2 ? vargv[2] : 20007;
 host = socket.toip(host);
 print(host.address)
 foreach(k,v in host.resolved) {

@@ -47,7 +47,7 @@
 
 local vargv_len = vargv.len();
 // print version?
-if (vargv_len == 1 && vargv[0] == "version"){
+if (vargv_len == 2 && vargv[1] == "version"){
     print("axssl.nut " + axtls.ssl_version());
     os.exit(1);
 }
@@ -508,11 +508,11 @@ function display_session_id(ssl){
 // Main entry point. Doesn't do much except works out whether we are a client
 // or a server.
 //
-if (vargv_len == 0 || (vargv[0] != "s_server" && vargv[0] != "s_client")){
-    print_options(vargv_len > 0 && vargv[0] || "");
+if (vargv_len == 1 || (vargv[1] != "s_server" && vargv[1] != "s_client")){
+    print_options(vargv_len > 1 && vargv[1] || "");
 }
 
 local build_mode = axtls.get_config(axtls.SSL_BUILD_MODE);
-local xx = vargv[0] == "s_server" && do_server(build_mode) || do_client(build_mode);
+local xx = vargv[1] == "s_server" && do_server(build_mode) || do_client(build_mode);
 os.exit(0);
 

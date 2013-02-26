@@ -31,7 +31,7 @@ function mmult(rows, cols,  m1, m2, m3) {
   return m3;
 }
 
-local n = vargv.len()!=0?vargv[0].tointeger():1
+local n = vargv.len()>1?vargv[1].tointeger():1
 
 local m1 = mkmatrix(SIZE, SIZE);
 local m2 = mkmatrix(SIZE, SIZE);

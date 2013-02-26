@@ -5,7 +5,8 @@ print(str.match("Fl_Input"));
 print(str.substr(0,1), str.substr(2,3))
 print(str.slice(0,1), str.slice(2,3))
 
-local str2 = "Another day in paradize or another day in heaven ?";
+local str2 = "Another day in paradize or another day in heaven?";
+print(str2.slice(0,-1), str2.slice(0,-2))
 
 local rc = str2.match("(day).-(paradize)")
 print(type(rc));

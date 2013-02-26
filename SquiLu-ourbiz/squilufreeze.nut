@@ -38,14 +38,14 @@ function Usage(){
 // The main() program to run
 function main(){
 
-    if ( vargv.len() != 3) {
+    if ( vargv.len() != 4) {
         Usage();
         return;
     }
 
-    local in_squiluFreeze  = vargv[0];
-    local in_squiluScript  = vargv[1];
-    local out_squiluFreeze = vargv[2];
+    local in_squiluFreeze  = vargv[1];
+    local in_squiluScript  = vargv[2];
+    local out_squiluFreeze = vargv[3];
 
     if (!FileExists(in_squiluFreeze)) {
         printf("Input squiluFreeze program '%s' does not exist! Aborting.\n", in_squiluFreeze);
