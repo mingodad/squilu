@@ -298,14 +298,9 @@ static SQRESULT sq_sqlite3_stmt_stmt_ptr(HSQUIRRELVM v){
 static SQRESULT sq_sqlite3_stmt_finalize(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_sqlite3_stmt_INSTANCE();
-	if(sqlite3_finalize(self) == SQLITE_OK){
-	    sq_setinstanceup(v, 1, 0); //next calls will fail with "statement is closed"
-	}
-	else {
-	    sqlite3 *db = sqlite3_db_handle(self);
-	    return sq_throwerror(v, sqlite3_errmsg(db));
-	}
-	return 0;
+    sq_setinstanceup(v, 1, 0); //next calls will fail with "statement is closed"
+	sq_pushinteger(v, sqlite3_finalize(self));
+	return 1;
 }
 
 static SQRESULT sq_sqlite3_stmt_prepare(HSQUIRRELVM v){
