@@ -325,7 +325,7 @@ SELECT
     and p.id = ol.product_id
     GROUP BY product_id, code
     ORDER BY 3 desc
-]==], entity_id);
+]==], entity_id.tointeger());
 	}
 
 	static function sales_history_sql(history_type, query_limit, entity_id){

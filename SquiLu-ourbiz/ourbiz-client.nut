@@ -576,19 +576,20 @@ class AppServer
             periode="months")
     {
         local qs = format("&statistics=%d&periode_type=%s&periode_count=%d&sab=%s",
-                           entity_id, periode, periode_count, sab);
+                           entity_id.tointeger(), periode, periode_count, sab);
         get_list_data(data, "entities", qs, 0);
     }
 
     function entities_get_sales_history_list(data, ptype, plimit, entity_id)
     {
-        local myUrl = format("&history=%d&htype=%d&query_limit=%d", entity_id, ptype, plimit);
+        local myUrl = format("&history=%d&htype=%d&query_limit=%d", 
+		entity_id.tointeger(), ptype.tointeger(), plimit.tointeger());
         get_list_data(data, "entities", myUrl, 0, true);
     }
 
     function entity_past_products_list(data, entity_id)
     {
-        local myUrl = format("&past_products=%d", entity_id);
+        local myUrl = format("&past_products=%d", entity_id.tointeger());
         get_list_data(data, "entities", myUrl, 0, true);
     }
 
