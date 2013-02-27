@@ -129,11 +129,117 @@ CREATE_TAG(Flu_Combo_Box);
 CREATE_TAG(Flu_Combo_List);
 CREATE_TAG(Flu_Combo_Tree);
 
+static SQRESULT _fl_widget_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+{
+	Fl_Widget *self = ((Fl_Widget *)p);
+	if(self) Fl::delete_widget(self);
+    //printf("Releasing %p\n", self);
+	return 0;
+}
 
 static const SQChar FLTK_key[] = _SC("FLTK");
+static const SQChar FLTK_CB_key[] = _SC("FLTK_CB");
 static const SQChar FLTK_constructor_Mask[] = _SC("xiiii s|o");
 
+/* pre-defined references */
+#define SQ_NOREF       (-2)
+#define SQ_REFNIL      (-1)
+#define SQ_FREELIST_REF 0
+static const SQChar SQ_REF_ARRAY_key[] = _SC("_SQ_REF_ARRAY_");
+#define SQ_PUSH_REF_ARRAY_KEY(v) sq_pushstring(v, SQ_REF_ARRAY_key, SIZEOF_SQCHAR_STRING(SQ_REF_ARRAY_key));
+
+static SQInteger sq_createref (HSQUIRRELVM v, SQInteger idx) {
+    SQInteger ref = SQ_NOREF;
+    if(idx < 0) idx = sq_gettop(v) + idx + 1; //recalc to absolute value to be used later
+    if (sq_gettype(v, idx) == OT_NULL) {
+        return SQ_REFNIL;  /* `nil' has a unique fixed reference */
+    }
+    SQ_PUSH_REF_ARRAY_KEY(v);
+    if(sq_getonregistrytable(v) != SQ_OK){
+        sq_newarray(v,1);
+        sq_pushinteger(v, 0);
+        sq_arrayset(v, -2, 0);
+        SQ_PUSH_REF_ARRAY_KEY(v);
+        sq_push(v, -2);
+        sq_setonregistrytable(v);
+    }
+    sq_arrayget(v, -1, SQ_FREELIST_REF);  /* get first free element */
+    sq_getinteger(v, -1, &ref); /* ref = SQ_REF_ARRAY_key[SQ_FREELIST_REF] */
+    sq_poptop(v);  /* remove it from stack */
+    if (ref != 0) {  /* any free element? */
+        sq_arrayget(v, -1, ref);  /* remove it from list */
+        sq_arrayset(v, -2, SQ_FREELIST_REF);  /* (SQ_REF_ARRAY_key[SQ_FREELIST_REF] = SQ_REF_ARRAY_key[ref]) */
+        sq_push(v, idx);
+        sq_arrayset(v, -2, ref);
+    }
+    else {  /* no free elements */
+        ref = sq_getsize(v, -1); /* create new reference */
+        sq_push(v, idx);
+        sq_arrayappend(v, -2);
+    }
+    sq_poptop(v);
+    return ref;
+}
+
+static SQRESULT sq_pushref (HSQUIRRELVM v, SQInteger ref) {
+    if (ref <= 0) sq_pushnull(v);
+    else
+    {
+        SQ_PUSH_REF_ARRAY_KEY(v);
+        if(sq_getonregistrytable(v) != SQ_OK) return SQ_ERROR;
+        if(sq_arrayget(v, -1, ref) != SQ_OK){
+            sq_poptop(v);
+            return SQ_ERROR;
+        }
+        sq_remove(v, -2);
+    }
+    return SQ_OK;
+}
+
+static SQRESULT sq_destroyref (HSQUIRRELVM v, SQInteger ref) {
+    if (ref >= 0) {
+        SQ_PUSH_REF_ARRAY_KEY(v);
+        if(sq_getonregistrytable(v) != SQ_OK) return SQ_ERROR;
+        sq_arrayget(v, -1, SQ_FREELIST_REF);
+        if(sq_arrayset(v, -2, ref) != SQ_OK) return SQ_ERROR; /* SQ_REF_ARRAY_key[ref] = t[FREELIST_REF] */
+        sq_pushinteger(v, ref);
+        sq_arrayset(v, -2, SQ_FREELIST_REF); /* SQ_REF_ARRAY_key[FREELIST_REF] = ref */
+        sq_poptop(v);
+    }
+    return SQ_OK;
+}
+
+static SQInteger fltk_create_callback_ref(HSQUIRRELVM v, SQInteger idx_closure){
+    sq_newarray(v, 2);
+    sq_push(v, idx_closure);
+    sq_arrayset(v, -2, 0);
+    if(sq_gettop(v) > idx_closure+1){
+        sq_push(v, idx_closure+1);
+        sq_arrayset(v, -2, 1);
+    }
+    SQInteger ref = sq_createref(v, -1);
+    sq_poptop(v);
+    return ref;
+}
+
+static SQRESULT fltk_destroy_callback_ref(HSQUIRRELVM v, SQInteger ref, SQInteger idx_closure){
+    SQInteger rc = SQ_ERROR, top = sq_gettop(v);
+    if(sq_pushref(v, ref) == SQ_OK){
+        sq_arrayget(v, top+1, 0); //closure
+        sq_push(v, idx_closure);
+        if(sq_cmp(v) == 0){
+            //we proceed if closures are equal
+            //todo compare userdata
+            sq_destroyref(v, ref);
+            rc = SQ_OK;
+        }
+        sq_settop(v, top);
+    }
+    return rc;
+}
+
 static SQRESULT fltk_register_object_and_instance(HSQUIRRELVM v, int instance_idx, void *cptr){
+//printf("%d fltk_register_object_and_instance %p\n", __LINE__, cptr);
     sq_pushstring(v, FLTK_key, -1);
     if(sq_getonregistrytable(v) < 0){
         sq_newtable(v);
@@ -150,6 +256,7 @@ static SQRESULT fltk_register_object_and_instance(HSQUIRRELVM v, int instance_id
 }
 
 static SQRESULT fltk_deregister_instance(HSQUIRRELVM v, void *cptr){
+//printf("%d fltk_deregister_instance %p\n", __LINE__, cptr);
     sq_pushstring(v, FLTK_key, -1);
     if(sq_getonregistrytable(v) >= 0){
 	    sq_pushuserpointer(v, cptr);
@@ -161,10 +268,12 @@ static SQRESULT fltk_deregister_instance(HSQUIRRELVM v, void *cptr){
 }
 
 static SQRESULT fltk_get_registered_instance(HSQUIRRELVM v, void *cptr){
+//printf("%d fltk_get_registered_instance %p\n", __LINE__, cptr);
     sq_pushstring(v, FLTK_key, -1);
     if(sq_getonregistrytable(v) >= 0){
 	    sq_pushuserpointer(v, cptr);
 	    if(sq_rawget(v, -2) >= 0){
+//printf("%d fltk_get_registered_instance %p\n", __LINE__, cptr);
 		    sq_remove(v, -2);
 		    return SQ_OK;
 	    }
@@ -534,61 +643,41 @@ static SQRESULT sq_call_fl_virtual_va(void *self, const SQChar *func_name, const
     return rc;
 }
 
-typedef struct {
-    HSQOBJECT callback;
-    HSQOBJECT sender;
-    HSQOBJECT udata;
-} st_mycb;
-
-//static st_mycb static_cb;
-
-static void free_st_mycb(HSQUIRRELVM v, st_mycb *cb){
-    sq_release(v, &cb->callback);
-    sq_release(v, &cb->udata);
-    sq_free((void*)cb, sizeof(st_mycb));
-}
-
 static void At_Widget_Destroy(Fl_Widget *widget){
 //printf("%d %p At_Widget_Destroy\n", __LINE__, widget);
     Fl_Callback_p cb = widget->callback();
-    if(!cb || cb == Fl_Widget::default_callback) {
-        //no need to check
-        return;
-    }
+    if((cb == Fl_Widget::default_callback) || (cb == (Fl_Callback_p)Fl_Window::default_callback)) cb = 0;
     HSQUIRRELVM v = (HSQUIRRELVM) Fl::user_data;
     SQInteger savedTop = sq_gettop(v);
-//printf("%d %p %d At_Widget_Destroy\n", __LINE__, widget, sq_gettop(v));
-    int rc = fltk_deregister_instance(v, widget);
-//printf("%d %p %d At_Widget_Destroy\n", __LINE__, widget, sq_gettop(v));
-//printf("%d %p %d %s At_Widget_Destroy\n", __LINE__, widget, rc, sq_getlasterror_str(v));
-    //if(sq_deleteslot(v, -2, SQTrue) == SQ_OK){
-    if(rc == SQ_OK){
-//printf("%d %p At_Widget_Destroy\n", __LINE__, widget);
-        if(sq_gettype(v, -1) != OT_NULL){
-            //////////////////////////////nota all will have user pointer !!!!!!!!
-            SQUserPointer ptr;
-            sq_getuserpointer(v, -1, &ptr);
-            //free_st_mycb(v, (st_mycb*)ptr);
-        }
-    }
+    fltk_deregister_instance(v, widget);
+    if(cb) sq_destroyref(v, (SQInteger)cb);
     sq_settop(v, savedTop);
 }
 
 static void fltk_calback_hook(Fl_Widget *sender, void* udata){
 //printf("Sender %p, data %p\n", sender, udata);
     if(!udata) return;
-    char buf[128];
+    HSQOBJECT error_obj;
     HSQUIRRELVM v = (HSQUIRRELVM) Fl::user_data;
     SQInteger savedTop = sq_gettop(v);
-    st_mycb *mycb = (st_mycb *)udata;
-    sq_pushobject(v, mycb->callback);
-    sq_pushroottable(v); //’this’ (function environment object)
-    if(fltk_get_registered_instance(v, sender) != SQ_OK) sq_pushnull(v);
-    sq_pushobject(v, mycb->udata);
-    int rc = sq_call(v, 3, SQFalse, SQTrue);
-    if(rc != SQ_OK) snprintf(buf, sizeof(buf), "%s", sq_getlasterror_str(v));
-    sq_settop(v, savedTop);
-    if(rc != SQ_OK) fl_alert("%s", buf);
+    if(sq_pushref(v, (SQInteger)udata) == SQ_OK){
+        sq_arrayget(v, -1, 0);
+        sq_pushroottable(v);
+        if(fltk_get_registered_instance(v, sender) != SQ_OK) sq_pushnull(v);
+        sq_arrayget(v, savedTop+1, 1); //userdata
+        int rc = sq_call(v, 3, SQFalse, SQTrue);
+        if(rc != SQ_OK) {
+            sq_getlasterror(v);
+            sq_resetobject(&error_obj);
+            sq_getstackobj(v, -1, &error_obj);
+            sq_addref(v, &error_obj);
+        }
+        sq_settop(v, savedTop);
+        if(rc != SQ_OK) {
+            fl_alert("%s", sq_objtostring(&error_obj));
+            sq_release(v, &error_obj);
+        }
+    }
 }
 
 static SQRESULT _Fl_Widget_callback(HSQUIRRELVM v)
@@ -597,43 +686,29 @@ static SQRESULT _Fl_Widget_callback(HSQUIRRELVM v)
     SETUP_FL_WIDGET(v);
     SQInteger argc = sq_gettop(v);
     Fl_Callback_p cb = self->callback();
-    if(cb == Fl_Widget::default_callback){
-        cb = 0;
-    }
+    if((cb == Fl_Widget::default_callback) || (cb == (Fl_Callback_p)Fl_Window::default_callback)) cb = 0;
     if(argc == 1){
-        if(cb) sq_pushuserpointer(v, (void*)cb);
+        if(cb) {
+            SQInteger ref = (SQInteger)cb;
+            if(sq_pushref(v, ref) == SQ_OK){
+                sq_arrayget(v,-1, 0);
+            }
+            else sq_pushuserpointer(v, (SQUserPointer)cb);
+        }
         else sq_pushnull(v);
         return 1;
     }
     if(argc >= 2){
         int ptypecb = sq_gettype(v, 2);
         if(cb || ptypecb == OT_NULL) { //not allways the cb was set by us
-            At_Widget_Destroy(self);
+            sq_destroyref(v, (SQInteger)cb);
             if(ptypecb == OT_NULL) {
-                self->callback((Fl_Callback*)NULL, (void*)NULL);
+                self->callback((Fl_Callback*)NULL);
                 return 0;
             }
         }
-        st_mycb *mycb = (st_mycb *)sq_malloc(sizeof(st_mycb));
-        sq_resetobject(&mycb->callback); //initializes the object handle (sets to NULL)
-        sq_resetobject(&mycb->sender);
-        sq_resetobject(&mycb->udata);
-        sq_getstackobj(v, 2, &mycb->callback);//fetches an handle of the function you passed
-        if(sq_gettop(v) > 2) { //we have user data too
-            sq_getstackobj(v, 3, &mycb->udata);
-            sq_addref(v,&mycb->udata);
-        }
-        if(sq_type(mycb->callback) == OT_CLOSURE || sq_type(mycb->callback) == OT_NATIVECLOSURE){
-            sq_addref(v,&mycb->callback);
-            //sq_getstackobj(v, 1, &mycb->sender);
-            self->callback(&fltk_calback_hook, mycb);
-            //registry for free when widget is destroyed
-            sq_pushregistrytable(v);
-            sq_pushuserpointer(v, self);
-            sq_pushuserpointer(v, mycb);
-            sq_rawset(v, -2);
-//printf("Button %p\n", self);
-        }
+        SQInteger ref = fltk_create_callback_ref(v, 2);
+        self->callback(&fltk_calback_hook, (void*)ref);
     }
 	return 0;
 }
@@ -644,12 +719,15 @@ static SQRESULT _Fl_Widget_do_callback(HSQUIRRELVM v)
     SETUP_FL_WIDGET(v);
     if(_top_ > 1){
         SETUP_FL_WIDGET_AT(v, 2, wdg);
-/*No userdata right now
+/*
         if(_top_ > 2){
-            SQ_GET_INTEGER(v, 3, udata);
-            self->do_callback(wdg, udata);
+            void *wud = self->user_data();
+            if(wud){
+                SQ_GET_INTEGER(v, 3, udata);
+                self->do_callback(wdg, udata);
+                return 0;
+            }
         }
-        else
 */
         self->do_callback(wdg);
     }
@@ -3141,14 +3219,6 @@ static SQRESULT _MyFl_Window_on_first_time_show(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQRESULT _fl_window_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
-{
-	MyFl_Window *self = ((MyFl_Window *)p);
-	Fl::delete_widget(self);
-//printf("Releasing %p\n", self);
-	return 0;
-}
-
 static SQRESULT _MyFl_Window_set_non_modal(HSQUIRRELVM v)
 {
     SETUP_FL_WINDOW(v);
@@ -3169,7 +3239,7 @@ static SQRESULT _MyFl_Window_shown(HSQUIRRELVM v)
 FL_WINDOW_SET_STR(copy_label);
 FL_WINDOW_GETSET_STR(label);
 
-FLTK_CONSTRUCTOR_RELEASE_WINDOW(MyFl_Window, AS_IS, _fl_window_releasehook);
+FLTK_CONSTRUCTOR_RELEASE_WINDOW(MyFl_Window, AS_IS, _fl_widget_releasehook);
 CHEAP_RTTI_FOR(Fl_Window);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_MyFl_Window_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_window_obj_funcs[]={
@@ -3187,15 +3257,7 @@ static SQRegFunction fl_window_obj_funcs[]={
 };
 #undef _DECL_FUNC
 
-static SQRESULT _fl_double_window_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
-{
-	Fl_Double_Window *self = ((Fl_Double_Window *)p);
-	Fl::delete_widget(self);
-//printf("Releasing %p\n", self);
-	return 0;
-}
-
-FLTK_CONSTRUCTOR_RELEASE_WINDOW(Fl_Double_Window, AS_IS, _fl_double_window_releasehook);
+FLTK_CONSTRUCTOR_RELEASE_WINDOW(Fl_Double_Window, AS_IS, _fl_widget_releasehook);
 CHEAP_RTTI_FOR(Fl_Double_Window);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Double_Window_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_double_window_obj_funcs[]={
@@ -3527,45 +3589,37 @@ static SQRESULT _fl_delete_widget(HSQUIRRELVM v)
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_INSTANCE_VAR(v, 2, Fl_Widget, widget, FLTK_TAG(Fl_Widget));
 	Fl::delete_widget(widget);
+	sq_setreleasehook(v, 2, 0); //do not double free
 	return 0;
 }
 
 static void fltk_cb_hook(void* udata, bool freeAfter){
-    char buf[128];
+    HSQOBJECT error_obj;
     HSQUIRRELVM v = (HSQUIRRELVM) Fl::user_data;
     SQInteger savedTop = sq_gettop(v);
-    st_mycb *mycb = (st_mycb *)udata;
-    sq_pushobject(v, mycb->callback);
-    sq_pushroottable(v); //’this’ (function environment object)
-    sq_pushobject(v, mycb->udata);
-    int rc = sq_call(v, 2, SQFalse, SQTrue);
-    if(rc != SQ_OK) snprintf(buf, sizeof(buf), "%s", sq_getlasterror_str(v));
-    if(freeAfter){
-        //cleanup
-        sq_release(v, &mycb->callback);
-        sq_release(v, &mycb->udata);
-        sq_free(mycb, sizeof(st_mycb));
+    SQInteger rc = SQ_OK, ref = (SQInteger)udata;
+    if(sq_pushref(v, ref) == SQ_OK){ //array is on top
+        sq_arrayget(v, -1, 0); //the closure
+        sq_pushroottable(v); //’this’ (function environment object)
+        sq_arrayget(v, -3, 1); //user data
+        rc = sq_call(v, 2, SQFalse, SQTrue);
+        if(rc != SQ_OK) {
+            sq_getlasterror(v);
+            sq_resetobject(&error_obj);
+            sq_getstackobj(v, -1, &error_obj);
+            sq_addref(v, &error_obj);
+        }
+        if(freeAfter){
+            //cleanup
+            sq_destroyref(v, ref);
+        }
     }
     //restore stack
     sq_settop(v, savedTop);
-    if(rc != SQ_OK) fl_alert("%s", buf);
-}
-
-static SQRESULT fltk_add_cb(HSQUIRRELVM v, int idx, st_mycb **cb)
-{
-    int ptype = sq_gettype(v, idx);
-    if(ptype == OT_CLOSURE || ptype == OT_NATIVECLOSURE){
-        st_mycb *mycb = (st_mycb *)sq_malloc(sizeof(st_mycb));
-        memset(mycb, 0, sizeof(mycb));
-        sq_getstackobj(v, idx, &mycb->callback);//fetches an handle of the function you passed
-        sq_addref(v, &mycb->callback);
-        if(sq_gettop(v) > idx) { //we have user data too
-            sq_getstackobj(v, idx+1, &mycb->udata);
-            sq_addref(v,&mycb->udata);
-        }
-        *cb = mycb;
+    if(rc != SQ_OK) {
+        fl_alert("%s", sq_objtostring(&error_obj));
+        sq_release(v, &error_obj);
     }
-    return 0;
 }
 
 static void fltk_add_timeout_hook(void* udata){
@@ -3580,20 +3634,49 @@ static SQRESULT _fl_add_timeout(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_FLOAT(v, 2, delay);
-    st_mycb *mycb = 0;
-    fltk_add_cb(v, 3, &mycb);
-    if(mycb)  Fl::add_timeout(delay, &fltk_add_timeout_hook, mycb);
+    SQInteger ref = fltk_create_callback_ref(v, 3);
+    Fl::add_timeout(delay, &fltk_add_timeout_hook, (void*)ref);
+    sq_pushinteger(v, ref);
+    return 1;
+}
+
+/*
+static SQRESULT _fl_repeat_timeout(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_FLOAT(v, 2, delay);
+    SQInteger ref = fltk_create_callback_ref(v, 3);
+    Fl::repeat_timeout(delay, &fltk_add_timeout_hook, (void*)ref);
+    sq_pushinteger(v, ref);
+    return 1;
+}
+*/
+
+static SQRESULT _fl_remove_timeout(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_INTEGER(v, 2, ref);
+    if(fltk_destroy_callback_ref(v, ref, 3) == SQ_OK)
+        Fl::remove_timeout(&fltk_add_timeout_hook, (void*)ref);
     return 0;
 }
 
 static SQRESULT _fl_add_idle(HSQUIRRELVM v)
 {
-    st_mycb *mycb = 0;
-    fltk_add_cb(v, 2, &mycb);
-    if(mycb)  Fl::add_idle(&fltk_add_idle_hook, mycb);
-    return 0;
+    SQInteger ref = fltk_create_callback_ref(v, 2);
+    Fl::add_idle(&fltk_add_idle_hook, (void*)ref);
+    sq_pushinteger(v, ref);
+    return 1;
 }
 
+static SQRESULT _fl_remove_idle(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_INTEGER(v, 2, ref);
+    if(fltk_destroy_callback_ref(v, ref, 3) == SQ_OK)
+        Fl::remove_idle(&fltk_add_idle_hook, (void*)ref);
+    return 0;
+}
 
 static int flfk_focus_changing_handler_hook(Fl_Widget *to, Fl_Widget *from){
     HSQUIRRELVM v = (HSQUIRRELVM) Fl::user_data;
@@ -3723,7 +3806,10 @@ static SQRegFunction fl_obj_funcs[]={
 	_DECL_FUNC(do_widget_deletion,1,_SC("y"),SQTrue),
 	_DECL_FUNC(delete_widget,2,_SC("yx"),SQTrue),
 	_DECL_FUNC(add_timeout,-3,_SC("ync."),SQTrue),
+	//_DECL_FUNC(repeat_timeout,-3,_SC("ync."),SQTrue),
+	_DECL_FUNC(remove_timeout,-3,_SC("yic."),SQTrue),
 	_DECL_FUNC(add_idle,-2,_SC("yc."),SQTrue),
+	_DECL_FUNC(remove_idle,-3,_SC("yic."),SQTrue),
 	_DECL_FUNC(add_focus_changing_handler,2,_SC("yc"),SQTrue),
 	{0,0}
 };
@@ -4265,6 +4351,7 @@ static const struct {
 	INT_CONST(FL_SHADOW_LABEL)
 	INT_CONST(FL_SHIFT)
 	INT_CONST(FL_SUBMENU)
+	INT_CONST(FL_THIN_UP_BOX)
 	INT_CONST(FL_TIMES)
 	INT_CONST(FL_TIMES_BOLD)
 	INT_CONST(FL_TIMES_BOLD_ITALIC)
