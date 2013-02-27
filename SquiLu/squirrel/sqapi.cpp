@@ -443,6 +443,30 @@ SQRESULT sq_arrayinsert(HSQUIRRELVM v,SQInteger idx,SQInteger destpos)
 	return ret;
 }
 
+SQRESULT sq_arrayset(HSQUIRRELVM v,SQInteger idx,SQInteger destpos)
+{
+	sq_aux_paramscheck(v, 1);
+	SQObjectPtr *arr;
+	_GETSAFE_OBJ(v, idx, OT_ARRAY,arr);
+	SQRESULT ret = _array(*arr)->Set(destpos, v->GetUp(-1)) ? SQ_OK : sq_throwerror(v,_SC("index out of range"));
+	v->Pop();
+	return ret;
+}
+
+SQRESULT sq_arrayget(HSQUIRRELVM v,SQInteger idx,SQInteger pos)
+{
+	sq_aux_paramscheck(v, 1);
+	SQObjectPtr *arr;
+	_GETSAFE_OBJ(v, idx, OT_ARRAY,arr);
+	v->PushNull();
+	if(!_array(*arr)->Get(pos, v->GetUp(-1)))
+	{
+        v->Pop();
+        return sq_throwerror(v,_SC("index out of range"));
+	}
+	return SQ_OK;
+}
+
 void sq_newclosure(HSQUIRRELVM v,SQFUNCTION func,SQUnsignedInteger nfreevars)
 {
 	SQNativeClosure *nc = SQNativeClosure::Create(_ss(v), func,nfreevars);
@@ -867,6 +891,12 @@ SQRESULT sq_getuserpointer(HSQUIRRELVM v, SQInteger idx, SQUserPointer *p)
 	_GETSAFE_OBJ(v, idx, OT_USERPOINTER,o);
 	(*p) = _userpointer(*o);
 	return SQ_OK;
+}
+
+SQUserPointer sq_get_as_userpointer(HSQUIRRELVM v,SQInteger idx)
+{
+    SQObjectPtr &o = stack_get(v,idx);
+    return _userpointer(o);
 }
 
 SQRESULT sq_setinstanceup(HSQUIRRELVM v, SQInteger idx, SQUserPointer p)

@@ -58,6 +58,13 @@ static SQRESULT base_resurectureachable(HSQUIRRELVM v)
 	sq_resurrectunreachable(v);
 	return 1;
 }
+static SQRESULT base_getrefcount(HSQUIRRELVM v)
+{
+    SQObjectPtr &o=stack_get(v,2);
+    if(!ISREFCOUNTED(type(o))) sq_pushinteger(v,0);
+    else sq_pushinteger(v, o._unVal.pRefCounted->_uiRef - 1);
+	return 1;
+}
 #endif
 
 static SQRESULT base_getroottable(HSQUIRRELVM v)
@@ -386,8 +393,9 @@ static SQRegFunction base_funcs[]={
 #ifndef NO_GARBAGE_COLLECTOR
 	{_SC("collectgarbage"),base_collectgarbage,0, NULL},
 	{_SC("resurrectunreachable"),base_resurectureachable,0, NULL},
-	{_SC("str_from_chars"),base_str_from_chars,-2, _SC(".i")},
+	{_SC("getrefcount"),base_getrefcount,2, _SC("..")},
 #endif
+	{_SC("str_from_chars"),base_str_from_chars,-2, _SC(".i")},
 	{0,0}
 };
 
