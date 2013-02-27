@@ -341,14 +341,16 @@ class Base_Window extends Fl_Window {
 		if(_sab == null) _sab = "A";
 	}
 	
-	function on_close_delete(sender, udata)
-	{
-		foreach(k, win in sender->_child_windows)
-		{
-			if(win) win->on_close_delete(win, udata);
+	function on_close_delete_cb(sender, udata){
+		if(sender){
+			if(!sender.as_window()) throw(_tr("Only windows can use this callback !"));
+			foreach(k, win in sender->_child_windows)
+			{
+				if(win) win->on_close_delete_cb(win, udata);
+			}
+			sender->hide();
+			Fl.delete_widget(sender);
 		}
-		sender->hide();
-		Fl.delete_widget(sender);
 	}
 	
 	function show_help_window(sender=null, udata=null){
@@ -378,7 +380,7 @@ class Base_Window extends Fl_Window {
 			tbl_map = {};
 			_db_map[tbl] <- tbl_map;
 		}
-		tbl_map[fldname] <- fld;
+		tbl_map[fldname] <- fld.weakref();
 	}
 
 	function get_input_fields(dbname){ return _db_map.get(dbname, null);}
@@ -386,7 +388,7 @@ class Base_Window extends Fl_Window {
 	function setup_grid(grid, pcall_this){
 		grid->callback_when(FLVEcb_ROW_CHANGED | FLVEcb_CLICKED | FLVEcb_ROW_HEADER_CLICKED);
 		grid->callback(grid_cb);
-		grid->_call_this = pcall_this;
+		grid->_call_this = pcall_this.weakref();
 	}	
 	function grid_cb(sender, udata){}
 
@@ -394,16 +396,17 @@ class Base_Window extends Fl_Window {
 		local win = _child_windows.get(winName, false);
 		if(!win){
 			win = new WindowClass();
-			win.label(winName);
+			//win.label(winName);
 			_child_windows[winName] <- win.weakref();
 		}
 		return win;
 	}
 
 	function showChildWindow(winName, WindowClass, delete_on_close=false){
-		local win = getChildWindow(winName, WindowClass);
+		local isAlone = Fl.event_ctrl();
+		local win = isAlone ? WindowClass() : getChildWindow(winName, WindowClass);
 		win->show();
-		if(delete_on_close) win->callback(on_close_delete);
+		if(delete_on_close || isAlone) win->callback(on_close_delete_cb);
 		return win;
 	}
 
@@ -527,12 +530,6 @@ class Base_Window extends Fl_Window {
 		local pos = 0;
 		if(!node) node = tree->get_root();
 		insert_group_tree_childs(tree, node, parent, pos, data.size(), data);
-	}
-	function delete_on_window_close_cb (sender, udata){
-		if(sender){
-			if(!sender.as_window()) throw(_tr("Only windows can use this callback !"));
-			Fl.delete_widget(sender);
-		}
 	}
 }
 
@@ -1134,11 +1131,11 @@ class  List_Edit_Base_Window extends Edit_Base_Window {
 		local rc = base.on_btnDbAction(sender, udata);
 		if(!rc) return rc;
 		local saved_row = grid->row();
-		fill_grid();
+		do_search();
 		if(grid->rows() > saved_row) grid->row(saved_row);
 		else grid->row(grid->rows()-1);
 	}
-	function fill_grid(){}
+	function do_search(){}
 }
 
 
@@ -1241,7 +1238,7 @@ class MyListSearchWindow extends ListSearchWindow {
 		btnSelect->activate();
 		search_str->value(search_for_str);
 		show();
-		fill_grid();
+		do_search();
 	}
 
 	function row_selected(sender, ev){
@@ -1268,7 +1265,11 @@ class MyListSearchWindow extends ListSearchWindow {
 
 	function get_search_data(data, search_otions){}
 	function get_search_options(){ return null;}
-	function fill_grid(search_otions = null){
+	function do_first_search(){
+		if(grid->rows() > 0) return;
+		do_search();
+	}
+	function do_search(search_otions = null){
 		local cursor_wait = fl_cursor_wait();
 		if(!search_otions) search_otions = get_search_options();
 		grid->clear_data_rows();
@@ -1281,7 +1282,7 @@ class MyListSearchWindow extends ListSearchWindow {
 	}
 	function cb_btnSearch(sender, udata){
 		this = sender.window();
-		fill_grid();
+		do_search();
 		delayed_focus(grid);
 	}
 
@@ -1513,10 +1514,10 @@ class OurImages extends ImagesListEditWindow {
 		];
 		grid->set_cols(cols_info);
 		_search_options = OurBizSearchOptions();
-		fill_grid();
+		do_search();
 		btnImage.callback(on_image_file_browser);
 	}
-	function fill_grid(){
+	function do_search(){
 		_search_options.query_limit = query_limit->value();
 		_search_options.search_str = db_images_name->value();
 		local cursor_wait = fl_cursor_wait();
@@ -1571,9 +1572,9 @@ class OurAppConfig extends AppConfigEditWindow {
 			"value|Value|-1|L|@",
 		];
 		grid->set_cols(cols_info);
-		fill_grid();
+		do_search();
 	}
-	function fill_grid(){
+	function do_search(){
 		local cursor_wait = fl_cursor_wait();
 		grid->clear_data_rows();
 		appServer.config_get_list(grid->_data);
@@ -1595,9 +1596,9 @@ class OurSalesTax extends SalesTaxRatesEditWindow {
 			"is_active|Active|5|C|B",
 		];
 		grid->set_cols(cols_info);
-		fill_grid();
+		do_search();
 	}
-	function fill_grid(){
+	function do_search(){
 		local cursor_wait = fl_cursor_wait();
 		grid->clear_data_rows();
 		appServer.sales_tax_rates_get_list(grid->_data);
@@ -1618,9 +1619,9 @@ class OurWarrantyTypes extends WarrantyTypesEditWindow {
 			"is_active|Active|5|C|B",
 		];
 		grid->set_cols(cols_info);
-		fill_grid();
+		do_search();
 	}
-	function fill_grid(){
+	function do_search(){
 		local cursor_wait = fl_cursor_wait();
 		grid->clear_data_rows();
 		appServer.warranty_types_get_list(grid->_data);
@@ -1641,9 +1642,9 @@ class OurMeasureUnits extends MeasureUnitsEditWindow {
 			"is_active|Active|5|C|B",
 		];
 		grid->set_cols(cols_info);
-		fill_grid();
+		do_search();
 	}
-	function fill_grid(){
+	function do_search(){
 		local cursor_wait = fl_cursor_wait();
 		grid->clear_data_rows();
 		appServer.measure_units_get_list(grid->_data);
@@ -1670,10 +1671,10 @@ class OurPaymentTypes extends PaymentTypesEditWindow {
 		payment_periodes->add(_tr("d days"));
 		payment_periodes->add(_tr("dm day of month"));
 		payment_periodes->value(0);
-		fill_grid();
+		do_search();
 		btnGenerateTerms.callback(on_generate_terms_cb);
 	}
-	function fill_grid(){
+	function do_search(){
 		local cursor_wait = fl_cursor_wait();
 		grid->clear_data_rows();
 		appServer.payment_types_get_list(grid->_data);
@@ -1738,9 +1739,9 @@ class OurOrderTypes extends OrderTypesEditWindow {
 			"is_active|Active|6|C|B",
 		];
 		grid->set_cols(cols_info);
-		fill_grid();
+		do_search();
 	}
-	function fill_grid(){
+	function do_search(){
 		local cursor_wait = fl_cursor_wait();
 		grid->clear_data_rows();
 		appServer.order_types_get_list(grid->_data);
@@ -1913,9 +1914,8 @@ class EntitiesListSearch extends MyListSearchWindow {
 	_search_by_product = null;
 	_search_by_id = null;
 	_search_by_active = null;
-	_sales_orders_list = null;
 
-	constructor(doInitialSearch=true) {
+	constructor(doInitialSearch=false) {
 		base.constructor(doInitialSearch);
 		label(_tr("Entities List Search"));
 		local cols_info = [
@@ -1935,7 +1935,7 @@ class EntitiesListSearch extends MyListSearchWindow {
 		_search_by_active = create_search_by2("Active");
 		_search_by_name->setonly();
 		_search_by_active->value(1);
-		if(doInitialSearch) delayed_method_call(this, this.fill_grid, null);
+		if(doInitialSearch) delayed_method_call(this, this.do_search, null);
 	}
 	function fill_search_options(){
 		pack_search_options.add(Fl_Radio_Button());
@@ -1971,24 +1971,23 @@ class EntitiesListSearch extends MyListSearchWindow {
 		if(row < 0) return;
 		switch(_popup->value()){
 			case 0:{
-				_sales_orders_list = OrdersListSearch(false);
-				//_sales_orders_list.callback(delete_on_window_close_cb);
+				local sales_orders_list = showChildWindow("OrdersListSearch", OrdersListSearch, true);
 				local so = OurBizSearchOptions();
 				so.entity_id = grid->get_row_id(row);
 				so.sales = _search_options.sales;
 				so.buys = _search_options.buys;
-				_sales_orders_list->fill_grid(so);
-				_sales_orders_list->show();
+				sales_orders_list->do_search(so);
+				sales_orders_list->show();
 			}
 			break;
 			case 1:{
-				local products_list = ProductsListSearch(false);
-				//products_list.callback(delete_on_window_close_cb);
+				local products_list = showChildWindow("ProductsListSearch", ProductsListSearch, true);
+				products_list.callback(on_close_delete_cb);
 				local so = OurBizSearchOptions();
 				so.entity_id = grid->get_row_id(row);
 				so.sales = _search_options.sales;
 				so.buys = _search_options.buys;
-				products_list->fill_grid(so);
+				products_list->do_search(so);
 				products_list->show();
 			}
 			break;
@@ -1997,7 +1996,7 @@ class EntitiesListSearch extends MyListSearchWindow {
 }
 
 class EntitiesSalesListSearch extends EntitiesListSearch {
-	constructor(doInitialSearch=true) {
+	constructor(doInitialSearch=false) {
 		_sab = "S";
 		base.constructor(doInitialSearch);
 		label(_tr("Entities/Sales List Search"));
@@ -2006,7 +2005,7 @@ class EntitiesSalesListSearch extends EntitiesListSearch {
 }
 
 class EntitiesBuysListSearch extends EntitiesListSearch {
-	constructor(doInitialSearch=true) {
+	constructor(doInitialSearch=false) {
 		_sab = "B";
 		base.constructor(doInitialSearch);
 		label(_tr("Entities/Buys List Search"));
@@ -2225,7 +2224,7 @@ class ProductsListSearch extends MyListSearchWindow {
 	_image_window = null;
 	_fetching_image = null; //flag to prevent stack overflow due to multiple background calls
 
-	constructor(doInitialSearch=true) {
+	constructor(doInitialSearch=false) {
 		_last_image_id = 0;
 		base.constructor(doInitialSearch);
 		_search_options = OurBizSearchOptions();
@@ -2252,7 +2251,7 @@ class ProductsListSearch extends MyListSearchWindow {
 		_search_by_active = create_search_by2("Active");
 		_search_by_description->setonly();
 		_search_by_active->value(1);
-		if(doInitialSearch) delayed_method_call(this, this.fill_grid, null);
+		if(doInitialSearch) delayed_method_call(this, this.do_search, null);
 	}
 
 	function fill_group_filter(udata)
@@ -2314,7 +2313,7 @@ class ProductsListSearch extends MyListSearchWindow {
 }
 
 class ProductsSalesListSearch extends ProductsListSearch {
-	constructor(doInitialSearch=true) {
+	constructor(doInitialSearch=false) {
 		_sab = "S";
 		base.constructor(doInitialSearch);
 		label(_tr("Products/Sales List Search"));
@@ -2323,7 +2322,7 @@ class ProductsSalesListSearch extends ProductsListSearch {
 }
 
 class ProductsBuysListSearch extends ProductsListSearch {
-	constructor(doInitialSearch=true) {
+	constructor(doInitialSearch=false) {
 		_sab = "B";
 		base.constructor(doInitialSearch);
 		label(_tr("Products/Buys List Search"));
@@ -2717,7 +2716,7 @@ class OrdersListSearch extends MyListSearchWindow {
 	_search_by_total = null;
 	_search_wp = null;
 
-	constructor(doInitialSearch=true) {
+	constructor(doInitialSearch=false) {
 		base.constructor(doInitialSearch);
 		label(_tr("Orders List Search"));
 		local cols_info = [
@@ -2738,7 +2737,7 @@ class OrdersListSearch extends MyListSearchWindow {
 		_search_by_total = create_search_by("Total");
 		_search_wp = create_search_by2("WP");
 		_search_by_entities->setonly();
-		if(doInitialSearch) delayed_method_call(this, this.fill_grid, null);
+		if(doInitialSearch) delayed_method_call(this, this.do_search, null);
 	}
 
 	function get_data_group_filter(data)
@@ -2806,7 +2805,7 @@ class OrdersListSearch extends MyListSearchWindow {
 }
 
 class OrdersSalesListSearch extends OrdersListSearch {
-	constructor(doInitialSearch=true) {
+	constructor(doInitialSearch=false) {
 		_sab = "S";
 		base.constructor(doInitialSearch);
 		label(_tr("Orders/Sales List Search"));
@@ -2818,7 +2817,7 @@ class OrdersSalesListSearch extends OrdersListSearch {
 }
 
 class OrdersBuysListSearch extends OrdersListSearch {
-	constructor(doInitialSearch=true) {
+	constructor(doInitialSearch=false) {
 		_sab = "B";
 		base.constructor(doInitialSearch);
 		label(_tr("Orders/Buys List Search"));
@@ -2851,7 +2850,7 @@ class MyPaymentsBuysWindow extends MyPaymentsWindow {
 
 class PaymentsListSearch extends MyListSearchWindow {
 
-	constructor(doInitialSearch=true) {
+	constructor(doInitialSearch=false) {
 		base.constructor(doInitialSearch);
 		label(_tr("Payments List Search"));
 	}
@@ -2859,7 +2858,7 @@ class PaymentsListSearch extends MyListSearchWindow {
 }
 
 class PaymentsSalesListSearch extends PaymentsListSearch {
-	constructor(doInitialSearch=true) {
+	constructor(doInitialSearch=false) {
 		_sab = "S";
 		base.constructor(doInitialSearch);
 		label(_tr("Payments/Sales List Search"));
@@ -2868,7 +2867,7 @@ class PaymentsSalesListSearch extends PaymentsListSearch {
 }
 
 class PaymentsBuysListSearch extends PaymentsListSearch {
-	constructor(doInitialSearch=true) {
+	constructor(doInitialSearch=false) {
 		_sab = "B";
 		base.constructor(doInitialSearch);
 		label(_tr("Payments/Buys List Search"));
@@ -2879,7 +2878,7 @@ class PaymentsBuysListSearch extends PaymentsListSearch {
 class MyMainWindow extends MainWindow {
 	constructor() {
 		base.constructor();
-		callback(on_close_delete);
+		callback(on_close_delete_cb);
 		label(_tr("OurBiz"));
 		btnOrdersSales->callback(cb_btnOrdersSales);
 		btnPaymentsSales->callback(cb_btnPaymentsSales);
@@ -2914,53 +2913,57 @@ class MyMainWindow extends MainWindow {
 		btnTranslations->callback(cb_btnTranslations);
 		btnAppUsers->callback(cb_btnAppUsers);
 	}
+	function showSearchChildWindow(win_key, win_class){
+		local win = showChildWindow(win_key, win_class);
+		win.do_first_search();
+	}
 	function cb_btnEntitiesSales(sender, udata){
 		this = sender.window();
-		local win = showChildWindow("Entities Sales List/Search", EntitiesSalesListSearch);
+		local win = showSearchChildWindow("Entities Sales List/Search", EntitiesSalesListSearch);
 	}
 	function cb_btnPaymentsSales(sender, udata){
 		this = sender.window();
-		local win = showChildWindow("Payments Sales List/Search", PaymentsSalesListSearch);
+		local win = showSearchChildWindow("Payments Sales List/Search", PaymentsSalesListSearch);
 	}
 	function cb_btnOrdersSales(sender, udata){
 		this = sender.window();
-		local win = showChildWindow("Orders Sales List/Search", OrdersSalesListSearch);
+		local win = showSearchChildWindow("Orders Sales List/Search", OrdersSalesListSearch);
 	}
 	function cb_btnProductsSales(sender, udata){
 		this = sender.window();
-		local win = showChildWindow("Products Sales List/Search", ProductsSalesListSearch);
+		local win = showSearchChildWindow("Products Sales List/Search", ProductsSalesListSearch);
 	}
 	function cb_btnOrdersBuys(sender, udata){
 		this = sender.window();
-		local win = showChildWindow("Orders Buys List/Search", OrdersBuysListSearch);
+		local win = showSearchChildWindow("Orders Buys List/Search", OrdersBuysListSearch);
 	}
 	function cb_btnPaymentsBuys(sender, udata){
 		this = sender.window();
-		local win = showChildWindow("Payments Buys List/Search", PaymentsBuysListSearch);
+		local win = showSearchChildWindow("Payments Buys List/Search", PaymentsBuysListSearch);
 	}
 	function cb_btnProductsBuys(sender, udata){
 		this = sender.window();
-		local win = showChildWindow("Products Buys List/Search", ProductsBuysListSearch);
+		local win = showSearchChildWindow("Products Buys List/Search", ProductsBuysListSearch);
 	}
 	function cb_btnEntitiesBuys(sender, udata){
 		this = sender.window();
-		local win = showChildWindow("Entities Buys List/Search", EntitiesBuysListSearch);
+		local win = showSearchChildWindow("Entities Buys List/Search", EntitiesBuysListSearch);
 	}
 	function cb_btnOrders(sender, udata){
 		this = sender.window();
-		local win = showChildWindow("Orders List/Search", OrdersListSearch);
+		local win = showSearchChildWindow("Orders List/Search", OrdersListSearch);
 	}
 	function cb_btnPayments(sender, udata){
 		this = sender.window();
-		local win = showChildWindow("Payments List/Search", PaymentsListSearch);
+		local win = showSearchChildWindow("Payments List/Search", PaymentsListSearch);
 	}
 	function cb_btnEntities(sender, udata){
 		this = sender.window();
-		local win = showChildWindow("Entities List/Search", EntitiesListSearch);
+		local win = showSearchChildWindow("Entities List/Search", EntitiesListSearch);
 	}
 	function cb_btnProducts(sender, udata){
 		this = sender.window();
-		local win = showChildWindow("Products List/Search", ProductsListSearch);
+		local win = showSearchChildWindow("Products List/Search", ProductsListSearch);
 	}
 	function cb_btnGLGroups(sender, udata){print(__LINE__);}
 	function cb_btnGLChart(sender, udata){print(__LINE__);}
@@ -2972,35 +2975,35 @@ class MyMainWindow extends MainWindow {
 	}
 	function cb_btnOrderTypes(sender, udata){
 		this = sender.window();
-		local win = showChildWindow("Order Types List/Edit", OurOrderTypes);
+		local win = showChildWindow("Order Types List/Edit", OurOrderTypes, true);
 	}
 	function cb_btnPaymentTypes(sender, udata){
 		this = sender.window();
-		local win = showChildWindow("Payment Types List/Edit", OurPaymentTypes);
+		local win = showChildWindow("Payment Types List/Edit", OurPaymentTypes, true);
 	}
 	function cb_btnMeasureUnits(sender, udata){
 		this = sender.window();
-		local win = showChildWindow("Measure Units List/Edit", OurMeasureUnits);
+		local win = showChildWindow("Measure Units List/Edit", OurMeasureUnits, true);
 	}
 	function cb_btnWarrantyTypes(sender, udata){
 		this = sender.window();
-		local win = showChildWindow("Warranty Types List/Edit", OurWarrantyTypes);
+		local win = showChildWindow("Warranty Types List/Edit", OurWarrantyTypes, true);
 	}
 	function cb_btnImages(sender, udata){
 		this = sender.window();
-		local win = showChildWindow("Images List/Edit", OurImages);
+		local win = showChildWindow("Images List/Edit", OurImages, true);
 	}
 	function cb_btnProductGroups(sender, udata){
 		this = sender.window();
-		local win = showChildWindow("Product Groups", OurProductGroups);
+		local win = showChildWindow("Product Groups", OurProductGroups, true);
 	}
 	function cb_btnEntityGroups(sender, udata){
 		this = sender.window();
-		local win = showChildWindow("Entity Groups", OurEntityGroups);
+		local win = showChildWindow("Entity Groups", OurEntityGroups, true);
 	}
 	function cb_btnConfig(sender, udata){
 		this = sender.window();
-		local win = showChildWindow("App Config", OurAppConfig);
+		local win = showChildWindow("App Config", OurAppConfig, true);
 	}
 	function cb_btnOpenDB(sender, udata){print(__LINE__);}
 	function cb_btnTranslations(sender, udata){print(__LINE__);}
