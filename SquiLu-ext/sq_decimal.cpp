@@ -5,8 +5,11 @@ SQ_OPT_STRING_STRLEN();
 
 
 static const SQChar sq_decimal_ctx_TAG[] = _SC("DecimalCtx");
+#define SQ_PUSH_DECIMAL_CTX_TAG(v) sq_pushstring(v,sq_decimal_ctx_TAG,SIZEOF_SQCHAR_STRING(sq_decimal_ctx_TAG));
 static const SQChar sq_decimal_TAG[] = _SC("Decimal");
+#define SQ_PUSH_DECIMAL_TAG(v) sq_pushstring(v,sq_decimal_TAG,SIZEOF_SQCHAR_STRING(sq_decimal_TAG))
 static const SQChar sq_context_static[] = _SC("context");
+#define SQ_PUSH_CONTEXT_STATIC(v) sq_pushstring(v, sq_context_static, SIZEOF_SQCHAR_STRING(sq_context_static));
 
 #define GET_DecimalCtx_INSTANCE(v, idx) SQ_GET_INSTANCE_VAR(v, idx, mpd_context_t, ctx, sq_decimal_ctx_TAG)
 #define GET_Decimal_INSTANCE(v, idx) SQ_GET_INSTANCE_VAR(v, idx, mpd_t, dec, sq_decimal_TAG)
@@ -164,7 +167,7 @@ static SQRegFunction DecimalCtx_methods[] =
 
 static mpd_context_t * sq_get_global_ctx(HSQUIRRELVM v, SQInteger idx)
 {
-    sq_pushstring(v, sq_context_static, SIZEOF_SQCHAR_STRING(sq_context_static));
+    SQ_PUSH_CONTEXT_STATIC(v);
     sq_get(v, idx);
     mpd_context_t *ctx = 0;
     sq_getinstanceup(v, -1, (void**)&ctx, (void*)sq_decimal_ctx_TAG);
@@ -538,7 +541,7 @@ extern "C" {
 
 SQRESULT sqext_register_decimal(HSQUIRRELVM v)
 {
-    sq_pushstring(v,sq_decimal_ctx_TAG,SIZEOF_SQCHAR_STRING(sq_decimal_ctx_TAG));
+    SQ_PUSH_DECIMAL_CTX_TAG(v);
 	sq_newclass(v,SQFalse);
 	sq_settypetag(v,-1,(void*)sq_decimal_ctx_TAG);
     sq_insert_reg_funcs(v, DecimalCtx_methods);
@@ -549,11 +552,11 @@ SQRESULT sqext_register_decimal(HSQUIRRELVM v)
     }
     sq_newslot(v,-3,SQTrue);
 
-    sq_pushstring(v,sq_decimal_TAG,SIZEOF_SQCHAR_STRING(sq_decimal_TAG));
+    SQ_PUSH_DECIMAL_TAG(v);
 	sq_newclass(v,SQFalse);
 	sq_settypetag(v,-1,(void*)sq_decimal_TAG);
 
-    sq_pushstring(v, sq_context_static, SIZEOF_SQCHAR_STRING(sq_context_static));
+    SQ_PUSH_CONTEXT_STATIC(v);
 	sq_pushstring(v,sq_decimal_ctx_TAG,-1);
 	sq_getonroottable(v);
 	sq_pushroottable(v);
