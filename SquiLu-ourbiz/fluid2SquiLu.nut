@@ -545,6 +545,7 @@ Write.widget_class <- function(t, ind){
 	Output(ind+2, "// Create member functions and widgets\n");
 	Write.group(t.body, ind+2);
 	
+	Output(ind+2, "end();\n");
 	Output(ind+1, "}\n");
 	Output(ind, "}\n\n");
 }

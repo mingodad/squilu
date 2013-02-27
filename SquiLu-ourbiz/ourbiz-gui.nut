@@ -104,6 +104,7 @@ class HelpWindow extends Base_Window {
       }
       o.end();
     }
+    end();
   }
 }
 
@@ -246,6 +247,7 @@ class CalendarWindow extends Base_Window {
       }
       o.end();
     }
+    end();
   }
 }
 
@@ -354,6 +356,7 @@ class DeliveryCalcWindow extends Base_Window {
       o.labelsize(16);
       o.tooltip(_tr("Add the calculated value on the invoice line"));
     }
+    end();
   }
 }
 
@@ -491,6 +494,7 @@ class ListSearchWindow extends Base_Window {
       }
       o.end();
     }
+    end();
   }
 }
 
@@ -579,6 +583,7 @@ class BarChartGroup extends Fl_Group {
       #include "Fl_Bar_Chart.h"
       Fl_Group.current().resizable(o);
     }
+    end();
   }
 }
 
@@ -635,6 +640,7 @@ class HistoryGroup extends Fl_Group {
       o.end();
       Fl_Group.current().resizable(o);
     }
+    end();
   }
 }
 
@@ -708,6 +714,7 @@ class BaseReportA4 extends Fl_Window {
       o.align(145);
       o.labelsize(8);
     }
+    end();
   }
 }
 
@@ -786,6 +793,7 @@ class PrintPreviewGroup extends Fl_Group {
       o.end();
       Fl_Group.current().resizable(o);
     }
+    end();
   }
 }
 
@@ -1399,6 +1407,7 @@ class OrderPageGroup extends Fl_Scroll {
       }
       o.end();
     }
+    end();
   }
 }
 
@@ -1469,6 +1478,7 @@ class ProductPricesGroup extends Fl_Group {
       o.down_box(FL_BORDER_BOX);
       o.labelsize(16);
     }
+    end();
   }
 }
 
@@ -1611,6 +1621,7 @@ class ProductKitGroup extends Fl_Group {
       }
       o.end();
     }
+    end();
   }
 }
 
@@ -1660,6 +1671,7 @@ class AskLoginWindow extends Fl_Double_Window {
       local o = Fl_Return_Button(385, 85, 106, 25, _tr("Connect"));
       btnConnect = o;
     }
+    end();
   }
 }
 
@@ -1806,6 +1818,7 @@ class AppUsersEditWindow extends List_Edit_Base_Window {
       }
       o.end();
     }
+    end();
   }
 }
 
@@ -1917,6 +1930,7 @@ class AppConfigEditWindow extends List_Edit_Base_Window {
       }
       o.end();
     }
+    end();
   }
 }
 
@@ -2063,6 +2077,7 @@ class TanslationsWindow extends List_Edit_Base_Window {
       btnDbAction = o;
       o.labelsize(16);
     }
+    end();
   }
 }
 
@@ -2212,6 +2227,7 @@ class PaymentTypesEditWindow extends List_Edit_Base_Window {
       }
       o.end();
     }
+    end();
   }
 }
 
@@ -2314,6 +2330,7 @@ class WarrantyTypesEditWindow extends List_Edit_Base_Window {
       }
       o.end();
     }
+    end();
   }
 }
 
@@ -2416,6 +2433,7 @@ class MeasureUnitsEditWindow extends List_Edit_Base_Window {
       }
       o.end();
     }
+    end();
   }
 }
 
@@ -2536,6 +2554,7 @@ class SalesTaxRatesEditWindow extends List_Edit_Base_Window {
       }
       o.end();
     }
+    end();
   }
 }
 
@@ -2813,6 +2832,7 @@ class OrderTypesEditWindow extends List_Edit_Base_Window {
       }
       o.end();
     }
+    end();
   }
 }
 
@@ -2830,6 +2850,7 @@ class ImageWindow extends Base_Window {
       o.box(FL_NO_BOX);
       Fl_Group.current().resizable(o);
     }
+    end();
   }
 }
 
@@ -2850,6 +2871,7 @@ class DynamicQueryWindow extends Edit_Base_Window {
       o.end();
       Fl_Group.current().resizable(o);
     }
+    end();
   }
 }
 
@@ -2997,6 +3019,7 @@ class ImagesListEditWindow extends List_Edit_Base_Window {
       }
       o.end();
     }
+    end();
   }
 }
 
@@ -3091,6 +3114,7 @@ class GroupsListEditWindow extends Edit_Base_Window {
       }
       o.end();
     }
+    end();
   }
 }
 
@@ -3189,6 +3213,7 @@ class OrdersSumWindow extends Edit_Base_Window {
       o.end();
       Fl_Group.current().resizable(o);
     }
+    end();
   }
 }
 
@@ -3364,6 +3389,7 @@ class PaymentEditWindow extends Edit_Base_Window {
       btnPrint = o;
       o.labelsize(16);
     }
+    end();
   }
 }
 
@@ -3458,6 +3484,7 @@ class GLGroupsListEditWindow extends Edit_Base_Window {
       }
       o.end();
     }
+    end();
   }
 }
 
@@ -3586,6 +3613,7 @@ class GLChartEditWindow extends Edit_Base_Window {
       }
       o.end();
     }
+    end();
   }
 }
 
@@ -3792,6 +3820,7 @@ class GLTransactionEditWindow extends Edit_Base_Window {
       btnDbAction = o;
       o.labelsize(16);
     }
+    end();
   }
 }
 
@@ -4277,6 +4306,7 @@ class EditEntityWindow extends Edit_Base_Window {
       o.end();
       Fl_Group.current().resizable(o);
     }
+    end();
   }
 }
 
@@ -5015,6 +5045,7 @@ class EditProductWindow extends Edit_Base_Window {
       o.end();
       Fl_Group.current().resizable(o);
     }
+    end();
   }
 }
 
@@ -6147,6 +6178,7 @@ class EditOrderWindow extends Edit_Base_Window {
       o.end();
       Fl_Group.current().resizable(o);
     }
+    end();
   }
 }
 
@@ -6505,6 +6537,7 @@ class PosWindow extends Edit_Base_Window {
       }
       o.end();
     }
+    end();
   }
 }
 
@@ -6825,6 +6858,7 @@ class MainWindow extends Base_Window {
       }
       o.end();
     }
+    end();
   }
 }
 
