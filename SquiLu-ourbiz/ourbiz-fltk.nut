@@ -49,60 +49,60 @@ function create_popup_menu_for (wgt, yOffset=0, options=null){
 
 function clear_image_box(btn)
 {
-    if (btn->thumbIMG)
-    {
-        btn->hide();
-        btn->image(0);
-        btn->thumbIMG = null;
-    }
+	if (btn->thumbIMG)
+	{
+		btn->hide();
+		btn->image(0);
+		btn->thumbIMG = null;
+	}
 }
 
 function button_show_image(btn, image_id, mime_type, image, image_size, window)
 {
-    btn->image_id = image_id;
-    btn->image_type = mime_type;
-    if (btn->image_id)
-    {
-        if (btn->thumbIMG)
-        {
-            btn->thumbIMG = null;
-            btn->image(null);
-        }
-        if(image_size)
-        {
-            local image_name;
-	    local image_header = image.slice(0, 4);
-            if(image_header == "\x89PNG") btn->image_type = "png";
-            else if(image_header == "\xFF\xD8\xFF\xE0") btn->image_type = "jpg";
+	btn->image_id = image_id;
+	btn->image_type = mime_type;
+	if (btn->image_id)
+	{
+		if (btn->thumbIMG)
+		{
+			btn->thumbIMG = null;
+			btn->image(null);
+		}
+		if(image_size)
+		{
+			local image_name;
+			local image_header = image.slice(0, 4);
+			if(image_header == "\x89PNG") btn->image_type = "png";
+			else if(image_header == "\xFF\xD8\xFF\xE0") btn->image_type = "jpg";
 
-            image_name = format("thumbJPG%d", btn->image_id);
-            if(btn->image_type == "jpg") btn->thumbIMG = new Fl_JPEG_Image(image_name, image);
-            else if(btn->image_type == "png") btn->thumbIMG = new Fl_PNG_Image(image_name, image, image_size);
-            else return;
+			image_name = format("thumbJPG%d", btn->image_id);
+			if(btn->image_type == "jpg") btn->thumbIMG = new Fl_JPEG_Image(image_name, image);
+			else if(btn->image_type == "png") btn->thumbIMG = new Fl_PNG_Image(image_name, image, image_size);
+			else return;
 
-            if( (btn->w() < btn->thumbIMG->w()) || (btn->h() < btn->thumbIMG->h()) )
-            {
-                local imgb = btn->thumbIMG;
-                local new_w = imgb->w();
-                local new_h = imgb->h();
-                best_fit(new_w, new_h, btn->w(), btn->h());
+			if( (btn->w() < btn->thumbIMG->w()) || (btn->h() < btn->thumbIMG->h()) )
+			{
+				local imgb = btn->thumbIMG;
+				local new_w = imgb->w();
+				local new_h = imgb->h();
+				best_fit(new_w, new_h, btn->w(), btn->h());
 
-                if(new_w < imgb->w() || new_h < imgb->h())
-                {
-                    btn->thumbIMG = imgb->copy(new_w, new_h);
-                }
-            }
-        }
+				if(new_w < imgb->w() || new_h < imgb->h())
+				{
+					btn->thumbIMG = imgb->copy(new_w, new_h);
+				}
+			}
+		}
 
-        btn->hide();
-        btn->image(btn->thumbIMG);
-        btn->show();
-        if(window  && window->shown()) window->show_image(btn->image_id);
-    }
-    else
-    {
-        clear_image_box(btn);
-    }
+		btn->hide();
+		btn->image(btn->thumbIMG);
+		btn->show();
+		if(window  && window->shown()) window->show_image(btn->image_id);
+	}
+	else
+	{
+		clear_image_box(btn);
+	}
 }
 
 function button_show_db_image(btn, image_id, window=null, asThumb=true, throwNotFound=true)
@@ -164,13 +164,13 @@ class MyTree_Browser extends Flu_Tree_Browser {
 
 	function handle(event){
 		if(event == FL_PUSH){
-		    if( Fl.event_clicks() > 0 )
-		    {
+		if( Fl.event_clicks() > 0 )
+		{
 			Fl.event_clicks(0);
 			local node = get_hilighted();
 			if(node){
-			    node->do_callback(FLU_DOUBLE_CLICK);
-			    return 1;
+				node->do_callback(FLU_DOUBLE_CLICK);
+				return 1;
 			}
 		    }
 		}
@@ -179,15 +179,15 @@ class MyTree_Browser extends Flu_Tree_Browser {
 
 		if(event == FL_KEYBOARD)
 		{
-		    switch(Fl.event_key())
-		    {
-		    case FL_Key_Space:
-		    case FL_Enter:
-		    case FL_KP_Enter:
-			local node = get_hilighted();
-			if(node) node->do_callback(FLU_DOUBLE_CLICK);
-		    break;
-		    }
+			switch(Fl.event_key())
+			{
+			case FL_Key_Space:
+			case FL_Enter:
+			case FL_KP_Enter:
+				local node = get_hilighted();
+				if(node) node->do_callback(FLU_DOUBLE_CLICK);
+			break;
+			}
 		}
 
 		return result;
@@ -226,13 +226,13 @@ class My_Fl_Return_Button extends Fl_Button {
 		if(event == FL_KEYBOARD)
 		{
 
-		    switch(Fl.event_key())
-		    {
-		    case FL_Enter:
-		    case FL_KP_Enter:
-			do_callback();
-			return 0;
-		    }
+			switch(Fl.event_key())
+			{
+			case FL_Enter:
+			case FL_KP_Enter:
+				do_callback();
+				return 0;
+			}
 		}
 		return base.handle(event);
 	}
@@ -267,11 +267,11 @@ class Fl_Choice_Int extends Fl_Choice {
 		my_clear();
 		for(local i = 0, len = my_values.size(); i < len; ++i )
 		{
-		    if(my_values[i] == akey)
-		    {
-			value(i);
-			break;
-		    }
+			if(my_values[i] == akey)
+			{
+				value(i);
+				break;
+			}
 		}
 	}
 	function my_clear (){ value(-1);}
@@ -389,7 +389,7 @@ class Base_Window extends Fl_Window {
 		grid->callback_when(FLVEcb_ROW_CHANGED | FLVEcb_CLICKED | FLVEcb_ROW_HEADER_CLICKED);
 		grid->callback(grid_cb);
 		grid->_call_this = pcall_this.weakref();
-	}	
+	}
 	function grid_cb(sender, udata){}
 
 	function getChildWindow(winName, WindowClass){
@@ -417,11 +417,11 @@ class Base_Window extends Fl_Window {
 		local newRight = wdg->x()+wdg->w();
 		if( newRight >  (oldRight - xOffset))
 		{
-		    newWidth = wdg->w() - (newRight - oldRight + xOffset);
+			newWidth = wdg->w() - (newRight - oldRight + xOffset);
 		}
 		else if(newRight <  (oldRight - xOffset))
 		{
-		    newWidth = wdg->w() + (oldRight - xOffset - newRight);
+			newWidth = wdg->w() + (oldRight - xOffset - newRight);
 		}
 
 		local newHeight =0;
@@ -429,16 +429,16 @@ class Base_Window extends Fl_Window {
 		local newBottom = wdg->y()+wdg->h();
 		if( newBottom >  (oldBottom - xOffset))
 		{
-		    newHeight = wdg->h() - (newBottom - oldBottom + xOffset);
+			newHeight = wdg->h() - (newBottom - oldBottom + xOffset);
 		}
 		else if(newBottom <  (oldBottom - xOffset))
 		{
-		    newHeight = wdg->h() + (oldBottom - xOffset - newBottom);
+			newHeight = wdg->h() + (oldBottom - xOffset - newBottom);
 		}
 
 		if(newWidth || newHeight)
 		{
-		    wdg->size(
+			wdg->size(
 			newWidth ? newWidth : wdg->w(),
 			newHeight ? newHeight : wdg->h()
 		    );
@@ -485,26 +485,26 @@ class Base_Window extends Fl_Window {
 	
 	function insert_group_tree_childs (tree, node, parent, pos, size, data)
 	{
-	    local new_node;
-	    assert(node);
-	    while(pos < size)
-	    {
-		local rec = data[pos];
-		local myparent = rec[1].tointeger();
-		if(myparent != parent) break;
-		local id = rec[0].tointeger();
+		local new_node;
+		assert(node);
+		while(pos < size)
+		{
+			local rec = data[pos];
+			local myparent = rec[1].tointeger();
+			if(myparent != parent) break;
+			local id = rec[0].tointeger();
 
-		local str = rec[2].gsub("/", "\\/");
-		new_node = tree->add(node, str);
-		if(new_node) new_node->user_data(id);
-		else throw ("Try to insert an invalid Tree Node : " + str);
+			local str = rec[2].gsub("/", "\\/");
+			new_node = tree->add(node, str);
+			if(new_node) new_node->user_data(id);
+			else throw ("Try to insert an invalid Tree Node : " + str);
 
-		++pos;
-		pos = insert_group_tree_childs(tree, new_node, id, pos, size, data);
-	    }
-	    return pos;
+			++pos;
+			pos = insert_group_tree_childs(tree, new_node, id, pos, size, data);
+		}
+		return pos;
 	}
-	
+
 	function setup_tree_browser_for_selection (tree) {
 		local node = tree->get_root();
 		if(node) node->always_open(true);
@@ -670,12 +670,12 @@ class Edit_Base_Window extends Base_Window {
 	_choiceDbAction = null;
 	_btnDbAction = null;
 	_formGroup = null;
-	
+
 	constructor(px, py, pw, ph, pl){
 		base.constructor(px, py, pw, ph, pl);
 		_record = {};
 	}
-	
+
 	function setDbActionControls(choice, btn){
 		_choiceDbAction = choice;
 		_choiceDbAction.callback(on_Change_dbAction);
@@ -691,7 +691,7 @@ class Edit_Base_Window extends Base_Window {
 			//choice->add(rec[1]);
 		}
 	}
-	
+
 	function on_Change_dbAction(sender=null, udata=null)
 	{
 		if(sender) this = sender->window();
@@ -709,26 +709,26 @@ class Edit_Base_Window extends Base_Window {
 			switch(_choiceDbAction->action())
 			{
 			case DbAction_Enum.e_insert:
-			    do_insert();
-			    break;
+				do_insert();
+			break;
 			case DbAction_Enum.e_update:
-			    do_update();
-			    break;
+				do_update();
+			break;
 			case DbAction_Enum.e_delete:
-			    do_delete();
-			    break;
+				do_delete();
+			break;
 			case DbAction_Enum.e_export:
-			    do_export();
-			    break;
+				do_export();
+			break;
 			case DbAction_Enum.e_import:
-			    do_import();
-			    break;
+				do_import();
+			break;
 			case DbAction_Enum.e_refresh:
-			    do_refresh();
-			    break;
+				do_refresh();
+			break;
 			case DbAction_Enum.e_copy:
-			    do_copy();
-			    break;
+				do_copy();
+			break;
 			}
 		}
 		catch(e){ 
@@ -808,7 +808,7 @@ class Edit_Base_Window extends Base_Window {
 		if(!_dbUpdater) _dbUpdater = new DBUpdateByWidget();
 		return _dbUpdater;
 	}
-	
+
 	function do_edit_by_grid(pid, sender){
 		do_edit(pid);
 	}
@@ -825,7 +825,7 @@ class Edit_Base_Window extends Base_Window {
 				do_edit_by_grid(sender->get_row_id(), sender);
 			break;
 		}
-	}	
+	}
 }
 
 class Fl_Data_Table extends Flv_Data_Table {
@@ -901,12 +901,12 @@ class Fl_Data_Table extends Flv_Data_Table {
 			case 'Z': //Empty when zero
 			case 'D': //Zero monetary //ZM':
 			{
-			    if(value == "0" || value == "") return "";
-			    else
-			    {
-				if(ci.format == 'Z') return math.number_format(value.tofloat(), -6);
-				else return math.number_format(value.tofloat(), 2);
-			    }
+				if(value == "0" || value == "") return "";
+				else
+				{
+					if(ci.format == 'Z') return math.number_format(value.tofloat(), -6);
+					else return math.number_format(value.tofloat(), 2);
+				}
 			}
 			break;
 			case 'B': return (value == "1" ? "@-3+" : "");
@@ -923,32 +923,32 @@ class Fl_Data_Table extends Flv_Data_Table {
 		base.get_style(style, Row, Col);
 		if(Row >= 0 && Col >= 0)
 		{
-		    local rs = row_style().get(Row);
-		    local cs = col_style().get(Col);
-		    local have_bg = 0;
-		    if(cs.background_defined()) have_bg = cs.background();
-		    else if(rs.background_defined()) have_bg = rs.background();
+			local rs = row_style().get(Row);
+			local cs = col_style().get(Col);
+			local have_bg = 0;
+			if(cs.background_defined()) have_bg = cs.background();
+			else if(rs.background_defined()) have_bg = rs.background();
 
-		    if((Row % 2) == 0)
-		    {
-			if(have_bg)
-			    //s:background(fltk.fl_color_average(207, have_bg, 0.5))
-			    style.background(have_bg);
+			if((Row % 2) == 0)
+			{
+				if(have_bg)
+				//s.background(fltk.fl_color_average(207, have_bg, 0.5));
+				style.background(have_bg);
 			else
-			    style.background(207);
-		    }
-		    else
-		    {
-			if(have_bg)
-			    //s:background(have_bg)
-			    style.background(fl_color_average(FL_WHITE, have_bg, 0.5));
+				style.background(207);
+			}
 			else
-			    style.background(FL_WHITE);
-		    }
+			{
+				if(have_bg)
+				//s.background(have_bg);
+				style.background(fl_color_average(FL_WHITE, have_bg, 0.5));
+			else
+				style.background(FL_WHITE);
+			}
 		}
 		else if(_forPrint)
 		{
-		    style.frame(FL_NO_BOX);
+			style.frame(FL_NO_BOX);
 		}
 	}
 
@@ -975,7 +975,7 @@ class Fl_Data_Table extends Flv_Data_Table {
 						row_selected(Fl_Data_Table_Events.e_insert);
 					break;
 					//case FL_KP_Minus:
-					//    if(Fl::event_ctrl()) break;
+						//if(Fl::event_ctrl()) break;
 					case FL_Delete:
 						row_selected(Fl_Data_Table_Events.e_delete);
 					break;
@@ -996,9 +996,9 @@ class Fl_Data_Table extends Flv_Data_Table {
 	function set_cols(mycols, size_absolute=false){
 		_cols_info.clear();
 		for(local i=0, max_cols=mycols.size(); i < max_cols; ++i){
-		    local col_info = {};
-		    parse_field_header(mycols[i], col_info);
-		    _cols_info.push(col_info);
+			local col_info = {};
+			parse_field_header(mycols[i], col_info);
+			_cols_info.push(col_info);
 		}
 		cols(_cols_info.size());
 		calc_cols(size_absolute);
@@ -1023,32 +1023,32 @@ class Fl_Data_Table extends Flv_Data_Table {
 		calc_cols_width(size_absolute);
 		for(local k=0, len = cols(); k < len; ++k)
 		{
-		    local v = _cols_info[k];
-		    //v.header = _tr(v.header.c_str());
-		    local col_align;
-		    switch(v.align)
-		    {
-		    case 'C':
-			col_align = FL_ALIGN_CENTER;
+			local v = _cols_info[k];
+			//v.header = _tr(v.header.c_str());
+			local col_align;
+			switch(v.align)
+			{
+			case 'C':
+				col_align = FL_ALIGN_CENTER;
 			break;
-		    case 'R':
-			col_align = FL_ALIGN_RIGHT;
+			case 'R':
+				col_align = FL_ALIGN_RIGHT;
 			break;
-		    default:
+			default:
 			col_align = FL_ALIGN_LEFT;
-		    }
-		    local cs = col_style().get(k);
-		    cs.align(col_align);
-		    if(v.color) cs.foreground(v.color);
-		    if(v.bgcolor) cs.background(v.bgcolor);
+			}
+			local cs = col_style().get(k);
+			cs.align(col_align);
+			if(v.color) cs.foreground(v.color);
+			if(v.bgcolor) cs.background(v.bgcolor);
 		}
 	}
 	function calc_cols_width(size_absolute=false){
 		if(size_absolute){
 			for(local k=0, len = cols(); k < len; ++k)
 			{
-			    local cs = col_style().get(k);
-			    cs.width(_cols_info[k].width);
+				local cs = col_style().get(k);
+				cs.width(_cols_info[k].width);
 			}
 			return;
 		}
@@ -1068,18 +1068,18 @@ class Fl_Data_Table extends Flv_Data_Table {
 		total_widths = 0;
 		for(local k=0, len = cols(); k < len; ++k)
 		{
-		    local v = _cols_info[k].width;
-		    if(v > 0) total_widths += ((v * char_width) + 1);
+			local v = _cols_info[k].width;
+			if(v > 0) total_widths += ((v * char_width) + 1);
 		}
 
 		for(local k=0, len = cols(); k < len; ++k)
 		{
-		    local v = _cols_info[k];
-		    local col_width = v.width;
-		    if( col_width < 0)	col_width = grid_width - total_widths;
-		    else col_width *= char_width;
-		    local cs = col_style().get(k);
-		    cs.width(col_width);
+			local v = _cols_info[k];
+			local col_width = v.width;
+			if( col_width < 0)	col_width = grid_width - total_widths;
+			else col_width *= char_width;
+			local cs = col_style().get(k);
+			cs.width(col_width);
 		}
 	}
 	function get_selection(ar_out, withIds=false){
@@ -1102,21 +1102,21 @@ class Fl_Data_Table_Calendar extends Fl_Data_Table {
 		base.get_style(style, R, C);
 		if (R >= 0)
 		{
-		    local zebra = false;
+			local zebra = false;
 
-		    if ((R % 2) == 0)
-		    {
-			if ((C % 2) == 0) zebra = true;
-		    }
-		    else if((C % 2) != 0) zebra = true;
+			if ((R % 2) == 0)
+			{
+				if ((C % 2) == 0) zebra = true;
+			}
+			else if((C % 2) != 0) zebra = true;
 
-		    if (zebra) style.background(207);
-		    else style.background(FL_WHITE);
+			if (zebra) style.background(207);
+			else style.background(FL_WHITE);
 
-		    if ((R == 0 && _data[0][C] > 7) ||
-			    (R > 3 && _data[R][C] < 20))
+			if ((R == 0 && _data[0][C] > 7) ||
+				(R > 3 && _data[R][C] < 20))
 			style.foreground(fl_color_average(FL_BLACK, FL_WHITE, 0.5));
-		    else style.foreground(FL_BLACK);
+			else style.foreground(FL_BLACK);
 		}
 	}
 }
@@ -1155,9 +1155,9 @@ class MyBarChart extends BarChartGroup {
 	function periode_type ()
 	{
 		return btn_periode_is_years->value() ? "years" :
-		       btn_periode_is_weeks->value() ? "weeks" :
-		       btn_periode_is_days->value() ? "days" :
-		       "months";
+			btn_periode_is_weeks->value() ? "weeks" :
+			btn_periode_is_days->value() ? "days" :
+			"months";
 	}
 	
 	function periodes (){
@@ -1174,17 +1174,17 @@ class MyBarChart extends BarChartGroup {
 		local cl;
 		for(local i=0, max_count=data.size(); i<max_count;++i)
 		{
-		    local rec = data[i];
-		    if(byTwo){
-			cl = rec[2] == "1" ? FL_BLUE : FL_RED;
-		    }
-		    else if(bySAB){
-			//printf("%s : %s : %s\n", rec[0].c_str(), rec[1].c_str(), rec[2].c_str());
-			cl = rec[2] == "S" ? FL_BLUE : FL_GREEN;
-		    } else {
-			cl = FL_BLUE;
-		    }
-		    bar_chart->bar_add(rec[0], rec[1].tofloat(), cl);
+			local rec = data[i];
+			if(byTwo){
+				cl = rec[2] == "1" ? FL_BLUE : FL_RED;
+			}
+			else if(bySAB){
+				//printf("%s : %s : %s\n", rec[0].c_str(), rec[1].c_str(), rec[2].c_str());
+				cl = rec[2] == "S" ? FL_BLUE : FL_GREEN;
+			} else {
+				cl = FL_BLUE;
+			}
+			bar_chart->bar_add(rec[0], rec[1].tofloat(), cl);
 		}
 		bar_chart->bar_end_update();
 	}
@@ -1358,7 +1358,7 @@ class OurTreeGroups extends GroupsListEditWindow {
 		}
 	};
 	_table_name = null;
-	
+
 	constructor(){
 		base.constructor();
 		setup_tree_browser_for_selection(tree);
@@ -1369,7 +1369,7 @@ class OurTreeGroups extends GroupsListEditWindow {
 		dbAction->action(DbAction_Enum.e_insert);
 		on_Change_dbAction();
 	}
-	
+
 	function dbUpdater(dbu=null){
 		if(dbu){
 			_dbUpdater = dbu;
@@ -1377,7 +1377,7 @@ class OurTreeGroups extends GroupsListEditWindow {
 		}
 		if(!_dbUpdater) _dbUpdater = new GroupDbUpdater();
 		return _dbUpdater;
-	}		
+	}
 
 	function on_tree_cb(sender, udata)
 	{
@@ -1397,8 +1397,8 @@ class OurTreeGroups extends GroupsListEditWindow {
 		//case FLU_WIDGET_CALLBACK:
 		//case FLU_MOVED_NODE:
 		//case FLU_NEW_NODE:
-		    //Flu_Tree_Browser::Node *node = tree->get_hilighted();
-		    if(node) do_edit(node->user_data().tointeger());
+			//Flu_Tree_Browser::Node *node = tree->get_hilighted();
+			if(node) do_edit(node->user_data().tointeger());
 		break;
 		}
 	}
@@ -1500,7 +1500,7 @@ class OurDynamicQuery extends DynamicQueryWindow
 
 class OurImages extends ImagesListEditWindow {
 	_search_options = null;
-	
+
 	constructor(){
 		base.constructor();
 		setup_grid(grid, this);
@@ -1536,7 +1536,7 @@ class OurImages extends ImagesListEditWindow {
 			btnImage->show();
 		}
 	}
-	
+
 	function getImgTypeByExtension(ext)
 	{
 /*
@@ -1547,7 +1547,7 @@ class OurImages extends ImagesListEditWindow {
 		else return 0;
 */
 	}
-	
+
 	function on_image_file_browser(sender, udata)
 	{
 		this = sender->window();
@@ -1762,7 +1762,7 @@ function print_entities_list_contact_report(sender=null, udata=null)
 	local mywin = sender ? sender.window() : null;
 	local progress = mywin ? mywin.print_progress : null;
 	if(progress) progress.maximum(10);
-	
+
 	local cursor_wait = fl_cursor_wait();
 	local mydata = [];
 	appServer.entities_toprint_get_list(mydata);
@@ -1778,7 +1778,7 @@ function print_entities_list_contact_report(sender=null, udata=null)
 		"name|Name|-1",
 		"contact|Contact|12",
 		"phone|Phone|12",
-	    ];
+		];
 	report.rpt_Body->set_cols(_cols_info);
 
 	local nrows = mydata.size();
@@ -1801,32 +1801,32 @@ function print_entities_list_contact_report(sender=null, udata=null)
 
 	for(local i=0; i< npages; ++i)
 	{
-	    local line_start = i*lines_per_page;
-	    local line_end = line_start + lines_per_page;
-	    iter1 = iter0 + line_start;
-	    iter2 = iter0 + (line_end > nrows ? nrows : line_end);
-	    array_assign(rptData, mydata, iter1, iter2);
-	    report.rpt_Body->recalc_data();
+		local line_start = i*lines_per_page;
+		local line_end = line_start + lines_per_page;
+		iter1 = iter0 + line_start;
+		iter2 = iter0 + (line_end > nrows ? nrows : line_end);
+		array_assign(rptData, mydata, iter1, iter2);
+		report.rpt_Body->recalc_data();
 
-	    report.rpt_Title->label(_tr("Entities List"));
-	    bufSubTitle = format("%s %.2d/%.2d/%d", _tr("Date"), date.day, date.month, date.year);
-	    report.rpt_SubTitle->label(bufSubTitle);
+		report.rpt_Title->label(_tr("Entities List"));
+		bufSubTitle = format("%s %.2d/%.2d/%d", _tr("Date"), date.day, date.month, date.year);
+		report.rpt_SubTitle->label(bufSubTitle);
 
-	    bufSubFooter = format("%s %d / %d", _tr("Page"), i+1, npages);
-	    report.rpt_SubFooter->label(bufSubFooter);
-	    printer.start_page();
-	    printer.origin(30,25);
-	    printer.print_widget(report);
-	    printer.end_page();
-	    
-            //to allow user do something meanwhile
-            Fl_Display_Device.display_device()->set_current();
-	    if(progress) {
-		progress.label(_tr("Processing page ") + i);
-		progress.value(i % 10);
-	    }
-            Fl.check();
-            printer.set_current();
+		bufSubFooter = format("%s %d / %d", _tr("Page"), i+1, npages);
+		report.rpt_SubFooter->label(bufSubFooter);
+		printer.start_page();
+		printer.origin(30,25);
+		printer.print_widget(report);
+		printer.end_page();
+
+		//to allow user do something meanwhile
+		Fl_Display_Device.display_device()->set_current();
+			if(progress) {
+			progress.label(_tr("Processing page ") + i);
+			progress.value(i % 10);
+		}
+		Fl.check();
+		printer.set_current();
 	}
 	printer.end_job();
 	if(progress) {
@@ -1846,17 +1846,17 @@ class MyEditEntityWindow extends EditEntityWindow {
 		"Products bought by value",
 		"Products bought by quantity",
 	];
-	
+
 	constructor(){
 		base.constructor();
 		dbUpdater()->table_name = "entities";
 		setDbActionControls(dbAction, btnDbAction);
 		btnEntitesListContactReport.callback(print_entities_list_contact_report);
-		
+
 		_ourBarChart = new MyBarChart();
 		replace_widget_for(tabChartStatistics, _ourBarChart);
 		_ourBarChart->btnShowChart.callback(on_show_chart_cb);
-		
+
 		_ourHistory = new HistoryGroup();
 		replace_widget_for(tabHistory, _ourHistory);
 		local choice =  _ourHistory->history_choice;
@@ -2030,13 +2030,13 @@ function print_products_list(sender=null, udata=null)
 	local lines_per_page = 56;
 
 	local _cols_info = [
-                "id|ID|6|R",
-                "reference|Reference|9",
-                "sell_description|Description|-1",
-                "kit|Kit|4|C",
-                "price_taxed|Price+V.A.T.|12|R|M",
-                "quantity_onhand|Onhand|9|R|N",
-	    ];
+		"id|ID|6|R",
+		"reference|Reference|9",
+		"sell_description|Description|-1",
+		"kit|Kit|4|C",
+		"price_taxed|Price+V.A.T.|12|R|M",
+		"quantity_onhand|Onhand|9|R|N",
+		];
 	report.rpt_Body->set_cols(_cols_info);
 
 	local nrows = mydata.size();
@@ -2059,32 +2059,32 @@ function print_products_list(sender=null, udata=null)
 
 	for(local i=0; i< npages; ++i)
 	{
-	    local line_start = i*lines_per_page;
-	    local line_end = line_start + lines_per_page;
-	    iter1 = iter0 + line_start;
-	    iter2 = iter0 + (line_end > nrows ? nrows : line_end);
-	    array_assign(rptData, mydata, iter1, iter2);
-	    report.rpt_Body->recalc_data();
+		local line_start = i*lines_per_page;
+		local line_end = line_start + lines_per_page;
+		iter1 = iter0 + line_start;
+		iter2 = iter0 + (line_end > nrows ? nrows : line_end);
+		array_assign(rptData, mydata, iter1, iter2);
+		report.rpt_Body->recalc_data();
 
-	    report.rpt_Title->label(_tr("Products List"));
-	    bufSubTitle = format("%s %.2d/%.2d/%d", _tr("Date"), date.day, date.month, date.year);
-	    report.rpt_SubTitle->label(bufSubTitle);
+		report.rpt_Title->label(_tr("Products List"));
+		bufSubTitle = format("%s %.2d/%.2d/%d", _tr("Date"), date.day, date.month, date.year);
+		report.rpt_SubTitle->label(bufSubTitle);
 
-	    bufSubFooter = format("%s %d / %d", _tr("Page"), i+1, npages);
-	    report.rpt_SubFooter->label(bufSubFooter);
-	    printer.start_page();
-	    printer.origin(30,25);
-	    printer.print_widget(report);
-	    printer.end_page();
+		bufSubFooter = format("%s %d / %d", _tr("Page"), i+1, npages);
+		report.rpt_SubFooter->label(bufSubFooter);
+		printer.start_page();
+		printer.origin(30,25);
+		printer.print_widget(report);
+		printer.end_page();
 
-            //to allow user do something meanwhile
-            Fl_Display_Device.display_device()->set_current();
-	    if(progress) {
-		progress.label(_tr("Processing page ") + i);
-		progress.value(i % 10);
-	    }
-            Fl.check();
-            printer.set_current();
+		//to allow user do something meanwhile
+		Fl_Display_Device.display_device()->set_current();
+			if(progress) {
+			progress.label(_tr("Processing page ") + i);
+			progress.value(i % 10);
+		}
+		Fl.check();
+		printer.set_current();
 	}
 	printer.end_job();
 	if(progress) {
@@ -2169,7 +2169,7 @@ class MyEditProductWindow extends EditProductWindow {
 
 		fill_choice_by_data(db_products_warranty_id, warranty_data);
 	}
-	
+
 	function tabsMoreData_cb(sender, udata){
 		this = sender->window();
 		if(tabsMoreData->value() == tabGroups){
@@ -2386,7 +2386,9 @@ class MyCalendarWindow extends CalendarWindow {
 }
 
 class MyEditOrderWindow extends EditOrderWindow {
+	_line_record = null;
 	_line_edit_id = null;
+	_product_unit_weight = null;
 	_ourBarChart = null;
 	_ourHistory = null;
 	_search_entities_window = null;
@@ -2398,7 +2400,7 @@ class MyEditOrderWindow extends EditOrderWindow {
 		"Sales by 80\\/20",
 		"Sales by 80\\/20 alphabetical",
 	];
-	
+
 	constructor(){
 		base.constructor();
 		local cols_info = [
@@ -2410,13 +2412,22 @@ class MyEditOrderWindow extends EditOrderWindow {
 			"first_total|1st Total|8|R|M",
 		];
 		grid_lines->set_cols(cols_info);
+		setup_grid(grid_lines, this);
+		_line_record = {};
+		_line_edit_id = 0;
+		_product_unit_weight = 0.0;
 		
 		dbUpdater()->table_name = "orders";
 		setDbActionControls(dbAction, btnDbAction);
+		dbAction->insert_copy();
 
 		_ourBarChart = new MyBarChart();
 		replace_widget_for(tabChartStatistics, _ourBarChart);
 		_ourBarChart->btnShowChart.callback(on_show_chart_cb);
+		local chk = _ourBarChart->chkOpt;
+		chk->label("><");
+		chk->set_visible();
+		chk->tooltip(_tr("Show payment types separately."));
 		
 		_ourHistory = new HistoryGroup();
 		replace_widget_for(tabHistory, _ourHistory);
@@ -2466,22 +2477,42 @@ class MyEditOrderWindow extends EditOrderWindow {
 
 		if(asBlank)
 		{
-		    db_orders_series->value("A");
-		    db_orders_order_date->value(os.date("%Y-%m-%d"));
-		    db_orders_payment_type_id->my_set_value(1);
-		    db_orders_order_type_id->select_by_data(1);
-		    db_orders_entity_id->value("1");
-		    db_orders_entity_id->set_changed();
+			db_orders_series->value("A");
+			db_orders_order_date->value(os.date("%Y-%m-%d"));
+			db_orders_payment_type_id->my_set_value(1);
+			db_orders_order_type_id->select_by_data(1);
+			db_orders_entity_id->value("1");
+			db_orders_entity_id->set_changed();
 		}
 		else
 		{
 		/*
-		    LOWFQ(order_date);
-		    LOWFQ(payment_type_id);
-		    LOWFQ(series);
-		    LOWFQ(order_type_id);
+			LOWFQ(order_date);
+			LOWFQ(payment_type_id);
+			LOWFQ(series);
+			LOWFQ(order_type_id);
 		*/
 		}
+	}
+
+	function do_edit_by_grid(line_id, sender){
+		//print(pid, sender);
+		if(line_id) 	appServer.get_record(_line_record, "orders", 0, line_id, "&line_calculated=1");
+		else _line_record.clear();
+		fill_edit_lines_form(line_id == 0, line_id != 0, false);
+		_line_edit_id = line_id;
+		if(_line_record == 0) {
+			linesTab->value(group_lines);
+			delayed_focus(db_orders_lines_description);
+		}
+	}
+
+	function load_lines(select_last)
+	{
+		local cursor_wait = fl_cursow_wait();
+		grid_lines->clear_data_rows();
+		appServer.orders_lines_get_for_order(grid_lines->_data, dbUpdater()->edit_id);
+		redraw_lines(select_last);
 	}
 
 	function redraw_lines(select_last){
@@ -2494,7 +2525,7 @@ class MyEditOrderWindow extends EditOrderWindow {
 	function get_record(id){
 		appServer.get_record(_record, _main_table, 0, id, "&with_lines=1");
 	}
-	
+
 	function set_decimal_places(dp){
 		db_orders_lines_price->decimal_places(dp);
 		db_orders_lines_first_total->decimal_places(dp);
@@ -2503,21 +2534,27 @@ class MyEditOrderWindow extends EditOrderWindow {
 		db_orders_lines_sales_tax1_amt->decimal_places(dp);
 		db_orders_lines_line_total->decimal_places(dp);
 	}
-	
+
 	function fill_edit_form_entity(myrec, asBlank=false, setChanged=false){
 	}
-	
+
 	function fill_edit_form_totals(myrec, asBlank=false){
 		//foreach(k,v in myrec) print(k,v);
 	}
-	
+
 	function fill_edit_lines_form(asBlank=false, doFocus=true, doCalc=true){
+		local  wfq = Widget_Fill_By_Map(_line_record);
+		if(asBlank) set_decimal_places(2);
+		else set_decimal_places(_line_record.price_decimals.tointeger());
+		local input_fld_map = get_input_fields("orders_lines");
+		wfq.set_widget_value_by_map(input_fld_map);
+
 		if(doFocus) {
-		    linesTab->value(group_lines);
-		    delayed_focus(db_orders_lines_quantity);
+			linesTab->value(group_lines);
+			delayed_focus(db_orders_lines_quantity);
 		}
 	}
-	
+
 	function cb_btnCalcDelivery(sender, udata){
 		this = sender->window();
 		local dc = getChildWindow("Delivery Calc", MyDeliveryCalcWindow);
@@ -2528,7 +2565,7 @@ class MyEditOrderWindow extends EditOrderWindow {
 		local dc = getChildWindow("Calendar", MyCalendarWindow);
 		dc.show();
 	}
-		
+
 	function getEntitiesListSearchWindow(){
 		if(!_search_entities_window){
 			if(_sab == "S") _search_entities_window = new EntitiesSalesListSearch();
@@ -2544,10 +2581,10 @@ class MyEditOrderWindow extends EditOrderWindow {
 		this = sender->window();
 		if(sender == db_orders_entity_name && db_orders_entity_id->value())
 		{
-		    //if we have a valid entity id we accept direct changes to entity name
-		    linesTab->value(group_lines);
-		    delayed_focus(db_orders_lines_description);
-		    return;
+			//if we have a valid entity id we accept direct changes to entity name
+			linesTab->value(group_lines);
+			delayed_focus(db_orders_lines_description);
+			return;
 		}
 		local swin = getEntitiesListSearchWindow();
 		local cb = function(entity_id) {
@@ -2555,9 +2592,9 @@ class MyEditOrderWindow extends EditOrderWindow {
 				validate_enity_id(entity_id);
 			}
 		cb.setenv(this);
-		swin->search_for_me(db_orders_entity_name->value(), cb);		
+		swin->search_for_me(db_orders_entity_name->value(), cb);
 	}
-	
+
 	function getProductsListSearchWindow(){
 		if(!_search_products_window){
 			if(_sab == "S") _search_products_window = new ProductsSalesListSearch();
@@ -2573,17 +2610,17 @@ class MyEditOrderWindow extends EditOrderWindow {
 		this = sender->window();
 		if(sender == db_orders_lines_description)
 		{
-		    if(db_orders_lines_product_id->value())
-		    {
-			//if we have a valid product id we accept direct changes to product description
-			return;
-		    }
-		    local description = db_orders_lines_description->value();
-		    if(!description.len())
-		    {
-			//empty description do nothing
-			return;
-		    }
+			if(db_orders_lines_product_id->value())
+			{
+				//if we have a valid product id we accept direct changes to product description
+				return;
+			}
+			local description = db_orders_lines_description->value();
+			if(!description.len())
+			{
+				//empty description do nothing
+				return;
+			}
 		}
 		local swin = getProductsListSearchWindow();
 		local cb = function(product_id) {
@@ -2591,9 +2628,9 @@ class MyEditOrderWindow extends EditOrderWindow {
 				validate_product_id(product_id);
 			}
 		cb.setenv(this);
-		swin->search_for_me(db_orders_lines_description->value(), cb);		
+		swin->search_for_me(db_orders_lines_description->value(), cb);
 	}
-		
+
 	function on_show_chart_cb(sender, udata){
 		this = sender->window();
 		local paidUpaid = _ourBarChart->chkOpt->value();
@@ -2601,7 +2638,7 @@ class MyEditOrderWindow extends EditOrderWindow {
 		local mydata = [];
 		appServer.orders_get_bar_chart_statistics_list(mydata, _sab, 
 			_ourBarChart->periodes(), _ourBarChart->periode_type() , paidUpaid);
-		_ourBarChart->show_bar_chart(mydata, paidUpaid, (_sab == "A"));	
+		_ourBarChart->show_bar_chart(mydata, paidUpaid, (_sab == "A"));
 	}
 	function on_history_cb(sender, udata){
 		this = sender->window();
@@ -2629,68 +2666,67 @@ class MyEditOrderWindow extends EditOrderWindow {
 		//printf("%d : %d\n", event, Fl::event_key());
 		if(event == FL_KEYBOARD)
 		{
-		    local key = Fl.event_key();
-		    switch(key)
-		    {
-		    case FL_F+5:
-			show_dynamic_data(_tr("Entity past products"),
-					  appServer.entity_past_products_list,
-					  db_orders_entity_id->value());
+			local key = Fl.event_key();
+			switch(key)
+			{
+			case FL_F+5:
+				show_dynamic_data(_tr("Entity past products"),
+					appServer.entity_past_products_list,
+					db_orders_entity_id->value());
 			break;
-		    case FL_F+6:
+			case FL_F+6:
 			if(grid_lines->row() >=0)
 			{
-			    show_dynamic_data(_tr("Product last 20 order lines"),
-					      appServer.last_product_order_lines_list,
-					      grid_lines->get_data_value(
-						       grid_lines->row(), 1));
+				show_dynamic_data(_tr("Product last 20 order lines"),
+					appServer.last_product_order_lines_list,
+					grid_lines->get_data_value(
+						grid_lines->row(), 1));
 			}
 			break;
-		    case FL_F+7:
+			case FL_F+7:
 			if(grid_lines->row() >=0)
 			{
-			    show_dynamic_data(_tr("Appear together"),
-					      appServer.product_appear_together_list,
-					      grid_lines->get_data_value(
-						       grid_lines->row(), 1));
+				show_dynamic_data(_tr("Appear together"),
+					appServer.product_appear_together_list,
+					grid_lines->get_data_value(
+						grid_lines->row(), 1));
 			}
 			break;
-		    case FL_F+8:
+			case FL_F+8:
 			if(grid_lines->row() >=0)
 			{
-			    show_dynamic_data(_tr("Order lines onhand"),
-					      appServer.order_lines_onhand_list,
-					      dbUpdater()->edit_id);
+				show_dynamic_data(_tr("Order lines onhand"),
+					appServer.order_lines_onhand_list,
+					dbUpdater()->edit_id);
 			}
 			break;
-		    case FL_KP_Enter:
-		    case FL_Enter:
+			case FL_KP_Enter:
+			case FL_Enter:
 			if(!Fl.event_ctrl())
 			{
-			    if(Fl.focus() == db_orders_lines_description)
-			    {
-				local description = db_orders_lines_description->value();
-				if(!description || !description.len())
+				if(Fl.focus() == db_orders_lines_description)
 				{
-				    //empty description jump to db_orders_cash
-				    delayed_focus(db_orders_cash);
+					local description = db_orders_lines_description->value();
+					if(!description || !description.len())
+					{
+						//empty description jump to db_orders_cash
+						delayed_focus(db_orders_cash);
+					}
 				}
-			    }
-			    break; //shortcut to save the line
+				break; //shortcut to save the line
 			}
-		    case FL_KP_Plus:
+			case FL_KP_Plus:
 			local curr_focus = Fl.focus();
 			if(curr_focus && curr_focus->parent() == group_lines)
 			{
-			    if(curr_focus != btnSaveLine)
-			    {
-				btnSaveLine->take_focus();
-				btnSaveLine->do_callback();
-			    }
+				if(curr_focus != btnSaveLine)
+				{
+					btnSaveLine->take_focus();
+					btnSaveLine->do_callback();
+				}
 			}
 			break;
-		    }
-
+			}
 		}
 		return base.handle(event);
 	}
@@ -2789,14 +2825,14 @@ class OrdersListSearch extends MyListSearchWindow {
 			}
 			break;
 			case 1:{
-			    local vi = [];
-			    grid->get_selection(vi, true);
-			    copy_order(vi, true, _sab);
+				local vi = [];
+				grid->get_selection(vi, true);
+				copy_order(vi, true, _sab);
 			}
 			break;
 			case 2:{
-			    grid->clear_selection();
-			    grid->redraw();
+				grid->clear_selection();
+				grid->redraw();
 			}
 			break;
 		}
