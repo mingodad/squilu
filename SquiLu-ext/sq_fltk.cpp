@@ -541,6 +541,16 @@ static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
 	return 1;\
 }
 
+#define FUNC_SET_BOOL(prefix, getSelf, funcNAME) \
+static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
+{\
+    getSelf(v);\
+    SQBool bparm;\
+    sq_getbool(v, 2, &bparm);\
+    self->funcNAME(bparm);\
+	return 0;\
+}
+
 #define FUNC_GETSET_BOOL(prefix, getSelf, selfPtr, funcNAME) \
 static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
 {\
@@ -562,6 +572,8 @@ static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
 #define FL_WIDGET_GETSET_INT0(funcNAME, typeNAME) FUNC_GETSET_INT(_Fl_Widget_, SETUP_FL_WIDGET, self->, funcNAME, typeNAME)
 #define FL_WIDGET_GETSET_INT(funcNAME) FL_WIDGET_GETSET_INT0(funcNAME, int)
 #define FL_WIDGET_GETSET_INT_CAST(funcNAME, castType) FL_WIDGET_GETSET_INT0(funcNAME, castType)
+#define FL_WIDGET_GETSET_BOOL(funcNAME) FUNC_GETSET_BOOL(_Fl_Widget_, SETUP_FL_WIDGET, self->, funcNAME)
+#define FL_WIDGET_SET_BOOL(funcNAME) FUNC_SET_BOOL(_Fl_Widget_, SETUP_FL_WIDGET, funcNAME)
 
 #define FL_WIDGET_VOID_CALL(funcNAME) FUNC_VOID_CALL(_Fl_Widget_, SETUP_FL_WIDGET, self->, funcNAME)
 
@@ -773,14 +785,29 @@ FL_WIDGET_VOID_CALL_2INT(size);
 FL_WIDGET_VOID_CALL_4INT(resize);
 //FUNC_SET_INT(_Fl_Widget_, SETUP_FL_WIDGET, clear_flag);
 
+FL_WIDGET_SET_BOOL(on_group_only_remove);
+FL_WIDGET_GETSET_BOOL(select_all_on_focus);
+
+FL_WIDGET_BOOL_CALL(active);
+FL_WIDGET_BOOL_CALL(active_r);
 FL_WIDGET_BOOL_CALL(changed);
 FL_WIDGET_BOOL_CALL(changed2);
+FL_WIDGET_BOOL_CALL(is_fullscreen);
 FL_WIDGET_BOOL_CALL(visible);
-FL_WIDGET_VOID_CALL(set_changed);
-FL_WIDGET_VOID_CALL(set_changed2);
+
+FL_WIDGET_VOID_CALL(activate);
 FL_WIDGET_VOID_CALL(clear_changed);
 FL_WIDGET_VOID_CALL(clear_changed2);
 FL_WIDGET_VOID_CALL(clear_changed_all);
+FL_WIDGET_VOID_CALL(clear_visible);
+FL_WIDGET_VOID_CALL(deactivate);
+FL_WIDGET_VOID_CALL(hide);
+FL_WIDGET_VOID_CALL(redraw);
+FL_WIDGET_VOID_CALL(redraw_label);
+FL_WIDGET_VOID_CALL(set_changed);
+FL_WIDGET_VOID_CALL(set_changed2);
+FL_WIDGET_VOID_CALL(set_visible);
+FL_WIDGET_VOID_CALL(show);
 FL_WIDGET_VOID_CALL(take_focus);
 
 //FL_WIDGET_STR_CALL(classId);
@@ -845,13 +872,6 @@ static SQRESULT _Fl_Widget_handle(HSQUIRRELVM v)
 	return 1;
 }
 
-FL_WIDGET_VOID_CALL(activate);
-FL_WIDGET_VOID_CALL(deactivate);
-FL_WIDGET_VOID_CALL(redraw);
-FL_WIDGET_VOID_CALL(redraw_label);
-FL_WIDGET_VOID_CALL(hide);
-FL_WIDGET_VOID_CALL(show);
-
 static SQRESULT _Fl_Widget_image(HSQUIRRELVM v)
 {
     SETUP_FL_WIDGET(v);
@@ -888,62 +908,78 @@ static SQRESULT _Fl_Widget_as_window(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT _Fl_Widget_contains(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_WIDGET(v);
+    SETUP_FL_WIDGET_AT(v, 2, wdg);
+    sq_pushbool(v, self->contains(wdg));
+    return 1;
+}
+
 CHEAP_RTTI_FOR(Fl_Widget);
 
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Widget_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_widget_obj_funcs[]={
     CHEAP_RTTI_REG_FUN_FOR(Fl_Widget)
+	_DECL_FUNC(active,1,_SC("x"), SQFalse),
+	_DECL_FUNC(active_r,1,_SC("x"), SQFalse),
 	_DECL_FUNC(activate,1,_SC("x"), SQFalse),
-	_DECL_FUNC(deactivate,1,_SC("x"), SQFalse),
 	_DECL_FUNC(align,-1,_SC("xi"), SQFalse),
 	_DECL_FUNC(argument,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(as_group,1,_SC("x"), SQFalse),
+	_DECL_FUNC(as_window,1,_SC("x"), SQFalse),
 	_DECL_FUNC(box,-1,_SC("xi"), SQFalse),
 	_DECL_FUNC(callback,-1,_SC("xc."), SQFalse),
-	_DECL_FUNC(do_callback,-1,_SC("xx"), SQFalse),
+	_DECL_FUNC(changed,1,_SC("x"), SQFalse),
+	_DECL_FUNC(changed2,1,_SC("x"), SQFalse),
+	_DECL_FUNC(classId,1,_SC("x"), SQFalse),
+	_DECL_FUNC(classRTTI,1,_SC("x"), SQFalse),
+	_DECL_FUNC(clear_changed,1,_SC("x"), SQFalse),
+	_DECL_FUNC(clear_changed2,1,_SC("x"), SQFalse),
+	_DECL_FUNC(clear_changed_all,1,_SC("x"), SQFalse),
+//	_DECL_FUNC(clear_flag,2,_SC("xi"), SQFalse),
+	_DECL_FUNC(clear_visible,1,_SC("x"), SQFalse),
 	_DECL_FUNC(color,-1,_SC("xi"), SQFalse),
-	_DECL_FUNC(selection_color,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(contains,2,_SC("xx"), SQFalse),
 	_DECL_FUNC(copy_label,2,_SC("xs"), SQFalse),
+	_DECL_FUNC(deactivate,1,_SC("x"), SQFalse),
+	_DECL_FUNC(do_callback,-1,_SC("xx"), SQFalse),
+	_DECL_FUNC(h,-1,_SC("xn"), SQFalse),
+	_DECL_FUNC(handle,2,_SC("xi"), SQFalse),
+	_DECL_FUNC(hide,1,_SC("x"), SQFalse),
+	_DECL_FUNC(image,-1,_SC("x x|o"), SQFalse),
+	_DECL_FUNC(inherits_from,2,_SC("xp"), SQFalse),
 	_DECL_FUNC(label,-1,_SC("x s|o"), SQFalse),
 	_DECL_FUNC(labelcolor,-1,_SC("xi"), SQFalse),
 	_DECL_FUNC(labelfont,-1,_SC("xi"), SQFalse),
 	_DECL_FUNC(labelsize,-1,_SC("xi"), SQFalse),
 	_DECL_FUNC(labeltype,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(on_group_only_remove,-1,_SC("xb"), SQFalse),
+	_DECL_FUNC(parent,1,_SC("x"), SQFalse),
+	_DECL_FUNC(parent_root,1,_SC("x"), SQFalse),
+	_DECL_FUNC(position,3,_SC("xii"), SQFalse),
+	_DECL_FUNC(redraw,1,_SC("x"), SQFalse),
+	_DECL_FUNC(redraw_label,1,_SC("x"), SQFalse),
+	_DECL_FUNC(resize,5,_SC("xiiii"), SQFalse),
+	_DECL_FUNC(select_all_on_focus,-1,_SC("xb"), SQFalse),
+	_DECL_FUNC(selection_color,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(set_changed,1,_SC("x"), SQFalse),
+	_DECL_FUNC(set_changed2,1,_SC("x"), SQFalse),
+	_DECL_FUNC(set_visible,1,_SC("x"), SQFalse),
+	_DECL_FUNC(show,1,_SC("x"), SQFalse),
+	_DECL_FUNC(size,3,_SC("xii"), SQFalse),
+	_DECL_FUNC(take_focus,1,_SC("x"), SQFalse),
 	_DECL_FUNC(textfont,-1,_SC("xi"), SQFalse),
 	_DECL_FUNC(textsize,-1,_SC("xi"), SQFalse),
 	_DECL_FUNC(tooltip,-1,_SC("xs"), SQFalse),
 	_DECL_FUNC(type,-1,_SC("xi"), SQFalse),
+	_DECL_FUNC(visible,1,_SC("x"), SQFalse),
+	_DECL_FUNC(w,-1,_SC("xn"), SQFalse),
 	_DECL_FUNC(when,-1,_SC("xi"), SQFalse),
-	_DECL_FUNC(handle,2,_SC("xi"), SQFalse),
-	_DECL_FUNC(redraw,1,_SC("x"), SQFalse),
-	_DECL_FUNC(redraw_label,1,_SC("x"), SQFalse),
+	_DECL_FUNC(window,1,_SC("x"), SQFalse),
 	_DECL_FUNC(x,-1,_SC("xn"), SQFalse),
 	_DECL_FUNC(y,-1,_SC("xn"), SQFalse),
-	_DECL_FUNC(w,-1,_SC("xn"), SQFalse),
-	_DECL_FUNC(h,-1,_SC("xn"), SQFalse),
-	_DECL_FUNC(position,3,_SC("xii"), SQFalse),
-	_DECL_FUNC(size,3,_SC("xii"), SQFalse),
-	_DECL_FUNC(resize,5,_SC("xiiii"), SQFalse),
-	_DECL_FUNC(show,1,_SC("x"), SQFalse),
-	_DECL_FUNC(hide,1,_SC("x"), SQFalse),
-	_DECL_FUNC(classId,1,_SC("x"), SQFalse),
-	_DECL_FUNC(inherits_from,2,_SC("xp"), SQFalse),
-	_DECL_FUNC(classRTTI,1,_SC("x"), SQFalse),
-	_DECL_FUNC(parent,1,_SC("x"), SQFalse),
-	_DECL_FUNC(parent_root,1,_SC("x"), SQFalse),
-	_DECL_FUNC(window,1,_SC("x"), SQFalse),
-	_DECL_FUNC(image,-1,_SC("x x|o"), SQFalse),
-//	_DECL_FUNC(clear_flag,2,_SC("xi"), SQFalse),
-	_DECL_FUNC(changed,1,_SC("x"), SQFalse),
-	_DECL_FUNC(changed2,1,_SC("x"), SQFalse),
-	_DECL_FUNC(set_changed,1,_SC("x"), SQFalse),
-	_DECL_FUNC(set_changed2,1,_SC("x"), SQFalse),
-	_DECL_FUNC(clear_changed,1,_SC("x"), SQFalse),
-	_DECL_FUNC(clear_changed2,1,_SC("x"), SQFalse),
-	_DECL_FUNC(clear_changed_all,1,_SC("x"), SQFalse),
-	_DECL_FUNC(take_focus,1,_SC("x"), SQFalse),
-	_DECL_FUNC(as_group,1,_SC("x"), SQFalse),
-	_DECL_FUNC(as_window,1,_SC("x"), SQFalse),
-	_DECL_FUNC(visible,1,_SC("x"), SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
