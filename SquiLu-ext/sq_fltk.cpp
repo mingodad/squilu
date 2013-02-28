@@ -257,14 +257,20 @@ static SQRESULT fltk_register_object_and_instance(HSQUIRRELVM v, int instance_id
 
 static SQRESULT fltk_deregister_instance(HSQUIRRELVM v, void *cptr){
 //printf("%d fltk_deregister_instance %p\n", __LINE__, cptr);
+    SQRESULT rc = SQ_ERROR;
     sq_pushstring(v, FLTK_key, -1);
     if(sq_getonregistrytable(v) >= 0){
 	    sq_pushuserpointer(v, cptr);
-	    sq_deleteslot(v, -2, SQFalse);
-	    sq_pop(v, -1);
-	    return SQ_OK;
+	    if(sq_rawget(v, -2) == SQ_OK){
+	        sq_setinstanceup(v, -1, 0);
+            sq_poptop(v);
+            sq_pushuserpointer(v, cptr);
+            sq_deleteslot(v, -2, SQFalse);
+            rc = SQ_OK;
+	    }
+        sq_pop(v, -1);
     }
-    return SQ_ERROR;
+    return rc;
 }
 
 static SQRESULT fltk_get_registered_instance(HSQUIRRELVM v, void *cptr){
@@ -295,9 +301,16 @@ static SQRESULT getInstance_for_Fl_Klass(HSQUIRRELVM v, const SQChar *klass, SQU
     return SQ_ERROR;
 }
 
+static SQRESULT get_fltk_klass_instance(HSQUIRRELVM v, SQInteger idx, void **Var, void *klass_Tag){
+    SQRESULT _rc_;
+	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)Var,klass_Tag)) < 0) return _rc_;
+	if(!*Var) return sq_throwerror(v, _SC("widget (%s) is empty"), klass_Tag);
+	return _rc_;
+}
+
 #define SETUP_KLASS(v, idx, Var, Klass, Klass_TAG) \
 	Klass *Var = NULL; \
-	{ if(SQ_FAILED(sq_getinstanceup(v,idx,(SQUserPointer*)&Var,(void*)Klass_TAG))) \
+	{ if(SQ_FAILED(get_fltk_klass_instance(v,idx,(SQUserPointer*)&Var,(void*)Klass_TAG))) \
 		return SQ_ERROR; }
 
 #define SETUP_FL_KLASS_AT(v, idx, Var, Klass) SETUP_KLASS(v, idx, Var, Klass, FLTK_TAG(Klass))
@@ -2615,11 +2628,10 @@ static SQRESULT _Fl_Image_releasehook(SQUserPointer p, SQInteger size, HSQUIRREL
 static SQRESULT _Fl_Image_constructor(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
-    SETUP_FL_IMAGE(v);
     SQ_GET_INTEGER(v, 2, iw);
     SQ_GET_INTEGER(v, 3, ih);
     SQ_GET_INTEGER(v, 4, id);
-	self = new Fl_Image(iw, ih, id);
+	Fl_Image *self = new Fl_Image(iw, ih, id);
     //do_register_object_and_instance(v, 1, cptr);
     sq_setinstanceup(v, 1, self);
     sq_setreleasehook(v,1, _Fl_Image_releasehook);
@@ -2682,13 +2694,12 @@ static SQRegFunction fl_image_obj_funcs[]={
 static SQRESULT _Fl_RGB_Image_constructor(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
-    SETUP_FL_RGB_IMAGE(v);
     SQ_GET_STRING(v, 2, img);
     SQ_GET_INTEGER(v, 3, iw);
     SQ_GET_INTEGER(v, 4, ih);
     SQ_OPT_INTEGER(v, 5, id, 3);
     SQ_OPT_INTEGER(v, 6, ild, 0);
-	self = new Fl_RGB_Image((const uchar*)img, iw, ih, id, ild);
+	Fl_RGB_Image *self = new Fl_RGB_Image((const uchar*)img, iw, ih, id, ild);
     //do_register_object_and_instance(v, 1, cptr);
     sq_setinstanceup(v, 1, self);
     sq_setreleasehook(v,1, _Fl_Image_releasehook);
@@ -2721,7 +2732,7 @@ static SQRegFunction fl_rgb_image_obj_funcs[]={
 static SQRESULT _Fl_JPEG_Image_constructor(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
-    SETUP_FL_JPEG_IMAGE(v);
+    Fl_JPEG_Image *self;
     SQ_GET_STRING(v, 2, img_name);
     if(_top_ > 2){
         SQ_GET_STRING(v, 3, img);
@@ -2762,7 +2773,7 @@ static SQRegFunction fl_jpeg_image_obj_funcs[]={
 static SQRESULT _Fl_PNG_Image_constructor(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
-    SETUP_FL_PNG_IMAGE(v);
+    Fl_PNG_Image *self;
     SQ_GET_STRING(v, 2, img_name);
     if(_top_ > 2){
         SQ_GET_STRING(v, 3, img);
@@ -3396,8 +3407,7 @@ static SQRESULT _Fl_Pdf_File_Device_releasehook(SQUserPointer p, SQInteger size,
 
 static SQRESULT _Fl_Pdf_File_Device_constructor(HSQUIRRELVM v)
 {
-    SETUP_FL_PDF_FILE_DEVICE(v);
-	self = new Fl_Pdf_File_Device();
+	Fl_Pdf_File_Device *self = new Fl_Pdf_File_Device();
     sq_setinstanceup(v, 1, self);
     sq_setreleasehook(v,1, _Fl_Pdf_File_Device_releasehook);
 	return 1;
