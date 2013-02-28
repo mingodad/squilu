@@ -2304,6 +2304,7 @@ class ProductsListSearch extends MyListSearchWindow {
 					_fetching_image = false;
 				}
 				catch(e){
+					//foreach(k,v in get_last_stackinfo()) print(k,v);
 					_fetching_image = false;
 					throw(e);
 				}
@@ -2507,6 +2508,7 @@ class MyEditOrderWindow extends EditOrderWindow {
 	}
 	
 	function fill_edit_form_totals(myrec, asBlank=false){
+		//foreach(k,v in myrec) print(k,v);
 	}
 	
 	function fill_edit_lines_form(asBlank=false, doFocus=true, doCalc=true){

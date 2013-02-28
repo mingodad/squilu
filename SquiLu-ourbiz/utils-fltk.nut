@@ -95,9 +95,10 @@ function delayed_method_call (obj, mcb, udata)
 }
 
 
-math.number_format_set_dec_point(",");
-math.number_format_set_thousand_sep(".");
-Fl_Input.default_number_format("\0x02,.");
+math.number_format_set_dec_point(".");
+math.number_format_set_thousand_sep(",");
+Fl_Input.default_number_format("\x02.,");
+
 //Fl:scheme("plastic");
 Fl.scheme("gtk+");
 //use partial match to find verdana font

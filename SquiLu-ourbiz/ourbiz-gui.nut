@@ -5423,6 +5423,7 @@ class EditOrderWindow extends Edit_Base_Window {
                       o.textfont(1);
                       o.labelsize(16);
                       add_input_field_to_map("orders", "cash", db_orders_cash);
+                      o->use_numeric_format(1);
                     }
                     {
                       local o = Fl_Output(685, 520, 100, 25, _tr("Return"));

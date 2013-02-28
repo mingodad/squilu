@@ -1723,7 +1723,7 @@ widget_class DynamicQueryWindow {
 } 
 
 widget_class ImagesListEditWindow {
-  label {Images List / Edit} selected
+  label {Images List / Edit}
   xywh {81 129 800 560} type Double labelsize 16 hide resizable
   class List_Edit_Base_Window
 } {
@@ -3204,9 +3204,9 @@ db_products_tags->wrap_mode(o->value(), 0);}
 } 
 
 widget_class EditOrderWindow {
-  label {Edit Order}
-  xywh {255 97 800 560} type Double labelsize 16 hide resizable
-  class Edit_Base_Window
+  label {Edit Order} open selected
+  xywh {255 97 800 560} type Double labelsize 16 resizable
+  class Edit_Base_Window visible
 } {
   Fl_Group {} {open
     xywh {5 1 792 62}
@@ -3327,7 +3327,7 @@ widget_class EditOrderWindow {
         xywh {10 135 780 150} labelsize 16 textsize 16 resizable
         class Fl_Data_Table
       }
-      Fl_Group {} {
+      Fl_Group {} {open
         xywh {10 290 781 260}
       } {
         Fl_Group group_totals {open
@@ -3392,6 +3392,7 @@ widget_class EditOrderWindow {
             dirty_name db_orders_cash
             xywh {685 490 100 25} type Float labelfont 1 labelsize 16 textfont 1 textsize 16
             code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+            code1 {o->use_numeric_format(1);}
             class Fl_Float_Input_Fmt
           }
           Fl_Output cash_return {
