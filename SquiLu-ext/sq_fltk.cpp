@@ -3770,6 +3770,18 @@ static SQRESULT _fl_get_font_name(HSQUIRRELVM v)
     return 1;
 }
 
+static SQRESULT _fl_focus(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    if(_top_ > 1){
+        SQ_GET_INSTANCE_VAR(v, 2, Fl_Widget, widget, FLTK_TAG(Fl_Widget));
+        Fl::focus(widget);
+        return 0;
+    }
+    if(getInstance_for_Fl_Widget(v, Fl::focus()) != SQ_OK) sq_pushnull(v);
+	return 1;
+}
+
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_fl_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_obj_funcs[]={
 	_DECL_FUNC(check,1,_SC("y"),SQTrue),
@@ -3821,6 +3833,7 @@ static SQRegFunction fl_obj_funcs[]={
 	_DECL_FUNC(add_idle,-2,_SC("yc."),SQTrue),
 	_DECL_FUNC(remove_idle,-3,_SC("yic."),SQTrue),
 	_DECL_FUNC(add_focus_changing_handler,2,_SC("yc"),SQTrue),
+	_DECL_FUNC(focus,1,_SC("y"),SQTrue),
 	{0,0}
 };
 #undef _DECL_FUNC
