@@ -1735,7 +1735,7 @@ static SQRegFunction sq_sqlite3_context_methods[] =
 	_DECL_FUNC(aggregate_data,  -1, _SC("x.")),
 	_DECL_FUNC(aggregate_count,  1, _SC("x")),
 	_DECL_FUNC(result_null,  1, _SC("x")),
-	_DECL_FUNC(result_double,  2, _SC("xf")),
+	_DECL_FUNC(result_double,  2, _SC("xn")),
 	_DECL_FUNC(result_int,  2, _SC("xi")),
 	_DECL_FUNC(result_text,  2, _SC("xs")),
 	_DECL_FUNC(result_blob,  2, _SC("xs")),
