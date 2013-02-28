@@ -1,10 +1,32 @@
 local db = SQLite3(":memory:");
 print(db);
 
+class Multiply3 {
+	first = null;
+	second = null;
+	thirdy = null;
+	constructor(){
+		reset();
+	}
+	function reset(){
+		first = second = thirdy = 0.0;
+	}
+	function doIt(){
+		return first * second * thirdy;
+	}
+}
+
 db.create_function("multiply3",3,function(ctx,a,b,c){
 		//print(ctx.user_data());
-		ctx.result_double(a*b*c);
-	}, "user_data_any");
+		//local m3 = Multiply3();
+		local m3 = ctx.user_data();
+		m3.reset();
+		m3.first = a;
+		m3.second = b;
+		m3.thirdy = c;
+		ctx.result_double(m3.doIt());
+		//ctx.result_double(a*b*c);
+	}, Multiply3());
 
 local sql = "select 1.2*2.5*3.6;";
 local sql_squilu = "select multiply3(1.2,2.5,3.6);";
