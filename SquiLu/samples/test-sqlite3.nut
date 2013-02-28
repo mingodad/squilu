@@ -1,7 +1,10 @@
 local db = SQLite3(":memory:");
 print(db);
 
-db.create_function("multiply3",3,function(ctx,a,b,c){ctx.result_double(a*b*c);});
+db.create_function("multiply3",3,function(ctx,a,b,c){
+		//print(ctx.user_data());
+		ctx.result_double(a*b*c);
+	}, "user_data_any");
 
 local sql = "select 1.2*2.5*3.6;";
 local sql_squilu = "select multiply3(1.2,2.5,3.6);";

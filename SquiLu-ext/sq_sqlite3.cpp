@@ -2002,8 +2002,8 @@ static SQRegFunction sq_sqlite3_methods[] =
 	_DECL_FUNC(trace,  -2, _SC("x c|o .")),
 	_DECL_FUNC(busy_handler,  -2, _SC("x c|o .")),
 	_DECL_FUNC(busy_timeout,  2, _SC("xi")),
-	_DECL_FUNC(create_function,  4, _SC("xsic")),
-	_DECL_FUNC(create_aggregate,  5, _SC("xsicc")),
+	_DECL_FUNC(create_function,  -4, _SC("xsic.")),
+	_DECL_FUNC(create_aggregate,  -5, _SC("xsicc.")),
 #ifndef WIN32
 	_DECL_FUNC(temp_directory,  2, _SC("xs")),
 #endif
