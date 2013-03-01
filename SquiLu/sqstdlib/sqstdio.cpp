@@ -430,7 +430,7 @@ SQInteger _g_io_loadstring(HSQUIRRELVM v)
     }
     else
     {
-        rc = sq_compilebuffer(v, dump, size, "dostring", SQFalse, SQFalse);
+        rc = sq_compilebuffer(v, dump, size, "loadstring", SQFalse, SQFalse);
     }
 	return rc < 0 ? rc : 1;
 }
