@@ -321,6 +321,623 @@ WHERE entity_id = ]==], aId);
 	}
 }
 
+//sql queries
+
+local function order_totals_get_one(id)
+{
+	return format([==[
+SELECT order_id,
+	count(*) AS lines_count,
+	sum(weight) AS weight_total,
+	sum(subtotal_amt) AS subtotal_amt,
+	sum(discount_amt) AS discount_amt,
+	sum(sales_tax1_amt) AS sales_tax1_amt,
+	sum(sales_tax2_amt) AS sales_tax2_amt,
+	sum(total) AS total_amt
+FROM order_line_calc_view
+WHERE order_id =%d]==], id);
+}
+
+local function orders_lines_get_one(id)
+{
+	return format([==[
+SELECT ol.*, p.weight as unit_weight,
+	pbs.quantity as xref_order_line_quantity
+FROM orders_lines as ol JOIN products as p
+	ON ol.product_id = p.id
+	LEFT JOIN products_inventory_pending as pbs
+	ON ol.id = pbs.order_line_id
+WHERE ol.id=%d]==], id);
+}
+
+local function products_order_pending_get_one(product_id, entity_id)
+{
+	return format([==[
+SELECT pp.order_line_id as xref_order_line_id,
+	pp.quantity as xref_order_line_quantity
+FROM products_order_pending as pp, orders_lines as ol, orders as o
+WHERE pp.product_id = %d
+	AND ol.id = pp.order_line_id
+	AND o.id = ol.order_id
+	AND o.entity_id = %d
+LIMIT 1]==], product_id, entity_id);
+}
+
+local function products_inventory_pending_get_one(product_id)
+{
+	return format([==[
+SELECT order_line_id as xref_order_line_id,
+	quantity as xref_order_line_quantity
+FROM products_inventory_pending
+WHERE product_id = %d
+LIMIT 1]==], product_id);
+}
+
+local function orders_get_one(id)
+{
+	return format([==[
+SELECT o.*, ott.* FROM orders AS o LEFT JOIN ( %s) AS ott ON o.id = ott.order_id WHERE o.id =%d ]==],
+		order_totals_get_one(id), id);
+}
+
+local function entity_for_order_get_one(entity_id)
+{
+	return format([==[
+select
+	address as entity_address,
+	city as entity_city,
+	id as entity_id,
+	name as entity_name,
+	phone as entity_phone,
+	sales_tax_exempt as entity_sales_tax_exempt,
+	state as entity_state,
+	country as entity_country,
+	tax_number as entity_tax_number,
+	use_sales_tax2 as entity_use_sales_tax2,
+	zip as entity_zip
+from entities
+where id=%d]==], entity_id);
+}
+
+local function product_for_order_get_one(product_id)
+{
+	return format([==[
+SELECT
+p.sell_description as description,
+sell_price as price,
+price_decimals,
+p.id as product_id,
+sell_quantity_min as quantity,
+st.rate1 as  sales_tax1_pct,
+st.rate2 as sales_tax2_pct,
+p.weight, p.weight as unit_weight
+FROM products as p LEFT JOIN sales_tax_rates as st
+ON p.sales_tax_id = st.id
+WHERE p.id=%d
+LIMIT 1]==], product_id);
+}
+
+local function orders_sales_history(ptype, plimit)
+{
+	// Select history type
+	if(ptype < 1) return "select '' as 'Select one|-1'; ";
+
+	local sql = [==[
+select t.product_id as 'id|ID|8|R',
+	sell_description as 'sell_description|Product|-1',
+	t.quantity as 'quantity|Qty.|10|R|N',
+	t.total as 'total|Value|12|R|M',
+	bround((t.total/gtotal)*100, 3)  as 'pct_total|% Total|10|R|P'
+from (
+	select product_id, bround(sum(quantity)) as quantity , bround(sum(price*quantity), 2) as total
+	from orders_lines
+	where order_id in(select id from orders where order_type_id in(select * from order_types_sell_payment))
+	group by product_id
+) as t, products, (
+	select sum(price*quantity)  as gtotal from orders_lines
+	where order_id in(select id from orders where order_type_id in(select * from order_types_sell_payment))
+)
+where t.product_id = id
+order by]==];
+
+	switch(ptype)
+	{
+		case 1:
+			sql += " 4 desc";
+		break;
+		case 2:
+			sql += " 2";
+		break;
+	}
+	return sql;
+}
+
+local function orders_lines_sql_for_order(order_id)
+{
+	return format([==[
+select
+	id,
+	product_id,
+	description,
+	quantity,
+	price,
+	quantity * price as 'first_total'
+from orders_lines
+where order_id = %d
+order by id]==], order_id)
+}
+
+local function entity_past_products_get_sql(entity_id)
+{
+	return format([==[
+SELECT
+	product_id as 'id|ID|6|R',
+	sell_description as 'sell_description|Product|-1',
+	sum(quantity) as 'quantity|Quantity|8|R',
+	sum(quantity*price) as 'amount|Amount|8|R|M',
+	code as 'order_type_code|Type|4|C'
+FROM orders_lines as ol, orders as o, order_types as ot, products as p
+WHERE o.entity_id = %d
+	AND ot.id = o.order_type_id
+	AND ol.order_id = o.id
+	AND p.id = ol.product_id
+GROUP BY product_id, code
+ORDER BY 3 desc]==], entity_id);
+}
+
+local function last_product_order_lines_get_sql (product_id)
+{
+	return format([==[
+SELECT ol.product_id as 'id|ID|8|R',
+	ol.quantity as 'quantity|Quantity|9|R|D',
+	ol.description as 'description|Product|-1',
+	ot.code as 'order_type_code|Type|5',
+	o.order_date as 'order_date|Date|9'
+FROM orders_lines as ol, orders as o, order_types as ot
+	where ol.product_id = %d
+	AND o.id = ol.order_id
+	AND ot.id = o.order_type_id
+order by 1 desc limit 20]==], product_id);
+}
+
+local function product_appear_together_get_sql(product_id)
+{
+	return format([==[
+SELECT
+pg.product_id as 'id|ID|8|R',
+pg.quantity as 'quantity|Quantity|9|R|D',
+pg.num as 'times|Times|8|R',
+sell_description as 'description|Product|-1'
+FROM (
+SELECT count(*) as num, sum(quantity) as quantity, product_id
+FROM orders_lines WHERE order_id in (
+SELECT order_id FROM orders_lines
+    WHERE product_id = %d
+) GROUP BY product_id
+ORDER BY 1 desc
+LIMIT 20
+) as pg, products p
+WHERE pg.product_id=p.id
+ORDER BY 3 desc]==], product_id);
+}
+
+local function orders_numbering_get_sql(order_id, version)
+{
+	return format([==[
+UPDATE orders SET order_number = ifnull(
+	(SELECT max(order_number)+1
+	FROM orders
+	WHERE order_type_id = (SELECT order_type_id from orders where id= %d)
+	AND series = (SELECT series from orders where id= %d))
+	, strftime("%%Y0001")),
+	_version_=_version_+1
+WHERE id = %d
+	AND _version_= %d
+	AND order_number IS NULL]==], order_id, order_id, order_id, version);
+}
+
+local function discount_by_quantity_get_one(product_id, quantity)
+{
+	return format([==[
+SELECT discount_pct, price
+FROM (
+	SELECT quantity, discount_pct, price
+	FROM product_prices
+	WHERE product_id = %d
+	UNION ALL
+	SELECT sell_quantity_min as quantity, 0 as discount_pct, sell_price as price
+	FROM products
+	WHERE id = %d
+	ORDER BY quantity
+)
+WHERE quantity <= %f
+ORDER BY quantity DESC LIMIT 1;]==], product_id, product_id, quantity);
+}
+
+local function order_lines_onhand_get_sql(order_id)
+{
+	return format([==[
+SELECT
+	product_id as 'id|ID|8|R',
+	description as 'description|Product|-1',
+	quantity as 'quantity|Quantity|9|R|D',
+	case when p.kit > 0 then
+			p.kit_onhand
+		else
+			p.quantity_onhand
+		end as 'quantity_onhand|Onhand|9|R|D',
+	case when quantity > (case when p.kit > 0 then
+			p.kit_onhand
+		else
+			p.quantity_onhand
+		end)
+	then 'X' else '' end as 'x|X|3|C'
+FROM orders_lines ol, products_onhand p
+WHERE order_id = %d
+AND ol.product_id = p.id
+ORDER BY ol.id]==], order_id);
+}
+
+local function orders_sum_search_sql(query_limit)
+{
+	return format([==[
+SELECT
+	id as 'id|ID|6|R',
+	cdate as 'cdate|DATE|9',
+	amount_total as 'amount_total|Total|9|R|M',
+	description as 'description|Description|-1'
+FROM orders_sum_groups
+ORDER BY id DESC
+LIMIT %d]==], query_limit);
+}
+
+local function product_availability_get_sql(product_id, order_id, order_type_map){
+	local entity_id = order_type_map.entity_id.tointeger();
+	return format([==[
+SELECT pp.order_line_id as 'id|ID|6|R',
+	ot.code as 'type|Type|4',
+	pp.quantity as 'quantity|Quantity|9|R|N',
+	o.order_date as 'order_date|DATE|9',
+	o.entity_name as 'entity_name|Entiy|-1'
+FROM products_quote_pending as pp, orders_lines as ol, orders as o, order_types as ot
+WHERE pp.product_id = %d
+	AND ol.id = pp.order_line_id
+	AND o.id = ol.order_id
+	AND o.entity_id = %d
+	AND ot.id = o.order_type_id
+
+UNION ALL
+
+SELECT pp.order_line_id as 'id|ID|6|R',
+	ot.code as 'type|Type|4',
+	pp.quantity as 'quantity|Quantity|9|R|N',
+	o.order_date as 'order_date|DATE|9',
+	o.entity_name as 'entity_name|Entiy|-1'
+FROM products_order_pending as pp, orders_lines as ol, orders as o, order_types as ot
+WHERE pp.product_id = %d
+	AND ol.id = pp.order_line_id
+	AND o.id = ol.order_id
+	AND o.entity_id = %d
+	AND ot.id = o.order_type_id
+
+UNION ALL
+
+SELECT pp.order_line_id as 'id|ID|6|R',
+	ot.code as 'type|Type|4',
+	pp.quantity as 'quantity|Quantity|9|R|N',
+	o.order_date as 'order_date|DATE|9',
+	o.entity_name as 'entity_name|Entiy|-1'
+FROM products_inventory_pending as pp, orders_lines as ol, orders as o, order_types as ot
+WHERE pp.product_id = %d
+	AND ol.id = pp.order_line_id
+	AND o.id = ol.order_id
+	AND ot.id = o.order_type_id
+]==], product_id, entity_id, product_id, entity_id, product_id);
+}
+
+local function entity_sales_history_sql(history_type, query_limit, entity_id){
+	// Select history type
+	if (history_type < 1) {return "select '' as 'Select one|-1';" };
+
+	local str_entity_id = entity_id.tostring();
+	local mf = blob();
+	if (history_type < 3){
+		mf.write([==[
+SELECT o.id as 'id|ID|6|R', o.order_date as 'order_date|Date|10',
+ot.code as 'order_type_code|Type|7|C', pt.code as 'payment_type_code|P.T.|4|C',
+discount_amt as 'discount_amt|Disc.|9|R|ZM', total as 'total|Total|9|R|M'
+FROM orders as o
+LEFT JOIN order_types as ot
+ON o.order_type_id = ot.id
+LEFT JOIN payment_types as pt
+ON o.payment_type_id = pt.id
+, (
+	SELECT order_id, sum(discount_amt) as  discount_amt, sum(total) as total
+	FROM order_line_calc_view
+	WHERE order_id in(SELECT id FROM orders WHERE entity_id =]==], str_entity_id, [==[)
+	GROUP BY order_id
+)  as ott
+WHERE entity_id =]==], str_entity_id, " and o.id = ott.order_id");
+	}
+	else
+	{
+		local strTmp = format(" products_by_entity_view where entity_id =%d ", entity_id);
+		local strTmp2 = " (price * quantity) ";
+		local strTmp3 = " code ";
+
+		mf.write([==[
+select product_id as 'product_id|ID|8|R', description as "description|Product|-1",
+sum(quantity) as 'quantity|Qty.|9|R|N', sum(]==], strTmp2, [==[) as "amount|Amount|9|R|M",
+]==], strTmp3, [==[ as "order_type_code|Type|6|C"
+from ]==], strTmp, [==[
+group by product_id, description, ]==], strTmp3);
+	}
+
+	switch(history_type){
+		case 1: mf.write(" order by order_date desc, o.id desc "); break;
+		case 2: mf.write(" order by total desc "); break;
+		case 3: mf.write(" order by description "); break;
+		case 4: mf.write(" order by 4 desc "); break;
+		case 5: mf.write(" order by 3 desc "); break;
+	}
+
+	mf.write(" limit ", query_limit.tointeger());
+	//debug_print(tostring(mf), "\n");
+	return mf.tostring();
+}
+
+local function entities_sql_search_list(qs_tbl, post_tbl){
+	local so = get_search_options(post_tbl);
+	checkQueryStringSAB(qs_tbl, so);
+	local mf = blob();
+
+	mf.write(" select e.id, e.name, e.contact, e.phone, e.is_active, e.image_id ");
+	if (so.with_images) mf.write(", i.thumbnail, i.mime_type ");
+	mf.write(" from entities as e ");
+	if (so.with_images) mf.write(" left join images as i on e.image_id = i.id ");
+	mf.write(" where ");
+
+	if  ((!so.group_id) &&  (!so.product_id) && (! (so.search_str && (so.search_str.len() > 0)))){
+		//special case where we get the latest entities that made any transaction
+		mf.write(" e.id in(select distinct entity_id from orders as o ");
+		if (so.sales || so.buys){
+			mf.write(", order_types as ot where o.order_type_id = ot.id and ot.group_order =");
+		}
+		if (so.sales) mf.write("'S'");
+		else if (so.buys) mf.write("'B'");
+
+		mf.write(" order by o.id desc");
+		if (so.query_limit != 0) mf.write(" limit ", so.query_limit);
+		mf.write(") order by 2");
+		//print(out_sql);
+		return mf.tostring();
+	}
+
+	if (so.mdate ) mf.write(" e.mdate is not null order by mdate desc ");
+	else if (so.cdate) mf.write(" 1=1 order by e.id desc ");
+
+	if (so.sales && so.buys) mf.write(" 1=1 ");
+	else if (so.sales || so.buys){
+		if (so.sales) mf.write(" show_on_sales = 1 ");
+		else if (so.buys) mf.write(" show_on_buys = 1 ");
+	}
+	else mf.write(" 1=1 ");
+
+	if (so.group_id && so.group_id != 0){
+		//mf.write(" and id in( select entity_id from entity_groups_link where group_id="
+		mf.write(" and e.group_id=", so.group_id);
+	}
+
+	if (so.active) mf.write(" and e.is_active=1 ");
+
+	local search_str = escape_sql_like_search_str(so.search_str);
+	if (so.product_id && so.product_id != 0){
+		mf.write(" and e.id in(select entity_id from orders_lines as ol, orders as o2 ");
+
+		if (so.sales || so.buys){
+			mf.write(" join order_types as ot2 on o2.order_type_id = ot2.id and ot2.group_order = ");
+			if (so.sales) mf.write(" 'S' ");
+			else if (so.buys) mf.write(" 'B' ");
+		}
+
+		mf.write("where ol.product_id = ",  so.product_id, " and ol.order_id = o2.id order by ol.id desc ");
+		if (so.query_limit != 0) mf.write(" limit ", so.query_limit);
+		mf.write(")");
+	}
+	else if (search_str && search_str.len() > 0){
+		if (so.id && so.id != 0) mf.write(" and e.id = ", so.search_str.tointeger());
+		else
+		{
+			if (so.products){
+				mf.write(" and e.id in ( select entity_id from orders where id in (",
+					" select order_id from orders_lines where ",
+					" description like "", search_str, "" order by id desc )) ");
+			}
+			else
+			{
+				mf.write(" and ");
+				if (so.contact) mf.write(" e.contact ");
+				else if (so.notes) mf.write(" e.notes ");
+				else if (so.phone) mf.write(" e.phone ");
+				else mf.write(" e.name ");
+				mf.write(" like '", search_str, "' ");
+			}
+		}
+	}
+
+	mf.write(" order by e.name ");
+
+	if (so.query_limit && so.query_limit != 0) mf.write(" limit ", so.query_limit);
+	//debug_print(tostring(mf), "\n")
+	return  mf.tostring();
+}
+
+local function orders_sql_search_list(qs_tbl, post_tbl){
+	//foreach(k,v in post_tbl) debug_print("\n", k, ":", v)
+	local so = get_search_options(post_tbl);
+	checkQueryStringSAB(qs_tbl, so);
+	local mf = blob();
+
+	mf.write("SELECT o.id, o.order_date, ot.code, o.series, o.order_number,",
+		//" o.entity_name, get_order_total(o.id) as total_amt, pt.code "
+		" o.entity_name, ",
+		" (subtotal + total_sales_tax1 + total_sales_tax2) as total_amt, ",
+		" pt.code ",
+		" FROM ((orders AS o LEFT JOIN payment_types as pt ON o.payment_type_id = pt.id) ",
+		" JOIN  order_types as ot ON o.order_type_id = ot.id) WHERE 1=1 ");
+
+	if (so.sales || so.buys) {
+		if (so.sales) mf.write(" and ot.group_order = 'S' ");
+		else if (so.buys) mf.write(" and ot.group_order = 'B' ");
+	}
+
+	if (so.payment_type_id && so.payment_type_id != 0)
+		mf.write(" and o.payment_type_id = " , so.payment_type_id);
+
+	if (so.group_id && so.group_id != 0)
+		mf.write(" and o.order_type_id = " , so.group_id , " ");
+
+	local search_str = escape_sql_like_search_str(so.search_str);
+	if (so.entity_id && so.entity_id != 0) mf.write(" and o.entity_id =" , so.entity_id);
+	else
+	{
+		if (so.product_id && so.product_id != 0){
+			mf.write(" and o.id in( select order_id from orders_lines as ol ");
+
+			if (so.sales || so.buys){
+				mf.write(", (orders as o join order_types as ot on o.order_type_id = ot.id and ot.group_order = ");
+				if (so.sales) mf.write(" 'S' )");
+				else if (so.buys) mf.write(" 'B' )");
+			}
+
+			mf.write("where ol.product_id =", so.product_id);
+			if (so.sales || so.buys) mf.write(" and ol.order_id = o.id ");
+			mf.write(" order by ol.id desc ");
+			if (so.query_limit != 0) mf.write(" limit " , so.query_limit);
+			mf.write(")")
+		}
+		else if (search_str && search_str.len() > 0) {
+			if (so.products){
+				mf.write(" and o.id in ( select order_id from orders_lines where ",
+					" description like "" , search_str , "" order by id desc limit " , so.query_limit , ")");
+			}
+			else mf.write(" and ");
+
+			if (so.notes) mf.write(" o.notes ");
+			else if (so.date) mf.write(" o.order_date ");
+			//lo_search_str = escapeSqlLikeSearchStr(dbDate(search_str))
+			//table.insert(sql, " and order_date = (("")
+			else if (so.total) mf.write(" o.total_amt ");
+			else  mf.write(" o.entity_name ");
+
+			mf.write(" like '" , search_str , "' ");
+		}
+	}
+
+	if (so.order_by_modification) mf.write(" and o.mdate is not null order by o.mdate desc ");
+	else if (so.order_by_creation) mf.write(" order by o.id desc ");
+	else mf.write(" order by o.order_date desc, o.id desc ");
+
+	if (so.query_limit && so.query_limit != 0) mf.write(" limit " , so.query_limit);
+	//debug_print(tostring(mf), "\n")
+	return  mf.tostring();
+}
+
+function products_sql_search_list(qs_tbl, post_tbl){
+	local so = get_search_options(post_tbl);
+	checkQueryStringSAB(qs_tbl, so);
+	local mf = blob();
+
+	mf.write([==[
+select p.id,
+p.reference_code,
+p.sell_description,
+ifnull(p.kit,  0)  as kit,
+	round((p.sell_price * (1 + (st.rate1/100.0))),p.price_decimals) as price_taxed,
+	round(p.sell_price, p.price_decimals) as price,
+round(case when p.kit > 0 then p.kit_onhand else p.quantity_onhand end, 4) as quantity_onhand,
+p.is_active, price_date,
+p.image_id
+]==])
+	if (so.with_images) mf.write(", thumbnail, mime_type ");
+	mf.write(" from (products_onhand as p left join sales_tax_rates as st on p.sales_tax_id = st.id) ");
+	if (so.with_images) mf.write(" left join images as i on p.image_id = i.id ");
+	mf.write(" where ");
+
+	if ( (!so.group_id) && (!so.entity_id) && (! (so.search_str && (so.search_str.len() > 0)))){
+		//special case where we get the latest entities that made any transaction
+		mf.write(" p.id in(select distinct product_id from orders_lines where order_id in (select o.id from orders as o ");
+
+		if (so.sales || so.buys){
+			mf.write(", order_types as ot where o.order_type_id = ot.id and ot.group_order =");
+			if (so.sales) mf.write("'S'");
+			else if (so.buys) mf.write("'B'");
+		}
+
+		mf.write(" order by o.id desc");
+		if (so.query_limit && so.query_limit != 0) mf.write(" limit " , so.query_limit);
+		mf.write(")) order by 3");
+		return mf.tostring();
+	}
+
+	if (so.sales && so.buys) mf.write(" 1=1 ");
+	else if (so.sales || so.buys){
+		if (so.sales) mf.write(" show_on_sales = 1 ");
+		else if (so.buys) mf.write(" show_on_buys = 1 ");
+	}
+	else mf.write(" 1=1 ");
+
+	if (so.group_id && so.group_id != 0)
+		mf.write(" and p.group_id=" , so.group_id , " ");
+
+	if (so.active) mf.write(" and p.is_active = 1 ");
+
+	if (so.only_prices_older){
+		//local adate = parse_date(optNum)
+		//mf.write(" and p.price_update_date < '" ,
+		//string.format("%d-%.02d-%.02d", adate.year, adate.month, adate.day) + "' ");
+	}
+
+	local search_str = escape_sql_like_search_str(so.search_str);
+
+	if (so.entity_id && so.entity_id != 0){
+		mf.write([==[
+and p.id in(
+select product_id from orders_lines where order_id in (
+select id from orders where entity_id = ]==] , so.entity_id, " order by id desc)) ");
+	}
+	else if (search_str && search_str.len() > 0){
+		if (so.id && so.id != 0) mf.write(" and p.id = " , so.search_str.tointeger());
+		else
+		{
+			if (so.entities){
+				mf.write(" and p.id in(",
+					"select product_id from orders_lines where order_id in (",
+					"select id from orders where entity_id in (",
+					"select id from entities where name like "" , search_str, "" ",
+					"or company like "" , search_str, "" order by id desc ))) ");
+			}
+			else mf.write(" and ");
+			if (so.notes){
+				if (so.buys) mf.write(" buy_notes ");
+				else mf.write(" sell_notes ");
+			}
+			else if (so.reference) mf.write(" reference_code ");
+			else mf.write(" p.sell_description ");
+
+			mf.write(" like '" , search_str , "' ");
+		}
+	}
+
+	if (so.order_by_modification) mf.write(" p.mdate is not null order by p.mdate desc ");
+	else if (so.order_by_creation) mf.write(" 1=1 order by id desc ");
+	else mf.write(" order by 3 ");
+
+	if (so.query_limit && so.query_limit != 0) mf.write(" limit " , so.query_limit);
+	//debug_print("\n", mf.tostring(), "\n")
+	return  mf.tostring();
+}
+
 local db_ourbiz_tables = {};
 
 //
@@ -338,75 +955,6 @@ class DB_Entities extends DB_Manager {
 		"irpf_pct_retention"]);
 	}
 
-	function past_products_sql(entity_id){
-		return format([==[
-SELECT
-	product_id as 'id|ID|6|R',
-	sell_description as 'sell_description|Product|-1',
-	sum(quantity) as 'quantity|Quantity|8|R',
-	sum(quantity*price) as 'amount|Amount|8|R|M',
-	code as 'order_type_code|Type|4|C'
-FROM orders_lines as ol, orders as o, order_types as ot, products as p
-WHERE o.entity_id = %d
-	and ot.id = o.order_type_id
-	and ol.order_id = o.id
-	and p.id = ol.product_id
-GROUP BY product_id, code
-ORDER BY 3 desc
-]==], entity_id.tointeger());
-	}
-
-	static function sales_history_sql(history_type, query_limit, entity_id){
-		// Select history type
-		history_type = history_type.tointeger();
-		if (history_type < 1) {return "select '' as 'Select one|-1';" };
-
-		entity_id = entity_id.tointeger();
-		local mf = blob();
-		if (history_type < 3){
-			mf.write([==[
-SELECT o.id as 'id|ID|6|R', o.order_date as 'order_date|Date|10',
-	ot.code as 'order_type_code|Type|7|C', pt.code as 'payment_type_code|P.T.|4|C',
-	discount_amt as 'discount_amt|Disc.|9|R|ZM', total as 'total|Total|9|R|M'
-FROM orders as o
-LEFT JOIN order_types as ot
-	ON o.order_type_id = ot.id
-LEFT JOIN payment_types as pt
-	ON o.payment_type_id = pt.id
-	, (
-		SELECT order_id, sum(discount_amt) as  discount_amt, sum(total) as total
-		FROM order_line_calc_view
-		WHERE order_id in(SELECT id FROM orders WHERE entity_id =]==], entity_id, [==[)
-		GROUP BY order_id
-	)  as ott
-	WHERE entity_id =]==], entity_id, " and o.id = ott.order_id");
-		}
-		else
-		{
-			local strTmp = format(" products_by_entity_view where entity_id =%d ", entity_id);
-			local strTmp2 = " (price * quantity) ";
-			local strTmp3 = " code ";
-
-			mf.write([==[
-select product_id as 'product_id|ID|8|R', description as "description|Product|-1",
-	sum(quantity) as 'quantity|Qty.|9|R|N', sum(]==], strTmp2, [==[) as "amount|Amount|9|R|M",
-]==], strTmp3, [==[ as "order_type_code|Type|6|C"
-from ]==], strTmp, [==[
-group by product_id, description, ]==], strTmp3);
-		}
-
-		switch(history_type){
-			case 1: mf.write(" order by order_date desc, o.id desc "); break;
-			case 2: mf.write(" order by total desc "); break;
-			case 3: mf.write(" order by description "); break;
-			case 4: mf.write(" order by 4 desc "); break;
-			case 5: mf.write(" order by 3 desc "); break;
-		}
-
-		mf.write(" limit ", query_limit.tointeger());
-		//debug_print(tostring(mf), "\n");
-		return mf.tostring();
-	}
 
 	function sql_bar_chart_statistics(aId, sab, periode_count, periode_type){
 		local mf = blob();
@@ -430,105 +978,20 @@ group by product_id, description, ]==], strTmp3);
 		return mf.tostring();
 	}
 
-	function sql_search_list(qs_tbl, post_tbl){
-		local so = get_search_options(post_tbl);
-		checkQueryStringSAB(qs_tbl, so);
-		local mf = blob();
-
-		mf.write(" select e.id, e.name, e.contact, e.phone, e.is_active, e.image_id ");
-		if (so.with_images) mf.write(", i.thumbnail, i.mime_type ");
-		mf.write(" from entities as e ");
-		if (so.with_images) mf.write(" left join images as i on e.image_id = i.id ");
-		mf.write(" where ");
-
-		if  ((!so.group_id) &&  (!so.product_id) && (! (so.search_str && (so.search_str.len() > 0)))){
-			//special case where we get the latest entities that made any transaction
-			mf.write(" e.id in(select distinct entity_id from orders as o ");
-			if (so.sales || so.buys){
-				mf.write(", order_types as ot where o.order_type_id = ot.id and ot.group_order =");
-			}
-			if (so.sales) mf.write("'S'");
-			else if (so.buys) mf.write("'B'");
-
-			mf.write(" order by o.id desc");
-			if (so.query_limit != 0) mf.write(" limit ", so.query_limit);
-			mf.write(") order by 2");
-			//print(out_sql);
-			return mf.tostring();
-		}
-
-		if (so.mdate ) mf.write(" e.mdate is not null order by mdate desc ");
-		else if (so.cdate) mf.write(" 1=1 order by e.id desc ");
-
-		if (so.sales && so.buys) mf.write(" 1=1 ");
-		else if (so.sales || so.buys){
-			if (so.sales) mf.write(" show_on_sales = 1 ");
-			else if (so.buys) mf.write(" show_on_buys = 1 ");
-		}
-		else mf.write(" 1=1 ");
-
-		if (so.group_id && so.group_id != 0){
-			//mf.write(" and id in( select entity_id from entity_groups_link where group_id="
-			mf.write(" and e.group_id=", so.group_id);
-		}
-
-		if (so.active) mf.write(" and e.is_active=1 ");
-
-		local search_str = escape_sql_like_search_str(so.search_str);
-		if (so.product_id && so.product_id != 0){
-			mf.write(" and e.id in(select entity_id from orders_lines as ol, orders as o2 ");
-
-			if (so.sales || so.buys){
-				mf.write(" join order_types as ot2 on o2.order_type_id = ot2.id and ot2.group_order = ");
-				if (so.sales) mf.write(" 'S' ");
-				else if (so.buys) mf.write(" 'B' ");
-			}
-
-			mf.write("where ol.product_id = ",  so.product_id, " and ol.order_id = o2.id order by ol.id desc ");
-			if (so.query_limit != 0) mf.write(" limit ", so.query_limit);
-			mf.write(")");
-		}
-		else if (search_str && search_str.len() > 0){
-			if (so.id && so.id != 0) mf.write(" and e.id = ", so.search_str.tointeger());
-			else
-			{
-				if (so.products){
-					mf.write(" and e.id in ( select entity_id from orders where id in (",
-						" select order_id from orders_lines where ",
-						" description like "", search_str, "" order by id desc )) ");
-				}
-				else
-				{
-					mf.write(" and ");
-					if (so.contact) mf.write(" e.contact ");
-					else if (so.notes) mf.write(" e.notes ");
-					else if (so.phone) mf.write(" e.phone ");
-					else mf.write(" e.name ");
-					mf.write(" like '", search_str, "' ");
-				}
-			}
-		}
-
-		mf.write(" order by e.name ");
-
-		if (so.query_limit && so.query_limit != 0) mf.write(" limit ", so.query_limit);
-		//debug_print(tostring(mf), "\n")
-		return  mf.tostring();
-	}
-
 	function sql_list(qs_tbl, post_tbl){
-		if (qs_tbl.get("search", false)) return sql_search_list(qs_tbl, post_tbl);
-		else if (qs_tbl.get("past_products", false)) return past_products_sql(qs_tbl.past_products);
-		else if (qs_tbl.get("history", false)){
+		local entity_id;
+		if (qs_tbl.get("search", false)) return entities_sql_search_list(qs_tbl, post_tbl);
+		else if (qs_tbl.get("past_products", false)) return entity_past_products_get_sql(qs_tbl.past_products.tointeger());
+		else if ( (entity_id = qs_tbl.get("history", 0)) ){
 			local htype = qs_tbl.get("htype", 0);
 			local query_limit = qs_tbl.get("query_limit", 50).tointeger();
-			return sales_history_sql(htype, query_limit, qs_tbl.history);
+			return entity_sales_history_sql(htype, query_limit, entity_id.tointeger());
 		}
-		else if (qs_tbl.get("statistics", false)){
+		else if ( (entity_id = qs_tbl.get("statistics", 0)) ){
 			local periode_count = qs_tbl.get("periode_count", 12).tointeger();
 			local periode_type = getStatisticsPeriodeType(qs_tbl.get("periode_type", "months"));
 			local sab = qs_tbl.get("sab", "S");
-			return sql_bar_chart_statistics(qs_tbl.get("statistics", 0).tointeger(), sab, periode_count, periode_type);
+			return sql_bar_chart_statistics(entity_id.tointeger(), sab, periode_count, periode_type);
 		}
 		else if (qs_tbl.get("print_list", false)){
 			return [==[
@@ -557,7 +1020,6 @@ order by name
 		}
 	}
 }
-
 db_ourbiz_tables.entities <- new DB_Entities();
 
 
@@ -1017,77 +1479,6 @@ class DB_Orders extends DB_Manager {
 		_order_totals = CalcOrderTotals();
 	}
 
-	function sql_search_list(qs_tbl, post_tbl){
-		//foreach(k,v in post_tbl) debug_print("\n", k, ":", v)
-		local so = get_search_options(post_tbl);
-		checkQueryStringSAB(qs_tbl, so);
-		local mf = blob();
-
-		mf.write("SELECT o.id, o.order_date, ot.code, o.series, o.order_number,",
-			//" o.entity_name, get_order_total(o.id) as total_amt, pt.code "
-			" o.entity_name, ",
-			" (subtotal + total_sales_tax1 + total_sales_tax2) as total_amt, ",
-			" pt.code ",
-			" FROM ((orders AS o LEFT JOIN payment_types as pt ON o.payment_type_id = pt.id) ",
-			" JOIN  order_types as ot ON o.order_type_id = ot.id) WHERE 1=1 ");
-
-		if (so.sales || so.buys) {
-			if (so.sales) mf.write(" and ot.group_order = 'S' ");
-			else if (so.buys) mf.write(" and ot.group_order = 'B' ");
-		}
-
-		if (so.payment_type_id && so.payment_type_id != 0)
-			mf.write(" and o.payment_type_id = " , so.payment_type_id);
-
-		if (so.group_id && so.group_id != 0)
-			mf.write(" and o.order_type_id = " , so.group_id , " ");
-
-		local search_str = escape_sql_like_search_str(so.search_str);
-		if (so.entity_id && so.entity_id != 0) mf.write(" and o.entity_id =" , so.entity_id);
-		else
-		{
-			if (so.product_id && so.product_id != 0){
-				mf.write(" and o.id in( select order_id from orders_lines as ol ");
-
-				if (so.sales || so.buys){
-					mf.write(", (orders as o join order_types as ot on o.order_type_id = ot.id and ot.group_order = ");
-					if (so.sales) mf.write(" 'S' )");
-					else if (so.buys) mf.write(" 'B' )");
-				}
-
-				mf.write("where ol.product_id =", so.product_id);
-				if (so.sales || so.buys) mf.write(" and ol.order_id = o.id ");
-				mf.write(" order by ol.id desc ");
-				if (so.query_limit != 0) mf.write(" limit " , so.query_limit);
-				mf.write(")")
-			}
-			else if (search_str && search_str.len() > 0) {
-				if (so.products){
-					mf.write(" and o.id in ( select order_id from orders_lines where ",
-						" description like "" , search_str , "" order by id desc limit " , so.query_limit , ")");
-				}
-				else mf.write(" and ");
-
-				if (so.notes) mf.write(" o.notes ");
-				else if (so.date) mf.write(" o.order_date ");
-				//lo_search_str = escapeSqlLikeSearchStr(dbDate(search_str))
-				//table.insert(sql, " and order_date = (("")
-				else if (so.total) mf.write(" o.total_amt ");
-				else  mf.write(" o.entity_name ");
-
-				mf.write(" like '" , search_str , "' ");
-			}
-		}
-
-		if (so.order_by_modification) mf.write(" and o.mdate is not null order by o.mdate desc ");
-		else if (so.order_by_creation) mf.write(" order by o.id desc ");
-		else mf.write(" order by o.order_date desc, o.id desc ");
-
-		if (so.query_limit && so.query_limit != 0) mf.write(" limit " , so.query_limit);
-		//debug_print(tostring(mf), "\n")
-		return  mf.tostring();
-	}
-
 	function get_bar_chart_statistics_sql_core(mf, sab, speriode, speriode_count, strPU1, strPU2){
 		mf.write("SELECT ", speriode, " as qm, sum(subtotal + total_sales_tax1 + total_sales_tax2) as q, '",
 			sab, "' as sab ", strPU1, " FROM orders WHERE order_type_id IN(SELECT * FROM order_types_",
@@ -1129,11 +1520,25 @@ class DB_Orders extends DB_Manager {
 	}
 
 	function sql_list(qs_tbl, post_tbl){
-		if (qs_tbl.get("search", false)) return sql_search_list(qs_tbl, post_tbl);
+		local order_id
+		if (qs_tbl.get("search", false)) return orders_sql_search_list(qs_tbl, post_tbl);
+		else if( (order_id = qs_tbl.get("lines", 0)) )
+		{
+			return orders_lines_sql_for_order(out_sql, order_id.tointeger());
+		}
+		else if(  (order_id = qs_tbl.get("sum", 0)) )
+		{
+			local query_limit = qs_tbl.get("query_limit", 50);
+			return orders_sum_search_sql(out_sql, query_limit);
+		}
+		else if( (order_id = qs_tbl.get("lines_onhand", 0)) )
+		{
+			return order_lines_onhand_get_sql(order_id.tointeger());
+		}		
 		else if (qs_tbl.get("history", false)){
-			local htype = qs_tbl.get("htype", 0);
+			local htype = qs_tbl.get("htype", 0).tointeger();
 			local query_limit = qs_tbl.get("query_limit", 50).tointeger();
-			return DB_Entities.sales_history_sql(htype, query_limit, qs_tbl.history);
+			return orders_sales_history_sql(htype, query_limit, qs_tbl.history);
 		}
 		else if (qs_tbl.get("statistics", false)){
 			local periode_count = qs_tbl.get("periode_count", 12).tointeger();
@@ -1237,55 +1642,6 @@ where o.id = %d and p.id = %d]==], order_id, product_id));
 		WriteMap2SLEArray(out_buf, rec_map);
 	}
 	
-	function orders_lines_get_one(id)
-	{
-		return format([==[
-SELECT ol.*, p.weight as unit_weight,
-pbs.quantity as xref_order_line_quantity
-FROM orders_lines as ol JOIN products as p
-ON ol.product_id = p.id
-LEFT JOIN products_inventory_pending as pbs
-ON ol.id = pbs.order_line_id
-WHERE ol.id=%d]==], id.tointeger());
-	}
-
-	function order_totals_get_one(id)
-	{
-		return format([==[
-SELECT order_id,
-count(*) AS lines_count,
-sum(weight) AS weight_total,
-sum(subtotal_amt) AS subtotal_amt,
-sum(discount_amt) AS discount_amt,
-sum(sales_tax1_amt) AS sales_tax1_amt,
-sum(sales_tax2_amt) AS sales_tax2_amt,
-sum(total) AS total_amt
-FROM order_line_calc_view
-WHERE order_id =%d]==], id.tointeger());
-	}
-
-	function orders_lines_sql_for_order(order_id)
-	{
-		return format([==[
-select
-id,
-product_id,
-description,
-quantity,
-price,
-quantity * price as 'first_total'
-from orders_lines
-where order_id = %d
-order by id]==], order_id.tointeger());
-	}
-
-	function orders_get_one(out_sql, id)
-	{
-		out_sql.write("SELECT o.*, ott.* FROM orders AS o LEFT JOIN ( ");
-		out_sql.write(order_totals_get_one(id));
-		out_sql.write(" ) AS ott ON o.id = ott.order_id WHERE o.id = ", id);
-	}
-
 	function sql_get_one(tbl_qs) {
 		local id = tbl_qs.get(table_name, 0).tointeger();
 		if(tbl_qs.get("line", false))
@@ -1307,7 +1663,7 @@ order by id]==], order_id.tointeger());
 			local db = getOurbizDB();
 			local buf = blob(0, 8192);
 
-			orders_get_one(buf, id);
+			//orders_get_one(buf, id);
 			local stmt = db.prepare("select * from orders where id=?");
 			stmt.bind(1, id);
 			if(!stmt.next_row()) return;
@@ -1358,114 +1714,22 @@ class DB_Products extends DB_Manager {
 		return base.db_action(db, data);
 	}
 
-	function sql_search_list(qs_tbl, post_tbl){
-		local so = get_search_options(post_tbl);
-		checkQueryStringSAB(qs_tbl, so);
-		local mf = blob();
-
-		mf.write([==[
-select p.id,
-	p.reference_code,
-	p.sell_description,
-	ifnull(p.kit,  0)  as kit,
-		round((p.sell_price * (1 + (st.rate1/100.0))),p.price_decimals) as price_taxed,
-		round(p.sell_price, p.price_decimals) as price,
-	round(case when p.kit > 0 then p.kit_onhand else p.quantity_onhand end, 4) as quantity_onhand,
-	p.is_active, price_date,
-	p.image_id
-]==])
-		if (so.with_images) mf.write(", thumbnail, mime_type ");
-		mf.write(" from (products_onhand as p left join sales_tax_rates as st on p.sales_tax_id = st.id) ");
-		if (so.with_images) mf.write(" left join images as i on p.image_id = i.id ");
-		mf.write(" where ");
-
-		if ( (!so.group_id) && (!so.entity_id) && (! (so.search_str && (so.search_str.len() > 0)))){
-			//special case where we get the latest entities that made any transaction
-			mf.write(" p.id in(select distinct product_id from orders_lines where order_id in (select o.id from orders as o ");
-
-			if (so.sales || so.buys){
-				mf.write(", order_types as ot where o.order_type_id = ot.id and ot.group_order =");
-				if (so.sales) mf.write("'S'");
-				else if (so.buys) mf.write("'B'");
-			}
-
-			mf.write(" order by o.id desc");
-			if (so.query_limit && so.query_limit != 0) mf.write(" limit " , so.query_limit);
-			mf.write(")) order by 3");
-			return mf.tostring();
-		}
-
-		if (so.sales && so.buys) mf.write(" 1=1 ");
-		else if (so.sales || so.buys){
-			if (so.sales) mf.write(" show_on_sales = 1 ");
-			else if (so.buys) mf.write(" show_on_buys = 1 ");
-		}
-		else mf.write(" 1=1 ");
-
-		if (so.group_id && so.group_id != 0)
-			mf.write(" and p.group_id=" , so.group_id , " ");
-
-		if (so.active) mf.write(" and p.is_active = 1 ");
-
-		if (so.only_prices_older){
-			//local adate = parse_date(optNum)
-			//mf.write(" and p.price_update_date < '" ,
-			//string.format("%d-%.02d-%.02d", adate.year, adate.month, adate.day) + "' ");
-		}
-
-		local search_str = escape_sql_like_search_str(so.search_str);
-
-		if (so.entity_id && so.entity_id != 0){
-			mf.write([==[
-and p.id in(
-select product_id from orders_lines where order_id in (
-	select id from orders where entity_id = ]==] , so.entity_id, " order by id desc)) ");
-		}
-		else if (search_str && search_str.len() > 0){
-			if (so.id && so.id != 0) mf.write(" and p.id = " , so.search_str.tointeger());
-			else
-			{
-				if (so.entities){
-					mf.write(" and p.id in(",
-						"select product_id from orders_lines where order_id in (",
-						"select id from orders where entity_id in (",
-						"select id from entities where name like "" , search_str, "" ",
-						"or company like "" , search_str, "" order by id desc ))) ");
-				}
-				else mf.write(" and ");
-				if (so.notes){
-					if (so.buys) mf.write(" buy_notes ");
-					else mf.write(" sell_notes ");
-				}
-				else if (so.reference) mf.write(" reference_code ");
-				else mf.write(" p.sell_description ");
-
-				mf.write(" like '" , search_str , "' ");
-			}
-		}
-
-		if (so.order_by_modification) mf.write(" p.mdate is not null order by p.mdate desc ");
-		else if (so.order_by_creation) mf.write(" 1=1 order by id desc ");
-		else mf.write(" order by 3 ");
-
-		if (so.query_limit && so.query_limit != 0) mf.write(" limit " , so.query_limit);
-		//debug_print("\n", mf.tostring(), "\n")
-		return  mf.tostring();
-	}
-
 	function sql_list(qs_tbl, post_tbl){
-		if (qs_tbl.get("search", false)) return sql_search_list(qs_tbl, post_tbl);
-		else if (qs_tbl.get("past_products", false)) return DB_Entitles.past_products_sql(qs_tbl.past_products);
-		else if (qs_tbl.get("history", false)) {
-			local htype = qs_tbl.get("htype", 0);
+		local product_id;
+		if (qs_tbl.get("search", false)) return products_sql_search_list(qs_tbl, post_tbl);
+		else if ( (product_id = qs_tbl.get("past_products", 0)) ) return entity_past_products_get_sql(product_id.tointeger());
+		else if ( (product_id = qs_tbl.get("last_order_lines", 0)) ) return last_product_order_lines_get_sql(product_id.tointeger());
+		else if ( (product_id = qs_tbl.get("appear_together", 0)) ) return product_appear_together_get_sql(product_id.tointeger());
+		else if ( (product_id = qs_tbl.get("history", 0)) ) {
+			local htype = qs_tbl.get("htype", 0).tointeger();
 			local query_limit = qs_tbl.get("query_limit", 50).tointeger();
-			return DB_Entities.sales_history_sql(htype, query_limit, qs_tbl.history);
+			return product_sales_history_sql(htype, query_limit, product_id.tointeger());
 		}
-		else if (qs_tbl.get("statistics", false)){
+		else if ( (product_id = qs_tbl.get("statistics", 0)) ){
 			local periode_count = qs_tbl.get("periode_count", 12).tointeger();
 			local periode_type = getStatisticsPeriodeType(qs_tbl.periode_type);
 			local sab = qs_tbl.get("sab", "S");
-			return DB_Entities.sql_bar_chart_statistics(qs_tbl.statistics.tointeger(), sab, periode_count, periode_type);
+			return product_sql_bar_chart_statistics(product_id.tointeger(), sab, periode_count, periode_type);
 		}
 		else if (qs_tbl.get("print_list", false)){
 			return [==[

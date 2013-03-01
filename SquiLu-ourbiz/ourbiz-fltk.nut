@@ -2656,8 +2656,14 @@ class MyEditOrderWindow extends EditOrderWindow {
 		if(!_show_data_win){
 			_show_data_win = new OurDynamicQuery();
 		}
-		_show_data_win->shwow_data(title, get_data_func, iparam);
-		_show_data_win->set_on_select(this, validate_product_id);
+		try {
+			_show_data_win->shwow_data(title, get_data_func, iparam);
+			_show_data_win->set_on_select(this, validate_product_id);
+			_show_data_win->show();
+		}
+		catch(e){
+			fl_alert(e);
+		}
 	}
 
 	function handle(event)
