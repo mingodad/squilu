@@ -11,7 +11,17 @@ print(d.isnan(), d.iszero(), d.isodd(), d.iseven());
 
 local dec1 = Decimal("1.1");
 local dec2 = Decimal("2.2");
-print(dec1 + dec2)
+print(dec1, dec2, dec1 + dec2)
+
+local dec44 = Decimal();
+print("dec44", dec44);
+dec44.set("44.4");
+print("dec44", dec44);
+dec44.set(48);
+print("dec44", dec44);
+dec44.set(49.8);
+print("dec44", dec44);
+print("dec44", dec1 + dec44.set(22));
 
 
 dec1 = Decimal("0.1");

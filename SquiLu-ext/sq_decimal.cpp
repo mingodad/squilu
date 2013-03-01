@@ -175,60 +175,6 @@ static mpd_context_t * sq_get_global_ctx(HSQUIRRELVM v, SQInteger idx)
 	return ctx;
 }
 
-static SQRESULT sq_Decimal_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v) {
-    mpd_t *dec = (mpd_t *)p;
-    if(dec) mpd_del(dec);
-    return 0;
-}
-
-/*
-** Creates a new Decimal.
-*/
-static SQRESULT sq_Decimal_constructor (HSQUIRRELVM v) {
-    SQ_FUNC_VARS(v);
-    GET_Decimal_INSTANCE(v, 1);
-    uint32_t status;
-    mpd_context_t *ctx = sq_get_global_ctx(v, 1);
-    if(_top_ > 1){
-        switch(sq_gettype(v, 2)){
-/*
-            case OT_INSTANCE:{
-                GET_DecimalCtx_INSTANCE(v, 2);
-                dec = mpd_new(ctx);
-                mpd_qset_i32(dec, 0, ctx, &status);
-            }
-*/
-            case OT_INTEGER:{
-                SQ_GET_INTEGER(v, 2, iparam);
-                dec = mpd_new(ctx);
-                mpd_qset_i32(dec, iparam, ctx, &status);
-            }
-            break;
-            case OT_STRING:{
-                SQ_GET_STRING(v, 2, str);
-                dec = mpd_new(ctx);
-                mpd_qset_string(dec, str, ctx, &status);
-            }
-            break;
-            case OT_FLOAT:{
-                SQ_GET_FLOAT(v, 2, fparam);
-                dec = mpd_new(ctx);
-                char buf[32];
-                snprintf(buf, sizeof(buf), "%f", fparam);
-                mpd_qset_string(dec, buf, ctx, &status);
-            }
-            break;
-        }
-    }
-    else {
-        dec = mpd_new(ctx);
-        mpd_qset_i32(dec, 0, ctx, &status);
-    }
-    sq_setinstanceup(v, 1, dec);
-    sq_setreleasehook(v, 1, sq_Decimal_release_hook);
-    return 1;
-}
-
 static SQRESULT sq_Decimal_error(HSQUIRRELVM v, uint32_t status) {
     const SQChar *error = _SC("MPD_??");
 #define CASE_ERROR(n) case n: error = #n; break;
@@ -251,6 +197,83 @@ static SQRESULT sq_Decimal_error(HSQUIRRELVM v, uint32_t status) {
     }
 #undef CASE_ERROR
     return sq_throwerror(v, error);
+}
+
+static SQRESULT sq_Decimal_set_from(HSQUIRRELVM v, SQInteger idx, mpd_context_t *ctx, mpd_t *dec, uint32_t *status){
+    SQInteger _rc_;
+    switch(sq_gettype(v, idx)){
+
+        case OT_INSTANCE:{
+            GET_Decimal_INSTANCE2(v, idx);
+            mpd_qcopy(dec, dec2, status);
+        }
+
+        case OT_INTEGER:{
+            SQ_GET_INTEGER(v, idx, iparam);
+            mpd_qset_i32(dec, iparam, ctx, status);
+        }
+        break;
+        case OT_STRING:{
+            SQ_GET_STRING(v, idx, str);
+            mpd_qset_string(dec, str, ctx, status);
+        }
+        break;
+        case OT_FLOAT:{
+            SQ_GET_FLOAT(v, idx, fparam);
+            char buf[32];
+            snprintf(buf, sizeof(buf), "%f", fparam);
+            mpd_qset_string(dec, buf, ctx, status);
+        }
+        break;
+
+        default:
+            return sq_throwerror(v, _SC("invalid type (%s) to convert to decimal"), sq_gettypename(v, idx));
+    }
+    return SQ_OK;
+}
+
+static SQRESULT sq_Decimal_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v) {
+    mpd_t *dec = (mpd_t *)p;
+    if(dec) mpd_del(dec);
+    return 0;
+}
+
+/*
+** Creates a new Decimal.
+*/
+static SQRESULT sq_Decimal_constructor (HSQUIRRELVM v) {
+    uint32_t status = 0;
+    mpd_context_t *ctx = sq_get_global_ctx(v, 1);
+    mpd_t *dec = mpd_new(ctx);
+    if(sq_gettop(v) > 1){
+        if(sq_Decimal_set_from(v, 2, ctx, dec, &status) != SQ_OK) return SQ_ERROR;
+    }
+    else mpd_qset_i32(dec, 0, ctx, &status);
+
+	ctx->status |= status;
+	if (status&ctx->traps) {
+	    mpd_del(dec);
+	    return sq_Decimal_error(v, status);
+	}
+
+    sq_setinstanceup(v, 1, dec);
+    sq_setreleasehook(v, 1, sq_Decimal_release_hook);
+    return 1;
+}
+
+static SQRESULT sq_Decimal_set(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_Decimal_INSTANCE(v, 1);
+    uint32_t status = 0;
+    mpd_context_t *ctx = sq_get_global_ctx(v, 1);
+    if(sq_Decimal_set_from(v, 2, ctx, dec, &status) != SQ_OK) return SQ_ERROR;
+	ctx->status |= status;
+	if (status&ctx->traps) {
+	    return sq_Decimal_error(v, status);
+	}
+	sq_settop(v, 1); //returns itself
+	return 1;
 }
 
 static SQRESULT sq_Decimal_new_for_dec (HSQUIRRELVM v, mpd_t *dec, mpd_context_t *ctx, uint32_t status) {
@@ -452,11 +475,11 @@ DECIMAL_IS(isinteger);
 DECIMAL_IS(isodd);
 DECIMAL_IS(iseven);
 
-
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),sq_Decimal_##name,nparams,tycheck}
 static SQRegFunction Decimal_methods[] =
 {
-    _DECL_FUNC(constructor,-1,_SC("x x|n|s")),
+    _DECL_FUNC(constructor,-1,_SC("x n|s|x")),
+    _DECL_FUNC(set, 2,_SC("x n|s|x")),
     {_SC("_tostring"),sq_Decimal_tostring, 1,_SC("x")},
     _DECL_FUNC(tostring,1,_SC("x")),
     _DECL_FUNC(_add, 2,_SC("xx")),
