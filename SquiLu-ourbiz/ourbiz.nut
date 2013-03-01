@@ -21,15 +21,15 @@ if(globals.get("AT_DEV_DBG", false) || !globals.get("PdfSqlTable", false)) {
 }
 
 function escape_sql_like_search_str(str){
-    if (str && (str.len() > 0)){
-        str = str.gsub("%%", "%%%%");
-        if (str.find(" ") == 0)
-            str = str.gsub("^%s*(.+)%s*$","%1%%");
-        else
-            str = str.gsub("^%s*(.+)%s*$","%%%1%%");
-    }
-    //print("escape_sql_like_search_str +" + str + "+")
-    return str;
+	if (str && (str.len() > 0)){
+		str = str.gsub("%%", "%%%%");
+		if (str.find(" ") == 0)
+			str = str.gsub("^%s*(.+)%s*$","%1%%");
+		else
+			str = str.gsub("^%s*(.+)%s*$","%%%1%%");
+	}
+	//print("escape_sql_like_search_str +" + str + "+")
+	return str;
 }
 
 function mkEmptyWhenZero(tbl, key){
@@ -39,6 +39,34 @@ function mkEmptyWhenZero(tbl, key){
 		}
 	}
 	else if (tbl[key] == 0) tbl[key] = "";
+}
+
+function WriteSLEArrayFieldNames(str_buf, stmt, col_count)
+{
+	for(local i=0; i<col_count; ++i)
+	{
+		add2sle(str_buf, stmt.col_name(i));
+	}
+}
+
+function WriteSLEArrayFieldValues(str_buf, stmt, col_count)
+{
+	for(local i=0; i < col_count; ++i)
+	{
+		add2sle(str_buf, stmt.asString(i));
+	}
+}
+
+function WriteMap2SLEArray(str_buf, map, doAppend=false)
+{
+	if(!doAppend) str_buf.clear();
+	str_buf.write("[[");
+	foreach(k,v in map) add2sle(str_buf, k);
+	str_buf.writen(SLE_SLEEND, 'c');
+	str_buf.write("][");
+	foreach(k,v in map) add2sle(str_buf, v);
+	str_buf.writen(SLE_SLEEND, 'c');
+	str_buf.write("]]");
 }
 
 constants.rawdelete("TimePeriode");
@@ -87,9 +115,9 @@ function get_sql_bar_chart_statistics_periodes (periode_count, periode_type){
 
 function getOptionsFromMap(map){
 	local opt = {};
-        opt.search_str <- map.get("search_str", null);
-        opt.select_fields <- map.get("select_fields", null);
-        opt.search_on <- map.get("search_on", "1"); //to make easy on html interface
+	opt.search_str <- map.get("search_str", null);
+	opt.select_fields <- map.get("select_fields", null);
+	opt.search_on <- map.get("search_on", "1"); //to make easy on html interface
 	local CHECK_BOOL = function(field){
 		local value = map.get(field, null);
 		if (value == "1") opt[field] <- "1";
@@ -102,39 +130,39 @@ function getOptionsFromMap(map){
 	}
 	local CHECK_INT = function(field) {CHECK_INT_DFLT(field, 0) };
 
-        CHECK_BOOL("active");
-        CHECK_BOOL("buys");
-        CHECK_BOOL("cdate");
-        CHECK_BOOL("group_set");
-        CHECK_BOOL("inactive");
-        CHECK_BOOL("mdate");
-        CHECK_BOOL("only_prices_older");
-        CHECK_BOOL("order_by_creation");
-        CHECK_BOOL("order_by_modification");
-        CHECK_BOOL("sales");
-        CHECK_INT("entity_id");
-        CHECK_INT("group_id");
-        CHECK_INT("image_id");
-        CHECK_INT("account_id");
-        CHECK_INT("order_id");
-        CHECK_INT("payment_type_id");
-        CHECK_INT("product_id");
-        CHECK_INT_DFLT("query_limit", 50);
-        CHECK_BOOL("contact");
-        CHECK_BOOL("date");
-        CHECK_BOOL("description");
-        CHECK_BOOL("entities");
-        CHECK_BOOL("id");
-        CHECK_BOOL("name");
-        CHECK_BOOL("notes");
-        CHECK_BOOL("phone");
-        CHECK_BOOL("products");
-        CHECK_BOOL("reference");
-        CHECK_BOOL("total");
-        CHECK_BOOL("with_images");
-        CHECK_BOOL("with_headers");
-        CHECK_BOOL("with_accounts");
-        CHECK_BOOL("code");
+	CHECK_BOOL("active");
+	CHECK_BOOL("buys");
+	CHECK_BOOL("cdate");
+	CHECK_BOOL("group_set");
+	CHECK_BOOL("inactive");
+	CHECK_BOOL("mdate");
+	CHECK_BOOL("only_prices_older");
+	CHECK_BOOL("order_by_creation");
+	CHECK_BOOL("order_by_modification");
+	CHECK_BOOL("sales");
+	CHECK_INT("entity_id");
+	CHECK_INT("group_id");
+	CHECK_INT("image_id");
+	CHECK_INT("account_id");
+	CHECK_INT("order_id");
+	CHECK_INT("payment_type_id");
+	CHECK_INT("product_id");
+	CHECK_INT_DFLT("query_limit", 50);
+	CHECK_BOOL("contact");
+	CHECK_BOOL("date");
+	CHECK_BOOL("description");
+	CHECK_BOOL("entities");
+	CHECK_BOOL("id");
+	CHECK_BOOL("name");
+	CHECK_BOOL("notes");
+	CHECK_BOOL("phone");
+	CHECK_BOOL("products");
+	CHECK_BOOL("reference");
+	CHECK_BOOL("total");
+	CHECK_BOOL("with_images");
+	CHECK_BOOL("with_headers");
+	CHECK_BOOL("with_accounts");
+	CHECK_BOOL("code");
 	return opt;
 }
 
@@ -313,18 +341,18 @@ class DB_Entities extends DB_Manager {
 	function past_products_sql(entity_id){
 		return format([==[
 SELECT
-    product_id as 'id|ID|6|R',
-    sell_description as 'sell_description|Product|-1',
-    sum(quantity) as 'quantity|Quantity|8|R',
-    sum(quantity*price) as 'amount|Amount|8|R|M',
-    code as 'order_type_code|Type|4|C'
-    FROM orders_lines as ol, orders as o, order_types as ot, products as p
-    WHERE o.entity_id = %d
-    and ot.id = o.order_type_id
-    and ol.order_id = o.id
-    and p.id = ol.product_id
-    GROUP BY product_id, code
-    ORDER BY 3 desc
+	product_id as 'id|ID|6|R',
+	sell_description as 'sell_description|Product|-1',
+	sum(quantity) as 'quantity|Quantity|8|R',
+	sum(quantity*price) as 'amount|Amount|8|R|M',
+	code as 'order_type_code|Type|4|C'
+FROM orders_lines as ol, orders as o, order_types as ot, products as p
+WHERE o.entity_id = %d
+	and ot.id = o.order_type_id
+	and ol.order_id = o.id
+	and p.id = ol.product_id
+GROUP BY product_id, code
+ORDER BY 3 desc
 ]==], entity_id.tointeger());
 	}
 
@@ -345,13 +373,13 @@ LEFT JOIN order_types as ot
 	ON o.order_type_id = ot.id
 LEFT JOIN payment_types as pt
 	ON o.payment_type_id = pt.id
-    , (
-    SELECT order_id, sum(discount_amt) as  discount_amt, sum(total) as total
-    FROM order_line_calc_view
-    WHERE order_id in(SELECT id FROM orders WHERE entity_id =]==], entity_id, [==[)
-    GROUP BY order_id
-    )  as ott
-    WHERE entity_id =]==], entity_id, " and o.id = ott.order_id");
+	, (
+		SELECT order_id, sum(discount_amt) as  discount_amt, sum(total) as total
+		FROM order_line_calc_view
+		WHERE order_id in(SELECT id FROM orders WHERE entity_id =]==], entity_id, [==[)
+		GROUP BY order_id
+	)  as ott
+	WHERE entity_id =]==], entity_id, " and o.id = ott.order_id");
 		}
 		else
 		{
@@ -397,9 +425,9 @@ group by product_id, description, ]==], strTmp3);
 			mf.write(") as t ")
 		}
 
-	    mf.write(" order by qm, sab")
-	    //debug_print(mf.tostring(), "\n")
-	    return mf.tostring();
+		mf.write(" order by qm, sab")
+		//debug_print(mf.tostring(), "\n")
+		return mf.tostring();
 	}
 
 	function sql_search_list(qs_tbl, post_tbl){
@@ -600,7 +628,7 @@ class My_PDF_Order extends PDF_Order {
 			else if(mime_type == "image/png") mtype = "png";
 			Image("order_logo", my_logo_image, my_logo_image.size(), px, py, pwidth, 0, mtype);
 		}
-        }
+	}
 }
 
 class CalcOrderLine
@@ -662,10 +690,10 @@ class CalcOrderLine
 	function clear_preserving_tax_flags(withFullTax=false)
 	{
 		unit_weight = quantity = weight = price =
-                                              first_total = discount_pct =
-                                                      discount_amt = line_subtotal =
-                                                              sales_tax1_pct = sales_tax1_amt = sales_tax2_pct =
-                                                                      sales_tax2_amt = line_total = 0.0;
+			first_total = discount_pct =
+			discount_amt = line_subtotal =
+			sales_tax1_pct = sales_tax1_amt = sales_tax2_pct =
+			sales_tax2_amt = line_total = 0.0;
 		id = order_id = product_id = 0;
 		price_decimals = 2;
 		if(withFullTax){
@@ -677,10 +705,10 @@ class CalcOrderLine
 	function clear_preserving_tax_flags2(withFullTax=false)
 	{
 		unit_weight = quantity = weight = price =
-                                              first_total = discount_pct =
-                                                      discount_amt = line_subtotal =
-                                                              sales_tax1_pct = sales_tax1_amt = sales_tax2_pct =
-                                                                      sales_tax2_amt = line_total = Decimal(0);
+			first_total = discount_pct =
+			discount_amt = line_subtotal =
+			sales_tax1_pct = sales_tax1_amt = sales_tax2_pct =
+			sales_tax2_amt = line_total = Decimal(0);
 		id = order_id = product_id = 0;
 		price_decimals = 2;
 		if(withFullTax){
@@ -794,13 +822,13 @@ class  CalcOrderTotals
 	function clear()
 	{
 		subtotal_amt = discount_amt = sales_tax1_amt =
-                                          sales_tax2_amt = total_amt = weight_total = 0.0;
+			sales_tax2_amt = total_amt = weight_total = 0.0;
 		lines_count = 0;
 	}
 	function clear2()
 	{
 		subtotal_amt = discount_amt = sales_tax1_amt =
-                                          sales_tax2_amt = total_amt = weight_total = Decimal(0);
+			sales_tax2_amt = total_amt = weight_total = Decimal(0);
 		lines_count = 0;
 	}
 
@@ -971,16 +999,22 @@ class MyCalcOrderTotals
 }
 
 class DB_Orders extends DB_Manager {
+	_calc_line = null;
+	_order_totals = null;
+	
 	constructor(){
 		base.constructor("orders", [
-		"order_type_id", "series", "order_number", "entity_order_number",
-		"entity_id", "entity_name", "entity_address",
-		"entity_phone", "entity_zip", "entity_city",
-		"entity_state", "entity_country", "entity_tax_number",
-		"entity_use_sales_tax2", "entity_sales_tax_exempt",
-		"order_date", "payment_type_id", "notes",
-		"cash", "tags", "order_valid_till_date",
-		"irpf_pct_retention"]);
+			"order_type_id", "series", "order_number", "entity_order_number",
+			"entity_id", "entity_name", "entity_address",
+			"entity_phone", "entity_zip", "entity_city",
+			"entity_state", "entity_country", "entity_tax_number",
+			"entity_use_sales_tax2", "entity_sales_tax_exempt",
+			"order_date", "payment_type_id", "notes",
+			"cash", "tags", "order_valid_till_date",
+			"irpf_pct_retention",
+		]);
+		_calc_line = new CalcOrderLine();
+		_order_totals = CalcOrderTotals();
 	}
 
 	function sql_search_list(qs_tbl, post_tbl){
@@ -1109,6 +1143,194 @@ class DB_Orders extends DB_Manager {
 		}
 		else if (qs_tbl.get("print_list", false)){
 		}
+	}
+
+	function calc_order_line_from_map(tbl_qs, rec_map)
+	{
+		_calc_line.reset();
+		local product_id = tbl_qs.get("product_id", 0);
+		local order_id = tbl_qs.get("__id__", 0);
+		if(product_id  && order_id)
+		{
+			local db = getOurbizDB();
+			local stmt;
+			local str =  tbl_qs.get("trigger", false);
+			//printf("%s\n", str.c_str());
+			if(str == "quantity")
+			{
+				local discount, quantity;
+				stmt = db.prepare(format([==[
+select group_order from order_types as ot, orders as o
+where o.id=%d
+and ot.id = o.order_type_id]==], order_id));
+				if(stmt.next_row()){
+					str = stmt.col(0);
+					if(str != "B"){
+						quanity = rec_map.get("quantity", 0);
+						if(quantity > 0)
+						{
+							out_buf.clear();
+							stmt.prepare(discount_by_quantity_get_one(out_sql, product_id, quantity));
+							if(stmt.next_row())
+							{
+								discount = stmt.col(0);
+								//special case when discount is negative
+								//meaning an increase we don't show
+								//it as discount but use it's calculated price
+								if(discount <= 0.0)
+								{
+									discount = 0.0;
+									rec_map.discount_pct <- "0";
+									rec_map.price <- stmt.asString(1);
+								}
+								else
+								{
+									rec_map.discount_pct <- stmt.asString(0);
+								}
+							}
+							else
+							{
+								rec_map.discount_pct <- "0";
+							}
+						}
+					}
+				}
+				else throw("Could not get order type !");
+			}
+			//_calc_line.price_over_weight = ?;
+
+			stmt.prepare(format([==[
+select  o.entity_sales_tax_exempt, o.entity_use_sales_tax2,
+	p.weight, p.sales_tax_id
+from orders as o, products as p 
+where o.id = %d and p.id = %d]==], order_id, product_id));
+			local sales_tax_id = 0;
+			if(stmt.next_row())
+			{
+				_calc_line.tax_exempt = stmt.col(0);
+				_calc_line.use_sales_tax2 = stmt.col(1);
+				//stmt.get(2, _calc_line.unit_weight);
+				rec_map.unit_weight <- stmt.col(2);
+				sales_tax_id = stmt.col(3);
+			}
+			else throw("Could not get sales tax info for product!");
+
+			if(!_calc_line.tax_exempt)
+			{
+				stmt.prepare(format("select  rate1, rate2 from sales_tax_rates where id = %d", sales_tax_id));
+				if(stmt.next_row())
+				{
+					rec_map.sales_tax1_pct <- stmt.col(0);
+					if(_calc_line.use_sales_tax2)
+						rec_map.sales_tax2_pct <- stmt.col(1);
+				}
+				else throw("Could not get sales tax info!");
+			}
+		}
+		_calc_line.calc_map(rec_map);
+	}
+
+	function calc_order_line(tbl_qs, out_buf, rec_map)
+	{
+		calc_order_line_from_map(tbl_qs, rec_map);
+		out_buf.clear();
+		WriteMap2SLEArray(out_buf, rec_map);
+	}
+	
+	function orders_lines_get_one(id)
+	{
+		return format([==[
+SELECT ol.*, p.weight as unit_weight,
+pbs.quantity as xref_order_line_quantity
+FROM orders_lines as ol JOIN products as p
+ON ol.product_id = p.id
+LEFT JOIN products_inventory_pending as pbs
+ON ol.id = pbs.order_line_id
+WHERE ol.id=%d]==], id.tointeger());
+	}
+
+	function order_totals_get_one(id)
+	{
+		return format([==[
+SELECT order_id,
+count(*) AS lines_count,
+sum(weight) AS weight_total,
+sum(subtotal_amt) AS subtotal_amt,
+sum(discount_amt) AS discount_amt,
+sum(sales_tax1_amt) AS sales_tax1_amt,
+sum(sales_tax2_amt) AS sales_tax2_amt,
+sum(total) AS total_amt
+FROM order_line_calc_view
+WHERE order_id =%d]==], id.tointeger());
+	}
+
+	function orders_lines_sql_for_order(order_id)
+	{
+		return format([==[
+select
+id,
+product_id,
+description,
+quantity,
+price,
+quantity * price as 'first_total'
+from orders_lines
+where order_id = %d
+order by id]==], order_id.tointeger());
+	}
+
+	function orders_get_one(out_sql, id)
+	{
+		out_sql.write("SELECT o.*, ott.* FROM orders AS o LEFT JOIN ( ");
+		out_sql.write(order_totals_get_one(id));
+		out_sql.write(" ) AS ott ON o.id = ott.order_id WHERE o.id = ", id);
+	}
+
+	function sql_get_one(tbl_qs) {
+		local id = tbl_qs.get(table_name, 0).tointeger();
+		if(tbl_qs.get("line", false))
+		{
+			orders_lines_get_one(out_sql, id);
+		}
+		else if(tbl_qs.get("line_calculated", false))
+		{
+			local db = getOurbizDB();
+			local stmt = db.prepare(orders_lines_get_one(id));
+			if(!stmt.next_row()) return;
+			local rec_map = stmt.asTable();
+			rec_map.__id__ <- rec_map.order_id;
+			local buf = blob(0, 8192);
+			calc_order_line(tbl_qs, buf, rec_map);
+			return buf;
+		}
+		else if (tbl_qs.get("with_lines", false)){
+			local db = getOurbizDB();
+			local buf = blob(0, 8192);
+
+			orders_get_one(buf, id);
+			local stmt = db.prepare("select * from orders where id=?");
+			stmt.bind(1, id);
+			if(!stmt.next_row()) return;
+
+			_order_totals.calc_order_totals(db, id, _calc_line);
+
+			local col_count = stmt.col_count();
+			buf.clear();
+			buf.write("[[");
+			WriteSLEArrayFieldNames(buf, stmt, col_count);
+			_order_totals.dumpSLEFieldNames(buf);
+			buf.writen(SLE_SLEEND, 'c');
+			buf.write("][");
+			WriteSLEArrayFieldValues(buf, stmt, col_count);
+			_order_totals.dumpSLEFieldValues(buf);
+			buf.writen(SLE_SLEEND, 'c');
+			buf.write("]]");
+
+			stmt.prepare(orders_lines_sql_for_order(id));
+			buf.write(stmt.asSleArray());
+			return buf;
+		}
+		else return base.sql_get_one(tbl_qs);
 	}
 }
 
@@ -1328,10 +1550,10 @@ db_ourbiz_tables.images <- new  DB_Images();
 class DB_order_types extends DB_Manager {
 	constructor(){
 		base.constructor("order_types", ["is_active", "code", "description", "description_to_print",
-            "group_order", "is_expense", "is_incoming", "notes", "numbering",
-            "series", "show_prices", "show_sales_tax", "subgroup_order",
-            "with_credit", "with_inventory", "with_payment", "with_ordered",
-            "with_sales_tax", "with_sales_tax_included", "with_quote"]);
+			"group_order", "is_expense", "is_incoming", "notes", "numbering",
+			"series", "show_prices", "show_sales_tax", "subgroup_order",
+			"with_credit", "with_inventory", "with_payment", "with_ordered",
+			"with_sales_tax", "with_sales_tax_included", "with_quote"]);
 	}
 
 	function sql_list(qs_tbl, post_tbl){
@@ -1348,14 +1570,14 @@ class DB_order_types extends DB_Manager {
 		{
 			return [==[
 SELECT
-    id,
-    code,
-    description,
-    with_payment,
-    with_inventory,
-    group_order,
-    subgroup_order,
-    is_active
+	id,
+	code,
+	description,
+	with_payment,
+	with_inventory,
+	group_order,
+	subgroup_order,
+	is_active
 FROM order_types
 ORDER BY group_order,subgroup_order
 ]==];
@@ -1484,9 +1706,9 @@ function product_prices_list_sql (product_id){
 	product_id = product_id.tointeger();
 	return format([==[
 select id,quantity ,
-    markup_pct ,
-    discount_pct ,
-    price, mdate, cdate
+	markup_pct ,
+	discount_pct ,
+	price, mdate, cdate
 from product_prices
 where product_id = %d
 UNION ALL
@@ -1632,25 +1854,7 @@ function ourbizDbGetOne(request){
 
 		gmFile.clear()
 
-		if (tbl == "orders"){
-			if (request.get_var(query_string, "with_lines")){
-				sql = "select * from orders where id=?";
-				local stmt = db.prepare(sql);
-				stmt.bind(1, rec_id);
-				gmFile.write(stmt.asSleArray());
-				stmt.finalize();
-				sql = "select id, product_id, description, quantity, price, 0 as sub_total from orders_lines where order_id=?";
-				stmt = db.prepare(sql);
-				stmt.bind(1, rec_id);
-				gmFile.write(stmt.asSleArray());
-				stmt.finalize();
-				sql = null;
-			}
-			else if (request.get_var(query_string, "line_calculated")){
-				sql = "select * from orders_lines where id=?";
-			}
-		}
-		else if (tbl == "products"){
+		if (tbl == "products"){
 			local product_aux_data = request.get_var(query_string, "product_aux_data");
 			local product_for_edit = request.get_var(query_string, "product_for_edit");
 			if (product_aux_data){
@@ -1688,11 +1892,15 @@ function ourbizDbGetOne(request){
 		else if (db_ourbiz_tables.get(tbl, false)) sql = db_ourbiz_tables[tbl].sql_get_one(tbl_qs);
 
 		if (sql){
-			local stmt = db.prepare(sql);
-			stmt.bind(1, rec_id);
-			data = stmt.asSleArray();
-			//debug_print(rec_id, "\t", sql, "\t", data.len(), "\t", data, "\n")
-			stmt.finalize();
+			if(sql instanceof blob) data = sql.tostring();
+			else
+			{
+				local stmt = db.prepare(sql);
+				stmt.bind(1, rec_id);
+				data = stmt.asSleArray();
+				//debug_print(rec_id, "\t", sql, "\t", data.len(), "\t", data, "\n")
+				stmt.finalize();
+			}
 		}
 		else if (gmFile.len() > 0) data = gmFile.tostring();
 

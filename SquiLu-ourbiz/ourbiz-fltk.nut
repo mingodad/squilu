@@ -340,7 +340,7 @@ class Base_Window extends Fl_Window {
 		_db_map = {};
 		if(_sab == null) _sab = "A";
 	}
-	
+
 	function on_close_delete_cb(sender, udata){
 		if(sender){
 			if(!sender.as_window()) throw(_tr("Only windows can use this callback !"));
@@ -352,7 +352,7 @@ class Base_Window extends Fl_Window {
 			Fl.delete_widget(sender);
 		}
 	}
-	
+
 	function show_help_window(sender=null, udata=null){
 		if(sender) this = sender->window();
 		if(!app_help_window){
@@ -482,7 +482,7 @@ class Base_Window extends Fl_Window {
 			choice->add_item(rec[0].tointeger(), rec[1]);
 		}
 	}
-	
+
 	function insert_group_tree_childs (tree, node, parent, pos, size, data)
 	{
 		local new_node;
@@ -521,7 +521,7 @@ class Base_Window extends Fl_Window {
 		tree->shaded_entry_colors( FL_WHITE, FL_GRAY );
 		tree->selection_follows_hilight( true );
 	}
-	
+
 	function treeLoadChilds (tree, node, parent, _table_name)
 	{
 		local data = [];
@@ -799,7 +799,7 @@ class Edit_Base_Window extends Base_Window {
 	function do_import(){/*fl_alert("do_delete");*/}
 	function do_refresh(){/*fl_alert("do_delete");*/}
 	function do_copy(){/*fl_alert("do_delete");*/}
-	
+
 	function dbUpdater(dbu=null){
 		if(dbu){
 			_dbUpdater = dbu;
@@ -1147,7 +1147,7 @@ dofile("fl-bar-chart.nut");
 dofile("calendar-utils.nut");
 
 class MyBarChart extends BarChartGroup {
-	
+
 	constructor(){
 		base.constructor();
 	}
@@ -1159,7 +1159,7 @@ class MyBarChart extends BarChartGroup {
 			btn_periode_is_days->value() ? "days" :
 			"months";
 	}
-	
+
 	function periodes (){
 		local val = periodes_to_show->value();
 		return val.len() ? val.tointeger() : 0;
@@ -1232,7 +1232,7 @@ class MyListSearchWindow extends ListSearchWindow {
 		win.show();
 		win.do_edit(edit_id);
 	}
-	
+
 	function search_for_me(search_for_str, callee_func){
 		_callee_cb = callee_func;
 		btnSelect->activate();
@@ -1425,7 +1425,7 @@ class OurTreeGroups extends GroupsListEditWindow {
 		on_Change_dbAction();
 		delayed_focus(db_group_description);
 	}
-	
+
 	function on_wrap_notes_cb(sender, udata)
 	{
 		this = sender->window();
@@ -1461,7 +1461,7 @@ class OurDynamicQuery extends DynamicQueryWindow
 {
 	_callee = null;
 	_callee_func = null;
-	
+
 	constructor(){
 		base.constructor();
 		setup_grid(grid, this);
@@ -1525,7 +1525,7 @@ class OurImages extends ImagesListEditWindow {
 		appServer.images_get_list(grid->_data, _search_options);
 		grid->recalc_data();
 	}
-	
+
 	function do_edit(aid){
 		base.do_edit(aid);
 		if(aid) button_show_db_image(btnImage, aid.tointeger(), 0, false, false);
@@ -2118,22 +2118,21 @@ class MyEditProductWindow extends EditProductWindow {
 		_ourBarChart = new MyBarChart();
 		replace_widget_for(tabChartStatistics, _ourBarChart);
 		_ourBarChart->btnShowChart.callback(on_show_chart_cb);
-		
+
 		_ourHistory = new HistoryGroup();
 		replace_widget_for(tabHistory, _ourHistory);
 		local choice =  _ourHistory->history_choice;
-		foreach(opt in _history_options)
-		    choice->add(_tr(opt));
+		foreach(opt in _history_options) choice->add(_tr(opt));
 		choice->value(0);
 		choice.callback(on_history_cb);
-		
+
 		_ourProductKit = new ProductKitGroup();
 		replace_widget_for(tabKit, _ourProductKit);
 		//_ourProductKit->btnShowChart.callback(on_show_chart_cb);
 
 		_ourProductPrices = new ProductPricesGroup();
 		replace_widget_for(productPrices, _ourProductPrices);
-		
+
 		tabsMoreData.callback(tabsMoreData_cb);
 
 		load_aux_data();
@@ -2159,9 +2158,9 @@ class MyEditProductWindow extends EditProductWindow {
 		local sales_tax_data = [], measure_units_data = [], warranty_data = [];
 
 		appServer.get_product_aux_data(
-				    sales_tax_data,
-				    measure_units_data,
-				    warranty_data);
+				sales_tax_data,
+				measure_units_data,
+				warranty_data);
 
 		fill_choice_by_data(db_products_sales_tax_id, sales_tax_data);
 
@@ -2299,7 +2298,7 @@ class ProductsListSearch extends MyListSearchWindow {
 					{
 						btnThumbImage.hide();
 						btnThumbImage.image(null);
-						btnThumbImage.show();						
+						btnThumbImage.show();
 					}
 					_fetching_image = false;
 				}
@@ -2428,12 +2427,11 @@ class MyEditOrderWindow extends EditOrderWindow {
 		chk->label("><");
 		chk->set_visible();
 		chk->tooltip(_tr("Show payment types separately."));
-		
+
 		_ourHistory = new HistoryGroup();
 		replace_widget_for(tabHistory, _ourHistory);
 		local choice =  _ourHistory->history_choice;
-		foreach(opt in _history_options)
-		    choice->add(_tr(opt));
+		foreach(opt in _history_options) choice->add(_tr(opt));
 		choice->value(0);
 		choice.callback(on_history_cb);
 
@@ -2452,14 +2450,14 @@ class MyEditOrderWindow extends EditOrderWindow {
 		appServer.payment_types_get_short_list(data);
 		fill_choice_by_data(db_orders_payment_type_id, data);
 	}
-	
+
 	function get_record_by_id(id){
 		local lines = grid_lines->_data;
 		grid_lines->clear_data_rows();
 		appServer.get_record_and_array(_record, lines, dbUpdater()->table_name, 0, 
 			dbUpdater()->edit_id, "&with_lines=1");
 	}
-	
+
 	function do_edit_delayed(udata){
 		base.do_edit_delayed(udata);
 		local lines = grid_lines->_data;
@@ -2640,6 +2638,7 @@ class MyEditOrderWindow extends EditOrderWindow {
 			_ourBarChart->periodes(), _ourBarChart->periode_type() , paidUpaid);
 		_ourBarChart->show_bar_chart(mydata, paidUpaid, (_sab == "A"));
 	}
+
 	function on_history_cb(sender, udata){
 		this = sender->window();
 		local cursor_wait = fl_cursor_wait();
@@ -2860,7 +2859,7 @@ class OrdersBuysListSearch extends OrdersListSearch {
 		base.constructor(doInitialSearch);
 		label(_tr("Orders/Buys List Search"));
 	}
-	
+
 	function get_edit_window(){
 		return getChildWindow("Order/Buys Edit", MyEditOrderBuysWindow);
 	}
@@ -2922,21 +2921,21 @@ class MyMainWindow extends MainWindow {
 		btnPaymentsSales->callback(cb_btnPaymentsSales);
 		btnEntitiesSales->callback(cb_btnEntitiesSales);
 		btnProductsSales->callback(cb_btnProductsSales);
-		
+
 		btnOrdersBuys->callback(cb_btnOrdersBuys);
 		btnPaymentsBuys->callback(cb_btnPaymentsBuys);
 		btnProductsBuys->callback(cb_btnProductsBuys);
 		btnEntitiesBuys->callback(cb_btnEntitiesBuys);
-		
+
 		btnOrders->callback(cb_btnOrders);
 		btnPayments->callback(cb_btnPayments);
 		btnEntities->callback(cb_btnEntities);
 		btnProducts->callback(cb_btnProducts);
-		
+
 		btnGLGroups->callback(cb_btnGLGroups);
 		btnGLChart->callback(cb_btnGLChart);
 		btnGLTransactions->callback(cb_btnGLTransactions);
-		
+
 		btnOrdersSum->callback(cb_btnOrdersSum);
 		btnSalesTaxRates->callback(cb_btnSalesTaxRates);
 		btnOrderTypes->callback(cb_btnOrderTypes);
