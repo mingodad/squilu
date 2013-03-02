@@ -34,6 +34,8 @@
 #ifdef _WIN32
 #include <direct.h>
 #include <io.h>
+#else
+#define MAX_PATH 1024
 #endif
 
 #ifdef SQUNICODE
