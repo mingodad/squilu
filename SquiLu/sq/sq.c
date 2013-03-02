@@ -109,7 +109,6 @@ void PrintUsage()
 //<<FIXME>> this func is a mess
 int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 {
-	int i;
 	int compiles_only = 0;
 	int compiles_as_source_only = 0;
 	//static SQChar temp[500];
@@ -427,6 +426,13 @@ static SQInteger LoadFrozenScript0(HSQUIRRELVM v, const SQChar* filename, int on
 }
 #endif
 
+static char *chngChar (char *str, char oldChar, char newChar) {
+    char *strPtr = str;
+    while ((strPtr = strchr (strPtr, oldChar)) != NULL)
+        *strPtr++ = newChar;
+    return str;
+}
+
 static SQInteger LoadFrozenScript(HSQUIRRELVM v, const SQChar* filename, int only_check)
 {
     SQInteger retval;
@@ -481,7 +487,9 @@ static SQInteger LoadFrozenScript(HSQUIRRELVM v, const SQChar* filename, int onl
     SQChar srcBoot[256];
     SQInteger scr_len = scsnprintf(srcBoot, sizeof(srcBoot),
             _SC("local __fd=file(\"%s\", \"rb\");__fd.seek(%d, 'b');local __zsrc=__fd.read(%d);__fd.close();__zsrc=compilestring(zlib.inflate(__zsrc),\"zsrc\",false);__zsrc.acall2(this, vargv);"),
-            filename, fileSize-END_TAG_LEN - script_len, script_len);
+            filename, (int)(fileSize-END_TAG_LEN - script_len), (int)script_len);
+
+    chngChar(srcBoot, '\\', '/');
 
     if(SQ_SUCCEEDED(sq_compilebuffer(v,srcBoot, scr_len, _SC("bootScript"), SQTrue, SQTrue))) {
         int callargs = 1;
@@ -519,6 +527,7 @@ SQRESULT sqext_register_PostgreSQL(HSQUIRRELVM v);
 SQRESULT sqext_register_Java(HSQUIRRELVM v);
 SQRESULT sqext_register_ThreadObjects(HSQUIRRELVM v);
 SQRESULT sqext_register_csv_parser (HSQUIRRELVM v);
+SQRESULT sqext_register_fltklib(HSQUIRRELVM v);
 
 int main(int argc, char* argv[])
 {
@@ -565,7 +574,7 @@ int main(int argc, char* argv[])
 	//sqext_register_ThreadObjects(v);
 
 	sqext_register_sq_zmq3(v);
-	sqext_register_Java(v);
+	//sqext_register_Java(v);
 
 	sqext_register_rs232(v);
 #ifdef WITH_FLTK
