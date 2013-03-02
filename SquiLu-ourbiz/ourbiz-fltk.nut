@@ -4,6 +4,9 @@
  * Licensed under GPLv3, see http://www.gnu.org/licenses/gpl.html.
  */
 
+/*
+Check if we are on windows os.
+*/
 local WIN32 = os.getenv("WINDIR") != null
 socket.open();
 
@@ -16,6 +19,13 @@ for(local i = 1, len=vargv.len(); i<len; ++i) {
 	}
 }
 
+/**
+Command line parameters.
+-host	host to connect [localhost]
+-port	port to connect [8855]
+-user	user to authenticate
+-password	password to authenticate
+*/
 local appServer_host = app_cmd_parameters.get("-host", "localhost");
 local appServer_port = app_cmd_parameters.get("-port", 8855);
 local appServer_user = app_cmd_parameters.get("-user", "mingote");
@@ -913,7 +923,7 @@ class Fl_Data_Table extends Flv_Data_Table {
 			break;
 			case 'S': return value.tostring();
 			break;
-			case '@': return value.replace("@", "@@"); //escape any @ 	{
+			case '@': return value.replace("@", "@@"); //escape any @ 
 			break;
 		}
 		return value;

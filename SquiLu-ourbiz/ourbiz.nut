@@ -2256,4 +2256,14 @@ function ourbizDbAction(request){
 	return false;
 }
 
-
+add_uri_hanlders({
+	["/OURBIZ"] =function(request){
+		request.print("HTTP/1.1 200 OK\r\nServer: OurBiz\r\nContent-Length: 0\r\n\r\n");
+		return true;
+	},
+	["/DB/GetList"] = ourbizDbGetList,
+	["/DB/GetOne"] = ourbizDbGetOne,
+	["/DB/Action"] = ourbizDbAction,
+	["/DB/GetBin"] = ourbizDbGetBin,
+	["/DB/m"] = ourbizDbMobile,
+});
