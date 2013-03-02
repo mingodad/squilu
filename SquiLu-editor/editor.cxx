@@ -31,6 +31,11 @@
 #include <sqstdstring.h>
 #include <sqstdaux.h>
 
+#ifdef _WIN32
+#include <direct.h>
+#include <io.h>
+#endif
+
 #ifdef SQUNICODE
 #define scfprintf fwprintf
 #define scfopen	_wfopen
@@ -754,11 +759,26 @@ void saveas_cb() {
   save_file(fnfc.filename());
 }
 
+void chdir_to(){
+  if (filename[0]) {
+    char buf[MAX_PATH];
+    int len = snprintf(buf, sizeof(buf), "%s", filename);
+    for(int i=len; i >=0; --i){
+        if(buf[i] == '/' || buf[i] == '\\'){
+            buf[i] = '\0';
+            break;
+        }
+    }
+    chdir(buf);
+  }
+}
+
 void run_cb() {
   if (filename[0]) {
+      chdir_to();
       sq_setnativedebughook(v, NULL);
       sq_enabledebuginfo(v, 0);
-      sqstd_dofile(v, filename, SQFalse, SQTrue);
+      sqstd_dofile(v, filename, SQFalse, SQTrue, SQTrue);
   }
 }
 
@@ -770,6 +790,7 @@ void debug_cb(Fl_Widget*, void* ew) {
       return;
   }
   if (filename[0]) {
+      chdir_to();
       _debug_wait = true;
       _stop_debug = false;
       _debug_pos = 0;
@@ -780,7 +801,7 @@ void debug_cb(Fl_Widget*, void* ew) {
       sq_poptop(v);
       sq_setnativedebughook(v, sq_debug_hook);
       sq_enabledebuginfo(v, 1);
-      sqstd_dofile(v, filename, SQFalse, SQTrue);
+      sqstd_dofile(v, filename, SQFalse, SQTrue, SQTrue);
   }
 }
 
@@ -893,9 +914,12 @@ extern "C" {
     SQRESULT sqext_register_rs232(HSQUIRRELVM v);
     SQRESULT sqext_register_tinyxml2(HSQUIRRELVM v);
     SQRESULT sqext_register_decimal(HSQUIRRELVM v);
-    SQRESULT sqext_register_fltklib(HSQUIRRELVM v);
     SQRESULT sqext_register_markdown(HSQUIRRELVM v);
     SQRESULT sqext_register_PostgreSQL(HSQUIRRELVM v);
+    SQRESULT sqext_register_Java(HSQUIRRELVM v);
+    SQRESULT sqext_register_ThreadObjects(HSQUIRRELVM v);
+    SQRESULT sqext_register_csv_parser (HSQUIRRELVM v);
+    SQRESULT sqext_register_fltklib(HSQUIRRELVM v);
 }
 
 
@@ -967,12 +991,16 @@ int main(int argc, char **argv) {
 	sqext_register_sq_zlib(v);
 	sqext_register_mongoose(v);
 	sqrat_register_importlib(v);
-	sqext_register_sq_slave_vm(v);
 	sqext_register_tinyxml2(v);
 	sqext_register_decimal(v);
 	sqext_register_markdown(v);
+	//sqext_register_csv_parser(v);
+
+	sqext_register_sq_slave_vm(v);
+	//sqext_register_ThreadObjects(v);
 
 	sqext_register_sq_zmq3(v);
+	//sqext_register_Java(v);
 
 	sqext_register_rs232(v);
 #ifdef WITH_FLTK
