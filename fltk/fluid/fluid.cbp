@@ -7,17 +7,28 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin/Debug/fluid" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Debug/" />
+				<Option output="bin\Debug\fluid" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj\Debug\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
+				<Linker>
+					<Add library="lua" />
+					<Add library="sqlite3" />
+					<Add library="pthread" />
+					<Add library="dl" />
+					<Add library="X11" />
+					<Add library="Xft" />
+					<Add library="Xext" />
+					<Add library="Xinerama" />
+					<Add library="squilu" />
+				</Linker>
 			</Target>
 			<Target title="Release">
-				<Option output="bin/Release/fluid" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Release/" />
+				<Option output="bin\Release\fluid" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj\Release\" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -25,41 +36,58 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add library="lua" />
+					<Add library="sqlite3" />
+					<Add library="pthread" />
+					<Add library="dl" />
+					<Add library="X11" />
+					<Add library="Xft" />
+					<Add library="Xext" />
+					<Add library="Xinerama" />
+					<Add library="squilu" />
+				</Linker>
+			</Target>
+			<Target title="Release win32">
+				<Option output="bin\Release\fluid" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj\Release\" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="gdi32" />
+					<Add library="ole32" />
+					<Add library="comdlg32" />
+					<Add library="comctl32" />
+					<Add library="uuid" />
 				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-DUSE_LUA3=1" />
-			<Add option="-DUSE_SQUILU=1" />
+			<Add option="-DUSE_LUA00=1" />
+			<Add option="-DUSE_SQUILU00=1" />
 			<Add option="-DUSE_STD_STRING2" />
 			<Add option="-DFL_INTERNALS=1" />
-			<Add directory="../../lua-5.1.4/src" />
-			<Add directory="../../lua-5.1.4/src/ext" />
-			<Add directory="../../fltk" />
-			<Add directory="../png" />
-			<Add directory="../../../../SquiLu/include" />
+			<Add directory="..\..\fltk" />
+			<Add directory="..\..\lua-5.1.4\src" />
+			<Add directory="..\..\lua-5.1.4\src\ext" />
+			<Add directory="..\..\..\..\SquiLu\include" />
+			<Add directory="..\png" />
 		</Compiler>
 		<Linker>
 			<Add library="fltk" />
 			<Add library="fltk_forms" />
 			<Add library="fltk_images" />
-			<Add library="lua" />
-			<Add library="sqlite3" />
-			<Add library="pthread" />
-			<Add library="dl" />
-			<Add library="X11" />
-			<Add library="Xft" />
-			<Add library="Xext" />
-			<Add library="Xinerama" />
 			<Add library="fltk_jpeg" />
 			<Add library="fltk_png" />
 			<Add library="fltk_z" />
-			<Add library="squilu" />
-			<Add directory="../../lua-5.1.4" />
-			<Add directory="../lib" />
-			<Add directory="../../sqlite3-android/.libs" />
-			<Add directory="../../../../SquiLu/lib" />
+			<Add directory="..\lib" />
+			<Add directory="..\..\lua-5.1.4" />
+			<Add directory="..\..\sqlite3-android\.libs" />
+			<Add directory="..\..\..\..\SquiLu\lib" />
 		</Linker>
 		<Unit filename="CodeEditor.cxx" />
 		<Unit filename="CodeEditor.h" />
@@ -89,8 +117,14 @@
 		<Unit filename="function_panel.fl">
 			<Option compile="1" />
 		</Unit>
-		<Unit filename="luacpp.cxx" />
-		<Unit filename="luacpp.h" />
+		<Unit filename="luacpp.cxx">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
+		<Unit filename="luacpp.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+		</Unit>
 		<Unit filename="print_panel.fl">
 			<Option compile="1" />
 		</Unit>

@@ -533,7 +533,9 @@ void vm_script_gvar(const char* key, const char *value){
 
 #endif
 
-#define USE_VM_SCRIPT USE_LUA | USE_SQUILU
+#if defined(USE_LUA) || defined(USE_SQUILU)
+#define USE_VM_SCRIPT
+#endif
 
 #if USE_VM_SCRIPT
 void get_user_vm_script_file_name(char *buf, size_t buf_size){
