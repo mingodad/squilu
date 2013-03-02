@@ -4196,7 +4196,7 @@ static SQRESULT _fl_globals_fl_file_chooser(HSQUIRRELVM v)
 //const char *fl_input(const char *label, const char *deflt = 0, ...) __fl_attr((__format__ (__printf__, 1, 3)));
 static SQRESULT _fl_globals_fl_input(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS(v);
+    SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 2, label);
     SQ_GET_STRING(v, 3, message);
     sq_pushstring(v, fl_input(label, message), -1);
