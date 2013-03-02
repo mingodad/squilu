@@ -91,7 +91,9 @@
 					<Add library="ws2_32" />
 					<Add library="mpdecimal-win32" />
 					<Add library="discount-win32" />
+					<Add library="fltk_z" />
 					<Add directory="..\..\zeromq-3.2.2" />
+					<Add directory="..\fltk\lib" />
 				</Linker>
 			</Target>
 			<Target title="Release FLTK">
@@ -200,18 +202,18 @@
 					<Add option="-s" />
 					<Add option="-static-libstdc++" />
 					<Add option="-static-libgcc" />
+					<Add library="fltk_images" />
+					<Add library="fltk_png" />
+					<Add library="fltk_jpeg" />
+					<Add library="fltkutils" />
+					<Add library="fltk_z" />
+					<Add library="fltk" />
+					<Add library="hpdfs" />
 					<Add library="zeromq-win32" />
 					<Add library="axtls-win32" />
 					<Add library="ws2_32" />
 					<Add library="mpdecimal-win32" />
 					<Add library="discount-win32" />
-					<Add library="fltkutils" />
-					<Add library="fltk_images" />
-					<Add library="fltk_png" />
-					<Add library="fltk_jpeg" />
-					<Add library="fltk_z" />
-					<Add library="fltk" />
-					<Add library="hpdfs" />
 					<Add library="gdi32" />
 					<Add library="uuid" />
 					<Add library="ole32" />
@@ -322,7 +324,6 @@
 		</Compiler>
 		<Linker>
 			<Add library="m" />
-			<Add library="z" />
 			<Add directory="lib" />
 			<Add directory="..\myaxtls" />
 			<Add directory="..\mpdecimal" />
@@ -379,6 +380,13 @@
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
 		</Unit>
+		<Unit filename="include\sqstdaux.h" />
+		<Unit filename="include\sqstdblob.h" />
+		<Unit filename="include\sqstdio.h" />
+		<Unit filename="include\sqstdmath.h" />
+		<Unit filename="include\sqstdstring.h" />
+		<Unit filename="include\sqstdsystem.h" />
+		<Unit filename="include\squirrel.h" />
 		<Unit filename="sq\sq.c">
 			<Option compilerVar="CC" />
 		</Unit>
