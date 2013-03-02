@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2013 by Domingo Alvarez Duarte <mingodad@gmail.com>
+ *
+ * Licensed under GPLv3, see http://www.gnu.org/licenses/gpl.html.
+ */
+ 
 class PdfSqlTable extends Sq_Fpdf {
 	col_h = null;
 	col_h0 = null;

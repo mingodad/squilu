@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2013 by Domingo Alvarez Duarte <mingodad@gmail.com>
+ *
+ * Licensed under GPLv3, see http://www.gnu.org/licenses/gpl.html.
+ */
+ 
 local globals = getroottable();
 if(!globals.get("APP_CODE_FOLDER", false)) ::APP_CODE_FOLDER <- ".";
 WIN32 <- os.getenv("WINDIR") != null;
