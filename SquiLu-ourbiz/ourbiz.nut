@@ -15,10 +15,10 @@ function getOurbizDBFileName(){
 	return "/home/mingo/dev/FrontAccountLua/ourbiz.db";
 }
 
-::ourbizDB <- null;
+local ourbizDB = null;
 function getOurbizDB(){
-	if(!::ourbizDB) ::ourbizDB = SQLite3(getOurbizDBFileName());
-	return ::ourbizDB;
+	if(!ourbizDB) ourbizDB = SQLite3(getOurbizDBFileName());
+	return ourbizDB;
 	//return checkCachedDB(APP_CODE_FOLDER + "/ourbiz.db");
 }
 
@@ -1469,6 +1469,7 @@ class MyCalcOrderTotals
 class DB_Orders extends DB_Manager {
 	_calc_line = null;
 	_order_totals = null;
+	_stmt_update_version = null;
 	
 	constructor(){
 		base.constructor("orders", [
@@ -1559,8 +1560,8 @@ class DB_Orders extends DB_Manager {
 	function calc_order_line_from_map(tbl_qs, rec_map)
 	{
 		_calc_line.reset();
-		local product_id = tbl_qs.get("product_id", 0);
-		local order_id = tbl_qs.get("__id__", 0);
+		local product_id = tbl_qs.get("product_id", 0).tointeger();
+		local order_id = tbl_qs.get("__id__", 0).tointeger();
 		if(product_id  && order_id)
 		{
 			local db = getOurbizDB();
@@ -1577,7 +1578,7 @@ and ot.id = o.order_type_id]==], order_id));
 				if(stmt.next_row()){
 					str = stmt.col(0);
 					if(str != "B"){
-						quanity = rec_map.get("quantity", 0);
+						local quanity = rec_map.get("quantity", 0);
 						if(quantity > 0)
 						{
 							out_buf.clear();
@@ -1693,6 +1694,236 @@ where o.id = %d and p.id = %d]==], order_id, product_id));
 			return buf;
 		}
 		else return base.sql_get_one(tbl_qs);
+	}
+
+	function db_action(db, data){
+		//dbg_dump_map(p.post_map);
+		local action = data.get("__action__", false);
+
+		if(action == "calc_line")
+		{
+			local buf = blob(0, 8192);
+			calc_order_line(data, buf, data);
+			return buf;
+		}
+		else if(action == "order_numbering")
+		{
+			local order_id = data.get("__id__", 0).tointeger();
+			local version = data.get("__version__", 0).tointeger();
+			db.exec_dml("begin;");
+			try {
+				if(db.exec_dml(orders_numbering_get_sql(order_id, version)) < 1)
+				{
+					throw("Could not number the order !");
+				}
+				local order_number = db.exec_get_one(format("select order_number from orders where id=%d", order_id));
+				db.exec_dml("commit;");
+				
+				local buf = blob(0,1024);
+				buf.write("[[");
+				add2sle(buf, "order_number");
+				buf.writen(SLE_SLEEND, 'c');
+				buf.write("][");
+				add2sle(buf, order_number);
+				buf.writen(SLE_SLEEND, 'c');
+				buf.write("]]");
+				return buf;
+			}
+			catch(e){
+				db.exec_dml("rollback;");
+				throw(e);
+			}
+		}
+		else if(action == "copy_order")
+		{
+			//copy_order(p, out_sql);
+		}
+		else
+		{
+			do_db_action2(db, data);
+		}
+	}
+
+	function do_db_action2(db, data){
+/*
+		local action = data.get("__action__", false);
+		local order_id = data.get("__id__", 0).tointeger();
+		local version = data.get("__version__", 0).tointeger();
+		
+		local line_id, entity_id, order_type_id, changes = 0;
+		map_str_t order_type_map;
+		order_values_st order_values;
+		bool order_type_changed = false;
+
+		if(!_stmt_update_version)
+		{
+			_stmt_update_version = db.prepare([==[
+update orders set _version_=_version_+?, mdate=CURRENT_TIMESTAMP,
+	subtotal=?, total_discount=?, total_sales_tax1=?, total_sales_tax2=?
+where id=? and _version_=?]==]);
+		}
+
+		db.exec_dml("begin;");
+		try {
+			_db_line.dbAction = DBTableUpdate::e_none;
+			if(action == "insert_line") _db_line.dbAction = DBTableUpdate::e_insert;
+			else if(action == "update_line") _db_line.dbAction = DBTableUpdate::e_update;
+			else if(action == "delete_line") _db_line.dbAction = DBTableUpdate::e_delete;
+
+			bool isInsert, isDelete, isUpdate;
+			isInsert = isDelete = isUpdate = false;
+			if(action == "insert") isInsert = true;
+			else if(action == "update") isUpdate = true;
+			else if(action == "delete") isDelete = true;
+
+			if(_db_line.dbAction != DBTableUpdate::e_none){
+			getVarFromMap("__id__", p.post_map, order_id);
+			if(!order_id) throw DBException("Order ID required for line actions!");
+
+			_db_line._order_id = order_id;
+			_db_line._db = &p.db;
+
+			getVarFromMap("id", p.post_map, line_id);
+
+			std::string str;
+			if(getVarFromMap("calc_on_fld", p.post_map, str))
+			{
+			p.post_map["trigger"] = str;
+			calc_order_line_from_map(p, out_sql, p.post_map);
+			out_sql.clear();
+			}
+
+			bool hasOld = false;
+
+			switch(_db_line.dbAction)
+			{
+			case DBTableUpdate::e_delete:
+			case DBTableUpdate::e_update:
+			hasOld = true;
+			}
+
+			if(hasOld) {
+			if(!line_id)  throw DBException("Line ID required for line actions!");
+			p.post_map["__id__"] = asString(line_id);
+			}
+
+			get_order_type(p.db, order_id, order_type_map);
+
+			getVarFromMap("entity_id", order_type_map, entity_id);
+			order_values.setFromMap(order_type_map);
+			apply_order_type_on_order_entity(p.db, entity_id, order_values, true, order_type_map);
+
+			if(hasOld){
+			apply_order_type_on_order_line(p.db, line_id, true, order_type_map);
+			}
+			out_sql.clear();
+			db_action_exec(_db_line, p, get_line_fields_for_dbaction(), out_sql);
+			changes = p.db.changes();
+
+			switch(_db_line.dbAction)
+			{
+			case DBTableUpdate::e_update:
+			case DBTableUpdate::e_insert:
+			apply_order_type_on_order_line(p.db, _db_line.edit_id, false, order_type_map);
+			}
+			}
+			else
+			{
+			order_id = 0;
+			getVarFromMap("__id__", p.post_map, order_id);
+			getVarFromMap("order_type_id", p.post_map, order_type_id);
+
+			if(isUpdate || isDelete){//check change on order type
+			int old_order_type_id;
+			int old_entity_id;
+
+			get_order_type(p.db, order_id, order_type_map);
+
+			getVarFromMap("id", order_type_map, old_order_type_id);
+			//when order_type is not changed it's not sent
+			//so we adjust it here
+			if(!order_type_id) order_type_id = old_order_type_id;
+
+			getVarFromMap("entity_id", order_type_map, old_entity_id);
+			order_values.setFromMap(order_type_map);
+			apply_order_type_on_order_entity(p.db, old_entity_id, order_values, true, order_type_map);
+
+			order_type_changed = !isDelete && old_order_type_id && (order_type_id != old_order_type_id);
+			if(order_type_changed || isDelete){
+			apply_order_type_on_order(p.db, order_id, true, order_type_map);
+			}
+			if(isDelete){
+			p.db.exec_dml_fmt("delete from orders_lines where order_id=%d", order_id);
+			}
+			}
+
+			dbHandler::db_action(p, out_sql);
+
+			if(isInsert){
+			sle2map(out_sql, order_type_map);
+			getVarFromMap("id", order_type_map, order_id);
+			}
+			else if(isUpdate) version++; //update will increase version on call dbHandler::db_action
+			}
+
+			if(order_type_changed){
+			get_order_type(p.db, order_id, order_type_map);
+			apply_order_type_on_order(p.db, order_id, false, order_type_map);
+			}
+
+			if(!isDelete && !isInsert){
+			_order_totals.calc_order_totals(p.db.get_db(), order_id, _calc_line);
+			SQLiteResetStatement rstmt(_stmt_update_version);
+			int i=1;
+			//because when update order header already incerased version
+			_stmt_update_version->bind(i++, isUpdate ? 0 : 1);
+			_stmt_update_version->bind(i++, _order_totals.subtotal_amt);
+			_stmt_update_version->bind(i++, _order_totals.discount_amt);
+			_stmt_update_version->bind(i++, _order_totals.sales_tax1_amt);
+			_stmt_update_version->bind(i++, _order_totals.sales_tax2_amt);
+			_stmt_update_version->bind(i++, order_id);
+			_stmt_update_version->bind(i++, version);
+
+			if(_stmt_update_version->exec_dml() != 1)
+			{
+			throw DBException("Could not update order !");
+			}
+			order_values.subtotal = _order_totals.subtotal_amt;
+			order_values.discount = _order_totals.discount_amt;
+			order_values.tax1 = _order_totals.sales_tax1_amt;
+			order_values.tax2 = _order_totals.sales_tax2_amt;
+			}
+			else order_values.setFromMap(order_type_map);
+
+			getVarFromMap("entity_id", order_type_map, entity_id);
+			if(!isDelete){
+			apply_order_type_on_order_entity(p.db, entity_id, order_values,
+						 false, order_type_map);
+			}
+
+			p.db.commit_transaction();
+
+			if(_db_line.dbAction != DBTableUpdate::e_none){
+			//send the totals with the new id and changes
+			out_sql.clear();
+			out_sql << "[[";
+			_order_totals.dumpSLEFieldNames(out_sql);
+			add2sle(out_sql, "id");
+			add2sle(out_sql, "changes");
+			out_sql.append((char)SLEEND);
+			out_sql << "][";
+			_order_totals.dumpSLEFieldValues(out_sql);
+			add2sle(out_sql, _db_line.edit_id);
+			add2sle(out_sql, changes);
+			out_sql.append((char)SLEEND);
+			out_sql << "]]";
+			}
+		}
+		catch(e){
+			db.exec_dml("rollback;");
+			throw(e);
+		}
+*/
 	}
 }
 
@@ -2235,6 +2466,7 @@ function ourbizDbAction(request){
 			result = db_manager.db_action(db, data);
 		}
 		if (result != null){
+			if(result instanceof blob) data = result.tostring();
 			gmFile.clear();
 			gmFile.write("[[");
 			if (action == "insert") add2sle(gmFile, "id");

@@ -6,11 +6,36 @@
  
 local globals = getroottable();
 
-function checkCompaniesUkDBFile(){
+function getCompaniesUkDBFileName(){
 	if (globals.get("jniLog", false)) return APP_CODE_FOLDER + "/companies-uk-RG.db";
 	if (globals.get("WIN32", false)) return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-RG.db";
 	return "/media/USBHD320/bo/uk/companies-uk-RG.db";
 }
+
+local companiesUkDB = null;
+function getCompaniesUkDB(){
+	if(!companiesUkDB) {
+		companiesUkDB = SQLite3(getCompaniesUkDBFileName());
+		//companiesUkDB.exec_dml("PRAGMA cache_size = 4000;");
+	}
+	return companiesUkDB;
+}
+
+local __stmtCache = {};
+local function getCachedStmt(stmt_key, sql_or_func){
+	local stmt = __stmtCache.get(stmt_key, false);
+	if (!stmt){
+		//local db =checkCompaniesUkDB()
+		local sql;
+		if (type(sql_or_func) == "function") sql = sql_or_func();
+		else sql = sql_or_func;
+		//debug_print("\n", sql);
+		stmt = getCompaniesUkDB().prepare(sql);
+		__stmtCache.stmt_key <- stmt;
+	}
+	return stmt;
+}
+
 
 function getCiaUkSearchList(search_str, search_post_code, search_sic_code,
 			search_origin_post_code, search_around_post_code , sic_street, page, limit){
@@ -437,7 +462,8 @@ User-Agent:Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.11 (KHTML, like Gecko) 
 
 function getExtraCompanyData(cid, cnum){
 	local data;
-	local stmt = ::db.prepare("select data from company_extra_data where id = ?");
+	local db = getCompaniesUkDB();
+	local stmt = db.prepare("select data from company_extra_data where id = ?");
 	stmt.reset();
 	stmt.bind(1, cid);
 
@@ -449,7 +475,7 @@ function getExtraCompanyData(cid, cnum){
 
 	try {
 		data = getExtraCompanyDataOnNet(cnum);
-		local stmt2 = ::db.prepare("insert into company_extra_data(id, data) values(?,?)");
+		local stmt2 = db.prepare("insert into company_extra_data(id, data) values(?,?)");
 		stmt2.reset();
 		stmt2.bind(1, cid);
 		stmt2.bind(2, data);

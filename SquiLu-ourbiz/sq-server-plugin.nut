@@ -16,15 +16,12 @@ WIN32 <- os.getenv("WINDIR") != null;
 
 if(!globals.get("gmFile", false)) ::gmFile <- blob();
 if(!globals.get("__tplCache", false)) ::__tplCache <- {};
-if(!globals.get("__stmtCache", false)) ::__stmtCache <- {};
-if(!globals.get("db", false)) ::db <- SQLite3(checkCompaniesUkDBFile());
-::db.exec_dml("PRAGMA cache_size = 4000;");
 
 function getTemplate(fname, nocache){
 	local mixBase = ::__tplCache.get(fname, false);
 	if (!mixBase || nocache){
 		local rfn = format("%s/%s", APP_CODE_FOLDER, fname);
-//debug_print("\n", rfn);
+		//debug_print("\n", rfn);
 		try {
 			mixBase = sqmix.loadfile(rfn);
 		} catch(e){
@@ -35,19 +32,22 @@ function getTemplate(fname, nocache){
 	return mixBase;
 }
 
-function getCachedStmt(stmt_key, sql_or_func){
+/*
+if(!globals.get("__stmtCache", false)) ::__stmtCache <- {};
+function getCachedStmt(db, stmt_key, sql_or_func){
 	local stmt = ::__stmtCache.get(stmt_key, false);
 	if (!stmt){
 		//local db =checkCompaniesUkDB()
 		local sql;
 		if (type(sql_or_func) == "function") sql = sql_or_func();
 		else sql = sql_or_func;
-//debug_print("\n", sql);
+		//debug_print("\n", sql);
 		stmt = ::db.prepare(sql);
 		::__stmtCache.stmt_key <- stmt;
 	}
 	return stmt;
 }
+*/
 
 function unescapeHtml ( str ){
 	if (str){
