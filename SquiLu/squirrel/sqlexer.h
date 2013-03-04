@@ -14,7 +14,7 @@ struct SQLexer
 	~SQLexer();
 	void Init(SQSharedState *ss,SQLEXREADFUNC rg,SQUserPointer up,CompilerErrorFunc efunc,void *ed);
 	SQTable * GetKeywords();
-	void Error(const SQChar *err);
+	void Error(const SQChar *err, ...);
 	SQInteger Lex();
 	const SQChar *Tok2Str(SQInteger tok);
 private:

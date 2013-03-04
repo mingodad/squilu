@@ -113,9 +113,14 @@ SQTable * SQLexer::GetKeywords()
 	return tbl;
 }
 
-void SQLexer::Error(const SQChar *err)
+void SQLexer::Error(const SQChar *fmt, ...)
 {
-	_errfunc(_errtarget,err);
+    static SQChar temp[256];
+    va_list vl;
+    va_start(vl, fmt);
+    scvsprintf(temp, fmt, vl);
+    va_end(vl);
+	_errfunc(_errtarget,temp);
 }
 
 void SQLexer::Next()
@@ -144,6 +149,15 @@ const SQChar *SQLexer::Tok2Str(SQInteger tok)
 
 void SQLexer::LexBlockComment()
 {
+/*
+    if(CUR_CHAR == _SC('*'))
+    {
+        NEXT();
+        if(CUR_CHAR != _SC('*')){ //document comment
+            printf("Doument comment found at line %d\n", _currentline);
+        }
+    }
+*/
 	bool done = false;
 	while(!done) {
 		switch(CUR_CHAR) {
@@ -254,10 +268,10 @@ SQInteger SQLexer::Lex()
 			{
 			    SQInteger ret = CUR_CHAR;
                 NEXT();
-                if(ret == _SC('[') && CUR_CHAR == _SC('=')){
+                if((ret == _SC('[') || ret == _SC('{') || ret == _SC('(')) && CUR_CHAR == _SC('=')){
                     //lets try lua literal delimiters
                     SQInteger stype;
-                    if((stype=ReadString(CUR_CHAR,true))!=-1){
+                    if((stype=ReadString(ret,true))!=-1){
                         RETURN_TOKEN(stype);
                     }
                     Error(_SC("error parsing the string"));
@@ -345,18 +359,31 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 {
 	INIT_TEMP_STRING();
 	SQInteger start_equals = 0;
-	if(ndelim == _SC('=')){
+	SQChar cdelim1, cdelim2;
+	if(ndelim == _SC('{')){
+	    cdelim1 = _SC('{');
+	    cdelim2 = _SC('}');
+	}
+	else if(ndelim == _SC('(')){
+	    cdelim1 = _SC('(');
+	    cdelim2 = _SC(')');
+	}
+	else {
+	    cdelim1 = _SC('[');
+	    cdelim2 = _SC(']');
+	}
+	if(CUR_CHAR == _SC('=')){
 	    //lua like literal
 	    while(!IS_EOB() && CUR_CHAR == _SC('=')) {
 	        ++start_equals;
 	        NEXT();
 	    }
-	    if(CUR_CHAR != _SC('[')){
+	    if(CUR_CHAR != cdelim1){
 	        //it's not a lua literal delimiter
-	        Error(_SC("expect '[' on literal delimiter"));
+	        Error(_SC("expect '%c' on literal delimiter"), cdelim1);
 	        return -1;
 	    }
-	    ndelim = _SC(']');
+	    ndelim = cdelim2;
 	}
 	NEXT();
 	if(IS_EOB()) return -1;
@@ -426,22 +453,22 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 		    if(CUR_CHAR == _SC('=')){
                 SQInteger end_equals = start_equals;
                 NEXT();
-                if(CUR_CHAR == _SC('=') || CUR_CHAR == _SC(']')){
+                if(CUR_CHAR == _SC('=') || CUR_CHAR == cdelim2){
                     --end_equals;
                     while(!IS_EOB() && CUR_CHAR == _SC('=')) {
                         --end_equals;
                         NEXT();
                     }
                     if(end_equals) Error(_SC("expect same number of '=' on literal delimiter"));
-                    if(CUR_CHAR != _SC(']')) Error(_SC("expect ']' to close literal delimiter"));
+                    if(CUR_CHAR != cdelim2) Error(_SC("expect '%c' to close literal delimiter"), cdelim2);
                     NEXT();
                     break;
                 }
-                APPEND_CHAR(_SC(']')); //the first NEXT() after break the while loop
+                APPEND_CHAR(cdelim2); //the first NEXT() after break the while loop
                 APPEND_CHAR(_SC('='));
                 lastBraceAdded = true;
 		    }
-		    if(!lastBraceAdded) APPEND_CHAR(_SC(']')); //the first NEXT() after break the while loop
+		    if(!lastBraceAdded) APPEND_CHAR(cdelim2); //the first NEXT() after break the while loop
 		    APPEND_CHAR(CUR_CHAR);
 		    NEXT();
 		}
