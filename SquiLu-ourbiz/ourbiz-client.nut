@@ -696,9 +696,9 @@ class AppServer
     }
 
     function get_product_for_edit(product_id, rec, prices_list, kit_list, kit_details){
-        local qs, js;
-        qs = format("/DB/GetOne?products=%d&product_for_edit=1", product_id);
-        _get_data("GET", qs, 0, js);
+        local buf = blob(0, 8192);
+        local qs = format("/DB/GetOne?products=%d&product_for_edit=1", product_id);
+        _get_data("GET", qs, 0, buf);
 
 /*
         JsonJSMN p;
@@ -712,19 +712,19 @@ class AppServer
             parse_jsonObject2map(p, kit_details, js.c_str());
         }
 */
-        if(js[0] != '[') throw "Invalid sle encoded !";
+        if(buf[0] != '[') throw "Invalid sle encoded !";
         local start = 0;
-        local pos = sle2map(js, rec, start);
-        pos = sle2vecOfvec(js, prices_list, pos);
-        pos = sle2vecOfvec(js, kit_list, pos);
-        sle2map(js, kit_details, pos);
+        local pos = sle2map(buf, rec, start);
+        pos = sle2vecOfvec(buf, prices_list, pos);
+        pos = sle2vecOfvec(buf, kit_list, pos);
+        sle2map(buf, kit_details, pos);
         prices_list.remove(0); //remove header
         kit_list.remove(0); //remove header
     }
     function get_product_aux_data(sales_tax_data, measure_units_data, warranty_data){
-        local qs, js = blob(0, 8192);
-        qs = "/DB/GetOne?products=0&product_aux_data=1";
-        _get_data("GET", qs, 0, js);
+        local buf = blob(0, 8192);
+        local qs = "/DB/GetOne?products=0&product_aux_data=1";
+        _get_data("GET", qs, 0, buf);
 /*
         JsonJSMN p;
         JsonJSMN::jsmntok_t tok;
@@ -736,11 +736,11 @@ class AppServer
             parse_jsonArray2Vector(p, warranty_data, js.c_str());
         }
 */
-        if(js[0] != '[') throw "Invalid sle encoded !";
+        if(buf[0] != '[') throw "Invalid sle encoded !";
         local start = 0;
-        local pos = sle2vecOfvec(js, sales_tax_data, start);
-        pos = sle2vecOfvec(js,  measure_units_data, pos);
-        pos = sle2vecOfvec(js, warranty_data, pos);
+        local pos = sle2vecOfvec(buf, sales_tax_data, start);
+        pos = sle2vecOfvec(buf,  measure_units_data, pos);
+        pos = sle2vecOfvec(buf, warranty_data, pos);
         //now deleting header data
         sales_tax_data.remove(0);
         measure_units_data.remove(0);

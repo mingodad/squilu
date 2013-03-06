@@ -21,6 +21,7 @@ function setAppFont(fontName)
             {
                 if( font.name.find(fontName) >= 0)
                 {
+		    //print(font.name);
                     if( font.attributes != 0 )
                     {
                         if (( font.attributes & FL_BOLD) &&
@@ -113,7 +114,8 @@ Fl.visual(FL_RGB);
 Fl.option(Fl.OPTION_ARROW_FOCUS, true);
 fl_register_images();
 /*
-setting font this way on linux makes Fl_Pack child misbehave
+//setting font this way on linux makes Fl_Pack child misbehave
+//also with this bad pdf right align
 setAppFont("erdana");
 */
 Fl.add_focus_changing_handler(fltk_focus_changing);

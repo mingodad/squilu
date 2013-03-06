@@ -4,16 +4,20 @@
  * Licensed under GPLv3, see http://www.gnu.org/licenses/gpl.html.
  */
  
+//start dummy nested scope to allow reload without complain about constants already defined 
+//also it hides from outer scope anything declared as local
+{
+ 
 local globals = getroottable();
 
-function getCompaniesUkDBFileName(){
+local function getCompaniesUkDBFileName(){
 	if (globals.get("jniLog", false)) return APP_CODE_FOLDER + "/companies-uk-RG.db";
 	if (globals.get("WIN32", false)) return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-RG.db";
 	return "/media/USBHD320/bo/uk/companies-uk-RG.db";
 }
 
 local companiesUkDB = null;
-function getCompaniesUkDB(){
+local function getCompaniesUkDB(){
 	if(!companiesUkDB) {
 		companiesUkDB = SQLite3(getCompaniesUkDBFileName());
 		//companiesUkDB.exec_dml("PRAGMA cache_size = 4000;");
@@ -37,7 +41,7 @@ local function getCachedStmt(stmt_key, sql_or_func){
 }
 
 
-function getCiaUkSearchList(search_str, search_post_code, search_sic_code,
+local function getCiaUkSearchList(search_str, search_post_code, search_sic_code,
 			search_origin_post_code, search_around_post_code , sic_street, page, limit){
 	local offset = page * limit;
 	local post_code_radius = strHasContent(search_around_post_code) ? search_around_post_code.tointeger() : 0;
@@ -182,34 +186,34 @@ limit ? offset ?
 	return  result;
 }
 
-function getOneDbNamedValuesFromStmt(stmt){
+local function getOneDbNamedValuesFromStmt(stmt){
 	local result;
 	if (stmt.step() == stmt.SQLITE_ROW) result = stmt.asTable();
 	stmt.reset();
 	return result || {};
 }
 
-function getCiaUkById(id){
+local function getCiaUkById(id){
 	local stmt = getCachedStmt("getCiaUkById", "select * from company_view where id = ?");
 	stmt.reset();
 	stmt.bind(1, id);
 	return getOneDbNamedValuesFromStmt(stmt);
 }
 
-function getCiaUkByIdSicCodes(id){
+local function getCiaUkByIdSicCodes(id){
 	local stmt = getCachedStmt("getCiaUkByIdSicCodes", "select sc.* from companies_sic_codes csc join sic_codes sc on csc.sic_code = sc.id where company_id = ?");	stmt.reset();
 	stmt.bind(1, id);
 	return getDbListFromStmt(stmt);
 }
 
-function getCiaUkByIdOldNames(id){
+local function getCiaUkByIdOldNames(id){
 	local stmt = getCachedStmt("getCiaUkByIdOldNames", "select condate, prev_name from companies_old_names where company_id = ?");
 	stmt.reset();
 	stmt.bind(1, id);
 	return getDbListFromStmt(stmt);
 }
 
-function getDistances(search_origin_post_code, rows){
+local function getDistances(search_origin_post_code, rows){
 	if (rows.len() > 0){
 		local stmt = getCachedStmt("getDistances", [==[
 select
@@ -235,7 +239,7 @@ and ref.post_code = ?
 	}
 }
 
-function getEastinNorthingForPostCode(post_code){
+local function getEastinNorthingForPostCode(post_code){
 	local stmt = getCachedStmt("getEastinNorthingForPostCode", [=[
 select easting, northing
 from post_codes
@@ -251,11 +255,11 @@ where post_code = ?
 	return [easting, northing];
 }
 
-function toDeg(lat){
+local function toDeg(lat){
     return lat * 180.0 / math.PI;
 }
 
- function toRad(x) {
+ local function toRad(x) {
 	return x * math.PI / 180.0;
  }
 
@@ -265,7 +269,7 @@ function toDeg(lat){
 // @param {OsGridRef} easting/northing to be converted to latitude/longitude
 // @return {LatLon} latitude/longitude (in OSGB36) of supplied grid reference
 //
-function osGridToLatLong(easting, northing){
+local function osGridToLatLong(easting, northing){
   local E = easting.tofloat();
   local N = northing.tofloat();
 
@@ -334,7 +338,7 @@ function osGridToLatLong(easting, northing){
   //return lat, lon
 }
 
-function osGridToLatLongAdjusted(easting, northing){
+local function osGridToLatLongAdjusted(easting, northing){
 	local lat_long = osGridToLatLong(easting, northing)
 	//adjust lat, lon
 	lat_long[0] += 0.0024;
@@ -342,12 +346,12 @@ function osGridToLatLongAdjusted(easting, northing){
 	return lat_long;
 }
 
-function getLatitudeLongitudeForPostCode(post_code){
+local function getLatitudeLongitudeForPostCode(post_code){
 	local easting_northing = getEastinNorthingForPostCode(post_code);
 	return osGridToLatLongAdjusted(easting_northing[0], easting_northing[1]);
 }
 
-function downloadChunked(host, file, extra_header=null){
+local function downloadChunked(host, file, extra_header=null){
 	local sock = socket.tcp();
 	sock.settimeout(1000);
 	sock.connect(host, 80);
@@ -376,7 +380,7 @@ function downloadChunked(host, file, extra_header=null){
 	return data.concat("\n");
 }
 
-function getExtraCompanyDataOnNet(cnum){
+local function getExtraCompanyDataOnNet(cnum){
 	local mainHost = "wck2.companieshouse.gov.uk";
 
 	//get session
@@ -460,7 +464,7 @@ User-Agent:Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.11 (KHTML, like Gecko) 
 	return data;
 }
 
-function getExtraCompanyData(cid, cnum){
+local function getExtraCompanyData(cid, cnum){
 	local data;
 	local db = getCompaniesUkDB();
 	local stmt = db.prepare("select data from company_extra_data where id = ?");
@@ -571,3 +575,6 @@ add_uri_hanlders({
 		return true;
 	},
 });
+
+} //end dummy nested scope
+ 

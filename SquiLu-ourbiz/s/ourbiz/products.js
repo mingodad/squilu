@@ -124,7 +124,7 @@ Jaml.register('ProductEditWindow', function(args) {
 							td(input({type: "text", name: "p_buy_other_costs", cls:"size9"})),
 							td(input({type: "text", name: "p_sell_markup", cls:"size9"})),
 							td(input({type: "text", name: "p_sell_margin", cls:"size9"})),
-							td(input({type: "text", name: "p_sell_price", cls:"size9"}))
+							td(input({type: "text", name: "p_sell_price2", cls:"size9"}))
 						),
 						tr(
 							td({rowspan:3, colspan:4},
@@ -221,6 +221,20 @@ function ProductEditWindowOnSubmit(btn) {
 	return dad.formOnSubmit(ProductEditWindowRefresh, this.form, "products")
 }
 
+function onProductEditCalcPrice(){
+	//alert(this.value)
+	var win = dad.getWindowForChild(this);
+	if(win && win.ud.ajaxCalcPrice) {
+		var form_prefix = "p_";
+		var values = dad.getFormDataWithPrefix(this.form, form_prefix, true);
+		values.push("__table__=products");
+		values.push("__id__=" + win.ud.edit_id);
+		values.push("__action__=calc_product_price");
+		values.push("trigger=" + this.name.substring(form_prefix.length));
+		win.ud.ajaxCalcPrice.post('/DB/Action', values.join('&'), "POST");
+	}	
+}
+
 Jaml.register('ProductsHistoryOptions', function(args) {
 	option({value:""}, "----");
 	option(_tr("Sales by Date"));
@@ -285,6 +299,12 @@ function newProductEditWindow(all_sales_buys){
 			dad.getImageForImg(img, img_id);
 		}
 
+		var calc_fields_list = ["p_buy_price","p_buy_discount", "p_buy_other_costs", 
+			"p_sell_markup", "p_sell_margin", "p_sell_price",  "p_sell_price2"];
+		for(var i in calc_fields_list){
+			myform[calc_fields_list[i]].onchange = onProductEditCalcPrice;
+		}
+		
 		var btnRptProductsList = $("rptProductsList" + newId);
 		btnRptProductsList.onclick = function(){
 			var url = '/DB/GetList?list=products&pdf=1';
@@ -317,6 +337,17 @@ function newProductEditWindow(all_sales_buys){
 			}
 		}, myform.p_warranty_id);
 		if(ajaxAuxTables) ajaxAuxTables.post('/DB/GetList', 'list=warranty_types&short_list=1', "GET");
+
+		win.ud.ajaxCalcPrice = new dad.Ajax(function(){
+			if(this.status == 200){
+				//retrieve result as an JavaScript object
+				var record = dad.parseSLEData2Object(this.responseText); 
+				var form = $(data.form_id);
+				dad.formFillByRecord(form, record, "p_");
+			} else {
+				alert("An error has occured making the request");
+			}
+		}, null, false);
 		
 		var btn = $(btnAction_id);
 		btn.onclick = ProductEditWindowOnSubmit;

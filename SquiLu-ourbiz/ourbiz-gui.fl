@@ -2681,9 +2681,9 @@ widget_class EditEntityWindow {
 } 
 
 widget_class EditProductWindow {
-  label {Edit Products}
-  xywh {34 28 800 560} type Double hide resizable
-  class Edit_Base_Window
+  label {Edit Products} open
+  xywh {34 28 800 560} type Double resizable
+  class Edit_Base_Window visible
 } {
   Fl_Output db_products_id {
     macro_name {db products id}
@@ -2706,11 +2706,11 @@ widget_class EditProductWindow {
     xywh {665 35 130 25} labeltype NO_LABEL labelsize 16 textsize 16
     code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
   }
-  Fl_Tabs tabs {
+  Fl_Tabs tabs {open
     xywh {5 35 790 520} selection_color 4 labelsize 16 labelcolor 7 resizable
   } {
     Fl_Group tabMain {
-      label Main
+      label Main selected
       xywh {5 60 790 495} color 246 labelsize 16 resizable
     } {
       Fl_Input db_products_reference_code {
@@ -2939,7 +2939,7 @@ db_products_tags->wrap_mode(o->value(), 0);}
       }
     }
     Fl_Group tabPrices {
-      label Prices
+      label Prices open
       xywh {5 60 790 495} color 246 labelsize 16 hide
     } {
       Fl_Group {} {
@@ -2980,16 +2980,19 @@ db_products_tags->wrap_mode(o->value(), 0);}
           code1 {//o->decimal_places(-6);}
           class Fl_Float_Input_Fmt
         }
-        Fl_Input markup_to_discount {
+        Fl_Input db_products_markup_to_discount {
           label {Margin %}
+          macro_name {db products markup_to_discount}
           xywh {531 115 115 25} type Float labelsize 16 align 5 textsize 16
-          code0 {//o->decimal_places(-6);}
+          code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
+          code1 {o->decimal_places(-6);}
           class Fl_Float_Input_Fmt
         }
-        Fl_Input db_products_sell_price_ro {
+        Fl_Input db_products_sell_price2 {
           label {Sales $}
-          dirty_name db_products_sell_price_ro
+          macro_name {db products sell_price2}
           xywh {658 115 115 25} type Float labelsize 16 align 5 textsize 16
+          code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
           class Fl_Float_Input_Fmt
         }
         Fl_Input db_products_price_decimals {
@@ -3204,9 +3207,9 @@ db_products_tags->wrap_mode(o->value(), 0);}
 } 
 
 widget_class EditOrderWindow {
-  label {Edit Order} open selected
-  xywh {255 97 800 560} type Double labelsize 16 resizable
-  class Edit_Base_Window visible
+  label {Edit Order}
+  xywh {255 97 800 560} type Double labelsize 16 hide resizable
+  class Edit_Base_Window
 } {
   Fl_Group {} {open
     xywh {5 1 792 62}

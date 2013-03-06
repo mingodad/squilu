@@ -1131,7 +1131,7 @@ dad.encodeSizeString = function(str){
 	return dad.stringBytesLength(str) + ':' + str;
 }
 
-dad.getFormDataWithPrefix = function(form, prefix) {
+dad.getFormDataWithPrefix = function(form, prefix, doNotCheckOriginal) {
 	var prefix_len = prefix ? prefix.length : 0;
 	var fields = form.elements;
 	var values = [];
@@ -1156,7 +1156,7 @@ dad.getFormDataWithPrefix = function(form, prefix) {
 		else fld_value = fld.value;
 		if(prefix_len && fld.name.indexOf(prefix) != 0) continue;
 		var fld_name = prefix_len ? fld.name.substring(prefix_len) : fld.name;
-		if(original){
+		if(original && !doNotCheckOriginal){
 			if(original[fld_name] == fld_value) continue;
 			if(fld_value == "" && original[fld_name] == null) continue;
 		}

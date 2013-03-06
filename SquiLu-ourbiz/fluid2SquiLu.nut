@@ -234,9 +234,11 @@ Write.Function <- function(t, ind){
 	Output(ind, "}\n\n");
 }
 
+function getClassNameOrKey(t){return  t.attr.get("class", false) || t.key;}
+
 Write.Atributes <- function(t, ind, name){
 	local lname;
-	local klass = t.attr.get("class", false) || t.key;
+	local klass = getClassNameOrKey(t);
 	if (klass.match("^Fl_")) lname = name;
 	else lname = name ;
 
@@ -571,12 +573,12 @@ FindMembers.Function <- function(t, list){
 		t.name = "__constructor()";
 		t.parent.constructor <- t.name;
 	}
-	else 	list.push([ name, GetAccessMode(t, "public") ]);
+	else 	list.push([ name, GetAccessMode(t, "public"), getClassNameOrKey(t) ]);
 	FindMembers.group(t.body, list);
 }
 
 FindMembers["class"] <- function(t, list){
-	list.push([ t.name, "public" ]);
+	list.push([ t.name, "public", t.attr.get("class", "null") ]);
 }
 
 FindMembers.widget_class <- FindMembers["class"];
@@ -586,13 +588,13 @@ FindMembers.widget <- function(t, list){
 		list.push([ t.name.match("^[%w_]+"), GetAccessMode(t, "public"), "{}" ]);
 	}
 	else if (t.name.match("^[%w_]+$")){
-		list.push([ t.name, GetAccessMode(t, "public") ]);
+		list.push([ t.name, GetAccessMode(t, "public") , getClassNameOrKey(t)]);
 	}
 	if (t.get("body", false)) FindMembers.group(t.body, list);
 }
 
 FindMembers.decl <- function(t, list){
-	list.push([ t.name, GetAccessMode(t, "private") ]);
+	list.push([ t.name, GetAccessMode(t, "private"), getClassNameOrKey(t) ]);
 }
 
 FindMembers.submenu <- function(t, list){
@@ -603,7 +605,7 @@ FindMembers.submenu <- function(t, list){
 				//print("body", k2, v2);
 				if(type(v2) == "table"){
 					//foreach(k3,v3 in v2) print("menuitem", k3,v3);
-					if(v2.get("name", false)) list.push([ v2.name, GetAccessMode(t, "public") ]);
+					if(v2.get("name", false)) list.push([ v2.name, GetAccessMode(t, "public"), getClassNameOrKey(t)]);
 				}
 			}
 		}
@@ -611,7 +613,7 @@ FindMembers.submenu <- function(t, list){
 }
 
 FindMembers.menuitem <- function(t, list){
-	list.push([ t.name, GetAccessMode(t, "public") ]);
+	list.push([ t.name, GetAccessMode(t, "public"), getClassNameOrKey(t) ]);
 }
 
 function WriteVariables(ind, vars, type){
@@ -620,7 +622,11 @@ function WriteVariables(ind, vars, type){
 	Output(ind, "// Declaration of %s\n", type);
 	foreach(i in vars) {
 		if (defined.get(i[0], false)) {}
-		else if (i[1] == "public") Output(ind, "%s = null;\n", i[0]);
+		else if (i[1] == "public") {
+			local type_name = i.get(2, false);
+			if(type_name) Output(ind, "%s : %s;\n", i[0], type_name);
+			else Output(ind, "%s = null;\n", i[0]);
+		}
 		else {
 			local multi_decl = i[0].strip().split(';');
 			if(multi_decl.len() > 1){

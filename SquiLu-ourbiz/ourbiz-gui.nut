@@ -1,19 +1,19 @@
 class HelpWindow extends Base_Window {
   
   // Declaration of class members
-  tabs = null;
-  tabView = null;
-  view_html = null;
-  tabEdit = null;
-  help_text = null;
-  words_to_search = null;
-  btnSearchHelp = null;
-  btnSavehelp = null;
-  btnBackward = null;
-  btnTop = null;
-  btnForward = null;
-  btnFontSmaller = null;
-  btnFontBigger = null;
+  tabs : Fl_Tabs;
+  tabView : Fl_Group;
+  view_html : Fl_Help_View;
+  tabEdit : Fl_Group;
+  help_text : Fl_Text_Editor_Buffered;
+  words_to_search : Fl_Input;
+  btnSearchHelp : Fl_Button;
+  btnSavehelp : Fl_Button;
+  btnBackward : Fl_Button;
+  btnTop : Fl_Button;
+  btnForward : Fl_Button;
+  btnFontSmaller : Fl_Button;
+  btnFontBigger : Fl_Button;
   
   constructor(px=76, py=128, pw=600, ph=400, pl=_tr("Help")){
     base.constructor(px, py, pw, ph, pl);
@@ -111,26 +111,26 @@ class HelpWindow extends Base_Window {
 class CalendarWindow extends Base_Window {
   
   // Declaration of class members
-  label_month = null;
-  btnMonth1 = null;
-  btnMonth2 = null;
-  btnMonth3 = null;
-  btnMonth4 = null;
-  btnMonth5 = null;
-  btnMonth6 = null;
-  btnMonth7 = null;
-  btnMonth8 = null;
-  btnMonth9 = null;
-  btnMonth10 = null;
-  btnMonth11 = null;
-  btnMonth12 = null;
-  grid = null;
-  btnPrevYear = null;
-  btnPrevMonth = null;
-  btnToday = null;
-  btnSelect = null;
-  btnNextMonth = null;
-  btnNextYear = null;
+  label_month : Fl_Box;
+  btnMonth1 : Fl_Button;
+  btnMonth2 : Fl_Button;
+  btnMonth3 : Fl_Button;
+  btnMonth4 : Fl_Button;
+  btnMonth5 : Fl_Button;
+  btnMonth6 : Fl_Button;
+  btnMonth7 : Fl_Button;
+  btnMonth8 : Fl_Button;
+  btnMonth9 : Fl_Button;
+  btnMonth10 : Fl_Button;
+  btnMonth11 : Fl_Button;
+  btnMonth12 : Fl_Button;
+  grid : Fl_Data_Table;
+  btnPrevYear : Fl_Repeat_Button;
+  btnPrevMonth : Fl_Repeat_Button;
+  btnToday : Fl_Button;
+  btnSelect : Fl_Button;
+  btnNextMonth : Fl_Repeat_Button;
+  btnNextYear : Fl_Repeat_Button;
   
   constructor(px=732, py=184, pw=350, ph=305, pl=_tr("Calendar")){
     base.constructor(px, py, pw, ph, pl);
@@ -254,17 +254,17 @@ class CalendarWindow extends Base_Window {
 class DeliveryCalcWindow extends Base_Window {
   
   // Declaration of class members
-  gui_destination_zone = null;
-  gui_destination_city = null;
-  gui_weight = null;
-  gui_cost = null;
-  gui_discount = null;
-  gui_subtotal = null;
-  gui_insurance = null;
-  gui_increment = null;
-  gui_total = null;
-  gui_btnCalc = null;
-  gui_btnAdd = null;
+  gui_destination_zone : Flu_Combo_List;
+  gui_destination_city : Flu_Combo_List;
+  gui_weight : Fl_Input;
+  gui_cost : Fl_Output;
+  gui_discount : Fl_Output;
+  gui_subtotal : Fl_Output;
+  gui_insurance : Fl_Output;
+  gui_increment : Fl_Output;
+  gui_total : Fl_Output;
+  gui_btnCalc : Fl_Button;
+  gui_btnAdd : Fl_Button;
   
   constructor(px=338, py=167, pw=415, ph=285, pl=_tr("Delivery Calc")){
     base.constructor(px, py, pw, ph, pl);
@@ -363,21 +363,21 @@ class DeliveryCalcWindow extends Base_Window {
 class ListSearchWindow extends Base_Window {
   
   // Declaration of class members
-  topGroup = null;
-  group_filter = null;
-  query_limit = null;
-  btnNotes = null;
-  middleGroup = null;
-  grid = null;
-  bottomGroup = null;
-  pack_search_options = null;
-  search_str = null;
-  btnSearch = null;
-  btnSelect = null;
-  btnUpdate = null;
-  btnInsert = null;
-  btnThumbImage = null;
-  pack_search_options2 = null;
+  topGroup : Fl_Group;
+  group_filter : Flu_Combo_List;
+  query_limit : Fl_Input;
+  btnNotes : Fl_Button;
+  middleGroup : Fl_Group;
+  grid : Fl_Data_Table;
+  bottomGroup : Fl_Group;
+  pack_search_options : Fl_Pack;
+  search_str : Fl_Input;
+  btnSearch : Fl_Button;
+  btnSelect : Fl_Button;
+  btnUpdate : Fl_Button;
+  btnInsert : Fl_Button;
+  btnThumbImage : Fl_Image_Box;
+  pack_search_options2 : Fl_Pack;
   
   constructor(px=132, py=118, pw=800, ph=560, pl=_tr("List Search")){
     base.constructor(px, py, pw, ph, pl);
@@ -501,15 +501,15 @@ class ListSearchWindow extends Base_Window {
 class BarChartGroup extends Fl_Group {
   
   // Declaration of class members
-  pack = null;
-  btnShowChart = null;
-  periodes_to_show = null;
-  btn_periode_is_years = null;
-  btn_periode_is_months = null;
-  btn_periode_is_weeks = null;
-  btn_periode_is_days = null;
-  chkOpt = null;
-  bar_chart = null;
+  pack : Fl_Pack;
+  btnShowChart : Fl_Button;
+  periodes_to_show : Fl_Input;
+  btn_periode_is_years : Fl_Round_Button;
+  btn_periode_is_months : Fl_Round_Button;
+  btn_periode_is_weeks : Fl_Round_Button;
+  btn_periode_is_days : Fl_Round_Button;
+  chkOpt : Fl_Check_Button;
+  bar_chart : Fl_Bar_Chart;
   
   constructor(px=288, py=260, pw=760, ph=460, pl=_tr("BarChartGroup")){
     base.constructor(px, py, pw, ph, pl);
@@ -590,10 +590,10 @@ class BarChartGroup extends Fl_Group {
 class HistoryGroup extends Fl_Group {
   
   // Declaration of class members
-  history_choice = null;
-  history_query_limit = null;
-  btnViewDocHsitory = null;
-  grid_history = null;
+  history_choice : Fl_Choice;
+  history_query_limit : Fl_Input;
+  btnViewDocHsitory : Fl_Button;
+  grid_history : Fl_Data_Table;
   
   constructor(px=13, py=33, pw=760, ph=465, pl=_tr("History")){
     base.constructor(px, py, pw, ph, pl);
@@ -647,12 +647,12 @@ class HistoryGroup extends Fl_Group {
 class BaseReportA4 extends Fl_Window {
   
   // Declaration of class members
-  rpt_Logo = null;
-  rpt_Title = null;
-  rpt_SubTitle = null;
-  rpt_Body = null;
-  rpt_SubFooter = null;
-  rpt_Footer = null;
+  rpt_Logo : Fl_Box;
+  rpt_Title : Fl_Box;
+  rpt_SubTitle : Fl_Box;
+  rpt_Body : Fl_Data_Table;
+  rpt_SubFooter : Fl_Box;
+  rpt_Footer : Fl_Box;
   
   constructor(px=178, py=95, pw=420, ph=590, pl=_tr("BaseReportA4")){
     base.constructor(px, py, pw, ph, pl);
@@ -721,14 +721,14 @@ class BaseReportA4 extends Fl_Window {
 class PrintPreviewGroup extends Fl_Group {
   
   // Declaration of class members
-  btnRefresh = null;
-  btnPrinter = null;
-  btnPrint = null;
-  chkOnlyData = null;
-  chkA4 = null;
-  iNumCopies = null;
-  brwPages = null;
-  PreviewScroll = null;
+  btnRefresh : Fl_Button;
+  btnPrinter : Fl_Button;
+  btnPrint : Fl_Button;
+  chkOnlyData : Fl_Check_Button;
+  chkA4 : Fl_Check_Button;
+  iNumCopies : Fl_Input;
+  brwPages : Fl_Browser;
+  PreviewScroll : OrderPageGroup;
   
   constructor(px=181, py=165, pw=770, ph=440, pl=_tr("Print Preview")){
     base.constructor(px, py, pw, ph, pl);
@@ -800,74 +800,74 @@ class PrintPreviewGroup extends Fl_Group {
 class OrderPageGroup extends Fl_Scroll {
   
   // Declaration of class members
-  page = null;
-  pageDesignGroup = null;
-  logoGroupH = null;
-  logoH = null;
-  companyBoxH = null;
-  logoGroupV = null;
-  logoV = null;
-  companyBoxV = null;
-  logoGroupHV = null;
-  logoHV1 = null;
-  logoHV2 = null;
-  companyBoxHV = null;
-  OrderNumber = null;
-  box_header_number_date = null;
-  box_data_number_date = null;
-  header_date_box = null;
-  box_data_date_box = null;
-  box_to = null;
-  orderLines = null;
-  header_lines_code_box = null;
-  header_lines_description_box = null;
-  header_lines_quantity_box = null;
-  header_lines_price_box = null;
-  header_lines_discount_box = null;
-  header_lines_sales_tax1_box = null;
-  header_lines_sales_tax2_box = null;
-  header_lines_subtotal_box = null;
-  designLinesGroup = null;
-  data_lines_code_box = null;
-  data_lines_description_box = null;
-  data_lines_quantity_box = null;
-  data_tlines_price_box = null;
-  data_lines_discount_box = null;
-  data_lines_sales_tax1_box = null;
-  data_lines_sales_tax2_box = null;
-  data_lines_subtotal_box = null;
-  orderTotals = null;
-  header_PAGENO_box = null;
-  box_data_pageno_box = null;
-  header_totals_subtotal_box = null;
-  data_totals_subtotal_box = null;
-  header_totals_total_sales_tax1_box = null;
-  data_totals_total_sales_tax1_box = null;
-  header_totals_total_sales_tax2_box = null;
-  data_totals_total_sales_tax2_box = null;
-  header_totals_total_box = null;
-  data_totals_total_box = null;
-  notes_box = null;
-  printDataGroup = null;
-  orderTypeBox = null;
-  numberBox = null;
-  dateBox = null;
-  entityBox = null;
-  dataLinesGroup = null;
-  codeBox = null;
-  descriptionBox = null;
-  quantityBox = null;
-  priceBox = null;
-  discountBox = null;
-  sales_tax1Box = null;
-  sales_tax2Box = null;
-  lineTotalBox = null;
-  bottomTotals = null;
-  orderPageBox = null;
-  fisrtTotalBox = null;
-  sales_tax1AmountBox = null;
-  sales_tax2AmountBox = null;
-  totalBox = null;
+  page : Fl_Group;
+  pageDesignGroup : Fl_Group;
+  logoGroupH : Fl_Group;
+  logoH : Fl_Box;
+  companyBoxH : Fl_Box_ClearLabel;
+  logoGroupV : Fl_Group;
+  logoV : Fl_Box;
+  companyBoxV : Fl_Box_ClearLabel;
+  logoGroupHV : Fl_Group;
+  logoHV1 : Fl_Box;
+  logoHV2 : Fl_Box;
+  companyBoxHV : Fl_Box_ClearLabel;
+  OrderNumber : Fl_Group;
+  box_header_number_date : Fl_Box;
+  box_data_number_date : Fl_Box;
+  header_date_box : Fl_Box;
+  box_data_date_box : Fl_Box;
+  box_to : Fl_Box;
+  orderLines : Fl_Group;
+  header_lines_code_box : Fl_Box;
+  header_lines_description_box : Fl_Box;
+  header_lines_quantity_box : Fl_Box;
+  header_lines_price_box : Fl_Box;
+  header_lines_discount_box : Fl_Box;
+  header_lines_sales_tax1_box : Fl_Box;
+  header_lines_sales_tax2_box : Fl_Box;
+  header_lines_subtotal_box : Fl_Box;
+  designLinesGroup : Fl_Group;
+  data_lines_code_box : Fl_Box;
+  data_lines_description_box : Fl_Box;
+  data_lines_quantity_box : Fl_Box;
+  data_tlines_price_box : Fl_Box;
+  data_lines_discount_box : Fl_Box;
+  data_lines_sales_tax1_box : Fl_Box;
+  data_lines_sales_tax2_box : Fl_Box;
+  data_lines_subtotal_box : Fl_Box;
+  orderTotals : Fl_Group;
+  header_PAGENO_box : Fl_Box;
+  box_data_pageno_box : Fl_Box;
+  header_totals_subtotal_box : Fl_Box;
+  data_totals_subtotal_box : Fl_Box;
+  header_totals_total_sales_tax1_box : Fl_Box;
+  data_totals_total_sales_tax1_box : Fl_Box;
+  header_totals_total_sales_tax2_box : Fl_Box;
+  data_totals_total_sales_tax2_box : Fl_Box;
+  header_totals_total_box : Fl_Box;
+  data_totals_total_box : Fl_Box;
+  notes_box : Fl_Box_ClearLabel;
+  printDataGroup : Fl_Group;
+  orderTypeBox : Fl_Box;
+  numberBox : Fl_Box_ClearLabel;
+  dateBox : Fl_Box_ClearLabel;
+  entityBox : Fl_Box_ClearLabel;
+  dataLinesGroup : Fl_Group;
+  codeBox : Fl_Box_ClearLabel;
+  descriptionBox : Fl_Box_ClearLabel;
+  quantityBox : Fl_Box_ClearLabel;
+  priceBox : Fl_Box_ClearLabel;
+  discountBox : Fl_Box_ClearLabel;
+  sales_tax1Box : Fl_Box_ClearLabel;
+  sales_tax2Box : Fl_Box_ClearLabel;
+  lineTotalBox : Fl_Box_ClearLabel;
+  bottomTotals : Fl_Group;
+  orderPageBox : Fl_Box_ClearLabel;
+  fisrtTotalBox : Fl_Box_ClearLabel;
+  sales_tax1AmountBox : Fl_Box_ClearLabel;
+  sales_tax2AmountBox : Fl_Box_ClearLabel;
+  totalBox : Fl_Box_ClearLabel;
   
   constructor(px=213, py=39, pw=630, ph=685, pl=_tr("InvoiceA4")){
     base.constructor(px, py, pw, ph, pl);
@@ -1414,13 +1414,13 @@ class OrderPageGroup extends Fl_Scroll {
 class ProductPricesGroup extends Fl_Group {
   
   // Declaration of class members
-  grid = null;
-  db_product_prices_quantity = null;
-  db_product_prices_markup_pct = null;
-  db_product_prices_discount_pct = null;
-  db_product_prices_price = null;
-  btnDbAction = null;
-  dbAction = null;
+  grid : Fl_Data_Table;
+  db_product_prices_quantity : Fl_Input;
+  db_product_prices_markup_pct : Fl_Input;
+  db_product_prices_discount_pct : Fl_Input;
+  db_product_prices_price : Fl_Input;
+  btnDbAction : Fl_Button;
+  dbAction : Fl_Choice_dbAction;
   
   constructor(px=48, py=153, pw=760, ph=220, pl=_tr("Product Prices by Quantity")){
     base.constructor(px, py, pw, ph, pl);
@@ -1485,22 +1485,22 @@ class ProductPricesGroup extends Fl_Group {
 class ProductKitGroup extends Fl_Group {
   
   // Declaration of class members
-  grid = null;
-  kit_group_search_edit = null;
-  grpSearchEdit = null;
-  db_product_kits_product_id = null;
-  db_product_kits_sell_description = null;
-  btnSearchProduct = null;
-  db_product_kits_quantity = null;
-  db_product_kits_product_price = null;
-  btnDbAction = null;
-  dbAction = null;
-  btnKitPartOf = null;
-  kit_group_totals = null;
-  kit_sales_price = null;
-  kit_prices_sum = null;
-  kit_parts = null;
-  kit_markup = null;
+  grid : Fl_Data_Table;
+  kit_group_search_edit : Fl_Group;
+  grpSearchEdit : Fl_Group;
+  db_product_kits_product_id : Fl_Input;
+  db_product_kits_sell_description : Fl_Input;
+  btnSearchProduct : Fl_Button;
+  db_product_kits_quantity : Fl_Input;
+  db_product_kits_product_price : Fl_Input;
+  btnDbAction : Fl_Button;
+  dbAction : Fl_Choice_dbAction;
+  btnKitPartOf : Fl_Check_Button;
+  kit_group_totals : Fl_Group;
+  kit_sales_price : Fl_Input;
+  kit_prices_sum : Fl_Input;
+  kit_parts : Fl_Input;
+  kit_markup : Fl_Input;
   
   constructor(px=24, py=106, pw=775, ph=470, pl=_tr("ProductKitGroup")){
     base.constructor(px, py, pw, ph, pl);
@@ -1628,11 +1628,11 @@ class ProductKitGroup extends Fl_Group {
 class AskLoginWindow extends Fl_Double_Window {
   
   // Declaration of class members
-  host = null;
-  port = null;
-  user = null;
-  password = null;
-  btnConnect = null;
+  host : Fl_Input;
+  port : Fl_Input;
+  user : Fl_Input;
+  password : Fl_Input;
+  btnConnect : Fl_Return_Button;
   
   constructor(px=246, py=157, pw=500, ph=120, pl=_tr("Server Login")){
     base.constructor(px, py, pw, ph, pl);
@@ -1678,20 +1678,20 @@ class AskLoginWindow extends Fl_Double_Window {
 class AppUsersEditWindow extends List_Edit_Base_Window {
   
   // Declaration of class members
-  grid = null;
-  editGroup = null;
-  db_app_users_id = null;
-  db_app_users_cdate = null;
-  db_app_users_mdate = null;
-  db_app_users_is_active = null;
-  db_app_users_user_name = null;
-  db_app_users_password1 = null;
-  db_app_users_password2 = null;
-  db_app_users_name = null;
-  dbAction = null;
-  btnDbAction = null;
-  db_app_users_rights = null;
-  db_app_users_notes = null;
+  grid : Fl_Data_Table;
+  editGroup : Fl_Group;
+  db_app_users_id : Fl_Output;
+  db_app_users_cdate : Fl_Output;
+  db_app_users_mdate : Fl_Output;
+  db_app_users_is_active : Fl_Check_Button;
+  db_app_users_user_name : Fl_Input;
+  db_app_users_password1 : Fl_Input;
+  db_app_users_password2 : Fl_Input;
+  db_app_users_name : Fl_Input;
+  dbAction : Fl_Choice_dbAction;
+  btnDbAction : Fl_Button;
+  db_app_users_rights : Fl_Text_Editor_Buffered;
+  db_app_users_notes : Fl_Text_Editor_Buffered;
   
   constructor(px=282, py=148, pw=500, ph=500, pl=_tr("App Users List / Edit")){
     base.constructor(px, py, pw, ph, pl);
@@ -1825,17 +1825,17 @@ class AppUsersEditWindow extends List_Edit_Base_Window {
 class AppConfigEditWindow extends List_Edit_Base_Window {
   
   // Declaration of class members
-  grid = null;
-  editGroup = null;
-  db_config_id = null;
-  db_config_cdate = null;
-  db_config_mdate = null;
-  db_config_is_active = null;
-  db_config_key = null;
-  db_config_value = null;
-  dbAction = null;
-  btnDbAction = null;
-  db_config_notes = null;
+  grid : Fl_Data_Table;
+  editGroup : Fl_Group;
+  db_config_id : Fl_Output;
+  db_config_cdate : Fl_Output;
+  db_config_mdate : Fl_Output;
+  db_config_is_active : Fl_Check_Button;
+  db_config_key : Fl_Input;
+  db_config_value : Fl_Input;
+  dbAction : Fl_Choice_dbAction;
+  btnDbAction : Fl_Button;
+  db_config_notes : Fl_Input;
   
   constructor(px=346, py=83, pw=500, ph=490, pl=_tr("Application Configuration List / Edit")){
     base.constructor(px, py, pw, ph, pl);
@@ -1937,23 +1937,23 @@ class AppConfigEditWindow extends List_Edit_Base_Window {
 class TanslationsWindow extends List_Edit_Base_Window {
   
   // Declaration of class members
-  myTabs = null;
-  tabLanguages = null;
-  grid_languages = null;
-  db_languages_lang = null;
-  db_languages_date_format = null;
-  db_languages_name = null;
-  db_languages_native_name = null;
-  db_languages_decimal_sep = null;
-  db_languages_thousand_sep = null;
-  tabTranslations = null;
-  grid_translations = null;
-  db_translations_language = null;
-  db_translations_values_svalue = null;
-  btnTransSearch = null;
-  btnTransClear = null;
-  dbAction = null;
-  btnDbAction = null;
+  myTabs : Fl_Tabs;
+  tabLanguages : Fl_Group;
+  grid_languages : Fl_Data_Table;
+  db_languages_lang : Fl_Input;
+  db_languages_date_format : Fl_Input;
+  db_languages_name : Fl_Input;
+  db_languages_native_name : Fl_Input;
+  db_languages_decimal_sep : Fl_Input;
+  db_languages_thousand_sep : Fl_Input;
+  tabTranslations : Fl_Group;
+  grid_translations : Fl_Data_Table;
+  db_translations_language : Fl_Choice_Int;
+  db_translations_values_svalue : Fl_Input;
+  btnTransSearch : Fl_Button;
+  btnTransClear : Fl_Button;
+  dbAction : Fl_Choice_dbAction;
+  btnDbAction : Fl_Button;
   
   constructor(px=217, py=76, pw=490, ph=560, pl=_tr("Translations")){
     base.constructor(px, py, pw, ph, pl);
@@ -2084,21 +2084,21 @@ class TanslationsWindow extends List_Edit_Base_Window {
 class PaymentTypesEditWindow extends List_Edit_Base_Window {
   
   // Declaration of class members
-  grid = null;
-  editGroup = null;
-  db_payment_types_id = null;
-  db_payment_types_cdate = null;
-  db_payment_types_mdate = null;
-  db_payment_types_is_active = null;
-  db_payment_types_code = null;
-  db_payment_types_description = null;
-  npayments = null;
-  payment_periodes = null;
-  btnGenerateTerms = null;
-  dbAction = null;
-  btnDbAction = null;
-  db_payment_types_payment_terms = null;
-  db_payment_types_notes = null;
+  grid : Fl_Data_Table;
+  editGroup : Fl_Group;
+  db_payment_types_id : Fl_Output;
+  db_payment_types_cdate : Fl_Output;
+  db_payment_types_mdate : Fl_Output;
+  db_payment_types_is_active : Fl_Check_Button;
+  db_payment_types_code : Fl_Input;
+  db_payment_types_description : Fl_Input;
+  npayments : Fl_Input;
+  payment_periodes : Fl_Choice;
+  btnGenerateTerms : Fl_Button;
+  dbAction : Fl_Choice_dbAction;
+  btnDbAction : Fl_Button;
+  db_payment_types_payment_terms : Fl_Text_Editor_Buffered;
+  db_payment_types_notes : Fl_Text_Editor_Buffered;
   
   constructor(px=302, py=168, pw=500, ph=500, pl=_tr("Payment Types List / Edit")){
     base.constructor(px, py, pw, ph, pl);
@@ -2234,16 +2234,16 @@ class PaymentTypesEditWindow extends List_Edit_Base_Window {
 class WarrantyTypesEditWindow extends List_Edit_Base_Window {
   
   // Declaration of class members
-  grid = null;
-  editGroup = null;
-  db_warranty_types_id = null;
-  db_warranty_types_cdate = null;
-  db_warranty_types_mdate = null;
-  db_warranty_types_code = null;
-  db_warranty_types_is_active = null;
-  db_warranty_types_description = null;
-  dbAction = null;
-  btnDbAction = null;
+  grid : Fl_Data_Table;
+  editGroup : Fl_Group;
+  db_warranty_types_id : Fl_Output;
+  db_warranty_types_cdate : Fl_Output;
+  db_warranty_types_mdate : Fl_Output;
+  db_warranty_types_code : Fl_Input;
+  db_warranty_types_is_active : Fl_Check_Button;
+  db_warranty_types_description : Fl_Input;
+  dbAction : Fl_Choice_dbAction;
+  btnDbAction : Fl_Button;
   
   constructor(px=219, py=105, pw=500, ph=385, pl=_tr("Warranty Types List / Edit")){
     base.constructor(px, py, pw, ph, pl);
@@ -2337,16 +2337,16 @@ class WarrantyTypesEditWindow extends List_Edit_Base_Window {
 class MeasureUnitsEditWindow extends List_Edit_Base_Window {
   
   // Declaration of class members
-  grid = null;
-  editGroup = null;
-  db_measure_units_id = null;
-  db_measure_units_cdate = null;
-  db_measure_units_mdate = null;
-  db_measure_units_code = null;
-  db_measure_units_is_active = null;
-  db_measure_units_description = null;
-  dbAction = null;
-  btnDbAction = null;
+  grid : Fl_Data_Table;
+  editGroup : Fl_Group;
+  db_measure_units_id : Fl_Output;
+  db_measure_units_cdate : Fl_Output;
+  db_measure_units_mdate : Fl_Output;
+  db_measure_units_code : Fl_Input;
+  db_measure_units_is_active : Fl_Check_Button;
+  db_measure_units_description : Fl_Input;
+  dbAction : Fl_Choice_dbAction;
+  btnDbAction : Fl_Button;
   
   constructor(px=286, py=134, pw=500, ph=385, pl=_tr("Measure Units List / Edit")){
     base.constructor(px, py, pw, ph, pl);
@@ -2440,17 +2440,17 @@ class MeasureUnitsEditWindow extends List_Edit_Base_Window {
 class SalesTaxRatesEditWindow extends List_Edit_Base_Window {
   
   // Declaration of class members
-  grid = null;
-  editGroup = null;
-  db_sales_tax_rates_id = null;
-  db_sales_tax_rates_cdate = null;
-  db_sales_tax_rates_mdate = null;
-  db_sales_tax_rates_rate1 = null;
-  db_sales_tax_rates_rate2 = null;
-  db_sales_tax_rates_is_active = null;
-  db_sales_tax_rates_description = null;
-  dbAction = null;
-  btnDbAction = null;
+  grid : Fl_Data_Table;
+  editGroup : Fl_Group;
+  db_sales_tax_rates_id : Fl_Output;
+  db_sales_tax_rates_cdate : Fl_Output;
+  db_sales_tax_rates_mdate : Fl_Output;
+  db_sales_tax_rates_rate1 : Fl_Input;
+  db_sales_tax_rates_rate2 : Fl_Input;
+  db_sales_tax_rates_is_active : Fl_Check_Button;
+  db_sales_tax_rates_description : Fl_Input;
+  dbAction : Fl_Choice_dbAction;
+  btnDbAction : Fl_Button;
   
   constructor(px=266, py=87, pw=500, ph=385, pl=_tr("Sales Tax Rates List / Edit")){
     base.constructor(px, py, pw, ph, pl);
@@ -2561,34 +2561,34 @@ class SalesTaxRatesEditWindow extends List_Edit_Base_Window {
 class OrderTypesEditWindow extends List_Edit_Base_Window {
   
   // Declaration of class members
-  grid = null;
-  editGroup = null;
-  db_order_types_code = null;
-  db_order_types_description_to_print = null;
-  db_order_types_series = null;
-  db_order_types_numbering = null;
-  db_order_types_group_order = null;
-  db_order_types_subgroup_order = null;
-  pack = null;
-  db_order_types_is_active = null;
-  db_order_types_with_sales_tax = null;
-  db_order_types_with_sales_tax_included = null;
-  db_order_types_show_sales_tax = null;
-  db_order_types_show_prices = null;
-  db_order_types_description = null;
-  db_order_types_with_payment = null;
-  db_order_types_with_inventory = null;
-  db_order_types_with_order = null;
-  db_order_types_with_credit = null;
-  db_order_types_is_incoming = null;
-  db_order_types_is_expense = null;
-  dbAction = null;
-  btnDbAction = null;
-  db_order_types_notes = null;
-  db_order_types_id = null;
-  db_order_types_with_quote = null;
-  db_order_types_with_invoice = null;
-  db_order_types_with_lost = null;
+  grid : Fl_Data_Table;
+  editGroup : Fl_Group;
+  db_order_types_code : Fl_Input;
+  db_order_types_description_to_print : Fl_Input;
+  db_order_types_series : Fl_Input;
+  db_order_types_numbering : Fl_Input;
+  db_order_types_group_order : Fl_Input;
+  db_order_types_subgroup_order : Fl_Input;
+  pack : Fl_Pack;
+  db_order_types_is_active : Fl_Check_Button;
+  db_order_types_with_sales_tax : Fl_Check_Button;
+  db_order_types_with_sales_tax_included : Fl_Check_Button;
+  db_order_types_show_sales_tax : Fl_Check_Button;
+  db_order_types_show_prices : Fl_Check_Button;
+  db_order_types_description : Fl_Input;
+  db_order_types_with_payment : Fl_Input;
+  db_order_types_with_inventory : Fl_Input;
+  db_order_types_with_order : Fl_Input;
+  db_order_types_with_credit : Fl_Input;
+  db_order_types_is_incoming : Fl_Check_Button;
+  db_order_types_is_expense : Fl_Check_Button;
+  dbAction : Fl_Choice_dbAction;
+  btnDbAction : Fl_Button;
+  db_order_types_notes : Fl_Input;
+  db_order_types_id : Fl_Output;
+  db_order_types_with_quote : Fl_Input;
+  db_order_types_with_invoice : Fl_Input;
+  db_order_types_with_lost : Fl_Input;
   
   constructor(px=100, py=110, pw=800, ph=535, pl=_tr("Order Types List / Edit")){
     base.constructor(px, py, pw, ph, pl);
@@ -2839,7 +2839,7 @@ class OrderTypesEditWindow extends List_Edit_Base_Window {
 class ImageWindow extends Base_Window {
   
   // Declaration of class members
-  btnImage = null;
+  btnImage : Fl_Image_Box;
   
   constructor(px=325, py=355, pw=305, ph=260, pl=_tr("Image")){
     base.constructor(px, py, pw, ph, pl);
@@ -2857,7 +2857,7 @@ class ImageWindow extends Base_Window {
 class DynamicQueryWindow extends Edit_Base_Window {
   
   // Declaration of class members
-  grid = null;
+  grid : Fl_Data_Table;
   
   constructor(px=285, py=319, pw=700, ph=400, pl=_tr("Dynamic Data")){
     base.constructor(px, py, pw, ph, pl);
@@ -2878,21 +2878,21 @@ class DynamicQueryWindow extends Edit_Base_Window {
 class ImagesListEditWindow extends List_Edit_Base_Window {
   
   // Declaration of class members
-  grid = null;
-  editGroup = null;
-  db_images_id = null;
-  db_images_name = null;
-  db_images_group_set = null;
-  db_images_mime_type = null;
-  db_images_mdate = null;
-  db_images_cdate = null;
-  btnSearch = null;
-  dbAction = null;
-  btnDbAction = null;
-  db_images_description = null;
-  query_limit = null;
-  img_size = null;
-  btnImage = null;
+  grid : Fl_Data_Table;
+  editGroup : Fl_Group;
+  db_images_id : Fl_Output;
+  db_images_name : Fl_Input;
+  db_images_group_set : Fl_Input;
+  db_images_mime_type : Fl_Output;
+  db_images_mdate : Fl_Output;
+  db_images_cdate : Fl_Output;
+  btnSearch : Fl_Button;
+  dbAction : Fl_Choice_dbAction;
+  btnDbAction : Fl_Button;
+  db_images_description : Fl_Input;
+  query_limit : Fl_Input;
+  img_size : Fl_Box;
+  btnImage : Fl_Image_Box;
   
   constructor(px=81, py=129, pw=800, ph=560, pl=_tr("Images List / Edit")){
     base.constructor(px, py, pw, ph, pl);
@@ -3026,15 +3026,15 @@ class ImagesListEditWindow extends List_Edit_Base_Window {
 class GroupsListEditWindow extends Edit_Base_Window {
   
   // Declaration of class members
-  tree = null;
-  bottomGroup = null;
-  db_group_description = null;
-  db_group_parent_id = null;
-  dbAction = null;
-  btnDbAction = null;
-  db_group_id = null;
-  btnWrapNotes = null;
-  db_group_notes = null;
+  tree : MyTree_Browser;
+  bottomGroup : Fl_Group;
+  db_group_description : Fl_Input;
+  db_group_parent_id : Fl_Input;
+  dbAction : Fl_Choice_dbAction;
+  btnDbAction : Fl_Button;
+  db_group_id : Fl_Output;
+  btnWrapNotes : Fl_Check_Button;
+  db_group_notes : MyFl_Text_Editor;
   
   constructor(px=328, py=91, pw=800, ph=560, pl=_tr("Groups List / Edit")){
     base.constructor(px, py, pw, ph, pl);
@@ -3121,15 +3121,15 @@ class GroupsListEditWindow extends Edit_Base_Window {
 class OrdersSumWindow extends Edit_Base_Window {
   
   // Declaration of class members
-  grid_orders_sum = null;
-  bottomGroup = null;
-  query_limit = null;
-  search_str = null;
-  btnSearch = null;
-  btnDelete = null;
-  btnCreate = null;
-  orders_sum_detail_type = null;
-  grid_orders_sum_details = null;
+  grid_orders_sum : Fl_Data_Table;
+  bottomGroup : Fl_Group;
+  query_limit : Fl_Input;
+  search_str : Fl_Input;
+  btnSearch : Fl_Button;
+  btnDelete : Fl_Button;
+  btnCreate : Fl_Button;
+  orders_sum_detail_type : Fl_Choice;
+  grid_orders_sum_details : Fl_Data_Table;
   
   constructor(px=92, py=155, pw=800, ph=560, pl=_tr("Orders Sum")){
     base.constructor(px, py, pw, ph, pl);
@@ -3220,25 +3220,25 @@ class OrdersSumWindow extends Edit_Base_Window {
 class PaymentEditWindow extends Edit_Base_Window {
   
   // Declaration of class members
-  db_payments_id = null;
-  btnOrderId = null;
-  db_payments_amount = null;
-  db_payments_due_date = null;
-  db_payments_entity_name = null;
-  db_payments_cdate = null;
-  db_payments_notes = null;
-  btnShowClearedCalendar = null;
-  db_payments_cleared_date = null;
-  group_lines = null;
-  grid_lines = null;
-  group_edit_line = null;
-  db_payments_lines_amount = null;
-  btnSaveLine = null;
-  db_payments_lines_notes = null;
-  db_payments_lines_payment_date = null;
-  btnPaymentDateCalendar = null;
-  btnSave = null;
-  btnPrint = null;
+  db_payments_id : Fl_Output;
+  btnOrderId : Fl_Button;
+  db_payments_amount : Fl_Input;
+  db_payments_due_date : Fl_Input;
+  db_payments_entity_name : Fl_Input;
+  db_payments_cdate : Fl_Input;
+  db_payments_notes : Fl_Input;
+  btnShowClearedCalendar : Fl_Button;
+  db_payments_cleared_date : Fl_Input;
+  group_lines : Fl_Group;
+  grid_lines : Fl_Data_Table;
+  group_edit_line : Fl_Group;
+  db_payments_lines_amount : Fl_Input;
+  btnSaveLine : Fl_Button;
+  db_payments_lines_notes : Fl_Input;
+  db_payments_lines_payment_date : Fl_Input;
+  btnPaymentDateCalendar : Fl_Button;
+  btnSave : Fl_Button;
+  btnPrint : Fl_Button;
   
   constructor(px=147, py=111, pw=720, ph=430, pl=_tr("Payment Edit")){
     base.constructor(px, py, pw, ph, pl);
@@ -3396,15 +3396,15 @@ class PaymentEditWindow extends Edit_Base_Window {
 class GLGroupsListEditWindow extends Edit_Base_Window {
   
   // Declaration of class members
-  grid = null;
-  editGroup = null;
-  db_gl_groups_id = null;
-  db_gl_groups_code = null;
-  db_gl_groups_debit_op = null;
-  db_gl_groups_credit_op = null;
-  db_gl_groups_description = null;
-  dbAction = null;
-  btnDbAction = null;
+  grid : Fl_Data_Table;
+  editGroup : Fl_Group;
+  db_gl_groups_id : Fl_Output;
+  db_gl_groups_code : Fl_Input;
+  db_gl_groups_debit_op : Fl_Input;
+  db_gl_groups_credit_op : Fl_Input;
+  db_gl_groups_description : Fl_Input;
+  dbAction : Fl_Choice_dbAction;
+  btnDbAction : Fl_Button;
   
   constructor(px=480, py=215, pw=500, ph=352, pl=_tr("GL Groups List / Edit")){
     base.constructor(px, py, pw, ph, pl);
@@ -3491,18 +3491,18 @@ class GLGroupsListEditWindow extends Edit_Base_Window {
 class GLChartEditWindow extends Edit_Base_Window {
   
   // Declaration of class members
-  editGroup = null;
-  db_gl_chart_id = null;
-  db_gl_chart_budget = null;
-  db_gl_chart_is_active = null;
-  db_gl_chart_is_header = null;
-  db_gl_chart_group_code = null;
-  db_gl_chart_gl_group_id = null;
-  db_gl_chart_description = null;
-  dbAction = null;
-  btnDbAction = null;
-  db_gl_chart_notes = null;
-  db_gl_chart_balance = null;
+  editGroup : Fl_Group;
+  db_gl_chart_id : Fl_Output;
+  db_gl_chart_budget : Fl_Input;
+  db_gl_chart_is_active : Fl_Check_Button;
+  db_gl_chart_is_header : Fl_Check_Button;
+  db_gl_chart_group_code : Fl_Input;
+  db_gl_chart_gl_group_id : Fl_Choice_Int;
+  db_gl_chart_description : Fl_Input;
+  dbAction : Fl_Choice_dbAction;
+  btnDbAction : Fl_Button;
+  db_gl_chart_notes : Fl_Text_Editor_Buffered;
+  db_gl_chart_balance : Fl_Input;
   
   constructor(px=253, py=173, pw=600, ph=350, pl=_tr("Accounts Chart Edit")){
     base.constructor(px, py, pw, ph, pl);
@@ -3620,29 +3620,29 @@ class GLChartEditWindow extends Edit_Base_Window {
 class GLTransactionEditWindow extends Edit_Base_Window {
   
   // Declaration of class members
-  db_gl_transactions_description = null;
-  btnOrderId = null;
-  db_gl_transactions_transaction_date = null;
-  btnShowCalendar = null;
-  group_lines = null;
-  grid_lines = null;
-  group_edit_line = null;
-  db_gl_transactions_lines_description = null;
-  db_gl_transactions_lines_group_code = null;
-  btnSearchAccount = null;
-  db_gl_transactions_lines_debit = null;
-  db_gl_transactions_lines_credit = null;
-  btnSaveLine = null;
-  btnBalanceLine = null;
-  btnClearLine = null;
-  db_gl_transactions_lines_gl_code = null;
-  db_gl_transactions_lines_doc = null;
-  db_gl_transactions_lines_due_date = null;
-  btnDueDateCalendar = null;
-  db_gl_transactions_lines_checked_date = null;
-  db_gl_transactions_id = null;
-  dbAction = null;
-  btnDbAction = null;
+  db_gl_transactions_description : Fl_Input;
+  btnOrderId : Fl_Button;
+  db_gl_transactions_transaction_date : Fl_Input;
+  btnShowCalendar : Fl_Button;
+  group_lines : Fl_Group;
+  grid_lines : Fl_Data_Table;
+  group_edit_line : Fl_Group;
+  db_gl_transactions_lines_description : Fl_Input;
+  db_gl_transactions_lines_group_code : Fl_Input;
+  btnSearchAccount : Fl_Button;
+  db_gl_transactions_lines_debit : Fl_Input;
+  db_gl_transactions_lines_credit : Fl_Input;
+  btnSaveLine : Fl_Button;
+  btnBalanceLine : Fl_Button;
+  btnClearLine : Fl_Button;
+  db_gl_transactions_lines_gl_code : Fl_Output;
+  db_gl_transactions_lines_doc : Fl_Input;
+  db_gl_transactions_lines_due_date : Fl_Input;
+  btnDueDateCalendar : Fl_Button;
+  db_gl_transactions_lines_checked_date : Fl_Input;
+  db_gl_transactions_id : Fl_Output;
+  dbAction : Fl_Choice_dbAction;
+  btnDbAction : Fl_Button;
   
   constructor(px=80, py=133, pw=720, ph=410, pl=_tr("GL Transaction Edit")){
     base.constructor(px, py, pw, ph, pl);
@@ -3827,60 +3827,60 @@ class GLTransactionEditWindow extends Edit_Base_Window {
 class EditEntityWindow extends Edit_Base_Window {
   
   // Declaration of class members
-  db_entities_id = null;
-  db_entities_name_ro = null;
-  db_entities_mdate = null;
-  db_entities_cdate = null;
-  tabs = null;
-  tabMain = null;
-  db_entities_name = null;
-  db_entities_company = null;
-  db_entities_address = null;
-  db_entities_zip = null;
-  db_entities_city = null;
-  db_entities_state = null;
-  db_entities_country = null;
-  db_entities_tax_number = null;
-  db_entities_show_on_sales = null;
-  db_entities_show_on_buys = null;
-  db_entities_is_active = null;
-  db_entities_phone = null;
-  db_entities_fax = null;
-  db_entities_use_sales_tax2 = null;
-  db_entities_email = null;
-  db_entities_sales_tax_exempt = null;
-  db_entities_web = null;
-  db_entities_irpf_pct_retention = null;
-  db_entities_contact = null;
-  db_entities_gps_coordinates = null;
-  btnDbAction = null;
-  dbAction = null;
-  tabNotes = null;
-  db_entities_notes = null;
-  tabTags = null;
-  db_entities_tags = null;
-  tabGroups = null;
-  db_entities_group_id = null;
-  tabTotals = null;
-  db_entities_credit_allowed = null;
-  db_entities_balance = null;
-  db_entities_sales_quoted = null;
-  db_entities_sales_ordered = null;
-  db_entities_sales_delivered = null;
-  db_entities_sales_invoiced = null;
-  db_entities_sales_discount = null;
-  db_entities_sales_paid = null;
-  db_entities_buys_quoted = null;
-  db_entities_buys_ordered = null;
-  db_entities_buys_received = null;
-  db_entities_buys_invoiced = null;
-  db_entities_buys_paid = null;
-  db_entities_buys_discount = null;
-  tabChartStatistics = null;
-  tabHistory = null;
-  tabReports = null;
-  btnEntitesListContactReport = null;
-  print_progress = null;
+  db_entities_id : Fl_Output;
+  db_entities_name_ro : Fl_Output;
+  db_entities_mdate : Fl_Output;
+  db_entities_cdate : Fl_Output;
+  tabs : Fl_Tabs;
+  tabMain : Fl_Group;
+  db_entities_name : Fl_Input;
+  db_entities_company : Fl_Input;
+  db_entities_address : Fl_Input;
+  db_entities_zip : Fl_Input;
+  db_entities_city : Fl_Input;
+  db_entities_state : Fl_Input;
+  db_entities_country : Fl_Input;
+  db_entities_tax_number : Fl_Input;
+  db_entities_show_on_sales : Fl_Check_Button;
+  db_entities_show_on_buys : Fl_Check_Button;
+  db_entities_is_active : Fl_Check_Button;
+  db_entities_phone : Fl_Input;
+  db_entities_fax : Fl_Input;
+  db_entities_use_sales_tax2 : Fl_Check_Button;
+  db_entities_email : Fl_Input;
+  db_entities_sales_tax_exempt : Fl_Check_Button;
+  db_entities_web : Fl_Input;
+  db_entities_irpf_pct_retention : Fl_Float_Input_Fmt;
+  db_entities_contact : Fl_Input;
+  db_entities_gps_coordinates : Fl_Input;
+  btnDbAction : Fl_Button;
+  dbAction : Fl_Choice_dbAction;
+  tabNotes : Fl_Group;
+  db_entities_notes : Fl_Text_Editor_Buffered;
+  tabTags : Fl_Group;
+  db_entities_tags : Fl_Text_Editor_Buffered;
+  tabGroups : Fl_Group;
+  db_entities_group_id : Flu_Tree_Browser;
+  tabTotals : Fl_Group;
+  db_entities_credit_allowed : Fl_Float_Input_Fmt;
+  db_entities_balance : Fl_Float_Input_Fmt;
+  db_entities_sales_quoted : Fl_Float_Input_Fmt;
+  db_entities_sales_ordered : Fl_Float_Input_Fmt;
+  db_entities_sales_delivered : Fl_Float_Input_Fmt;
+  db_entities_sales_invoiced : Fl_Float_Input_Fmt;
+  db_entities_sales_discount : Fl_Float_Input_Fmt;
+  db_entities_sales_paid : Fl_Float_Input_Fmt;
+  db_entities_buys_quoted : Fl_Float_Input_Fmt;
+  db_entities_buys_ordered : Fl_Float_Input_Fmt;
+  db_entities_buys_received : Fl_Float_Input_Fmt;
+  db_entities_buys_invoiced : Fl_Float_Input_Fmt;
+  db_entities_buys_paid : Fl_Float_Input_Fmt;
+  db_entities_buys_discount : Fl_Float_Input_Fmt;
+  tabChartStatistics : Fl_Group;
+  tabHistory : Fl_Group;
+  tabReports : Fl_Group;
+  btnEntitesListContactReport : Fl_Button;
+  print_progress : Fl_Progress;
   
   constructor(px=54, py=85, pw=800, ph=560, pl=_tr("Edit Entity")){
     base.constructor(px, py, pw, ph, pl);
@@ -4313,87 +4313,87 @@ class EditEntityWindow extends Edit_Base_Window {
 class EditProductWindow extends Edit_Base_Window {
   
   // Declaration of class members
-  db_products_id = null;
-  db_products_description_ro = null;
-  db_products_mdate = null;
-  db_products_cdate = null;
-  tabs = null;
-  tabMain = null;
-  db_products_reference_code = null;
-  db_products_supplier_code = null;
-  db_products_bar_code = null;
-  db_products_sell_description = null;
-  db_products_buy_description = null;
-  db_products_sell_price = null;
-  db_products_measure_unit_id = null;
-  db_products_sales_tax_id = null;
-  db_products_warranty_id = null;
-  db_products_sell_quantity_min = null;
-  db_products_units_by_package = null;
-  db_products_weight = null;
-  db_products_sell_without_stock = null;
-  db_products_is_active = null;
-  db_products_show_on_sales = null;
-  db_products_show_on_buys = null;
-  db_products_show_on_web = null;
-  db_products_show_price_on_web = null;
-  dbAction = null;
-  btnDbAction = null;
-  tabsMoreData = null;
-  tabNotes = null;
-  db_products_sell_notes = null;
-  tabNotesSupplier = null;
-  db_products_buy_notes = null;
-  tabTags = null;
-  db_products_tags = null;
-  tabGroups = null;
-  db_products_group_id = null;
-  btnImage = null;
-  db_products_quantity_onhand = null;
-  tabPrices = null;
-  db_products_buy_price = null;
-  db_products_buy_discount = null;
-  db_products_buy_other_costs = null;
-  db_products_sell_markup = null;
-  markup_to_discount = null;
-  db_products_sell_price_ro = null;
-  db_products_price_decimals = null;
-  btnSaveProrduct = null;
-  db_products_stock_min = null;
-  db_products_stock_max = null;
-  db_products_buy_quantity_min = null;
-  db_products_price_formula = null;
-  db_products_price_date = null;
-  productPrices = null;
-  tabKit = null;
-  tabChartStatistics = null;
-  tabHistory = null;
-  tabReports = null;
-  grpExportImport = null;
-  btnProductsExport = null;
-  btnProductsImport = null;
-  chkWithoutPrices = null;
-  chkWebOnly = null;
-  boxExportImportCount = null;
-  btnProductGroupsExport = null;
-  btnProductGroupsImport = null;
-  btnUpdateWeb = null;
-  grpPrintPriceList = null;
-  chkPriceListWithVAT = null;
-  chkPriceListSellOnWeb = null;
-  btnPrintPriceList = null;
-  chkPriceListSellSales = null;
-  chkPriceListSellPDF = null;
-  tabTotals = null;
-  db_products_quantity_quoted_sales = null;
-  db_products_quantity_ordered_sales = null;
-  db_products_quantity_delivered = null;
-  db_products_quantity_invoiced_sales = null;
-  db_products_quantity_lost = null;
-  db_products_quantity_quoted_buys = null;
-  db_products_quantity_ordered_buys = null;
-  db_products_quantity_received = null;
-  db_products_quantity_invoiced_buys = null;
+  db_products_id : Fl_Output;
+  db_products_description_ro : Fl_Output;
+  db_products_mdate : Fl_Output;
+  db_products_cdate : Fl_Output;
+  tabs : Fl_Tabs;
+  tabMain : Fl_Group;
+  db_products_reference_code : Fl_Input;
+  db_products_supplier_code : Fl_Input;
+  db_products_bar_code : Fl_Input;
+  db_products_sell_description : Fl_Input;
+  db_products_buy_description : Fl_Input;
+  db_products_sell_price : Fl_Float_Input_Fmt;
+  db_products_measure_unit_id : Fl_Choice_Int;
+  db_products_sales_tax_id : Fl_Choice_Int;
+  db_products_warranty_id : Fl_Choice_Int;
+  db_products_sell_quantity_min : Fl_Input;
+  db_products_units_by_package : Fl_Input;
+  db_products_weight : Fl_Input;
+  db_products_sell_without_stock : Fl_Check_Button;
+  db_products_is_active : Fl_Check_Button;
+  db_products_show_on_sales : Fl_Check_Button;
+  db_products_show_on_buys : Fl_Check_Button;
+  db_products_show_on_web : Fl_Check_Button;
+  db_products_show_price_on_web : Fl_Check_Button;
+  dbAction : Fl_Choice_dbAction;
+  btnDbAction : Fl_Button;
+  tabsMoreData : Fl_Tabs;
+  tabNotes : Fl_Group;
+  db_products_sell_notes : Fl_Text_Editor_Buffered;
+  tabNotesSupplier : Fl_Group;
+  db_products_buy_notes : Fl_Text_Editor_Buffered;
+  tabTags : Fl_Group;
+  db_products_tags : Fl_Text_Editor_Buffered;
+  tabGroups : Fl_Group;
+  db_products_group_id : Flu_Tree_Browser;
+  btnImage : Fl_Image_Box;
+  db_products_quantity_onhand : Fl_Input;
+  tabPrices : Fl_Group;
+  db_products_buy_price : Fl_Float_Input_Fmt;
+  db_products_buy_discount : Fl_Float_Input_Fmt;
+  db_products_buy_other_costs : Fl_Float_Input_Fmt;
+  db_products_sell_markup : Fl_Float_Input_Fmt;
+  db_products_markup_to_discount : Fl_Float_Input_Fmt;
+  db_products_sell_price2 : Fl_Float_Input_Fmt;
+  db_products_price_decimals : Fl_Input;
+  btnSaveProrduct : Fl_Button;
+  db_products_stock_min : Fl_Input;
+  db_products_stock_max : Fl_Input;
+  db_products_buy_quantity_min : Fl_Input;
+  db_products_price_formula : Fl_Input;
+  db_products_price_date : Fl_Output;
+  productPrices : Fl_Group;
+  tabKit : Fl_Group;
+  tabChartStatistics : Fl_Group;
+  tabHistory : Fl_Group;
+  tabReports : Fl_Group;
+  grpExportImport : Fl_Group;
+  btnProductsExport : Fl_Button;
+  btnProductsImport : Fl_Button;
+  chkWithoutPrices : Fl_Check_Button;
+  chkWebOnly : Fl_Check_Button;
+  boxExportImportCount : Fl_Box;
+  btnProductGroupsExport : Fl_Button;
+  btnProductGroupsImport : Fl_Button;
+  btnUpdateWeb : Fl_Button;
+  grpPrintPriceList : Fl_Group;
+  chkPriceListWithVAT : Fl_Check_Button;
+  chkPriceListSellOnWeb : Fl_Check_Button;
+  btnPrintPriceList : Fl_Button;
+  chkPriceListSellSales : Fl_Check_Button;
+  chkPriceListSellPDF : Fl_Check_Button;
+  tabTotals : Fl_Group;
+  db_products_quantity_quoted_sales : Fl_Input;
+  db_products_quantity_ordered_sales : Fl_Input;
+  db_products_quantity_delivered : Fl_Input;
+  db_products_quantity_invoiced_sales : Fl_Input;
+  db_products_quantity_lost : Fl_Input;
+  db_products_quantity_quoted_buys : Fl_Input;
+  db_products_quantity_ordered_buys : Fl_Input;
+  db_products_quantity_received : Fl_Input;
+  db_products_quantity_invoiced_buys : Fl_Input;
   
   constructor(px=34, py=28, pw=800, ph=560, pl=_tr("Edit Products")){
     base.constructor(px, py, pw, ph, pl);
@@ -4439,8 +4439,8 @@ class EditProductWindow extends Edit_Base_Window {
         {
           local o = Fl_Group(5, 60, 790, 495, _tr("Main"));
           tabMain = o;
-          o.color(246);
           o.labelsize(16);
+          o.color(246);
           {
             {
               local o = Fl_Input(115, 70, 165, 25, _tr("Reference"));
@@ -4708,8 +4708,8 @@ class EditProductWindow extends Edit_Base_Window {
         {
           local o = Fl_Group(5, 60, 790, 495, _tr("Prices"));
           tabPrices = o;
-          o.color(246);
           o.labelsize(16);
+          o.color(246);
           {
             {
               local o = Fl_Group(15, 88, 770, 201, _tr("Sales Price"));
@@ -4753,18 +4753,20 @@ class EditProductWindow extends Edit_Base_Window {
                 }
                 {
                   local o = Fl_Float_Input_Fmt(531, 115, 115, 25, _tr("Margin %"));
-                  markup_to_discount = o;
+                  db_products_markup_to_discount = o;
                   o.textsize(16);
                   o.align(5);
                   o.labelsize(16);
-                  //o->decimal_places(-6);
+                  add_input_field_to_map("products", "markup_to_discount", db_products_markup_to_discount);
+                  o->decimal_places(-6);
                 }
                 {
                   local o = Fl_Float_Input_Fmt(658, 115, 115, 25, _tr("Sales $"));
-                  db_products_sell_price_ro = o;
+                  db_products_sell_price2 = o;
                   o.textsize(16);
                   o.align(5);
                   o.labelsize(16);
+                  add_input_field_to_map("products", "sell_price2", db_products_sell_price2);
                 }
                 {
                   local o = Fl_Int_Input(530, 150, 30, 25, _tr("Decimals for calculation"));
@@ -5052,127 +5054,127 @@ class EditProductWindow extends Edit_Base_Window {
 class EditOrderWindow extends Edit_Base_Window {
   
   // Declaration of class members
-  db_orders_mdate = null;
-  db_orders_order_type_id = null;
-  pack_line2 = null;
-  db_orders_series = null;
-  db_orders_order_number = null;
-  db_orders_entity_id = null;
-  db_orders_entity_name = null;
-  btnSearchEntity = null;
-  db_orders_entity_order_number = null;
-  tabs = null;
-  tabMain = null;
-  pack_line3 = null;
-  out_lines = null;
-  db_orders_weight_total = null;
-  btnCalcDelivery = null;
-  db_orders_payment_type_id = null;
-  btnSortLines = null;
-  db_orders_order_date = null;
-  btnShowCalendar = null;
-  grid_lines = null;
-  group_totals = null;
-  db_orders_discount_amt = null;
-  db_orders_subtotal_amt = null;
-  db_orders_sales_tax1_amt = null;
-  db_orders_sales_tax2_amt = null;
-  db_orders_irpf_amt = null;
-  db_orders_total_amt = null;
-  db_orders_cash = null;
-  cash_return = null;
-  btnPrint = null;
-  linesTab = null;
-  group_lines = null;
-  db_orders_lines_batch_order_line_quantity = null;
-  db_orders_lines_batch_order_line_id = null;
-  btnSearchBatchOrderLineId = null;
-  db_orders_lines_xref_order_line_quantity = null;
-  db_orders_lines_xref_order_line_id = null;
-  btnSearchXrefOrderLineId = null;
-  db_orders_lines_product_id = null;
-  db_orders_lines_description = null;
-  btnSearchProduct = null;
-  db_orders_lines_quantity = null;
-  db_orders_lines_price = null;
-  db_orders_lines_price_decimals = null;
-  db_orders_lines_weight = null;
-  db_orders_lines_first_total = null;
-  db_orders_lines_discount_pct = null;
-  db_orders_lines_discount_amt = null;
-  db_orders_lines_line_subtotal = null;
-  db_orders_lines_sales_tax2_pct = null;
-  db_orders_lines_sales_tax1_pct = null;
-  db_orders_lines_sales_tax1_amt = null;
-  btnSaveLine = null;
-  db_orders_lines_line_total = null;
-  tabLineNotes = null;
-  db_orders_lines_notes = null;
-  tabDues = null;
-  grid_dues = null;
-  due_id = null;
-  due_date = null;
-  btnShowCalendarDueDate = null;
-  due_pct = null;
-  due_amount = null;
-  btnDueSave = null;
-  tabPayments = null;
-  grid_payments = null;
-  payment_id = null;
-  payment_date = null;
-  btnShowCalendarPaymentDate = null;
-  payemnt_amount = null;
-  btnPaymentSave = null;
-  btnNumberOrder = null;
-  dbAction = null;
-  btnDbAction = null;
-  tabDelivery = null;
-  db_orders_entity_address = null;
-  db_orders_entity_zip = null;
-  db_orders_entity_city = null;
-  db_orders_entity_state = null;
-  db_orders_entity_country = null;
-  db_orders_entity_phone = null;
-  db_orders_entity_tax_number = null;
-  db_orders_order_valid_till_date = null;
-  btnShowCalendarValidTill = null;
-  db_orders_entity_use_sales_tax2 = null;
-  db_orders_entity_sales_tax_exempt = null;
-  db_orders_notes = null;
-  db_orders_irpf_pct_retention = null;
-  tabOptions = null;
-  opt_ask_for_printer = null;
-  opt_print_only_data = null;
-  opt_print_to_pdf = null;
-  opt_print_page_format = null;
-  btnOptPrint = null;
-  opt_email_program = null;
-  opt_email_program_command = null;
-  btnOptSendEmail = null;
-  opt_print_order_company_info = null;
-  opt_print_order_bottom_info = null;
-  tabChartStatistics = null;
-  tabHistory = null;
-  tabPrintPreview = null;
-  tabTotals = null;
-  totals_balance = null;
-  db_totals_overview_sales_quoted = null;
-  db_totals_overview_sales_ordered = null;
-  db_totals_overview_sales_delivered = null;
-  db_totals_overview_sales_invoiced = null;
-  db_totals_overview_sales_discount = null;
-  db_totals_overview_sales_tax1 = null;
-  db_totals_overview_sales_tax2 = null;
-  db_totals_overview_sales_paid = null;
-  btnRefreshTotals = null;
-  db_totals_overview_buys_quoted = null;
-  db_totals_overview_buys_ordered = null;
-  db_totals_overview_buys_received = null;
-  db_totals_overview_buys_invoiced = null;
-  db_totals_overview_buys_discount = null;
-  db_totals_overview_buys_tax1 = null;
-  db_totals_overview_buys_tax2 = null;
-  db_totals_overview_buys_paid = null;
+  db_orders_mdate : Fl_Output;
+  db_orders_order_type_id : Flu_Combo_List;
+  pack_line2 : Fl_Pack;
+  db_orders_series : Fl_Input;
+  db_orders_order_number : Fl_Input;
+  db_orders_entity_id : Fl_Input;
+  db_orders_entity_name : Fl_Input;
+  btnSearchEntity : Fl_Button;
+  db_orders_entity_order_number : Fl_Input;
+  tabs : Fl_Tabs;
+  tabMain : Fl_Group;
+  pack_line3 : Fl_Pack;
+  out_lines : Fl_Output;
+  db_orders_weight_total : Fl_Output;
+  btnCalcDelivery : Fl_Button;
+  db_orders_payment_type_id : Fl_Choice_Int;
+  btnSortLines : Fl_Button;
+  db_orders_order_date : Fl_Input;
+  btnShowCalendar : Fl_Button;
+  grid_lines : Fl_Data_Table;
+  group_totals : Fl_Group;
+  db_orders_discount_amt : Fl_Output;
+  db_orders_subtotal_amt : Fl_Output;
+  db_orders_sales_tax1_amt : Fl_Output;
+  db_orders_sales_tax2_amt : Fl_Output;
+  db_orders_irpf_amt : Fl_Output;
+  db_orders_total_amt : Fl_Output;
+  db_orders_cash : Fl_Float_Input_Fmt;
+  cash_return : Fl_Output;
+  btnPrint : My_Fl_Return_Button;
+  linesTab : Fl_Tabs;
+  group_lines : Fl_Group;
+  db_orders_lines_batch_order_line_quantity : Fl_Output;
+  db_orders_lines_batch_order_line_id : Fl_Input;
+  btnSearchBatchOrderLineId : Fl_Button;
+  db_orders_lines_xref_order_line_quantity : Fl_Output;
+  db_orders_lines_xref_order_line_id : Fl_Input;
+  btnSearchXrefOrderLineId : Fl_Button;
+  db_orders_lines_product_id : Fl_Input;
+  db_orders_lines_description : Fl_Input;
+  btnSearchProduct : Fl_Button;
+  db_orders_lines_quantity : My_Fl_Float_Input;
+  db_orders_lines_price : My_Fl_Float_Input;
+  db_orders_lines_price_decimals : Fl_Input;
+  db_orders_lines_weight : My_Fl_Float_Input;
+  db_orders_lines_first_total : Fl_Float_Input_Fmt;
+  db_orders_lines_discount_pct : My_Fl_Float_Input;
+  db_orders_lines_discount_amt : Fl_Float_Input_Fmt;
+  db_orders_lines_line_subtotal : Fl_Float_Input_Fmt;
+  db_orders_lines_sales_tax2_pct : Fl_Float_Input_Fmt;
+  db_orders_lines_sales_tax1_pct : Fl_Float_Input_Fmt;
+  db_orders_lines_sales_tax1_amt : Fl_Float_Input_Fmt;
+  btnSaveLine : My_Fl_Return_Button;
+  db_orders_lines_line_total : Fl_Float_Input_Fmt;
+  tabLineNotes : Fl_Group;
+  db_orders_lines_notes : Fl_Input;
+  tabDues : Fl_Group;
+  grid_dues : Fl_Data_Table;
+  due_id : Fl_Output;
+  due_date : Fl_Input;
+  btnShowCalendarDueDate : Fl_Button;
+  due_pct : Fl_Float_Input_Fmt;
+  due_amount : Fl_Float_Input_Fmt;
+  btnDueSave : My_Fl_Return_Button;
+  tabPayments : Fl_Group;
+  grid_payments : Fl_Data_Table;
+  payment_id : Fl_Output;
+  payment_date : Fl_Input;
+  btnShowCalendarPaymentDate : Fl_Button;
+  payemnt_amount : Fl_Float_Input_Fmt;
+  btnPaymentSave : My_Fl_Return_Button;
+  btnNumberOrder : My_Fl_Return_Button;
+  dbAction : Fl_Choice_dbAction;
+  btnDbAction : My_Fl_Return_Button;
+  tabDelivery : Fl_Group;
+  db_orders_entity_address : Fl_Input;
+  db_orders_entity_zip : Fl_Input;
+  db_orders_entity_city : Fl_Input;
+  db_orders_entity_state : Fl_Input;
+  db_orders_entity_country : Fl_Input;
+  db_orders_entity_phone : Fl_Input;
+  db_orders_entity_tax_number : Fl_Input;
+  db_orders_order_valid_till_date : Fl_Input;
+  btnShowCalendarValidTill : Fl_Button;
+  db_orders_entity_use_sales_tax2 : Fl_Check_Button;
+  db_orders_entity_sales_tax_exempt : Fl_Check_Button;
+  db_orders_notes : Fl_Text_Editor_Buffered;
+  db_orders_irpf_pct_retention : Fl_Float_Input_Fmt;
+  tabOptions : Fl_Group;
+  opt_ask_for_printer : Fl_Check_Button;
+  opt_print_only_data : Fl_Check_Button;
+  opt_print_to_pdf : Fl_Check_Button;
+  opt_print_page_format : Fl_Choice_Str;
+  btnOptPrint : Fl_Button;
+  opt_email_program : Fl_Input;
+  opt_email_program_command : Fl_Input;
+  btnOptSendEmail : Fl_Button;
+  opt_print_order_company_info : Fl_Text_Editor_Buffered;
+  opt_print_order_bottom_info : Fl_Text_Editor_Buffered;
+  tabChartStatistics : Fl_Group;
+  tabHistory : Fl_Group;
+  tabPrintPreview : Fl_Group;
+  tabTotals : Fl_Group;
+  totals_balance : Fl_Float_Input_Fmt;
+  db_totals_overview_sales_quoted : Fl_Float_Input_Fmt;
+  db_totals_overview_sales_ordered : Fl_Float_Input_Fmt;
+  db_totals_overview_sales_delivered : Fl_Float_Input_Fmt;
+  db_totals_overview_sales_invoiced : Fl_Float_Input_Fmt;
+  db_totals_overview_sales_discount : Fl_Float_Input_Fmt;
+  db_totals_overview_sales_tax1 : Fl_Float_Input_Fmt;
+  db_totals_overview_sales_tax2 : Fl_Float_Input_Fmt;
+  db_totals_overview_sales_paid : Fl_Float_Input_Fmt;
+  btnRefreshTotals : My_Fl_Return_Button;
+  db_totals_overview_buys_quoted : Fl_Float_Input_Fmt;
+  db_totals_overview_buys_ordered : Fl_Float_Input_Fmt;
+  db_totals_overview_buys_received : Fl_Float_Input_Fmt;
+  db_totals_overview_buys_invoiced : Fl_Float_Input_Fmt;
+  db_totals_overview_buys_discount : Fl_Float_Input_Fmt;
+  db_totals_overview_buys_tax1 : Fl_Float_Input_Fmt;
+  db_totals_overview_buys_tax2 : Fl_Float_Input_Fmt;
+  db_totals_overview_buys_paid : Fl_Float_Input_Fmt;
   
   constructor(px=255, py=97, pw=800, ph=560, pl=_tr("Edit Order")){
     base.constructor(px, py, pw, ph, pl);
@@ -6186,54 +6188,54 @@ class EditOrderWindow extends Edit_Base_Window {
 class PosWindow extends Edit_Base_Window {
   
   // Declaration of class members
-  groupOrder = null;
-  btnUser = null;
-  grid_order = null;
-  orderTotal = null;
-  btnOrder1 = null;
-  btnOrder2 = null;
-  btnOrder3 = null;
-  btnOrder4 = null;
-  btnOrder5 = null;
-  btnOrder6 = null;
-  btnOrder7 = null;
-  btnOrder8 = null;
-  groupProducts = null;
-  grid_products = null;
-  btnProducts1 = null;
-  btnProducts2 = null;
-  btnProducts3 = null;
-  btnProducts4 = null;
-  groupActions = null;
-  btnOptions11 = null;
-  calcDisplay = null;
-  btnCalc9 = null;
-  btnCalc8 = null;
-  btnCalc7 = null;
-  btnCalc6 = null;
-  btnCalc5 = null;
-  btnCalc4 = null;
-  btnCalc3 = null;
-  btnCalc2 = null;
-  btnCalc1 = null;
-  btnCalc0 = null;
-  btnCalcOk = null;
-  btnOptions1 = null;
-  btnOptions2 = null;
-  btnOptions3 = null;
-  btnOptions4 = null;
-  btnOptions5 = null;
-  btnOptions6 = null;
-  btnOptions9 = null;
-  btnOptions10 = null;
-  btnOptions7 = null;
-  btnOptions8 = null;
-  groupShortCuts = null;
-  btnShortcut1 = null;
-  btnShortcut2 = null;
-  btnShortcut3 = null;
-  btnShortcut4 = null;
-  btnShortcut5 = null;
+  groupOrder : Fl_Group;
+  btnUser : Fl_Button;
+  grid_order : Fl_Data_Table;
+  orderTotal : Fl_Output;
+  btnOrder1 : Fl_Button;
+  btnOrder2 : Fl_Button;
+  btnOrder3 : Fl_Button;
+  btnOrder4 : Fl_Button;
+  btnOrder5 : Fl_Button;
+  btnOrder6 : Fl_Button;
+  btnOrder7 : Fl_Button;
+  btnOrder8 : Fl_Button;
+  groupProducts : Fl_Group;
+  grid_products : Fl_Data_Table;
+  btnProducts1 : Fl_Button;
+  btnProducts2 : Fl_Button;
+  btnProducts3 : Fl_Button;
+  btnProducts4 : Fl_Button;
+  groupActions : Fl_Group;
+  btnOptions11 : Fl_Button;
+  calcDisplay : Fl_Output;
+  btnCalc9 : Fl_Button;
+  btnCalc8 : Fl_Button;
+  btnCalc7 : Fl_Button;
+  btnCalc6 : Fl_Button;
+  btnCalc5 : Fl_Button;
+  btnCalc4 : Fl_Button;
+  btnCalc3 : Fl_Button;
+  btnCalc2 : Fl_Button;
+  btnCalc1 : Fl_Button;
+  btnCalc0 : Fl_Button;
+  btnCalcOk : Fl_Button;
+  btnOptions1 : Fl_Button;
+  btnOptions2 : Fl_Button;
+  btnOptions3 : Fl_Button;
+  btnOptions4 : Fl_Button;
+  btnOptions5 : Fl_Button;
+  btnOptions6 : Fl_Button;
+  btnOptions9 : Fl_Button;
+  btnOptions10 : Fl_Button;
+  btnOptions7 : Fl_Button;
+  btnOptions8 : Fl_Button;
+  groupShortCuts : Fl_Group;
+  btnShortcut1 : Fl_Button;
+  btnShortcut2 : Fl_Button;
+  btnShortcut3 : Fl_Button;
+  btnShortcut4 : Fl_Button;
+  btnShortcut5 : Fl_Button;
   
   constructor(px=53, py=84, pw=800, ph=560, pl=_tr("Point of Sales")){
     base.constructor(px, py, pw, ph, pl);
@@ -6545,44 +6547,44 @@ class PosWindow extends Edit_Base_Window {
 class MainWindow extends Base_Window {
   
   // Declaration of class members
-  tabs = null;
-  tabSales = null;
-  btnOrdersSales = null;
-  btnPaymentsSales = null;
-  btnEntitiesSales = null;
-  btnProductsSales = null;
-  tabBuys = null;
-  btnOrdersBuys = null;
-  btnPaymentsBuys = null;
-  btnProductsBuys = null;
-  btnEntitiesBuys = null;
-  tabAll = null;
-  btnOrders = null;
-  btnPayments = null;
-  btnEntities = null;
-  btnProducts = null;
-  tabGL = null;
-  btnGLGroups = null;
-  btnGLChart = null;
-  btnGLTransactions = null;
-  tabConfig = null;
-  config_scroll = null;
-  config_pack = null;
-  btnOrdersSum = null;
-  btnSalesTaxRates = null;
-  btnOrderTypes = null;
-  btnPaymentTypes = null;
-  btnMeasureUnits = null;
-  btnWarrantyTypes = null;
-  btnImages = null;
-  btnProductGroups = null;
-  btnEntityGroups = null;
-  btnConfig = null;
-  btnOpenDB = null;
-  btnTranslations = null;
-  btnAppUsers = null;
-  btnAskForPrinter = null;
-  btnWebServer = null;
+  tabs : Fl_Tabs;
+  tabSales : Fl_Group;
+  btnOrdersSales : Fl_Button;
+  btnPaymentsSales : Fl_Button;
+  btnEntitiesSales : Fl_Button;
+  btnProductsSales : Fl_Button;
+  tabBuys : Fl_Group;
+  btnOrdersBuys : Fl_Button;
+  btnPaymentsBuys : Fl_Button;
+  btnProductsBuys : Fl_Button;
+  btnEntitiesBuys : Fl_Button;
+  tabAll : Fl_Group;
+  btnOrders : Fl_Button;
+  btnPayments : Fl_Button;
+  btnEntities : Fl_Button;
+  btnProducts : Fl_Button;
+  tabGL : Fl_Group;
+  btnGLGroups : Fl_Button;
+  btnGLChart : Fl_Button;
+  btnGLTransactions : Fl_Button;
+  tabConfig : Fl_Group;
+  config_scroll : Fl_Scroll;
+  config_pack : Fl_Pack;
+  btnOrdersSum : Fl_Button;
+  btnSalesTaxRates : Fl_Button;
+  btnOrderTypes : Fl_Button;
+  btnPaymentTypes : Fl_Button;
+  btnMeasureUnits : Fl_Button;
+  btnWarrantyTypes : Fl_Button;
+  btnImages : Fl_Button;
+  btnProductGroups : Fl_Button;
+  btnEntityGroups : Fl_Button;
+  btnConfig : Fl_Button;
+  btnOpenDB : Fl_Button;
+  btnTranslations : Fl_Button;
+  btnAppUsers : Fl_Button;
+  btnAskForPrinter : Fl_Check_Button;
+  btnWebServer : Fl_Check_Button;
   
   constructor(px=10, py=50, pw=330, ph=320, pl=_tr("OURBIZ")){
     base.constructor(px, py, pw, ph, pl);

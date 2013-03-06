@@ -4,19 +4,198 @@
  * Licensed under GPLv3, see http://www.gnu.org/licenses/gpl.html.
  */
  
+ /*SquiLu
+ local k_consts = [
+		"account_id", "accounts", "active", "address", "buy_description",
+		"buy_discount", "buy_notes", "buy_other_costs", "buy_price",
+		"buy_quantity_min", "buys", "cash", "cdate", "city", "code", "company",
+		"contact", "country", "date", "days", "delete", "description",
+		"discount_amt", "discount_over_sales", "discount_pct", "email", "entities", "entity_address",
+		"entity_city", "entity_country", "entity_id", "entity_name",
+		"entity_order_number", "entity_phone", "entity_sales_tax_exempt",
+		"entity_state", "entity_tax_number", "entity_use_sales_tax2",
+		"entity_zip", "fax", "first_total", "gps_coordinates", "group_id", "group_set",
+		"id", "image_id", "image", "images", "inactive", "insert", "irpf_pct_retention",
+		"is_active", "line_subtotal", "line_total", "lines_count", 
+		"markup_to_discount", "mdate", "measure_unit_id", "mime_type",
+		"months", "name", "notes", "only_prices_older", "order_by_creation",
+		"order_by_modification", "order_date", "order_id", "order_number",
+		"order_type_id", "order_types", "order_valid_till_date", "orders", "parent_id",
+		"payment_type_id", "payment_types", "periode_count", "periode_type", 
+		"phone", "price", "price_decimals",
+		"price_formula", "product_id", "products",  "quantity", "query_limit",
+		"reference", "reference_code", "sales", "sales_tax_exempt",
+		"sales_tax_id", "sales_tax1_amt", "sales_tax1_pct", "sales_tax2_amt", "sales_tax2_pct", 
+		"sell_description", "sell_markup", "sell_notes",
+		"sell_price", "sell_price2", "sell_quantity_min", "sell_without_stock",
+		"series", "show_on_buys", "show_on_sales", "show_on_web",
+		"show_price_on_web", "state", "stock_max", "stock_min", "subtotal_amt",
+		"supplier_code", "tags", "tax_exempt", "tax_number", "thumbnail", "total", "total_amt", "trigger",
+		"unit_weight",
+		"units_by_package", "update", "user_code", "use_sales_tax2",
+		"warranty_id", "web", "weeks", "weight", "weight_total", "with_accounts",
+		"with_headers", "with_images", "years", "zip",		
+	];
+function mk_consts(){
+	k_consts.sort();
+	foreach(k in k_consts) putsnl(format("const C_%s = \"%s\";", k, k));
+}
+ SquiLu*/ 
+ 
+//start dummy nested scope to allow reload without complain about constants already defined 
+//also it hides from outer scope anything declared as local
+{
+ 
+ //@mk_consts();
+// generated-code:begin
+const C_account_id = "account_id";
+const C_accounts = "accounts";
+const C_active = "active";
+const C_address = "address";
+const C_buy_description = "buy_description";
+const C_buy_discount = "buy_discount";
+const C_buy_notes = "buy_notes";
+const C_buy_other_costs = "buy_other_costs";
+const C_buy_price = "buy_price";
+const C_buy_quantity_min = "buy_quantity_min";
+const C_buys = "buys";
+const C_cash = "cash";
+const C_cdate = "cdate";
+const C_city = "city";
+const C_code = "code";
+const C_company = "company";
+const C_contact = "contact";
+const C_country = "country";
+const C_date = "date";
+const C_days = "days";
+const C_delete = "delete";
+const C_description = "description";
+const C_discount_amt = "discount_amt";
+const C_discount_over_sales = "discount_over_sales";
+const C_discount_pct = "discount_pct";
+const C_email = "email";
+const C_entities = "entities";
+const C_entity_address = "entity_address";
+const C_entity_city = "entity_city";
+const C_entity_country = "entity_country";
+const C_entity_id = "entity_id";
+const C_entity_name = "entity_name";
+const C_entity_order_number = "entity_order_number";
+const C_entity_phone = "entity_phone";
+const C_entity_sales_tax_exempt = "entity_sales_tax_exempt";
+const C_entity_state = "entity_state";
+const C_entity_tax_number = "entity_tax_number";
+const C_entity_use_sales_tax2 = "entity_use_sales_tax2";
+const C_entity_zip = "entity_zip";
+const C_fax = "fax";
+const C_first_total = "first_total";
+const C_gps_coordinates = "gps_coordinates";
+const C_group_id = "group_id";
+const C_group_set = "group_set";
+const C_id = "id";
+const C_image = "image";
+const C_image_id = "image_id";
+const C_images = "images";
+const C_inactive = "inactive";
+const C_insert = "insert";
+const C_irpf_pct_retention = "irpf_pct_retention";
+const C_is_active = "is_active";
+const C_line_subtotal = "line_subtotal";
+const C_line_total = "line_total";
+const C_lines_count = "lines_count";
+const C_markup_to_discount = "markup_to_discount";
+const C_mdate = "mdate";
+const C_measure_unit_id = "measure_unit_id";
+const C_mime_type = "mime_type";
+const C_months = "months";
+const C_name = "name";
+const C_notes = "notes";
+const C_only_prices_older = "only_prices_older";
+const C_order_by_creation = "order_by_creation";
+const C_order_by_modification = "order_by_modification";
+const C_order_date = "order_date";
+const C_order_id = "order_id";
+const C_order_number = "order_number";
+const C_order_type_id = "order_type_id";
+const C_order_types = "order_types";
+const C_order_valid_till_date = "order_valid_till_date";
+const C_orders = "orders";
+const C_parent_id = "parent_id";
+const C_payment_type_id = "payment_type_id";
+const C_payment_types = "payment_types";
+const C_periode_count = "periode_count";
+const C_periode_type = "periode_type";
+const C_phone = "phone";
+const C_price = "price";
+const C_price_decimals = "price_decimals";
+const C_price_formula = "price_formula";
+const C_product_id = "product_id";
+const C_products = "products";
+const C_quantity = "quantity";
+const C_query_limit = "query_limit";
+const C_reference = "reference";
+const C_reference_code = "reference_code";
+const C_sales = "sales";
+const C_sales_tax1_amt = "sales_tax1_amt";
+const C_sales_tax1_pct = "sales_tax1_pct";
+const C_sales_tax2_amt = "sales_tax2_amt";
+const C_sales_tax2_pct = "sales_tax2_pct";
+const C_sales_tax_exempt = "sales_tax_exempt";
+const C_sales_tax_id = "sales_tax_id";
+const C_sell_description = "sell_description";
+const C_sell_markup = "sell_markup";
+const C_sell_notes = "sell_notes";
+const C_sell_price = "sell_price";
+const C_sell_price2 = "sell_price2";
+const C_sell_quantity_min = "sell_quantity_min";
+const C_sell_without_stock = "sell_without_stock";
+const C_series = "series";
+const C_show_on_buys = "show_on_buys";
+const C_show_on_sales = "show_on_sales";
+const C_show_on_web = "show_on_web";
+const C_show_price_on_web = "show_price_on_web";
+const C_state = "state";
+const C_stock_max = "stock_max";
+const C_stock_min = "stock_min";
+const C_subtotal_amt = "subtotal_amt";
+const C_supplier_code = "supplier_code";
+const C_tags = "tags";
+const C_tax_exempt = "tax_exempt";
+const C_tax_number = "tax_number";
+const C_thumbnail = "thumbnail";
+const C_total = "total";
+const C_total_amt = "total_amt";
+const C_trigger = "trigger";
+const C_unit_weight = "unit_weight";
+const C_units_by_package = "units_by_package";
+const C_update = "update";
+const C_use_sales_tax2 = "use_sales_tax2";
+const C_user_code = "user_code";
+const C_warranty_id = "warranty_id";
+const C_web = "web";
+const C_weeks = "weeks";
+const C_weight = "weight";
+const C_weight_total = "weight_total";
+const C_with_accounts = "with_accounts";
+const C_with_headers = "with_headers";
+const C_with_images = "with_images";
+const C_years = "years";
+const C_zip = "zip";
+// generated-code:end 
+
 local globals = getroottable();
 if(!globals.get("APP_CODE_FOLDER", false)) ::APP_CODE_FOLDER <- ".";
 
 local constants = getconsttable();
 
-function getOurbizDBFileName(){
+local function getOurbizDBFileName(){
 	if(globals.get("jniLog", false)) return APP_CODE_FOLDER + "/ourbiz.db";
 	if(globals.get("WIN32", false)) return APP_CODE_FOLDER + "/../../ourbiz-uk/ourbiz.db";
 	return "/home/mingo/dev/FrontAccountLua/ourbiz.db";
 }
 
 local ourbizDB = null;
-function getOurbizDB(){
+local function getOurbizDB(){
 	if(!ourbizDB) ourbizDB = SQLite3(getOurbizDBFileName());
 	return ourbizDB;
 	//return checkCachedDB(APP_CODE_FOLDER + "/ourbiz.db");
@@ -26,7 +205,7 @@ if(globals.get("AT_DEV_DBG", false) || !globals.get("PdfSqlTable", false)) {
 	dofile(APP_CODE_FOLDER + "/pdf-table.nut");
 }
 
-function escape_sql_like_search_str(str){
+local function escape_sql_like_search_str(str){
 	if (str && (str.len() > 0)){
 		str = str.gsub("%%", "%%%%");
 		if (str.find(" ") == 0)
@@ -38,7 +217,7 @@ function escape_sql_like_search_str(str){
 	return str;
 }
 
-function mkEmptyWhenZero(tbl, key){
+local function mkEmptyWhenZero(tbl, key){
 	if (type(key) == "array"){
 		foreach( v in key ) {
 			if (tbl.get(v, false) == "0") tbl[v] = "";
@@ -47,7 +226,21 @@ function mkEmptyWhenZero(tbl, key){
 	else if (tbl[key] == 0) tbl[key] = "";
 }
 
-function WriteSLEArrayFieldNames(str_buf, stmt, col_count)
+local function mytofloat(val){
+	try{
+		return val.tofloat();
+	}
+	catch(e){
+		return 0.0;
+	}
+}
+
+local function add2sle(out_result, str){
+	str = str.tostring();
+	out_result.write(get_sle_size(str.len()), str);
+}
+
+local function WriteSLEArrayFieldNames(str_buf, stmt, col_count)
 {
 	for(local i=0; i<col_count; ++i)
 	{
@@ -55,7 +248,7 @@ function WriteSLEArrayFieldNames(str_buf, stmt, col_count)
 	}
 }
 
-function WriteSLEArrayFieldValues(str_buf, stmt, col_count)
+local function WriteSLEArrayFieldValues(str_buf, stmt, col_count)
 {
 	for(local i=0; i < col_count; ++i)
 	{
@@ -63,7 +256,7 @@ function WriteSLEArrayFieldValues(str_buf, stmt, col_count)
 	}
 }
 
-function WriteMap2SLEArray(str_buf, map, doAppend=false)
+local function WriteMap2SLEArray(str_buf, map, doAppend=false)
 {
 	if(!doAppend) str_buf.clear();
 	str_buf.write("[[");
@@ -75,17 +268,29 @@ function WriteMap2SLEArray(str_buf, map, doAppend=false)
 	str_buf.write("]]");
 }
 
+local function mkSLEArray(str_buf, header, body, doAppend=false)
+{
+	if(!doAppend) str_buf.clear();
+	str_buf.write("[[");
+	foreach(k,v in header) add2sle(str_buf, k);
+	str_buf.writen(SLE_SLEEND, 'c');
+	str_buf.write("][");
+	foreach(k,v in body) add2sle(str_buf, v);
+	str_buf.writen(SLE_SLEEND, 'c');
+	str_buf.write("]]");
+}
+
 constants.rawdelete("TimePeriode");
 enum TimePeriode {is_years = 1, is_months, is_weeks, is_days};
 
-function getStatisticsPeriodeType(speriode){
-	if(speriode == "years") return TimePeriode.is_years;
-	else if(speriode == "weeks") return TimePeriode.is_weeks;
-	else if(speriode == "days") return TimePeriode.is_days;
+local function getStatisticsPeriodeType(speriode){
+	if(speriode == C_years) return TimePeriode.is_years;
+	else if(speriode == C_weeks) return TimePeriode.is_weeks;
+	else if(speriode == C_days) return TimePeriode.is_days;
 	return TimePeriode.is_months;
 }
 
-function get_sql_bar_chart_statistics_periodes (periode_count, periode_type){
+local function get_sql_bar_chart_statistics_periodes (periode_count, periode_type){
 	local speriode2;
 	local periodeMultiplier = 1;
 	local speriode;
@@ -93,23 +298,23 @@ function get_sql_bar_chart_statistics_periodes (periode_count, periode_type){
 	switch(periode_type){
 		case TimePeriode.is_years:{
 			speriode2 = "%Y";
-			speriode = "years";
+			speriode = C_years;
 		}
 		break;
 		case TimePeriode.is_weeks:{
 			periodeMultiplier = 7;
 			speriode2 = "%Y-%W";
-			speriode = "days";
+			speriode = C_days;
 		}
 		break;
 		case TimePeriode.is_days:{
 			speriode2 = "%Y-%m-%d";
-			speriode = "days";
+			speriode = C_days;
 		}
 		break;
 		default:{
 			speriode2 = "%Y-%m";
-			speriode = "months";
+			speriode = C_months;
 		}
 	}
 
@@ -119,7 +324,7 @@ function get_sql_bar_chart_statistics_periodes (periode_count, periode_type){
 	return [result_periode, result_periode_count];
 }
 
-function getOptionsFromMap(map){
+local function getOptionsFromMap(map){
 	local opt = {};
 	opt.search_str <- map.get("search_str", null);
 	opt.select_fields <- map.get("select_fields", null);
@@ -136,51 +341,59 @@ function getOptionsFromMap(map){
 	}
 	local CHECK_INT = function(field) {CHECK_INT_DFLT(field, 0) };
 
-	CHECK_BOOL("active");
-	CHECK_BOOL("buys");
-	CHECK_BOOL("cdate");
-	CHECK_BOOL("group_set");
-	CHECK_BOOL("inactive");
-	CHECK_BOOL("mdate");
-	CHECK_BOOL("only_prices_older");
-	CHECK_BOOL("order_by_creation");
-	CHECK_BOOL("order_by_modification");
-	CHECK_BOOL("sales");
-	CHECK_INT("entity_id");
-	CHECK_INT("group_id");
-	CHECK_INT("image_id");
-	CHECK_INT("account_id");
-	CHECK_INT("order_id");
-	CHECK_INT("payment_type_id");
-	CHECK_INT("product_id");
-	CHECK_INT_DFLT("query_limit", 50);
-	CHECK_BOOL("contact");
-	CHECK_BOOL("date");
-	CHECK_BOOL("description");
-	CHECK_BOOL("entities");
-	CHECK_BOOL("id");
-	CHECK_BOOL("name");
-	CHECK_BOOL("notes");
-	CHECK_BOOL("phone");
-	CHECK_BOOL("products");
-	CHECK_BOOL("reference");
-	CHECK_BOOL("total");
-	CHECK_BOOL("with_images");
-	CHECK_BOOL("with_headers");
-	CHECK_BOOL("with_accounts");
-	CHECK_BOOL("code");
+	CHECK_BOOL(C_active);
+	CHECK_BOOL(C_buys);
+	CHECK_BOOL(C_cdate);
+	CHECK_BOOL(C_group_set);
+	CHECK_BOOL(C_inactive);
+	CHECK_BOOL(C_mdate);
+	CHECK_BOOL(C_only_prices_older);
+	CHECK_BOOL(C_order_by_creation);
+	CHECK_BOOL(C_order_by_modification);
+	CHECK_BOOL(C_sales);
+	CHECK_INT(C_entity_id);
+	CHECK_INT(C_group_id);
+	CHECK_INT(C_image_id);
+	CHECK_INT(C_account_id);
+	CHECK_INT(C_order_id);
+	CHECK_INT(C_payment_type_id);
+	CHECK_INT(C_product_id);
+	CHECK_INT_DFLT(C_query_limit, 50);
+	CHECK_BOOL(C_contact);
+	CHECK_BOOL(C_date);
+	CHECK_BOOL(C_description);
+	CHECK_BOOL(C_entities);
+	CHECK_BOOL(C_id);
+	CHECK_BOOL(C_name);
+	CHECK_BOOL(C_notes);
+	CHECK_BOOL(C_phone);
+	CHECK_BOOL(C_products);
+	CHECK_BOOL(C_reference);
+	CHECK_BOOL(C_total);
+	CHECK_BOOL(C_with_images);
+	CHECK_BOOL(C_with_headers);
+	CHECK_BOOL(C_with_accounts);
+	CHECK_BOOL(C_code);
 	return opt;
 }
 
-function checkQueryStringSAB(qs_tbl, so){
+local function checkQueryStringSAB(qs_tbl, so=null){
 	local qs_sab = qs_tbl.get("sab", null);
 	if (qs_sab){
-		if (qs_sab == "S") so.sales <- true;
-		else if (qs_sab == "B") so.buys <- true;
+		if (qs_sab == "S") {
+			if(so) so.sales <- true;
+			return qs_sab;
+		}
+		else if (qs_sab == "B") {
+			so.buys <- true;
+			return qs_sab;			
+		}
+		else if (qs_sab == "A") return qs_sab;
 	}
+	return false;
 }
 
-function get_search_options(req){
+local function get_search_options(req){
 	local search_opt = getOptionsFromMap(req);
 
 	local sab = req.get("sab", null);
@@ -193,14 +406,14 @@ function get_search_options(req){
 }
 
 
-class DB_Manager {
+local DB_Manager = class {
 	table_name = null;
 	editable_fields = null;
 	has_mdate = null;
 	has_version = null;
 
 	constructor(ptable_name, peditable_fields = null){
-		if(!peditable_fields) peditable_fields =  ["is_active", "code", "description"];
+		if(!peditable_fields) peditable_fields =  [C_is_active, C_code, C_description];
 		table_name = ptable_name;
 		editable_fields = peditable_fields;
 		has_mdate = true;
@@ -209,9 +422,9 @@ class DB_Manager {
 
 	function db_action(db, data){
 		local action = data.__action__;
-		if (action == "insert") return db_insert(db,data);
-		else if (action == "update") return db_update(db,data);
-		else if (action == "delete") return db_delete(db,data);
+		if (action == C_insert) return db_insert(db,data);
+		else if (action == C_update) return db_update(db,data);
+		else if (action == C_delete) return db_delete(db,data);
 	}
 
 	function db_insert(db, data){
@@ -296,7 +509,7 @@ class DB_Manager {
 		throw db.errmsg();
 	}
 
-	function sql_get_one(req) {
+	function sql_get_one(tbl_qs) {
 		return format("select * from %s where id=?", table_name);
 	}
 
@@ -325,9 +538,101 @@ WHERE entity_id = ]==], aId);
 		//debug_print(tostring(mf), "\n");
 		return mf.tostring();
 	}
+	
+	function setSleResultChanes (buf, changes)
+	{
+		mkSLEArray(buf, ["changes"], [changes]);
+	}
+
+	function setSleResultId (buf, id)
+	{
+		mkSLEArray(buf, ["id"], [id]);
+	}
+	
+	function save_image (db, tbl_qs, tbl, sle_buf)                                                                              {
+		local thumbnail = tbl_qs.get("thumbnail", null);
+		if(thumbnail)
+		{
+			local image = tbl_qs.get("image", null);
+			local mime_type = tbl_qs.get("mime_type", null);
+
+			local id = tbl_qs.get("__id__", 0);
+			local isNewRecord = id == 0;
+			if(isNewRecord) id = db.last_row_id(); //new record get last_insert_rowid
+			if(id)
+			{
+				local stmt = db.prepare(format("select image_id from %s where id=%d", tbl, id));
+				local image_id, changes;
+				if(stmt.next_row()) image_id = stmt.col(0);
+				else image_id = 0;
+
+				if(image_id)
+				{
+					stmt.prepare("update images set mime_type= ?, thumbnail = ?, image = ? where id=%d", image_id);
+					stmt.bind(1, mime_type);
+					stmt.bind_blob(2, thumbnail, thumbnail.len());
+					stmt.bind_blob(3, image, image.len());
+					changes = stmt.exec_dml();
+					setSleResultChanes(sle_buf, changes);
+				}
+				else
+				{
+					db.exec_dml("begin;");
+					try {
+						stmt.prepare(format([==[
+insert into images(name, mime_type, thumbnail, image) values('%c-%d', ?, ?, ?)]==], tbl[0], id));
+						stmt.bind(1, mime_type);
+						stmt.bind_blob(2, thumbnail, thumbnail.len());
+						stmt.bind_blob(3, image, image.len());
+						changes = stmt.exec_dml();
+						if(changes){
+							image_id = db.last_row_id();
+							stmt.prepare(format("update %s set image_id=%d where id=%d",
+								tbl, image_id, id));
+							changes = stmt.exec_dml();
+						}
+						db.exec_dml("commit;");
+						if(!isNewRecord){
+							setSleResultChanes(sle_buf, changes);
+						}
+					}
+					catch(e){
+						db.exec_dml("rollback;");
+						throw(e);
+					}
+				}
+			}
+		}
+	}    
 }
 
 //sql queries
+
+local function get_one_record_sql (tbl, id, fields)
+{
+	return format("select %s from %s where id=%d", fields, tbl, id);
+}
+
+local function get_sales_tax_rates_short_list_sql(){
+	return "select id, description from sales_tax_rates where is_active=1 order by 2";
+}
+
+local function get_measure_units_short_list_sql(){
+	return [==[
+select id, description
+from measure_units
+where is_active=1
+order by description
+]==];
+}
+
+local function get_warranty_types_short_list_sql(){
+	return [==[
+select id, description from warranty_types
+where is_active=1
+order by description
+]==];
+}
 
 local function order_totals_get_one(id)
 {
@@ -641,6 +946,192 @@ WHERE pp.product_id = %d
 ]==], product_id, entity_id, product_id, entity_id, product_id);
 }
 
+local function product_prices_list_sql (product_id){
+	product_id = product_id.tointeger();
+	return format([==[
+select id,quantity ,
+	markup_pct ,
+	discount_pct ,
+	price, mdate, cdate
+from product_prices
+where product_id = %d
+UNION ALL
+select 0 , sell_quantity_min, sell_markup, 0,sell_price , price_date , cdate
+from products
+where id = %d
+order by quantity
+]==], product_id, product_id);
+}
+
+local function products_list_sql(){
+	return [==[
+select
+    p.id  as 'id|ID|6|R',
+    case when p.user_code isnull then ' ' else p.user_code end as 'reference|Reference|9',
+    p.sell_description as 'sell_description|Description|-1',
+    cast(case when p.kit isnull then 0 else kit end as text) as 'kit|Kit|4|C',
+    round((p.sell_price * (1 + (st.rate1/100.0))),p.price_decimals) as 'price_taxed|Price+V.A.T.|12|R|M',
+    round(case when p.kit > 0 then p.kit_onhand else p.quantity_onhand end, 4) as 'quantity_onhand|Onhand|10|R|N'
+from products_onhand as p left join sales_tax_rates as st
+on p.sales_tax_id = st.id order by 3
+]==];
+}
+
+local function product_sales_history_sql(ptype, plimit, product_id)
+{
+	// Select history type
+	if(ptype < 1) return "select '' as 'Select one|-1'; ";
+
+	//view_doc_sales = true
+	//print(product_id, ptype, plimit)
+	
+	local sql1 = format([==[
+select ol.order_id as 'order_id|ID|8|R', o.order_date as 'order_date|Date|10',
+	o.entity_name as 'entity_name|Entity|-1',ol.quantity as 'quantity|Qty.|9|R',
+	(ol.quantity * ol.price ) as 'total|Total|9|R|M',ot.code as 'order_type_code|Type|7|C'
+from orders as o, orders_lines as ol, order_types as ot
+where ol.product_id = %d
+	and o.id = ol.order_id
+	and ot.id = o.order_type_id
+order by ]==], product_id);
+
+	local sql2 = format([==[
+select ol.id as 'id|ID|6|R',o.entity_id as 'entity_id|EID|0',
+	o.entity_name as 'entity_name|Entity|-1', o.order_date as 'order_date|Date|8',
+	ol.quantity as 'quantity|Qty.|6|R', ol.price * ol.quantity as 'total|Total|9|R|M',
+	ol.order_id as 'order_id|IID|0',	ot.code as 'order_type_code|Type|5|C'
+from orders_lines as ol, orders as o, order_types as ot
+where ol.product_id = %d
+	and ol.order_id = o.id
+	and ot.id = o.order_type_id
+order by ]==], product_id);
+
+	local sql3 = format([==[
+select ol.order_id as 'order_id|ID|6|R', o.entity_name as 'entity_name|Entity|-1',
+	o.order_date as 'order_date|Date|10',
+	ol.quantity as 'quantity|Qty.|9|R',
+	ol.price as 'price|Price|9|R|M',
+	ol.discount_pct as 'discount_pct|Disc.|9|R|M',
+	ot.code as 'order_type_code|Type|7|C'
+from orders_lines as ol, orders as o, order_types as ot
+where ol.product_id = %d
+	and ol.order_id = o.id
+	and ot.id = o.order_type_id
+order by ]==], product_id);
+
+	local result = blob(0, 8192);
+
+	switch(ptype)
+	{
+		case 1:
+			result.write(sql1, " 2 desc, 1 desc ");
+		break;
+		case 2:
+			result.write(sql1, " 5 desc ");
+		break;
+		case 3:
+			result.write(sql1, " 3, 2 ");
+		break;
+		case 4:
+			result.write(sql2, " 6 desc ");
+		break;
+		case 5:
+			result.write(sql2, " 5 desc ");
+		break;
+		case 6:
+		case 7:
+		{
+			//view_doc_sales = false
+			result = [==[
+select 
+	ph.cdate as 'cdate|Date|10',
+	p.id as 'id|ID|8|R',
+	p.sell_description as 'sell_description|Description|-1',
+	ph.sell_price as 'sell_price|Price|9|R|M',
+	ph.buy_price as 'buy_price|Buy|9|R|M',
+	ph.buy_other_costs as 'buy_other_costs|Deliv.|9|R|M',
+	ph.sell_markup as 'sell_markup|Markup|9|R|M'
+from product_prices_history as ph, products as p
+where ph.product_id = p.id ]==];
+
+			if(ptype == 6) result = format("%s and product_id = %d", result, product_id);
+			result += " order by 1 desc ";
+		}
+		break;
+		case 8:
+		{
+			//view_doc_sales = false
+			result = [==[
+select
+	cdate as 'cdate|Date|10',
+	description as 'description|Description|-1',
+	new_on_hand as 'new_on_hand|New Onhand|9|R',
+	old_on_hand as 'old_on_hand|Old Onhand|9|R'
+from products_inventory_history_view
+where 1=1 ]==];
+			if(ptype == 7) result = format("%s and product_id = %d ", result, product_id);
+			result += " order by cdate desc "; 
+		}
+		break;
+	}
+	//print(result)
+	if(plimit) result = format("%s limit %d", result.tostring(), plimit);
+	return result.tostring();
+}
+
+local function product_prices_short_list_sql(product_id){
+	return format("select id, quantity, price from product_prices where product_id=%d", product_id);
+}
+
+local function products_kit_list_sql (kit_id, partOf=false){
+	kit_id = kit_id.tointeger();
+	local str1, str2;
+	if (partOf){
+		str1 = format("pk.product_id=%d", kit_id);
+		str2 = "and pk.kit_id = p.id order by p.sell_description";
+	}
+	else
+	{
+		str1 = format("pk.kit_id=%d", kit_id);
+		str2 = "and pk.product_id = p.id order by p.sell_description";
+	}
+	return format([==[
+select pk.id,
+	p.id,
+	p.sell_description,
+	pk.quantity,
+	round((p.sell_price*pk.quantity),4) as amount,
+	p.quantity_onhand
+from product_kits as pk, products as p
+where %s %s
+]==], str1, str2);
+}
+
+local function products_kit_details_get_one (kit_id){
+	kit_id = kit_id.tointeger();
+	return format([==[
+select count(*) as nproducts, sum(p.sell_price * pk.quantity) as amt_total
+from product_kits as pk left join products as p on pk.product_id = p.id
+where pk.kit_id = %d]==], kit_id);
+}
+
+local function products_kit_edit_get_one(id)
+{
+	return format([==[
+select pk.*, p.sell_description, p.sell_price
+from product_kits as pk left join products as p
+	on pk.product_id = p.id
+where pk.id=%d]==], id);
+}
+
+local function products_kit_product_get_one(product_id)
+{
+	return format([==[
+select id as product_id, sell_description, 1 as quantity, sell_price
+from products 
+where id=%d]==], product_id);
+}
+
 local function entity_sales_history_sql(history_type, query_limit, entity_id){
 	// Select history type
 	if (history_type < 1) {return "select '' as 'Select one|-1';" };
@@ -689,6 +1180,82 @@ group by product_id, description, ]==], strTmp3);
 
 	mf.write(" limit ", query_limit.tointeger());
 	//debug_print(tostring(mf), "\n");
+	return mf.tostring();
+}
+
+local function product_get_bar_chart_statistics_sql_core(product_id, sab, speriode, speriode_count){
+	return format([==[
+select %s as qm, sum(quantity) as q, '%s' as sab 
+from orders_lines as ol, orders as o
+where ol.product_id = %d
+	and o.id = ol.order_id
+	and o.order_type_id in(select * from order_types_%s_payment)
+	and o.order_date
+group by qm]==], speriode, sab, product_id,  (sab == "S" ? "sell" : "buy"), speriode_count);
+}
+
+local function product_bar_chart_statistics_sql(product_id, sab, periode_count, periode_type)
+{
+	local mf = blob();
+	local rc = get_sql_bar_chart_statistics_periodes(periode_count, periode_type);
+	local speriode = rc[0], speriode_count = rc[1];
+
+	if (sab == "S" || sab == "B"){
+		mf.write(product_get_bar_chart_statistics_sql_core(product_id, sab, speriode, speriode_count));
+	}
+	else
+	{
+		mf.write("select qm, q, sab from (")
+		mf.write(product_get_bar_chart_statistics_sql_core(product_id, "S", speriode, speriode_count))
+		mf.write(" UNION ALL ")
+		mf.write(product_get_bar_chart_statistics_sql_core(product_id, "B", speriode, speriode_count))
+		mf.write(") as t ")
+	}
+
+	mf.write(" order by qm, sab")
+	//debug_print(mf.tostring(), "\n")
+	return mf.tostring();
+}
+
+local function entities_list_sql()
+{
+    return [==[
+select id as 'id|ID|6|R', name as 'name|Name|-1',
+	contact as 'contact|Contact|12',
+	phone as 'phone|Phone|12' from entities order by name;]==];
+}
+
+local function enitity_get_bar_chart_statistics_sql_core(entity_d, sab, speriode, speriode_count){
+	return format([==[
+SELECT %s as qm,
+	sum(subtotal - total_discount + total_sales_tax1 + total_sales_tax2) as q, '%s' as sab
+FROM orders
+WHERE entity_id = %d
+AND order_type_id IN( SELECT * FROM order_types_%s_payment)
+AND order_date >= %s
+GROUP BY qm
+]==], speriode, sab, entity_d,  (sab == "S" ? "sell" : "buy"), speriode_count);
+}
+
+local function entity_bar_chart_statistics_sql(entity_d, sab, periode_count, periode_type){
+	local mf = blob();
+	local rc = get_sql_bar_chart_statistics_periodes(periode_count, periode_type);
+	local speriode = rc[0], speriode_count = rc[1];
+
+	if (sab == "S" || sab == "B"){
+		mf.write(enitity_get_bar_chart_statistics_sql_core(entity_d, sab, speriode, speriode_count));
+	}
+	else
+	{
+		mf.write("select qm, q, sab from (")
+		mf.write(enitity_get_bar_chart_statistics_sql_core(entity_d, "S", speriode, speriode_count))
+		mf.write(" UNION ALL ")
+		mf.write(enitity_get_bar_chart_statistics_sql_core(entity_d, "B", speriode, speriode_count))
+		mf.write(") as t ")
+	}
+
+	mf.write(" order by qm, sab")
+	//debug_print(mf.tostring(), "\n")
 	return mf.tostring();
 }
 
@@ -849,7 +1416,7 @@ local function orders_sql_search_list(qs_tbl, post_tbl){
 	return  mf.tostring();
 }
 
-function products_sql_search_list(qs_tbl, post_tbl){
+local function products_sql_search_list(qs_tbl, post_tbl){
 	local so = get_search_options(post_tbl);
 	checkQueryStringSAB(qs_tbl, so);
 	local mf = blob();
@@ -950,38 +1517,15 @@ local db_ourbiz_tables = {};
 // entities
 //
 
-class DB_Entities extends DB_Manager {
+local DB_Entities = class extends DB_Manager {
 	constructor(){
-		base.constructor("entities", [
-		"address", "city", "company", "contact",
-		"country", "email", "fax", "gps_coordinates", "group_id",
-		"image_id", "is_active", "name", "notes", "parent_id", "phone",
-		"sales_tax_exempt", "show_on_buys", "show_on_sales", "state",
-		"tags", "tax_number", "use_sales_tax2", "user_code", "web", "zip",
-		"irpf_pct_retention"]);
-	}
-
-
-	function sql_bar_chart_statistics(aId, sab, periode_count, periode_type){
-		local mf = blob();
-		local rc = get_sql_bar_chart_statistics_periodes(periode_count, periode_type);
-		local speriode = rc[0], speriode_count = rc[1];
-
-		if (sab == "S" || sab == "B"){
-			mf.write(get_bar_chart_statistics_sql_core(aId, sab, speriode, speriode_count));
-		}
-		else
-		{
-			mf.write("select qm, q, sab from (")
-			mf.write(get_bar_chart_statistics_sql_core(aId, "S", speriode, speriode_count))
-			mf.write(" UNION ALL ")
-			mf.write(get_bar_chart_statistics_sql_core(aId, "B", speriode, speriode_count))
-			mf.write(") as t ")
-		}
-
-		mf.write(" order by qm, sab")
-		//debug_print(mf.tostring(), "\n")
-		return mf.tostring();
+		base.constructor(C_entities, [
+		C_address, C_city, C_company, C_contact,
+		C_country, C_email, C_fax, C_gps_coordinates, C_group_id,
+		C_image_id, C_is_active, C_name, C_notes, C_parent_id, C_phone,
+		C_sales_tax_exempt, C_show_on_buys, C_show_on_sales, C_state,
+		C_tags, C_tax_number, C_use_sales_tax2, C_user_code, C_web, C_zip,
+		C_irpf_pct_retention]);
 	}
 
 	function sql_list(qs_tbl, post_tbl){
@@ -990,40 +1534,70 @@ class DB_Entities extends DB_Manager {
 		else if (qs_tbl.get("past_products", false)) return entity_past_products_get_sql(qs_tbl.past_products.tointeger());
 		else if ( (entity_id = qs_tbl.get("history", 0)) ){
 			local htype = qs_tbl.get("htype", 0);
-			local query_limit = qs_tbl.get("query_limit", 50).tointeger();
+			local query_limit = qs_tbl.get(C_query_limit, 50).tointeger();
 			return entity_sales_history_sql(htype, query_limit, entity_id.tointeger());
 		}
 		else if ( (entity_id = qs_tbl.get("statistics", 0)) ){
-			local periode_count = qs_tbl.get("periode_count", 12).tointeger();
-			local periode_type = getStatisticsPeriodeType(qs_tbl.get("periode_type", "months"));
+			local periode_count = qs_tbl.get(C_periode_count, 12).tointeger();
+			local periode_type = getStatisticsPeriodeType(qs_tbl.get(C_periode_type, C_months));
 			local sab = qs_tbl.get("sab", "S");
-			return sql_bar_chart_statistics(entity_id.tointeger(), sab, periode_count, periode_type);
+			return entity_bar_chart_statistics_sql(entity_id.tointeger(), sab, periode_count, periode_type);
 		}
 		else if (qs_tbl.get("print_list", false)){
-			return [==[
-select id as 'id|ID|6|R', name as 'name|Name|-1', contact as 'contact|Contact|12', phone as 'phone|Phone|12'
-from entities order by name
-]==];
+			return entities_list_sql();
 		}
 		else if (qs_tbl.get("pdf", false)){
-			local clipped = qs_tbl.get("clipped", false);
-			local pdf = new PdfSqlTable();
-			pdf.page_title = "Entities List";
-			pdf.water_mark = "T H I S   I S   A   D E M O";
+			qs_tbl._doc_pdf_ <- get_pdf_list(qs_tbl);
+			return true;
+		}
+	}
+	
+	function get_pdf_list(tbl_qs){
+		local clipped = tbl_qs.get("clipped", false);
+		local pdf = new PdfSqlTable();
+		pdf.page_title = "Entities List";
+		pdf.water_mark = "T H I S   I S   A   D E M O";
 
-			local sql = [==[
+		local sql = [==[
 select id as 'id|ID|6|R', name as 'name|Name|-1',
 	contact as 'contact|Contact|12',
 	phone as 'phone|Phone|12'
 from entities
 order by name
 ]==]
-			local db = getOurbizDB();
-			local mf = blob();
-			pdf.GetPDF(db, sql, clipped, mf);
-			qs_tbl._doc_pdf_ <- mf;
-			return true;
+		local db = getOurbizDB();
+		local mf = blob(0, 8192);
+		pdf.GetPDF(db, sql, clipped, mf);
+		return mf;
+	}
+
+	function sql_get_one(tbl_qs){
+		local id = tbl_qs.get(table_name, 0).tointeger();
+		if(tbl_qs.get("for_order", false))
+		{
+			return entity_for_order_get_one(id);
 		}
+		else if(tbl_qs.get("with_thumbnail", false))
+		{
+			return format([==[
+select e.*, i.thumbnail, i.mime_type
+from entities e left join images i
+on e.image_id = i.id where e.id=%d]==], id);
+		}
+		else if(tbl_qs.get("pdf", false))
+		{
+			return get_pdf_list(tbl_qs);
+		}
+		else
+		{
+			return base.sql_get_one(tbl_qs);
+		}
+	}
+	
+	function db_action(db, data){
+		local result = base.db_action(db, data);
+		//save_image(db, data, _table_name);
+		return result;
 	}
 }
 db_ourbiz_tables.entities <- new DB_Entities();
@@ -1037,7 +1611,7 @@ if(globals.get("AT_DEV_DBG", false) || !globals.get("PDF_Order", false)) {
 	dofile(APP_CODE_FOLDER + "/pdf-order.nut");
 }
 
-class My_PDF_Order extends PDF_Order {
+local My_PDF_Order = class extends PDF_Order {
 	_tr_map = null;
 	_lang = null;
 	_tr_stmt = null;
@@ -1099,7 +1673,7 @@ class My_PDF_Order extends PDF_Order {
 	}
 }
 
-class CalcOrderLine
+local CalcOrderLine = class
 {
 	id = null;
 	order_id = null;
@@ -1135,17 +1709,17 @@ class CalcOrderLine
 
 	function calc_map(map){
 		local fields = [
-			"unit_weight", "quantity", "weight", "price",
-			"first_total", "discount_pct", "discount_amt",
-			"line_subtotal", "sales_tax1_pct", "sales_tax1_amt",
-			"sales_tax2_pct", "sales_tax2_amt", "line_total"
+			C_unit_weight, C_quantity, C_weight, C_price,
+			C_first_total, C_discount_pct, C_discount_amt,
+			C_line_subtotal, C_sales_tax1_pct, C_sales_tax1_amt,
+			C_sales_tax2_pct, C_sales_tax2_amt, C_line_total
 			];
-		use_sales_tax2 = map.get("use_sales_tax2", false) == "1";
-		tax_exempt = map.get("tax_exempt", false) == "1";
-		price_decimals = map.get("price_decimals", 2).tointeger();
+		use_sales_tax2 = map.get(C_use_sales_tax2, false) == "1";
+		tax_exempt = map.get(C_tax_exempt, false) == "1";
+		price_decimals = map.get(C_price_decimals, 2).tointeger();
 
 		foreach(field in fields){
-			this[field] = map.get(field, 0.0).tofloat();
+			this[field] = mytofloat(map.get(field, 0.0));
 		}
 
 		calc();
@@ -1188,12 +1762,12 @@ class CalcOrderLine
 	function dumpSLSArrayCalcNames(out_result)
 	{
 		//this list must match the dumpSLSArrayCalc order
-		add2sle(out_result, "first_total");
-		add2sle(out_result, "discount_amt");
-		add2sle(out_result, "line_subtotal");
-		add2sle(out_result, "sales_tax1_amt");
-		add2sle(out_result, "sales_tax2_amt");
-		add2sle(out_result, "line_total");
+		add2sle(out_result, C_first_total);
+		add2sle(out_result, C_discount_amt);
+		add2sle(out_result, C_line_subtotal);
+		add2sle(out_result, C_sales_tax1_amt);
+		add2sle(out_result, C_sales_tax2_amt);
+		add2sle(out_result, C_line_total);
 	}
 
 	function dumpSLSArrayCalc(out_result)
@@ -1269,7 +1843,7 @@ class CalcOrderLine
 	}
 }
 
-class  CalcOrderTotals
+local  CalcOrderTotals = class
 {
 	_stmt_calc_order = null;
 	_stmt_get_tax_usage = null;
@@ -1302,13 +1876,13 @@ class  CalcOrderTotals
 
 	function dumpSLEFieldNames(out_result)
 	{
-		add2sle(out_result, "lines_count");
-		add2sle(out_result, "weight_total");
-		add2sle(out_result, "subtotal_amt");
-		add2sle(out_result, "discount_amt");
-		add2sle(out_result, "sales_tax1_amt");
-		add2sle(out_result, "sales_tax2_amt");
-		add2sle(out_result, "total_amt");
+		add2sle(out_result, C_lines_count);
+		add2sle(out_result, C_weight_total);
+		add2sle(out_result, C_subtotal_amt);
+		add2sle(out_result, C_discount_amt);
+		add2sle(out_result, C_sales_tax1_amt);
+		add2sle(out_result, C_sales_tax2_amt);
+		add2sle(out_result, C_total_amt);
 	}
 
 	function dumpSLEFieldValues(out_result)
@@ -1421,19 +1995,19 @@ from orders_lines where order_id=?]==]);
 		local stmt = db.prepare("select * from orders where id=?", id);
 		if(stmt.next_row())
 		{
-			local order_type_id = stmt.col("order_type_id");
+			local order_type_id = stmt.col(C_order_type_id);
 			pdf_order.labelNumber = db.exec_get_one(
 				format("select description_to_print from order_types where id=%d",
 					order_type_id));
-			local order_number = stmt.col("order_number");
-			pdf_order.strNumber = stmt.col("series");
+			local order_number = stmt.col(C_order_number);
+			pdf_order.strNumber = stmt.col(C_series);
 			pdf_order.strNumber += "/";
 			pdf_order.strNumber += order_number;
-			pdf_order.strDate = stmt.get("order_date");
-			pdf_order.strEntity.push(stmt.get("entity_name"));
-			pdf_order.strEntity.push(stmt.col("entity_address"));
-			pdf_order.strEntity.push(stmt.col("entity_phone"));
-			pdf_order.strEntity.push(stmt.get("entity_tax_number"));
+			pdf_order.strDate = stmt.get(C_order_date);
+			pdf_order.strEntity.push(stmt.get(C_entity_name));
+			pdf_order.strEntity.push(stmt.col(C_entity_address));
+			pdf_order.strEntity.push(stmt.col(C_entity_phone));
+			pdf_order.strEntity.push(stmt.get(C_entity_tax_number));
 		}
 		calc_order_totals(db, id, calc_line, pdf_order.strLines);
 		pdf_order.strTotals.push(math.number_format(subtotal_amt));
@@ -1447,7 +2021,7 @@ from orders_lines where order_id=?]==]);
 	}
 }
 
-class MyCalcOrderTotals
+local MyCalcOrderTotals = class
 {
 	order_totals = null;
 	calc_line = null;
@@ -1466,21 +2040,21 @@ class MyCalcOrderTotals
 	}
 }
 
-class DB_Orders extends DB_Manager {
+local DB_Orders = class extends DB_Manager {
 	_calc_line = null;
 	_order_totals = null;
 	_stmt_update_version = null;
 	
 	constructor(){
-		base.constructor("orders", [
-			"order_type_id", "series", "order_number", "entity_order_number",
-			"entity_id", "entity_name", "entity_address",
-			"entity_phone", "entity_zip", "entity_city",
-			"entity_state", "entity_country", "entity_tax_number",
-			"entity_use_sales_tax2", "entity_sales_tax_exempt",
-			"order_date", "payment_type_id", "notes",
-			"cash", "tags", "order_valid_till_date",
-			"irpf_pct_retention",
+		base.constructor(C_orders, [
+			C_order_type_id, C_series, C_order_number, C_entity_order_number,
+			C_entity_id, C_entity_name, C_entity_address,
+			C_entity_phone, C_entity_zip, C_entity_city,
+			C_entity_state, C_entity_country, C_entity_tax_number,
+			C_entity_use_sales_tax2, C_entity_sales_tax_exempt,
+			C_order_date, C_payment_type_id, C_notes,
+			C_cash, C_tags, C_order_valid_till_date,
+			C_irpf_pct_retention,
 		]);
 		_calc_line = new CalcOrderLine();
 		_order_totals = CalcOrderTotals();
@@ -1548,7 +2122,7 @@ class DB_Orders extends DB_Manager {
 			return orders_sales_history_sql(htype, query_limit, qs_tbl.history);
 		}
 		else if (qs_tbl.get("statistics", false)){
-			local periode_count = qs_tbl.get("periode_count", 12).tointeger();
+			local periode_count = qs_tbl.get(C_periode_count, 12).tointeger();
 			local periode_type = getStatisticsPeriodeType(qs_tbl.get("periode_type", "months"));
 			local sab = qs_tbl.get("sab", "S");
 			return sql_bar_chart_statistics(sab, periode_count, periode_type);
@@ -1560,15 +2134,15 @@ class DB_Orders extends DB_Manager {
 	function calc_order_line_from_map(tbl_qs, rec_map)
 	{
 		_calc_line.reset();
-		local product_id = tbl_qs.get("product_id", 0).tointeger();
+		local product_id = tbl_qs.get(C_product_id, 0).tointeger();
 		local order_id = tbl_qs.get("__id__", 0).tointeger();
 		if(product_id  && order_id)
 		{
 			local db = getOurbizDB();
 			local stmt;
-			local str =  tbl_qs.get("trigger", false);
+			local str =  tbl_qs.get(C_trigger, false);
 			//printf("%s\n", str.c_str());
-			if(str == "quantity")
+			if(str == C_quantity)
 			{
 				local discount, quantity;
 				stmt = db.prepare(format([==[
@@ -1578,7 +2152,7 @@ and ot.id = o.order_type_id]==], order_id));
 				if(stmt.next_row()){
 					str = stmt.col(0);
 					if(str != "B"){
-						local quanity = rec_map.get("quantity", 0);
+						local quanity = rec_map.get(C_quantity, 0);
 						if(quantity > 0)
 						{
 							out_buf.clear();
@@ -1720,13 +2294,7 @@ where o.id = %d and p.id = %d]==], order_id, product_id));
 				db.exec_dml("commit;");
 				
 				local buf = blob(0,1024);
-				buf.write("[[");
-				add2sle(buf, "order_number");
-				buf.writen(SLE_SLEEND, 'c');
-				buf.write("][");
-				add2sle(buf, order_number);
-				buf.writen(SLE_SLEEND, 'c');
-				buf.write("]]");
+				mkSLEArray(buf, ["order_number"], [order_number]);
 				return buf;
 			}
 			catch(e){
@@ -1772,9 +2340,9 @@ where id=? and _version_=?]==]);
 
 			bool isInsert, isDelete, isUpdate;
 			isInsert = isDelete = isUpdate = false;
-			if(action == "insert") isInsert = true;
-			else if(action == "update") isUpdate = true;
-			else if(action == "delete") isDelete = true;
+			if(action == C_insert) isInsert = true;
+			else if(action == C_update) isUpdate = true;
+			else if(action == C_delete) isDelete = true;
 
 			if(_db_line.dbAction != DBTableUpdate::e_none){
 			getVarFromMap("__id__", p.post_map, order_id);
@@ -1783,12 +2351,12 @@ where id=? and _version_=?]==]);
 			_db_line._order_id = order_id;
 			_db_line._db = &p.db;
 
-			getVarFromMap("id", p.post_map, line_id);
+			getVarFromMap(C_id, p.post_map, line_id);
 
 			std::string str;
 			if(getVarFromMap("calc_on_fld", p.post_map, str))
 			{
-			p.post_map["trigger"] = str;
+			p.post_map[C_trigger] = str;
 			calc_order_line_from_map(p, out_sql, p.post_map);
 			out_sql.clear();
 			}
@@ -1809,7 +2377,7 @@ where id=? and _version_=?]==]);
 
 			get_order_type(p.db, order_id, order_type_map);
 
-			getVarFromMap("entity_id", order_type_map, entity_id);
+			getVarFromMap(C_entity_id, order_type_map, entity_id);
 			order_values.setFromMap(order_type_map);
 			apply_order_type_on_order_entity(p.db, entity_id, order_values, true, order_type_map);
 
@@ -1933,76 +2501,345 @@ db_ourbiz_tables.orders <-  new DB_Orders();
 // products
 //
 
-class DB_Products extends DB_Manager {
+local Product_Calc_price = class
+{
+	static kalc_fields = [C_buy_price, C_buy_discount, C_buy_other_costs, 
+					C_sell_markup, C_markup_to_discount, C_sell_price,
+					C_sell_price2, C_discount_over_sales, C_price_decimals];
+	static num100 = 100.0;
+	static num1 = 1.0;
+
+	constructor()
+	{
+		clear();
+	}
+
+	function clear()
+	{
+		buy_price = buy_discount = buy_other_costs = sell_markup =
+			markup_to_discount = sell_price = sell_price2 = discount_over_sales = 0.0;
+		price_decimals = 2;
+	}
+
+	function _final_buy_price()
+	{
+		return (buy_price * (num1-(buy_discount/num100))) + buy_other_costs;
+	}
+	function _apply_markup(price)
+	{
+		return price * (num1+(sell_markup/num100));
+	}
+	function _mk_buy_price(from_price)
+	{
+		return (from_price - buy_other_costs) / (num1-(buy_discount/num100));
+	}
+
+	//save sales prices to allow recalculation again
+	function calc_over_sales(based_on)
+	{
+		local sell_price_saved = sell_price;
+		local result = calc(based_on);
+		sell_price = sell_price_saved;
+		return bresult;
+	}
+
+	function calc_over_sales_by_map(map)
+	{
+		//dbg_dump_map(map);
+		local trigger = map.get(C_trigger, null);
+		local result_fields = [C_sell_markup, C_discount_over_sales, C_sell_price2];
+		foreach(k in result_fields) this[k] = map.get(k, 0.0);
+		buy_price = map.get(C_buy_price, 0.0);
+		buy_discount = map.get(C_buy_discount, 0.0);
+		buy_other_costs = map.get(C_buy_other_costs, 0.0);
+		sell_price = map.get(C_sell_price, 0.0);
+		price_decimals = map.get(C_price_decimals, 2).tointeger();
+		
+		local result = calc_over_sales(trigger);
+		foreach(k in result_fields) map[k] = this[k];
+
+		return result;
+	}
+
+	function calc_by_map(map)
+	{
+		//dbg_dump_map(map);
+		local trigger = map.get(C_trigger, C_sell_markup);
+		local result_fields = [C_buy_price, C_buy_discount, C_buy_other_costs, C_sell_price, 
+						C_sell_price2, C_sell_markup, C_markup_to_discount];
+		price_decimals = map.get(C_price_decimals, 2).tointeger();
+		
+		foreach(k in result_fields) {
+			//debug_print("\n", k, ":", map.get(k, 0.0));
+			this[k] = mytofloat(map.get(k, 0.0));
+		}
+		local result = calc(trigger);
+		foreach(k in result_fields) {
+			//debug_print("\n", k, ":", this[k], ":", map.get(k, 0));
+			map[k] <- this[k];
+		}
+		
+		return result;
+	}
+
+	function calc(based_on)
+	{
+		local tmp;
+		local result = true;
+
+		if(based_on == C_markup_to_discount)
+		{
+			//%Markup = (1 - (100 /(100 - (%GM))))*-100
+			tmp = num100 - markup_to_discount;
+			if(tmp > 0) sell_markup = (num1-(num100/tmp))*-num100;
+			else result = false;
+		}
+		else if(based_on == C_sell_markup)
+		{
+			//Gross Margin (%GM) = (1- (100 /(100 + %Markup)))*100
+			tmp = num100 + sell_markup;
+			if(tmp > 0) markup_to_discount = (num1-(num100/tmp))*num100;
+			else result = false;
+		}
+		else if(based_on == C_discount_over_sales)
+		{
+			tmp = num1-(discount_over_sales/num100);
+			if(tmp > 0)
+			{
+				based_on = C_sell_price2;
+				sell_price2 = sell_price * tmp;
+			}
+			else result = false;
+		}
+
+		if(!result) return result;
+
+		if(based_on == C_sell_price2)
+		{
+			//with price change on tab Prices
+			//we will adjust Markup,Gross Profit
+			//or buy price if buy price is 0
+			if(buy_price == 0)
+			{
+				if((sell_markup == 0) && (markup_to_discount == 0))
+				{
+					buy_price = _mk_buy_price(sell_price2);
+				}
+				else
+				{
+					buy_price = _mk_buy_price(sell_price2 / (num1+(sell_markup/num100)) );
+				}
+			}
+			else
+			{
+				tmp = _final_buy_price();
+				sell_markup = (((sell_price2 - tmp) / tmp)*num100);
+				markup_to_discount = ((num1-(tmp/ sell_price2))*num100);
+			}
+		}
+		else if(based_on == C_sell_price)
+		{
+			//with price change on tab Main
+			//we only adjust buy price
+			sell_price2 = sell_price;
+			buy_price = _mk_buy_price(sell_price2 / (num1+(sell_markup/num100)) );
+		}
+		else sell_price2 = _apply_markup(_final_buy_price());
+
+		if(based_on != C_discount_over_sales){
+			discount_over_sales = (num1-(sell_price2 / sell_price)) * num100;
+		}
+		sell_price = sell_price2 = math.broundf(sell_price2, price_decimals);
+
+		return result;
+	}
+}
+//insert class fields from static array to easy iterate over then later
+foreach(k in Product_Calc_price.kalc_fields) Product_Calc_price[k] <- null;
+
+local DB_Products = class extends DB_Manager {
+	_calc_prices = null;
+	
 	constructor(){
-		base.constructor("products", [
-		"buy_description","buy_discount","buy_notes",
-		"buy_other_costs","buy_price",	"buy_quantity_min","group_id",
-		"image_id","is_active","measure_unit_id","price_decimals",
-		"price_formula","reference_code","sales_tax_id","sell_description",
-		"sell_markup","sell_notes","sell_price","sell_quantity_min","show_on_buys",
-		"show_on_sales","show_on_web","show_price_on_web","stock_max","stock_min",
-		"supplier_code","tags","units_by_package","warranty_id","weight",
-		"sell_without_stock"]);
+		base.constructor(C_products, [
+			C_buy_description,C_buy_discount,C_buy_notes,
+			C_buy_other_costs,C_buy_price, C_buy_quantity_min,C_group_id,
+			C_image_id,C_is_active,C_measure_unit_id,C_price_decimals,
+			C_price_formula,C_reference_code,C_sales_tax_id,C_sell_description,
+			C_sell_markup,C_sell_notes,C_sell_price,C_sell_quantity_min,C_show_on_buys,
+			C_show_on_sales,C_show_on_web,C_show_price_on_web,C_stock_max,C_stock_min,
+			C_supplier_code,C_tags,C_units_by_package,C_warranty_id,C_weight,
+			C_sell_without_stock,
+		]);
+
+		_calc_prices = Product_Calc_price();
 	}
 
 	function db_action(db, data){
-		mkEmptyWhenZero(data, ["warranty_id",  "group_id",  "measure_unit_id",  "image_id",  "sales_tax_id"]);
+		mkEmptyWhenZero(data, [C_warranty_id,  C_group_id,  C_measure_unit_id,  C_image_id,  C_sales_tax_id]);
 		return base.db_action(db, data);
+	}
+	
+	function getPdfList(qs_tbl){
+		local clipped = qs_tbl.get("clipped", false);
+		local pdf = new PdfSqlTable();
+		pdf.page_title = "Products List";
+		pdf.water_mark = "T H I S   I S   A   D E M O";
+
+		local sql =products_list_sql();
+		local db = getOurbizDB();
+		local mf = blob();
+		pdf.GetPDF(db, sql, clipped, mf);
+		qs_tbl._doc_pdf_ <- mf;
+		return true;
 	}
 
 	function sql_list(qs_tbl, post_tbl){
 		local product_id;
 		if (qs_tbl.get("search", false)) return products_sql_search_list(qs_tbl, post_tbl);
+		else if ( (product_id = qs_tbl.get("prices_by_quantity", 0)) ) return product_prices_list_sql(product_id.tointeger());
 		else if ( (product_id = qs_tbl.get("past_products", 0)) ) return entity_past_products_get_sql(product_id.tointeger());
 		else if ( (product_id = qs_tbl.get("last_order_lines", 0)) ) return last_product_order_lines_get_sql(product_id.tointeger());
 		else if ( (product_id = qs_tbl.get("appear_together", 0)) ) return product_appear_together_get_sql(product_id.tointeger());
 		else if ( (product_id = qs_tbl.get("history", 0)) ) {
 			local htype = qs_tbl.get("htype", 0).tointeger();
-			local query_limit = qs_tbl.get("query_limit", 50).tointeger();
+			local query_limit = qs_tbl.get(C_query_limit, 50).tointeger();
 			return product_sales_history_sql(htype, query_limit, product_id.tointeger());
 		}
 		else if ( (product_id = qs_tbl.get("statistics", 0)) ){
-			local periode_count = qs_tbl.get("periode_count", 12).tointeger();
+			local periode_count = qs_tbl.get(C_periode_count, 12).tointeger();
 			local periode_type = getStatisticsPeriodeType(qs_tbl.periode_type);
 			local sab = qs_tbl.get("sab", "S");
-			return product_sql_bar_chart_statistics(product_id.tointeger(), sab, periode_count, periode_type);
+			return product_bar_chart_statistics_sql(product_id.tointeger(), sab, periode_count, periode_type);
 		}
 		else if (qs_tbl.get("print_list", false)){
-			return [==[
-select
-    p.id  as 'id|ID|6|R',
-    case when p.user_code isnull then ' ' else p.user_code end as 'reference|Reference|9',
-    p.sell_description as 'sell_description|Description|-1',
-    cast(case when p.kit isnull then 0 else kit end as text) as 'kit|Kit|4|C',
-    round((p.sell_price * (1 + (st.rate1/100.0))),p.price_decimals) as 'price_taxed|Price+V.A.T.|12|R|M',
-    round(case when p.kit > 0 then p.kit_onhand else p.quantity_onhand end, 4) as 'quantity_onhand|Onhand|10|R|N'
-from products_onhand as p left join sales_tax_rates as st
-on p.sales_tax_id = st.id order by 3
-]==];
+			return products_list_sql();
 		}
 		else if (qs_tbl.get("pdf", false)){
-			local clipped = qs_tbl.get("clipped", false);
-			local pdf = new PdfSqlTable();
-			pdf.page_title = "Products List";
-			pdf.water_mark = "T H I S   I S   A   D E M O";
+			return getPdfList(qs_tbl);
+		}
+	}
 
-			local sql = [==[
-select
-    p.id  as 'id|ID|6|R',
-    case when p.user_code isnull then ' ' else p.user_code end as 'reference|Reference|9',
-    p.sell_description as 'sell_description|Description|-1',
-    cast(case when p.kit isnull then 0 else kit end as text) as 'kit|Kit|4|C',
-    round((p.sell_price * (1 + (st.rate1/100.0))),p.price_decimals) as 'price_taxed|Price+V.A.T.|12|R|M',
-    round(case when p.kit > 0 then p.kit_onhand else p.quantity_onhand end, 4) as 'quantity_onhand|Onhand|10|R|N'
-from products_onhand as p left join sales_tax_rates as st
-on p.sales_tax_id = st.id order by 3
-]==]
+	function sql_get_one(tbl_qs) {
+		local id = tbl_qs.get(table_name, 0).tointeger();
+		
+		if(tbl_qs.get("discount_by_quantity", false))
+		{
+			local quantity = tbl_qs.get(C_quantity, 0);
+			if(!quantity) return;
+			return discount_by_quantity_get_one(id, quantity);
+		}
+		else if(tbl_qs.get("price_for_calc", false))
+		{
+			return get_one_record_sql( _table_name, id,
+                                "buy_price, buy_discount, buy_other_costs, sell_price, price_decimals");
+		}
+		else if (tbl_qs.get("product_for_edit", false)){
 			local db = getOurbizDB();
-			local mf = blob();
-			pdf.GetPDF(db, sql, clipped, mf);
-			qs_tbl._doc_pdf_ <- mf;
-			return true;
+			local buf = blob(0, 8192);
+
+			local stmt = db.prepare(base.sql_get_one(tbl_qs));
+			stmt.bind(1, id);
+			if(!stmt.next_row()) return;
+			local rec_map = stmt.asTable();
+			_calc_prices.clear();
+			_calc_prices.calc_by_map(rec_map);
+			WriteMap2SLEArray(buf, rec_map, true);
+
+			stmt.prepare(product_prices_list_sql(id));
+			buf.write(stmt.asSleArray());
+
+			stmt.prepare(products_kit_list_sql(id));
+			buf.write(stmt.asSleArray());
+
+			stmt.prepare(products_kit_details_get_one(id));
+			buf.write(stmt.asSleArray());
+
+			return buf;
+		}
+		else if(tbl_qs.get("product_aux_data", false))
+		{
+			local db = getOurbizDB();
+			local buf = blob(0, 8192);
+			
+			local stmt = db.prepare(get_sales_tax_rates_short_list_sql());
+			buf.write(stmt.asSleArray());
+
+			stmt.prepare(get_measure_units_short_list_sql());
+			buf.write(stmt.asSleArray());
+
+			stmt.prepare(get_warranty_types_short_list_sql());
+			buf.write(stmt.asSleArray());
+
+			return buf;
+		}
+		else if(tbl_qs.get("pdf", false))
+		{
+			return getPdfList(qs_tbl);
+		}
+		else if(tbl_qs.get("with_thumbnail", false)){
+			return format([==[
+select p.*, i.thumbnail, i.mime_type
+from products p left join images i
+	on p.image_id = i.id
+where p.id=%d]==], id);
+		}
+		else return base.sql_get_one(tbl_qs);
+	}
+
+	function db_action(db, data)
+	{
+		local str = data.get("__action__", false);
+		if(str == "calc_price_by_quantity")
+		{
+			local id = data.get("__id__", 0);
+			if(!id) return;
+
+			_calc_prices.clear();
+			local stmt = db.prepare(format([==[
+select buy_price, buy_discount, buy_other_costs, sell_price, price_decimals 
+from products where id=%d]==], id));
+			if(stmt.next_row())
+			{
+				local count = stmt.col_count();
+				for(local i=0; i < count; ++i)
+				{
+					data[stmt.col_name(i)] = stmt.asString(i);
+				}
+				_calc_prices.calc_over_sales(data);
+				local buf = blob(0, 8192);
+				WriteMap2SLEArray(buf, data);
+				return buf;
+			}
+		}
+		else if(str == "calc_product_price")
+		{
+			_calc_prices.clear();
+			_calc_prices.calc_by_map(data);
+			local buf = blob(0, 8192);
+			WriteMap2SLEArray(buf, data);
+			return buf;
+		}
+		else
+		{
+			local result = base.db_action(db, data);
+			//save_image(db, data, _table_name);
+			return result;
+		}
+	};
+
+	function validate_db_fields(dbfileds)
+	{
+		foreach(key, val in dbfields)
+		{
+			if(key == C_measure_unit_id && val == "0")
+			{
+				dbfileds[key] = "";
+			}
+			else if(key == C_warranty_id && kv.val == "0")
+			{
+				dbfileds[key] = "";
+			}
 		}
 	}
 }
@@ -2013,9 +2850,9 @@ db_ourbiz_tables.products <- new DB_Products();
 // images
 //
 
-class DB_Images extends DB_Manager {
+local DB_Images = class extends DB_Manager {
 	constructor(){
-		base.constructor("images", ["mime_type", "name", "description", "group_set", "image", "thumbnail"]);
+		base.constructor(C_images, [C_mime_type, C_name, C_description, C_group_set, C_image, C_thumbnail]);
 	}
 
 	function sql_list(qs_tbl, post_tbl){
@@ -2048,10 +2885,10 @@ class DB_Images extends DB_Manager {
 
 db_ourbiz_tables.images <- new  DB_Images();
 
-class DB_order_types extends DB_Manager {
+local DB_order_types = class extends DB_Manager {
 	constructor(){
-		base.constructor("order_types", ["is_active", "code", "description", "description_to_print",
-			"group_order", "is_expense", "is_incoming", "notes", "numbering",
+		base.constructor(C_order_types, [C_is_active, C_code, C_description, "description_to_print",
+			"group_order", "is_expense", "is_incoming", C_notes, "numbering",
 			"series", "show_prices", "show_sales_tax", "subgroup_order",
 			"with_credit", "with_inventory", "with_payment", "with_ordered",
 			"with_sales_tax", "with_sales_tax_included", "with_quote"]);
@@ -2094,13 +2931,13 @@ db_ourbiz_tables.measure_units <- new DB_Manager("measure_units");
 
 db_ourbiz_tables.payment_types <- new DB_Manager("payment_types", ["is_active", "code", "description", "payment_terms", "notes"]);
 
-function check_payment_terms(txt){
+local function check_payment_terms(txt){
 	local init = 0;
 	local pct = 0.0;
 	txt.gmatch("(%d+)%s+(%d+%.?%d*)%D+(%d+)%s+(%S+)", function(n, v, p, pt){
 		// n ->decimal number expected
 		// v -> pct number expected
-		pct += v.tofloat();
+		pct += mytofloat(v);
 		// p -> integer number expected
 		// pt -> string expected
 		if (!(pt == "d" || pt == "w" || pt == "m" || pt == "dm")){
@@ -2111,7 +2948,7 @@ function check_payment_terms(txt){
 	if (pct != 100.0) throw "Total percentage not equal to 100% !";
 }
 
-class DB_sales_tax_rates extends DB_Manager {
+local DB_sales_tax_rates = class extends DB_Manager {
 	constructor(){
 		base.constructor("sales_tax_rates", ["is_active", "rate1", "rate2", "description"]);
 	}
@@ -2125,7 +2962,7 @@ db_ourbiz_tables.sales_tax_rates <- new DB_sales_tax_rates();
 
 db_ourbiz_tables.warranty_types <- new DB_Manager("warranty_types")
 
-class DB_groups_tree extends DB_Manager
+local DB_groups_tree = class extends DB_Manager
 {
 	constructor(){
 		base.constructor("groups_tree", ["description", "parent_id", "notes"]);
@@ -2184,7 +3021,7 @@ class DB_groups_tree extends DB_Manager
 	};
 };
 
-class DB_product_groups extends DB_groups_tree
+local DB_product_groups = class extends DB_groups_tree
 {
 	constructor(){
 		base.constructor();
@@ -2193,7 +3030,7 @@ class DB_product_groups extends DB_groups_tree
 };
 db_ourbiz_tables.product_groups <- new DB_product_groups();
 
-class DB_entity_groups  extends DB_groups_tree
+local DB_entity_groups = class  extends DB_groups_tree
 {
 	constructor(){
 		base.constructor();
@@ -2203,61 +3040,7 @@ class DB_entity_groups  extends DB_groups_tree
 db_ourbiz_tables.entity_groups <- new DB_entity_groups();
 
 
-function product_prices_list_sql (product_id){
-	product_id = product_id.tointeger();
-	return format([==[
-select id,quantity ,
-	markup_pct ,
-	discount_pct ,
-	price, mdate, cdate
-from product_prices
-where product_id = %d
-UNION ALL
-select 0 , sell_quantity_min, sell_markup, 0,sell_price , price_date , cdate
-from products
-where id = %d
-order by quantity
-]==], product_id, product_id);
-}
-
-function products_kit_list_sql (kit_id, partOf=false){
-	kit_id = kit_id.tointeger();
-	local str1, str2;
-	if (partOf){
-		str1 = format("pk.product_id=%d", kit_id);
-		str2 = "and pk.kit_id = p.id order by p.sell_description";
-	}
-	else
-	{
-		str1 = format("pk.kit_id=%d", kit_id);
-		str2 = "and pk.product_id = p.id order by p.sell_description";
-	}
-	return format([==[
-select pk.id,
-	p.id,
-	p.sell_description,
-	pk.quantity,
-	round((p.sell_price*pk.quantity),4) as amount,
-	p.quantity_onhand
-from product_kits as pk, products as p
-where %s %s
-]==], str1, str2);
-}
-
-function products_kit_details_get_one (kit_id){
-	kit_id = kit_id.tointeger();
-	return format([==[
-select count(*) as nproducts, sum(p.sell_price * pk.quantity) as amt_total
-from product_kits as pk left join products as p on pk.product_id = p.id
-where pk.kit_id = %d]==], kit_id);
-}
-
-function add2sle(out_result, str){
-	str = str.tostring();
-	out_result.write(get_sle_size(str.len()), str);
-}
-
-function ourbizDbMobile(request){
+local function ourbizDbMobile(request){
 	local data = {};
 	data.page_name = "list_products";
 	local query_string = request.info.query_string;
@@ -2286,7 +3069,7 @@ function ourbizDbMobile(request){
 	return true;
 }
 
-function ourbizDbGetList(request){
+local function ourbizDbGetList(request){
 	local query_string = request.info.query_string
 	if (query_string){
 		local db = getOurbizDB();
@@ -2342,7 +3125,7 @@ Content-Length: %d
 	return false;
 }
 
-function ourbizDbGetOne(request){
+local function ourbizDbGetOne(request){
 	local query_string = request.info.query_string;
 	if (query_string){
 		local db = getOurbizDB();
@@ -2355,41 +3138,7 @@ function ourbizDbGetOne(request){
 
 		gmFile.clear()
 
-		if (tbl == "products"){
-			local product_aux_data = request.get_var(query_string, "product_aux_data");
-			local product_for_edit = request.get_var(query_string, "product_for_edit");
-			if (product_aux_data){
-				local stmt = db.prepare(db_ourbiz_tables.sales_tax_rates.sql_short_list(tbl_qs));
-				gmFile.write(stmt.asSleArray());
-				stmt.finalize();
-				stmt = db.prepare("select id, description from measure_units where is_active=1 order by description");
-				gmFile.write(stmt.asSleArray());
-				stmt.finalize();
-				stmt = db.prepare("select id, description from warranty_types where is_active=1 order by description");
-				gmFile.write(stmt.asSleArray());
-				stmt.finalize();
-			}
-			else if (product_for_edit){
-				local stmt = db.prepare("select * from products where id=?");
-				stmt.bind(1, rec_id);
-				gmFile.write(stmt.asSleArray());
-				stmt.finalize();
-
-				stmt = db.prepare(product_prices_list_sql(rec_id));
-				gmFile.write(stmt.asSleArray());
-				stmt.finalize();
-
-				stmt = db.prepare(products_kit_list_sql(rec_id));
-				gmFile.write(stmt.asSleArray());
-				stmt.finalize();
-
-				stmt = db.prepare(products_kit_details_get_one(rec_id));
-				gmFile.write(stmt.asSleArray());
-				stmt.finalize();
-			}
-			else sql = "select * from products where id=?";
-		}
-		else if (tbl == "config") sql = "select * from config where id=?";
+		if (tbl == "config") sql = "select * from config where id=?";
 		else if (db_ourbiz_tables.get(tbl, false)) sql = db_ourbiz_tables[tbl].sql_get_one(tbl_qs);
 
 		if (sql){
@@ -2416,7 +3165,7 @@ function ourbizDbGetOne(request){
 	return false;
 }
 
-function ourbizDbGetBin(request){
+local function ourbizDbGetBin(request){
 	local query_string = request.info.query_string;
 	if (query_string){
 		local db = getOurbizDB();
@@ -2451,7 +3200,7 @@ function ourbizDbGetBin(request){
 	return false;
 }
 
-function ourbizDbAction(request){
+local function ourbizDbAction(request){
 	local isPost = request.info.request_method == "POST";
 	if (isPost){
 		local data = get_post_fields(request, 10*1024);
@@ -2467,17 +3216,20 @@ function ourbizDbAction(request){
 		}
 		if (result != null){
 			if(result instanceof blob) data = result.tostring();
-			gmFile.clear();
-			gmFile.write("[[");
-			if (action == "insert") add2sle(gmFile, "id");
-			else add2sle(gmFile, "changes");
+			else
+			{
+				gmFile.clear();
+				gmFile.write("[[");
+				if (action == C_insert) add2sle(gmFile, "id");
+				else add2sle(gmFile, "changes");
 
-			gmFile.writen(SLE_SLEEND, 'c');
-			gmFile.write("][");
-			add2sle(gmFile, result.tostring());
-			gmFile.writen(SLE_SLEEND, 'c');
-			gmFile.write("]]");
-			data = gmFile.tostring();
+				gmFile.writen(SLE_SLEEND, 'c');
+				gmFile.write("][");
+				add2sle(gmFile, result.tostring());
+				gmFile.writen(SLE_SLEEND, 'c');
+				gmFile.write("]]");
+				data = gmFile.tostring();
+			}
 		}
 		else data = null;
 
@@ -2505,3 +3257,5 @@ add_uri_hanlders({
 	["/DB/GetBin"] = ourbizDbGetBin,
 	["/DB/m"] = ourbizDbMobile,
 });
+
+} //end dummy nested scope

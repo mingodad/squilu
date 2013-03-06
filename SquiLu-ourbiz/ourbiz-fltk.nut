@@ -220,9 +220,18 @@ class Fl_Image_Box extends Fl_Button {
 	}
 }
 
-class My_Fl_Float_Input extends Fl_Float_Input {
+class My_Fl_Float_Input extends Fl_Float_Input_Fmt {
 	constructor(px, py, pw, ph, pl=""){
 		base.constructor(px, py, pw, ph, pl);
+	}
+	
+	function handle(event)
+	{
+		if(event == FL_KEYBOARD)
+		{
+			if(Fl.event_key() == FL_KP_Plus) return 0;
+		}
+		return base.handle(event);
 	}
 }
 
@@ -2103,6 +2112,253 @@ function print_products_list(sender=null, udata=null)
 	}
 }
 
+class OurProductPrices extends ProductPricesGroup
+{
+	_product_id = null;
+	_prices_for_calc_rec = null;
+
+	constructor()
+	{
+		base.constructor();
+		setup_grid(grid, this);
+		setDbActionControls(dbAction, btnDbAction);
+		dbUpdater()->table_name = "product_prices";
+		dbUpdater()->hasVersion = false;
+		local cols_info = [
+			"id|ID|0",
+			"quantity|Quantity|8|R|N",
+			"markup_pct|Markup|8|R|M",
+			"discount_pct|Discount|8|R|M",
+			"price|Price|8|R|M",
+			"mdate|MDate|12",
+			"cdate|CDate|12",
+		];
+		grid->set_cols(cols_info);
+
+		_product_id = 0;
+		db_product_prices_markup_pct.callback(on_change_prices);
+		db_product_prices_discount_pct.callback(on_change_prices);
+		db_product_prices_price.callback(on_change_prices);
+	}
+
+	function product_id(id, doLoadData=true)
+	{
+		if(doLoadData){
+			local cursor_wait = fl_cursor_wait();
+			grid->clear_data_rows();
+			appServer.product_prices_list(grid->_data, id);
+		}
+		grid->recalc_data();
+		dbAction->action(Fl_Choice_dbAction.e_insert);
+		_product_id = id;
+	}
+
+	function get_data_clear(){
+		grid->clear_data_rows();
+		return grid->_data;
+	}
+
+	function do_edit(id)
+	{
+		base.do_edit(id);
+		delayed_focus(db_product_prices_quantity);
+	}
+
+	function row_edit(id)
+	{
+		do_edit(id);
+		//if(found)
+	}
+
+	function get_widget_changed(uw)
+	{
+		base.get_widget_changed(uw);
+		uw.value_for_insert("product_id", _product_id);
+	}
+
+	function on_btnDbAction()
+	{
+		if(_product_id){ //nothing to do if it is 0
+			base.on_btnDbAction();
+			product_id(_product_id);
+		}
+	}
+
+	function on_change_prices(wdg, udata)
+	{
+		local input_fld_map = {
+				sell_markup = db_product_prices_markup_pct, 
+				discount_over_sales = db_product_prices_discount_over_sales,
+				sell_price2 = db_product_prices_price,
+			};
+		foreach(k,v in input_fld_map){
+			if(v == wdg) {
+				_record["trigger"] = k;
+				break;
+			}
+		}
+		appServer.do_dbaction(_record, "calc_price_by_quantity", "products", _product_id, 0);
+		
+		local  wfq = Widget_Fill_By_Map(_record);
+		wfq.set_widget_value_by_map(input_fld_map);	
+	}
+}
+
+class OurProductKit extends ProductKitGroup
+{
+	_products_list_window = null;
+	_kit_id = null;
+	_rec_details = null;
+
+	constructor()
+	{
+		base.constructor();
+		setup_grid(grid, this);
+		setDbActionControls(dbAction, btnDbAction);
+		dbUpdater()->table_name = "product_prices";
+		dbUpdater()->hasVersion = false;
+		local cols_info = [
+				"id|ID|0",
+				"product_id|Code|6|R",
+				"sell_description|Description|-1",
+				"quantity|Quantity|8|R|N",
+				"amount|Price|8|R|M",
+				"quantity_onhand|Onhand|8|R|N",
+			];
+		grid->set_cols(cols_info);
+		
+		local MydbUpdater = class extends DBUpdateByWidget {
+				_kit_id = null;
+				
+				constructor(akit_id)
+				{
+					base.constructor();
+					hasVersion = false;
+					hasMdate = false;
+					table_name = "product_kits";
+					_kit_id = 0;
+				}
+				function getWhereClause()
+				{
+					return " where kit_id=? and product_id=? ";
+				}
+
+				function bindWhereClause(stmt, lastParam)
+				{
+					stmt.bind(++lastParam, _kit_id);
+					stmt.bind(++lastParam, _edit_id);
+					return lastParam;
+				}
+			};
+		dbUpdater(new MydbUpdater(_kit_id));
+
+		db_product_kits_sell_description.callback(on_search_product_cb);
+		btnSearchProduct.callback(on_search_product_cb);
+		db_product_kits_product_id.callback(on_change_product_id);
+		btnKitPartOf.callback(on_part_of);
+	}
+
+	function product_id(id, doLoadData=true)
+	{
+		if(doLoadData){
+			local cursor_wait = fl_cursor_wait();
+			grid->clear_data_rows();
+			appServer.products_kit_list(grid->_data, id, btnKitPartOf->value());
+		}
+		grid->recalc_data();
+
+		_kit_id = id;
+		fill_kit_details(doLoadData);
+		dbAction->action(Fl_Choice_dbAction.e_insert);
+		on_Change_dbAction();
+	}
+
+	function get_data_clear(){
+		grid->clear_data_rows();
+		return grid->_data;
+	}
+
+	function do_edit(id)
+	{
+		base.do_edit(id);
+		appServer.products_kit_edit(_record, id);
+		fill_edit_form();
+		delayed_focus(db_product_kits_product_id);
+	}
+
+	function row_edit(id)
+	{
+		do_edit(id);
+	}
+
+	function fill_edit_form(asBlank=false)
+	{
+		local wfq = WidgetFillByMap(_record);
+		WFQ(product_kits, product_id);
+		WFQ(product_kits, quantity);
+		WFQ(product_kits, sell_description);
+		WFQ2(product_kits, product_price, sell_price);
+	}
+
+	function get_widget_changed(uw)
+	{
+		uw.value_for_insert("kit_id", _kit_id);
+		WGC(product_kits, product_id);
+		WGC(product_kits, quantity);
+	}
+
+	function fill_kit_details(doLoadData=true)
+	{
+		if(doLoadData){
+			appServer.get_record(_rec_details, "product_kits", 0, _kit_id, "&kit_details=1");
+		}
+		local wfq = WidgetFillByMap(_rec_details);
+		wfq.set_widget_value(kit_parts, "nproducts");
+		wfq.set_widget_value(kit_prices_sum, "amt_total");
+	}
+
+	function on_btnDbAction()
+	{
+		base.on_btnDbAction();
+		product_id(_kit_id);
+		fill_edit_form(true);
+		delayed_focus(db_product_kits_sell_description);
+	}
+
+	function on_change_product_id(sender, udata)
+	{
+		local id = db_product_kits_product_id->value().tointeger();
+		if(!id) return;
+		appServer.get_record(_record, "product_kits", 0, id, "&kit_product=1");
+		fill_edit_form();
+		delayed_focus(db_product_kits_quantity);
+	}
+
+	function validate_product_id(sender, aid)
+	{
+		db_product_kits_product_id->value(aid);
+		db_product_kits_product_id->set_changed();
+		on_change_product_id(sender, aid);
+	}
+
+	function on_search_product_cb(sender, udata)
+	{
+		show_create_owned(_products_list_window);
+		local search_str = db_product_kits_sell_description->value();
+		local doSearchLast = (search_str.len() == 1) && (search_str[0] == ' ');
+		_products_list_window->search_for_me(search_str, this, validate_product_id, 0, doSearchLast);
+	}
+
+	function on_part_of(sender, udata){
+		product_id(_kit_id);
+		if(btnKitPartOf->value()){
+			grpSearchEdit->hide();
+		} else {
+			grpSearchEdit->show();
+		}
+	}
+}
+
 class MyEditProductWindow extends EditProductWindow {
 	_ourBarChart = null;
 	_ourHistory = null;
@@ -2136,23 +2392,43 @@ class MyEditProductWindow extends EditProductWindow {
 		choice->value(0);
 		choice.callback(on_history_cb);
 
-		_ourProductKit = new ProductKitGroup();
+		_ourProductKit = new ProductKitGroup(); //OurProductKit();
 		replace_widget_for(tabKit, _ourProductKit);
 		//_ourProductKit->btnShowChart.callback(on_show_chart_cb);
 
-		_ourProductPrices = new ProductPricesGroup();
+		_ourProductPrices = new ProductPricesGroup(); //OurProductPrices();
 		replace_widget_for(productPrices, _ourProductPrices);
 
 		tabsMoreData.callback(tabsMoreData_cb);
-
+		
+		db_products_buy_price.callback(on_change_prices);
+		db_products_buy_discount.callback(on_change_prices);
+		db_products_buy_other_costs.callback(on_change_prices);
+		db_products_sell_markup.callback(on_change_prices);
+		db_products_markup_to_discount.callback(on_change_prices);
+		db_products_sell_price.callback(on_change_prices);
+		db_products_sell_price2.callback(on_change_prices);
+		db_products_price_decimals.callback(on_change_prices);
+		
 		load_aux_data();
 	}
+	
+	function get_record_by_id(id : integer) {
+		local prices = [];
+		local kit = [];
+		local kit_details = {};
+		appServer.get_product_for_edit(dbUpdater()->edit_id, _record, 
+			prices /*ourProductPrices->get_data_clear()*/,
+			kit /*ourProductKit->get_data_clear()*/,
+			kit_details /*ourProductKit->_rec_details*/);
+	}
+	
 	function do_edit_delayed(udata)
 	{
 		base.do_edit_delayed(udata);
 		delayed_focus(db_products_sell_description);
 		local image_id = _record.get("image_id", false);
-		if(image_id) button_show_db_image(btnImage, image_id.tointeger(), null, false, false);
+		if(image_id && image_id.len()) button_show_db_image(btnImage, image_id.tointeger(), null, false, false);
 		else {
 			btnImage->hide();
 			//btnImage->image(&jpegNophoto);
@@ -2205,6 +2481,25 @@ class MyEditProductWindow extends EditProductWindow {
 					_ourHistory->history_choice->value(),
 					query_limit, dbUpdater()->edit_id);
 		tbl->set_new_data(data);
+	}
+
+	function on_change_prices(sender, udata)
+	{
+		this = sender->window();
+		local prices_rec = {};
+		local price_fields = ["buy_price", "buy_discount", "buy_other_costs", "sell_markup", "sell_price",
+			"markup_to_discount", "sell_price2", "price_decimals"];
+		foreach(k in price_fields) {
+			//print(k, map.get(k, 0.0));
+			prices_rec[k] <- this["db_products_" + k].value();
+		}
+		
+		appServer.do_dbaction(prices_rec, "calc_product_price", "products", dbUpdater()->edit_id, 0);
+		
+		foreach(k in price_fields) {
+			//print(k, map.get(k, 0.0));
+			this["db_products_" + k].value(prices_rec[k]);
+		}
 	}
 }
 
