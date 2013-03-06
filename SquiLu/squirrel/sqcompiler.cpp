@@ -1072,12 +1072,13 @@ public:
 	{
 		SQInteger tpos = _fs->GetCurrentPos(),nkeys = 0;
 		SQObject type_name;
+		bool isClass = separator == ';'; //hack recognizes a table/class from the separator
 		while(_token != terminator) {
 			bool hasattrs = false;
 			bool isstatic = false;
 			bool isprivate = false;
 			//check if is an attribute
-			if(separator == ';') {
+			if(isClass) {
 				if(_token == TK_ATTR_OPEN) {
 					_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(),0,NOT_TABLE); Lex();
 					ParseTableOrClass(',',TK_ATTR_CLOSE);
@@ -1117,17 +1118,17 @@ public:
 				SQObjectPtr obj = GetTokenObject(_token);
 				SQInteger next_token = _SC('=');
 				if(_token == _SC(':')){
-					if(separator == _SC(',')){ //only works for tables
-						next_token = _token;
-					}
-					else
-					{
+					if(isClass){
 						//class field with type annotation
 						Lex();
 						type_name = Expect(TK_IDENTIFIER);
 						_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(obj));
 						_fs->AddInstruction(_OP_LOADNULLS, _fs->PushTarget(), 1);
 						break;
+					}
+					else
+					{
+						next_token = _token;
 					}
 				}
 				Expect(next_token);
@@ -1147,11 +1148,11 @@ public:
 			assert((hasattrs && (attrs == key-1)) || !hasattrs);
 			unsigned char flags = (hasattrs?NEW_SLOT_ATTRIBUTES_FLAG:0)|(isstatic?NEW_SLOT_STATIC_FLAG:0);
 			SQInteger table = _fs->TopTarget(); //<<BECAUSE OF THIS NO COMMON EMIT FUNC IS POSSIBLE
-			if(separator == _SC(',')) { //hack recognizes a table from the separator
-				_fs->AddInstruction(_OP_NEWSLOT, 0xFF, table, key, val);
+			if(isClass) {
+				_fs->AddInstruction(_OP_NEWSLOTA, flags, table, key, val); //this for classes only as it invokes _newmember
 			}
 			else {
-				_fs->AddInstruction(_OP_NEWSLOTA, flags, table, key, val); //this for classes only as it invokes _newmember
+				_fs->AddInstruction(_OP_NEWSLOT, 0xFF, table, key, val);
 			}
 		}
 		if(separator == _SC(',')) //hack recognizes a table from the separator
