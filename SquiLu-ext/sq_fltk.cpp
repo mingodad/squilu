@@ -85,7 +85,6 @@ CREATE_TAG(Fl_Menu_Item);
 CREATE_TAG(Fl_Choice);
 CREATE_TAG(Fl_Input_);
 CREATE_TAG(Fl_Float_Input);
-CREATE_TAG(Fl_Float_Input_Fmt);
 CREATE_TAG(Fl_Int_Input);
 CREATE_TAG(Fl_Output);
 CREATE_TAG(Fl_Secret_Input);
@@ -602,6 +601,23 @@ static SQRESULT getInstance_for_##Klass(HSQUIRRELVM v, Klass *widget){\
 static SQRESULT _##Klass##_className(HSQUIRRELVM v){sq_pushstring(v, Klass::className(), -1); return 1;};\
 static SQRESULT _##Klass##_cheap_rtti_info(HSQUIRRELVM v){sq_pushuserpointer(v, (SQUserPointer)Klass::cheap_rtti_info()); return 1;};
 
+#define MY_FL_CLASS_HANDLE(klass, setup_fl) \
+MY_FL_CLASS(klass,\
+    int handle(int event){\
+        int rc;\
+        if(sq_call_fl_virtual_va(this, "handle", "i>i", event, &rc) == 0) return rc;\
+        return klass::handle(event);\
+    }\
+);\
+static SQRESULT _My##klass##_handle(HSQUIRRELVM v)\
+{\
+    SQ_FUNC_VARS_NO_TOP(v);\
+    setup_fl(v);\
+    SQ_GET_INTEGER(v, 2, event);\
+    sq_pushinteger(v, ((My##klass *)self)->klass::handle(event));\
+    return 1;\
+}
+
 #define CHEAP_RTTI_REG_FUN_FOR(Klass) \
 {_SC("className"),_##Klass##_className, 1,_SC("y"), SQTrue},\
 {_SC("cheap_rtti_info"),_##Klass##_cheap_rtti_info, 1,_SC("y"), SQTrue},
@@ -1038,24 +1054,8 @@ static SQRegFunction fl_progress_obj_funcs[]={
 };
 #undef _DECL_FUNC
 
-MY_FL_CLASS(Fl_Button,
-    int handle(int event){
-        int rc;
-        if(sq_call_fl_virtual_va(this, "handle", "i>i", event, &rc) == 0) return rc;
-        return Fl_Button::handle(event);
-    }
-)
-
 #define SETUP_FL_BUTTON(v) SETUP_FL_KLASS(v, Fl_Button)
-
-static SQRESULT _MyFl_Button_handle(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS_NO_TOP(v);
-    SETUP_FL_BUTTON(v);
-    SQ_GET_INTEGER(v, 2, event);
-    sq_pushinteger(v, ((MyFl_Button*)self)->Fl_Button::handle(event));
-    return 1;
-}
+MY_FL_CLASS_HANDLE(Fl_Button, SETUP_FL_BUTTON);
 
 #define FL_BUTTON_GETSET_INT_CAST(funcNAME, typeNAME) FUNC_GETSET_INT(_MyFl_Button_, SETUP_FL_BUTTON, self->, funcNAME, typeNAME)
 FL_BUTTON_GETSET_INT_CAST(down_box, Fl_Boxtype);
@@ -1393,24 +1393,8 @@ static SQRegFunction fl_input__obj_funcs[]={
 };
 #undef _DECL_FUNC
 
-MY_FL_CLASS(Fl_Input,
-    int handle(int event){
-        int rc;
-        if(sq_call_fl_virtual_va(this, "handle", "i>i", event, &rc) == 0) return rc;
-        return Fl_Input::handle(event);
-    }
-)
-
 #define SETUP_FL_INPUT(v) SETUP_FL_KLASS(v, Fl_Input)
-
-static SQRESULT _MyFl_Input_handle(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS_NO_TOP(v);
-    SETUP_FL_INPUT(v);
-    SQ_GET_INTEGER(v, 2, event);
-    sq_pushinteger(v, ((MyFl_Input*)self)->Fl_Input::handle(event));
-    return 1;
-}
+MY_FL_CLASS_HANDLE(Fl_Input, SETUP_FL_INPUT);
 
 FUNC_GETSET_STR(_MyFl_Input_, NOTHING, Fl_Input::, default_number_format);
 FUNC_GETSET_STR(_MyFl_Input_, SETUP_FL_INPUT, self->, number_format);
@@ -1445,10 +1429,13 @@ static SQRegFunction fl_float_input_obj_funcs[]={
 };
 #undef _DECL_FUNC
 
-FLTK_CONSTRUCTOR(Fl_Float_Input_Fmt);
-#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Float_Input_Fmt_##name,nparams,pmask,isStatic}
+#define SETUP_FL_FLOAT_INPUT_FMT(v) SETUP_FL_KLASS(v, Fl_Float_Input_Fmt)
+MY_FL_CLASS_HANDLE(Fl_Float_Input_Fmt, SETUP_FL_FLOAT_INPUT_FMT);
+
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_MyFl_Float_Input_Fmt_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_float_input_fmt_obj_funcs[]={
 	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
+	_DECL_FUNC(handle,2,_SC("xi"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -1765,25 +1752,8 @@ static SQRegFunction flu_tree_browser_node_obj_funcs[]={
 };
 #undef _DECL_FUNC
 
-MY_FL_CLASS(Flu_Tree_Browser,
-    int handle(int event){
-        int rc;
-        if(sq_call_fl_virtual_va(this, "handle", "i>i", event, &rc) == 0) return rc;
-        return Flu_Tree_Browser::handle(event);
-    }
-)
-
 #define SETUP_FLU_TREE_BROWSER(v) SETUP_FL_KLASS(v, Flu_Tree_Browser)
-
-static SQRESULT _MyFlu_Tree_Browser_handle(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS_NO_TOP(v);
-    SETUP_FLU_TREE_BROWSER(v);
-    SQ_GET_INTEGER(v, 2, event);
-    sq_pushinteger(v, ((MyFlu_Tree_Browser*)self)->Flu_Tree_Browser::handle(event));
-    return 1;
-}
-
+MY_FL_CLASS_HANDLE(Flu_Tree_Browser, SETUP_FLU_TREE_BROWSER);
 
 FUNC_GETSET_BOOL(_MyFlu_Tree_Browser_, SETUP_FLU_TREE_BROWSER, self->, auto_branches);
 FUNC_GETSET_BOOL(_MyFlu_Tree_Browser_, SETUP_FLU_TREE_BROWSER, self->, show_branches);
