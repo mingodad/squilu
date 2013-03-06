@@ -1071,9 +1071,11 @@ public:
 	void ParseTableOrClass(SQInteger separator,SQInteger terminator)
 	{
 		SQInteger tpos = _fs->GetCurrentPos(),nkeys = 0;
+		SQObject type_name;
 		while(_token != terminator) {
 			bool hasattrs = false;
 			bool isstatic = false;
+			bool isprivate = false;
 			//check if is an attribute
 			if(separator == ';') {
 				if(_token == TK_ATTR_OPEN) {
@@ -1083,6 +1085,13 @@ public:
 				}
 				if(_token == TK_STATIC) {
 					isstatic = true;
+					Lex();
+				}
+				else if(_token == TK_PUBLIC) {
+					Lex();
+				}
+				else if(_token == TK_PRIVATE) {
+					isprivate = true;
 					Lex();
 				}
 			}
@@ -1105,19 +1114,31 @@ public:
 
 			case TK_STRING_LITERAL: //JSON
 			case TK_IDENTIFIER: {//JSON
-                SQObjectPtr obj = GetTokenObject(_token);
-                SQInteger next_token = _SC('=');
-                if(separator == ',' && _token == _SC(':')){ //only works for tables
-                    next_token = _token;
-                }
-                Expect(next_token);
+				SQObjectPtr obj = GetTokenObject(_token);
+				SQInteger next_token = _SC('=');
+				if(_token == _SC(':')){
+					if(separator == _SC(',')){ //only works for tables
+						next_token = _token;
+					}
+					else
+					{
+						//class field with type annotation
+						Lex();
+						type_name = Expect(TK_IDENTIFIER);
+						_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(obj));
+						_fs->AddInstruction(_OP_LOADNULLS, _fs->PushTarget(), 1);
+						break;
+					}
+				}
+				Expect(next_token);
 				_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(obj));
 				Expression();
 				break;
 			}
 			default :
-                ErrorIfNotToken(TK_IDENTIFIER);
+				ErrorIfNotToken(TK_IDENTIFIER);
 			}
+
 			if(_token == separator) Lex();//optional comma/semicolon
 			nkeys++;
 			SQInteger val = _fs->PopTarget();

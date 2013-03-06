@@ -79,6 +79,8 @@ enum SQKeywordsEnum {
     TK___LINE__,
     TK___FUNCTION__,
     TK___FILE__,
+    TK_PRIVATE,
+    TK_PUBLIC,
 
     TK_IGNORE,
 

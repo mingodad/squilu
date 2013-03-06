@@ -108,6 +108,8 @@ SQTable * SQLexer::GetKeywords()
 	ADD_KEYWORD(__LINE__,TK___LINE__);
 	ADD_KEYWORD(__FUNCTION__,TK___FUNCTION__);
 	ADD_KEYWORD(__FILE__,TK___FILE__);
+	ADD_KEYWORD(private,TK_PRIVATE);
+	ADD_KEYWORD(public,TK_PUBLIC);
 	ADD_KEYWORD(new,TK_IGNORE);
 
 	return tbl;
