@@ -9,7 +9,7 @@ SQ_OPT_STRING_STRLEN();
 
 #define LZ_BUFFER_SIZE 8192
 
-static int sq_check_result(HSQUIRRELVM v, int result, const z_stream* stream) {
+static SQRESULT sq_check_result(HSQUIRRELVM v, int result, const z_stream* stream) {
     /* Both of these are "normal" return codes: */
     if ( result == Z_OK || result == Z_STREAM_END ) return SQ_OK;
     switch ( result ) {
@@ -142,7 +142,7 @@ static SQRESULT sq_zlib_inflate(HSQUIRRELVM v)
     return 1;
 }
 
-static int sq_zlib_version(HSQUIRRELVM v)
+static SQRESULT sq_zlib_version(HSQUIRRELVM v)
 {
     sq_pushstring(v, zlibVersion(), -1);
     return 1;

@@ -151,13 +151,13 @@ static int inet_aton(const char *cp, struct in_addr *inp)
 //#define inet_aton(a,b) inet_pton(a,b, AF_INET)
 #endif
 
-static int socket_open(HSQUIRRELVM v)
+static SQRESULT socket_open(HSQUIRRELVM v)
 {
     lua_socket_open();
     return 0;
 }
 
-static int socket_close(HSQUIRRELVM v)
+static SQRESULT socket_close(HSQUIRRELVM v)
 {
     lua_socket_close();
     return 0;
@@ -238,7 +238,7 @@ static int timeout_meth_settimeout(HSQUIRRELVM v, p_timeout tm) {
 /*-------------------------------------------------------------------------*\
 * Returns the time the system has been up, in secconds.
 \*-------------------------------------------------------------------------*/
-static int timeout_lua_gettime(HSQUIRRELVM v)
+static SQRESULT timeout_lua_gettime(HSQUIRRELVM v)
 {
     sq_pushinteger(v, lua_timeout_gettime());
     return 1;
@@ -247,7 +247,7 @@ static int timeout_lua_gettime(HSQUIRRELVM v)
 /*-------------------------------------------------------------------------*\
 * Sleep for n seconds.
 \*-------------------------------------------------------------------------*/
-static int timeout_lua_sleep(HSQUIRRELVM v)
+static SQRESULT timeout_lua_sleep(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_FLOAT(v, 2, n);
@@ -271,7 +271,7 @@ static int timeout_lua_sleep(HSQUIRRELVM v)
 * Sleep for n Milliseconds.
 * Clone of the above for murgaLua.
 \*-------------------------------------------------------------------------*/
-static int timeout_lua_sleepMillisecs(HSQUIRRELVM v)
+static SQRESULT timeout_lua_sleepMillisecs(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_FLOAT(v, 2, n);
@@ -349,7 +349,7 @@ static int inet_gethost(const char *address, struct hostent **hp) {
 * Returns all information provided by the resolver given a host name
 * or ip address
 \*-------------------------------------------------------------------------*/
-static int inet_global_tohostname(HSQUIRRELVM v) {
+static SQRESULT inet_global_tohostname(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 2, address);
     struct hostent *hp = NULL;
@@ -369,7 +369,7 @@ static int inet_global_tohostname(HSQUIRRELVM v) {
 * Returns all information provided by the resolver given a host name
 * or ip address
 \*-------------------------------------------------------------------------*/
-static int inet_global_toip(HSQUIRRELVM v)
+static SQRESULT inet_global_toip(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 2, address);
@@ -390,7 +390,7 @@ static int inet_global_toip(HSQUIRRELVM v)
 /*-------------------------------------------------------------------------*\
 * Gets the host name
 \*-------------------------------------------------------------------------*/
-static int inet_global_gethostname(HSQUIRRELVM v)
+static SQRESULT inet_global_gethostname(HSQUIRRELVM v)
 {
     char name[257];
     name[256] = '\0';
@@ -557,7 +557,7 @@ static int sendraw(p_buffer buf, const char *data, size_t count, size_t *sent);
 /*-------------------------------------------------------------------------*\
 * Initializes module
 \*-------------------------------------------------------------------------*/
-static int buffer_open(HSQUIRRELVM v) {
+static SQRESULT buffer_open(HSQUIRRELVM v) {
     (void) v;
     return 0;
 }
@@ -848,25 +848,25 @@ static t_opt tcp_opt[] = {
     {NULL,          NULL}
 };
 
-static int tcp_meth_send(HSQUIRRELVM v) {
+static SQRESULT tcp_meth_send(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_tcp_client_INSTANCE_AT(v, 1);
     return buffer_meth_send(v, &tcp->buf);
 }
 
-static int tcp_meth_receive(HSQUIRRELVM v) {
+static SQRESULT tcp_meth_receive(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_tcp_client_INSTANCE_AT(v, 1);
     return buffer_meth_receive(v, &tcp->buf);
 }
 
-static int tcp_meth_getstats(HSQUIRRELVM v) {
+static SQRESULT tcp_meth_getstats(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_tcp_client_INSTANCE_AT(v, 1);
     return buffer_meth_getstats(v, &tcp->buf);
 }
 
-static int tcp_meth_setstats(HSQUIRRELVM v) {
+static SQRESULT tcp_meth_setstats(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_tcp_client_INSTANCE_AT(v, 1);
     return buffer_meth_setstats(v, &tcp->buf);
@@ -875,7 +875,7 @@ static int tcp_meth_setstats(HSQUIRRELVM v) {
 /*-------------------------------------------------------------------------*\
 * Just call option handler
 \*-------------------------------------------------------------------------*/
-static int tcp_meth_setoption(HSQUIRRELVM v)
+static SQRESULT tcp_meth_setoption(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_tcp_INSTANCE_AT(v, 1);
@@ -885,7 +885,7 @@ static int tcp_meth_setoption(HSQUIRRELVM v)
 /*-------------------------------------------------------------------------*\
 * Select support methods
 \*-------------------------------------------------------------------------*/
-static int tcp_meth_getfd(HSQUIRRELVM v)
+static SQRESULT tcp_meth_getfd(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_tcp_INSTANCE_AT(v, 1);
@@ -894,7 +894,7 @@ static int tcp_meth_getfd(HSQUIRRELVM v)
 }
 
 /* this is very dangerous, but can be handy for those that are brave enough */
-static int tcp_meth_setfd(HSQUIRRELVM v)
+static SQRESULT tcp_meth_setfd(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_tcp_INSTANCE_AT(v, 1);
@@ -903,7 +903,7 @@ static int tcp_meth_setfd(HSQUIRRELVM v)
     return 0;
 }
 
-static int tcp_meth_dirty(HSQUIRRELVM v)
+static SQRESULT tcp_meth_dirty(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_tcp_INSTANCE_AT(v, 1);
@@ -945,7 +945,7 @@ static int tcp_constructor_for_socket(HSQUIRRELVM v, int idx, t_socket sock, int
     return 1;
 }
 
-static int tcp_constructor(HSQUIRRELVM v)
+static SQRESULT tcp_constructor(HSQUIRRELVM v)
 {
     t_socket sock;
     const char *err = inet_trycreate(&sock, SOCK_STREAM);
@@ -960,7 +960,7 @@ static int tcp_constructor(HSQUIRRELVM v)
 * Waits for and returns a client object attempting connection to the
 * server object
 \*-------------------------------------------------------------------------*/
-static int tcp_meth_accept(HSQUIRRELVM v)
+static SQRESULT tcp_meth_accept(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_tcp_server_INSTANCE_AT(v, 1);
@@ -987,7 +987,7 @@ static int tcp_meth_accept(HSQUIRRELVM v)
 /*-------------------------------------------------------------------------*\
 * Binds an object to an address
 \*-------------------------------------------------------------------------*/
-static int tcp_meth_bind(HSQUIRRELVM v)
+static SQRESULT tcp_meth_bind(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_tcp_master_INSTANCE_AT(v, 1);
@@ -1001,7 +1001,7 @@ static int tcp_meth_bind(HSQUIRRELVM v)
 /*-------------------------------------------------------------------------*\
 * Turns a master tcp object into a client object.
 \*-------------------------------------------------------------------------*/
-static int tcp_meth_connect(HSQUIRRELVM v)
+static SQRESULT tcp_meth_connect(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_tcp_INSTANCE_AT(v, 1);
@@ -1018,7 +1018,7 @@ static int tcp_meth_connect(HSQUIRRELVM v)
 /*-------------------------------------------------------------------------*\
 * Closes socket used by object
 \*-------------------------------------------------------------------------*/
-static int tcp_meth_close(HSQUIRRELVM v)
+static SQRESULT tcp_meth_close(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_tcp_INSTANCE_AT(v, 1);
@@ -1029,7 +1029,7 @@ static int tcp_meth_close(HSQUIRRELVM v)
 /*-------------------------------------------------------------------------*\
 * Puts the sockt in listen mode
 \*-------------------------------------------------------------------------*/
-static int tcp_meth_listen(HSQUIRRELVM v)
+static SQRESULT tcp_meth_listen(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     GET_tcp_master_INSTANCE_AT(v, 1);
@@ -1044,7 +1044,7 @@ static int tcp_meth_listen(HSQUIRRELVM v)
 /*-------------------------------------------------------------------------*\
 * Shuts the connection down partially
 \*-------------------------------------------------------------------------*/
-static int tcp_meth_shutdown(HSQUIRRELVM v)
+static SQRESULT tcp_meth_shutdown(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     GET_tcp_client_INSTANCE_AT(v, 1);
@@ -1071,14 +1071,14 @@ error:
 /*-------------------------------------------------------------------------*\
 * Just call inet methods
 \*-------------------------------------------------------------------------*/
-static int tcp_meth_getpeername(HSQUIRRELVM v)
+static SQRESULT tcp_meth_getpeername(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_tcp_INSTANCE_AT(v, 1);
     return inet_meth_getpeername(v, &tcp->sock);
 }
 
-static int tcp_meth_getsockname(HSQUIRRELVM v)
+static SQRESULT tcp_meth_getsockname(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_tcp_INSTANCE_AT(v, 1);
@@ -1088,7 +1088,7 @@ static int tcp_meth_getsockname(HSQUIRRELVM v)
 /*-------------------------------------------------------------------------*\
 * Just call tm methods
 \*-------------------------------------------------------------------------*/
-static int tcp_meth_settimeout(HSQUIRRELVM v)
+static SQRESULT tcp_meth_settimeout(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_tcp_INSTANCE_AT(v, 1);
@@ -1147,7 +1147,7 @@ static const char *udp_strerror(int err) {
 /*-------------------------------------------------------------------------*\
 * Send data through connected udp socket
 \*-------------------------------------------------------------------------*/
-static int udp_meth_send(HSQUIRRELVM v) {
+static SQRESULT udp_meth_send(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_udp_connected_INSTANCE_AT(v, 1);
     p_timeout tm = &udp->tm;
@@ -1164,7 +1164,7 @@ static int udp_meth_send(HSQUIRRELVM v) {
 /*-------------------------------------------------------------------------*\
 * Send data through unconnected udp socket
 \*-------------------------------------------------------------------------*/
-static int udp_meth_sendto(HSQUIRRELVM v) {
+static SQRESULT udp_meth_sendto(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_udp_unconnected_INSTANCE_AT(v, 1);
     size_t sent = 0;
@@ -1190,11 +1190,12 @@ static int udp_meth_sendto(HSQUIRRELVM v) {
 /*-------------------------------------------------------------------------*\
 * Receives data from a UDP socket
 \*-------------------------------------------------------------------------*/
-static int udp_meth_receive(HSQUIRRELVM v) {
+static SQRESULT udp_meth_receive(HSQUIRRELVM v) {
     SQ_FUNC_VARS(v);
     GET_udp_INSTANCE_AT(v, 1);
     char buffer[UDP_DATAGRAMSIZE];
     SQ_OPT_INTEGER(v, 2, count, sizeof(buffer));
+    if(count <= 0) return sq_throwerror(v, _SC("invalid size for receive (%d)"), count);
     size_t got;
     int err;
     p_timeout tm = &udp->tm;
@@ -1209,7 +1210,7 @@ static int udp_meth_receive(HSQUIRRELVM v) {
 /*-------------------------------------------------------------------------*\
 * Receives data and sender from a UDP socket
 \*-------------------------------------------------------------------------*/
-static int udp_meth_receivefrom(HSQUIRRELVM v) {
+static SQRESULT udp_meth_receivefrom(HSQUIRRELVM v) {
     SQ_FUNC_VARS(v);
     GET_udp_unconnected_INSTANCE_AT(v, 1);
     struct sockaddr_in addr;
@@ -1217,6 +1218,7 @@ static int udp_meth_receivefrom(HSQUIRRELVM v) {
     char buffer[UDP_DATAGRAMSIZE];
     size_t got;
     SQ_OPT_INTEGER(v, 2, count, sizeof(buffer));
+    if(count <= 0) return sq_throwerror(v, _SC("invalid size for receive (%d)"), count);
     int err;
     p_timeout tm = &udp->tm;
     lua_timeout_markstart(tm);
@@ -1242,7 +1244,7 @@ static int udp_meth_receivefrom(HSQUIRRELVM v) {
 /*-------------------------------------------------------------------------*\
 * Select support methods
 \*-------------------------------------------------------------------------*/
-static int udp_meth_getfd(HSQUIRRELVM v) {
+static SQRESULT udp_meth_getfd(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_udp_INSTANCE_AT(v, 1);
     sq_pushinteger(v, (SQInteger) udp->sock);
@@ -1250,7 +1252,7 @@ static int udp_meth_getfd(HSQUIRRELVM v) {
 }
 
 /* this is very dangerous, but can be handy for those that are brave enough */
-static int udp_meth_setfd(HSQUIRRELVM v) {
+static SQRESULT udp_meth_setfd(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_udp_INSTANCE_AT(v, 1);
     SQ_GET_INTEGER(v, 2, fd);
@@ -1258,7 +1260,7 @@ static int udp_meth_setfd(HSQUIRRELVM v) {
     return 0;
 }
 
-static int udp_meth_dirty(HSQUIRRELVM v) {
+static SQRESULT udp_meth_dirty(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_udp_INSTANCE_AT(v, 1);
     (void) udp;
@@ -1269,13 +1271,13 @@ static int udp_meth_dirty(HSQUIRRELVM v) {
 /*-------------------------------------------------------------------------*\
 * Just call inet methods
 \*-------------------------------------------------------------------------*/
-static int udp_meth_getpeername(HSQUIRRELVM v) {
+static SQRESULT udp_meth_getpeername(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_udp_connected_INSTANCE_AT(v, 1);
     return inet_meth_getpeername(v, &udp->sock);
 }
 
-static int udp_meth_getsockname(HSQUIRRELVM v) {
+static SQRESULT udp_meth_getsockname(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_udp_INSTANCE_AT(v, 1);
     return inet_meth_getsockname(v, &udp->sock);
@@ -1284,7 +1286,7 @@ static int udp_meth_getsockname(HSQUIRRELVM v) {
 /*-------------------------------------------------------------------------*\
 * Just call option handler
 \*-------------------------------------------------------------------------*/
-static int udp_meth_setoption(HSQUIRRELVM v) {
+static SQRESULT udp_meth_setoption(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_udp_INSTANCE_AT(v, 1);
     return opt_meth_setoption(v, udp_opt, &udp->sock);
@@ -1293,7 +1295,7 @@ static int udp_meth_setoption(HSQUIRRELVM v) {
 /*-------------------------------------------------------------------------*\
 * Just call tm methods
 \*-------------------------------------------------------------------------*/
-static int udp_meth_settimeout(HSQUIRRELVM v) {
+static SQRESULT udp_meth_settimeout(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_udp_INSTANCE_AT(v, 1);
     return timeout_meth_settimeout(v, &udp->tm);
@@ -1302,7 +1304,7 @@ static int udp_meth_settimeout(HSQUIRRELVM v) {
 /*-------------------------------------------------------------------------*\
 * Turns a master udp object into a client object.
 \*-------------------------------------------------------------------------*/
-static int udp_meth_setpeername(HSQUIRRELVM v) {
+static SQRESULT udp_meth_setpeername(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_udp_INSTANCE_AT(v, 1);
     p_timeout tm = &udp->tm;
@@ -1322,7 +1324,7 @@ static int udp_meth_setpeername(HSQUIRRELVM v) {
 /*-------------------------------------------------------------------------*\
 * Closes socket used by object
 \*-------------------------------------------------------------------------*/
-static int udp_meth_close(HSQUIRRELVM v) {
+static SQRESULT udp_meth_close(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_udp_INSTANCE_AT(v, 1);
     lua_socket_destroy(&udp->sock);
@@ -1332,7 +1334,7 @@ static int udp_meth_close(HSQUIRRELVM v) {
 /*-------------------------------------------------------------------------*\
 * Turns a master object into a server object
 \*-------------------------------------------------------------------------*/
-static int udp_meth_setsockname(HSQUIRRELVM v) {
+static SQRESULT udp_meth_setsockname(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_udp_unconnected_INSTANCE_AT(v, 1);
     SQ_GET_STRING(v, 2, address);
@@ -1359,7 +1361,7 @@ static SQRESULT udp_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 }
 
 
-static int udp_constructor(HSQUIRRELVM v) {
+static SQRESULT udp_constructor(HSQUIRRELVM v) {
     t_socket sock;
     const char *err = inet_trycreate(&sock, SOCK_DGRAM);
     /* try to allocate a system socket */
@@ -1382,19 +1384,18 @@ static int udp_constructor(HSQUIRRELVM v) {
 * Internal Select function prototypes.
 \*=========================================================================*/
 static t_socket getfd(HSQUIRRELVM v);
-static int dirty(HSQUIRRELVM v);
+static SQRESULT dirty(HSQUIRRELVM v);
 static t_socket collect_fd(HSQUIRRELVM v, int tab, t_socket max_fd,
         int itab, fd_set *set);
 static int check_dirty(HSQUIRRELVM v, int tab, int dtab, fd_set *set);
 static void return_fd(HSQUIRRELVM v, fd_set *set, t_socket max_fd,
         int itab, int tab, int start);
 static void make_assoc(HSQUIRRELVM v, int tab);
-static int global_select(HSQUIRRELVM v);
 
 /*-------------------------------------------------------------------------*\
 * Waits for a set of sockets until a condition is met or timeout.
 \*-------------------------------------------------------------------------*/
-static int global_select(HSQUIRRELVM v) {
+static SQRESULT global_select(HSQUIRRELVM v) {
     SQ_FUNC_VARS(v);
     int rtab, wtab, itab, ret, ndirty;
     t_socket max_fd;
@@ -1454,7 +1455,7 @@ static t_socket getfd(HSQUIRRELVM v) {
     return fd;
 }
 
-static int dirty(HSQUIRRELVM v) {
+static SQRESULT dirty(HSQUIRRELVM v) {
     int is = 0;
     SQInteger top = sq_gettop(v);
     sq_pushliteral(v, _SC("dirty"));

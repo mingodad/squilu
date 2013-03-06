@@ -148,6 +148,7 @@ sq_http_request_read(HSQUIRRELVM v)
     SQ_FUNC_VARS(v);
     GET_http_request_INSTANCE();
     SQ_OPT_INTEGER(v, 2, n, 1024*2000);
+    if(n <= 0) return sq_throwerror(v, _SC("invalid size to read (%d)"), n);
     size_t rlen;  /* how much to read */
     size_t nr;  /* number of chars actually read */
     rlen = 8192;  /* try to read that much each time */

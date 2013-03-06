@@ -445,7 +445,7 @@ static SQRESULT sq_sqlite3_stmt_col_count(HSQUIRRELVM v){
 }
 
 static SQRESULT sq_sqlite3_stmt_colsAsArray(HSQUIRRELVM v){
-	SQ_FUNC_VARS(v);
+	SQ_FUNC_VARS_NO_TOP(v);
 	GET_sqlite3_stmt_INSTANCE();
 	int col_count = sqlite3_column_count(self);
 	sq_newarray(v, col_count);
@@ -1268,7 +1268,7 @@ static SQRESULT sq_sqlite3_last_row_id(HSQUIRRELVM v){
 /* stmt * prepare( const char * sql  ) */
 static SQRESULT sq_sqlite3_prepare(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
-	GET_sqlite3_INSTANCE();
+	//GET_sqlite3_INSTANCE();
 	SQ_GET_STRING(v, 2, sql);
 	sq_pushstring(v, SQLite3_Stmt_TAG, -1);
 	if(sq_getonroottable(v) == SQ_ERROR) return SQ_ERROR;
@@ -1282,7 +1282,7 @@ static SQRESULT sq_sqlite3_prepare(HSQUIRRELVM v){
 /* void set_busy_timeout( int nMillisecs  ) */
 static SQRESULT sq_sqlite3_set_busy_timeout(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
-	GET_sqlite3_INSTANCE();
+	//GET_sqlite3_INSTANCE();
 	SQ_GET_INTEGER(v, 2, nMillisecs);
 	//self->set_busy_timeout(nMillisecs);
 	return 0;
@@ -1391,7 +1391,7 @@ static SQRESULT sq_sqlite3_rekey(HSQUIRRELVM v) {
 ** returns: 0 to return immediatly and return SQLITE_ABORT, non-zero to continue
 */
 static int db_progress_callback(void *user) {
-    int result = 1; /* abort by default */
+    SQInteger result = 1; /* abort by default */
     sq_sqlite3_sdb *sdb = (sq_sqlite3_sdb*)user;
     HSQUIRRELVM v = sdb->v;
     int top = sq_gettop(v);

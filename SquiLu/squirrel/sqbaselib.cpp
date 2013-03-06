@@ -1100,7 +1100,8 @@ STRING_TOFUNCZ(toupper)
 //DAD start
 #include "lua-regex.h"
 
-static SQRESULT process_string_gsub(LuaMatchState *ms, void *udata, char_buffer_st **b) {
+//on 64 bits there is an error SQRESULT/int
+static int process_string_gsub(LuaMatchState *ms, void *udata, char_buffer_st **b) {
     const char *str;
     SQInteger str_size;
     HSQUIRRELVM v = (HSQUIRRELVM)udata;
@@ -1233,7 +1234,8 @@ static SQRESULT process_string_gmatch_find(LuaMatchState *ms, void *udata, char_
     return result; //returning non zero means continue
 }
 
-static SQRESULT process_string_gmatch(LuaMatchState *ms, void *udata, char_buffer_st **b) {
+//on 64 bits there is an error SQRESULT/int
+static int process_string_gmatch(LuaMatchState *ms, void *udata, char_buffer_st **b) {
     return process_string_gmatch_find(ms, udata, b, false);
 }
 

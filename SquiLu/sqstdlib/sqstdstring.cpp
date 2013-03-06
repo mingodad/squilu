@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <assert.h>
+#include <stddef.h>
 
 #define MAX_FORMAT_LEN	20
 #define MAX_WFORMAT_LEN	3
@@ -117,7 +118,7 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
                       dest = sq_getscratchpad(v,allocated);
                       size = sq_getsize(v,nparam);
 
-                      ts2 = &dest[(int)ts2]; //use saved i position saved on pointer as integer
+                      ts2 = &dest[(ptrdiff_t)ts2]; //use saved i position saved on pointer as integer
                       *ts2++ = '"';
                       while (size--) {
                         if (*ts == '\r' && *(ts+1) == '\n' ) {

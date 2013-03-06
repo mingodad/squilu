@@ -435,6 +435,7 @@ static char *chngChar (char *str, char oldChar, char newChar) {
 
 static SQInteger LoadFrozenScript(HSQUIRRELVM v, const SQChar* filename, int only_check)
 {
+#ifndef SQUILU_ALONE
     SQInteger retval;
     // lots of debugging to make sure that everything is ok
     //printf("%s\n", filename);
@@ -502,7 +503,7 @@ static SQInteger LoadFrozenScript(HSQUIRRELVM v, const SQChar* filename, int onl
             return _ERROR;
         }
     }
-
+#endif //SQUILU_ALONE
     return 0;
 }
 
@@ -553,11 +554,10 @@ int main(int argc, char* argv[])
 	sqstd_register_stringlib(v);
 
 #ifdef WITH_DAD_EXTRAS
+#ifndef SQUILU_ALONE
 	sqext_register_base64(v);
 	sqext_register_Sq_Fpdf(v);
 	sqext_register_SQLite3(v);
-	sqext_register_PostgreSQL(v);
-	//sqext_register_dad_utils(v);
 	sqext_register_mix(v);
 	sqext_register_sqfs(v);
 	sqext_register_sq_socket(v);
@@ -568,18 +568,23 @@ int main(int argc, char* argv[])
 	sqext_register_tinyxml2(v);
 	sqext_register_decimal(v);
 	sqext_register_markdown(v);
-	sqext_register_csv_parser(v);
 
 	sqext_register_sq_slave_vm(v);
 	//sqext_register_ThreadObjects(v);
 
+#ifdef WITH_FULL_DAD_EXTRAS
+	sqext_register_csv_parser(v);
+	sqext_register_PostgreSQL(v);
+	//sqext_register_dad_utils(v);
 	sqext_register_sq_zmq3(v);
 	//sqext_register_Java(v);
+#endif
 
 	sqext_register_rs232(v);
 #ifdef WITH_FLTK
 	sqext_register_fltklib(v);
 #endif
+#endif //SQUILU_ALONE
 #endif
 	//aux library
 	//sets error handlers

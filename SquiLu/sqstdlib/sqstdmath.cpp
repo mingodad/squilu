@@ -34,7 +34,7 @@ static SQRESULT math_rand(HSQUIRRELVM v)
 	return 1;
 }
 
-static int math_random(HSQUIRRELVM v) {
+static SQRESULT math_random(HSQUIRRELVM v) {
   SQ_FUNC_VARS(v);
   /* the `%' avoids the (rare) case of r==1, and is needed also because on
      some systems (SunOS!) `rand()' may return a value larger than RAND_MAX */
@@ -181,7 +181,7 @@ static SQRESULT math_number_format(HSQUIRRELVM v) {
 	char *s, *t;  /* source, target */
 	char *dp;
 	int integral;
-	int tmplen, reslen=0;
+	size_t tmplen, reslen=0;
 	int count=0;
 	int is_negative=0;
 	int trim_right_zeros=0;
@@ -196,7 +196,8 @@ static SQRESULT math_number_format(HSQUIRRELVM v) {
 		dec = -dec;
 	}
 
-	tmplen = scsnprintf(tmpbuf, sizeof(tmpbuf), "%.*f", dec, d);
+    int idec = dec; //on 64 bits there is a warning here about SQInteger/int
+	tmplen = scsnprintf(tmpbuf, sizeof(tmpbuf), "%.*f", idec, d);
 
 	resbuf[0] = '\0';
 

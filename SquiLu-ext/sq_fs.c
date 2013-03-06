@@ -120,7 +120,7 @@ static const SQChar currFileName_key[] = _SC("currFileName");
 /*
 ** This function changes the working (current) directory
 */
-static int sqfs_chdir (HSQUIRRELVM v) {
+static SQRESULT sqfs_chdir (HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 2, path);
 	if (chdir(path)) {
@@ -137,7 +137,7 @@ static int sqfs_chdir (HSQUIRRELVM v) {
 ** If unable to get the current directory, it returns nil
 **  and a string describing the error
 */
-static int sqfs_currentdir (HSQUIRRELVM v) {
+static SQRESULT sqfs_currentdir (HSQUIRRELVM v) {
   SQChar *path;
   /* Passing (NULL, 0) is not guaranteed to work. Use a temp buffer and size instead. */
   char buf[LFS_MAXPATHLEN];
@@ -215,7 +215,8 @@ static int _file_lock (HSQUIRRELVM v, FILE *fh, const char *mode, const long sta
 typedef struct sqfs_Lock {
   HANDLE fd;
 } lfs_Lock;
-static int sqfs_lock_dir(HSQUIRRELVM v) {
+
+static SQRESULT sqfs_lock_dir(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 2, path);
   HANDLE fd;
@@ -243,7 +244,7 @@ static int sqfs_lock_dir(HSQUIRRELVM v) {
   lua_setmetatable (L, -2);
   return 1;
 }
-static int sqfs_unlock_dir(HSQUIRRELVM v) {
+static SQRESULT sqfs_unlock_dir(HSQUIRRELVM v) {
   lfs_Lock *lock = luaL_checkudata(L, 1, LOCK_METATABLE);
   CloseHandle(lock->fd);
   return 0;
@@ -252,7 +253,8 @@ static int sqfs_unlock_dir(HSQUIRRELVM v) {
 typedef struct sqfs_Lock {
   char *ln;
 } lfs_Lock;
-static int sqfs_lock_dir(HSQUIRRELVM v) {
+
+static SQRESULT sqfs_lock_dir(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 2, path);
   lfs_Lock *lock;
@@ -271,7 +273,7 @@ static int sqfs_lock_dir(HSQUIRRELVM v) {
   lua_setmetatable (L, -2);
   return 1;
 }
-static int lfs_unlock_dir(HSQUIRRELVM v) {
+static SQRESULT lfs_unlock_dir(HSQUIRRELVM v) {
   lfs_Lock *lock = luaL_checkudata(L, 1, LOCK_METATABLE);
   if(lock->ln) {
     unlink(lock->ln);
@@ -325,7 +327,7 @@ static int sqfs_setmode(HSQUIRRELVM v) {
 ** @param #3 Number with start position (optional).
 ** @param #4 Number with length (optional).
 */
-static int sqfs_lock (HSQUIRRELVM v) {
+static SQRESULT sqfs_lock (HSQUIRRELVM v) {
     SQ_FUNC_VARS(v);
     SQ_GET_STRING(v, 3, mode);
     SQ_OPT_INTEGER(v, 4, start, 0);
@@ -346,7 +348,7 @@ static int sqfs_lock (HSQUIRRELVM v) {
 ** @param #2 Number with start position (optional).
 ** @param #3 Number with length (optional).
 */
-static int sqfs_unlock (HSQUIRRELVM v) {
+static SQRESULT sqfs_unlock (HSQUIRRELVM v) {
     SQ_FUNC_VARS(v);
     SQ_OPT_INTEGER(v, 3, start, 0);
     SQ_OPT_INTEGER(v, 4, len, 0);
@@ -366,7 +368,7 @@ static int sqfs_unlock (HSQUIRRELVM v) {
 ** @param #2 Name of link.
 ** @param #3 True if link is symbolic (optional).
 */
-static int sqfs_link(HSQUIRRELVM v)
+static SQRESULT sqfs_link(HSQUIRRELVM v)
 {
 #ifndef _WIN32
     SQ_FUNC_VARS(v);
@@ -380,7 +382,7 @@ static int sqfs_link(HSQUIRRELVM v)
 #endif
 }
 
-static int sqfs_mkdir (HSQUIRRELVM v) {
+static SQRESULT sqfs_mkdir (HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 2, path);
 	int fail;
@@ -404,7 +406,7 @@ static int sqfs_mkdir (HSQUIRRELVM v) {
 ** Removes a directory.
 ** @param #1 Directory path.
 */
-static int sqfs_rmdir (HSQUIRRELVM v) {
+static SQRESULT sqfs_rmdir (HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 2, path);
 	int fail;
@@ -600,7 +602,7 @@ static const SQChar *mode2string (mode_t mode) {
 /*
 ** Set access time and modification values for file
 */
-static int sqfs_touch (HSQUIRRELVM v) {
+static SQRESULT sqfs_touch (HSQUIRRELVM v) {
     SQ_FUNC_VARS(v);
     SQ_GET_STRING(v, 2, file);
 	struct utimbuf utb, *buf;
@@ -756,7 +758,7 @@ static int _file_info_ (HSQUIRRELVM v, int (*st)(const SQChar*, STAT_STRUCT*)) {
 /*
 ** Get file information using stat.
 */
-static int sqfs_attributes (HSQUIRRELVM v) {
+static SQRESULT sqfs_attributes (HSQUIRRELVM v) {
 	return _file_info_ (v, STAT_FUNC);
 }
 
@@ -765,11 +767,11 @@ static int sqfs_attributes (HSQUIRRELVM v) {
 ** Get symbolic link information using lstat.
 */
 #ifndef _WIN32
-static int sqfs_symlinkattributes (HSQUIRRELVM v) {
+static SQRESULT sqfs_symlinkattributes (HSQUIRRELVM v) {
 	return _file_info_ (v, LSTAT_FUNC);
 }
 #else
-static int sqfs_symlinkattributes (HSQUIRRELVM v) {
+static SQRESULT sqfs_symlinkattributes (HSQUIRRELVM v) {
   sq_pushliteral(v, "symlinkattributes not supported on this platform");
   return 1;
 }

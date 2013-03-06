@@ -516,7 +516,7 @@ static SQRegFunction Decimal_methods[] =
 
 static const struct {
     const SQChar* name;
-    int value;
+    mpd_uint_t value;
 } ctx_constants[] = {
     /*Precision and Exponents*/
     CTXC(MAX_PREC)
