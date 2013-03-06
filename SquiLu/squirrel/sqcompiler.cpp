@@ -1690,13 +1690,13 @@ if(color == "yellow"){
 	{
 		SQFuncState *funcstate = _fs->PushChildState(_ss(_vm));
 		funcstate->_name = name;
-		SQObject paramname;
+		SQObject paramname, type_name;
 		funcstate->AddParameter(_fs->CreateString(_SC("this")), _scope.nested+1);
 		funcstate->_sourcename = _sourcename;
 		SQInteger defparams = 0;
 		SQInteger is_reference = 0;
 		while(_token!=_SC(')')) {
-            is_reference = 0; //reset is_reference
+			is_reference = 0; //reset is_reference
 			if(_token == TK_VARPARAMS) {
 				if(defparams > 0) Error(_SC("function with default parameters cannot have variable number of parameters"));
 				funcstate->AddParameter(_fs->CreateString(_SC("vargv")), _scope.nested+1);
@@ -1706,28 +1706,41 @@ if(color == "yellow"){
 				break;
 			}
 			else {
-			    if(_token == _SC('&')){
-                    is_reference = 1;
-                    Lex();
-                }
+				if(_token == _SC('&')){
+					is_reference = 1;
+					Lex();
+				}
 				paramname = Expect(TK_IDENTIFIER);
 				funcstate->AddParameter(paramname, _scope.nested+1, is_reference ? _VAR_REFERENCE : _VAR_ANY);
 				if(_token == _SC('=')) {
-				    if(is_reference) Error(_SC("parameter passed by reference can't have default value"));
+					if(is_reference) Error(_SC("parameter passed by reference can't have default value"));
 					Lex();
 					if(_token == _SC('[') || _token == _SC('{')) Error(_SC("default parameter with array/table values not supported"));
 					Expression();
 					funcstate->AddDefaultParam(_fs->TopTarget());
 					defparams++;
 				}
-				else {
-					if(defparams > 0) Error(_SC("expected '='"));
-				}
-				if(_token == _SC(',')) Lex();
+			else if(_token == _SC(':')){
+				//param type specifier like typescript
+				Lex();
+				type_name = Expect(TK_IDENTIFIER);
+				//printf("%d %s\n", __LINE__, _stringval(type_name));
+			}
+			else {
+				if(defparams > 0) Error(_SC("expected '='"));
+			}
+			if(_token == _SC(',')) Lex();
 				else if(_token != _SC(')')) Error(_SC("expected ')' or ','"));
 			}
 		}
 		Expect(_SC(')'));
+		if(_token == _SC(':')){
+			//return type specifier like typescript
+			Lex();
+			type_name = Expect(TK_IDENTIFIER);
+			//printf("%d %s\n", __LINE__, _stringval(type_name));
+		}
+
 		for(SQInteger n = 0; n < defparams; n++) {
 			_fs->PopTarget();
 		}
