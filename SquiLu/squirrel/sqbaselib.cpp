@@ -949,17 +949,16 @@ static SQRESULT array_concat0 (HSQUIRRELVM v, int allowAll) {
   last = opt_last < last ? opt_last : last;
   opt_last = last -1;
   SQBlob blob(0, 8192);
-  for (; i < last; i++) {
+
+  for (; i < last; ++i) {
       sq_pushinteger(v, i);
       sq_rawget(v, 1);
-      SQObject o = stack_get(v,-1);
+      SQObjectPtr &o = stack_get(v,-1);
       switch(type(o)){
           case OT_STRING:
               break;
           case OT_INTEGER:
           case OT_FLOAT:
-              sq_tostring(v, -1);
-              break;
           case OT_NULL:
               sq_tostring(v, -1);
               break;
@@ -973,11 +972,19 @@ static SQRESULT array_concat0 (HSQUIRRELVM v, int allowAll) {
       }
 
       const SQChar *value;
-      sq_getstring(v, -1, &value);
-      SQInteger value_size = sq_getsize(v, -1);
-      if(value_size < 0) return SQ_ERROR;
+      SQInteger value_size;
+      if(type(o) == OT_STRING) {
+		value = _stringval(o);
+		value_size = _string(o)->_len;
+      }
+      else
+      {
+		sq_getstring(v, -1, &value);
+		value_size = sq_getsize(v, -1);
+		if(value_size < 0) return SQ_ERROR;
+      }
       blob.Write((void*)value, value_size);
-      if(i != opt_last) blob.Write((void*)sep, sep_size);
+      if(i != opt_last && sep_size) blob.Write((void*)sep, sep_size);
       sq_settop(v, _top_);
   }
   sq_pushstring(v, (SQChar*)blob.GetBuf(), blob.Len());

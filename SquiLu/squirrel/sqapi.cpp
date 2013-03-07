@@ -88,7 +88,7 @@ SQInteger sq_getvmstate(HSQUIRRELVM v)
 
 void sq_seterrorhandler(HSQUIRRELVM v)
 {
-	SQObject o = stack_get(v, -1);
+	SQObjectPtr &o = stack_get(v, -1);
 	if(sq_isclosure(o) || sq_isnativeclosure(o) || sq_isnull(o)) {
 		v->_errorhandler = o;
 		v->Pop();
@@ -103,7 +103,7 @@ SQRESULT sq_geterrorhandler(HSQUIRRELVM v)
 
 void sq_setatexithandler(HSQUIRRELVM v)
 {
-	SQObject o = stack_get(v, -1);
+	SQObjectPtr &o = stack_get(v, -1);
 	if(sq_isclosure(o) || sq_isnativeclosure(o) || sq_isnull(o)) {
 		v->_atexithandler = o;
 		v->Pop();
@@ -125,7 +125,7 @@ void sq_setnativedebughook(HSQUIRRELVM v,SQDEBUGHOOK hook)
 
 void sq_setdebughook(HSQUIRRELVM v)
 {
-	SQObject o = stack_get(v,-1);
+	SQObjectPtr &o = stack_get(v,-1);
 	if(sq_isclosure(o) || sq_isnativeclosure(o) || sq_isnull(o)) {
 		v->_debughook_closure = o;
 		v->_debughook_native = NULL;
@@ -480,7 +480,7 @@ void sq_newclosure(HSQUIRRELVM v,SQFUNCTION func,SQUnsignedInteger nfreevars)
 
 SQRESULT sq_getclosureinfo(HSQUIRRELVM v,SQInteger idx,SQUnsignedInteger *nparams,SQUnsignedInteger *nfreevars)
 {
-	SQObject o = stack_get(v, idx);
+	SQObjectPtr &o = stack_get(v, idx);
 	if(type(o) == OT_CLOSURE) {
 		SQClosure *c = _closure(o);
 		SQFunctionProto *proto = c->_function;
@@ -500,7 +500,7 @@ SQRESULT sq_getclosureinfo(HSQUIRRELVM v,SQInteger idx,SQUnsignedInteger *nparam
 
 SQRESULT sq_setnativeclosurename(HSQUIRRELVM v,SQInteger idx,const SQChar *name)
 {
-	SQObject o = stack_get(v, idx);
+	SQObjectPtr &o = stack_get(v, idx);
 	if(sq_isnativeclosure(o)) {
 		SQNativeClosure *nc = _nativeclosure(o);
 		nc->_name = SQString::Create(_ss(v),name);
@@ -511,7 +511,7 @@ SQRESULT sq_setnativeclosurename(HSQUIRRELVM v,SQInteger idx,const SQChar *name)
 
 SQRESULT sq_setparamscheck(HSQUIRRELVM v,SQInteger nparamscheck,const SQChar *typemask)
 {
-	SQObject o = stack_get(v, -1);
+	SQObjectPtr &o = stack_get(v, -1);
 	if(!sq_isnativeclosure(o))
 		return sq_throwerror(v, _SC("native closure expected"));
 	SQNativeClosure *nc = _nativeclosure(o);
@@ -614,7 +614,7 @@ SQRESULT sq_getclosurename(HSQUIRRELVM v,SQInteger idx)
 
 SQRESULT sq_clear(HSQUIRRELVM v,SQInteger idx)
 {
-	SQObject &o=stack_get(v,idx);
+	SQObjectPtr &o=stack_get(v,idx);
 	switch(type(o)) {
 		case OT_TABLE: _table(o)->Clear();	break;
 		case OT_ARRAY: _array(o)->Resize(0); break;
@@ -685,7 +685,7 @@ void sq_pushconsttable(HSQUIRRELVM v)
 
 SQRESULT sq_setroottable(HSQUIRRELVM v)
 {
-	SQObject o = stack_get(v, -1);
+	SQObjectPtr &o = stack_get(v, -1);
 	if(sq_istable(o) || sq_isnull(o)) {
 		v->_roottable = o;
 		v->Pop();
@@ -696,7 +696,7 @@ SQRESULT sq_setroottable(HSQUIRRELVM v)
 
 SQRESULT sq_setconsttable(HSQUIRRELVM v)
 {
-	SQObject o = stack_get(v, -1);
+	SQObjectPtr &o = stack_get(v, -1);
 	if(sq_istable(o)) {
 		_ss(v)->_consts = o;
 		v->Pop();
@@ -1705,7 +1705,7 @@ SQRESULT sq_createinstance(HSQUIRRELVM v,SQInteger idx)
 
 void sq_weakref(HSQUIRRELVM v,SQInteger idx)
 {
-	SQObject &o=stack_get(v,idx);
+	SQObjectPtr &o=stack_get(v,idx);
 	if(ISREFCOUNTED(type(o))) {
 		v->Push(_refcounted(o)->GetWeakRef(type(o)));
 		return;
@@ -1744,7 +1744,7 @@ SQRESULT sq_getdefaultdelegate(HSQUIRRELVM v,SQObjectType t)
 
 SQRESULT sq_next(HSQUIRRELVM v,SQInteger idx)
 {
-	SQObjectPtr o=stack_get(v,idx),&refpos = stack_get(v,-1),realkey,val;
+	SQObjectPtr &o=stack_get(v,idx),&refpos = stack_get(v,-1),realkey,val;
 	if(type(o) == OT_GENERATOR) {
 		return sq_throwerror(v,_SC("cannot iterate a generator"));
 	}
