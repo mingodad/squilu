@@ -157,9 +157,8 @@ static void sqlite3_stmt_row_asArray(HSQUIRRELVM v, sqlite3_stmt *stmt, int flag
     sq_newarray(v, col_count);
     for(int i=0; i<col_count; ++i)
     {
-        sq_pushinteger(v, i);
         sqlite3_stmt_push_value(v, stmt, i, flags);
-        sq_rawset(v, -3);
+        sq_arrayset(v, -2, i);
     }
 }
 
@@ -184,9 +183,8 @@ static void sqlite3_stmt_asArrayOfArrays(HSQUIRRELVM v, sqlite3_stmt *stmt, int 
         sq_newarray(v, col_count);
         for(int i=0; i<col_count; ++i)
         {
-            sq_pushinteger(v, i);
             sq_pushstring(v, sqlite3_column_name(stmt, i), -1);
-            sq_rawset(v, -3);
+            sq_arrayset(v, -2, i);
         }
         sq_arrayappend(v, -2);
     }
@@ -507,9 +505,8 @@ static SQRESULT sq_sqlite3_stmt_colsAsArray(HSQUIRRELVM v)
     sq_newarray(v, col_count);
     for(int i=0; i<col_count; ++i)
     {
-        sq_pushinteger(v, i);
         sq_pushstring(v, sqlite3_column_name(self, i), -1);
-        sq_rawset(v, -3);
+        sq_arrayset(v, -2, i);
     }
     return 1;
 }
