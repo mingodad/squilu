@@ -3,13 +3,11 @@
 
 #include "fpdf.h"
 #line 12 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
-//#define PDF_USING_ZLIB 1
+#define PDF_USING_ZLIB 1
 #define FPDF_VERSION "1.7"
-//#include "sqlite3.h"
-//#define pdf_vsnprintf sqlite3_ivsnprintf //vsnprintf
-//#define pdf_snprintf sqlite3_isnprintf //snprintf
-#define pdf_vsnprintf vsnprintf //vsnprintf
-#define pdf_snprintf snprintf //snprintf
+#include "sqlite3.h"
+#define pdf_vsnprintf sqlite3_ivsnprintf //vsnprintf
+#define pdf_snprintf sqlite3_isnprintf //snprintf
 #include <cstdarg>
 #include <cstdio>
 #include <cstring>
@@ -19,7 +17,7 @@
 #include "zlib.h"
 #endif
 //#include "duma.h"
-#line 2252 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2285 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 #define M_SOF0  0xC0     // Start Of Frame N
 #define M_SOF1  0xC1     // N indicates which compression process
 #define M_SOF2  0xC2     // Only SOF0-SOF2 are now in common use
@@ -40,7 +38,6 @@
 
 #define M_PSEUDO 0xFFD8  // pseudo marker for start of image(byte 0)
 #define LZZ_INLINE inline
-#ifdef PDF_USING_ZLIB
 #line 30 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 std::string & gzcompress (std::string & dest, std::string const & src)
 #line 31 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
@@ -133,7 +130,6 @@ std::string & gzuncompress (std::string & dest, std::string const & src)
     if (nExtraChunks || (err != Z_OK)) throw "Could finalize zstream !";
     return dest;
 }
-#endif
 #line 132 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 char const * FPDF_FONTPATH = 0;
 #line 261 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
@@ -238,11 +234,17 @@ void FPDF::reset (e_orientation orientation, e_units unit, e_page_sizes psize)
         m_FontSizePt = 12;
         m_underline = false;
         m_DrawColor = "0 G";
-        m_DrawColor_rgb = {0,0,0,0};
+        //m_DrawColor_rgb = {0,0,0,0};
+        m_DrawColor_rgb.r = 0;
+        m_DrawColor_rgb.g = 0;
+        m_DrawColor_rgb.b = 0;
+        m_DrawColor_rgb.t = 0;
         m_FillColor = "0 g";
-        m_FillColor_rgb = {0,0,0,0};
+        //m_FillColor_rgb = {0,0,0,0};
+        m_FillColor_rgb = m_DrawColor_rgb;
         m_TextColor = "0 g";
-        m_TextColor_rgb = {0,0,0,0};
+        //m_TextColor_rgb = {0,0,0,0};
+        m_TextColor_rgb = m_DrawColor_rgb;
         m_ColorFlag = false;
         m_ws = 0;
         // Font path
@@ -314,9 +316,9 @@ void FPDF::reset (e_orientation orientation, e_units unit, e_page_sizes psize)
         m_outerMargin=10;
         m_n_js = 0;
     }
-#line 434 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 440 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetDoubleSided (pdf_float_t inner, pdf_float_t outer)
-#line 435 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 441 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         if(outer != inner)
         {
@@ -325,44 +327,44 @@ void FPDF::SetDoubleSided (pdf_float_t inner, pdf_float_t outer)
             m_innerMargin=inner;
         }
     }
-#line 444 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 450 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetMargins (pdf_float_t left, pdf_float_t top, pdf_float_t right)
-#line 445 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 451 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Set left, top and right margins
         m_lMargin = left;
         m_tMargin = top;
         m_rMargin = (right==0.0f) ? left : right;
     }
-#line 452 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 458 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetLeftMargin (pdf_float_t margin)
-#line 453 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 459 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Set left margin
         m_lMargin = margin;
         if(m_page > 0 && m_x < margin)
             m_x = margin;
     }
-#line 482 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 488 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetAutoPageBreak (bool b, pdf_float_t margin)
-#line 483 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 489 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Set auto page break mode and triggering margin
         m_AutoPageBreak = b;
         m_bMargin = margin;
         m_PageBreakTrigger = m_h-margin;
     }
-#line 490 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 496 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::CheckPageBreak (pdf_float_t height)
-#line 491 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 497 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         //If the height h would cause an overflow, add a new page immediately
         if(GetY()+height > m_PageBreakTrigger)
         AddPage(m_CurOrientation);
     }
-#line 507 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 513 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetDisplayMode (e_zoom_mode zoom, e_layout_mode layout)
-#line 508 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 514 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Set display mode in viewer
         if(zoom==e_zoom_fullpage || zoom==e_zoom_fullwidth ||
@@ -376,9 +378,9 @@ void FPDF::SetDisplayMode (e_zoom_mode zoom, e_layout_mode layout)
         else
             Error("Incorrect layout display mode: %d", layout);
     }
-#line 522 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 528 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetCompression (bool compress)
-#line 523 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 529 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Set page compression
 #ifndef PDF_USING_ZLIB
@@ -387,51 +389,51 @@ void FPDF::SetCompression (bool compress)
         m_compress = compress;
 #endif
     }
-#line 532 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 538 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetTitle (char const * title)
-#line 533 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 539 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Title of document
         m_title = title;
     }
-#line 538 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 544 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetSubject (char const * subject)
-#line 539 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 545 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Subject of document
         m_subject = subject;
     }
-#line 544 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 550 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetAuthor (char const * author)
-#line 545 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 551 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Author of document
         m_author = author;
     }
-#line 550 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 556 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetKeywords (char const * keywords)
-#line 551 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 557 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Keywords of document
         m_keywords = keywords;
     }
-#line 556 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 562 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetCreator (char const * creator)
-#line 557 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 563 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Creator of document
         m_creator = creator;
     }
-#line 562 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 568 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::AliasNbPages (char const * alias)
-#line 563 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 569 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Define an alias for total number of pages
         m_AliasNbPages = alias;
     }
-#line 574 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 580 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::Error (char const * msg, ...)
-#line 575 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 581 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Fatal error
         va_list args;
@@ -442,9 +444,9 @@ void FPDF::Error (char const * msg, ...)
         error_msg +=  m_scratch_buf;
         throw error_msg;
     }
-#line 592 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 598 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::Close ()
-#line 593 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 599 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Terminate document
         if(m_state==3) return;
@@ -458,9 +460,9 @@ void FPDF::Close ()
         // Close document
         _enddoc();
     }
-#line 607 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 613 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::AddPage (e_orientation orientation, st_pagesize * psize)
-#line 608 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 614 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Start a new page
         if(m_state==0) Open();
@@ -524,73 +526,97 @@ void FPDF::AddPage (e_orientation orientation, st_pagesize * psize)
         m_TextColor = tc;
         m_ColorFlag = cf;
     }
-#line 672 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
-void FPDF::Header ()
-#line 673 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
-    {}
-#line 677 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
-void FPDF::Footer ()
 #line 678 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+void FPDF::Header ()
+#line 679 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {}
-#line 688 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 683 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+void FPDF::Footer ()
+#line 684 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+    {}
+#line 694 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetDrawColor (unsigned char r)
-#line 689 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 695 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Set color for all stroking operations
-        m_DrawColor_rgb = {r,r,r,0};
+        //m_DrawColor_rgb = {r,r,r,0};
+        m_DrawColor_rgb.r = r;
+        m_DrawColor_rgb.g = r;
+        m_DrawColor_rgb.b = r;
+        m_DrawColor_rgb.t = 0;
         pdf_sprintf(m_DrawColor, "%.3f G", r/255.0);
         if(m_page>0) _out(m_DrawColor);
     }
-#line 696 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 706 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetDrawColor (unsigned char r, unsigned char g, unsigned char b)
-#line 697 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 707 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Set color for all stroking operations
-        m_DrawColor_rgb = {r,g,b,0};
+        //m_DrawColor_rgb = {r,g,b,0};
+        m_DrawColor_rgb.r = r;
+        m_DrawColor_rgb.g = g;
+        m_DrawColor_rgb.b = b;
+        m_DrawColor_rgb.t = 0;
         pdf_sprintf(m_DrawColor, "%.3f %.3f %.3f RG", r/255.0, g/255.0, b/255.0);
         if(m_page>0) _out(m_DrawColor);
     }
-#line 712 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 726 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetFillColor (unsigned char r)
-#line 713 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 727 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Set color for all filling operations
-        m_FillColor_rgb = {r,r,r,0};
+        //m_FillColor_rgb = {r,r,r,0};
+        m_FillColor_rgb.r = r;
+        m_FillColor_rgb.g = r;
+        m_FillColor_rgb.b = r;
+        m_FillColor_rgb.t = 0;
         pdf_sprintf(m_FillColor, "%.3f g", r/255.0);
         m_ColorFlag = (m_FillColor != m_TextColor);
         if(m_page>0) _out(m_FillColor);
     }
-#line 721 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 739 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetFillColor (unsigned char r, unsigned char g, unsigned char b)
-#line 722 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 740 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Set color for all filling operations
-        m_FillColor_rgb = {r,g,b,0};
+        //m_FillColor_rgb = {r,g,b,0};
+        m_FillColor_rgb.r = r;
+        m_FillColor_rgb.g = g;
+        m_FillColor_rgb.b = b;
+        m_FillColor_rgb.t = 0;
         pdf_sprintf(m_FillColor, "%.3f %.3f %.3f rg", r/255.0, g/255.0, b/255.0);
         m_ColorFlag = (m_FillColor != m_TextColor);
         if(m_page>0) _out(m_FillColor);
     }
-#line 738 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 760 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetTextColor (unsigned char r)
-#line 739 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 761 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Set color for text
-        m_TextColor_rgb = {r,r,r,0};
+        //m_TextColor_rgb = {r,r,r,0};
+        m_TextColor_rgb.r = r;
+        m_TextColor_rgb.g = r;
+        m_TextColor_rgb.b = r;
+        m_TextColor_rgb.t = 0;
         pdf_sprintf(m_TextColor, "%.3f g", r/255.0);
         m_ColorFlag = (m_FillColor != m_TextColor);
     }
-#line 746 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 772 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetTextColor (unsigned char r, unsigned char g, unsigned char b)
-#line 747 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 773 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Set color for text
-        m_TextColor_rgb = {r,g,b,0};
+        //m_TextColor_rgb = {r,g,b,0};
+        m_TextColor_rgb.r = r;
+        m_TextColor_rgb.g = g;
+        m_TextColor_rgb.b = b;
+        m_TextColor_rgb.t = 0;
         pdf_sprintf(m_TextColor, "%.3f %.3f %.3f rg", r/255.0, g/255.0, b/255.0);
         m_ColorFlag = (m_FillColor != m_TextColor);
     }
-#line 766 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 796 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetAlpha (pdf_float_t alpha, char const * bm)
-#line 767 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 797 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // set alpha for stroking (CA) and non-stroking (ca) operations
         st_alpha_t gs;
@@ -599,9 +625,9 @@ void FPDF::SetAlpha (pdf_float_t alpha, char const * bm)
         m_extgstates.push_back(gs);
         _outfmt(true, "/GS%d gs", m_extgstates.size());
     }
-#line 776 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 806 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 pdf_float_t FPDF::GetStringWidth (char const * s)
-#line 777 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 807 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Get width of a string in the current font
         font_width_t *cw = m_CurrentFont->font.cw;
@@ -615,33 +641,33 @@ pdf_float_t FPDF::GetStringWidth (char const * s)
         }
         return w*m_FontSize/1000.0;
     }
-#line 796 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 826 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetLineWidth (pdf_float_t width)
-#line 797 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 827 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Set line width
         m_LineWidth = width;
         if(m_page>0) _outfmt(true, "%.2f w", width*m_k);
     }
-#line 803 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 833 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetDash (pdf_float_t black, pdf_float_t white)
-#line 804 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 834 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         if(black >= 0.0f && white >= 0.0f)
             _outfmt(true, "[%.3f %.3f] 0 d", black*m_k, white*m_k);
         else
             _out("[] 0 d");
     }
-#line 811 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 841 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::Line (pdf_float_t x1, pdf_float_t y1, pdf_float_t x2, pdf_float_t y2)
-#line 812 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 842 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Draw a line
         _outfmt(true, "%.2f %.2f m %.2f %.2f l S", x1*m_k,(m_h-y1)*m_k,x2*m_k,(m_h-y2)*m_k);
     }
-#line 817 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 847 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::Rect (pdf_float_t x, pdf_float_t y, pdf_float_t w, pdf_float_t h, char const * style)
-#line 818 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 848 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Draw a rectangle
         const char *op = "S";
@@ -653,9 +679,9 @@ void FPDF::Rect (pdf_float_t x, pdf_float_t y, pdf_float_t w, pdf_float_t h, cha
         }
         _outfmt(true, "%.2f %.2f %.2f %.2f re %s", x*m_k,(m_h-y)*m_k,w*m_k,-h*m_k, op);
     }
-#line 830 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 860 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::AddFont (char const * afamily, char const * astyle, char const * afile)
-#line 831 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 861 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Add a TrueType, OpenType or Type1 font
         std::string family, style;
@@ -723,23 +749,23 @@ void FPDF::AddFont (char const * afamily, char const * astyle, char const * afil
         m_fonts[fontkey] = info;
 #endif
     }
-#line 904 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 934 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::GetFontSettings (font_settings_st & fs)
-#line 904 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 934 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
                                               {
         fs.family = m_FontFamily;
         fs.style = m_FontStyle;
         fs.size = m_FontSizePt;
     }
-#line 910 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 940 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetFontSettings (font_settings_st & fs)
-#line 910 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 940 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
                                               {
         SetFont(fs.family.c_str(), fs.style.c_str(), fs.size);
     }
-#line 914 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 944 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetFont (char const * afamily, char const * astyle, pdf_float_t size)
-#line 915 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 945 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Select a font; size given in points
         std::string family, style;
@@ -797,9 +823,9 @@ void FPDF::SetFont (char const * afamily, char const * astyle, pdf_float_t size)
         if(m_page>0)
             _outfmt(true, "BT /F%d %.2f Tf ET", m_CurrentFont->i, m_FontSizePt);
     }
-#line 973 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1003 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetFontSize (pdf_float_t size)
-#line 974 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1004 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Set font size in points
         if(m_FontSizePt==size) return;
@@ -808,9 +834,9 @@ void FPDF::SetFontSize (pdf_float_t size)
         if(m_page>0)
             _outfmt(true, "BT /F%d %.2f Tf ET", m_CurrentFont->i, m_FontSizePt);
     }
-#line 988 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1018 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 int FPDF::AddLink ()
-#line 989 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1019 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Create a new internal link
         int n = m_links.size();
@@ -818,9 +844,9 @@ int FPDF::AddLink ()
         m_links.push_back(link);
         return n;
     }
-#line 997 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1027 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetLink (int link, pdf_float_t y, int page)
-#line 998 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1028 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Set destination of internal link
         st_link &nlink = m_links[link];
@@ -828,9 +854,9 @@ void FPDF::SetLink (int link, pdf_float_t y, int page)
         if(page==-1) page = m_page;
         nlink.from = page;
     }
-#line 1006 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1036 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::Link (pdf_float_t x, pdf_float_t y, pdf_float_t w, pdf_float_t h, int link)
-#line 1007 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1037 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Put a link on the page
         st_page_link pl;
@@ -841,9 +867,9 @@ void FPDF::Link (pdf_float_t x, pdf_float_t y, pdf_float_t w, pdf_float_t h, int
         pl.link = link;
         m_PageLinks[m_page] = pl;
     }
-#line 1019 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1049 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_TextBase (std::string & result, pdf_float_t x, pdf_float_t y, char const * txt)
-#line 1020 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1050 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Output a string
         //because the format buffer is limited
@@ -861,9 +887,9 @@ void FPDF::_TextBase (std::string & result, pdf_float_t x, pdf_float_t y, char c
         }
         if(m_ColorFlag) result += " Q";
     }
-#line 1040 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1070 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::Rotate (pdf_float_t angle, pdf_float_t x, pdf_float_t y)
-#line 1041 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1071 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         if(x==-1) x=m_x;
         if(y==-1) y=m_y;
@@ -880,35 +906,35 @@ void FPDF::Rotate (pdf_float_t angle, pdf_float_t x, pdf_float_t y)
                     c,s,-s,c,cx,cy,-cx,-cy);
         }
     }
-#line 1058 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1088 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::RotatedText (pdf_float_t x, pdf_float_t y, char const * txt, pdf_float_t angle)
-#line 1059 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1089 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         //Text rotated around its origin
         Rotate(angle,x,y);
         Text(x,y,txt);
         Rotate(0);
     }
-#line 1071 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1101 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::ClippingText (pdf_float_t x, pdf_float_t y, char const * txt, bool outline)
-#line 1072 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1102 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         int op= outline ? 5 : 7;
         _outfmt(false, "q BT %.2f %.2f Td %d Tr (", x*m_k, (m_h-y)*m_k, op);
         _out(_escape(txt), false);
         _out(") Tj ET");
     }
-#line 1079 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1109 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::Text (pdf_float_t x, pdf_float_t y, char const * txt)
-#line 1080 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1110 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         std::string result;
         _TextBase(result, x*m_k, (m_h-y)*m_k, txt);
         _out(result);
     }
-#line 1086 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1116 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::TextShadow (pdf_float_t x, pdf_float_t y, char const * txt, pdf_float_t displacement)
-#line 1088 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1118 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         pdf_color_t saved_color = m_TextColor_rgb;
         SetTextColor(200,200,200);
@@ -916,16 +942,16 @@ void FPDF::TextShadow (pdf_float_t x, pdf_float_t y, char const * txt, pdf_float
         SetTextColor(saved_color);
         Text(x, y, txt);
     }
-#line 1096 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1126 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 bool FPDF::AcceptPageBreak ()
-#line 1097 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1127 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Accept automatic page break or not
         return m_AutoPageBreak;
     }
-#line 1102 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1132 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::Cell (pdf_float_t w, pdf_float_t h, char const * txt, char const * border, int ln, char align, bool fill, int link)
-#line 1104 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1134 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Output a cell
         std::string s;
@@ -995,9 +1021,9 @@ void FPDF::Cell (pdf_float_t w, pdf_float_t h, char const * txt, char const * bo
         }
         else m_x += w;
     }
-#line 1180 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1210 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::MultiCell (pdf_float_t w, pdf_float_t h, char const * txt, char const * border, char align, bool fill)
-#line 1182 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1212 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Output text with automatic or explicit line breaks
         font_width_t *cw = m_CurrentFont->font.cw;
@@ -1109,9 +1135,9 @@ void FPDF::MultiCell (pdf_float_t w, pdf_float_t h, char const * txt, char const
         Cell(w,h,stmp,b.c_str(),2,align,fill);
         m_x = m_lMargin;
     }
-#line 1301 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1331 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 int FPDF::CalcLines (pdf_float_t w, char const * txt)
-#line 1302 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1332 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         //Computes the number of lines a MultiCell of width w will take
         font_width_t *cw = m_CurrentFont->font.cw;
@@ -1159,9 +1185,9 @@ int FPDF::CalcLines (pdf_float_t w, char const * txt)
         }
         return nl;
     }
-#line 1351 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1381 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::MultiCellBlt (pdf_float_t w, pdf_float_t h, char const * blt, char const * txt, char const * border, char align, bool fill)
-#line 1354 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1384 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         //Get bullet width including margins
         pdf_float_t blt_width = GetStringWidth(blt)+m_cMargin*2;
@@ -1178,23 +1204,23 @@ void FPDF::MultiCellBlt (pdf_float_t w, pdf_float_t h, char const * blt, char co
         //Restore x
         m_x = bak_x;
     }
-#line 1371 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1401 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::ClippingRect (pdf_float_t x, pdf_float_t y, pdf_float_t w, pdf_float_t h, bool outline)
-#line 1372 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1402 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         char op=outline ? 'S' : 'n';
         _outfmt(true, "q %.2f %.2f %.2f %.2f re W %c",
             x*m_k, (m_h-y)*m_k, w*m_k,-h*m_k, op);
     }
-#line 1378 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1408 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::UnsetClipping ()
-#line 1379 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1409 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         _out("Q");
     }
-#line 1383 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1413 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::ClippedCell (pdf_float_t w, pdf_float_t h, char const * txt, char const * border, int ln, char align, bool fill, int link)
-#line 1385 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1415 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         if(border || fill || m_y+h>m_PageBreakTrigger)
         {
@@ -1205,9 +1231,9 @@ void FPDF::ClippedCell (pdf_float_t w, pdf_float_t h, char const * txt, char con
         Cell(w,h,txt,0,ln,align,false,link);
         UnsetClipping();
     }
-#line 1397 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1427 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::CellFit (pdf_float_t w, pdf_float_t h, char const * txt, char const * border, int ln, char align, bool fill, int link, bool scale, bool force)
-#line 1400 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1430 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         //Get string width
         pdf_float_t str_width=GetStringWidth(txt);
@@ -1250,9 +1276,9 @@ void FPDF::CellFit (pdf_float_t w, pdf_float_t h, char const * txt, char const *
             _out(" ET");
         }
     }
-#line 1516 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1546 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::Write (pdf_float_t h, char const * txt, int link)
-#line 1517 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1547 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Output text in flowing mode
         font_width_t *cw = m_CurrentFont->font.cw;
@@ -1337,18 +1363,18 @@ void FPDF::Write (pdf_float_t h, char const * txt, int link)
             Cell(l/1000.0*m_FontSize,h,stmp,0,0,' ',0,link);
         }
     }
-#line 1602 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1632 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::Ln (pdf_float_t h)
-#line 1603 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1633 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Line feed; default value is last cell height
         m_x = m_lMargin;
         if(h==0.0) m_y += m_lasth;
         else m_y += h;
     }
-#line 1612 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1642 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::Image (char const * image_name, unsigned char const * image_blob, size_t blob_size, pdf_float_t x, pdf_float_t y, pdf_float_t w, pdf_float_t h, char const * atype, int link)
-#line 1617 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1647 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         st_image info;
         // Put an image on the page
@@ -1420,32 +1446,32 @@ void FPDF::Image (char const * image_name, unsigned char const * image_blob, siz
         _outfmt(true, "q %.2f 0 0 %.2f %.2f %.2f cm /I%d Do Q",w*m_k,h*m_k,_x*m_k,(m_h-(_y+h))*m_k,info.i);
         if(link) Link(_x,_y,w,h,link);
     }
-#line 1689 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1719 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::Image (char const * file, pdf_float_t x, pdf_float_t y, pdf_float_t w, pdf_float_t h, char const * atype, int link)
-#line 1692 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1722 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         Image(file, 0, 0, x, y, w, h, atype, link);
     }
-#line 1702 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1732 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetX (pdf_float_t x)
-#line 1703 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1733 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Set x position
         if(x>=0) m_x = x;
         else m_x = m_w+x;
     }
-#line 1715 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1745 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::SetY (pdf_float_t y)
-#line 1716 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1746 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Set y position and reset x
         m_x = m_lMargin;
         if(y>=0) m_y = y;
         else m_y = m_h+y;
     }
-#line 1742 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1772 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 std::string FPDF::Output (char const * name, char dest)
-#line 1743 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1773 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Output PDF to some destination
         if(m_state<3) Close();
@@ -1503,9 +1529,9 @@ std::string FPDF::Output (char const * name, char dest)
         }
         return "";
     }
-#line 1801 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1831 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::RoundedRect (pdf_float_t x, pdf_float_t y, pdf_float_t w, pdf_float_t h, pdf_float_t r, char const * style)
-#line 1803 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1833 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         pdf_float_t k = m_k;
         pdf_float_t hp = m_h;
@@ -1533,15 +1559,15 @@ void FPDF::RoundedRect (pdf_float_t x, pdf_float_t y, pdf_float_t w, pdf_float_t
         else if(str_style=="FD" || str_style=="DF") _out("B");
         else _out("S");
     }
-#line 1831 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1861 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::Circle (pdf_float_t x, pdf_float_t y, pdf_float_t r, char const * style)
-#line 1832 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1862 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         Ellipse(x,y,r,r,style);
     }
-#line 1836 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1866 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::Ellipse (pdf_float_t x, pdf_float_t y, pdf_float_t rx, pdf_float_t ry, char const * style)
-#line 1838 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1868 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         const char *op = "S";
         std::string str_style = style ? style : "";
@@ -1569,23 +1595,23 @@ void FPDF::Ellipse (pdf_float_t x, pdf_float_t y, pdf_float_t rx, pdf_float_t ry
                 (x+rx)*m_k,(m_h-y)*m_k,
                 op);
     }
-#line 1866 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1896 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::IncludeJS (char const * script)
-#line 1867 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1897 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         m_javascript=script;
     }
-#line 1878 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1908 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_Arc (pdf_float_t x1, pdf_float_t y1, pdf_float_t x2, pdf_float_t y2, pdf_float_t x3, pdf_float_t y3)
-#line 1879 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1909 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         pdf_float_t h = m_h;
         _outfmt(true, "%.2f %.2f %.2f %.2f %.2f %.2f c ", x1*m_k,
                 (h-y1)*m_k, x2*m_k, (h-y2)*m_k, x3*m_k, (h-y3)*m_k);
     }
-#line 1885 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1915 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 std::string & FPDF::_erasestrch (std::string & str, char c)
-#line 1886 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1916 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         if(!str.empty())
         {
@@ -1603,22 +1629,22 @@ std::string & FPDF::_erasestrch (std::string & str, char c)
         }
         return str;
     }
-#line 1904 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1934 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_str_tolower (std::string & str)
-#line 1905 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1935 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         for(size_t i=0, size=str.size(); i < size; ++i)
         {
             str[i] = tolower(str[i]);
         }
     }
-#line 1912 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1942 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_dochecks ()
-#line 1913 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1943 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {}
-#line 1916 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1946 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_checkoutput ()
-#line 1917 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1947 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
 #if 0
 
@@ -1640,9 +1666,9 @@ void FPDF::_checkoutput ()
         }
 #endif
     }
-#line 1939 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1969 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 FPDF::st_pagesize & FPDF::_getpagesize (st_pagesize & result, e_page_sizes size)
-#line 1940 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 1970 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         switch(size)
         {
@@ -1673,9 +1699,9 @@ FPDF::st_pagesize & FPDF::_getpagesize (st_pagesize & result, e_page_sizes size)
         result.h /=m_k;
         return result;
     }
-#line 1971 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2001 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_beginpage (e_orientation orientation, st_pagesize * size)
-#line 1972 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2002 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         m_page++;
         m_pages.resize(m_page);
@@ -1733,9 +1759,9 @@ void FPDF::_beginpage (e_orientation orientation, st_pagesize * size)
             m_y=m_tMargin;
         }
     }
-#line 2051 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2081 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 std::string FPDF::_escape (std::string const & s)
-#line 2052 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2082 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         std::string str = s;
         if(!str.empty())
@@ -1783,16 +1809,16 @@ std::string FPDF::_escape (std::string const & s)
         }
         return str;
     }
-#line 2100 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2130 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_textstring (std::string & result, std::string const & s)
-#line 2101 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2131 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Format a text string
         result = "(" + _escape(s) + ")";
     }
-#line 2141 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2171 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 int FPDF::substr_count (char const * str, char c)
-#line 2142 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2172 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         int result = 0;
         if(str)
@@ -1804,9 +1830,9 @@ int FPDF::substr_count (char const * str, char c)
         }
         return result;
     }
-#line 2154 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2184 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 std::string FPDF::_dounderline (pdf_float_t x, pdf_float_t y, char const * txt)
-#line 2155 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2185 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Underline text
         int up = m_CurrentFont->font.up;
@@ -1815,33 +1841,33 @@ std::string FPDF::_dounderline (pdf_float_t x, pdf_float_t y, char const * txt)
         pdf_snprintf(m_scratch_buf, sizeof(m_scratch_buf), "%.2f %.2f %.2f %.2f re f",x*m_k,(m_h-(y-up/1000.0*m_FontSize))*m_k,w*m_k,-ut/1000.0*m_FontSizePt);
         return m_scratch_buf;
     }
-#line 2169 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2199 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 FPDF::blob_stream_t::~ blob_stream_t ()
-#line 2169 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2199 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
                                 {}
-#line 2176 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2206 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 FPDF::blob_stream_memory_t::blob_stream_memory_t (unsigned char const * ablob, size_t asize)
-#line 2176 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2206 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
                                                                       {
             blob = ablob;
             size = asize;
             offset = 0;
         }
-#line 2181 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2211 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 bool FPDF::blob_stream_memory_t::eof ()
-#line 2181 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2211 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
                   {
             return offset == size;
         }
-#line 2184 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2214 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 size_t FPDF::blob_stream_memory_t::tell ()
-#line 2184 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2214 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
                      {
             return offset;
         }
-#line 2188 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2218 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 size_t FPDF::blob_stream_memory_t::read (void * dest, size_t num_read)
-#line 2189 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2219 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
         {
           if (offset + num_read > size)
             num_read = size - offset;
@@ -1852,9 +1878,9 @@ size_t FPDF::blob_stream_memory_t::read (void * dest, size_t num_read)
 
           return num_read;
         }
-#line 2200 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2230 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::blob_stream_memory_t::seek (size_t to_offset, int whence)
-#line 2201 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2231 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
         {
           size_t npos;
 
@@ -1870,49 +1896,52 @@ void FPDF::blob_stream_memory_t::seek (size_t to_offset, int whence)
             case SEEK_END:
               npos = size;
               break;
+
+            default:
+                return;
           }
 
           offset = npos > size ? size : npos;
         }
-#line 2224 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2257 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 FPDF::blob_stream_file_t::blob_stream_file_t (FILE * afp)
-#line 2224 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2257 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
                                      {
             fp = afp;
         }
-#line 2227 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2260 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 FPDF::blob_stream_file_t::~ blob_stream_file_t ()
-#line 2227 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2260 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
                              {
             if(fp) fclose(fp);
         }
-#line 2230 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2263 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 bool FPDF::blob_stream_file_t::eof ()
-#line 2230 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2263 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
                   {
             return feof(fp);
         }
-#line 2233 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2266 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 size_t FPDF::blob_stream_file_t::tell ()
-#line 2233 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2266 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
                      {
             return ftell(fp);
         }
-#line 2237 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2270 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 size_t FPDF::blob_stream_file_t::read (void * dest, size_t num_read)
-#line 2238 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2271 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
         {
           return fread(dest, 1, num_read, fp);
         }
-#line 2242 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2275 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::blob_stream_file_t::seek (size_t to_offset, int whence)
-#line 2243 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2276 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
         {
             fseek(fp, to_offset, whence);
         }
-#line 2273 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2306 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_parsejpg (st_image & info, blob_stream_t & fp, char const * image_name)
-#line 2274 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2307 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         bool isValid = false;
         info.cs.clear();
@@ -2076,9 +2105,9 @@ void FPDF::_parsejpg (st_image & info, blob_stream_t & fp, char const * image_na
         }
         Error("Invalid JPG image: %s", image_name);
     }
-#line 2438 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2471 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_parsejpg (st_image & info, char const * file_name)
-#line 2439 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2472 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Extract info from a JPG file
         FILE *fp = fopen(file_name,"rb");
@@ -2087,9 +2116,9 @@ void FPDF::_parsejpg (st_image & info, char const * file_name)
         blob_stream_file_t sf(fp);
         _parsejpg(info, sf, file_name);
     }
-#line 2448 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2481 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_parsejpg_blob (st_image & info, char const * image_name, unsigned char const * image_blob, size_t blob_size)
-#line 2450 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2483 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         if(!image_name) Error("Image name is NULL!");
         if(!image_blob) Error("Image blob is NULL!");
@@ -2097,9 +2126,9 @@ void FPDF::_parsejpg_blob (st_image & info, char const * image_name, unsigned ch
         blob_stream_memory_t sm(image_blob, blob_size);
         _parsejpg(info, sm, image_name);
     }
-#line 2458 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2491 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_parsepng (st_image & info, char const * file_name)
-#line 2459 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2492 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Extract info from a PNG file
         FILE *fp = fopen(file_name,"rb");
@@ -2108,9 +2137,9 @@ void FPDF::_parsepng (st_image & info, char const * file_name)
         blob_stream_file_t sf(fp);
         _parsepngstream(info, sf, file_name);
     }
-#line 2469 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2502 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_parsepng_blob (st_image & info, char const * image_name, unsigned char const * image_blob, size_t blob_size)
-#line 2471 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2504 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         if(!image_name) Error("Image name is NULL!");
         if(!image_blob) Error("Image blob is NULL!");
@@ -2118,9 +2147,9 @@ void FPDF::_parsepng_blob (st_image & info, char const * image_name, unsigned ch
         blob_stream_memory_t sm(image_blob, blob_size);
         _parsepngstream(info, sm, image_name);
     }
-#line 2479 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2512 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_getGrayImgColorAndalpha (std::string & color, std::string & alpha, std::string & line)
-#line 2479 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2512 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
                                                                                             {
         size_t size = line.size();
         color.reserve(size);
@@ -2130,9 +2159,9 @@ void FPDF::_getGrayImgColorAndalpha (std::string & color, std::string & alpha, s
             alpha += line[i+1];
         }
     }
-#line 2489 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2522 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_getRGBImgColorAndalpha (std::string & color, std::string & alpha, std::string & line)
-#line 2489 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2522 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
                                                                                            {
         size_t size = line.size();
         color.reserve(size);
@@ -2142,9 +2171,9 @@ void FPDF::_getRGBImgColorAndalpha (std::string & color, std::string & alpha, st
             alpha += line[i+3];
         }
     }
-#line 2499 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2532 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_parsepngstream (st_image & info, blob_stream_t & fp, char const * image_name)
-#line 2500 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2533 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         std::string buf;
         // Check signature
@@ -2275,18 +2304,18 @@ void FPDF::_parsepngstream (st_image & info, blob_stream_t & fp, char const * im
         }
 #endif
     }
-#line 2631 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2664 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 std::string & FPDF::_readstream (std::string & result, blob_stream_t & fp, size_t n)
-#line 2632 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2665 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Read n bytes from stream
         result.resize(n);
         if(fp.read(&result[0], n) != n) Error("Can't read from stream !");
         return result;
     }
-#line 2639 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2672 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 int FPDF::_readint (blob_stream_t & fp)
-#line 2640 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2673 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Read a 4-byte integer from stream
         std::string buf;
@@ -2304,9 +2333,9 @@ int FPDF::_readint (blob_stream_t & fp)
         //else BIG_ENDIAN
         return *((int*)&buf[0]);
     }
-#line 2658 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2691 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 int FPDF::_readshort (blob_stream_t & fp)
-#line 2659 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2692 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Read a 4-byte integer from stream
         std::string buf;
@@ -2322,9 +2351,9 @@ int FPDF::_readshort (blob_stream_t & fp)
         //else BIG_ENDIAN
         return *((short*)&buf[0]);
     }
-#line 2675 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2708 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_parsegif (std::string & file)
-#line 2676 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2709 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
 #if 0
         // Extract info from a GIF file (via PNG conversion)
@@ -2364,26 +2393,26 @@ void FPDF::_parsegif (std::string & file)
         return info;
 #endif
     }
-#line 2716 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2749 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_newobj ()
-#line 2717 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2750 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Begin a new object
         m_n++;
         m_offsets.push_back(m_buffer.size());
         _outfmt(true, "%d 0 obj", m_n);
     }
-#line 2724 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2757 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_putstream (std::string const & s)
-#line 2725 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2758 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         _out("stream");
         _out(s);
         _out("endstream");
     }
-#line 2731 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2764 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_out (char const * s, size_t size, bool nl)
-#line 2732 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2765 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         // Add a line to the document
         if(m_state==2)
@@ -2398,9 +2427,9 @@ void FPDF::_out (char const * s, size_t size, bool nl)
             if(nl) m_buffer += "\n";
         }
     }
-#line 2747 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2780 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 std::string & FPDF::pdf_sprintf (std::string & s, char const * fmt, ...)
-#line 2748 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2781 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         va_list args;
         va_start( args, fmt );
@@ -2410,9 +2439,9 @@ std::string & FPDF::pdf_sprintf (std::string & s, char const * fmt, ...)
         s = m_scratch_buf;
         return s;
     }
-#line 2758 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2791 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::pdf_sprintf_append (std::string & s, char const * fmt, ...)
-#line 2759 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2792 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         va_list args;
         va_start( args, fmt );
@@ -2421,9 +2450,9 @@ void FPDF::pdf_sprintf_append (std::string & s, char const * fmt, ...)
         if(size < 0) Error("Too big string passed to sprintf %d", __LINE__);
         s += m_scratch_buf;
     }
-#line 2768 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2801 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_outfmt (bool nl, char const * fmt, ...)
-#line 2769 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2802 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         va_list args;
         va_start( args, fmt );
@@ -2432,21 +2461,21 @@ void FPDF::_outfmt (bool nl, char const * fmt, ...)
         if(size < 0) Error("Too big string passed to sprintf %d", __LINE__);
         _out(m_scratch_buf, size, nl);
     }
-#line 2778 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2811 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_out (char const * s, bool nl)
-#line 2779 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2812 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         _out(s, strlen(s), nl);
     }
-#line 2783 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2816 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_out (std::string const & s, bool nl)
-#line 2784 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2817 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         _out(s.c_str(), s.size(), nl);
     }
-#line 2788 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2821 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_putpages ()
-#line 2789 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2822 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         int nb = m_page;
         if(!m_AliasNbPages.empty())
@@ -2540,9 +2569,9 @@ void FPDF::_putpages ()
         _out(">>");
         _out("endobj");
     }
-#line 2883 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2916 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_putfonts ()
-#line 2884 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 2917 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
 #if 0
         int nf = m_n;
@@ -2641,9 +2670,9 @@ void FPDF::_putfonts ()
 #endif
         }
     }
-#line 2983 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3016 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_putimages ()
-#line 2984 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3017 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         for(image_map_t::iterator iter = m_images.begin(); iter != m_images.end(); ++iter)
         {
@@ -2653,9 +2682,9 @@ void FPDF::_putimages ()
             image.smask.clear();
         }
     }
-#line 2994 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3027 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_putimage (st_image & info)
-#line 2995 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3028 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         _newobj();
         info.n = m_n;
@@ -2720,16 +2749,16 @@ void FPDF::_putimage (st_image & info)
             _out("endobj");
         }
     }
-#line 3060 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3093 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_putxobjectdict ()
-#line 3061 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3094 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         for(image_map_t::iterator iter = m_images.begin(); iter != m_images.end(); ++iter)
             _outfmt(true, "/I%d %d 0 R", iter->second.i, iter->second.n);
     }
-#line 3066 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3099 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_putextgstates ()
-#line 3067 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3100 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         for (size_t i = 1, size = m_extgstates.size(); i <= size; ++i)
         {
@@ -2743,9 +2772,9 @@ void FPDF::_putextgstates ()
             _out(">>\nendobj");
         }
     }
-#line 3081 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3114 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_putjavascript ()
-#line 3082 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3115 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         _newobj();
         m_n_js=m_n;
@@ -2755,9 +2784,9 @@ void FPDF::_putjavascript ()
         _out(_escape(m_javascript), false);
         _out(")\n>>\nendobj");
     }
-#line 3092 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3125 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_putresourcedict ()
-#line 3093 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3126 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         _out("/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]");
         _out("/Font\n<<");
@@ -2777,9 +2806,9 @@ void FPDF::_putresourcedict ()
             _out(">>");
         }
     }
-#line 3113 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3146 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_putresources ()
-#line 3114 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3147 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         _putextgstates();
         _putfonts();
@@ -2795,9 +2824,9 @@ void FPDF::_putresources ()
             _putjavascript();
         }
     }
-#line 3130 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3163 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_putinfo ()
-#line 3131 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3164 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         std::string str = _escape(FPDF_VERSION);
         _outfmt(true, "/Producer (CppPDF %s)", str.c_str());
@@ -2833,9 +2862,9 @@ void FPDF::_putinfo ()
         strftime (m_scratch_buf,sizeof(m_scratch_buf),"/CreationDate (D:%Y%m%d%H%M%S)", timeinfo);
         _out(m_scratch_buf);
     }
-#line 3167 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3200 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_putcatalog ()
-#line 3168 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3201 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         _outfmt(true, "/Type /Catalog");
         _outfmt(true, "/Pages 1 0 R");
@@ -2858,23 +2887,23 @@ void FPDF::_putcatalog ()
             _outfmt(true, "/Names\n<<\n/JavaScript %d 0 R\n>>", m_n_js);
         }
     }
-#line 3191 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3224 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_putheader ()
-#line 3192 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3225 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         _out("%PDF-" + m_PDFVersion);
     }
-#line 3196 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3229 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_puttrailer ()
-#line 3197 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3230 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         _outfmt(true, "/Size %d", (m_n+1));
         _outfmt(true, "/Root %d 0 R", m_n);
         _outfmt(true, "/Info %d 0 R", (m_n-1));
     }
-#line 3203 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3236 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
 void FPDF::_enddoc ()
-#line 3204 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
+#line 3237 "/home/mingo/dev/dadbiz++/ourbiz-uk/parts/fpdf.zz"
     {
         if(m_extgstates.size() && (m_PDFVersion < "1.4")) m_PDFVersion = "1.4";
         _putheader();
