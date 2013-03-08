@@ -642,6 +642,16 @@ static SQRESULT array_insert(HSQUIRRELVM v)
 	return 0;
 }
 
+static SQRESULT array_set(HSQUIRRELVM v)
+{
+	SQObject &o=stack_get(v,1);
+	SQObject &idx=stack_get(v,2);
+	SQObject &val=stack_get(v,3);
+	if(!_array(o)->Set(tointeger(idx),val))
+		return sq_throwerror(v,_SC("index out of range"));
+	return 0;
+}
+
 static SQRESULT array_remove(HSQUIRRELVM v)
 {
 	SQObject &o = stack_get(v, 1);
@@ -1037,6 +1047,7 @@ SQRegFunction SQSharedState::_array_default_delegate_funcz[]={
 	{_SC("concat2"),array_concat2,-1, _SC("as")},
 	{_SC("getdelegate"),array_getdelegate,1, _SC(".")},
 	{_SC("get"),container_rawget, -2, _SC("ai.")},
+	{_SC("set"),array_set, 3, _SC("ai.")},
 	{_SC("empty"),array_empty, 1, _SC("a")},
 	{0,0}
 };
