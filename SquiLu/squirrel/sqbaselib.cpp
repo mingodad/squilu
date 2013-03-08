@@ -1283,7 +1283,7 @@ static SQRESULT string_gmatch(HSQUIRRELVM v)
     return 1;
 }
 
-static SQRESULT process_string_find_lua(LuaMatchState *ms, void *udata, char_buffer_st **b) {
+static int process_string_find_lua(LuaMatchState *ms, void *udata, char_buffer_st **b) {
     return process_string_gmatch_find(ms, udata, b, true);
 }
 
