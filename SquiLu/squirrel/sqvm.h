@@ -177,6 +177,7 @@ public:
 	//suspend infos
 	SQBool _suspended;
 	SQBool _suspended_root;
+	SQBool _check_delayed_relase_hooks;
 	SQInteger _suspended_target;
 	SQInteger _suspended_traps;
 };

@@ -135,6 +135,7 @@ SQVM::SQVM(SQSharedState *ss)
 	_openouters = NULL;
 	ci = NULL;
 	INIT_CHAIN();ADD_TO_CHAIN(&_ss(this)->_gc_chain,this);
+	_check_delayed_relase_hooks = true;
 }
 
 void SQVM::Finalize()
@@ -751,7 +752,8 @@ exception_restore:
 		for(;;)
 		{
 		    //if the last instruction was a call then check for release hooks
-		    if(ci->_ip->op == _OP_CALL) _sharedstate->CallDelayedReleaseHooks(this);
+		    //obs.: changing the order of comparison bellow with gcc makes the code slower
+		    if((ci->_ip->op == _OP_CALL) && _check_delayed_relase_hooks) _sharedstate->CallDelayedReleaseHooks(this);
 			const SQInstruction &_i_ = *ci->_ip++;
 			//dumpstack(_stackbase);
 			//scprintf("\n[%d] %s %d %d %d %d\n",ci->_ip-ci->_iv->_vals,g_InstrDesc[_i_.op].name,arg0,arg1,arg2,arg3);

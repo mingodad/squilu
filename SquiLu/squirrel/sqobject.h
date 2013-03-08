@@ -92,7 +92,7 @@ struct SQRefCounted
 	virtual ~SQRefCounted();
 	SQWeakRef *GetWeakRef(SQObjectType type);
 	virtual void Release()=0;
-	
+
 };
 
 struct SQWeakRef : SQRefCounted
@@ -108,7 +108,7 @@ struct SQObjectPtr;
 #define __AddRef(type,unval) if(ISREFCOUNTED(type))	\
 		{ \
 			unval.pRefCounted->_uiRef++; \
-		}  
+		}
 
 #define __Release(type,unval) if(ISREFCOUNTED(type) && ((--unval.pRefCounted->_uiRef)==0))	\
 		{	\
@@ -176,10 +176,8 @@ struct SQObjectPtr;
 	} \
 	inline SQObjectPtr& operator=(_class *x) \
 	{  \
-		SQObjectType tOldType; \
-		SQObjectValue unOldVal; \
-		tOldType=_type; \
-		unOldVal=_unVal; \
+		SQObjectType tOldType=_type; \
+		SQObjectValue unOldVal=_unVal; \
 		_type = type; \
 		SQ_REFOBJECT_INIT() \
 		_unVal.sym = x; \
@@ -236,7 +234,7 @@ struct SQObjectPtr : public SQObject
 	_REF_TYPE_DECL(OT_WEAKREF,SQWeakRef,pWeakRef)
 	_REF_TYPE_DECL(OT_THREAD,SQVM,pThread)
 	_REF_TYPE_DECL(OT_FUNCPROTO,SQFunctionProto,pFunctionProto)
-	
+
 	_SCALAR_TYPE_DECL(OT_INTEGER,SQInteger,nInteger)
 	_SCALAR_TYPE_DECL(OT_FLOAT,SQFloat,fFloat)
 	_SCALAR_TYPE_DECL(OT_USERPOINTER,SQUserPointer,pUserPointer)
@@ -248,7 +246,7 @@ struct SQObjectPtr : public SQObject
 		_unVal.nInteger = bBool?1:0;
 	}
 	inline SQObjectPtr& operator=(bool b)
-	{ 
+	{
 		__Release(_type,_unVal);
 		SQ_OBJECT_RAWINIT()
 		_type = OT_BOOL;
@@ -260,7 +258,7 @@ struct SQObjectPtr : public SQObject
 	{
 		__Release(_type,_unVal);
 	}
-			
+
 	inline SQObjectPtr& operator=(const SQObjectPtr& obj)
 	{
 		SQObjectType tOldType =_type;

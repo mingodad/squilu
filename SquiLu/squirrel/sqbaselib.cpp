@@ -65,6 +65,22 @@ static SQRESULT base_getrefcount(HSQUIRRELVM v)
     else sq_pushinteger(v, o._unVal.pRefCounted->_uiRef - 1);
 	return 1;
 }
+static SQRESULT base_check_delayed_release_hooks(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS(v);
+	if(_top_ > 1){
+		SQ_GET_BOOL(v, 2, bval);
+		v->_check_delayed_relase_hooks = bval;
+		return 0;
+	}
+    sq_pushbool(v, v->_check_delayed_relase_hooks);
+	return 1;
+}
+static SQRESULT base_call_delayed_release_hooks(HSQUIRRELVM v)
+{
+    v->_sharedstate->CallDelayedReleaseHooks(v);
+	return 0;
+}
 #endif
 
 static SQRESULT base_getroottable(HSQUIRRELVM v)
@@ -394,6 +410,8 @@ static SQRegFunction base_funcs[]={
 	{_SC("collectgarbage"),base_collectgarbage,0, NULL},
 	{_SC("resurrectunreachable"),base_resurectureachable,0, NULL},
 	{_SC("getrefcount"),base_getrefcount,2, _SC("..")},
+	{_SC("check_delayed_release_hooks"),base_check_delayed_release_hooks,-1, _SC(".b")},
+	{_SC("call_delayed_release_hooks"),base_call_delayed_release_hooks,1, NULL},
 #endif
 	{_SC("str_from_chars"),base_str_from_chars,-2, _SC(".i")},
 	{0,0}
