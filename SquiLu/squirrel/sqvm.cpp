@@ -1211,9 +1211,18 @@ bool SQVM::CallNative(SQNativeClosure *nclosure, SQInteger nargs, SQInteger newb
 	SQIntVec &tc = nclosure->_typecheck;
 	if((tcs = tc.size())) {
 		for(SQInteger i = 0; i < nargs && i < tcs; i++) {
-			if((tc._vals[i] != -1) && !(type(_stack._vals[newbase+i]) & tc._vals[i])) {
-				Raise_ParamTypeError(i,tc._vals[i],type(_stack._vals[newbase+i]));
-				return false;
+			if(tc._vals[i] != -1) {
+				SQInteger ptype;
+				if(i==0 && nclosure->_env) {
+					//if nclosure->_env is set then check it instead
+					ptype = nclosure->_env->_obj._type;
+				}
+				else ptype = type(_stack._vals[newbase+i]);
+
+				if(!(ptype & tc._vals[i])) {
+					Raise_ParamTypeError(i,tc._vals[i],ptype);
+					return false;
+				}
 			}
 		}
 	}

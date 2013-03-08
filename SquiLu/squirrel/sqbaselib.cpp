@@ -1868,7 +1868,7 @@ SQRegFunction SQSharedState::_closure_default_delegate_funcz[]={
 	{_SC("pacall"),closure_pacall,2, _SC("ca")},
 	{_SC("weakref"),obj_delegate_weakref,1, NULL },
 	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
-	{_SC("bindenv"),closure_bindenv,2, _SC("c x|y|t")},
+	{_SC("bindenv"),closure_bindenv,2, _SC("c x|y|t|a")},
 	{_SC("setenv"),closure_setenv,2, _SC("c x|y|t")},
 	{_SC("getenv"),closure_getenv,1, _SC("c")},
 	{_SC("getinfos"),closure_getinfos,1, _SC("c")},

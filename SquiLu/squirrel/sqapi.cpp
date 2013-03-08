@@ -35,9 +35,7 @@ bool sq_aux_gettypedarg(HSQUIRRELVM v,SQInteger idx,SQObjectType type,SQObjectPt
 
 SQInteger sq_aux_invalidtype(HSQUIRRELVM v,SQObjectType type)
 {
-    SQChar *buf = _ss(v)->GetScratchPad(100);
-	scsprintf(buf, _SC("unexpected type %s"), IdType2Name(type));
-	return sq_throwerror(v, buf);
+	return sq_throwerror(v, _SC("unexpected type %s"), IdType2Name(type));
 }
 
 HSQUIRRELVM sq_open(SQInteger initialstacksize)
@@ -539,6 +537,7 @@ SQRESULT sq_setfenv(HSQUIRRELVM v,SQInteger idx, SQBool cloning)
 		return sq_throwerror(v,_SC("the target is not a closure"));
     SQObjectPtr &env = stack_get(v,-1);
 	if(!sq_istable(env) &&
+		!sq_isarray(env) &&
 		!sq_isclass(env) &&
 		!sq_isinstance(env))
 		return sq_throwerror(v,_SC("invalid environment"));
