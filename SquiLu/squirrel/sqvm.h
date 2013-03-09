@@ -2,6 +2,10 @@
 #ifndef _SQVM_H_
 #define _SQVM_H_
 
+#ifdef PROFILE_SQVM
+#include "HighResolutionTimer.h"
+#endif
+
 #include "sqopcodes.h"
 #include "sqobject.h"
 #define MAX_NATIVE_CALLS 100
@@ -47,7 +51,7 @@ struct SQVM : public CHAINABLE_OBJ
 
 typedef sqvector<CallInfo> CallInfoVec;
 #ifdef PROFILE_SQVM
-	struct OpProfile {SQInteger op, count, total_time;};
+	struct OpProfile {SQInteger op, count; SQFloat total_time;};
 	typedef sqvector<OpProfile> OpProfileVec;
 #endif
 public:
@@ -186,7 +190,7 @@ public:
 	SQInteger _suspended_traps;
 #ifdef PROFILE_SQVM
 	OpProfileVec _op_profile;
-	SQInteger _last_op_profile_time;
+	HighResolutionTimer _op_profile_timer;
 #endif
 };
 

@@ -115,12 +115,6 @@ bool SQVM::ARITH_OP(SQUnsignedInteger op,SQObjectPtr &trg,const SQObjectPtr &o1,
 	return true;
 }
 
-#ifdef PROFILE_SQVM
-//from sqstdsystem
-int GetMilliCount();
-int GetMilliSpan( int nTimeStart );
-#endif
-
 SQVM::SQVM(SQSharedState *ss)
 {
 	_sharedstate=ss;
@@ -144,7 +138,7 @@ SQVM::SQVM(SQSharedState *ss)
 	_check_delayed_relase_hooks = true;
 #ifdef PROFILE_SQVM
 	printf("SQVM::SQVM : %p\n", this);
-	_last_op_profile_time = GetMilliCount();
+	_op_profile_timer.start();
 	_op_profile.resize(_OP__LAST__+1);
 	for(SQUnsignedInteger i=0; i <= _OP__LAST__; ++i){
 		OpProfile &opp = _op_profile[i];
@@ -176,7 +170,7 @@ void SQVM::Finalize()
 	printf("SQVM::Finalize : %p\n", this);
 #define ENUM_OP(a,b) {\
 		OpProfile &opp = _op_profile[a];\
-		if(opp.count) printf("%d\t%d\t%d\t%d\t%s\n", a, opp.op, opp.count, opp.total_time, _SC(#a));\
+		if(opp.count) printf("%d\t%d\t%d\t%f\t%s\n", a, opp.op, opp.count, opp.total_time, _SC(#a));\
 	}
     SQ_OP_CODE_LIST()
 #undef ENUM_OP
@@ -783,8 +777,9 @@ exception_restore:
 		    if((ci->_ip->op == _OP_CALL) && _check_delayed_relase_hooks) _sharedstate->CallDelayedReleaseHooks(this);
 #ifdef PROFILE_SQVM
 			OpProfile &opp_last = _op_profile[ci->_ip->op];
-			opp_last.total_time += GetMilliSpan(_last_op_profile_time);
-			_last_op_profile_time = GetMilliCount();
+			_op_profile_timer.stop();
+			opp_last.total_time += _op_profile_timer.getElapsedTimeInMicroSec();
+			_op_profile_timer.start();
 #endif
 			const SQInstruction &_i_ = *ci->_ip++;
 			//dumpstack(_stackbase);

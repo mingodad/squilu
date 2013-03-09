@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="test-weakref.nut" />
+				<Option parameters="spectralnorm.nut" />
 				<Compiler>
 					<Add option="-g" />
 					<Add directory="../../zeromq-3.2.2/include" />
@@ -104,6 +104,8 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-fomit-frame-pointer" />
+					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
 					<Add option="-Wall" />
 					<Add option="-fno-rtti" />
@@ -141,12 +143,13 @@
 			</Target>
 			<Target title="Debug FLTK">
 				<Option output="bin/squilu-dbg" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="ourbiz" />
+				<Option working_dir="samples" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Option parameters="ourbiz-fltk.nut" />
 				<Compiler>
+					<Add option="-O2" />
 					<Add option="-Wall" />
 					<Add option="-g" />
 					<Add option="-fno-rtti" />
@@ -277,13 +280,43 @@
 					<Add directory="../libharu/src" />
 				</Linker>
 			</Target>
+			<Target title="Release alone">
+				<Option output="bin/squilu-alone" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release-alone/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-Os" />
+					<Add option="-Wall" />
+					<Add option="-fno-rtti" />
+					<Add option="-fno-strict-aliasing" />
+					<Add option="-DNEED_SUBLATIN_C=1" />
+					<Add option="-DSQUILU_ALONE=1" />
+					<Add directory="../../zeromq-3.2.2/include" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="../../zeromq-3.2.2/libzmq3.a" />
+					<Add library="pthread" />
+					<Add library="rt" />
+					<Add library="dl" />
+					<Add library="axtls" />
+					<Add library="mpdecimal" />
+					<Add library="discount" />
+					<Add library="fltk_z" />
+					<Add directory="../../zeromq-3.2.2" />
+					<Add directory="../fltk/lib" />
+				</Linker>
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fno-strict-aliasing" />
+			<Add option="-DPROFILE_SQVM=1" />
 			<Add option="-DSQ_JIT_LLVM44=1" />
 			<Add option="-D_DEBUG_DUMP33=1" />
 			<Add option="-DWITH_DAD_EXTRAS=1" />
+			<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
 			<Add option="-DSQ_SUBLATIN=1" />
 			<Add option="-DNEED_SUBLATIN_C2=1" />
 			<Add option="-DSQUSEDOUBLE=1" />
@@ -323,6 +356,7 @@
 			<Add directory="/usr/lib/llvm-3.1/include" />
 			<Add directory="../SquiLu-ext/threadObject" />
 			<Add directory=".." />
+			<Add directory="../SquiLu-ext" />
 		</Compiler>
 		<Linker>
 			<Add library="m" />
@@ -331,51 +365,366 @@
 			<Add directory="../mpdecimal" />
 			<Add directory="../discount" />
 		</Linker>
-		<Unit filename="../SquiLu-ext/dynamic_library.cpp" />
-		<Unit filename="../SquiLu-ext/dynamic_library.h" />
-		<Unit filename="../SquiLu-ext/fpdf.cpp" />
-		<Unit filename="../SquiLu-ext/fpdf.h" />
-		<Unit filename="../SquiLu-ext/lua_socket.cpp" />
-		<Unit filename="../SquiLu-ext/lua_socket.h" />
+		<Unit filename="../SquiLu-ext/HighResolutionTimer.cpp" />
+		<Unit filename="../SquiLu-ext/HighResolutionTimer.h" />
+		<Unit filename="../SquiLu-ext/code_mix_prep.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/dynamic_library.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/dynamic_library.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/fpdf.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/fpdf.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/lua_socket.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/lua_socket.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
 		<Unit filename="../SquiLu-ext/mongoose.c">
 			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
 		</Unit>
-		<Unit filename="../SquiLu-ext/mongoose.h" />
-		<Unit filename="../SquiLu-ext/pdf-font.cpp" />
-		<Unit filename="../SquiLu-ext/pdf-font.h" />
+		<Unit filename="../SquiLu-ext/mongoose.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/pdf-font.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/pdf-font.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
 		<Unit filename="../SquiLu-ext/sq_axtls.c">
 			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
 		</Unit>
-		<Unit filename="../SquiLu-ext/sq_base64.cpp" />
-		<Unit filename="../SquiLu-ext/sq_decimal.cpp" />
-		<Unit filename="../SquiLu-ext/sq_fltk.cpp" />
-		<Unit filename="../SquiLu-ext/sq_fpdf.cpp" />
+		<Unit filename="../SquiLu-ext/sq_base64.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sq_decimal.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sq_fltk.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sq_fpdf.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
 		<Unit filename="../SquiLu-ext/sq_fs.c">
 			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
 		</Unit>
-		<Unit filename="../SquiLu-ext/sq_markdown.cpp" />
-		<Unit filename="../SquiLu-ext/sq_mix.cpp" />
-		<Unit filename="../SquiLu-ext/sq_mongoose.cpp" />
-		<Unit filename="../SquiLu-ext/sq_parsecsv.cpp" />
-		<Unit filename="../SquiLu-ext/sq_postgresql.cpp" />
+		<Unit filename="../SquiLu-ext/sq_markdown.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sq_mix.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sq_mongoose.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sq_parsecsv.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sq_postgresql.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
 		<Unit filename="../SquiLu-ext/sq_rs232.c">
 			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
 		</Unit>
-		<Unit filename="../SquiLu-ext/sq_slave_vm.cpp" />
-		<Unit filename="../SquiLu-ext/sq_socket.cpp" />
-		<Unit filename="../SquiLu-ext/sq_sqlite3.cpp" />
-		<Unit filename="../SquiLu-ext/sq_tinyxml2.cpp" />
-		<Unit filename="../SquiLu-ext/sq_zlib.cpp" />
-		<Unit filename="../SquiLu-ext/sq_zmq3.cpp" />
+		<Unit filename="../SquiLu-ext/sq_slave_vm.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sq_socket.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sq_sqlite3.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sq_tinyxml2.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sq_zlib.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sq_zmq3.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
 		<Unit filename="../SquiLu-ext/sqlite3.c">
 			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
 		</Unit>
-		<Unit filename="../SquiLu-ext/sqlite3.h" />
-		<Unit filename="../SquiLu-ext/sqmodule.h" />
-		<Unit filename="../SquiLu-ext/sqratimport.cpp" />
-		<Unit filename="../SquiLu-ext/sqratimport.h" />
-		<Unit filename="../SquiLu-ext/tinyxml2.cpp" />
-		<Unit filename="../SquiLu-ext/tinyxml2.h" />
+		<Unit filename="../SquiLu-ext/sqlite3.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sqmodule.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sqratimport.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sqratimport.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/tinyxml2.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/tinyxml2.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+		</Unit>
 		<Unit filename="dadbiz.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="Release win32" />
