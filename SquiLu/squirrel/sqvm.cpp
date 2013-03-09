@@ -115,6 +115,12 @@ bool SQVM::ARITH_OP(SQUnsignedInteger op,SQObjectPtr &trg,const SQObjectPtr &o1,
 	return true;
 }
 
+#ifdef PROFILE_SQVM
+//from sqstdsystem
+int GetMilliCount();
+int GetMilliSpan( int nTimeStart );
+#endif
+
 SQVM::SQVM(SQSharedState *ss)
 {
 	_sharedstate=ss;
@@ -136,10 +142,21 @@ SQVM::SQVM(SQSharedState *ss)
 	ci = NULL;
 	INIT_CHAIN();ADD_TO_CHAIN(&_ss(this)->_gc_chain,this);
 	_check_delayed_relase_hooks = true;
+#ifdef PROFILE_SQVM
+	printf("SQVM::SQVM : %p\n", this);
+	_last_op_profile_time = GetMilliCount();
+	_op_profile.resize(_OP__LAST__+1);
+	for(SQUnsignedInteger i=0; i <= _OP__LAST__; ++i){
+		OpProfile &opp = _op_profile[i];
+		opp.op = i;
+		opp.count = opp.total_time = 0;
+	}
+#endif
 }
 
 void SQVM::Finalize()
 {
+	if(!_alloccallsstacksize) return; //to prevent multiple calls
     CallAtExitHandler();
     _sharedstate->CallDelayedReleaseHooks(this);
 	if(_openouters) CloseOuters(&_stack._vals[0]);
@@ -155,6 +172,16 @@ void SQVM::Finalize()
 	SQInteger size=_stack.size();
 	for(SQInteger i=0;i<size;i++)
 		_stack[i].Null();
+#ifdef PROFILE_SQVM
+	printf("SQVM::Finalize : %p\n", this);
+#define ENUM_OP(a,b) {\
+		OpProfile &opp = _op_profile[a];\
+		if(opp.count) printf("%d\t%d\t%d\t%d\t%s\n", a, opp.op, opp.count, opp.total_time, _SC(#a));\
+	}
+    SQ_OP_CODE_LIST()
+#undef ENUM_OP
+#endif
+	_alloccallsstacksize = 0; //to prevent multiple calls
 }
 
 SQVM::~SQVM()
@@ -754,9 +781,18 @@ exception_restore:
 		    //if the last instruction was a call then check for release hooks
 		    //obs.: changing the order of comparison bellow with gcc makes the code slower
 		    if((ci->_ip->op == _OP_CALL) && _check_delayed_relase_hooks) _sharedstate->CallDelayedReleaseHooks(this);
+#ifdef PROFILE_SQVM
+			OpProfile &opp_last = _op_profile[ci->_ip->op];
+			opp_last.total_time += GetMilliSpan(_last_op_profile_time);
+			_last_op_profile_time = GetMilliCount();
+#endif
 			const SQInstruction &_i_ = *ci->_ip++;
 			//dumpstack(_stackbase);
 			//scprintf("\n[%d] %s %d %d %d %d\n",ci->_ip-ci->_iv->_vals,g_InstrDesc[_i_.op].name,arg0,arg1,arg2,arg3);
+#ifdef PROFILE_SQVM
+			OpProfile &opp = _op_profile[_i_.op];
+			++opp.count;
+#endif
 			switch(_i_.op)
 			{
 			case _OP_LINE: if (_debughook) CallDebugHook(_SC('l'),arg1); continue;

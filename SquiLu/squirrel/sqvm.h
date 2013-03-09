@@ -46,6 +46,10 @@ struct SQVM : public CHAINABLE_OBJ
 	};
 
 typedef sqvector<CallInfo> CallInfoVec;
+#ifdef PROFILE_SQVM
+	struct OpProfile {SQInteger op, count, total_time;};
+	typedef sqvector<OpProfile> OpProfileVec;
+#endif
 public:
 	void DebugHookProxy(SQInteger type, const SQChar * sourcename, SQInteger line, const SQChar * funcname);
 	static void _DebugHookProxy(HSQUIRRELVM v, SQInteger type, const SQChar * sourcename, SQInteger line, const SQChar * funcname);
@@ -180,6 +184,10 @@ public:
 	SQBool _check_delayed_relase_hooks;
 	SQInteger _suspended_target;
 	SQInteger _suspended_traps;
+#ifdef PROFILE_SQVM
+	OpProfileVec _op_profile;
+	SQInteger _last_op_profile_time;
+#endif
 };
 
 struct AutoDec{
