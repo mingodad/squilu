@@ -1493,14 +1493,15 @@ if(color == "yellow"){
 	{
 		SQObject id;
 		Lex(); id = Expect(TK_IDENTIFIER);
-		CheckGlobalName(id, true);
 		_fs->PushTarget(0);
 		_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(id));
 		if(_token == TK_DOUBLE_COLON) Emit2ArgsOP(_OP_GET);
+		else CheckGlobalName(id, true);
 
 		while(_token == TK_DOUBLE_COLON) {
 			Lex();
 			id = Expect(TK_IDENTIFIER);
+			//todo check if class function already exists
 			_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(id));
 			if(_token == TK_DOUBLE_COLON) Emit2ArgsOP(_OP_GET);
 		}
