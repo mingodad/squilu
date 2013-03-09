@@ -774,7 +774,6 @@ exception_restore:
 		{
 		    //if the last instruction was a call then check for release hooks
 		    //obs.: changing the order of comparison bellow with gcc makes the code slower
-		    if((ci->_ip->op == _OP_CALL) && _check_delayed_relase_hooks) _sharedstate->CallDelayedReleaseHooks(this);
 #ifdef PROFILE_SQVM
 			OpProfile &opp_last = _op_profile[ci->_ip->op];
 			_op_profile_timer.stop();
@@ -933,6 +932,7 @@ exception_restore:
 				if((ci)->_generator) {
 					(ci)->_generator->Kill();
 				}
+				if(_check_delayed_relase_hooks) _sharedstate->CallDelayedReleaseHooks(this);
 				if(Return(arg0, arg1, temp_reg)){
 					assert(traps==0);
 					//outres = temp_reg;
@@ -1129,7 +1129,6 @@ exception_restore:
 				if(_openouters) CloseOuters(&(STK(arg1)));
 				continue;
 			}
-
 		}
 	}
 #endif
