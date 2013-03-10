@@ -5,7 +5,9 @@
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
+#ifndef _WIN32_WCE
 #include <signal.h>
+#endif
 #include <sqstdsystem.h>
 
 #ifdef _WIN32
@@ -31,6 +33,7 @@
 
 SQ_OPT_STRING_STRLEN();
 
+#ifndef _WIN32_WCE
 static SQRESULT _system_getenv(HSQUIRRELVM v)
 {
 	const SQChar *s;
@@ -40,7 +43,6 @@ static SQRESULT _system_getenv(HSQUIRRELVM v)
 	}
 	return 0;
 }
-
 
 static SQRESULT _system_system(HSQUIRRELVM v)
 {
@@ -58,6 +60,7 @@ static SQRESULT _system_clock(HSQUIRRELVM v)
 	sq_pushfloat(v,((SQFloat)clock())/(SQFloat)CLOCKS_PER_SEC);
 	return 1;
 }
+#endif
 
 /*
 static SQRESULT _system_time(HSQUIRRELVM v)
@@ -95,27 +98,27 @@ static SQRESULT _system_time(HSQUIRRELVM v) {
     if(sq_gettype(v, 2) != OT_TABLE)
         return sq_throwerror(v, _SC("table expected as parameter but got (%s)"), sq_gettypename(v, 2));
     sq_settop(v, 2);  /* make sure table is at the top */
-    SQInteger rc = get_int_field(v, "sec", 0);
+    SQInteger rc = get_int_field(v, _SC("sec"), 0);
     if(rc == SQ_ERROR) return rc;
     else ts.tm_sec = rc;
 
-    rc = get_int_field(v, "min", 0);
+    rc = get_int_field(v, _SC("min"), 0);
     if(rc == SQ_ERROR) return rc;
     else ts.tm_min = rc;
 
-    rc = get_int_field(v, "hour", 12);
+    rc = get_int_field(v, _SC("hour"), 12);
     if(rc == SQ_ERROR) return rc;
     else ts.tm_hour = rc;
 
-    rc = get_int_field(v, "day", -1);
+    rc = get_int_field(v, _SC("day"), -1);
     if(rc == SQ_ERROR) return rc;
     else ts.tm_mday = rc;
 
-    rc = get_int_field(v, "month", -1);
+    rc = get_int_field(v, _SC("month"), -1);
     if(rc == SQ_ERROR) return rc;
     else ts.tm_mon = rc;
 
-    rc = get_int_field(v, "year", -1);
+    rc = get_int_field(v, _SC("year"), -1);
     if(rc == SQ_ERROR) return rc;
     else ts.tm_year = rc - 1900;
 
@@ -145,6 +148,7 @@ static SQRESULT _system_difftime (HSQUIRRELVM v) {
   return 1;
 }
 
+#ifndef _WIN32_WCE
 static SQRESULT _system_remove(HSQUIRRELVM v)
 {
 	const SQChar *s;
@@ -220,6 +224,7 @@ static SQRESULT _system_date(HSQUIRRELVM v)
     }
     return 1;
 }
+#endif
 
 static SQRESULT _system_exit (HSQUIRRELVM v) {
   SQRESULT status = 0;
@@ -252,12 +257,13 @@ static SQRESULT _system_exit (HSQUIRRELVM v) {
 #define sq_tmpnam(b,e)		{ e = (tmpnam(b) == NULL); }
 #endif
 
+#ifndef _WIN32_WCE
 static SQRESULT _system_tmpname (HSQUIRRELVM v) {
-  char buff[SQ_TMPNAMBUFSIZE];
+  SQChar buff[SQ_TMPNAMBUFSIZE];
   int err;
   sq_tmpnam(buff, err);
   if (err)
-    return sq_throwerror(v, "unable to generate a unique filename");
+    return sq_throwerror(v, _SC("unable to generate a unique filename"));
   sq_pushstring(v, buff, -1);
   return 1;
 }
@@ -266,18 +272,19 @@ static SQRESULT _system_tmpname (HSQUIRRELVM v) {
 static SQRESULT _system_setlocale (HSQUIRRELVM v) {
   static const int cat[] = {LC_ALL, LC_COLLATE, LC_CTYPE, LC_MONETARY,
                       LC_NUMERIC, LC_TIME};
-  static const char *const catnames[] = {"all", "collate", "ctype", "monetary",
-     "numeric", "time", NULL};
+  static const SQChar *const catnames[] = {_SC("all"), _SC("collate"), _SC("ctype"),
+		_SC("monetary"), _SC("numeric"), _SC("time"), NULL};
   SQ_FUNC_VARS(v);
   SQ_OPT_STRING(v, 2, l, NULL);
-  SQ_OPT_STRING(v, 3, name, "all");
+  SQ_OPT_STRING(v, 3, name, _SC("all"));
   for (int i=0; catnames[i]; i++)
-    if (strcmp(catnames[i], name) == 0){
+    if (scstrcmp(catnames[i], name) == 0){
         sq_pushstring(v, setlocale(cat[i], l), -1);
         return 1;
     }
-  return sq_throwerror(v, "invalid option %s for param %d", name, 3);
+  return sq_throwerror(v, _SC("invalid option %s for param %d"), name, 3);
 }
+#endif
 
 /*-------------------------------------------------------------------------*\
 * Sleep for n seconds.
@@ -302,6 +309,7 @@ static SQRESULT  _system_sleep(HSQUIRRELVM v)
     return 0;
 }
 
+#ifndef _WIN32_WCE
 #include <sys/timeb.h>
 
 int GetMilliCount()
@@ -334,6 +342,7 @@ static SQRESULT _system_getmillispan (HSQUIRRELVM v) {
     sq_pushinteger(v, GetMilliSpan(nTimeStart));
     return 1;
 }
+#endif
 
 #if 0
 struct sq_signal_list
@@ -500,20 +509,22 @@ static int _system_raise(HSQUIRRELVM v)
 
 #define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_system_##name,nparams,pmask}
 static SQRegFunction systemlib_funcs[]={
+#ifndef _WIN32_WCE
 	_DECL_FUNC(getenv,2,_SC(".s")),
 	_DECL_FUNC(system,2,_SC(".s")),
 	_DECL_FUNC(clock,0,NULL),
-	_DECL_FUNC(time,-1,_SC(".t")),
-	_DECL_FUNC(difftime,-2,_SC(".nn")),
-	_DECL_FUNC(date,-1,_SC(".sn")),
 	_DECL_FUNC(remove,2,_SC(".s")),
 	_DECL_FUNC(rename,3,_SC(".ss")),
-	_DECL_FUNC(exit, -1,_SC(". b|i b")),
-	_DECL_FUNC(sleep, 2,_SC(".n")),
+	_DECL_FUNC(date,-1,_SC(".sn")),
 	_DECL_FUNC(tmpname,1,_SC(".")),
 	_DECL_FUNC(setlocale,-1,_SC(".ss")),
 	_DECL_FUNC(getmillicount,1,_SC(".")),
 	_DECL_FUNC(getmillispan,2,_SC(".i")),
+#endif
+	_DECL_FUNC(time,-1,_SC(".t")),
+	_DECL_FUNC(difftime,-2,_SC(".nn")),
+	_DECL_FUNC(exit, -1,_SC(". b|i b")),
+	_DECL_FUNC(sleep, 2,_SC(".n")),
 	{0,0}
 };
 #undef _DECL_FUNC

@@ -89,7 +89,7 @@ static SQRESULT math_roundf (HSQUIRRELVM v) {
   SQ_GET_FLOAT(v, 2, x);
   SQ_OPT_INTEGER(v, 3, dec_places, 0);
   SQFloat dec_factor;
-  if( dec_places>15 || dec_places<0 ) return sq_throwerror(v, "decimal places out of range 0-15");
+  if( dec_places>15 || dec_places<0 ) return sq_throwerror(v, _SC("decimal places out of range 0-15"));
   switch(dec_places){
 	case 0: dec_factor = 1.0; break;
 	case 1: dec_factor = 10.0; break;
@@ -114,7 +114,7 @@ static SQRESULT math_broundf (HSQUIRRELVM v) {
   SQ_OPT_INTEGER(v, 3, dec_places, 0);
   SQFloat dec_factor, tmp, itmp;
   int neg;
-  if( dec_places>15 || dec_places<0 ) return sq_throwerror(v, "decimal places out of range 0-15");
+  if( dec_places>15 || dec_places<0 ) return sq_throwerror(v, _SC("decimal places out of range 0-15"));
   neg = num < 0;
   switch(dec_places){
 	case 0: dec_factor = 1.0; break;
@@ -142,8 +142,8 @@ static SQRESULT math_broundf (HSQUIRRELVM v) {
   return 1;
 }
 
-static char math_number_format_dec_point[2] = ".";
-static char math_number_format_thousand_sep[2] = ",";
+static SQChar math_number_format_dec_point[2] = _SC(".");
+static SQChar math_number_format_thousand_sep[2] = _SC(",");
 
 static SQRESULT math_number_format_get_dec_point(HSQUIRRELVM v) {
 	sq_pushstring(v, math_number_format_dec_point, -1);
@@ -154,7 +154,7 @@ static SQRESULT math_number_format_set_dec_point(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 2, dec_point);
 	math_number_format_dec_point[0] = *dec_point;
-	math_number_format_dec_point[1] = '\0';
+	math_number_format_dec_point[1] = _SC('\0');
 	return 0;
 }
 
@@ -177,9 +177,9 @@ static SQRESULT math_number_format(HSQUIRRELVM v) {
     SQ_OPT_INTEGER(v, 3, dec, 2);
     SQ_OPT_STRING(v, 4, dec_point, math_number_format_dec_point);
     SQ_OPT_STRING(v, 5, thousand_sep, math_number_format_thousand_sep);
-	char tmpbuf[64], resbuf[64];
-	char *s, *t;  /* source, target */
-	char *dp;
+	SQChar tmpbuf[64], resbuf[64];
+	SQChar *s, *t;  /* source, target */
+	SQChar *dp;
 	int integral;
 	size_t tmplen, reslen=0;
 	int count=0;
@@ -197,15 +197,15 @@ static SQRESULT math_number_format(HSQUIRRELVM v) {
 	}
 
     int idec = dec; //on 64 bits there is a warning here about SQInteger/int
-	tmplen = scsnprintf(tmpbuf, sizeof(tmpbuf), "%.*f", idec, d);
+	tmplen = scsnprintf(tmpbuf, sizeof(tmpbuf), _SC("%.*f"), idec, d);
 
-	resbuf[0] = '\0';
+	resbuf[0] = _SC('\0');
 
 	if (isdigit((int)tmpbuf[0])) {
 
 		/* find decimal point, if expected */
 		if (dec) {
-			dp = strpbrk(tmpbuf, ".,");
+			dp = scstrpbrk(tmpbuf, _SC(".,"));
 		} else {
 			dp = NULL;
 		}

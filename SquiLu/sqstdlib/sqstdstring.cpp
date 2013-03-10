@@ -4,9 +4,16 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <assert.h>
 #include <stddef.h>
+
+#ifdef _WIN32_WCE
+extern "C" {
+int _wtoi (const wchar_t *);
+}
+#endif // _WINCE
 
 #define MAX_FORMAT_LEN	20
 #define MAX_WFORMAT_LEN	3
@@ -17,7 +24,7 @@ static SQRESULT validate_format(HSQUIRRELVM v, SQChar *fmt, const SQChar *src, S
 	SQChar swidth[MAX_WFORMAT_LEN];
 	SQInteger wc = 0;
 	SQInteger start = n;
-	fmt[0] = '%';
+	fmt[0] = _SC('%');
 	while (scstrchr(_SC("-+ #0"), src[n])) n++;
 	while (scisdigit(src[n])) {
 		swidth[wc] = src[n];
@@ -26,13 +33,13 @@ static SQRESULT validate_format(HSQUIRRELVM v, SQChar *fmt, const SQChar *src, S
 		if(wc>=MAX_WFORMAT_LEN)
 			return sq_throwerror(v,_SC("width format too long"));
 	}
-	swidth[wc] = '\0';
+	swidth[wc] = _SC('\0');
 	if(wc > 0) {
 		width = scatoi(swidth);
 	}
 	else
 		width = 0;
-	if (src[n] == '.') {
+	if (src[n] == _SC('.')) {
 	    n++;
 
 		wc = 0;
@@ -43,7 +50,7 @@ static SQRESULT validate_format(HSQUIRRELVM v, SQChar *fmt, const SQChar *src, S
 			if(wc>=MAX_WFORMAT_LEN)
 				return sq_throwerror(v,_SC("precision format too long"));
 		}
-		swidth[wc] = '\0';
+		swidth[wc] = _SC('\0');
 		if(wc > 0) {
 			width += scatoi(swidth);
 		}
@@ -51,7 +58,7 @@ static SQRESULT validate_format(HSQUIRRELVM v, SQChar *fmt, const SQChar *src, S
 	if (n-start > MAX_FORMAT_LEN )
 		return sq_throwerror(v,_SC("format too long"));
 	memcpy(&fmt[1],&src[start],((n-start)+1)*sizeof(SQChar));
-	fmt[(n-start)+2] = '\0';
+	fmt[(n-start)+2] = _SC('\0');
 	return n;
 }
 
@@ -66,13 +73,13 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
 	dest = sq_getscratchpad(v,allocated);
 	SQInteger n = 0,i = 0, nparam = nformatstringidx+1, w = 0;
 	while(n < format_size) {
-		if(format[n] != '%') {
+		if(format[n] != _SC('%')) {
 			assert(i < allocated);
 			dest[i++] = format[n];
 			n++;
 		}
-		else if(format[n+1] == '%') { //handles %%
-				dest[i++] = '%';
+		else if(format[n+1] == _SC('%')) { //handles %%
+				dest[i++] = _SC('%');
 				n += 2;
 		}
 		else {
@@ -88,26 +95,26 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
 			SQFloat tf;
 			SQInteger fc = format[n];
 			switch(fc) {
-            case 'q':
-			case 's':
+            case _SC('q'):
+			case _SC('s'):
 				if(SQ_FAILED(sq_getstring(v,nparam,&ts)))
 					return sq_throwerror(v,_SC("string expected for the specified format"));
-                if(fc == 'q'){
+                if(fc == _SC('q')){
                     addlen = 2; //quotes before and after
                     SQInteger size = sq_getsize(v,nparam);
                     SQChar *ts2 = (SQChar*)ts;
                       while (size--) {
                         ++addlen;
-                        if (*ts2 == '\r' && *(ts2+1) == '\n' ) {
+                        if (*ts2 == _SC('\r') && *(ts2+1) == _SC('\n') ) {
                           ++addlen;
                           ++ts2; //eat \r and output only \n
                         }
-                        else if (*ts2 == '"' || *ts2 == '\\' || *ts2 == '\n') {
+                        else if (*ts2 == _SC('"') || *ts2 == _SC('\\') || *ts2 == _SC('\n')) {
                           ++addlen;
                         }
-                        else if (*ts2 == '\0' || iscntrl(uchar(*ts2))) {
+                        else if (*ts2 == _SC('\0') || iscntrl(uchar(*ts2))) {
                           SQChar buff[10];
-                          addlen += scsprintf(buff, "\\x%x", (int)uchar(*ts2))-1; //-1 because we already added the original char to the sum
+                          addlen += scsprintf(buff, _SC("\\x%x"), (int)uchar(*ts2))-1; //-1 because we already added the original char to the sum
                         }
                         ++ts2;
                       }
@@ -119,30 +126,30 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
                       size = sq_getsize(v,nparam);
 
                       ts2 = &dest[(ptrdiff_t)ts2]; //use saved i position saved on pointer as integer
-                      *ts2++ = '"';
+                      *ts2++ = _SC('"');
                       while (size--) {
-                        if (*ts == '\r' && *(ts+1) == '\n' ) {
+                        if (*ts == _SC('\r') && *(ts+1) == _SC('\n') ) {
                           ++ts; //eat \r and output only \n
                         }
-                        if (*ts == '"' || *ts == '\\') {
-                            *ts2++ = '\\';
+                        if (*ts == _SC('"') || *ts == _SC('\\')) {
+                            *ts2++ = _SC('\\');
                             *ts2++ = *ts;
                         }
-                        else if (*ts == '\n') {
-                            *ts2++ = '\\';
-                            *ts2++ = 'n';
+                        else if (*ts == _SC('\n')) {
+                            *ts2++ = _SC('\\');
+                            *ts2++ = _SC('n');
                         }
-                        else if (*ts == '\0' || iscntrl(uchar(*ts))) {
+                        else if (*ts == _SC('\0') || iscntrl(uchar(*ts))) {
                           SQChar buff[10];
                           int iw;
-                          iw = scsprintf(buff, "\\x%x", (int)uchar(*ts));
+                          iw = scsprintf(buff, _SC("\\x%x"), (int)uchar(*ts));
                           for(int i=0; i< iw; ++i) *ts2++ = buff[i];
                         }
                         else
                             *ts2++ = *ts;
                         ++ts;
                       }
-                      *ts2++ = '"';
+                      *ts2++ = _SC('"');
 
                       ++n;
                       ++nparam;
@@ -151,10 +158,10 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
                 else
                 {
                     addlen = (sq_getsize(v,nparam)*sizeof(SQChar))+((w+1)*sizeof(SQChar));
-                    valtype = 's';
+                    valtype = _SC('s');
                 }
 				break;
-			case 'i': case 'd': case 'o': case 'u':  case 'x':  case 'X':
+			case _SC('i'): case _SC('d'): case _SC('o'): case _SC('u'):  case _SC('x'):  case _SC('X'):
 #ifdef _SQ64
 				{
 				size_t flen = scstrlen(fmt);
@@ -168,17 +175,17 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
 				fmt[fpos++] = _SC('\0');
 				}
 #endif
-			case 'c':
+			case _SC('c'):
 				if(SQ_FAILED(sq_getinteger(v,nparam,&ti)))
 					return sq_throwerror(v,_SC("integer expected for the specified format"));
 				addlen = (ADDITIONAL_FORMAT_SPACE)+((w+1)*sizeof(SQChar));
-				valtype = 'i';
+				valtype = _SC('i');
 				break;
-			case 'f': case 'g': case 'G': case 'e':  case 'E':
+			case _SC('f'): case _SC('g'): case _SC('G'): case _SC('e'):  case _SC('E'):
 				if(SQ_FAILED(sq_getfloat(v,nparam,&tf)))
 					return sq_throwerror(v,_SC("float expected for the specified format"));
 				addlen = (ADDITIONAL_FORMAT_SPACE)+((w+1)*sizeof(SQChar));
-				valtype = 'f';
+				valtype = _SC('f');
 				break;
 			default:
 				return sq_throwerror(v,_SC("invalid format"));
@@ -187,15 +194,15 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
 			allocated += addlen + sizeof(SQChar);
 			dest = sq_getscratchpad(v,allocated);
 			switch(valtype) {
-			case 's': i += scsprintf(&dest[i],fmt,ts); break;
-			case 'i': i += scsprintf(&dest[i],fmt,ti); break;
-			case 'f': i += scsprintf(&dest[i],fmt,tf); break;
+			case _SC('s'): i += scsprintf(&dest[i],fmt,ts); break;
+			case _SC('i'): i += scsprintf(&dest[i],fmt,ti); break;
+			case _SC('f'): i += scsprintf(&dest[i],fmt,tf); break;
 			};
 			nparam ++;
 		}
 	}
 	*outlen = i;
-	dest[i] = '\0';
+	dest[i] = _SC('\0');
 	*output = dest;
 	return SQ_OK;
 }

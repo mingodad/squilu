@@ -1831,7 +1831,7 @@ SQRESULT sq_optstr_and_size(HSQUIRRELVM sqvm, SQInteger idx, const SQChar **valu
         return sq_getstr_and_size(sqvm, idx, value, size);
     }
     *value = dflt;
-    *size = strlen(dflt);
+    *size = scstrlen(dflt);
     return SQ_OK;
 }
 
@@ -1883,31 +1883,31 @@ SQRESULT sq_call_va_vl(HSQUIRRELVM v, SQBool reset_stack, SQInteger idx, const S
     {
         switch (*sig++)
         {
-        case 'd':  /* double argument */
+        case _SC('d'):  /* double argument */
             sq_pushfloat(v, va_arg(vl, double));
             break;
 
-        case 'i':  /* int argument */
+        case _SC('i'):  /* int argument */
             sq_pushinteger(v, va_arg(vl, int));
             break;
 
-        case 's':  /* string argument */
-            sq_pushstring(v, va_arg(vl, char *), -1);
+        case _SC('s'):  /* string argument */
+            sq_pushstring(v, va_arg(vl, SQChar *), -1);
             break;
 
-        case 'b':  /* string argument */
+        case _SC('b'):  /* string argument */
             sq_pushbool(v, va_arg(vl, int));
             break;
 
-        case 'n':  /* string argument */
+        case _SC('n'):  /* string argument */
             sq_pushnull(v);
             break;
 
-        case 'p':  /* string argument */
+        case _SC('p'):  /* string argument */
             sq_pushuserpointer(v, va_arg(vl, void *));
             break;
 
-        case '>':
+        case _SC('>'):
             goto endwhile;
 
         default:
@@ -1931,27 +1931,27 @@ endwhile:
         switch (*sig)
         {
 
-        case 'd':  /* double result */
+        case _SC('d'):  /* double result */
             if (!sq_isnumeric(o))  DONE_AND_RETURN(-1000);
             *va_arg(vl, double *) = tofloat(o);
             break;
 
-        case 'i':  /* int result */
+        case _SC('i'):  /* int result */
             if (!sq_isnumeric(o))  DONE_AND_RETURN(-1100);
             *va_arg(vl, int *) = tointeger(o);
             break;
         //string do not work with stack reset
-        case 's':  /* string result */
+        case _SC('s'):  /* string result */
             if(reset_stack) DONE_AND_RETURN(-1250);
             if (!sq_isstring(o)) DONE_AND_RETURN(-1200);
-            *va_arg(vl, const char **) = _stringval(o);
+            *va_arg(vl, const SQChar **) = _stringval(o);
             break;
-        case 'b':  /* bool result */
+        case _SC('b'):  /* bool result */
             if (!sq_isbool(o)) DONE_AND_RETURN(-1300);
             *va_arg(vl, int *) = tointeger(o);
             break;
 
-        case 'p':  /* user pointer result */
+        case _SC('p'):  /* user pointer result */
             if (!sq_isuserpointer(o)) DONE_AND_RETURN(-1400);
             *va_arg(vl, void **) = _userpointer(o);
             break;

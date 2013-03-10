@@ -123,7 +123,9 @@ struct SQOuter;
 #endif
 
 #else
+#ifndef _WIN32_WCE
 typedef unsigned short wchar_t;
+#endif
 #endif
 
 typedef wchar_t SQChar;
@@ -131,10 +133,19 @@ typedef wchar_t USQChar;
 #define uchar(c)    ((unsigned short)(c))
 #define _SC(a) L##a
 #define scstrchr wcschr
+#ifdef _WIN32_WCE
+#define scsnprintf _snwprintf
+#define scvfprintf	_vfwprintf
+#define scvsprintf	_vswprintf
+#define scvsnprintf	_vsnwprintf
+#else
 #define scsnprintf wsnprintf
+#define scvfprintf	vfwprintf
+#define scvsprintf	vswprintf
+#define scvsnprintf	vswnprintf
+#endif
 #define	scstrcmp	wcscmp
 #define scsprintf	swprintf
-#define scsnprintf	swnprintf
 #define scstrlen	wcslen
 #define scstrtod	wcstod
 #ifdef _SQ64
@@ -144,10 +155,8 @@ typedef wchar_t USQChar;
 #endif
 #define scatoi		_wtoi
 #define scstrtoul	wcstoul
-#define scvfprintf	vfwprintf
-#define scvsprintf	vswprintf
-#define scvsnprintf	vswnprintf
 #define scstrstr	wcsstr
+#define scstrpbrk	wcspbrk
 #define scisspace	iswspace
 #define scisdigit	iswdigit
 #define scisxdigit	iswxdigit
@@ -165,7 +174,6 @@ typedef unsigned char USQChar;
 #define scsnprintf snprintf
 #define	scstrcmp	strcmp
 #define scsprintf	sprintf
-#define scsnprintf	snprintf
 #define scstrlen	strlen
 #define scstrtod	strtod
 #ifdef _SQ64
@@ -183,6 +191,8 @@ typedef unsigned char USQChar;
 #define scvsprintf	vsprintf
 #define scvsnprintf	vsnprintf
 #define scstrstr	strstr
+#define scstrpbrk	strpbrk
+#define scstrtok strtok
 #define scisspace	isspace
 #define scisdigit	isdigit
 #define scisxdigit	isxdigit
@@ -580,7 +590,7 @@ SQUIRREL_API void sq_getlaststackinfo(HSQUIRRELVM v);
     SQInteger var##_size;\
     if((_rc_ = sq_getstr_and_size(v,idx, &var, &var##_size)) < 0) return _rc_;
 
-#define SQ_OPT_STRING_STRLEN() static inline size_t sq_opt_strlen(const char *v) {return v ? scstrlen(v) : 0;}
+#define SQ_OPT_STRING_STRLEN() static inline size_t sq_opt_strlen(const SQChar *v) {return v ? scstrlen(v) : 0;}
 
 #define SQ_OPT_STRING(v, idx, var, dflt)\
     const SQChar *var;\

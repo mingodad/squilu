@@ -111,8 +111,10 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 {
 	int compiles_only = 0;
 	int compiles_as_source_only = 0;
-	//static SQChar temp[500];
+#ifdef SQUNICODE
+	static SQChar temp[500];
 	//const SQChar *ret=NULL;
+#endif
 	char * output = NULL;
 	//int lineinfo=0;
 	*retval = 0;

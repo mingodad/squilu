@@ -368,7 +368,7 @@ static SQRESULT base_str_from_chars (HSQUIRRELVM v) {
   for (i=2; i<=n; ++i) {
     SQ_GET_INTEGER(v, i, c);
     if(uchar(c) != c){
-        return sq_throwerror(v, "invalid value for parameter %d", i);
+        return sq_throwerror(v, _SC("invalid value for parameter %d"), i);
     }
     data[i-2] = uchar(c);
   }
@@ -487,8 +487,8 @@ static SQRESULT default_delegate_tointeger(HSQUIRRELVM v)
 		SQObjectPtr res;
 		SQInteger base;
 		if(sq_gettop(v) > 1){
-		    if(sq_getinteger(v, 2, &base) < 0) return sq_throwerror(v, "parameter integer expected (2-36)");
-		    if(base < 2 || base > 36) return sq_throwerror(v, "invalid base \"%d\" to tointeger (2-36)", base);
+		    if(sq_getinteger(v, 2, &base) < 0) return sq_throwerror(v, _SC("parameter integer expected (2-36)"));
+		    if(base < 2 || base > 36) return sq_throwerror(v, _SC("invalid base \"%d\" to tointeger (2-36)"), base);
 		}
 		else base = 10;
 		if(str2num(_stringval(o),res, base)){
@@ -969,10 +969,10 @@ static SQRESULT array_concat0 (HSQUIRRELVM v, int allowAll) {
     SQObjectPtrVec &aryvec = _array(arobj)->_values;
     SQInteger last = aryvec.size();
     if(last == 0){
-        sq_pushstring(v, "", 0);
+        sq_pushstring(v, _SC(""), 0);
         return 1;
     }
-    SQ_OPT_STRING(v, 2, sep, "");
+    SQ_OPT_STRING(v, 2, sep, _SC(""));
     SQ_OPT_INTEGER(v, 3, i, 0);
     SQ_OPT_INTEGER(v, 4, opt_last, last);
 
@@ -996,7 +996,8 @@ static SQRESULT array_concat0 (HSQUIRRELVM v, int allowAll) {
               break;
             }
           default:
-              return sq_throwerror(v, "Invalid type \"%s\" at position %d for array concat !", GetTypeName(o), i);
+              return sq_throwerror(v, _SC("Invalid type \"%s\" at position %d for array concat !"),
+								GetTypeName(o), i);
       }
 
       const SQChar *value;
@@ -1136,7 +1137,7 @@ STRING_TOFUNCZ(toupper)
 
 //on 64 bits there is an error SQRESULT/int
 static int process_string_gsub(LuaMatchState *ms, void *udata, char_buffer_st **b) {
-    const char *str;
+    const SQChar *str;
     SQInteger str_size;
     HSQUIRRELVM v = (HSQUIRRELVM)udata;
     SQObjectType rtype = sq_gettype(v, 3);
@@ -1230,7 +1231,7 @@ static SQRESULT string_gsub(HSQUIRRELVM v)
             }
         }
     }
-	return sq_throwerror(v,"invalid type for parameter 3 function/table/array/string expected");
+	return sq_throwerror(v,_SC("invalid type for parameter 3 function/table/array/string expected"));
 }
 
 static SQRESULT process_string_gmatch_find(LuaMatchState *ms, void *udata, char_buffer_st **b, bool isFind) {
@@ -1290,7 +1291,7 @@ static SQRESULT string_gmatch(HSQUIRRELVM v)
             sq_pushinteger(v, _rc_);
             return 1;
         }
-        return sq_throwerror(v,"invalid type for parameter 3 function expected");
+        return sq_throwerror(v,_SC("invalid type for parameter 3 function expected"));
     }
     _rc_ = str_match(&ms, src, src_size, pattern, pattern_size,
             0, 0, 0, 0);
@@ -1370,7 +1371,7 @@ static SQRESULT string_find_lua(HSQUIRRELVM v)
         sq_pushinteger(v, rc);
         return 1;
     }
-	return sq_throwerror(v,"invalid type for parameter 3 function expected");
+	return sq_throwerror(v,_SC("invalid type for parameter 3 function expected"));
 }
 
 static const SQChar *lmemfind (const SQChar *s1, size_t l1,
@@ -1519,18 +1520,6 @@ static SQRESULT string_getdelegate(HSQUIRRELVM v)
 }
 
 //DAD end
-
-#ifdef SQUNICODE
-#define scstrchr wcschr
-#define scsnprintf wsnprintf
-#define scatoi _wtoi
-#define scstrtok wcstok
-#else
-#define scstrchr strchr
-#define scsnprintf snprintf
-#define scatoi atoi
-#define scstrtok strtok
-#endif
 
 static void __strip_l(const SQChar *str,const SQChar **start)
 {

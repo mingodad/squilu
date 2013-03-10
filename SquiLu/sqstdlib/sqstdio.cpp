@@ -417,7 +417,7 @@ SQInteger _g_io_dumpclosure(HSQUIRRELVM v)
 SQInteger blob_read(SQUserPointer file,SQUserPointer p,SQInteger size);
 SQInteger _g_io_loadstring(HSQUIRRELVM v)
 {
-    if(sq_gettype(v, 2) != OT_STRING) return sq_throwerror(v, "string expected as parameter");
+    if(sq_gettype(v, 2) != OT_STRING) return sq_throwerror(v, _SC("string expected as parameter"));
     SQInteger rc, size = sq_getsize(v, 2);
     const SQChar *dump;
     sq_getstring(v, 2, &dump);
@@ -430,7 +430,7 @@ SQInteger _g_io_loadstring(HSQUIRRELVM v)
     }
     else
     {
-        rc = sq_compilebuffer(v, dump, size, "loadstring", SQFalse, SQFalse);
+        rc = sq_compilebuffer(v, dump, size, _SC("loadstring"), SQFalse, SQFalse);
     }
 	return rc < 0 ? rc : 1;
 }
