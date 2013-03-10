@@ -531,6 +531,7 @@ SQRESULT sqext_register_Java(HSQUIRRELVM v);
 SQRESULT sqext_register_ThreadObjects(HSQUIRRELVM v);
 SQRESULT sqext_register_csv_parser (HSQUIRRELVM v);
 SQRESULT sqext_register_fltklib(HSQUIRRELVM v);
+SQRESULT sqext_register_dad_utils(HSQUIRRELVM v);
 
 int main(int argc, char* argv[])
 {
@@ -568,16 +569,18 @@ int main(int argc, char* argv[])
 	sqext_register_mongoose(v);
 	sqrat_register_importlib(v);
 	sqext_register_tinyxml2(v);
+#ifndef _WIN32_WCE
 	sqext_register_decimal(v);
 	sqext_register_markdown(v);
+#endif
 
 	sqext_register_sq_slave_vm(v);
 	//sqext_register_ThreadObjects(v);
+	sqext_register_dad_utils(v);
 
 #ifdef WITH_FULL_DAD_EXTRAS
 	sqext_register_csv_parser(v);
 	sqext_register_PostgreSQL(v);
-	//sqext_register_dad_utils(v);
 	sqext_register_sq_zmq3(v);
 	//sqext_register_Java(v);
 #endif

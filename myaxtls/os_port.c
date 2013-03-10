@@ -87,7 +87,7 @@ EXP_FUNC int STDCALL getdomainname(char *buf, int buf_size)
                         0, KEY_QUERY_VALUE, &hKey) != ERROR_SUCCESS)
         return -1;
 
-    RegQueryValueEx(hKey, "Domain", NULL, &datatype, (LPBYTE)buf, &bufferlength);
+    RegQueryValueEx(hKey, TEXT("Domain"), NULL, &datatype, (LPBYTE)buf, &bufferlength);
     RegCloseKey(hKey);
     return 0;
 }

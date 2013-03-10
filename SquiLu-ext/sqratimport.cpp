@@ -213,15 +213,15 @@ static SQRESULT sqrat_importbin(HSQUIRRELVM v, const SQChar* moduleName) {
 
 #if defined(_WIN32)
     HMODULE mod;
-    mod = GetModuleHandle(moduleName);
+    mod = GetModuleHandleA(moduleName);
     if(mod == NULL) {
-        mod = LoadLibrary(moduleName);
+        mod = LoadLibraryA(moduleName);
         if(mod == NULL) {
             return SQ_ERROR;
         }
     }
 
-    modLoad = (SQMODULELOAD)GetProcAddress(mod, "sqmodule_load");
+    modLoad = (SQMODULELOAD)GetProcAddressA(mod, "sqmodule_load");
     if(modLoad == NULL) {
         FreeLibrary(mod);
         return SQ_ERROR;

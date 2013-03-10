@@ -14,6 +14,7 @@
 				<Option parameters="spectralnorm.nut" />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 				</Compiler>
 				<Linker>
@@ -35,6 +36,8 @@
 					<Add option="-Wall" />
 					<Add option="-fno-rtti" />
 					<Add option="-fno-strict-aliasing" />
+					<Add option="-DNDEBUG=1" />
+					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 				</Compiler>
 				<Linker>
@@ -58,6 +61,8 @@
 				<Option compiler="clang_compiler" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-DNDEBUG=1" />
+					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -73,7 +78,7 @@
 				<Option output="bin/squilu.exe" prefix_auto="1" extension_auto="0" />
 				<Option object_output="obj/Release-win32/" />
 				<Option type="1" />
-				<Option compiler="gnu_gcc_compiler_static" />
+				<Option compiler="mingw32_compiler" />
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Wall" />
@@ -81,6 +86,8 @@
 					<Add option="-fno-strict-aliasing" />
 					<Add option="-DAS_STATIC_LIB=1" />
 					<Add option="-DINET_ATON=1" />
+					<Add option="-DNDEBUG=1" />
+					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 					<Add directory="../../../../Program Files/PostgreSQL/9.1/include" />
 				</Compiler>
@@ -111,6 +118,8 @@
 					<Add option="-fno-rtti" />
 					<Add option="-fno-strict-aliasing" />
 					<Add option="-DWITH_FLTK=1" />
+					<Add option="-DNDEBUG=1" />
+					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 					<Add directory="../fltk" />
 					<Add directory="../libharu/include" />
@@ -155,6 +164,7 @@
 					<Add option="-fno-rtti" />
 					<Add option="-fno-strict-aliasing" />
 					<Add option="-DWITH_FLTK=1" />
+					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 					<Add directory="../fltk" />
 					<Add directory="../flu" />
@@ -188,7 +198,7 @@
 				<Option output="bin/squilu-fltk.exe" prefix_auto="1" extension_auto="0" />
 				<Option object_output="obj/Release-win32/" />
 				<Option type="1" />
-				<Option compiler="gnu_gcc_compiler_static" />
+				<Option compiler="mingw32_compiler" />
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Wall" />
@@ -197,6 +207,8 @@
 					<Add option="-DAS_STATIC_LIB=1" />
 					<Add option="-DINET_ATON=1" />
 					<Add option="-DWITH_FLTK=1" />
+					<Add option="-DNDEBUG=1" />
+					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 					<Add directory="../../../../Program Files/PostgreSQL/9.1/include" />
 					<Add directory="../fltk" />
@@ -236,7 +248,7 @@
 				<Option output="bin/squilu-fltk-w.exe" prefix_auto="1" extension_auto="0" />
 				<Option object_output="obj/Release-win32/" />
 				<Option type="0" />
-				<Option compiler="gnu_gcc_compiler_static" />
+				<Option compiler="mingw32_compiler" />
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Wall" />
@@ -245,6 +257,8 @@
 					<Add option="-DAS_STATIC_LIB=1" />
 					<Add option="-DINET_ATON=1" />
 					<Add option="-DWITH_FLTK=1" />
+					<Add option="-DNDEBUG=1" />
+					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 					<Add directory="../../../../Program Files/PostgreSQL/9.1/include" />
 					<Add directory="../fltk" />
@@ -292,6 +306,7 @@
 					<Add option="-fno-strict-aliasing" />
 					<Add option="-DNEED_SUBLATIN_C=1" />
 					<Add option="-DSQUILU_ALONE=1" />
+					<Add option="-DNDEBUG=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 				</Compiler>
 				<Linker>
@@ -312,7 +327,7 @@
 				<Option output="bin/squilu-alone-wince" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release-alone-wince/" />
 				<Option type="1" />
-				<Option compiler="mingw32ce_compiler" />
+				<Option compiler="cegcc_compiler" />
 				<Compiler>
 					<Add option="-Os" />
 					<Add option="-Wall" />
@@ -321,18 +336,47 @@
 					<Add option="-DNEED_SUBLATIN_C=1" />
 					<Add option="-DSQUILU_ALONE=1" />
 					<Add option="-D_WIN32_WCE=1" />
+					<Add option="-DNDEBUG=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
 					<Add library="../../zeromq-3.2.2/libzmq3.a" />
-					<Add library="pthread" />
-					<Add library="rt" />
-					<Add library="dl" />
 					<Add library="axtls" />
 					<Add library="mpdecimal" />
 					<Add library="discount" />
-					<Add library="fltk_z" />
+					<Add library="coredll" />
+					<Add directory="../../zeromq-3.2.2" />
+					<Add directory="../fltk/lib" />
+				</Linker>
+			</Target>
+			<Target title="Release wince">
+				<Option output="bin/squilu-wince" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release-wince/" />
+				<Option type="1" />
+				<Option compiler="cegcc_compiler" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-Wall" />
+					<Add option="-fno-rtti" />
+					<Add option="-fno-strict-aliasing" />
+					<Add option="-DINET_ATON=1" />
+					<Add option="-DNDEBUG=1" />
+					<Add option="-DSQLITE_OMIT_WAL=1" />
+					<Add option="-DSQLITE_OS_WIN=1" />
+					<Add option="-DSQLITE_OS_WINCE=1" />
+					<Add option="-D_WIN32_WCE=0x300" />
+					<Add option="-DHAVE_ISBLANK=1" />
+					<Add option="-DNO_CLEAR_FP=1" />
+					<Add directory="../../zeromq-3.2.2/include" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="axtls-wince" />
+					<Add library="discount-wince" />
+					<Add library="coredll" />
+					<Add library="ws2" />
+					<Add library="z" />
 					<Add directory="../../zeromq-3.2.2" />
 					<Add directory="../fltk/lib" />
 				</Linker>
@@ -341,11 +385,11 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fno-strict-aliasing" />
+			<Add option="-DONLY_ASCII=1" />
 			<Add option="-DPROFILE_SQVM0=1" />
 			<Add option="-DSQ_JIT_LLVM44=1" />
 			<Add option="-D_DEBUG_DUMP33=1" />
 			<Add option="-DWITH_DAD_EXTRAS=1" />
-			<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
 			<Add option="-DSQ_SUBLATIN=1" />
 			<Add option="-DNEED_SUBLATIN_C2=1" />
 			<Add option="-DSQUSEDOUBLE=1" />
@@ -353,6 +397,7 @@
 			<Add option="-DNO_EXCEPTION_KEY_NOT_FOUND0=1" />
 			<Add option="-D_SQ642=1" />
 			<Add option="-DNO_GARBAGE_COLLECTOR00=1" />
+			<Add option="-DTHREADSAFE=1" />
 			<Add option="-DSQLITE_DEFAULT_FILE_FORMAT=4" />
 			<Add option="-DSQLITE_DEFAULT_AUTOVACUUM=1" />
 			<Add option="-DSQLITE_DEFAULT_FOREIGN_KEYS=1" />
@@ -396,9 +441,19 @@
 		</Linker>
 		<Unit filename="../SquiLu-ext/HighResolutionTimer.cpp" />
 		<Unit filename="../SquiLu-ext/HighResolutionTimer.h" />
+		<Unit filename="../SquiLu-ext/celibc.c">
+			<Option compilerVar="CC" />
+			<Option target="Release alone wince" />
+			<Option target="Release wince" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/celibc.h">
+			<Option target="Release alone wince" />
+			<Option target="Release wince" />
+		</Unit>
 		<Unit filename="../SquiLu-ext/code_mix_prep.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="../SquiLu-ext/dad_utils.cpp" />
 		<Unit filename="../SquiLu-ext/dynamic_library.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
@@ -408,6 +463,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/dynamic_library.h">
 			<Option target="Debug" />
@@ -418,6 +474,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/fpdf.cpp">
 			<Option target="Debug" />
@@ -428,6 +485,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/fpdf.h">
 			<Option target="Debug" />
@@ -438,6 +496,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/lua_socket.cpp">
 			<Option target="Debug" />
@@ -448,6 +507,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/lua_socket.h">
 			<Option target="Debug" />
@@ -458,6 +518,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/mongoose.c">
 			<Option compilerVar="CC" />
@@ -469,6 +530,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/mongoose.h">
 			<Option target="Debug" />
@@ -479,6 +541,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/pdf-font.cpp">
 			<Option target="Debug" />
@@ -489,6 +552,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/pdf-font.h">
 			<Option target="Debug" />
@@ -499,6 +563,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_axtls.c">
 			<Option compilerVar="CC" />
@@ -510,6 +575,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_base64.cpp">
 			<Option target="Debug" />
@@ -520,6 +586,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_decimal.cpp">
 			<Option target="Debug" />
@@ -540,6 +607,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_fpdf.cpp">
 			<Option target="Debug" />
@@ -550,6 +618,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_fs.c">
 			<Option compilerVar="CC" />
@@ -561,6 +630,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_markdown.cpp">
 			<Option target="Debug" />
@@ -571,6 +641,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_mix.cpp">
 			<Option target="Debug" />
@@ -581,6 +652,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_mongoose.cpp">
 			<Option target="Debug" />
@@ -591,6 +663,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_parsecsv.cpp">
 			<Option target="Debug" />
@@ -622,6 +695,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_slave_vm.cpp">
 			<Option target="Debug" />
@@ -632,6 +706,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_socket.cpp">
 			<Option target="Debug" />
@@ -642,6 +717,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_sqlite3.cpp">
 			<Option target="Debug" />
@@ -652,6 +728,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_tinyxml2.cpp">
 			<Option target="Debug" />
@@ -662,6 +739,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_zlib.cpp">
 			<Option target="Debug" />
@@ -672,6 +750,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_zmq3.cpp">
 			<Option target="Debug" />
@@ -693,6 +772,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sqlite3.h">
 			<Option target="Debug" />
@@ -703,6 +783,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sqmodule.h">
 			<Option target="Debug" />
@@ -713,6 +794,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sqratimport.cpp">
 			<Option target="Debug" />
@@ -723,6 +805,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sqratimport.h">
 			<Option target="Debug" />
@@ -733,6 +816,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/tinyxml2.cpp">
 			<Option target="Debug" />
@@ -743,6 +827,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/tinyxml2.h">
 			<Option target="Debug" />
@@ -753,6 +838,7 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
+			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="dadbiz.rc">
 			<Option compilerVar="WINDRES" />

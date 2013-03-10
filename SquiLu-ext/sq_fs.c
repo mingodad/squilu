@@ -32,15 +32,21 @@
 
 #define _LARGEFILE64_SOURCE
 
+#ifndef _WIN32_WCE
 #include <errno.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
 #include <sys/stat.h>
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN32_WCE)
+#ifdef _WIN32_WCE
+#include "celibc.h"
+#else
 #include <direct.h>
+#endif
 #include <windows.h>
 #include <io.h>
 #include <sys/locking.h>
@@ -102,9 +108,17 @@ typedef struct dir_data {
   #define STAT_STRUCT struct stati64
  #else
   #define lfs_setmode(L,file,m)   ((void)L, _setmode(_fileno(file), m))
-  #define STAT_STRUCT struct _stati64
+  #ifdef _WIN32_WCE
+   #define STAT_STRUCT struct stat
+  #else
+   #define STAT_STRUCT struct _stati64
+  #endif
  #endif
-#define STAT_FUNC _stati64
+#ifdef _WIN32_WCE
+ #define STAT_FUNC _stat
+#else
+ #define STAT_FUNC _stati64
+#endif
 #define LSTAT_FUNC STAT_FUNC
 #else
 #define _O_TEXT               0
@@ -117,6 +131,7 @@ typedef struct dir_data {
 
 static const SQChar currFileName_key[] = _SC("currFileName");
 
+#ifndef _WIN32_WCE
 /*
 ** This function changes the working (current) directory
 */
@@ -149,6 +164,8 @@ static SQRESULT sqfs_currentdir (HSQUIRRELVM v) {
     return 1;
   }
 }
+#endif
+
 #if 0
 /*
 ** Check if the given element on the stack is a file and returns it.
@@ -386,7 +403,9 @@ static SQRESULT sqfs_mkdir (HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 2, path);
 	int fail;
-#ifdef _WIN32
+#ifdef _WIN32_WCE
+	fail = mkdir (path);
+#elif defined(_WIN32)
 	int oldmask = umask (0);
 	fail = _mkdir (path);
 #else
@@ -397,7 +416,9 @@ static SQRESULT sqfs_mkdir (HSQUIRRELVM v) {
 	if (fail) {
         return sq_throwerror (v, "%s", strerror(errno));
 	}
+#ifndef _WIN32_WCE
 	umask (oldmask);
+#endif
 	sq_pushbool (v, SQTrue);
 	return 1;
 }
@@ -799,8 +820,10 @@ static void set_info (HSQUIRRELVM v) {
 static SQRegFunction sqfs_methods[] =
 {
 	_DECL_FUNC(attributes,  -2, _SC(".ss")),
+#ifndef _WIN32_WCE
 	_DECL_FUNC(chdir,  2, _SC(".s")),
 	_DECL_FUNC(currentdir,  1, _SC(".")),
+#endif
 /*
 	_DECL_FUNC(lock,  -3, _SC("xsii")),
 */

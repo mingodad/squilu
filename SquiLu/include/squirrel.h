@@ -111,7 +111,7 @@ struct SQInstance;
 struct SQDelegable;
 struct SQOuter;
 
-#ifdef _UNICODE
+#if defined(_UNICODE) && !defined(ONLY_ASCII)
 #define SQUNICODE
 #endif
 
@@ -123,9 +123,7 @@ struct SQOuter;
 #endif
 
 #else
-#ifndef _WIN32_WCE
 typedef unsigned short wchar_t;
-#endif
 #endif
 
 typedef wchar_t SQChar;

@@ -7,7 +7,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="libdiscount" prefix_auto="1" extension_auto="1" />
+				<Option output="discount" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="obj/Debug/" />
 				<Option type="2" />
@@ -19,7 +19,7 @@
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="libdiscount" prefix_auto="1" extension_auto="1" />
+				<Option output="discount" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="obj/Release/" />
 				<Option type="2" />
@@ -33,9 +33,23 @@
 				</Linker>
 			</Target>
 			<Target title="Release win32">
-				<Option output="libdiscount-win32" prefix_auto="1" extension_auto="1" />
+				<Option output="discount-win32" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="obj/Release-win32/" />
+				<Option type="2" />
+				<Option compiler="mingw32_compiler" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="Release wince">
+				<Option output="discount-wince" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release-wince/" />
 				<Option type="2" />
 				<Option compiler="mingw32_compiler" />
 				<Compiler>

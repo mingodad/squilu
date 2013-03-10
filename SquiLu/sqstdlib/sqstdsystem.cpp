@@ -5,7 +5,9 @@
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
-#ifndef _WIN32_WCE
+#ifdef _WIN32_WCE
+#include "celibc.h"
+#else
 #include <signal.h>
 #endif
 #include <sqstdsystem.h>
@@ -33,7 +35,6 @@
 
 SQ_OPT_STRING_STRLEN();
 
-#ifndef _WIN32_WCE
 static SQRESULT _system_getenv(HSQUIRRELVM v)
 {
 	const SQChar *s;
@@ -60,7 +61,6 @@ static SQRESULT _system_clock(HSQUIRRELVM v)
 	sq_pushfloat(v,((SQFloat)clock())/(SQFloat)CLOCKS_PER_SEC);
 	return 1;
 }
-#endif
 
 /*
 static SQRESULT _system_time(HSQUIRRELVM v)
@@ -148,7 +148,6 @@ static SQRESULT _system_difftime (HSQUIRRELVM v) {
   return 1;
 }
 
-#ifndef _WIN32_WCE
 static SQRESULT _system_remove(HSQUIRRELVM v)
 {
 	const SQChar *s;
@@ -224,7 +223,6 @@ static SQRESULT _system_date(HSQUIRRELVM v)
     }
     return 1;
 }
-#endif
 
 static SQRESULT _system_exit (HSQUIRRELVM v) {
   SQRESULT status = 0;
@@ -257,7 +255,6 @@ static SQRESULT _system_exit (HSQUIRRELVM v) {
 #define sq_tmpnam(b,e)		{ e = (tmpnam(b) == NULL); }
 #endif
 
-#ifndef _WIN32_WCE
 static SQRESULT _system_tmpname (HSQUIRRELVM v) {
   SQChar buff[SQ_TMPNAMBUFSIZE];
   int err;
@@ -268,8 +265,12 @@ static SQRESULT _system_tmpname (HSQUIRRELVM v) {
   return 1;
 }
 
+#ifndef _WIN32_WCE
 #include <locale.h>
+#endif
+
 static SQRESULT _system_setlocale (HSQUIRRELVM v) {
+#ifndef _WIN32_WCE
   static const int cat[] = {LC_ALL, LC_COLLATE, LC_CTYPE, LC_MONETARY,
                       LC_NUMERIC, LC_TIME};
   static const SQChar *const catnames[] = {_SC("all"), _SC("collate"), _SC("ctype"),
@@ -283,8 +284,10 @@ static SQRESULT _system_setlocale (HSQUIRRELVM v) {
         return 1;
     }
   return sq_throwerror(v, _SC("invalid option %s for param %d"), name, 3);
-}
+#else
+  return 0;
 #endif
+}
 
 /*-------------------------------------------------------------------------*\
 * Sleep for n seconds.
@@ -509,7 +512,6 @@ static int _system_raise(HSQUIRRELVM v)
 
 #define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_system_##name,nparams,pmask}
 static SQRegFunction systemlib_funcs[]={
-#ifndef _WIN32_WCE
 	_DECL_FUNC(getenv,2,_SC(".s")),
 	_DECL_FUNC(system,2,_SC(".s")),
 	_DECL_FUNC(clock,0,NULL),
@@ -518,13 +520,14 @@ static SQRegFunction systemlib_funcs[]={
 	_DECL_FUNC(date,-1,_SC(".sn")),
 	_DECL_FUNC(tmpname,1,_SC(".")),
 	_DECL_FUNC(setlocale,-1,_SC(".ss")),
-	_DECL_FUNC(getmillicount,1,_SC(".")),
-	_DECL_FUNC(getmillispan,2,_SC(".i")),
-#endif
 	_DECL_FUNC(time,-1,_SC(".t")),
 	_DECL_FUNC(difftime,-2,_SC(".nn")),
 	_DECL_FUNC(exit, -1,_SC(". b|i b")),
 	_DECL_FUNC(sleep, 2,_SC(".n")),
+#ifndef _WIN32_WCE
+	_DECL_FUNC(getmillicount,1,_SC(".")),
+	_DECL_FUNC(getmillispan,2,_SC(".i")),
+#endif
 	{0,0}
 };
 #undef _DECL_FUNC

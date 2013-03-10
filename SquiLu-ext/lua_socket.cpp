@@ -709,7 +709,14 @@ p_timeout lua_timeout_markstart(p_timeout tm) {
 double lua_timeout_gettime(void) {
     FILETIME ft;
     double t;
-    GetSystemTimeAsFileTime(&ft);
+#if defined(UNDER_CE)
+    // Windows CE does not define GetSystemTimeAsFileTime so we do it in two steps.
+    SYSTEMTIME st;
+    GetSystemTime( &st );
+    SystemTimeToFileTime( &st, &ft );
+  #else
+    GetSystemTimeAsFileTime( &ft );  // never fails
+  #endif
     /* Windows file time (time since January 1, 1601 (UTC)) */
     t  = ft.dwLowDateTime/1.0e7 + ft.dwHighDateTime*(4294967296.0/1.0e7);
     /* convert to Unix Epoch time (time since January 1, 1970 (UTC)) */

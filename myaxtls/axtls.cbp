@@ -7,7 +7,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="libaxtls" prefix_auto="1" extension_auto="1" />
+				<Option output="axtls" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="obj/Debug/" />
 				<Option type="2" />
@@ -18,7 +18,7 @@
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="libaxtls" prefix_auto="1" extension_auto="1" />
+				<Option output="axtls" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="obj/Release/" />
 				<Option type="2" />
@@ -33,7 +33,7 @@
 				</Linker>
 			</Target>
 			<Target title="Release-lua-jit">
-				<Option output="libaxtls-lua-jit" prefix_auto="1" extension_auto="1" />
+				<Option output="axtls-lua-jit" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="obj/Release/" />
 				<Option type="2" />
@@ -49,7 +49,7 @@
 				</Linker>
 			</Target>
 			<Target title="Debug-lua-jit">
-				<Option output="libaxtls-lua-jit" prefix_auto="1" extension_auto="1" />
+				<Option output="axtls-lua-jit" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="obj/Debug/" />
 				<Option type="2" />
@@ -62,7 +62,7 @@
 				</Compiler>
 			</Target>
 			<Target title="Release O3">
-				<Option output="libaxtls" prefix_auto="1" extension_auto="1" />
+				<Option output="axtls" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="obj/Release/" />
 				<Option type="2" />
@@ -79,7 +79,7 @@
 				</Linker>
 			</Target>
 			<Target title="Release WIN32">
-				<Option output="libaxtls-win32" prefix_auto="1" extension_auto="1" />
+				<Option output="axtls-win32" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="obj/Release-win32/" />
 				<Option type="2" />
@@ -93,9 +93,23 @@
 					<Add option="-s" />
 				</Linker>
 			</Target>
+			<Target title="Release WINCE">
+				<Option output="axtls-wince" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release-wince/" />
+				<Option type="2" />
+				<Option compiler="cegcc_compiler" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-D_WIN32_WCE=1" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-march=i686" />
 			<Add option="-O2" />
 			<Add option="-DSSL_STATIC_LIBRARY=1" />
 			<Add option="-DAXTLS_LIBRARY=1" />

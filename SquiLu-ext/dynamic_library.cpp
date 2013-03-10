@@ -7,8 +7,13 @@
 #ifdef WIN32
 #include <windows.h>
 #define CLOSE_LIB(lib) (FreeLibrary((HINSTANCE)lib) != 0)
+#ifdef _WIN32_WCE
+#define OPEN_LIB(lib) (void*)LoadLibraryA(lib)
+#define GET_SYM(lib, sn) GetProcAddressA((HINSTANCE)lib, sn)
+#else
 #define OPEN_LIB(lib) (void*)LoadLibrary(lib)
 #define GET_SYM(lib, sn) GetProcAddress((HINSTANCE)lib, sn)
+#endif
 typedef void* (WINAPI*cPtrFuncVarArg)(...);
 #else
 #include <dlfcn.h>

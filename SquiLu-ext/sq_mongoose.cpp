@@ -252,6 +252,7 @@ sq_http_request_get_conn_buf(HSQUIRRELVM v)
     return 1;
 }
 
+#ifndef _WIN32_WCE
 static SQRESULT
 sq_http_request_handle_cgi_request(HSQUIRRELVM v)
 {
@@ -263,6 +264,7 @@ sq_http_request_handle_cgi_request(HSQUIRRELVM v)
 
     return 0;
 }
+#endif
 
 static SQRESULT
 sq_http_request_get_option(HSQUIRRELVM v)
@@ -557,7 +559,9 @@ static SQRegFunction mg_http_request_methods[] =
 	_DECL_FUNC(get_cookie,  2, _SC("xs")),
 	_DECL_FUNC(get_header,  2, _SC("xs")),
 	_DECL_FUNC(send_file,  2, _SC("xs")),
+#ifndef _WIN32_WCE
 	_DECL_FUNC(handle_cgi_request,  2, _SC("xs")),
+#endif
 	_DECL_FUNC(get_option,  2, _SC("xs")),
 	_DECL_FUNC(check_password,  2, _SC("xs")),
 	_DECL_FUNC(close_session,  1, _SC("x")),
