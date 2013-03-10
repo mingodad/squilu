@@ -6,7 +6,7 @@
  
  /*SquiLu
  local k_consts = [
-		"account_id", "accounts", "active", "address", "buy_description",
+		"account_id", "accounts", "active", "address",  "batch_order_line_id", "buy_description",
 		"buy_discount", "buy_notes", "buy_other_costs", "buy_price",
 		"buy_quantity_min", "buys", "cash", "cdate", "city", "code", "company",
 		"contact", "country", "date", "days", "delete", "description",
@@ -20,7 +20,8 @@
 		"markup_to_discount", "mdate", "measure_unit_id", "mime_type",
 		"months", "name", "notes", "only_prices_older", "order_by_creation",
 		"order_by_modification", "order_date", "order_id", "order_number",
-		"order_type_id", "order_types", "order_valid_till_date", "orders", "parent_id",
+		"order_type_id", "order_types", "order_valid_till_date", "orders", "orders_lines",
+		"parent_id",
 		"payment_type_id", "payment_types", "periode_count", "periode_type", 
 		"phone", "price", "price_decimals",
 		"price_formula", "product_id", "products",  "quantity", "query_limit",
@@ -34,7 +35,7 @@
 		"unit_weight",
 		"units_by_package", "update", "user_code", "use_sales_tax2",
 		"warranty_id", "web", "weeks", "weight", "weight_total", "with_accounts",
-		"with_headers", "with_images", "years", "zip",		
+		"with_headers", "with_images", "years", "xref_order_line_id", "zip",		
 	];
 function mk_consts(){
 	k_consts.sort();
@@ -52,6 +53,7 @@ const C_account_id = "account_id";
 const C_accounts = "accounts";
 const C_active = "active";
 const C_address = "address";
+const C_batch_order_line_id = "batch_order_line_id";
 const C_buy_description = "buy_description";
 const C_buy_discount = "buy_discount";
 const C_buy_notes = "buy_notes";
@@ -120,6 +122,7 @@ const C_order_type_id = "order_type_id";
 const C_order_types = "order_types";
 const C_order_valid_till_date = "order_valid_till_date";
 const C_orders = "orders";
+const C_orders_lines = "orders_lines";
 const C_parent_id = "parent_id";
 const C_payment_type_id = "payment_type_id";
 const C_payment_types = "payment_types";
@@ -179,6 +182,7 @@ const C_weight_total = "weight_total";
 const C_with_accounts = "with_accounts";
 const C_with_headers = "with_headers";
 const C_with_images = "with_images";
+const C_xref_order_line_id = "xref_order_line_id";
 const C_years = "years";
 const C_zip = "zip";
 // generated-code:end 
@@ -1259,7 +1263,7 @@ local function entity_bar_chart_statistics_sql(entity_d, sab, periode_count, per
 	return mf.tostring();
 }
 
-local function entities_sql_search_list(qs_tbl, post_tbl){
+local function entities_sql_search_list(qs_tbl : table, post_tbl : table){
 	local so = get_search_options(post_tbl);
 	checkQueryStringSAB(qs_tbl, so);
 	local mf = blob();
@@ -2040,10 +2044,38 @@ local MyCalcOrderTotals = class
 	}
 }
 
+class DBTableUpdateOrderLine extends DB_Manager
+{
+	order_id : integer;
+
+	constructor(){
+		base.constructor(C_orders_lines, [
+			C_order_id, C_xref_order_line_id, C_batch_order_line_id,
+			C_product_id, C_quantity, C_weight, C_price, C_price_decimals, 
+			C_sales_tax1_pct, C_sales_tax2_pct, C_discount_pct,
+			C_description, C_notes, C_cdate]);
+		has_version = false;
+		has_mdate = false;
+		order_id = 0;
+	}
+	
+	function getWhereClause(){
+		return " where id=? and order_id=? ";
+	}
+
+	function bindWhereClause(stmt, lastParam)
+	{
+		stmt.bind(++lastParam, edit_id);
+		stmt.bind(++lastParam, order_id);
+		return lastParam;
+	}
+};
+
 local DB_Orders = class extends DB_Manager {
 	_calc_line = null;
 	_order_totals = null;
 	_stmt_update_version = null;
+	_db_line = null;
 	
 	constructor(){
 		base.constructor(C_orders, [
@@ -2058,6 +2090,8 @@ local DB_Orders = class extends DB_Manager {
 		]);
 		_calc_line = new CalcOrderLine();
 		_order_totals = CalcOrderTotals();
+		
+		_db_line = DBTableUpdateOrderLine();
 	}
 
 	function get_bar_chart_statistics_sql_core(mf, sab, speriode, speriode_count, strPU1, strPU2){
@@ -3200,7 +3234,7 @@ local function ourbizDbGetBin(request){
 	return false;
 }
 
-local function ourbizDbAction(request){
+local function ourbizDbAction(request) {
 	local isPost = request.info.request_method == "POST";
 	if (isPost){
 		local data = get_post_fields(request, 10*1024);
@@ -3259,3 +3293,6 @@ add_uri_hanlders({
 });
 
 } //end dummy nested scope
+
+
+
