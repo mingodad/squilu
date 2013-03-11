@@ -28,6 +28,7 @@ local function AtAv(x, y, t, N){
   Atv(t, y, N)
 }
 
+//check_delayed_release_hooks(false);
 local N = vargv.get(1, 500).tointeger();
 
 local start = os.clock()

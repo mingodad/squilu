@@ -34,7 +34,7 @@ if (maxdepth < N) maxdepth = N
 local longlivedtree = BottomUpTree(0, maxdepth)
 
 for(local depth=mindepth; depth <= maxdepth; depth += 2){
-  local iterations = math.pow(2, (maxdepth - depth + mindepth))
+  local iterations = math.pow(2, (maxdepth - depth + mindepth)).tointeger()
   local check = 0
   for(local i=0; i < iterations; ++i){
     check += ItemCheck(BottomUpTree(1, depth)) +

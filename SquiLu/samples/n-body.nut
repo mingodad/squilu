@@ -67,13 +67,13 @@ local function advance(bodies, nbody, dt){
       local mag = sqrt(dx*dx + dy*dy + dz*dz)
       mag = dt / (mag * mag * mag)
       local bm = bj.mass*mag
-      bivx = bivx - (dx * bm)
-      bivy = bivy - (dy * bm)
-      bivz = bivz - (dz * bm)
+      bivx -= (dx * bm)
+      bivy -= (dy * bm)
+      bivz -= (dz * bm)
       bm = bimass*mag
-      bj.vx = bj.vx + (dx * bm)
-      bj.vy = bj.vy + (dy * bm)
-      bj.vz = bj.vz + (dz * bm)
+      bj.vx += (dx * bm)
+      bj.vy += (dy * bm)
+      bj.vz += (dz * bm)
     }
     bi.vx = bivx
     bi.vy = bivy
@@ -89,12 +89,12 @@ local function energy(bodies, nbody){
   for(local i=0; i < nbody; ++i){
     local bi = bodies[i]
     local vx = bi.vx, vy = bi.vy, vz = bi.vz, bim = bi.mass
-    e = e + (0.5 * bim * (vx*vx + vy*vy + vz*vz))
+    e += (0.5 * bim * (vx*vx + vy*vy + vz*vz))
     for(local j=i+1; j < nbody; ++j){
       local bj = bodies[j]
       local dx = bi.x-bj.x, dy = bi.y-bj.y, dz = bi.z-bj.z
       local distance = sqrt(dx*dx + dy*dy + dz*dz)
-      e = e - ((bim * bj.mass) / distance)
+      e -= ((bim * bj.mass) / distance)
     }
   }
   return e
@@ -109,9 +109,10 @@ local function offsetMomentum(b, nbody){
     py = py + (bi.vy * bim)
     pz = pz + (bi.vz * bim)
   }
-  b[0].vx = -px / SOLAR_MASS
-  b[0].vy = -py / SOLAR_MASS
-  b[0].vz = -pz / SOLAR_MASS
+  local b0 = b[0]
+  b0.vx = -px / SOLAR_MASS
+  b0.vy = -py / SOLAR_MASS
+  b0.vz = -pz / SOLAR_MASS
 }
 
 local start = os.clock()
