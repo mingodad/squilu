@@ -8,13 +8,12 @@ local function BottomUpTree(item, depth){
     --depth;
     return [ item, BottomUpTree(i-1, depth),  BottomUpTree(i, depth) ];
   }
-  else return [ item ];
+  return [ item ];
 }
 
 local function ItemCheck(tree){
   if (tree.get(1, false))  return tree[0] + ItemCheck(tree[1]) - ItemCheck(tree[2])
-  else
-    return tree[0]
+  return tree[0]
 }
 
 local start = os.clock()

@@ -34,8 +34,6 @@
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Wall" />
-					<Add option="-fno-rtti" />
-					<Add option="-fno-strict-aliasing" />
 					<Add option="-DNDEBUG=1" />
 					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
@@ -82,8 +80,6 @@
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Wall" />
-					<Add option="-fno-rtti" />
-					<Add option="-fno-strict-aliasing" />
 					<Add option="-DAS_STATIC_LIB=1" />
 					<Add option="-DINET_ATON=1" />
 					<Add option="-DNDEBUG=1" />
@@ -115,8 +111,6 @@
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
 					<Add option="-Wall" />
-					<Add option="-fno-rtti" />
-					<Add option="-fno-strict-aliasing" />
 					<Add option="-DWITH_FLTK=1" />
 					<Add option="-DNDEBUG=1" />
 					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
@@ -161,8 +155,6 @@
 					<Add option="-O2" />
 					<Add option="-Wall" />
 					<Add option="-g" />
-					<Add option="-fno-rtti" />
-					<Add option="-fno-strict-aliasing" />
 					<Add option="-DWITH_FLTK=1" />
 					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
@@ -202,8 +194,6 @@
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Wall" />
-					<Add option="-fno-rtti" />
-					<Add option="-fno-strict-aliasing" />
 					<Add option="-DAS_STATIC_LIB=1" />
 					<Add option="-DINET_ATON=1" />
 					<Add option="-DWITH_FLTK=1" />
@@ -252,8 +242,6 @@
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Wall" />
-					<Add option="-fno-rtti" />
-					<Add option="-fno-strict-aliasing" />
 					<Add option="-DAS_STATIC_LIB=1" />
 					<Add option="-DINET_ATON=1" />
 					<Add option="-DWITH_FLTK=1" />
@@ -302,8 +290,6 @@
 				<Compiler>
 					<Add option="-Os" />
 					<Add option="-Wall" />
-					<Add option="-fno-rtti" />
-					<Add option="-fno-strict-aliasing" />
 					<Add option="-DNEED_SUBLATIN_C=1" />
 					<Add option="-DSQUILU_ALONE=1" />
 					<Add option="-DNDEBUG=1" />
@@ -331,8 +317,6 @@
 				<Compiler>
 					<Add option="-Os" />
 					<Add option="-Wall" />
-					<Add option="-fno-rtti" />
-					<Add option="-fno-strict-aliasing" />
 					<Add option="-DNEED_SUBLATIN_C=1" />
 					<Add option="-DSQUILU_ALONE=1" />
 					<Add option="-D_WIN32_WCE=1" />
@@ -358,8 +342,6 @@
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Wall" />
-					<Add option="-fno-rtti" />
-					<Add option="-fno-strict-aliasing" />
 					<Add option="-DINET_ATON=1" />
 					<Add option="-DNDEBUG=1" />
 					<Add option="-DSQLITE_OMIT_WAL=1" />
@@ -372,6 +354,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-Wl,-static" />
 					<Add library="axtls-wince" />
 					<Add library="discount-wince" />
 					<Add library="coredll" />
@@ -385,6 +368,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fno-strict-aliasing" />
+			<Add option="-fno-rtti" />
 			<Add option="-DONLY_ASCII=1" />
 			<Add option="-DPROFILE_SQVM0=1" />
 			<Add option="-DSQ_JIT_LLVM44=1" />
@@ -641,7 +625,6 @@
 			<Option target="Debug FLTK" />
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
-			<Option target="Release wince" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_mix.cpp">
 			<Option target="Debug" />

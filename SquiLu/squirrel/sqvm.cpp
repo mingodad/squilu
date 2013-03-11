@@ -42,30 +42,23 @@ bool SQVM::BW_OP(SQUnsignedInteger op,SQObjectPtr &trg,const SQObjectPtr &o1,con
 	return true;
 }
 
-#define _ARITH_(op,trg,o1,o2) \
+#define _ARITH_BASE_(op,trg,o1,o2, ARITH_INTEGER) \
 { \
-	SQInteger tmask = type(o1)|type(o2); \
-	switch(tmask) { \
-		case OT_INTEGER: trg = _integer(o1) op _integer(o2);break; \
-		case (OT_FLOAT|OT_INTEGER): \
-		case (OT_FLOAT): trg = tofloat(o1) op tofloat(o2); break;\
+	switch(type(o1)|type(o2)) { \
+		case OT_INTEGER: ARITH_INTEGER;break; \
+		case (OT_FLOAT): trg = _float(o1) op _float(o2); break;\
+		case (OT_FLOAT|OT_INTEGER): trg = tofloat(o1) op tofloat(o2); break;\
 		default: _GUARD(ARITH_OP((#op)[0],trg,o1,o2)); break;\
 	} \
 }
 
-#define _ARITH_NOZERO(op,trg,o1,o2,err) \
-{ \
-	SQInteger tmask = type(o1)|type(o2); \
-	switch(tmask) { \
-		case OT_INTEGER: { SQInteger i1 = _integer(o1); SQInteger i2 = _integer(o2);\
+#define _ARITH_(op,trg,o1,o2) _ARITH_BASE_(op,trg,o1,o2, trg = _integer(o1) op _integer(o2))
+
+#define _ARITH_NOZERO(op,trg,o1,o2,err) _ARITH_BASE_(op,trg,o1,o2, \
+		{ SQInteger i1 = _integer(o1); SQInteger i2 = _integer(o2);\
             if(i2 == 0) { Raise_Error(err); SQ_THROW(); } \
             else if(i2 == -1 && i1 == INT_MIN) { Raise_Error(_SC("integer overflow")); SQ_THROW(); }\
-            trg = i1 op i2; } break;\
-		case (OT_FLOAT|OT_INTEGER): \
-		case (OT_FLOAT): trg = tofloat(o1) op tofloat(o2); break;\
-		default: _GUARD(ARITH_OP((#op)[0],trg,o1,o2)); break;\
-	} \
-}
+            trg = i1 op i2; })
 
 bool SQVM::ARITH_OP(SQUnsignedInteger op,SQObjectPtr &trg,const SQObjectPtr &o1,const SQObjectPtr &o2)
 {

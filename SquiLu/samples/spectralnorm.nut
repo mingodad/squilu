@@ -3,8 +3,8 @@
 // contributed by Mike Pall
 
 local function A(i, j){
-  local ij = i+j
-  return 1.0/(ij * (ij+1)/2.0+i+1);
+  local ij = j + i++
+  return 1.0/(ij++ * ij/2.0+i);
 }
 
 local function Av(x, y, N){
