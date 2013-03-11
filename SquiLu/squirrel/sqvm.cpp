@@ -936,7 +936,6 @@ exception_restore:
 				if((ci)->_generator) {
 					(ci)->_generator->Kill();
 				}
-				if(_check_delayed_relase_hooks) _sharedstate->CallDelayedReleaseHooks(this);
 				if(Return(arg0, arg1, temp_reg)){
 					assert(traps==0);
 					//outres = temp_reg;
@@ -1295,7 +1294,6 @@ bool SQVM::CallNative(SQNativeClosure *nclosure, SQInteger nargs, SQInteger newb
 	}
 	//retval = ret ? _stack._vals[_top-1] : _null_;
 	LeaveFrame();
-	if(_check_delayed_relase_hooks) _sharedstate->CallDelayedReleaseHooks(this);
 	return true;
 }
 
@@ -1755,6 +1753,7 @@ void SQVM::LeaveFrame() {
 	while (last_top >= _top) {
 		_stack._vals[last_top--].Null();
 	}
+	if(_check_delayed_relase_hooks) _sharedstate->CallDelayedReleaseHooks(this);
 }
 
 void SQVM::RelocateOuters()
