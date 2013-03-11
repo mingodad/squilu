@@ -33,7 +33,7 @@ function preprocess(file_name){
 
 
 	new_code = new_code.gsub("(/%*SquiLu(.-)SquiLu%*/)", function(m, m2) {
-			return format("%s}====})\n%s\nputs({===={", m, m2)
+			return format("%s\n}====})\n%s\nputs({===={", m, m2)
 		});
 
 	local buffer = blob();
