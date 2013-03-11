@@ -25,15 +25,15 @@ function preprocess(file_name){
 
 	//print(code_generation_begin, code_generation_begin_escaped);
 
-	local new_code = code.gsub(code_generation_begin_escaped + ".-" + code_generation_end_escaped, "");
+	local new_code = code.gsub(code_generation_begin_escaped + ".-" + code_generation_end_escaped + "\n", "");
 
 	new_code = new_code.gsub("(//@(.-)\n)", function(m, m2) {
-			return format("%s%s}====})\n%s;\nputsnl({===={\n%s", m, code_generation_begin, m2, code_generation_end)
+			return format("%s%s\n}====})\n%s;\nputs({===={%s\n", m, code_generation_begin, m2, code_generation_end)
 		});
 
 
 	new_code = new_code.gsub("(/%*SquiLu(.-)SquiLu%*/)", function(m, m2) {
-			return format("%s}====})\n%s\nputsnl({===={", m, m2)
+			return format("%s}====})\n%s\nputs({===={", m, m2)
 		});
 
 	local buffer = blob();
@@ -42,15 +42,16 @@ function preprocess(file_name){
 	buffer.write("}====})");
 	local sqcode = buffer.tostring();
 	
+	//print(sqcode);
+	
 	local code_func = compilestring(sqcode, "sqcode-preprocessed");
 
 	local bak_filename = file_name + ".pp.bak";
 	os.rename(file_name, bak_filename);
 
-	::fd <- file(file_name, "w");
+	::fd <-  file(file_name, "w");
 	code_func();
 	::fd.close();
-
 }
 
 if(vargv.len() > 1){
