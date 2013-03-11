@@ -54,11 +54,12 @@ bool SQVM::BW_OP(SQUnsignedInteger op,SQObjectPtr &trg,const SQObjectPtr &o1,con
 
 #define _ARITH_(op,trg,o1,o2) _ARITH_BASE_(op,trg,o1,o2, trg = _integer(o1) op _integer(o2))
 
-#define _ARITH_NOZERO(op,trg,o1,o2,err) _ARITH_BASE_(op,trg,o1,o2, \
-		{ SQInteger i1 = _integer(o1); SQInteger i2 = _integer(o2);\
+#define _ARITH_NOZERO(op,trg,o1,o2,err) _ARITH_BASE_(op,trg,o1,o2, {\
+			SQInteger i1 = _integer(o1); SQInteger i2 = _integer(o2);\
             if(i2 == 0) { Raise_Error(err); SQ_THROW(); } \
             else if(i2 == -1 && i1 == INT_MIN) { Raise_Error(_SC("integer overflow")); SQ_THROW(); }\
-            trg = i1 op i2; })
+            trg = i1 op i2;\
+		})
 
 bool SQVM::ARITH_OP(SQUnsignedInteger op,SQObjectPtr &trg,const SQObjectPtr &o1,const SQObjectPtr &o2)
 {
@@ -86,7 +87,16 @@ bool SQVM::ARITH_OP(SQUnsignedInteger op,SQObjectPtr &trg,const SQObjectPtr &o1,
 			break;
 		case (OT_FLOAT|OT_INTEGER):
 		case (OT_FLOAT):{
-			SQFloat res, f1 = tofloat(o1), f2 = tofloat(o2);
+			SQFloat res, f1, f2;
+			if(tmask == OT_FLOAT){
+				f1 = _float(o1);
+				f2 = _float(o2);
+			}
+			else
+			{
+				f1 = tofloat(o1);
+				f2 = tofloat(o2);
+			}
 			switch(op) {
 			case '+': res = f1 + f2; break;
 			case '-': res = f1 - f2; break;
@@ -179,18 +189,19 @@ SQVM::~SQVM()
 
 bool SQVM::ArithMetaMethod(SQInteger op,const SQObjectPtr &o1,const SQObjectPtr &o2,SQObjectPtr &dest)
 {
-	SQMetaMethod mm;
-	switch(op){
-		case _SC('+'): mm=MT_ADD; break;
-		case _SC('-'): mm=MT_SUB; break;
-		case _SC('/'): mm=MT_DIV; break;
-		case _SC('*'): mm=MT_MUL; break;
-		case _SC('%'): mm=MT_MODULO; break;
-		default: assert(0); break; //shutup compiler
-	}
 	if(is_delegable(o1) && _delegable(o1)->_delegate) {
 
 		SQObjectPtr closure;
+		SQMetaMethod mm;
+		switch(op){
+			case _SC('+'): mm=MT_ADD; break;
+			case _SC('-'): mm=MT_SUB; break;
+			case _SC('/'): mm=MT_DIV; break;
+			case _SC('*'): mm=MT_MUL; break;
+			case _SC('%'): mm=MT_MODULO; break;
+			default: assert(0); break; //shutup compiler
+		}
+
 		if(_delegable(o1)->GetMetaMethod(this, mm, closure)) {
 			Push(o1);Push(o2);
 			return CallMetaMethod(closure,mm,2,dest);
@@ -1284,6 +1295,7 @@ bool SQVM::CallNative(SQNativeClosure *nclosure, SQInteger nargs, SQInteger newb
 	}
 	//retval = ret ? _stack._vals[_top-1] : _null_;
 	LeaveFrame();
+	if(_check_delayed_relase_hooks) _sharedstate->CallDelayedReleaseHooks(this);
 	return true;
 }
 
