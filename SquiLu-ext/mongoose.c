@@ -102,7 +102,7 @@ typedef long off_t;
 #if defined(_MSC_VER) && _MSC_VER < 1300
 #define STRX(x) #x
 #define STR(x) STRX(x)
-#define __func__ "line " STR(__LINE__)
+#define __func__ __FILE__ ":" STR(__LINE__)
 #define strtoull(x, y, z) strtoul(x, y, z)
 #define strtoll(x, y, z) strtol(x, y, z)
 #else
@@ -194,8 +194,20 @@ typedef struct DIR {
   struct dirent  result;
 } DIR;
 
+#ifndef HAS_POLL
+struct pollfd {
+  int fd;
+  short events;
+  short revents;
+};
+#define POLLIN 1
+#endif
+
+
 // Mark required libraries
+#ifdef _MSC_VER
 #pragma comment(lib, "Ws2_32.lib")
+#endif
 
 #else    // UNIX  specific
 #include <sys/wait.h>
@@ -257,6 +269,7 @@ typedef int SOCKET;
 #define CGI_ENVIRONMENT_SIZE 4096
 #define MAX_CGI_ENVIR_VARS 64
 #define MG_BUF_LEN 8192
+//#define MAX_REQUEST_SIZE 16384
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))
 
 #ifdef _WIN32
@@ -407,6 +420,8 @@ struct ssl_func {
 #define SSL_CTX_use_certificate_chain_file \
   (* (int (*)(SSL_CTX *, const char *)) ssl_sw[16].ptr)
 #define SSLv23_client_method (* (SSL_METHOD * (*)(void)) ssl_sw[17].ptr)
+#define SSL_pending (* (int (*)(SSL *)) ssl_sw[18].ptr)
+#define SSL_CTX_set_verify (* (void (*)(SSL_CTX *, int, int)) ssl_sw[19].ptr)
 
 #define CRYPTO_num_locks (* (int (*)(void)) crypto_sw[0].ptr)
 #define CRYPTO_set_locking_callback \
@@ -439,6 +454,8 @@ static struct ssl_func ssl_sw[] = {
   {"SSL_load_error_strings", NULL},
   {"SSL_CTX_use_certificate_chain_file", NULL},
   {"SSLv23_client_method", NULL},
+  {"SSL_pending", NULL},
+  {"SSL_CTX_set_verify", NULL},
   {NULL,    NULL}
 };
 
@@ -502,8 +519,9 @@ struct socket {
   SOCKET sock;          // Listening socket
   union usa lsa;        // Local socket address
   union usa rsa;        // Remote socket address
-  int is_ssl;           // Is socket SSL-ed
-  int is_proxy;
+  int is_ssl:1;           // Is socket SSL-ed
+  unsigned ssl_redir:1; // Is port supposed to redirect everything to SSL port
+  int is_proxy:1;
   //DAD using bitfield here only need on int and allow more flags
   //int connection_count;
 };
@@ -516,7 +534,7 @@ enum {
   GLOBAL_PASSWORDS_FILE, INDEX_FILES, ENABLE_KEEP_ALIVE, ACCESS_CONTROL_LIST,
   MAX_REQUEST_SIZE,
   EXTRA_MIME_TYPES, LISTENING_PORTS, DOCUMENT_ROOT, SSL_CERTIFICATE,
-  NUM_THREADS, RUN_AS_USER, REWRITE, HIDE_FILES,
+  NUM_THREADS, RUN_AS_USER, REWRITE, HIDE_FILES, REQUEST_TIMEOUT,
   MAX_THREADS, NUM_OPTIONS
 };
 
@@ -546,7 +564,8 @@ static const char *config_options[] = {
   "u", "run_as_user", NULL,
   "w", "url_rewrite_patterns", NULL,
   "x", "hide_files_patterns", NULL,
-  "T", "max_threads", NULL,
+  "to", "request_timeout_ms", "30000",
+  "MT", "max_threads", NULL,
   NULL
 };
 #define ENTRIES_PER_CONFIG_OPTION 3
@@ -560,6 +579,7 @@ struct mg_context {
   void *user_data;              // User-defined data
 
   struct socket *listening_sockets;
+  int num_listening_sockets;
 
   volatile int num_threads;  // Number of threads
   volatile int idle_threads; // Number of inactive threads
@@ -572,7 +592,7 @@ struct mg_context {
   //int connection_count;
   volatile int sq_head;      // Head of the socket queue
   volatile int sq_tail;      // Tail of the socket queue
-  pthread_cond_t sq_full;    // Singaled when socket is produced
+  pthread_cond_t sq_full;    // Signaled when socket is produced
   pthread_cond_t sq_empty;   // Signaled when socket is consumed
 
   void *master_plugin;       // User defined master plugin
@@ -585,6 +605,7 @@ struct mg_connection {
   struct mg_request_info request_info;
   struct mg_context *ctx;
   SSL *ssl;                   // SSL descriptor
+  SSL_CTX *client_ssl_ctx;    // SSL context for client connections
   struct socket client;       // Connected client
   time_t birth_time;          // Time when request was received
   int64_t num_bytes_sent;     // Total bytes sent to client
@@ -677,6 +698,9 @@ static void sockaddr_to_string(char *buf, size_t len,
   inet_ntop(usa->sa.sa_family, (void *) &usa->sin.sin_addr, buf, len);
 #endif
 }
+
+static void cry(struct mg_connection *conn,
+                PRINTF_FORMAT_STRING(const char *fmt), ...) PRINTF_ARGS(2, 3);
 
 // Print error message to the opened error log stream.
 static void cry(struct mg_connection *conn, const char *fmt, ...) {
@@ -811,6 +835,18 @@ char * mg_strdup(const char *str) {
   return mg_strndup(str, strlen(str));
 }
 
+static const char *mg_strcasestr(const char *big_str, const char *small_str) {
+  int i, big_len = strlen(big_str), small_len = strlen(small_str);
+
+  for (i = 0; i <= big_len - small_len; i++) {
+    if (mg_strncasecmp(big_str + i, small_str, small_len) == 0) {
+      return big_str + i;
+    }
+  }
+
+  return NULL;
+}
+
 // Like snprintf(), but never returns negative value, or a value
 // that is larger than a supplied buffer.
 // Thanks to Adam Zeldis to pointing snprintf()-caused vulnerability
@@ -836,6 +872,10 @@ static int mg_vsnprintf(struct mg_connection *conn, char *buf, size_t buflen,
 
   return n;
 }
+
+static int mg_snprintf(struct mg_connection *conn, char *buf, size_t buflen,
+                       PRINTF_FORMAT_STRING(const char *fmt), ...)
+  PRINTF_ARGS(4, 5);
 
 static int mg_snprintf(struct mg_connection *conn, char *buf, size_t buflen,
                        const char *fmt, ...) {
@@ -1019,11 +1059,16 @@ static const char *suggest_connection_header(const struct mg_connection *conn) {
   return should_keep_alive(conn) ? "keep-alive" : "close";
 }
 
+static void send_http_error(struct mg_connection *, int, const char *,
+                            PRINTF_FORMAT_STRING(const char *fmt), ...)
+  PRINTF_ARGS(4, 5);
+
+
 static void send_http_error(struct mg_connection *conn, int status,
                             const char *reason, const char *fmt, ...) {
   char buf[MG_BUF_LEN];
   va_list ap;
-  int len;
+  int len = 0;
 
   conn->request_info.status_code = status;
 
@@ -1385,6 +1430,13 @@ static int kill(pid_t pid, int sig_num) {
   return 0;
 }
 
+static void trim_trailing_whitespaces(char *s) {
+  char *e = s + strlen(s) - 1;
+  while (e > s && isspace(* (unsigned char *) e)) {
+    *e-- = '\0';
+  }
+}
+
 static pid_t spawn_process(struct mg_connection *conn, const char *prog,
                            char *envblk, char *envp[], int fd_stdin,
                            int fd_stdout, const char *dir) {
@@ -1519,7 +1571,12 @@ static pid_t spawn_process(struct mg_connection *conn, const char *prog,
       (void) close(fd_stdin);
       (void) close(fd_stdout);
 
-      // Execute CGI program. No need to lock: new process
+      // After exec, all signal handlers are restored to their default values,
+      // with one exception of SIGCHLD. According to POSIX.1-2001 and Linux's
+      // implementation, SIGCHLD's handler will leave unchanged after exec
+      // if it was set to be ignored. Restore it to default action.
+      signal(SIGCHLD, SIG_DFL);
+
       interp = conn->ctx->config[CGI_INTERPRETER];
       if (interp == NULL) {
         (void) execle(prog, prog, NULL, envp);
@@ -1564,9 +1621,12 @@ static int64_t push(FILE *fp, SOCKET sock, SSL *ssl, const char *buf,
     // How many bytes we send in this iteration
     k = len - sent > INT_MAX ? INT_MAX : (int) (len - sent);
 
+#ifndef NO_SSL
     if (ssl != NULL) {
       n = SSL_write(ssl, buf + sent, k);
-    } else if (fp != NULL) {
+    } else
+#endif
+      if (fp != NULL) {
       n = (int) fwrite(buf + sent, 1, (size_t) k, fp);
       if (ferror(fp))
         n = -1;
@@ -1574,7 +1634,7 @@ static int64_t push(FILE *fp, SOCKET sock, SSL *ssl, const char *buf,
       n = send(sock, buf + sent, (size_t) k, MSG_NOSIGNAL);
     }
 
-    if (n < 0)
+    if (n <= 0)
       break;
 
     sent += n;
@@ -1737,7 +1797,7 @@ size_t mg_url_decode(const char *src, size_t src_len, char *dst,
 #define HEXTOI(x) (isdigit(x) ? x - '0' : x - 'W')
 
   for (i = j = 0; i < src_len && j < dst_len - 1; i++, j++) {
-    if (src[i] == '%' &&
+    if (src[i] == '%' && i < src_len - 2 &&
         isxdigit(* (const unsigned char *) (src + i + 1)) &&
         isxdigit(* (const unsigned char *) (src + i + 2))) {
       a = tolower(* (const unsigned char *) (src + i + 1));
@@ -1948,7 +2008,8 @@ static int get_request_len(const char *buf, int buflen) {
     if (!isprint(* (const unsigned char *) s) && *s != '\r' &&
         *s != '\n' && * (const unsigned char *) s < 128) {
       len = -1;
-      break; // [i_a] abort scan as soon as one malformed character is found; don't let subsequent \r\n\r\n win us over anyhow
+      break;  // [i_a] abort scan as soon as one malformed character is found;
+              // don't let subsequent \r\n\r\n win us over anyhow
     } else if (s[0] == '\n' && s[1] == '\n') {
       len = (int) (s - buf) + 2;
     } else if (s[0] == '\n' && &s[1] < e &&
@@ -2047,10 +2108,12 @@ static const struct {
   {".mp3", 4, "audio/x-mp3"},
   {".mid", 4, "audio/mid"},
   {".m3u", 4, "audio/x-mpegurl"},
+  {".ogg", 4, "audio/ogg"},
   {".ram", 4, "audio/x-pn-realaudio"},
   {".xml", 4, "text/xml"},
   {".json",  5, "text/json"},
   {".xslt", 5, "application/xml"},
+  {".xsl", 4, "application/xml"},
   {".ra",  3, "audio/x-pn-realaudio"},
   {".doc", 4, "application/msword"},
   {".exe", 4, "application/octet-stream"},
@@ -2120,6 +2183,11 @@ static void get_mime_type(struct mg_context *ctx, const char *path,
   vec->len = strlen(vec->ptr);
 }
 
+static int is_big_endian(void) {
+  static const int n = 1;
+  return ((char *) &n)[0] == 0;
+}
+
 #ifndef HAVE_MD5
 typedef struct MD5Context {
   uint32_t buf[4];
@@ -2127,19 +2195,19 @@ typedef struct MD5Context {
   unsigned char in[64];
 } MD5_CTX;
 
-#if defined(__BYTE_ORDER) && (__BYTE_ORDER == 1234)
-#define byteReverse(buf, len) // Do nothing
-#else
 static void byteReverse(unsigned char *buf, unsigned longs) {
   uint32_t t;
-  do {
-    t = (uint32_t) ((unsigned) buf[3] << 8 | buf[2]) << 16 |
-      ((unsigned) buf[1] << 8 | buf[0]);
-    *(uint32_t *) buf = t;
-    buf += 4;
-  } while (--longs);
+
+  // Forrest: MD5 expect LITTLE_ENDIAN, swap if BIG_ENDIAN
+  if (is_big_endian()) {
+    do {
+      t = (uint32_t) ((unsigned) buf[3] << 8 | buf[2]) << 16 |
+        ((unsigned) buf[1] << 8 | buf[0]);
+      * (uint32_t *) buf = t;
+      buf += 4;
+    } while (--longs);
+  }
 }
-#endif
 
 #define F1(x, y, z) (z ^ (x & (y ^ z)))
 #define F2(x, y, z) F1(z, x, y)
@@ -2282,6 +2350,7 @@ void MD5Update(MD5_CTX *ctx, unsigned char const *buf, unsigned len) {
 void MD5Final(unsigned char digest[16], MD5_CTX *ctx) {
   unsigned count;
   unsigned char *p;
+  uint32_t *a;
 
   count = (ctx->bits[0] >> 3) & 0x3F;
 
@@ -2298,8 +2367,9 @@ void MD5Final(unsigned char digest[16], MD5_CTX *ctx) {
   }
   byteReverse(ctx->in, 14);
 
-  ((uint32_t *) ctx->in)[14] = ctx->bits[0];
-  ((uint32_t *) ctx->in)[15] = ctx->bits[1];
+  a = (uint32_t *)ctx->in;
+  a[14] = ctx->bits[0];
+  a[15] = ctx->bits[1];
 
   MD5Transform(ctx->buf, (uint32_t *) ctx->in);
   byteReverse((unsigned char *) ctx->buf, 4);
@@ -2988,7 +3058,7 @@ static int is_valid_http_method(const char *method) {
 }
 
 // Parse HTTP request, fill in mg_request_info structure.
-// This function modifies the buffer with HTTP request by nul-terminating
+// This function modifies the buffer by NUL-terminating
 // HTTP request components, header names and header values.
 static int parse_http_message(char *buf, int len, struct mg_request_info *ri) {
   int request_length = get_request_len(buf, len);
@@ -3185,6 +3255,10 @@ struct cgi_env_block {
   char *vars[MAX_CGI_ENVIR_VARS]; // char **envp
   int nvars; // Number of variables
 };
+
+static char *addenv(struct cgi_env_block *block,
+                    PRINTF_FORMAT_STRING(const char *fmt), ...)
+  PRINTF_ARGS(2, 3);
 
 // Append VARIABLE=VALUE\0 string to the buffer, and add a respective
 // pointer into the vars array.
@@ -3754,18 +3828,23 @@ static void handle_propfind(struct mg_connection *conn, const char* path,
 #if defined(__sun)
 #include "solarisfixes.h"
 #endif
+
+union char64long16 { unsigned char c[64]; uint32_t l[16]; };
+
 #define rol(value, bits) (((value) << (bits)) | ((value) >> (32 - (bits))))
-#if BYTE_ORDER == LITTLE_ENDIAN
-#define blk0(i) (block->l[i] = (rol(block->l[i],24)&0xFF00FF00) \
-    |(rol(block->l[i],8)&0x00FF00FF))
-#elif BYTE_ORDER == BIG_ENDIAN
-#define blk0(i) block->l[i]
-#else
-#error "Endianness not defined!"
-#endif
+
+static uint32_t blk0(union char64long16 *block, int i) {
+  // Forrest: SHA expect BIG_ENDIAN, swap if LITTLE_ENDIAN
+  if (!is_big_endian()) {
+    block->l[i] = (rol(block->l[i], 24) & 0xFF00FF00) |
+      (rol(block->l[i], 8) & 0x00FF00FF);
+  }
+  return block->l[i];
+}
+
 #define blk(i) (block->l[i&15] = rol(block->l[(i+13)&15]^block->l[(i+8)&15] \
     ^block->l[(i+2)&15]^block->l[i&15],1))
-#define R0(v,w,x,y,z,i) z+=((w&(x^y))^y)+blk0(i)+0x5A827999+rol(v,5);w=rol(w,30);
+#define R0(v,w,x,y,z,i) z+=((w&(x^y))^y)+blk0(block, i)+0x5A827999+rol(v,5);w=rol(w,30);
 #define R1(v,w,x,y,z,i) z+=((w&(x^y))^y)+blk(i)+0x5A827999+rol(v,5);w=rol(w,30);
 #define R2(v,w,x,y,z,i) z+=(w^x^y)+blk(i)+0x6ED9EBA1+rol(v,5);w=rol(w,30);
 #define R3(v,w,x,y,z,i) z+=(((w|x)&y)|(w&x))+blk(i)+0x8F1BBCDC+rol(v,5);w=rol(w,30);
@@ -3779,9 +3858,8 @@ typedef struct {
 
 static void SHA1Transform(uint32_t state[5], const unsigned char buffer[64]) {
   uint32_t a, b, c, d, e;
-  typedef union { unsigned char c[64]; uint32_t l[16]; } CHAR64LONG16;
+  union char64long16 block[1];
 
-  CHAR64LONG16 block[1];
   memcpy(block, buffer, 64);
   a = state[0];
   b = state[1];
@@ -3915,43 +3993,77 @@ static void send_websocket_handshake(struct mg_connection *conn) {
 }
 
 static void read_websocket(struct mg_connection *conn) {
-  unsigned char *mask, *buf = (unsigned char *) conn->buf + conn->request_len;
-  int n, len, mask_len, body_len, discard_len;
+  unsigned char *buf = (unsigned char *) conn->buf + conn->request_len;
+  int n;
+  size_t i, len, mask_len, data_len, header_len, body_len;
+  char mem[4 * 1024], *data;
 
+  assert(conn->content_len == 0);
   for (;;) {
+    header_len = 0;
     if ((body_len = conn->data_len - conn->request_len) >= 2) {
       len = buf[1] & 127;
       mask_len = buf[1] & 128 ? 4 : 0;
-      if (len < 126) {
-        conn->content_len = 2 + mask_len + len;
-        mask = buf + 2;
-      } else if (len == 126 && body_len >= 4) {
-        conn->content_len = 2 + mask_len + ((((int) buf[2]) << 8) + buf[3]);
-        mask = buf + 4;
-      } else if (body_len >= 10) {
-        conn->content_len = 2 + mask_len +
-          (((uint64_t) htonl(* (uint32_t *) &buf[2])) << 32) |
+      if (len < 126 && body_len >= mask_len) {
+        data_len = len;
+        header_len = 2 + mask_len;
+      } else if (len == 126 && body_len >= 4 + mask_len) {
+        header_len = 4 + mask_len;
+        data_len = ((((int) buf[2]) << 8) + buf[3]);
+      } else if (body_len >= 10 + mask_len) {
+        header_len = 10 + mask_len;
+        data_len = (((uint64_t) htonl(* (uint32_t *) &buf[2])) << 32) +
           htonl(* (uint32_t *) &buf[6]);
-        mask = buf + 10;
       }
     }
 
-    if (conn->content_len > 0) {
-      if (call_user(conn, MG_WEBSOCKET_MESSAGE) != NULL) {
-        break;  // Callback signalled to exit
-      }
-      discard_len = conn->content_len > body_len ?
-          body_len : (int) conn->content_len;
-      memmove(buf, buf + discard_len, conn->data_len - discard_len);
-      conn->data_len -= discard_len;
-      conn->content_len = conn->consumed_content = 0;
-    } else {
-      if (wait_until_socket_is_readable(conn) == 0) {
+    if (header_len > 0) {
+      // Allocate space to hold websocket payload
+      data = mem;
+      if (data_len > sizeof(mem) && (data = malloc(data_len)) == NULL) {
+        // Allocation failed, exit the loop and then close the connection
+        // TODO: notify user about the failure
         break;
       }
-      n = pull(NULL, conn, conn->buf + conn->data_len,
-               conn->buf_size - conn->data_len);
-      if (n <= 0) {
+
+      // Read frame payload into the allocated buffer.
+      assert(body_len >= header_len);
+      if (data_len + header_len > body_len) {
+        len = body_len - header_len;
+        memcpy(data, buf + header_len, len);
+        // TODO: handle pull error
+        pull(NULL, conn, data + len, data_len - len);
+        conn->data_len = 0;
+    } else {
+        len = data_len + header_len;
+        memcpy(data, buf + header_len, data_len);
+        memmove(buf, buf + len, body_len - len);
+        conn->data_len -= len;
+      }
+
+      // Apply mask if necessary
+      if (mask_len > 0) {
+        for (i = 0; i < data_len; i++) {
+          data[i] ^= buf[header_len - mask_len + (i % 4)];
+        }
+      }
+
+      // Exit the loop if callback signalled to exit,
+      // or "connection close" opcode received.
+      if ((conn->ctx->callbacks.websocket_data != NULL &&
+          !conn->ctx->callbacks.websocket_data(conn, buf[0], data, data_len)) ||
+          (buf[0] & 0xf) == 8) {  // Opcode == 8, connection close
+        break;
+      }
+
+      if (data != mem) {
+        free(data);
+      }
+      // Not breaking the loop, process next websocket frame.
+    } else {
+      // Buffering websocket request
+      if ((n = pull(NULL, conn, conn->buf + conn->data_len,
+                    conn->buf_size - conn->data_len)) <= 0) {
         break;
       }
       conn->data_len += n;
@@ -3962,13 +4074,15 @@ static void read_websocket(struct mg_connection *conn) {
 static void handle_websocket_request(struct mg_connection *conn) {
   if (strcmp(mg_get_header(conn, "Sec-WebSocket-Version"), "13") != 0) {
     send_http_error(conn, 426, "Upgrade Required", "%s", "Upgrade Required");
-  } else if (call_user(conn, MG_WEBSOCKET_CONNECT) != NULL) {
-    // Callback has returned non-NULL, do not proceed with handshake
+  } else if (conn->ctx->callbacks.websocket_connect != NULL &&
+             conn->ctx->callbacks.websocket_connect(conn) != 0) {
+    // Callback has returned non-zero, do not proceed with handshake
   } else {
     send_websocket_handshake(conn);
-    call_user(conn, MG_WEBSOCKET_READY);
+    if (conn->ctx->callbacks.websocket_ready != NULL) {
+      conn->ctx->callbacks.websocket_ready(conn);
+    }
     read_websocket(conn);
-    call_user(conn, MG_WEBSOCKET_CLOSE);
   }
 }
 
@@ -3983,8 +4097,8 @@ static int is_websocket_request(const struct mg_connection *conn) {
 
   return host != NULL && upgrade != NULL && connection != NULL &&
     key != NULL && version != NULL &&
-    strstr(upgrade, "websocket") != NULL &&
-    strstr(connection, "Upgrade") != NULL;
+    mg_strcasestr(upgrade, "websocket") != NULL &&
+    mg_strcasestr(connection, "Upgrade") != NULL;
 }
 #endif // !USE_WEBSOCKET
 
@@ -4155,11 +4269,13 @@ static int parse_port_string(const struct vec *vec, struct socket *so) {
   } else if (sscanf(vec->ptr, "%d%n", &port, &len) != 1 ||
              len <= 0 ||
              len > (int) vec->len ||
-             (vec->ptr[len] && vec->ptr[len] != 's' && vec->ptr[len] != ',')) {
+             (vec->ptr[len] && vec->ptr[len] != 's' &&
+              vec->ptr[len] != 'r' && vec->ptr[len] != ',')) {
     return 0;
   }
 
   so->is_ssl = vec->ptr[len] == 's';
+  so->ssl_redir = vec->ptr[len] == 'r';
 #if defined(USE_IPV6)
   so->lsa.sin6.sin6_family = AF_INET6;
   so->lsa.sin6.sin6_port = htons((uint16_t) port);
@@ -4577,6 +4693,7 @@ static void close_socket_gracefully(struct mg_connection *conn) {
   (void) shutdown(sock, SHUT_WR);
   set_non_blocking_mode(sock);
 
+#if defined(_WIN32)
   // Read and discard pending incoming data. If we do not do that and close the
   // socket, the data in the send buffer may be discarded. This
   // behaviour is seen on Windows, when client keeps sending data
@@ -4585,6 +4702,7 @@ static void close_socket_gracefully(struct mg_connection *conn) {
   do {
     n = pull(NULL, conn, buf, sizeof(buf));
   } while (n > 0);
+#endif
 
   // Now we know that our FIN is ACK-ed, safe to close
   (void) closesocket(sock);
