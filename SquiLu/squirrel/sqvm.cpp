@@ -673,20 +673,16 @@ bool SQVM::CLASS_OP(SQObjectPtr &target,SQInteger baseclass,SQInteger attributes
 	return true;
 }
 
-bool SQVM::IsEqual(const SQObjectPtr &o1,const SQObjectPtr &o2,bool &res)
+bool SQVM::IsEqual(const SQObjectPtr &o1,const SQObjectPtr &o2)
 {
+	bool res = false;
 	if(type(o1) == type(o2)) {
 		res = (_rawval(o1) == _rawval(o2));
 	}
-	else {
-		if(sq_isnumeric(o1) && sq_isnumeric(o2)) {
-			res = (tofloat(o1) == tofloat(o2));
-		}
-		else {
-			res = false;
-		}
+	else if(sq_isnumeric(o1) && sq_isnumeric(o2)) {
+		res = (tofloat(o1) == tofloat(o2));
 	}
-	return true;
+	return res;
 }
 
 bool SQVM::IsFalse(SQObjectPtr &o)
@@ -838,7 +834,7 @@ exception_restore:
 						continue;
 					case OT_CLASS:{
 						SQObjectPtr inst;
-						_GUARD(CreateClassInstance(_class(clo),inst,clo));
+						CreateClassInstance(_class(clo),inst,clo);
 						if(sarg0 != -1) {
 							STK(arg0) = inst;
 						}
@@ -916,16 +912,12 @@ exception_restore:
 				if (!Get(STK(arg1), STK(arg2), temp_reg, false,arg1)) { SQ_THROW(); }
 				_Swap(TARGET,temp_reg);//TARGET = temp_reg;
 				continue;
-			case _OP_EQ:{
-				bool res;
-				if(!IsEqual(STK(arg2),COND_LITERAL,res)) { SQ_THROW(); }
-				TARGET = res?true:false;
-				}continue;
-			case _OP_NE:{
-				bool res;
-				if(!IsEqual(STK(arg2),COND_LITERAL,res)) { SQ_THROW(); }
-				TARGET = (!res)?true:false;
-				} continue;
+			case _OP_EQ:
+				TARGET = IsEqual(STK(arg2),COND_LITERAL)?true:false;
+				continue;
+			case _OP_NE:
+				TARGET = (!IsEqual(STK(arg2),COND_LITERAL))?true:false;
+				continue;
 			case _OP_ADD: _ARITH_(+,TARGET,STK(arg2),STK(arg1)); continue;
 			case _OP_SUB: _ARITH_(-,TARGET,STK(arg2),STK(arg1)); continue;
 			case _OP_MUL: _ARITH_(*,TARGET,STK(arg2),STK(arg1)); continue;

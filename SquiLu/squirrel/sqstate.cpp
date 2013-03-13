@@ -150,6 +150,7 @@ void SQSharedState::Init()
 	newmetamethod(MM_INHERITED);
 
 	_constructoridx = SQString::Create(this,_SC("constructor"));
+	_destructoridx = SQString::Create(this,_SC("destructor"));
 	_registry = SQTable::Create(this,0);
 	_consts = SQTable::Create(this,0);
 	_table_default_delegate = CreateDefaultDelegate(this,_table_default_delegate_funcz);
@@ -168,6 +169,7 @@ void SQSharedState::Init()
 SQSharedState::~SQSharedState()
 {
 	_constructoridx.Null();
+	_destructoridx.Null();
 	_table(_registry)->Finalize();
 	_table(_consts)->Finalize();
 	_table(_metamethodsmap)->Finalize();

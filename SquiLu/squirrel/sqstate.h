@@ -89,6 +89,7 @@ public:
 	SQObjectPtr _registry;
 	SQObjectPtr _consts;
 	SQObjectPtr _constructoridx;
+	SQObjectPtr _destructoridx;
 #ifndef NO_GARBAGE_COLLECTOR
 	SQCollectable *_gc_chain;
 #endif

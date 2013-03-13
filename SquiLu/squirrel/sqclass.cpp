@@ -17,9 +17,10 @@ SQClass::SQClass(SQSharedState *ss,SQClass *base)
 	_hook = NULL;
 	_udsize = 0;
 	_locked = false;
-	_constructoridx = -1;
+	_constructoridx = _destructoridx = -1;
 	if(_base) {
 		_constructoridx = _base->_constructoridx;
+		_destructoridx = _base->_destructoridx;
 		_udsize = _base->_udsize;
 		_defaultvalues.copy(base->_defaultvalues);
 		_methods.copy(base->_methods);
@@ -75,10 +76,11 @@ bool SQClass::NewSlot(SQSharedState *ss,const SQObjectPtr &key,const SQObjectPtr
 				__ObjAddRef(_base); //ref for the closure
 			}
 			if(type(temp) == OT_NULL) {
-				bool isconstructor;
-				SQVM::IsEqual(ss->_constructoridx, key, isconstructor);
-				if(isconstructor) {
+				if(SQVM::IsEqual(ss->_constructoridx, key)) {
 					_constructoridx = (SQInteger)_methods.size();
+				}
+				else if(SQVM::IsEqual(ss->_destructoridx, key)) {
+						_destructoridx = (SQInteger)_methods.size();
 				}
 				SQClassMember m;
 				m.val = theval;

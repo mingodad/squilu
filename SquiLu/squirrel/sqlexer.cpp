@@ -99,6 +99,7 @@ SQTable * SQLexer::GetKeywords()
 	ADD_KEYWORD(class,TK_CLASS);
 	ADD_KEYWORD(extends,TK_EXTENDS);
 	ADD_KEYWORD(constructor,TK_CONSTRUCTOR);
+	ADD_KEYWORD(destructor,TK_DESTRUCTOR);
 	ADD_KEYWORD(instanceof,TK_INSTANCEOF);
 	ADD_KEYWORD(true,TK_TRUE);
 	ADD_KEYWORD(false,TK_FALSE);
@@ -618,7 +619,7 @@ SQInteger SQLexer::ReadID()
 	} while(scisalnum(CUR_CHAR) || CUR_CHAR == _SC('_'));
 	TERMINATE_BUFFER();
 	res = GetIDType(&_longstr[0]);
-	if(res == TK_IDENTIFIER || res == TK_CONSTRUCTOR) {
+	if(res == TK_IDENTIFIER || res == TK_CONSTRUCTOR || res == TK_DESTRUCTOR) {
 		_svalue = &_longstr[0];
 	}
 	return res;

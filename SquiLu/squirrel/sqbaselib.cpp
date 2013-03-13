@@ -793,9 +793,8 @@ static SQRESULT array_find(HSQUIRRELVM v)
 	SQInteger size = a->Size();
 	SQObjectPtr temp;
 	for(SQInteger n = 0; n < size; n++) {
-		bool res = false;
 		a->Get(n,temp);
-		if(SQVM::IsEqual(temp,val,res) && res) {
+		if(SQVM::IsEqual(temp,val)) {
 			v->Push(n);
 			return 1;
 		}

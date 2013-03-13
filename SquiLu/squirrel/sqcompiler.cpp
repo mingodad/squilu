@@ -217,7 +217,7 @@ public:
 	}
 	void ErrorIfNotToken(SQInteger tok){
 		if(_token != tok) {
-			if(_token == TK_CONSTRUCTOR && tok == TK_IDENTIFIER) {
+			if(((_token == TK_CONSTRUCTOR) || (_token == TK_DESTRUCTOR)) && tok == TK_IDENTIFIER) {
 				//do nothing
 			}
 			else {
@@ -856,6 +856,7 @@ public:
 			break;
 		case TK_IDENTIFIER:
 		case TK_CONSTRUCTOR:
+		case TK_DESTRUCTOR:
 		case TK_THIS:{
 				SQObject id;
 				SQObject constant;
@@ -864,6 +865,7 @@ public:
 					case TK_IDENTIFIER:  id = _fs->CreateString(_lex._svalue);       break;
 					case TK_THIS:        id = _fs->CreateString(_SC("this"));        break;
 					case TK_CONSTRUCTOR: id = _fs->CreateString(_SC("constructor")); break;
+					case TK_DESTRUCTOR: id = _fs->CreateString(_SC("destructor")); break;
 				}
 
 				SQInteger pos = -1;
@@ -1098,10 +1100,12 @@ public:
 			}
 			switch(_token) {
 			case TK_FUNCTION:
-			case TK_CONSTRUCTOR:{
+			case TK_CONSTRUCTOR:
+			case TK_DESTRUCTOR:{
 				SQInteger tk = _token;
 				Lex();
-				SQObject id = tk == TK_FUNCTION ? Expect(TK_IDENTIFIER) : _fs->CreateString(_SC("constructor"));
+				SQObject id = tk == TK_FUNCTION ? Expect(TK_IDENTIFIER) :
+					_fs->CreateString(tk == TK_CONSTRUCTOR ? _SC("constructor") : _SC("destructor"));
 				Expect(_SC('('));
 				_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(id));
 				CreateFunction(id);

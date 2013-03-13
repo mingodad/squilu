@@ -62,6 +62,7 @@ enum SQKeywordsEnum {
     TK_CLASS,
     TK_EXTENDS,
     TK_CONSTRUCTOR,
+    TK_DESTRUCTOR,
     TK_INSTANCEOF,
     TK_VARPARAMS,
     //TK_VARGC,
