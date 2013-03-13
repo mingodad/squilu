@@ -54,10 +54,12 @@ typedef int SQInt32;
 typedef unsigned int SQUnsignedInteger32;
 #else
 typedef int SQInteger;
+typedef unsigned int SQUnsignedInteger;
 typedef int SQInt32; /*must be 32 bits(also on 64bits processors)*/
 typedef unsigned int SQUnsignedInteger32; /*must be 32 bits(also on 64bits processors)*/
-typedef unsigned int SQUnsignedInteger;
-typedef unsigned int SQHash; /*should be the same size of a pointer*/
+typedef short SQInt16;
+typedef unsigned short SQUnsignedInt16;
+typedef unsigned int /*ptrdiff_t*/ SQHash; /*should be the same size of a pointer*/
 #endif
 
 

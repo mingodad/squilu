@@ -103,10 +103,10 @@ public:
 	SQObjectPtr _attributes;
 	SQUserPointer _typetag;
 	SQRELEASEHOOK _hook;
-	bool _locked;
-	SQInteger _constructoridx;
-	SQInteger _destructoridx;
+	SQInt16 _constructoridx;
+	SQInt16 _destructoridx;
 	SQInteger _udsize;
+	bool _locked;
 };
 
 #define calcinstancesize(_theclass_) \
