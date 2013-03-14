@@ -819,6 +819,9 @@ exception_restore:
 					case OT_NATIVECLOSURE: {
 						bool suspend;
 						_GUARD(CallNative(_nativeclosure(clo), arg3, _stackbase+arg2, clo,suspend));
+
+						if(_check_delayed_relase_hooks) _sharedstate->CallDelayedReleaseHooks(this);
+
 						if(suspend){
 							_suspended = SQTrue;
 							_suspended_target = sarg0;
@@ -1747,7 +1750,8 @@ void SQVM::LeaveFrame() {
 					case OT_CLOSURE:
 					case OT_NATIVECLOSURE:{
 						SQObjectPtr res;
-						Call(dtor, 1, last_top, res, SQFalse);
+						Push(val);
+						Call(dtor, 1, last_top+1, res, SQFalse);
 					}
 					break;
 					default: break; //shutup GCC 4.x
@@ -1781,28 +1785,7 @@ void SQVM::LeaveFrame() {
 	if(_openouters) CloseOuters(&(_stack._vals[last_stackbase]));
 	while (last_top >= _top) {
 		_stack._vals[last_top--].Null();
-#if 0
-		SQObjectPtr &val = _stack._vals[last_top];
-		if(val._type == OT_INSTANCE){
-			SQObjectPtr dtor;
-			if(_instance(val)->_class->GetDestructor(dtor)){
-				switch(type(dtor)) {
-					case OT_CLOSURE:
-					case OT_NATIVECLOSURE:{
-						SQObjectPtr res;
-						Push(val);
-						Call(dtor, 1, last_top+1, res, SQFalse);
-					}
-					break;
-					default: break; //shutup GCC 4.x
-				}
-			}
-		}
-		if(val._type != OT_NULL) val.Null();
-		--last_top;
-#endif
 	}
-	if(_check_delayed_relase_hooks) _sharedstate->CallDelayedReleaseHooks(this);
 }
 
 void SQVM::RelocateOuters()

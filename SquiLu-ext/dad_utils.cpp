@@ -4,7 +4,6 @@
 typedef struct {
     HSQOBJECT func_to_call;
     HSQOBJECT param;
-    HSQUIRRELVM v;
 } gc_scope_alert_st;
 
 static const SQChar *gc_scope_alert_TAG = _SC("gc_scope_alert");
@@ -14,17 +13,17 @@ static SQRESULT gc_scope_alert_releasehook(SQUserPointer p, SQInteger size, HSQU
 	gc_scope_alert_st *self = ((gc_scope_alert_st *)p);
 //printf("%p %p\n", p, v);
 	if(self){
-	    //if(v){
-            SQInteger top = sq_gettop(self->v);
-            sq_reservestack(self->v, 20);
-            sq_pushobject(self->v, self->func_to_call);
-            sq_pushroottable(self->v);
-            sq_pushobject(self->v, self->param);
-            sq_call(self->v, 2, SQFalse, SQTrue);
-            sq_release(self->v, &self->func_to_call);
-            sq_release(self->v, &self->param);
-            sq_settop(self->v, top);
-	    //}
+	    if(v){
+            SQInteger top = sq_gettop(v);
+            sq_reservestack(v, 20);
+            sq_pushobject(v, self->func_to_call);
+            sq_pushroottable(v);
+            sq_pushobject(v, self->param);
+            sq_call(v, 2, SQFalse, SQTrue);
+            sq_release(v, &self->func_to_call);
+            sq_release(v, &self->param);
+            sq_settop(v, top);
+	    }
 	    //else
 	    sq_free(self, sizeof(gc_scope_alert_st));
 	}
@@ -35,7 +34,6 @@ static SQRESULT gc_scope_alert_constructor(HSQUIRRELVM v)
 {
     SQInteger rc;
     gc_scope_alert_st proto;
-    proto.v = v;
     sq_resetobject(&proto.func_to_call);
     sq_resetobject(&proto.param);
     if((rc = sq_getstackobj(v, 2, &proto.func_to_call)) < 0) return rc;
@@ -52,6 +50,16 @@ static SQRESULT gc_scope_alert_constructor(HSQUIRRELVM v)
     return 1;
 }
 
+static SQRESULT spectralnorm_A(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS_NO_TOP();
+	SQ_GET_INTEGER(v, 2, i);
+	SQ_GET_INTEGER(v, 3, j);
+	SQInteger ij = j + i++;
+	sq_pushfloat(v, 1.0/(ij * (ij+1)/2.0+i));
+    return 1;
+}
+
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  gc_scope_alert_##name,nparams,tycheck}
 static SQRegFunction gc_scope_alert_methods[] =
 {
@@ -65,6 +73,8 @@ extern "C" {
 
     SQRESULT sqext_register_dad_utils(HSQUIRRELVM v)
     {
+    	sq_insertfunc(v, _SC("spectralnorm_A"), spectralnorm_A, 3, _SC(".ii"), true);
+
         sq_pushstring(v,_SC("dad_utils"),-1);
         sq_newtable(v);
 
