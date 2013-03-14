@@ -105,15 +105,16 @@ struct SQWeakRef : SQRefCounted
 
 struct SQObjectPtr;
 
-#define __AddRef(type,unval) if(ISREFCOUNTED(type))	\
-		{ \
-			unval.pRefCounted->_uiRef++; \
-		}
+#define __AddRefRefCounted(unval) { unval.pRefCounted->_uiRef++; }
 
-#define __Release(type,unval) if(ISREFCOUNTED(type) && ((--unval.pRefCounted->_uiRef)==0))	\
+#define __AddRef(type,unval) if(ISREFCOUNTED(type))	__AddRefRefCounted(unval)
+
+#define __ReleaseRefCounted(unval) if((--unval.pRefCounted->_uiRef)==0)	\
 		{	\
 			unval.pRefCounted->Release();	\
 		}
+
+#define __Release(type,unval) if(ISREFCOUNTED(type)) __ReleaseRefCounted(unval)
 
 #define __ObjRelease(obj) { \
 	if((obj)) {	\
@@ -176,13 +177,14 @@ struct SQObjectPtr;
 	} \
 	inline SQObjectPtr& operator=(_class *x) \
 	{  \
-		SQObjectType tOldType=_type; \
-		SQObjectValue unOldVal=_unVal; \
+		SQObjectValue old_unVal; \
+		bool isRefCounted = ISREFCOUNTED(_type);\
+		if(isRefCounted) old_unVal = _unVal;\
 		_type = type; \
 		SQ_REFOBJECT_INIT() \
 		_unVal.sym = x; \
 		_unVal.pRefCounted->_uiRef++; \
-		__Release(tOldType,unOldVal); \
+		if(isRefCounted) __ReleaseRefCounted(old_unVal); \
 		return *this; \
 	}
 
@@ -268,22 +270,24 @@ struct SQObjectPtr : public SQObject
 		//saving temporarily the old value for cases
 		//where we are assigning a inner value to the old value
 		//local tbl = {a=2, b=4}; tbl = tbl.a;
-		SQObjectType tOldType =_type;
-		SQObjectValue unOldVal =_unVal;
+		SQObjectValue old_unVal;
+		bool isRefCounted = ISREFCOUNTED(_type);
+		if(isRefCounted) old_unVal = _unVal;
 		_unVal = obj._unVal;
 		_type = obj._type;
 		__AddRef(_type,_unVal);
-		__Release(tOldType,unOldVal);
+		if(isRefCounted) __ReleaseRefCounted(old_unVal);
 		return *this;
 	}
 	inline SQObjectPtr& operator=(const SQObject& obj)
 	{
-		SQObjectType tOldType =_type;
-		SQObjectValue unOldVal =_unVal;
+		SQObjectValue old_unVal;
+		bool isRefCounted = ISREFCOUNTED(_type);
+		if(isRefCounted) old_unVal = _unVal;
 		_unVal = obj._unVal;
 		_type = obj._type;
 		__AddRef(_type,_unVal);
-		__Release(tOldType,unOldVal);
+		if(isRefCounted) __ReleaseRefCounted(old_unVal);
 		return *this;
 	}
 
