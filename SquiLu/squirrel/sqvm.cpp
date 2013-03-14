@@ -1730,6 +1730,43 @@ bool SQVM::EnterFrame(SQInteger newbase, SQInteger newtop, bool tailcall)
 	return true;
 }
 
+#if 0
+void SQVM::LeaveFrame() {
+	SQInteger last_top = _top;
+	SQInteger last_stackbase = _stackbase;
+	SQInteger css = --_callsstacksize;
+
+	/* First clean out the call stack frame */
+	while (last_top >= _top) {
+		SQObjectPtr &val = _stack._vals[last_top];
+		if(val._type == OT_INSTANCE){
+			SQObjectPtr dtor;
+			if(_instance(val)->_class->GetDestructor(dtor)){
+				SQInteger stkbase;
+				switch(type(dtor)) {
+					case OT_CLOSURE:
+					case OT_NATIVECLOSURE:{
+						SQObjectPtr res;
+						Call(dtor, 1, last_top, res, SQFalse);
+					}
+					break;
+					default: break; //shutup GCC 4.x
+				}
+			}
+		}
+		val.Null();
+		--last_top;
+	}
+	ci->_closure.Null();
+	_stackbase -= ci->_prevstkbase;
+	_top = _stackbase + ci->_prevtop;
+	ci = (css) ? &_callsstack[css-1] : NULL;
+
+	if(_openouters) CloseOuters(&(_stack._vals[last_stackbase]));
+	if(_check_delayed_relase_hooks) _sharedstate->CallDelayedReleaseHooks(this);
+}
+#endif
+
 void SQVM::LeaveFrame() {
 	SQInteger last_top = _top;
 	SQInteger last_stackbase = _stackbase;
@@ -1744,6 +1781,26 @@ void SQVM::LeaveFrame() {
 	if(_openouters) CloseOuters(&(_stack._vals[last_stackbase]));
 	while (last_top >= _top) {
 		_stack._vals[last_top--].Null();
+#if 0
+		SQObjectPtr &val = _stack._vals[last_top];
+		if(val._type == OT_INSTANCE){
+			SQObjectPtr dtor;
+			if(_instance(val)->_class->GetDestructor(dtor)){
+				switch(type(dtor)) {
+					case OT_CLOSURE:
+					case OT_NATIVECLOSURE:{
+						SQObjectPtr res;
+						Push(val);
+						Call(dtor, 1, last_top+1, res, SQFalse);
+					}
+					break;
+					default: break; //shutup GCC 4.x
+				}
+			}
+		}
+		if(val._type != OT_NULL) val.Null();
+		--last_top;
+#endif
 	}
 	if(_check_delayed_relase_hooks) _sharedstate->CallDelayedReleaseHooks(this);
 }

@@ -289,9 +289,11 @@ struct SQObjectPtr : public SQObject
 
 	inline void Null()
 	{
-		__Release(_type,_unVal);
-		_type = OT_NULL;
-		_unVal.raw = (SQRawObjectVal)NULL;
+		if(_type != OT_NULL){
+			__Release(_type,_unVal);
+			_type = OT_NULL;
+			_unVal.raw = (SQRawObjectVal)NULL;
+		}
 	}
 	private:
 		SQObjectPtr(const SQChar *){} //safety
