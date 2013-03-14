@@ -195,9 +195,11 @@ struct SQObjectPtr;
 	} \
 	inline SQObjectPtr& operator=(_class x) \
 	{  \
-		__Release(_type,_unVal); \
-		_type = type; \
-		SQ_OBJECT_RAWINIT() \
+		if(_type != type){\
+			__Release(_type,_unVal); \
+			_type = type; \
+			SQ_OBJECT_RAWINIT() \
+		}\
 		_unVal.sym = x; \
 		return *this; \
 	}
@@ -247,9 +249,11 @@ struct SQObjectPtr : public SQObject
 	}
 	inline SQObjectPtr& operator=(bool b)
 	{
-		__Release(_type,_unVal);
-		SQ_OBJECT_RAWINIT()
-		_type = OT_BOOL;
+		if(_type != OT_BOOL){
+			__Release(_type,_unVal);
+			SQ_OBJECT_RAWINIT()
+			_type = OT_BOOL;
+		}
 		_unVal.nInteger = b?1:0;
 		return *this;
 	}
@@ -261,6 +265,9 @@ struct SQObjectPtr : public SQObject
 
 	inline SQObjectPtr& operator=(const SQObjectPtr& obj)
 	{
+		//saving temporarily the old value for cases
+		//where we are assigning a inner value to the old value
+		//local tbl = {a=2, b=4}; tbl = tbl.a;
 		SQObjectType tOldType =_type;
 		SQObjectValue unOldVal =_unVal;
 		_unVal = obj._unVal;
@@ -282,11 +289,9 @@ struct SQObjectPtr : public SQObject
 
 	inline void Null()
 	{
-		SQObjectType tOldType = _type;
-		SQObjectValue unOldVal = _unVal;
+		__Release(_type,_unVal);
 		_type = OT_NULL;
 		_unVal.raw = (SQRawObjectVal)NULL;
-		__Release(tOldType ,unOldVal);
 	}
 	private:
 		SQObjectPtr(const SQChar *){} //safety
