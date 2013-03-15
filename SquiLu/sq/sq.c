@@ -527,6 +527,7 @@ SQRESULT sqext_register_tinyxml2(HSQUIRRELVM v);
 SQRESULT sqext_register_decimal(HSQUIRRELVM v);
 SQRESULT sqext_register_markdown(HSQUIRRELVM v);
 SQRESULT sqext_register_PostgreSQL(HSQUIRRELVM v);
+SQRESULT sqext_register_MySQL(HSQUIRRELVM v);
 SQRESULT sqext_register_Java(HSQUIRRELVM v);
 SQRESULT sqext_register_ThreadObjects(HSQUIRRELVM v);
 SQRESULT sqext_register_csv_parser (HSQUIRRELVM v);
@@ -581,6 +582,7 @@ int main(int argc, char* argv[])
 #ifdef WITH_FULL_DAD_EXTRAS
 	sqext_register_csv_parser(v);
 	sqext_register_PostgreSQL(v);
+	sqext_register_MySQL(v);
 	sqext_register_sq_zmq3(v);
 	//sqext_register_Java(v);
 #endif

@@ -114,6 +114,7 @@
 					<Add option="-DWITH_FLTK=1" />
 					<Add option="-DNDEBUG=1" />
 					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
+					<Add option="-DPROFILE_SQVM22=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 					<Add directory="../fltk" />
 					<Add directory="../libharu/include" />
