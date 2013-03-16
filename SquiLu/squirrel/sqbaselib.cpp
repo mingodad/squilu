@@ -833,7 +833,7 @@ static SQRESULT array_bsearch(HSQUIRRELVM v)
 		}
 		else break;
 	}
-	sq_pushinteger(v, -1);
+	sq_pushinteger(v, imid > 0 ? -imid : -1);
 	return 1;
 }
 
