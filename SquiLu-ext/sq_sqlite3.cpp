@@ -247,8 +247,7 @@ static SQRESULT sq_sqlite3_stmt_prepare_aux(HSQUIRRELVM v, sqlite3 *db, sqlite3_
 {
     SQ_FUNC_VARS(v);
     SQ_GET_STRING(v, params_start, szSQL);
-    const char* szTail=0;
-    if(sqlite3_prepare_v2(db, szSQL, szSQL_size, stmt, &szTail) != SQLITE_OK)
+    if(sqlite3_prepare_v2(db, szSQL, szSQL_size, stmt, 0) != SQLITE_OK)
     {
         return sq_throwerror(v, sqlite3_errmsg(db));
     }
@@ -290,8 +289,7 @@ static SQRESULT sq_sqlite3_stmt_constructor(HSQUIRRELVM v)
     }
     else
     {
-        const char* szTail=0;
-        if(sqlite3_prepare_v2(self, "select 'statement not prepared';", -1, &stmt, &szTail) != SQLITE_OK)
+        if(sqlite3_prepare_v2(self, "select 'statement not prepared';", -1, &stmt, 0) != SQLITE_OK)
         {
             _rc_ = sq_throwerror(v, sqlite3_errmsg(self));
         }
@@ -1186,7 +1184,7 @@ static SQRESULT sqlite3_exec_fmt(HSQUIRRELVM v, e_type_result type_result, int n
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_sqlite3_INSTANCE();
-    SQ_GET_STRING(v, 2, szSQL);
+    //SQ_GET_STRING(v, 2, szSQL);
     sqlite3_stmt *stmt = 0;
     _rc_ = sq_sqlite3_stmt_prepare_aux(v, self, &stmt, 2);
     if(_rc_ < 0)
@@ -1372,7 +1370,17 @@ static SQRESULT sq_sqlite3_exec(HSQUIRRELVM v)
 /* int exec_dml( const char * szSQL  ) */
 static SQRESULT sq_sqlite3_exec_dml(HSQUIRRELVM v)
 {
-    return sqlite3_exec_fmt(v, tr_ddml);
+	SQ_FUNC_VARS_NO_TOP(v);
+	GET_sqlite3_INSTANCE();
+	SQ_GET_STRING(v, 2, szSQL);
+	char *errmsg;
+	if(sqlite3_exec(self, szSQL, NULL, NULL, &errmsg) != SQLITE_OK){
+		sq_throwerror(v, errmsg);
+		sqlite3_free(errmsg);
+		return SQ_ERROR;
+	}
+	sq_pushinteger(v, sqlite3_changes(self));
+    return 1;
 }
 
 /* bool exec_get_one( std::string & result  , const char * szSQL  ) */
@@ -2217,7 +2225,7 @@ static SQRegFunction sq_sqlite3_methods[] =
 #endif
     _DECL_FUNC(enable_shared_cache,  2, _SC("xb")),
     _DECL_FUNC(changes,  1, _SC("x")),
-    _DECL_FUNC(exec,  2, _SC("xs")),
+    _DECL_FUNC(exec,  -2, _SC("xs")),
     _DECL_FUNC(exec_dml,  2, _SC("xs")),
     _DECL_FUNC(exec_get_first_row,  2, _SC("xs")),
     _DECL_FUNC(exec_get_one,  2, _SC("xs")),
