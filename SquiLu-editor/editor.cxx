@@ -775,7 +775,7 @@ void chdir_to(){
   }
 }
 
-void run_cb() {
+void run_cb(Fl_Widget*, void* ew) {
   if (filename[0]) {
       chdir_to();
       sq_setnativedebughook(v, NULL);
@@ -918,6 +918,7 @@ extern "C" {
     SQRESULT sqext_register_decimal(HSQUIRRELVM v);
     SQRESULT sqext_register_markdown(HSQUIRRELVM v);
     SQRESULT sqext_register_PostgreSQL(HSQUIRRELVM v);
+    SQRESULT sqext_register_MySQL(HSQUIRRELVM v);
     SQRESULT sqext_register_Java(HSQUIRRELVM v);
     SQRESULT sqext_register_ThreadObjects(HSQUIRRELVM v);
     SQRESULT sqext_register_csv_parser (HSQUIRRELVM v);
@@ -985,6 +986,7 @@ int main(int argc, char **argv) {
 	sqext_register_Sq_Fpdf(v);
 	sqext_register_SQLite3(v);
 	sqext_register_PostgreSQL(v);
+	sqext_register_MySQL(v);
 	//sqext_register_dad_utils(v);
 	sqext_register_mix(v);
 	sqext_register_sqfs(v);

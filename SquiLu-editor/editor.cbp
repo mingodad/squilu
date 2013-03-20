@@ -36,6 +36,7 @@
 				<Compiler>
 					<Add option="-O3" />
 					<Add directory="/usr/include/postgresql" />
+					<Add directory="/usr/include/mysql" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -53,9 +54,9 @@
 			</Target>
 			<Target title="Release win32">
 				<Option output="editor" prefix_auto="1" extension_auto="1" />
-				<Option object_output="objs" />
+				<Option object_output="objs/win32" />
 				<Option type="1" />
-				<Option compiler="gcc" />
+				<Option compiler="mingw32_compiler" />
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-fno-rtti" />
@@ -67,7 +68,7 @@
 					<Add directory="../fltk" />
 					<Add directory="../libharu/include" />
 					<Add directory="../flu" />
-					<Add directory="../../../../Program Files/PostgreSQL/9.1/include" />
+					<Add directory='[[print(PLATFORM == PLATFORM_GTK ? &quot;/usr/include/postgresql&quot; :  &quot;../../../../Program Files/PostgreSQL/9.1/include&quot;);]]' />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -75,7 +76,7 @@
 					<Add option="-static-libgcc" />
 					<Add library="axtls-win32" />
 					<Add library="mpdecimal-win32" />
-					<Add library="zeromq-win32" />
+					<Add library="zmq3-win32" />
 					<Add library="discount-win32" />
 					<Add library="gdi32" />
 					<Add library="uuid" />
@@ -85,7 +86,7 @@
 					<Add library="comctl32" />
 					<Add library="ws2_32" />
 					<Add library="rpcrt4" />
-					<Add directory="../../zeromq-3.2.2/include" />
+					<Add directory="../../zeromq-3.2.2" />
 					<Add directory="../../../../Program Files/PostgreSQL/9.1/include" />
 					<Add directory="../fltk" />
 					<Add directory="../libharu/include" />
@@ -190,6 +191,7 @@
 		<Unit filename="../SquiLu-ext/sq_markdown.cpp" />
 		<Unit filename="../SquiLu-ext/sq_mix.cpp" />
 		<Unit filename="../SquiLu-ext/sq_mongoose.cpp" />
+		<Unit filename="../SquiLu-ext/sq_mysql.cpp" />
 		<Unit filename="../SquiLu-ext/sq_postgresql.cpp" />
 		<Unit filename="../SquiLu-ext/sq_rs232.c">
 			<Option compilerVar="CC" />

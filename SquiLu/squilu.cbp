@@ -151,7 +151,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="ourbiz-fltk.nut" />
+				<Option parameters="test-class-destructor.nut" />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-Wall" />
@@ -416,6 +416,7 @@
 			<Add directory="../SquiLu-ext/threadObject" />
 			<Add directory=".." />
 			<Add directory="../SquiLu-ext" />
+			<Add directory="/usr/include/mysql" />
 		</Compiler>
 		<Linker>
 			<Add library="m" />
@@ -649,6 +650,7 @@
 			<Option target="Release FLTK win32 no console" />
 			<Option target="Release wince" />
 		</Unit>
+		<Unit filename="../SquiLu-ext/sq_mysql.cpp" />
 		<Unit filename="../SquiLu-ext/sq_parsecsv.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
