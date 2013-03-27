@@ -107,9 +107,9 @@ extern "C" {
 ** [sqlite3_libversion_number()], [sqlite3_sourceid()],
 ** [sqlite_version()] and [sqlite_source_id()].
 */
-#define SQLITE_VERSION        "3.7.16"
+#define SQLITE_VERSION        "3.7.16.1"
 #define SQLITE_VERSION_NUMBER 3007016
-#define SQLITE_SOURCE_ID      "2013-03-20 12:04:29 5b22053f918d16f593227a432a5d5b4c195bb0b5"
+#define SQLITE_SOURCE_ID      "2013-03-27 20:41:15 274d2a22660c7b34b8bbd85f3c29cbafbcb1b4e7"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -2708,7 +2708,7 @@ SQLITE_API void sqlite3_progress_handler(sqlite3*, int, int(*)(void*), void*);
 **     sqlite3_open_v2(). ^Setting the cache parameter to "private" is 
 **     equivalent to setting the SQLITE_OPEN_PRIVATECACHE bit.
 **     ^If sqlite3_open_v2() is used and the "cache" parameter is present in
-**     a URI filename, its value overrides any behaviour requested by setting
+**     a URI filename, its value overrides any behavior requested by setting
 **     SQLITE_OPEN_PRIVATECACHE or SQLITE_OPEN_SHAREDCACHE flag.
 ** </ul>
 **
@@ -6419,7 +6419,7 @@ struct sqlite3_pcache_page {
 ** parameter to help it determined what action to take:
 **
 ** <table border=1 width=85% align=center>
-** <tr><th> createFlag <th> Behaviour when page is not already in cache
+** <tr><th> createFlag <th> Behavior when page is not already in cache
 ** <tr><td> 0 <td> Do not allocate a new page.  Return NULL.
 ** <tr><td> 1 <td> Allocate a new page if it easy and convenient to do so.
 **                 Otherwise return NULL.
