@@ -1485,6 +1485,25 @@ static SQRESULT string_find_close_quote(HSQUIRRELVM v) {
     return 1;
 }
 
+static SQRESULT string_find_delimiter(HSQUIRRELVM v) {
+    SQ_FUNC_VARS(v);
+    SQ_GET_STRING(v, 1, src);
+    SQ_GET_INTEGER(v, 2, delimiter);
+    SQ_GET_INTEGER(v, 3, escape_char);
+    SQ_GET_INTEGER(v, 4, init);
+    if(init >= src_size) return sq_throwerror(v, _SC("invalid start position"));
+
+    for(; init < src_size; ++init) {
+        if(src[init] == delimiter){
+             if(src[init-1] == escape_char) ++init; //skip quoted quote
+             else break;
+        }
+    }
+    if(src[init] != delimiter) init = -1;
+    sq_pushinteger(v, init);
+    return 1;
+}
+
 static SQRESULT string_reverse (HSQUIRRELVM v) {
   int i;
   SQ_FUNC_VARS_NO_TOP(v);
@@ -1723,6 +1742,7 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("find"),string_find,-2, _SC("s s n ")},
 	{_SC("find_lua"),string_find_lua,-2, _SC("ss a|t|c nb")},
 	{_SC("find_close_quote"),string_find_close_quote,-1, _SC("sn")},
+	{_SC("find_delimiter"),string_find_delimiter,4, _SC("siin")},
 	{_SC("gsub"),string_gsub,-3, _SC("s s s|a|t|c n")},
 	{_SC("gmatch"),string_gmatch, 3, _SC("s s c")},
 	{_SC("match"), string_gmatch, 2, _SC("s s")},
