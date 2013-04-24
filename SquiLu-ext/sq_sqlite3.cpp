@@ -1242,7 +1242,9 @@ static SQRESULT sq_sqlite3_close_release(HSQUIRRELVM v, sq_sqlite3_sdb *sdb)
         int count = 0;
         while ((statement = sqlite3_next_stmt(db, statement)))
         {
-            sqlite3_finalize(statement);
+        	//do no close statements because garbage collector will do it
+        	//on MacOSX we get segfaults finalizing statements here
+            //sqlite3_finalize(statement);
             count++;
         }
         if (count) return sq_throwerror(v, _SC("closing database with %d statements not closed."), count);
@@ -1323,7 +1325,6 @@ static SQRESULT sq_sqlite3_constructor(HSQUIRRELVM v)
     sq_pushuserpointer(v, sdb->db);
     sq_weakref(v, 1);
     sq_setonregistrytable(v);
-
     return 1;
 }
 
