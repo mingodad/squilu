@@ -1626,8 +1626,9 @@ local My_PDF_Order = class extends PDF_Order {
 		_lang = lang;
 		_tr_map = {};
 		my_logo_image = false;
-		_tr_stmt = db.prepare(" select svalue from translations_values as tv, translations_keys as tk, languages as l "
-			" where l.lang=? and tk.skey=? and tv.lang_id=l.id and tv.key_id=tk.id ");
+		_tr_stmt = db.prepare([==[
+select svalue from translations_values as tv, translations_keys as tk, languages as l
+where l.lang=? and tk.skey=? and tv.lang_id=l.id and tv.key_id=tk.id]==]);
 	}
 
 	function do_init(){
@@ -1996,7 +1997,8 @@ from orders_lines where order_id=?]==]);
 		pdf_order.do_init();
 		if(logoImg) pdf_order.logoFileName = logoImg;
 		pdf_order.water_mark = "T H I S   I S   A   D E M O";
-		local stmt = db.prepare("select * from orders where id=?", id);
+		local stmt = db.prepare("select * from orders where id=?");
+		stmt.bind(1, id);
 		if(stmt.next_row())
 		{
 			local order_type_id = stmt.col(C_order_type_id);
@@ -2007,11 +2009,11 @@ from orders_lines where order_id=?]==]);
 			pdf_order.strNumber = stmt.col(C_series);
 			pdf_order.strNumber += "/";
 			pdf_order.strNumber += order_number;
-			pdf_order.strDate = stmt.get(C_order_date);
-			pdf_order.strEntity.push(stmt.get(C_entity_name));
+			pdf_order.strDate = stmt.col(C_order_date);
+			pdf_order.strEntity.push(stmt.col(C_entity_name));
 			pdf_order.strEntity.push(stmt.col(C_entity_address));
 			pdf_order.strEntity.push(stmt.col(C_entity_phone));
-			pdf_order.strEntity.push(stmt.get(C_entity_tax_number));
+			pdf_order.strEntity.push(stmt.col(C_entity_tax_number));
 		}
 		calc_order_totals(db, id, calc_line, pdf_order.strLines);
 		pdf_order.strTotals.push(math.number_format(subtotal_amt));
@@ -2041,6 +2043,10 @@ local MyCalcOrderTotals = class
 	function calc_total(id){
 		order_totals.calc_order_totals(db, id, calc_line);
 		return order_totals.total_amt;
+	}
+	
+	function getPdfOrder(id, lang){
+		return order_totals.getPdfOrder(db, id, calc_line, lang);
 	}
 }
 
@@ -2300,6 +2306,12 @@ where o.id = %d and p.id = %d]==], order_id, product_id));
 			stmt.prepare(orders_lines_sql_for_order(id));
 			buf.write(stmt.asSleArray());
 			return buf;
+		}
+		else if (tbl_qs.get("pdf", false)){
+			local db = getOurbizDB();
+			local calc_order = new MyCalcOrderTotals(db);
+			tbl_qs._doc_pdf_ <- calc_order.getPdfOrder(id, "en");
+			return true;
 		}
 		else return base.sql_get_one(tbl_qs);
 	}
@@ -3174,6 +3186,20 @@ local function ourbizDbGetOne(request){
 
 		if (tbl == "config") sql = "select * from config where id=?";
 		else if (db_ourbiz_tables.get(tbl, false)) sql = db_ourbiz_tables[tbl].sql_get_one(tbl_qs);
+		
+		local doc_pdf = tbl_qs.get("_doc_pdf_", false);
+		if (doc_pdf){
+			request.print(format([==[
+HTTP/1.1 200 OK
+Content-type: application/pdf
+Content-Disposition: attachment; filename=%s-list.pdf
+Content-Length: %d
+
+]==], tbl, doc_pdf.len()));
+			if(doc_pdf instanceof blob) request.write_blob(doc_pdf);
+			else request.print(doc_pdf);
+			return true;
+		}
 
 		if (sql){
 			if(sql instanceof blob) data = sql.tostring();

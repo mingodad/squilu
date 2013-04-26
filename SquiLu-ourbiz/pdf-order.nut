@@ -166,7 +166,7 @@ class PDF_Order extends Sq_Fpdf
 			for(local i=0, size = strEntity.size(); i< size; ++i)
 			{
 				local value = strEntity[i];
-				CellFitScale(cellWidth * 2, cellHeight, value, withBorder,
+				CellFitScale(cellWidth * 2, cellHeight, value.tostring(), withBorder,
 					0, 'L', false, 0);
 				if (x++ == size - 2) withBorder = borderBottom;
 				else withBorder = borderBetween;
