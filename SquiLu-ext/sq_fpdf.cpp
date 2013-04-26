@@ -588,7 +588,7 @@ static SQRESULT sq_glue_Output(HSQUIRRELVM v){
             if(!blob || !blob->IsValid())
                 return sq_throwerror(v,_SC("the blob is invalid"));
             std::string str = self->Output(0, 'S');
-            blob->Resize(str.size());
+            blob->SetLen(str.size());
             memcpy(blob->GetBuf(), str.c_str(), str.size());
             return 0;
         }
