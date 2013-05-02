@@ -2320,7 +2320,7 @@ where o.id = %d and p.id = %d]==], order_id, product_id));
 		//dbg_dump_map(p.post_map);
 		local action = data.get("__action__", false);
 
-		if(action == "calc_line")
+		if(action == "calc_line" || action == "calc_order_line")
 		{
 			local buf = blob(0, 8192);
 			calc_order_line(data, buf, data);
