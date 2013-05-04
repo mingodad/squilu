@@ -2225,7 +2225,7 @@ and ot.id = o.order_type_id]==], order_id));
 			}
 			//_calc_line.price_over_weight = ?;
 
-			stmt.prepare(format([==[
+			stmt = db.prepare(format([==[
 select  o.entity_sales_tax_exempt, o.entity_use_sales_tax2,
 	p.weight, p.sales_tax_id
 from orders as o, products as p 
