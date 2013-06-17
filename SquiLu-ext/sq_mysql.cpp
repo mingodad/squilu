@@ -19,6 +19,7 @@ local mysql_functions = [
 					   unsigned long clientflag"],
     ["void", "mysql_close", "MYSQL *sock"],
     ["const char *", "mysql_error", "MYSQL *mysql"],
+    ["int", "mysql_ping", "MYSQL *mysql"],
     ["unsigned long", "mysql_real_escape_string", @"MYSQL *mysql,
 					       char *to,const char *from,
 					       unsigned long length"],
@@ -84,6 +85,8 @@ typedef void (*mysql_close_t)(MYSQL *sock);
 static mysql_close_t dlmysql_close = 0;
 typedef const char * (*mysql_error_t)(MYSQL *mysql);
 static mysql_error_t dlmysql_error = 0;
+typedef int (*mysql_ping_t)(MYSQL *mysql);
+static mysql_ping_t dlmysql_ping = 0;
 typedef unsigned long (*mysql_real_escape_string_t)(MYSQL *mysql,
 					       char *to,const char *from,
 					       unsigned long length);
@@ -158,6 +161,8 @@ dlmysql_close = (mysql_close_t) libmysqlclient.dlsym("mysql_close");
 if(!dlmysql_close) return false;
 dlmysql_error = (mysql_error_t) libmysqlclient.dlsym("mysql_error");
 if(!dlmysql_error) return false;
+dlmysql_ping = (mysql_ping_t) libmysqlclient.dlsym("mysql_ping");
+if(!dlmysql_ping) return false;
 dlmysql_real_escape_string = (mysql_real_escape_string_t) libmysqlclient.dlsym("mysql_real_escape_string");
 if(!dlmysql_real_escape_string) return false;
 dlmysql_get_server_version = (mysql_get_server_version_t) libmysqlclient.dlsym("mysql_get_server_version");
@@ -438,11 +443,25 @@ static SQRESULT sq_mysql_statement_close(HSQUIRRELVM v){
 	return 0;
 }
 
+static SQRESULT sq_mysql_statement_bind(HSQUIRRELVM v){
+	SQ_FUNC_VARS(v);
+	GET_mysql_statement_INSTANCE();
+
+	unsigned long expected_params = dlmysql_stmt_param_count(self);
+	if(_top_ != expected_params){
+		return sq_throwerror(v, _SC("Expect %d params but got %d !"), expected_params, _top_);
+	}
+
+	MYSQL_BIND *bind = NULL;
+	sq_pushbool(v, dlmysql_stmt_bind_param(self, bind));
+	return 1;
+}
 
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_mysql_statement_##name,nparams,tycheck}
 static SQRegFunction sq_mysql_statement_methods[] =
 {
 	_DECL_FUNC(close,  1, _SC("x")),
+	_DECL_FUNC(bind,  -2, _SC("x.")),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -609,6 +628,13 @@ static SQRESULT sq_mysql_last_insert_id(HSQUIRRELVM v){
 	return 1;
 }
 
+static SQRESULT sq_mysql_ping(HSQUIRRELVM v){
+	SQ_FUNC_VARS_NO_TOP(v);
+	GET_mysql_INSTANCE();
+	sq_pushinteger(v, (SQInteger)dlmysql_ping(self));
+	return 1;
+}
+
 static SQRESULT sq_mysql_escape_string(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_mysql_INSTANCE();
@@ -628,6 +654,7 @@ static SQRegFunction sq_mysql_methods[] =
 {
 	_DECL_FUNC(constructor,  -5, _SC("xssssi")),
 	_DECL_FUNC(close,  1, _SC("x")),
+	_DECL_FUNC(ping,  1, _SC("x")),
 	_DECL_FUNC(exec_dml,  2, _SC("xs")),
 	_DECL_FUNC(exec_scalar,  2, _SC("xs")),
 	_DECL_FUNC(exec_query,  2, _SC("xs")),
