@@ -1231,6 +1231,8 @@ class MyListSearchWindow extends ListSearchWindow {
 		btnSearch.callback(cb_btnSearch);
 		search_str.callback(cb_search_str);
 	}
+	
+	//function grid_cb(sender : Fl_Widget, udata : any){}
 
 	function cb_btnUpdate(sender : Fl_Widget, udata : any){
 		this = sender->window();
@@ -1259,21 +1261,28 @@ class MyListSearchWindow extends ListSearchWindow {
 		show();
 		do_search();
 	}
+	
+	function hasSelectRequestCall(){
+		if(_callee_cb) {
+			_callee_cb(grid->get_row_id());
+			_callee_cb = null;
+			btnSelect->deactivate();
+			hide();
+			return true;
+		}
+		return false;
+	}
 
 	function row_selected(sender, ev){
 		switch(ev){
 			case Fl_Data_Table_Events.e_select:
-				if(_callee_cb) {
-					_callee_cb(grid->get_row_id());
-					_callee_cb = null;
-					btnSelect->deactivate();
-					hide();
-				}
+				hasSelectRequestCall();
 			break;
 			case Fl_Data_Table_Events.e_insert:
 				show_edit_window(0);
 			break;
 			case Fl_Data_Table_Events.e_update:
+				if((Fl.event_clicks() > 0) && hasSelectRequestCall()) return; 
 				show_edit_window(grid->get_row_id());
 			break;
 			case Fl_Data_Table_Events.e_delete:
@@ -2417,10 +2426,12 @@ class MyEditProductWindow extends EditProductWindow {
 		local prices = [];
 		local kit = [];
 		local kit_details = {};
-		appServer.get_product_for_edit(dbUpdater()->edit_id, _record, 
-			prices /*ourProductPrices->get_data_clear()*/,
-			kit /*ourProductKit->get_data_clear()*/,
-			kit_details /*ourProductKit->_rec_details*/);
+		if(id) {
+			appServer.get_product_for_edit(dbUpdater()->edit_id, _record, 
+				prices /*ourProductPrices->get_data_clear()*/,
+				kit /*ourProductKit->get_data_clear()*/,
+				kit_details /*ourProductKit->_rec_details*/);
+		}
 	}
 	
 	function do_edit_delayed(udata)
@@ -2759,8 +2770,10 @@ class MyEditOrderWindow extends EditOrderWindow {
 	function get_record_by_id(id){
 		local lines = grid_lines->_data;
 		grid_lines->clear_data_rows();
-		appServer.get_record_and_array(_record, lines, dbUpdater()->table_name, 0, 
-			dbUpdater()->edit_id, "&with_lines=1");
+		if(id) {
+			appServer.get_record_and_array(_record, lines, dbUpdater()->table_name, 0, 
+				dbUpdater()->edit_id, "&with_lines=1");
+		}
 	}
 
 	function do_edit_delayed(udata){
