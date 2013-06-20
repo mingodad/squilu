@@ -240,7 +240,7 @@ class HTTPConnBin extends HTTPConnAuthBase
 enum conn_type_e {e_conn_none, e_conn_http, e_conn_dbfile};
 
 constants.rawdelete("TimePeriode");
-enum TimePeriode {is_years = 1, is_months, is_weeks, is_days};
+enum TimePeriode {is_years = 1, is_months = 2, is_weeks = 3, is_days = 4};
 
 function getStatisticsPeriodeType(speriode){
 	if(speriode == "years") return TimePeriode.is_years;

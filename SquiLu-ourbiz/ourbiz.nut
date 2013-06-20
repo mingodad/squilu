@@ -285,7 +285,9 @@ local function mkSLEArray(str_buf, header, body, doAppend=false)
 }
 
 constants.rawdelete("TimePeriode");
-enum TimePeriode {is_years = 1, is_months, is_weeks, is_days};
+
+//enum do not does autonumber with initialization
+enum TimePeriode {is_years = 1, is_months = 2, is_weeks = 3, is_days = 4};
 
 local function getStatisticsPeriodeType(speriode){
 	if(speriode == C_years) return TimePeriode.is_years;
@@ -295,6 +297,7 @@ local function getStatisticsPeriodeType(speriode){
 }
 
 local function get_sql_bar_chart_statistics_periodes (periode_count, periode_type){
+
 	local speriode2;
 	local periodeMultiplier = 1;
 	local speriode;
