@@ -688,7 +688,7 @@ static void fl_init_workarea() {
   int format;
   unsigned *xywh;
 
-  /* If there are several screens, the _NET_WORKAREA property 
+  /* If there are several screens, the _NET_WORKAREA property
    does not give the work area of the main screen, but that of all screens together.
    Therefore, we use this property only when there is a single screen,
    and fall back to the main screen full area when there are several screens.
@@ -699,9 +699,9 @@ static void fl_init_workarea() {
                          (unsigned char **)&xywh) || !xywh || !xywh[2] ||
                          !xywh[3])
   {
-    Fl::screen_xywh(fl_workarea_xywh[0], 
-		    fl_workarea_xywh[1], 
-		    fl_workarea_xywh[2], 
+    Fl::screen_xywh(fl_workarea_xywh[0],
+		    fl_workarea_xywh[1],
+		    fl_workarea_xywh[2],
 		    fl_workarea_xywh[3], 0);
   }
   else
@@ -798,8 +798,8 @@ void fl_sendClientMessage(Window window, Atom message,
 }
 
 
-/* 
-   Get window property value (32 bit format) 
+/*
+   Get window property value (32 bit format)
    Returns zero on success, -1 on error
 */
 static int get_xwinprop(Window wnd, Atom prop, long max_length,
@@ -807,9 +807,9 @@ static int get_xwinprop(Window wnd, Atom prop, long max_length,
   Atom actual;
   int format;
   unsigned long bytes_after;
-  
-  if (Success != XGetWindowProperty(fl_display, wnd, prop, 0, max_length, 
-                                    False, AnyPropertyType, &actual, &format, 
+
+  if (Success != XGetWindowProperty(fl_display, wnd, prop, 0, max_length,
+                                    False, AnyPropertyType, &actual, &format,
                                     nitems, &bytes_after, (unsigned char**)data)) {
     return -1;
   }
@@ -979,7 +979,7 @@ int fl_handle(const XEvent& thisevent)
   if ( XFilterEvent((XEvent *)&xevent, 0) )
       return(1);
 
-#if USE_XRANDR  
+#if USE_XRANDR
   if( XRRUpdateConfiguration_f && xevent.type == randrEventBase + RRScreenChangeNotify) {
     XRRUpdateConfiguration_f(&xevent);
     Fl::call_screen_init();
@@ -987,11 +987,11 @@ int fl_handle(const XEvent& thisevent)
     Fl::handle(FL_SCREEN_CONFIGURATION_CHANGED, NULL);
   }
 #endif
-  
+
   if (xevent.type == PropertyNotify && xevent.xproperty.atom == fl_NET_WORKAREA) {
     fl_init_workarea();
   }
-  
+
   switch (xevent.type) {
 
   case KeymapNotify:
@@ -1536,7 +1536,7 @@ int fl_handle(const XEvent& thisevent)
       if (xevent.xproperty.state != PropertyDelete) {
         unsigned long nitems;
         unsigned long *words = 0;
-        if (0 == get_xwinprop(xid, fl_NET_WM_STATE, 64, &nitems, &words) ) { 
+        if (0 == get_xwinprop(xid, fl_NET_WM_STATE, 64, &nitems, &words) ) {
           for (unsigned long item = 0; item < nitems; item++) {
             if (words[item] == fl_NET_WM_STATE_FULLSCREEN) {
               fullscreen_state = 1;
@@ -1871,8 +1871,8 @@ void Fl_X::make_xid(Fl_Window* win, XVisualInfo *visual, Colormap colormap)
   }
   // For the non-EWMH fullscreen case, we cannot use the code above,
   // since we do not want save_under, do not want to turn off the
-  // border, and cannot grab without an existing window. Besides, 
-  // there is no clear_override(). 
+  // border, and cannot grab without an existing window. Besides,
+  // there is no clear_override().
   if (win->fullscreen_active() && !Fl_X::ewmh_supported()) {
     attr.override_redirect = 1;
     mask |= CWOverrideRedirect;
@@ -2168,11 +2168,11 @@ static void decorated_win_size(Fl_Window *win, int &w, int &h)
   if (!win->shown() || win->parent() || !win->border() || !win->visible()) return;
   Window root, parent, *children;
   unsigned n = 0;
-  Status status = XQueryTree(fl_display, Fl_X::i(win)->xid, &root, &parent, &children, &n); 
+  Status status = XQueryTree(fl_display, Fl_X::i(win)->xid, &root, &parent, &children, &n);
   if (status != 0 && n) XFree(children);
-  // when compiz is used, root and parent are the same window 
+  // when compiz is used, root and parent are the same window
   // and I don't know where to find the window decoration
-  if (status == 0 || root == parent) return; 
+  if (status == 0 || root == parent) return;
   XWindowAttributes attributes;
   XGetWindowAttributes(fl_display, parent, &attributes);
   w = attributes.width;
@@ -2207,12 +2207,12 @@ void Fl_Paged_Device::print_window(Fl_Window *win, int x_offset, int y_offset)
   unsigned n = 0;
   int bx, bt, do_it;
   from = fl_window;
-  do_it = (XQueryTree(fl_display, fl_window, &root, &parent, &children, &n) != 0 && 
+  do_it = (XQueryTree(fl_display, fl_window, &root, &parent, &children, &n) != 0 &&
 	   XTranslateCoordinates(fl_display, fl_window, parent, 0, 0, &bx, &bt, &child_win) == True);
   if (n) XFree(children);
-  // hack to bypass STR #2648: when compiz is used, root and parent are the same window 
+  // hack to bypass STR #2648: when compiz is used, root and parent are the same window
   // and I don't know where to find the window decoration
-  if (do_it && root == parent) do_it = 0; 
+  if (do_it && root == parent) do_it = 0;
   if (!do_it) {
     this->set_current();
     this->print_widget(win, x_offset, y_offset);

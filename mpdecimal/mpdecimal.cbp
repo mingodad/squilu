@@ -16,6 +16,8 @@
 				<Compiler>
 					<Add option="-Wall" />
 					<Add option="-g" />
+					<Add option="-DPPRO=1" />
+					<Add option="-DASM=1" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
@@ -28,13 +30,15 @@
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Wall" />
+					<Add option="-DPPRO=1" />
+					<Add option="-DASM=1" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
 				</Linker>
 			</Target>
 			<Target title="Release win32">
-				<Option output="libmpdecimal-win32" prefix_auto="1" extension_auto="1" />
+				<Option output="mpdecimal-win32" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="/home/mingo/dev/mpdecimal-2.3/.objs-win32" />
 				<Option type="2" />
@@ -43,17 +47,48 @@
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Wall" />
+					<Add option="-DPPRO=1" />
+					<Add option="-DASM=1" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="Release wince">
+				<Option output="mpdecimal-wince" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="/home/mingo/dev/mpdecimal-2.3/.objs-wince" />
+				<Option type="2" />
+				<Option compiler="cegcc_compiler" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-Wall" />
+					<Add option="-DANSI=1" />
+					<Add option="-D_WIN32_WCE=1" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="Release_64bits">
+				<Option output="libmpdecimal" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="/home/mingo/dev/mpdecimal-2.3/.objs" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-Wall" />
+					<Add option="-DASM=1" />
+					<Add option="-DCONFIG_64=1" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
 				</Linker>
 			</Target>
 		</Build>
-		<Compiler>
-			<Add option="-DCONFIG_32=1" />
-			<Add option="-DPPRO=1" />
-			<Add option="-DASM=1" />
-		</Compiler>
 		<Unit filename="basearith.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -93,6 +128,8 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="memory.h" />
+		<Unit filename="mpdecimal.32.h" />
+		<Unit filename="mpdecimal.64.h" />
 		<Unit filename="mpdecimal.c">
 			<Option compilerVar="CC" />
 		</Unit>

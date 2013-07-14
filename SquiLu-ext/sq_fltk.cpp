@@ -3760,7 +3760,8 @@ static SQRESULT _fl_get_font(HSQUIRRELVM v)
 
 static SQRESULT _fl_get_font_name(HSQUIRRELVM v)
 {
-    SQInteger font, attributes = 0;
+    SQInteger font;
+    int attributes = 0;
     sq_getinteger(v, 2, &font);
     const char *fname = Fl::get_font_name((Fl_Font)font, &attributes);
     sq_newtable(v);
@@ -3916,7 +3917,7 @@ static SQRESULT _fl_globals_fl_color(HSQUIRRELVM v)
     SQ_FUNC_VARS(v);
     if(_top_ > 1){
         SQ_GET_INTEGER(v, 2, color);
-        fl_color(color);
+        fl_color((Fl_Color)color);
         return 0;
     }
     sq_pushinteger(v, fl_color());

@@ -29,13 +29,16 @@
 #include "mpdecimal.h"
 #include <stdio.h>
 #include <string.h>
+#ifndef _WIN32_WCE
 #include <signal.h>
-
+#endif
 
 void
 mpd_dflt_traphandler(mpd_context_t *ctx UNUSED)
 {
+#ifndef _WIN32_WCE
 	raise(SIGFPE);
+#endif
 }
 
 void (* mpd_traphandler)(mpd_context_t *) = mpd_dflt_traphandler;

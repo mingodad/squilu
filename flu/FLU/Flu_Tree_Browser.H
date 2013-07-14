@@ -1087,7 +1087,7 @@ class FLU_EXPORT Flu_Tree_Browser : public Fl_Group
       //! Remove the entry identified by path \b fullpath from this node
       /*! \return the unique id of the removed entry, or \c 0 if no matching entry was found */
       inline unsigned int remove( const char *fullpath )
-	{ return( (unsigned int)modify( fullpath, REMOVE, tree->rdata ) ); }
+	{ return( (ptrdiff_t)modify( fullpath, REMOVE, tree->rdata ) ); }
 
       //! Remove the entry identified by unique id \b id from this node
       /*! \return the unique id of the removed entry, or \c 0 if no matching entry was found */

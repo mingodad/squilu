@@ -93,6 +93,34 @@
 					<Add directory="../flu" />
 				</Linker>
 			</Target>
+			<Target title="Release 64bits">
+				<Option output="editor" prefix_auto="1" extension_auto="1" />
+				<Option object_output="objs" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-DNDEBUG=1" />
+					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
+					<Add option="-D_SQ64=1" />
+					<Add option="-DCONFIG_64=1" />
+					<Add directory="/usr/include/postgresql" />
+					<Add directory="/usr/include/mysql" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="X11" />
+					<Add library="Xinerama" />
+					<Add library="Xft" />
+					<Add library="Xext" />
+					<Add library="pthread" />
+					<Add library="zmq3" />
+					<Add library="axtls" />
+					<Add library="mpdecimal" />
+					<Add library="discount" />
+					<Add library="rt" />
+				</Linker>
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
@@ -104,7 +132,6 @@
 			<Add option="-DSQUSEDOUBLE=1" />
 			<Add option="-DSQUSEDECIMAL642=1" />
 			<Add option="-DNO_EXCEPTION_KEY_NOT_FOUND0=1" />
-			<Add option="-D_SQ642=1" />
 			<Add option="-DNO_GARBAGE_COLLECTOR00=1" />
 			<Add option="-DSQLITE_DEFAULT_FILE_FORMAT=4" />
 			<Add option="-DSQLITE_DEFAULT_AUTOVACUUM=1" />

@@ -29,8 +29,9 @@
 #ifndef IO_H
 #define IO_H
 
-
+#ifdef _WIN32_WCE
 #include <errno.h>
+#endif
 #include "mpdecimal.h"
 
 

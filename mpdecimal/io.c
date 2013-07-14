@@ -33,8 +33,13 @@
 #include <ctype.h>
 #include <limits.h>
 #include <assert.h>
+#ifdef _WIN32_WCE
+static int errno = 0;
+#define EINVAL -1
+#else
 #include <errno.h>
 #include <locale.h>
+#endif
 #include "bits.h"
 #include "constants.h"
 #include "memory.h"

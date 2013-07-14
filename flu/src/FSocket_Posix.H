@@ -53,7 +53,7 @@ class FSocket_Posix : public FSocket {
   // Directory for Unix Domain socket files. This directory should be
   // either empty or be terminated with "/". Dafault value is "/tmp/"
   //
-  static char* unix_socket_dir;
+  static const char* unix_socket_dir;
 
   int open(int listen_queue_size);
   int connect(int max_attempts, time_t timeout);

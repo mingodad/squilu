@@ -2756,7 +2756,7 @@ int Flu_File_Chooser :: popupContextMenu( Entry *entry )
     }
 
   // add the programmable context handlers
-  for( unsigned int i = 0; i < contextHandlers.size(); i++ )
+  for( ptrdiff_t i = 0; i < contextHandlers.size(); i++ )
     {
       if( !(contextHandlers[i].type & type) )
 	continue;
@@ -2772,7 +2772,7 @@ int Flu_File_Chooser :: popupContextMenu( Entry *entry )
   const Fl_Menu_Item *selection = entryPopup.popup();
   if( selection )
     {
-      int handler = (int)selection->user_data();
+      ptrdiff_t handler = (ptrdiff_t)selection->user_data();
       switch( handler )
 	{
 	case ACTION_NEW_FOLDER:

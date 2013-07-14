@@ -36,7 +36,6 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="sqlite3" />
 					<Add library="pthread" />
 					<Add library="dl" />
 					<Add library="X11" />

@@ -10,7 +10,7 @@
  * This library is free software. Distribution and use rights are outlined in
  * the file "COPYING" which should have been included with this file.  If this
  * file is missing or damaged, see the license at:
- * 
+ *
  *     http://www.fltk.org/COPYING.php
  *
  * Please report all bugs and problems on the following page:
@@ -112,7 +112,7 @@
  * __APPLE_QUARTZ__:
  *
  * All Apple implementations are now based on Quartz and Cocoa,
- * so this flag should always be on for Mac OS X. This flag has 
+ * so this flag should always be on for Mac OS X. This flag has
  * no meaning on operating systems other than Mac OS X.
  */
 
@@ -153,7 +153,7 @@
  *
  * Byte order of your machine: 1 = big-endian, 0 = little-endian.
  */
- 
+
 #ifdef __APPLE__
 #include <mac_endianness.h>
 #else
@@ -236,9 +236,9 @@
  * Do we have various image libraries?
  */
 
-#undef HAVE_LIBPNG
-#undef HAVE_LIBZ
-#undef HAVE_LIBJPEG
+#define HAVE_LIBPNG 1
+#define HAVE_LIBZ 1
+#define HAVE_LIBJPEG 1
 
 /*
  * FLTK_USE_CAIRO
@@ -261,15 +261,15 @@
  * Which header file do we include for libpng?
  */
 
-#undef HAVE_PNG_H
-#undef HAVE_LIBPNG_PNG_H
+#define HAVE_PNG_H 1
+/* #undef HAVE_LIBPNG_PNG_H */
 
 /*
  * Do we have the png_xyz() functions?
  */
 
-#undef HAVE_PNG_GET_VALID
-#undef HAVE_PNG_SET_TRNS_TO_ALPHA
+#define HAVE_PNG_GET_VALID 1
+#define HAVE_PNG_SET_TRNS_TO_ALPHA 1
 
 /*
  * Do we have POSIX threading?

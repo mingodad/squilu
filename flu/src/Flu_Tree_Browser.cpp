@@ -3030,7 +3030,7 @@ Flu_Tree_Browser::Node* Flu_Tree_Browser::add_leaf( const char* path, const char
 
 unsigned int Flu_Tree_Browser::remove( const char *fullpath )
 {
-    return( (unsigned int)root.modify( fullpath, Node::REMOVE, rdata ) );
+    return( (ptrdiff_t)root.modify( fullpath, Node::REMOVE, rdata ) );
 }
 
 unsigned int Flu_Tree_Browser::remove( const char *path, const char *text )
@@ -3566,7 +3566,7 @@ Flu_Tree_Browser::Node* Flu_Tree_Browser::Node::modify( const char* path, int wh
         // if this is the last node, remove it.
         if( lastNode )
         {
-            int ID = n->id();
+            ptrdiff_t ID = n->id();
             _children.erase( n );
             //if( tree->rdata.cbNode == n )
             //tree->rdata.cbNode = NULL;

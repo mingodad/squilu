@@ -1524,7 +1524,7 @@ static SQRESULT sq_sqlite3_key(HSQUIRRELVM v)
     SQ_FUNC_VARS_NO_TOP(v);
     GET_sqlite3_INSTANCE();
     SQ_GET_STRING(v, 2, key);
-    sq_pushinteger(v, sqlite3_key(self, key, key_size));
+    sq_pushinteger(v, sqlite3_key_v2(self, 0, key, key_size));
     return 1;
 }
 
@@ -1537,7 +1537,7 @@ static SQRESULT sq_sqlite3_rekey(HSQUIRRELVM v)
     SQ_FUNC_VARS_NO_TOP(v);
     GET_sqlite3_INSTANCE();
     SQ_GET_STRING(v, 2, key);
-    sq_pushinteger(v, sqlite3_rekey(self, key, key_size));
+    sq_pushinteger(v, sqlite3_rekey_v2(self, 0, key, key_size));
     return 1;
 }
 
