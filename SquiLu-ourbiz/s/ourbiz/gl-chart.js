@@ -98,13 +98,13 @@ function newGLChartEditWindow(all_sales_buys){
 		//dad.setContentOverflow(newId);
 		win.ud.ajaxLoad = new dad.Ajax(dad.formAjaxLoadResponse, newId, false);
 		
-		var myform = $(data.form_id);
+		var myform = $id(data.form_id);
 		myform.my_field_prefix = "glc_";
 		myform.onFillForm = GLChartEditWindowOnFillForm;
 		dad.setupEditForm(myform);
 		myform.ajaxSubmit = new dad.Ajax(dad.listGLChartWindowOnSubmitRespose, newId, false);
 		
-		var btn = $(btnAction_id);
+		var btn = $id(btnAction_id);
 		btn.onclick = GLChartEditWindowOnSubmit;
 		
 		var ajaxGlGroups = new dad.Ajax(function(select){

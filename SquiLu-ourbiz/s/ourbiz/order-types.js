@@ -136,7 +136,7 @@ function newOrderTypesListEditWindow(){
 		data.data_table = Jaml.render('2TRDataTable', data);
 
 		var win = dad.newWindow(newId,220,20, 800, 560, _tr(title), Jaml.render('OrderTypesListEdit', data));
-		var myform = $(data.form_id);
+		var myform = $id(data.form_id);
 		win.ud.form = myform;
 		win.ud.WindowRefresh = OrderTypesListEditWindowRefresh;
 		myform.my_field_prefix = "ot_";
@@ -144,7 +144,7 @@ function newOrderTypesListEditWindow(){
 		myform.ajaxSubmit = new dad.Ajax(dad.listEditWindowOnSubmitRespose, newId, false);
 		win.ud.ajaxLoad = new dad.Ajax(dad.formAjaxLoadResponse, newId, false);
 
-		var mytable = $(table_id);
+		var mytable = $id(table_id);
 		mytable.my_record_header = ["id|ID|0|R",
                 "code|Code|6|R",
                 "description|Description|-1",
@@ -156,7 +156,7 @@ function newOrderTypesListEditWindow(){
 		mytable.row_click_cb = OrderTypesListEditWindowOnTableRowClick;
 		win.ud.ajaxTable = new dad.newAjaxDataTableAjax(win, newId);
 
-		var btn = $(btnAction_id);
+		var btn = $id(btnAction_id);
 		btn.onclick = OrderTypesListEditWindowOnSubmit;
 		
 		OrderTypesListEditWindowRefresh(win.ud.ajaxTable);

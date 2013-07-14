@@ -149,9 +149,9 @@ function newGLTransationsEditWindow(all_sales_buys){
 		var win = dad.newWindow(newId,220,20, 800, 500, _tr(title), Jaml.render('GLTransationsEditWindow', data));
 		//dad.setContentOverflow(newId);
 
-		var data_table = $(table_id);
+		var data_table = $id(table_id);
 		data_table.className = data_table.className + " gl_transactions_lines";
-		var myform = $(data.form_id);
+		var myform = $id(data.form_id);
 		
 		win.ud.form = myform;
 		myform.my_field_prefix = "glt_";
@@ -169,7 +169,7 @@ function newGLTransationsEditWindow(all_sales_buys){
 			return result_array;
 		}
 
-		var mytable = $(table_id);
+		var mytable = $id(table_id);
 		mytable.my_record_header = ["id|ID|0",
                 "code|Code|8",
                 "description|Account|-1",
@@ -189,7 +189,7 @@ function newGLTransationsEditWindow(all_sales_buys){
 			if(this.status == 200){
 				//retrieve result as an JavaScript object
 				var record = dad.parseSLEData2Object(this.responseText); 
-				var form = $(data.form_id);
+				var form = $id(data.form_id);
 				dad.formFillByRecord(form, record, "tl_");
 				//if(!record.__table__) form.ol_quantity.focus();
 			} else {
@@ -201,7 +201,7 @@ function newGLTransationsEditWindow(all_sales_buys){
 			if(this.status == 200){
 				//retrieve result as an JavaScript object
 				var record = dad.parseSLEData2Object(this.responseText);
-				var form = $(data.form_id);
+				var form = $id(data.form_id);
 				dad.fillFormWithExistingFields(form, record);
 				form.ol_description.focus();
 			} else {
@@ -228,14 +228,14 @@ function newGLTransationsListSearchWindow(all_sales_buys){
 	var title = dad._getSABTitle(all_sales_buys, 'GL Transactions List/Search');
 	var win = newListSearchWindow(all_sales_buys, title, colHeaders, showGLTransationsEditWindow,
 		"gl_transactions", 'GLTransationsListSearchOn', null, all_sales_buys);
-	var data_table = $("table" + win.ud.win_id);
+	var data_table = $id("table" + win.ud.win_id);
 	data_table.className = data_table.className + " gl_transactions_list";
 
 	var ajaxOrderType = new dad.Ajax(function(id){
 		if(this.status == 200){
 			//retrieve result as an JavaScript object
 			var records = dad.parseSLEData(this.responseText); 
-			var select = $('group_filter' + id);
+			var select = $id('group_filter' + id);
 			dad.fillSelectByRecords(select, records, true);
 		}
 	}, win.ud.win_id, false);

@@ -1,6 +1,6 @@
 var testEl,position=0;
 window.onload = function () {
-	testEl = $('testElement');
+	testEl = $id('testElement');
 	testEl.onmousedown = testEl.ontouchstart = startDrag;
 	var divs = testEl.getElementsByTagName('div');
 	for (var i=0;i<divs.length;i+=1) {
@@ -17,8 +17,8 @@ function startDrag(e) {
 	var step = 50,	// in milliseconds
 		startPos,speed,
 		distance = 0,
-		min = -position + $('wrapper').offsetWidth/2,
-		max = $('wrapper').offsetWidth/2;
+		min = -position + $id('wrapper').offsetWidth/2,
+		max = $id('wrapper').offsetWidth/2;
 	clearInterval(scroll);
 
 	testEl.ontouchmove = testEl.onmousemove = moveDrag;
@@ -29,7 +29,7 @@ function startDrag(e) {
 		var dist = end - origin;
 		var time = endTime - originTime;
 		speed = dist/(time/1000); // pixels per second
-		$('log').innerHTML = 'Speed is ' + Math.abs(Math.round(speed)) + ' pixels per second!';
+		$id('log').innerHTML = 'Speed is ' + Math.abs(Math.round(speed)) + ' pixels per second!';
 		scroll = setInterval(extraScroll,step);
 		testEl.ontouchmove = testEl.ontouchend = testEl.onmousemove = document.onmouseup = null;
 	}
@@ -70,6 +70,6 @@ function startDrag(e) {
 	}
 }
 
-function $(id) {
+function $id(id) {
 	return document.getElementById(id);
 }

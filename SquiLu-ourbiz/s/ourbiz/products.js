@@ -270,11 +270,11 @@ function newProductEditWindow(all_sales_buys){
 		}
 		var win = dad.newWindow(newId,220,20, 800, 500, _tr(title), Jaml.render('ProductEditWindow', data));
 		//dad.setContentOverflow(newId);
-		dad.initTab($(main_tabs_id));
-		dad.initTab($(notes_tabs_id));
+		dad.initTab($id(main_tabs_id));
+		dad.initTab($id(notes_tabs_id));
 		win.ud.ajaxLoad = new dad.Ajax(dad.formAjaxLoadResponse, newId, false);
 
-		var choiceHistory = $('history_type_id' + newId);
+		var choiceHistory = $id('history_type_id' + newId);
 		choiceHistory.ajaxLoadHistory = dad.newAjaxDataTableAjax(win, 
 				{id:newId, table:table_history_id, table_header:table_history_header_id});
 		choiceHistory.onchange = function(){
@@ -289,13 +289,13 @@ function newProductEditWindow(all_sales_buys){
 			return 'list=products&statistics=' + win.ud.edit_id + '&sab=' + win.ud.sab;;
 		});
 
-		var myform = $(data.form_id);
+		var myform = $id(data.form_id);
 		myform.my_field_prefix = "p_";
 		dad.setupEditForm(myform);
 		myform.ajaxSubmit = new dad.Ajax(dad.listEditWindowOnSubmitRespose, newId, false);
 		myform.afterFill = function(){
 			var img_id = this._dbrecord.image_id;
-			var img = $('prod_img_' + newId);
+			var img = $id('prod_img_' + newId);
 			dad.getImageForImg(img, img_id);
 		}
 
@@ -305,7 +305,7 @@ function newProductEditWindow(all_sales_buys){
 			myform[calc_fields_list[i]].onchange = onProductEditCalcPrice;
 		}
 		
-		var btnRptProductsList = $("rptProductsList" + newId);
+		var btnRptProductsList = $id("rptProductsList" + newId);
 		btnRptProductsList.onclick = function(){
 			var url = '/DB/GetList?list=products&pdf=1';
 			window.open(url, "printPDF");
@@ -342,14 +342,14 @@ function newProductEditWindow(all_sales_buys){
 			if(this.status == 200){
 				//retrieve result as an JavaScript object
 				var record = dad.parseSLEData2Object(this.responseText); 
-				var form = $(data.form_id);
+				var form = $id(data.form_id);
 				dad.formFillByRecord(form, record, "p_");
 			} else {
 				alert("An error has occured making the request");
 			}
 		}, null, false);
 		
-		var btn = $(btnAction_id);
+		var btn = $id(btnAction_id);
 		btn.onclick = ProductEditWindowOnSubmit;
 	}
 	dad.bringToFront(win);
@@ -384,10 +384,10 @@ function newProductsListSearchWindow(all_sales_buys){
 	var win = newListSearchWindow(all_sales_buys, title, colHeaders, showProductEditWindow,
 		"products", 'ProductsListSearchOn', null, all_sales_buys);
 	var myId = win.ud.win_id;
-	var ltbl =  $('table' +myId);
+	var ltbl =  $id('table' +myId);
 	ltbl.row_over_cb =  function(evt){
 		var img_id = this.cells[10].innerHTML;
-		var img = $('ls_img_' + myId);
+		var img = $id('ls_img_' + myId);
 		dad.getImageForImg(img, img_id, true);
 	};
 	return win;

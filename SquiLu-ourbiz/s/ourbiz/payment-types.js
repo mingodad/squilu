@@ -86,7 +86,7 @@ function newPaymentTypesListEditWindow(){
 		data.data_table = Jaml.render('2TRDataTable', data);
 		
 		var win = dad.newWindow(newId,220,20, 550, 450, _tr(title), Jaml.render('PaymentTypesListEdit', data));
-		var myform = $(data.form_id);
+		var myform = $id(data.form_id);
 		win.ud.form = myform;
 		win.ud.WindowRefresh = PaymentTypesListEditWindowRefresh;
 		myform.my_field_prefix = "pt_";
@@ -94,7 +94,7 @@ function newPaymentTypesListEditWindow(){
 		myform.ajaxSubmit = new dad.Ajax(dad.listEditWindowOnSubmitRespose, newId, false);
 		win.ud.ajaxLoad = new dad.Ajax(dad.formAjaxLoadResponse, newId, false);
 		
-		var mytable = $(table_id);
+		var mytable = $id(table_id);
 		mytable.my_record_header = ["id|ID|0",
                 "code|Code|8|C",
                 "description|Description|-1",
@@ -102,7 +102,7 @@ function newPaymentTypesListEditWindow(){
 		mytable.row_click_cb = PaymentTypesListEditWindowOnTableRowClick;
 		win.ud.ajaxTable = new dad.newAjaxDataTableAjax(win, newId);
 
-		var btn = $(btnAction_id);
+		var btn = $id(btnAction_id);
 		btn.onclick = PaymentTypesListEditWindowOnSubmit;
 		
 		PaymentTypesListEditWindowRefresh(win.ud.ajaxTable);

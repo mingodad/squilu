@@ -92,7 +92,7 @@ function CalendarChooserMakemonth(y,m){
 
 function CalendarChooserSetDate(id, op){
 	//alert(table_month_id + ':' + op)
-	var table_month = document.getElementById("cc_days_month" + id);
+	var table_month = $id("cc_days_month" + id);
 	var date = table_month._date ? table_month._date : 0;
 	switch(op){
 		case '-y': date.setFullYear(date.getFullYear()-1); break;
@@ -115,7 +115,7 @@ function CalendarChooserSetDate(id, op){
 			table_month._date = new Date();
 	}
 
-	var cc_header = document.getElementById("cc_header" + id);
+	var cc_header = $id("cc_header" + id);
 	cc_header.innerHTML = table_month._date.toLocaleString();
 	
 	var monthArray = CalendarChooserMakemonth(table_month._date.getFullYear(), table_month._date.getMonth());
@@ -199,7 +199,7 @@ function newCalendarChooserWindow(){
 		var win = dad.newWindow(newId, 220,20, 300, 0, _tr(title), Jaml.render('CalendarChooserWindow', data));
 		CalendarChooserSetDate(newId, 0);
 		
-		var myform = document.getElementById(data.form_id);
+		var myform = $id(data.form_id);
 		for ( var i = 0, cnl = myform.length; i < cnl; i++ ) {
 			var elm = myform[i];
 			if ( dad.isFocusableTag(elm.tagName) ){

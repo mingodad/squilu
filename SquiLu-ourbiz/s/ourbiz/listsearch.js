@@ -103,7 +103,7 @@ function newListSearchWindow(all_sales_buys, title, colHeaders, editWindow, dbTa
 		win.ud.all_sales_buys = all_sales_buys;
 		win.ud.win_id = newId;
 
-		var myform = $(data.form_id);
+		var myform = $id(data.form_id);
 		win.ud.form = myform;
 		dad.setupEditForm(myform);
 
@@ -124,16 +124,16 @@ function newListSearchWindow(all_sales_buys, title, colHeaders, editWindow, dbTa
 			myform.btnSearch.onclick();
 		}
 		
-		var group_filter = $('group_filter' + newId);
+		var group_filter = $id('group_filter' + newId);
 		group_filter.onchange=function(evt){
-			var btn = $(btnSearch_id);
+			var btn = $id(btnSearch_id);
 			btn.onclick();
 		}
 
-		var btn = $(btnSearch_id);
+		var btn = $id(btnSearch_id);
 		btn.dbTable = dbTable;
 		btn.dbExtraType = db_extra_type;
-		var mytable = $(table_id);
+		var mytable = $id(table_id);
 		mytable.my_record_header = colHeaders;
 		win.ud.mySelection = {};
 		mytable.row_dblclick_cb = ListSearchWindowOnTableRowClick;

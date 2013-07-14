@@ -1,6 +1,6 @@
 dad = {}
 
-function $(id){return document.getElementById(id);}
+function $id(id){return document.getElementById(id);}
 
 dad.detectEnvironment = function () {
   var n = navigator;
@@ -168,12 +168,72 @@ dad.getFirstChildWithTagName = function( element, tagName ) {
 	}
 }
 
+dad.isSpace = function( ch ) {
+		return (ch == " ") || (ch == "\t") || (ch == "\n") || (ch == "\r") || (ch == "\v");
+}
+
+dad.strHasWord = function(str, word){
+	var found = str.indexOf(word);
+	while(found >= 0) {
+		if(found == 0){
+			if( (str.length == word.length) ||
+				(dad.isSpace(str[word.length])) ) return true;
+		} else {
+			if( dad.isSpace(str[found-1]) ) {
+				if( (str.length == found+word.length) ||
+					(dad.isSpace(str[found+word.length]))) return true;
+			}
+		}
+		found = str.indexOf(word, found+1);
+	}
+	return false;
+}
+
+dad.strRemoveWord = function(str, word){
+	var found = str.indexOf(word);
+	while(found >= 0) {
+		if(found == 0){
+			if(str.length == word.length) return "";
+			if(dad.isSpace(str[word.length])) return str.substring(word.length+1);
+		} else {
+			if( dad.isSpace(str[found-1]) ) {
+				var lastPos = found+word.length;
+				if(str.length == lastPos) {
+					return str.substring(0, found-1);
+				}
+				if(dad.isSpace(str[lastPos])) {
+					return str.substring(0, found-1) + str.substring(lastPos);
+				}
+			}
+		}
+		found = str.indexOf(word, found+1);
+	}
+	return str;
+}
+
+dad.hasClass = function(elm, className) {
+	var elm_className = elm.className;
+	return elm_className && dad.strHasWord(elm_className, className);
+}
+
+dad.addClass = function(elm, className) {
+	if(dad.hasClass(elm, className)) return;
+	var elm_className = elm.className;
+	if(elm_className) elm.className = elm_className + " " + className;
+	else elm.className = className;
+}
+
+dad.removeClass = function(elm, className) {
+	elm.className = dad.strRemoveWord(elm.className, className);
+}
+
 dad.getFirstChildWithClassName = function( element, className ) {
 	if(element.childNodes){
 		var cn = element.childNodes;
 		for ( var i = 0, cnl = cn.length; i < cnl; i++ ) {
 			var elm = cn[i];
-			if ( elm.className == className ) return elm;
+			if(dad.hasClass(elm, className)) return elm;
+	
 			var found = dad.getFirstChildWithClassName( elm, className );
 			if( found ) return found;
 		}
@@ -195,7 +255,7 @@ dad.getFirstChildWithAttribute = function( element, attrName, attrValue ) {
 dad.getFirstParentWithClassName = function( element, className ) {
 	var pn = element;
 	while(pn = pn.parentNode){
-		if ( pn.className == className ) return pn;
+		if ( dad.hasClass(pn, className) ) return pn;
 	}
 }
 
@@ -245,11 +305,11 @@ dad.initTab = function(tabContainer) {
 		// Assign onclick events to the tab links, and
 			item.onclick = dad.showTab;
 		// highlight the first tab
-			if ( j == 0 ) item.className = 'selected';
-			var tabContent = $(id);
+			if ( j == 0 ) dad.addClass(item, 'selected');
+			var tabContent = $id(id);
 			table_rows[id] = tabContent;
 			// Hide all content divs except the first
-			if ( j > 0 ) tabContent.className = 'tabContent hide';
+			if ( j > 0 ) dad.addClass(tabContent, 'tabContent hide');
 			j++;
 		}
   }
@@ -263,11 +323,11 @@ dad.showTab = function() {
   var buttons = this.tabObj.buttons;
   for ( var id in table_rows ) {
 		if ( id == selectedId ) {
-			buttons[id].className = 'selected';
-			table_rows[id].className = 'tabContent';
+			dad.addClass(buttons[id], 'selected');
+			dad.removeClass(table_rows[id], 'hide');
 		} else {
-			buttons[id].className = '';
-			table_rows[id].className = 'tabContent hide';
+			dad.removeClass(buttons[id], 'selected');
+			dad.addClass(table_rows[id], 'hide');
 		}
   }
   // Stop the browser following the link
@@ -308,13 +368,13 @@ dad.dragDrop = {
 	draggedObject: undefined,
 	initElement: function (element, dragThisObj, keyboardLink) {
 		var dd = dad.dragDrop;
-		if (typeof element == 'string') element = $(element);
+		if (typeof element == 'string') element = $id(element);
 		element.onmousedown = dd.startDragMouse;
 		element.ontouchstart = dd.startDragMouse;
 		element._dragThisObj = dragThisObj;
 		if(keyboardLink) {
 			if (typeof keyboardLink == 'string')
-				keyboardLink = $(keyboardLink);
+				keyboardLink = $id(keyboardLink);
 			keyboardLink.relatedElement = element;
 			keyboardLink.onclick = dd.startDragKeys;
 		}
@@ -348,7 +408,7 @@ dad.dragDrop = {
 		dd.startX = dragThisObj.offsetLeft;
 		dd.startY = dragThisObj.offsetTop;
 		dd.draggedObject = dragThisObj;
-		obj.className += ' dragged';
+		dad.addClass(obj, 'dragged');
 		if(dragThisObj.onStartDragging)  dragThisObj.onStartDragging();
 	},
 	dragMouse: function (e) {
@@ -419,7 +479,7 @@ dad.dragDrop = {
 		removeEventMulti(document,'keypress keydown',dd.dragKeys);
 		removeEvent(document,'keypress',dd.switchKeyEvents);
 		var dobj = dd.draggedObject;
-		dobj.className = dobj.className.replace(/dragged/,'');
+		dad.removeClass(dobj, 'dragged');
 		if(dobj.onStopDragging)  dobj.onStopDragging();
 		dd.draggedObject = null;
 	}
@@ -525,7 +585,7 @@ dad.find_topmost_zindex = function() {
 
 dad.bringToFront = function(el){
 	if (typeof el == 'string')
-			el = $(el);
+			el = $id(el);
 	if(el != dad._topmost_zindex){
 		el.style.zIndex = dad.find_topmost_zindex()+1;
 		dad._topmost_zindex = el;
@@ -548,6 +608,7 @@ dad.getStyle = function(el,styleProp){
 }
 
 dad._winOnAfterResize = function(){
+/*
 	var child = this.firstChild;
 	if(child){
 		var style = this.style;
@@ -556,13 +617,24 @@ dad._winOnAfterResize = function(){
 		var newTop = parseInt(style.top)+border;
 		var newWidth = parseInt(style.width)-border;
 		var newHeight = parseInt(style.height)-border;
-		style = child.style;
+		//style = child.style;
 		var AsPixels = dad.getAsPixels;
-		style.left = AsPixels(newLeft);
-		style.top = AsPixels(newTop);
-		style.width = AsPixels(newWidth);
-		style.height = AsPixels(newHeight);
+		//child.left = AsPixels(newLeft);
+		//child.top = AsPixels(newTop);
+		//child.width = AsPixels(newWidth);
+		//child.height = AsPixels(newHeight);
 	}
+*/
+	if(this._onAfterResizeList){
+		for(id in this._onAfterResizeList){
+			this._onAfterResizeList[id]();
+		}
+	}
+}
+
+dad.addWinOnAfterResize = function(win, id, func){
+	if(!win._onAfterResizeList) win._onAfterResizeList = {};
+	win._onAfterResizeList[id] = func;
 }
 
 dad._windows = {}
@@ -572,7 +644,7 @@ dad.closeTopParent = function (child){
 	if(topParent) {
 		for(win in dad._windows){
 			if(topParent == dad._windows[win]) {
-				if(topParent.className.indexOf("mainWindow") == -1){
+				if(!dad.hasClass(topParent, "mainWindow")){
 					dad._windows[win] = null;
 					document.body.removeChild(topParent);
 				}
@@ -584,7 +656,7 @@ dad.closeTopParent = function (child){
 }
 
 dad.hideWindow = function (win){
-	if(win && (win.className.indexOf("mainWindow") == -1)){
+	if(win && (!dad.hasClass(win, "mainWindow"))){
 		win.style.display="none";
 	}
 	return false;
@@ -645,6 +717,33 @@ Jaml.register('Window', function(args) {
 			)
 		)
 	});
+
+Jaml.register('Window2', function(args) {
+		var AsPixels = dad.getAsPixels;
+		var swidth = "";
+		if(args.x > 0) swidth += "left:" + AsPixels(args.x) + ";";
+		if(args.y > 0) swidth += "top:" + AsPixels(args.y) + ";";
+		if(args.w > 0) swidth += "width:" + AsPixels(args.w) + ";";
+		if(args.h > 0) swidth += "height:" + AsPixels(args.h) + ";";
+		
+		var winOptClass = args.noWinOpt ? "noWinOpt" : "winOpt";
+		
+		div({
+				style: swidth,
+				"class":"resizeable window",
+				onAfterResize: "dad._winOnAfterResize"
+			},
+			div({style: "height:1.5em;", "class":"winTitle winHeader"},
+				args.title,
+				a({href:"#",  onclick: "return dad.closeTopParent(this)", cls: winOptClass}, "X"),
+				a({href:"#", cls: winOptClass}, "^"),
+				a({href:"#",  onclick: "return dad.hideTopParent(this)", cls: winOptClass}, "_")
+			),
+			div({style:"position:absolute;top:1.6em;bottom:0.1em;left:0.1em;right:0.1em", "class":"winContent", id:"divContent" + args.id},
+				args.content
+			)
+		)
+	});
 	
 dad.setOpacity = function setOpacity(obj, value) {
 	obj.style.opacity = value/10;
@@ -658,13 +757,14 @@ dad.newWindow = function(id,x,y,w,h,title, content, noWinOpt, noCenter){
 	elm.innerHTML = swin;
 	document.body.appendChild(elm);
 	var win = elm.firstChild;
+	win.onAfterResize = dad._winOnAfterResize;
 	elm.parentNode.replaceChild(win, elm);
 	win = document.body.lastChild;
 	win.style.position = "absolute";
 
 	win.ud = {};
-	win.ud.content = dad.getFirstChildWithClassName(win, "winContent");
 	win.ud.header = dad.getFirstChildWithClassName(win, "winHeader");
+	win.ud.content = dad.getFirstChildWithClassName(win, "winContent");
 	//set draggable
 	dad.dragDrop.initElement(win.ud.header, win);
 	win.onStartDragging = function(){
@@ -681,7 +781,7 @@ dad.newWindow = function(id,x,y,w,h,title, content, noWinOpt, noCenter){
 }
 
 dad.setContentOverflow = function(id, value){
-	var divContent = $("divContent" + id);
+	var divContent = $id("divContent" + id);
 	divContent.style.overflow = value || "auto";
 }
 
@@ -876,7 +976,7 @@ dad.getResizeDirection = function(el, evt) {
 
 dad._resizingObject = null;
 dad.getIsCalssResizeable = function(el){
-	return el.className.indexOf("resizeable") != -1;
+	return dad.hasClass(el, "resizeable");
 }
 
 dad.getWindowForChild = function(child){
@@ -1084,7 +1184,7 @@ dad.formFillByRecord = function(form, record, prefix){
 
 dad.formAjaxLoadResponse = function(id){
 	if(this.status == 200){
-		var form = $('form' + id);
+		var form = $id('form' + id);
 		var result_array;
 		if(form.processResponse){
 			result_array = form.processResponse(this.responseText);
@@ -1194,7 +1294,7 @@ dad.formOnSubmit = function(EditWindowRefresh, form, table) {
 dad.listEditWindowOnSubmitRespose = function (id) {
 	if(this.status == 200){
 		//retrieve result as an JavaScript object
-		var myform = $('form' +id);
+		var myform = $id('form' +id);
 		var record = dad.parseSLEData2Object(this.responseText);
 		if(record.changes == 1){
 			myform._dbrecord._version_++;
@@ -1225,7 +1325,7 @@ dad.setupKeyboardNavigation = function(node, extra_tags){
 }
 
 dad.onLoadInit = function(){	
-	dad.appLogShow = $("logShow");
+	dad.appLogShow = $id("logShow");
 	dad.addEventMulti(document, 'mousedown', dad.appOnMouseDown);
 	dad.addEventMulti(document, 'mousemove', dad.appOnMouseMove);
 	dad.addEventMulti(document, 'mouseup', dad.appOnMouseUp);
@@ -1259,16 +1359,16 @@ dad._getTableAndHeaderKey = function(id){
 
 dad.AjaxDataTableResizeHeader = function(id) {
 	var keys = dad._getTableAndHeaderKey(id);
-	var table_src = $(keys.table_key);
-	var table_dest = $(keys.table_header_key);
+	var table_src = $id(keys.table_key);
+	var table_dest = $id(keys.table_header_key);
 	var th0 = table_dest.tHead.rows[0].cells;
 	var th1_rows = table_src.tFoot.rows[0];
 	var th1 = th1_rows.cells;
 
 	var col_count = th0.length-1;
-	for(var i=col_count; i >= 0 && (th0[i].className == "display_none"); --i, --col_count){};
+	for(var i=col_count; i >= 0 && (dad.hasClass(th0[i], "display_none")); --i, --col_count){};
 	for(var i=0; i < col_count; ++i){
-		if(th0[i].className == "display_none") continue;
+		if(dad.hasClass(th0[i], "display_none")) continue;
 		th0[i].style.width = (th1[i].offsetWidth -3) +'px';
 	}
 }
@@ -1354,7 +1454,8 @@ dad.formatBoolean = function(v){
 
 dad.fillTableById = function(records, id){
 	var keys = dad._getTableAndHeaderKey(id);
-	var table = $(keys.table_key);
+	var table = $id(keys.table_key);
+	table.style.display = "none";
 	var header_title_col = 1
 	var record_header = table.my_record_header;
 	if(!record_header) {
@@ -1370,7 +1471,7 @@ dad.fillTableById = function(records, id){
 	var first_row_click_cb = table.first_row_click_cb;
 	var selection_click_cb = table.selection_click_cb;
 	var th_row = table.tFoot.rows[0];
-	if(!dad.isFF) th_row.style.visibility = "hidden";
+	/*if(!dad.isFF)*/ th_row.style.visibility = "hidden";
 	var th_cells = th_row.cells;
 	var tBody = table.tBodies[0];
 	try { 
@@ -1383,7 +1484,7 @@ dad.fillTableById = function(records, id){
 	}
 	var rows = tBody.rows;
 
-	var table_header = $(keys.table_header_key);
+	var table_header = $id(keys.table_header_key);
 	var th_header_row = table_header.tHead.rows[0];
 	var th_cells_header = th_header_row.cells;
 	
@@ -1408,7 +1509,7 @@ dad.fillTableById = function(records, id){
 			}
 		}
 		if(ar[2] && ar[2] == "0"){
-			new_th.className = "display_none";//hide the col
+			dad.addClass(new_th, "display_none");//hide the col
 		}
 		var format = ar[4];
 		if(format == "M") myColsFormat[i] = dad.formatCurrency;
@@ -1431,7 +1532,7 @@ dad.fillTableById = function(records, id){
 			var tr = rows[i];
 			if(!tr){
 				tr = tBody.insertRow(-1);
-				if(i%2) tr.className = "odd";
+				if(i%2) dad.addClass(tr, "odd");
 				if(row_over_cb) tr.onmouseover = row_over_cb;
 				if(row_click_cb) tr.onclick = row_click_cb;
 				else if(row_dblclick_cb) tr.ondblclick = row_dblclick_cb;
@@ -1463,10 +1564,12 @@ dad.fillTableById = function(records, id){
 			}
 		}
 	}
+	table.style.display = "table";
 	//setEditTable(table_id, 2);
 	setTimeout(function() {
 		dad.AjaxDataTableResizeHeader(id);
 	},100);
+	return table;
 }
 		
 dad.parseSLEData = function(data, withHeader){
@@ -1506,6 +1609,11 @@ dad.newAjaxDataTableAjax = function(win, newId){
 				//remove headers
 				if(!this._withHeaders) records.shift();
 				dad.fillTableById(records, id);
+				dad.addWinOnAfterResize(win, newId, function(){
+							setTimeout(function() {
+							dad.AjaxDataTableResizeHeader(newId);
+						},100);
+					});	
 			} else {
 				alert("An error has occured making the request");
 			}

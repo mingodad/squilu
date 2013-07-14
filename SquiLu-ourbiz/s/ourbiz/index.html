@@ -80,6 +80,14 @@ background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGBAM
 	font-size: 80%;
 	padding: 0 .5em 0 .5em;
 }
+a.winOpt {
+	width: 1.2em;
+	text-decoration:none;
+	border: 1px solid white;
+	float:right;
+	text-align:center;
+	margin: 0 0.2em 0 0.2em;
+}
 .divTable {border: 1px solid #888; background: #FFFFFF;}
 .winContent {padding: 5px; width:98%;height:98%;}
 .winContent td {vertical-align:top;}
@@ -109,7 +117,8 @@ legend {color:#333;padding:0 10px;margin:0;font-size:1.5em;font-weight:400;}
 /*table*/
 table {border-collapse:collapse;}
 
-.wrappedTable {width:100%;}
+.wrappedTable {box-sizing:border-box;width:100%;}
+.wrappedTable  tfoot {visibility:hidden;}
 .wrappedTable th {
   color: #eee; background: #4e8c0b; text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
   border: 1px solid #fff;

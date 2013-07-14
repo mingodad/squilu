@@ -128,7 +128,7 @@ function fillGroupsTree(ctx){
 }
 
 function fillGroupsTreeById(records, id){
-	var div_tree = $('div_tree' +id);
+	var div_tree = $id('div_tree' +id);
 	var tree_ctx = {records:records, parent:0, idx:0, div_tree:div_tree};
 	var result = fillGroupsTree(tree_ctx);
 	if(result) div_tree.innerHTML = result;
@@ -152,7 +152,7 @@ function newGroupsListEditWindow(){
 		}
 
 		var win = dad.newWindow(newId,220,20, 800, 560, _tr(title), Jaml.render('GroupsListEdit', data));
-		var myform = $(data.form_id);
+		var myform = $id(data.form_id);
 		win.ud.form = myform;
 		win.ud.WindowRefresh = GroupsListEditWindowRefresh;
 		myform.my_field_prefix = "ot_";
@@ -174,7 +174,7 @@ function newGroupsListEditWindow(){
 			}
 		}, newId, false);
 
-		var btn = $(btnAction_id);
+		var btn = $id(btnAction_id);
 		btn.onclick = GroupsListEditWindowOnSubmit;
 		
 		GroupsListEditWindowRefresh(win.ud.ajaxTable);

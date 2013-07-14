@@ -94,10 +94,10 @@ function newMainMenuWindow(){
 		win = dad.newWindow(newId,10,10, 0, 0, title, Jaml.render('MainMenu', data), true, true);
 		win.className = win.className + ' mainWindow';
 		if(dad.isIE && (dad.isIE < 9)) win.firstChild.style.width = '';
-		var tabsObj = $(tabs_id);
+		var tabsObj = $id(tabs_id);
 		dad.initTab(tabsObj)
 		//dad.setupKeyboardNavigation(tabsObj, ["A", "LI"]);
-		var myform = $(data.form_id);
+		var myform = $id(data.form_id);
 		dad.setupEditForm(myform);
 	}
 	dad.bringToFront(win);

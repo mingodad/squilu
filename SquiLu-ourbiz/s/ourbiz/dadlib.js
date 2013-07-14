@@ -93,7 +93,7 @@ function BarChartFillByAjax(id){
 		var records = dad.parseSLEData(this.responseText);
 		var row_count = records.length;
 		
-		var btnShowChart = $("btnShowChart" + id);
+		var btnShowChart = $id("btnShowChart" + id);
 		var chart = btnShowChart._chart;
 
 		//chart.set_bar_num_format_decimals(0);
@@ -111,8 +111,8 @@ function BarChartFillByAjax(id){
 }
 
 dad.setupBarchart = function(bid, ajaxParamsFunc){
-	var btnShowChart = $("btnShowChart" + bid);
-	var canvasChart = $("canvas" + bid);
+	var btnShowChart = $id("btnShowChart" + bid);
+	var canvasChart = $id("canvas" + bid);
 	btnShowChart._chart = new dad.barChart();
 	btnShowChart._chart.init(canvasChart);
 	btnShowChart.ajaxData = new dad.Ajax(BarChartFillByAjax, bid, false);

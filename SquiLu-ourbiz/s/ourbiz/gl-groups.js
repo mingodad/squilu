@@ -70,7 +70,7 @@ function newGLGroupsListEditWindow(){
 		data.data_table = Jaml.render('2TRDataTable', data);
 
 		var win = dad.newWindow(newId,220,20, 460, 420, _tr(title), Jaml.render('GLGroupsListEdit', data));
-		var myform = $(data.form_id);
+		var myform = $id(data.form_id);
 		win.ud.form = myform;
 		win.ud.WindowRefresh = GLGroupsListEditWindowRefresh;
 		myform.my_field_prefix = "glg_";
@@ -78,13 +78,13 @@ function newGLGroupsListEditWindow(){
 		myform.ajaxSubmit = new dad.Ajax(dad.listEditWindowOnSubmitRespose, newId, false);
 		win.ud.ajaxLoad = new dad.Ajax(dad.formAjaxLoadResponse, newId, false);
 
-		var mytable = $(table_id);
+		var mytable = $id(table_id);
 		mytable.my_record_header = ["id|ID|0", "code|Code|8",
                 "description|Description|-1", "debit_op|Dbt|8|C", "credit_op|Cdt|8|C"];
 		mytable.row_click_cb = GLGroupsListEditWindowOnTableRowClick;
 		win.ud.ajaxTable = new dad.newAjaxDataTableAjax(win, newId);
 
-		var btn = $(btnAction_id);
+		var btn = $id(btnAction_id);
 		btn.onclick = GLGroupsListEditWindowOnSubmit;
 
 		GLGroupsListEditWindowRefresh(win.ud.ajaxTable);

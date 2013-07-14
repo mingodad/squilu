@@ -236,11 +236,11 @@ function newEntityEditWindow(all_sales_buys){
 		}
 		var win = dad.newWindow(newId,220,20, 800, 500, _tr(title), Jaml.render('EntityEditWindow', data));
 		//dad.setContentOverflow(newId);
-		dad.initTab($(main_tabs_id));
-		dad.initTab($(notes_tabs_id));
+		dad.initTab($id(main_tabs_id));
+		dad.initTab($id(notes_tabs_id));
 		win.ud.ajaxLoad = new dad.Ajax(dad.formAjaxLoadResponse, newId, false);
 
-		var choiceHistory = $('history_type_id' + newId);
+		var choiceHistory = $id('history_type_id' + newId);
 		choiceHistory.ajaxLoadHistory = dad.newAjaxDataTableAjax(win, 
 				{id:newId, table:table_history_id, table_header:table_history_header_id});
 		choiceHistory.onchange = function(){
@@ -255,18 +255,18 @@ function newEntityEditWindow(all_sales_buys){
 			return 'list=entities&statistics=' + win.ud.edit_id + '&sab=' + win.ud.sab;
 		});
 		
-		var myform = $(data.form_id);
+		var myform = $id(data.form_id);
 		myform.my_field_prefix = "e_";
 		myform.onFillForm = EntityEditWindowOnFillForm;
 		dad.setupEditForm(myform);
 		myform.ajaxSubmit = new dad.Ajax(dad.listEditWindowOnSubmitRespose, newId, false);
 		
-		var btnRptEntitiesList = $("rptEntitiesList" + newId);
+		var btnRptEntitiesList = $id("rptEntitiesList" + newId);
 		btnRptEntitiesList.onclick = function(){
 			var url = '/DB/GetList?list=entities&pdf=1';
 			window.open(url, "printPDF");
 		}
-		var btn = $(btnAction_id);
+		var btn = $id(btnAction_id);
 		btn.onclick = EntityEditWindowOnSubmit;
 	}
 	

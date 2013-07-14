@@ -30,11 +30,11 @@ function newAjaxDataTableWindow(title){
 		data.data_table = Jaml.render('2TRDataTable', data);
 		var win = dad.newWindow(newId, 160,20, 600, 400, title, Jaml.render('AjaxDataTable', data));
 
-		var myform = $(data.form_id);
+		var myform = $id(data.form_id);
 		dad.setupEditForm(myform);
 
-		var btn = $('btnGo' + newId);
-		btn._url_input = $('url_' + newId);
+		var btn = $id('btnGo' + newId);
+		btn._url_input = $id('url_' + newId);
 		
 		btn.ajax = dad.newAjaxDataTableAjax(win, newId);
 		btn.ajax._withHeaders = true;

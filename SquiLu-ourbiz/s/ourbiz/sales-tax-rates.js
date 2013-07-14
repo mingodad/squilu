@@ -77,7 +77,7 @@ function newSalesTaxListEditWindow(){
 		data.data_table = Jaml.render('2TRDataTable', data);
 
 		var win = dad.newWindow(newId,220,20, 460, 420, _tr(title), Jaml.render('SalesTaxListEdit', data));
-		var myform = $(data.form_id);
+		var myform = $id(data.form_id);
 		win.ud.form = myform;
 		win.ud.WindowRefresh = SalesTaxListEditWindowRefresh;
 		myform.my_field_prefix = "st_";
@@ -85,13 +85,13 @@ function newSalesTaxListEditWindow(){
 		myform.ajaxSubmit = new dad.Ajax(dad.listEditWindowOnSubmitRespose, newId, false);
 		win.ud.ajaxLoad = new dad.Ajax(dad.formAjaxLoadResponse, newId, false);
 
-		var mytable = $(table_id);
+		var mytable = $id(table_id);
 		mytable.my_record_header = ["id|ID|0", "rate1|V.A.T. %|8|R", "rate2|R.E. %|8|R",
 			"description|Description|-1", "is_active|Active|5|C|B"];
 		mytable.row_click_cb = SalesTaxListEditWindowOnTableRowClick;
 		win.ud.ajaxTable = new dad.newAjaxDataTableAjax(win, newId);
 
-		var btn = $(btnAction_id);
+		var btn = $id(btnAction_id);
 		btn.onclick = SalesTaxListEditWindowOnSubmit;
 
 		SalesTaxListEditWindowRefresh(win.ud.ajaxTable);

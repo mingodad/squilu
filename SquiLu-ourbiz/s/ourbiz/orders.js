@@ -412,11 +412,11 @@ function newOrderEditWindow(all_sales_buys){
 
 		var win = dad.newWindow(newId,220,20, 800, 500, _tr(title), Jaml.render('OrderEditWindow', data));
 		//dad.setContentOverflow(newId);
-		dad.initTab($(tabs_id));
+		dad.initTab($id(tabs_id));
 
-		var data_table = $(table_id);
+		var data_table = $id(table_id);
 		data_table.className = data_table.className + " orders_lines";
-		var myform = $(data.form_id);
+		var myform = $id(data.form_id);
 		
 		win.ud.form = myform;
 		myform.my_field_prefix = "o_";
@@ -446,7 +446,7 @@ function newOrderEditWindow(all_sales_buys){
 			return 'list=orders&statistics=1&sab=' + win.ud.sab;
 		});
 
-		var mytable = $(table_id);
+		var mytable = $id(table_id);
 		mytable.my_record_header = ['id|ID|0', 'product_id|Code|6|R',
 			'description|Description|-1', 'quantity|Quantity|8|R|N',
 			'price|Price|8|R|M', 'first_total|1st Total|8|R|M'];
@@ -457,7 +457,7 @@ function newOrderEditWindow(all_sales_buys){
 			tr.parentNode.removeChild(tr);
 		}
 		
-		var btnPrint = $("btnPrint" + newId);
+		var btnPrint = $id("btnPrint" + newId);
 		btnPrint.onclick = function(){
 			var url = '/DB/GetOne?orders=' + this.form._dbrecord.id + '&pdf=1';
 			window.open(url, "printPDF");
@@ -467,7 +467,7 @@ function newOrderEditWindow(all_sales_buys){
 			if(this.status == 200){
 				//retrieve result as an JavaScript object
 				var records = dad.parseSLEData(this.responseText); 
-				var select = $(select_ot_id);
+				var select = $id(select_ot_id);
 				dad.fillSelectByRecords(select, records, false);
 			}
 		});
@@ -482,7 +482,7 @@ function newOrderEditWindow(all_sales_buys){
 			if(this.status == 200){
 				//retrieve result as an JavaScript object
 				var record = dad.parseSLEData2Object(this.responseText); 
-				var form = $(data.form_id);
+				var form = $id(data.form_id);
 				dad.formFillByRecord(form, record, "ol_");
 				if(!record.__table__) form.ol_quantity.focus();
 			} else {
@@ -494,7 +494,7 @@ function newOrderEditWindow(all_sales_buys){
 			if(this.status == 200){
 				//retrieve result as an JavaScript object
 				var record = dad.parseSLEData2Object(this.responseText);
-				var form = $(data.form_id);
+				var form = $id(data.form_id);
 				dad.fillFormWithExistingFields(form, record);
 				form.ol_description.focus();
 			} else {
@@ -516,7 +516,7 @@ function newOrderEditWindow(all_sales_buys){
 			if(this.status == 200){
 				//retrieve result as an JavaScript object
 				var record = dad.parseSLEData2Object(this.responseText); 
-				var form = $(data.form_id);
+				var form = $id(data.form_id);
 				dad.formFillByRecord(form, record, "t_");
 			} else {
 				alert("An error has occured making the totals request");
@@ -556,10 +556,10 @@ function newOrdersListSearchWindow(all_sales_buys){
 	var title = dad._getSABTitle(all_sales_buys, 'Orders List/Search');
 	var win = newListSearchWindow(all_sales_buys, title, colHeaders, showOrderEditWindow,
 		"orders", 'OrdersListSearchOn', null, all_sales_buys);
-	var data_table = $("table" + win.ud.win_id);
+	var data_table = $id("table" + win.ud.win_id);
 	data_table.className = data_table.className + " orders_list";
 	
-	var group_filter = $('group_filter' + win.ud.win_id);
+	var group_filter = $id('group_filter' + win.ud.win_id);
 	if(group_filter.options.length == 0){
 		var ajaxOrderType = new dad.Ajax(function(id){
 			if(this.status == 200){
