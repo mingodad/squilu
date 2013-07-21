@@ -294,7 +294,7 @@ static SQRESULT sq_mysql_result_col_name(HSQUIRRELVM v){
 static int get_field_idx(MYSQL_RES *self, const SQChar *name){
 	MYSQL_FIELD *fields = dlmysql_fetch_fields(self);
 	unsigned int count = dlmysql_num_fields(self);
-	for(int i=0; i<count; ++i){
+	for(unsigned int i=0; i<count; ++i){
 		if(scstrcmp(name, fields[i].name) == 0){
 			return i;
 		}
@@ -443,18 +443,136 @@ static SQRESULT sq_mysql_statement_close(HSQUIRRELVM v){
 	return 0;
 }
 
+class AllocMemory {
+    unsigned int mem_size;
+    public:
+    unsigned char *mem;
+    AllocMemory(unsigned int size){
+        mem_size = size;
+        mem = (unsigned char *)sq_malloc(mem_size);
+    }
+    ~AllocMemory(){
+        if(mem) sq_free(mem, mem_size);
+    }
+};
+
 static SQRESULT sq_mysql_statement_bind(HSQUIRRELVM v){
 	SQ_FUNC_VARS(v);
 	GET_mysql_statement_INSTANCE();
 
 	unsigned long expected_params = dlmysql_stmt_param_count(self);
 	if(_top_ != expected_params){
-		return sq_throwerror(v, _SC("Expect %d params but got %d !"), expected_params, _top_);
+		return sq_throwerror(v, "Expect %d params but got %d !", expected_params, _top_);
 	}
 
-	MYSQL_BIND *bind = NULL;
+	unsigned int bind_memory_size = sizeof(MYSQL_BIND) * expected_params;
+
+	AllocMemory bind_mem(bind_memory_size);
+	AllocMemory buffer(expected_params * sizeof(double));
+
+    if (expected_params > 0) {
+        if (bind_mem.mem == NULL || buffer.mem == NULL) {
+            return sq_throwerror(v, "Could not alloc bind params");
+        }
+
+        memset(bind_mem.mem, 0, bind_memory_size);
+    }
+
+    MYSQL_BIND *bind = (MYSQL_BIND*)bind_mem.mem;
+    int offset = 0;
+
+    for (int argn = 2; argn <= _top_; ++argn) {
+        SQObjectType ptype = sq_gettype(v, argn);
+        int i = argn - 2;
+
+        const char *str = NULL;
+        size_t *str_len = NULL;
+        double *num = NULL;
+        int *boolean_or_int = NULL;
+
+        switch(ptype) {
+            case OT_NULL:{
+
+                bind[i].buffer_type = MYSQL_TYPE_NULL;
+                bind[i].is_null = (my_bool*)1;
+            }
+            break;
+
+            case OT_BOOL:{
+                SQ_GET_BOOL(v, argn, param_bool);
+                boolean_or_int = (int *)(buffer.mem + offset);
+                offset += sizeof(int);
+                *boolean_or_int = param_bool;
+
+                bind[i].buffer_type = MYSQL_TYPE_LONG;
+                bind[i].is_null = (my_bool*)0;
+                bind[i].buffer = (char *)boolean_or_int;
+                bind[i].length = 0;
+            }
+            break;
+
+            case OT_INTEGER:{
+                SQ_GET_INTEGER(v, argn, param_int);
+                boolean_or_int = (int *)(buffer.mem + offset);
+                offset += sizeof(int);
+                *boolean_or_int = param_int;
+
+                bind[i].buffer_type = MYSQL_TYPE_LONG;
+                bind[i].is_null = (my_bool*)0;
+                bind[i].buffer = (char *)boolean_or_int;
+                bind[i].length = 0;
+            }
+            break;
+
+            case OT_FLOAT:{
+                /*
+                 * num needs to be it's own
+                 * memory here
+                         */
+                num = (double *)(buffer.mem + offset);
+                offset += sizeof(double);
+                SQ_GET_FLOAT(v, argn, param_float);
+                *num = param_float;
+
+                bind[i].buffer_type = MYSQL_TYPE_DOUBLE;
+                bind[i].is_null = (my_bool*)0;
+                bind[i].buffer = (char *)num;
+                bind[i].length = 0;
+            }
+            break;
+
+            case OT_STRING:{
+                SQ_GET_STRING(v, argn, param_string);
+                str_len = (size_t *)(buffer.mem + offset);
+                offset += sizeof(size_t);
+                str = param_string;
+
+                bind[i].buffer_type = MYSQL_TYPE_STRING;
+                bind[i].is_null = (my_bool*)0;
+                bind[i].buffer = (char *)str;
+                bind[i].length = str_len;
+            }
+            break;
+
+            default:{
+                return sq_throwerror(v, "Unsupported bind parameter type %d", i);
+            }
+        }
+    }
+
 	sq_pushbool(v, dlmysql_stmt_bind_param(self, bind));
 	return 1;
+}
+
+static SQRESULT sq_mysql_statement_execute(HSQUIRRELVM v){
+	SQ_FUNC_VARS_NO_TOP(v);
+	GET_mysql_statement_INSTANCE();
+
+    if (dlmysql_stmt_execute(self)) {
+        return sq_throwerror(v, _SC("error executing prepared statement. MySQL: %s"), dlmysql_stmt_error(self));
+    }
+
+	return 0;
 }
 
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_mysql_statement_##name,nparams,tycheck}
@@ -462,6 +580,7 @@ static SQRegFunction sq_mysql_statement_methods[] =
 {
 	_DECL_FUNC(close,  1, _SC("x")),
 	_DECL_FUNC(bind,  -2, _SC("x.")),
+	_DECL_FUNC(execute,  1, _SC("x")),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -589,7 +708,7 @@ static SQRESULT sq_mysql_prepare(HSQUIRRELVM v){
     MYSQL_STMT *stmt = dlmysql_stmt_init(self);
     if (!stmt) return sq_throwerror(v, _SC(" mysql_stmt_init(), out of memory\n"));
 
-    if (!dlmysql_stmt_prepare(stmt, szSQL, szSQL_size)) {
+    if (dlmysql_stmt_prepare(stmt, szSQL, szSQL_size)) {
     	SQRESULT res = sq_throwerror(v, dlmysql_stmt_error(stmt));
     	dlmysql_stmt_close(stmt);
     	return res;
