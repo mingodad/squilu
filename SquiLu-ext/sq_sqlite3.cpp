@@ -733,7 +733,7 @@ static SQRESULT sq_sqlite3_stmt_asJsonArray(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     GET_sqlite3_stmt_INSTANCE();
-    SQ_OPT_INTEGER(v, 3, withMetadata, 0);
+    SQ_OPT_BOOL(v, 2, withMetadata, 0);
     int col_count = sqlite3_column_count(self);
     int i;
     const char* value;
@@ -1170,6 +1170,8 @@ static SQRegFunction sq_sqlite3_stmt_methods[] =
     _DECL_FUNC(asArrayOfArrays,  -1, _SC("xi"), SQFalse),
     _DECL_FUNC(asArrayOfTables,  -1, _SC("xi"), SQFalse),
     _DECL_FUNC(asSleArray,  1, _SC("x"), SQFalse),
+    _DECL_FUNC(asJsonArray,  -1, _SC("x"), SQFalse),
+    _DECL_FUNC(asJsonObject,  1, _SC("x"), SQFalse),
     _DECL_FUNC(col,  2, _SC("x i|s"), SQFalse),
     _DECL_FUNC(asString,  2, _SC("x i|s"), SQFalse),
     _DECL_FUNC(asStringOrNull, 2, _SC("x i|s"), SQFalse),
