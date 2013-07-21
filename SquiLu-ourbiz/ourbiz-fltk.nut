@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2013 by Domingo Alvarez Duarte <mingodad@gmail.com>
  *
  * Licensed under GPLv3, see http://www.gnu.org/licenses/gpl.html.
@@ -35,7 +35,7 @@ dofile("ourbiz-client.nut");
 dofile("db-updater.nut");
 local appServer = AppServer.getAppServer();
 appServer.credentials(appServer_user, appServer_password);
-appServer.connect(appServer_host, appServer_port); 
+appServer.connect(appServer_host, appServer_port);
 
 function _tr(str){ return str;}
 
@@ -224,7 +224,7 @@ class My_Fl_Float_Input extends Fl_Float_Input_Fmt {
 	constructor(px, py, pw, ph, pl=""){
 		base.constructor(px, py, pw, ph, pl);
 	}
-	
+
 	function handle(event)
 	{
 		if(event == FL_KEYBOARD)
@@ -574,7 +574,7 @@ class Widget_Fill_By_Map {
 	function getValue(fld_name){
 		return _map.get(fld_name, "");
 	}
-	
+
 	function getValueInteger(fld_name){
 		local value = _map.get(fld_name, "");
 		return value.len() ? value.tointeger() : 0;
@@ -722,7 +722,7 @@ class Edit_Base_Window extends Base_Window {
 	function on_btnDbAction(sender : Fl_Widget, udata : any)
 	{
 		this = sender->window();
-		
+
 		local cursor_wait = fl_cursor_wait();
 		try {
 			switch(_choiceDbAction->action())
@@ -750,7 +750,7 @@ class Edit_Base_Window extends Base_Window {
 			break;
 			}
 		}
-		catch(e){ 
+		catch(e){
 			//foreach(k,v in get_last_stackinfo()) print(k,v);
 			fl_alert(e);
 			return false;
@@ -862,7 +862,7 @@ class Fl_Data_Table extends Flv_Data_Table {
 	}
 
 	function for_print(bval){
-		_forPrint = bval; 
+		_forPrint = bval;
 		if(_forPrint) box(FL_NO_BOX);
 	}
 
@@ -932,7 +932,7 @@ class Fl_Data_Table extends Flv_Data_Table {
 			break;
 			case 'S': return value.tostring();
 			break;
-			case '@': return value.replace("@", "@@"); //escape any @ 
+			case '@': return value.replace("@", "@@"); //escape any @
 			break;
 		}
 		return value;
@@ -1231,7 +1231,7 @@ class MyListSearchWindow extends ListSearchWindow {
 		btnSearch.callback(cb_btnSearch);
 		search_str.callback(cb_search_str);
 	}
-	
+
 	//function grid_cb(sender : Fl_Widget, udata : any){}
 
 	function cb_btnUpdate(sender : Fl_Widget, udata : any){
@@ -1247,7 +1247,7 @@ class MyListSearchWindow extends ListSearchWindow {
 		row_selected(sender, Fl_Data_Table_Events.e_select);
 	}
 	function get_edit_window(){return null;}
-	
+
 	function show_edit_window(edit_id){
 		local win = get_edit_window();
 		win.show();
@@ -1261,7 +1261,7 @@ class MyListSearchWindow extends ListSearchWindow {
 		show();
 		do_search();
 	}
-	
+
 	function hasSelectRequestCall(){
 		if(_callee_cb) {
 			_callee_cb(grid->get_row_id());
@@ -1282,7 +1282,7 @@ class MyListSearchWindow extends ListSearchWindow {
 				show_edit_window(0);
 			break;
 			case Fl_Data_Table_Events.e_update:
-				if((Fl.event_clicks() > 0) && hasSelectRequestCall()) return; 
+				if((Fl.event_clicks() > 0) && hasSelectRequestCall()) return;
 				show_edit_window(grid->get_row_id());
 			break;
 			case Fl_Data_Table_Events.e_delete:
@@ -1476,7 +1476,7 @@ class OurProductGroups extends OurTreeGroups
 class OurEntityGroups extends OurTreeGroups
 {
 	constructor(){
-		base.constructor();        
+		base.constructor();
 		label(_tr("Entity Groups List/Edit"));
 		_table_name = "entity_groups";
 		dbUpdater()->table_name = _table_name;
@@ -1775,7 +1775,7 @@ class OurOrderTypes extends OrderTypesEditWindow {
 		appServer.order_types_get_list(grid->_data);
 		grid->recalc_data();
 	}
-	
+
 	function get_widget_changed(uw)
 	{
 		//if(!uw.validate_regex(db_order_types_with_credit, "[+-]", true))
@@ -2196,7 +2196,7 @@ class OurProductPrices extends ProductPricesGroup
 	function on_change_prices(wdg, udata)
 	{
 		local input_fld_map = {
-				sell_markup = db_product_prices_markup_pct, 
+				sell_markup = db_product_prices_markup_pct,
 				discount_over_sales = db_product_prices_discount_over_sales,
 				sell_price2 = db_product_prices_price,
 			};
@@ -2207,9 +2207,9 @@ class OurProductPrices extends ProductPricesGroup
 			}
 		}
 		appServer.do_dbaction(_record, "calc_price_by_quantity", "products", _product_id, 0);
-		
+
 		local  wfq = Widget_Fill_By_Map(_record);
-		wfq.set_widget_value_by_map(input_fld_map);	
+		wfq.set_widget_value_by_map(input_fld_map);
 	}
 }
 
@@ -2235,10 +2235,10 @@ class OurProductKit extends ProductKitGroup
 				"quantity_onhand|Onhand|8|R|N",
 			];
 		grid->set_cols(cols_info);
-		
+
 		local MydbUpdater = class extends DBUpdateByWidget {
 				_kit_id = null;
-				
+
 				constructor(akit_id)
 				{
 					base.constructor();
@@ -2409,7 +2409,7 @@ class MyEditProductWindow extends EditProductWindow {
 		replace_widget_for(productPrices, _ourProductPrices);
 
 		tabsMoreData.callback(tabsMoreData_cb);
-		
+
 		db_products_buy_price.callback(on_change_prices);
 		db_products_buy_discount.callback(on_change_prices);
 		db_products_buy_other_costs.callback(on_change_prices);
@@ -2418,22 +2418,22 @@ class MyEditProductWindow extends EditProductWindow {
 		db_products_sell_price.callback(on_change_prices);
 		db_products_sell_price2.callback(on_change_prices);
 		db_products_price_decimals.callback(on_change_prices);
-		
+
 		load_aux_data();
 	}
-	
+
 	function get_record_by_id(id : integer) {
 		local prices = [];
 		local kit = [];
 		local kit_details = {};
 		if(id) {
-			appServer.get_product_for_edit(dbUpdater()->edit_id, _record, 
+			appServer.get_product_for_edit(dbUpdater()->edit_id, _record,
 				prices /*ourProductPrices->get_data_clear()*/,
 				kit /*ourProductKit->get_data_clear()*/,
 				kit_details /*ourProductKit->_rec_details*/);
 		}
 	}
-	
+
 	function do_edit_delayed(udata)
 	{
 		base.do_edit_delayed(udata);
@@ -2504,9 +2504,9 @@ class MyEditProductWindow extends EditProductWindow {
 			//print(k, map.get(k, 0.0));
 			prices_rec[k] <- this["db_products_" + k].value();
 		}
-		
+
 		appServer.do_dbaction(prices_rec, "calc_product_price", "products", dbUpdater()->edit_id, 0);
-		
+
 		foreach(k in price_fields) {
 			//print(k, map.get(k, 0.0));
 			this["db_products_" + k].value(prices_rec[k]);
@@ -2598,7 +2598,7 @@ class ProductsListSearch extends MyListSearchWindow {
 		//print("on_row_changed", sender, row);
 		if(sender->why_event() == FLVE_ROW_CHANGED){
 			this = sender.window();
-			if(shown() && !_fetching_image){ 
+			if(shown() && !_fetching_image){
 				try {
 					//flag to prevent stack overflow due to multiple background calls
 					_fetching_image = true;
@@ -2731,7 +2731,7 @@ class MyEditOrderWindow extends EditOrderWindow {
 		_line_record = {};
 		_line_edit_id = 0;
 		_product_unit_weight = 0.0;
-		
+
 		dbUpdater()->table_name = "orders";
 		setDbActionControls(dbAction, btnDbAction);
 		dbAction->insert_copy();
@@ -2771,7 +2771,7 @@ class MyEditOrderWindow extends EditOrderWindow {
 		local lines = grid_lines->_data;
 		grid_lines->clear_data_rows();
 		if(id) {
-			appServer.get_record_and_array(_record, lines, dbUpdater()->table_name, 0, 
+			appServer.get_record_and_array(_record, lines, dbUpdater()->table_name, 0,
 				dbUpdater()->edit_id, "&with_lines=1");
 		}
 	}
@@ -2952,7 +2952,7 @@ class MyEditOrderWindow extends EditOrderWindow {
 		local paidUpaid = _ourBarChart->chkOpt->value();
 		local cursor_wait = fl_cursor_wait();
 		local mydata = [];
-		appServer.orders_get_bar_chart_statistics_list(mydata, _sab, 
+		appServer.orders_get_bar_chart_statistics_list(mydata, _sab,
 			_ourBarChart->periodes(), _ourBarChart->periode_type() , paidUpaid);
 		_ourBarChart->show_bar_chart(mydata, paidUpaid, (_sab == "A"));
 	}
@@ -3171,7 +3171,7 @@ class OrdersSalesListSearch extends OrdersListSearch {
 		base.constructor(doInitialSearch);
 		label(_tr("Orders/Sales List Search"));
 	}
-	
+
 	function get_edit_window(){
 		return getChildWindow("Order/Sales Edit", MyEditOrderSalesWindow);
 	}

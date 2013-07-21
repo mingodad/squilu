@@ -410,8 +410,8 @@ local uri_handlers = {
 		//password protected
 		bool_t canEdit = false;
 		//print("EDIT_MD5_PASSWORD=", EDIT_MD5_PASSWORD, "\n")
-		bool_t isViewOnly = VIEW_MD5_PASSWORD && request.check_password(VIEW_MD5_PASSWORD);
-		if (!isViewOnly) canEdit = EDIT_MD5_PASSWORD && request.check_password(EDIT_MD5_PASSWORD);
+		bool_t isViewOnly = globals.get("VIEW_MD5_PASSWORD", false) && request.check_password(VIEW_MD5_PASSWORD);
+		if (!isViewOnly) canEdit = globals.get("EDIT_MD5_PASSWORD", false) && request.check_password(EDIT_MD5_PASSWORD);
 
 		if(!(canEdit || isViewOnly) ) {
 			request.send_authorization_request("r.dadbiz.es");

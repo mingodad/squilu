@@ -1586,10 +1586,10 @@ order by name
 		}
 		else if(tbl_qs.get("with_thumbnail", false))
 		{
-			return format([==[
+			return [==[
 select e.*, i.thumbnail, i.mime_type
 from entities e left join images i
-on e.image_id = i.id where e.id=%d]==], id);
+on e.image_id = i.id where e.id=?]==];
 		}
 		else if(tbl_qs.get("pdf", false))
 		{
@@ -2148,12 +2148,12 @@ local DB_Orders = class extends DB_Manager {
 		if (qs_tbl.get("search", false)) return orders_sql_search_list(qs_tbl, post_tbl);
 		else if( (order_id = qs_tbl.get("lines", 0)) )
 		{
-			return orders_lines_sql_for_order(out_sql, order_id.tointeger());
+			return orders_lines_sql_for_order(order_id.tointeger());
 		}
 		else if(  (order_id = qs_tbl.get("sum", 0)) )
 		{
 			local query_limit = qs_tbl.get("query_limit", 50);
-			return orders_sum_search_sql(out_sql, query_limit);
+			return orders_sum_search_sql(query_limit);
 		}
 		else if( (order_id = qs_tbl.get("lines_onhand", 0)) )
 		{
@@ -2199,7 +2199,7 @@ and ot.id = o.order_type_id]==], order_id));
 						if(quantity > 0)
 						{
 							out_buf.clear();
-							stmt.prepare(discount_by_quantity_get_one(out_sql, product_id, quantity));
+							stmt.prepare(discount_by_quantity_get_one(product_id, quantity));
 							if(stmt.next_row())
 							{
 								discount = stmt.col(0);
@@ -2270,7 +2270,7 @@ where o.id = %d and p.id = %d]==], order_id, product_id));
 		local id = tbl_qs.get(table_name, 0).tointeger();
 		if(tbl_qs.get("line", false))
 		{
-			orders_lines_get_one(out_sql, id);
+			orders_lines_get_one(id);
 		}
 		else if(tbl_qs.get("line_calculated", false))
 		{
@@ -2768,6 +2768,14 @@ local DB_Products = class extends DB_Manager {
 			return getPdfList(qs_tbl);
 		}
 	}
+	
+	function getOneSqlWithThumbnail(){
+			return [==[
+select p.*, i.thumbnail, i.mime_type
+from products p left join images i
+	on p.image_id = i.id
+where p.id=?]==];	
+	}
 
 	function sql_get_one(tbl_qs) {
 		local id = tbl_qs.get(table_name, 0).tointeger();
@@ -2786,8 +2794,15 @@ local DB_Products = class extends DB_Manager {
 		else if (tbl_qs.get("product_for_edit", false)){
 			local db = getOurbizDB();
 			local buf = blob(0, 8192);
+			local sql;
+			
+			if(tbl_qs.get("with_thumbnail", false)){
+				sql = getOneSqlWithThumbnail();
+			} else {
+				sql = base.sql_get_one(tbl_qs)
+			}
 
-			local stmt = db.prepare(base.sql_get_one(tbl_qs));
+			local stmt = db.prepare(sql);
 			stmt.bind(1, id);
 			if(!stmt.next_row()) return;
 			local rec_map = stmt.asTable();
@@ -2827,11 +2842,7 @@ local DB_Products = class extends DB_Manager {
 			return getPdfList(qs_tbl);
 		}
 		else if(tbl_qs.get("with_thumbnail", false)){
-			return format([==[
-select p.*, i.thumbnail, i.mime_type
-from products p left join images i
-	on p.image_id = i.id
-where p.id=%d]==], id);
+			return getOneSqlWithThumbnail().replace("?", id.tostring());
 		}
 		else return base.sql_get_one(tbl_qs);
 	}
@@ -3312,6 +3323,10 @@ local function ourbizDbAction(request) {
 add_uri_hanlders({
 	["/OURBIZ"] =function(request){
 		request.print("HTTP/1.1 200 OK\r\nServer: OurBiz\r\nContent-Length: 0\r\n\r\n");
+		return true;
+	},
+	["/GET-AUTH-REQ"] =function(request){
+		request.send_authorization_request("r.dadbiz.es");
 		return true;
 	},
 	["/DB/GetList"] = ourbizDbGetList,

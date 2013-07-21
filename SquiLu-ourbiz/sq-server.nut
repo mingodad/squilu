@@ -26,11 +26,11 @@ function getUserCallbackSetup(fn){
 
 	if (globals.get("VIEW_MD5_PASSWORD", false)){
 		extra_code += format("VIEW_MD5_PASSWORD <- \"%s\";\n", VIEW_MD5_PASSWORD);
-	} else extra_code += "VIEW_MD5_PASSWORD <- null;\n";
+	} else extra_code += "VIEW_MD5_PASSWORD <- false;\n";
 
 	if (globals.get("EDIT_MD5_PASSWORD", false)){
 		extra_code += format("EDIT_MD5_PASSWORD <- \"%s\";\n", EDIT_MD5_PASSWORD);
-	} else extra_code += "EDIT_MD5_PASSWORD <- null;\n";
+	} else extra_code += "EDIT_MD5_PASSWORD <- false;\n";
 
 	if (globals.get("AT_DEV_DBG", false)){
 		extra_code += "AT_DEV_DBG <- true;\n"
