@@ -150,7 +150,7 @@ static int do_obj(SSL_CTX *ssl_ctx, int obj_type,
             break;
 #endif
         default:
-            printf(unsupported_str);
+            printf("%s", unsupported_str);
             ret = SSL_ERROR_NOT_SUPPORTED;
             break;
     }
