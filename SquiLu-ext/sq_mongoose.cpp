@@ -520,18 +520,19 @@ static void my_send_authorization_request(struct mg_connection *conn,
     mg_thread_mutex_unlock(&session_rwlock);
 
     if(available_session) {
+        //warning android ics/jelly bean expect realm to follow digest
+        //otherwise it will not connect
         i = snprintf(buf, sizeof(buf),
             "HTTP/1.1 401 Unauthorized\r\n"
-            "Content-Length: 0\r\n"
-            "WWW-Authenticate: Digest qop=\"auth\", "
-            "realm=\"%s\", nonce=\"%s\"\r\n\r\n",
+            "WWW-Authenticate: Digest realm=\"%s\", qop=\"auth\", nonce=\"%s\"\r\n"
+            "Content-Length: 0\r\n\r\n",
             authentication_domain, nonce);
     } else {
         i = snprintf(buf, sizeof(buf),
             "HTTP/1.1 503 Service Temporary Unavailable\r\n"
             "Content-Length: 0\r\n\r\n");
     }
-
+    //printf("%s", buf);
     mg_write(conn, buf, i);
 }
 
