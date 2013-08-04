@@ -1415,6 +1415,7 @@ static SQRESULT string_replace(HSQUIRRELVM v) {
             init = init + (s2-(src+init)) + p_size;
             n++;
             if(count && (n >= count)) {
+                b.Write(src+init, src_size-init);
                 break;
             }
         } else {
