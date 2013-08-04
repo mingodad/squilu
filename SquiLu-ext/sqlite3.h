@@ -109,7 +109,7 @@ extern "C" {
 */
 #define SQLITE_VERSION        "3.8.0"
 #define SQLITE_VERSION_NUMBER 3008000
-#define SQLITE_SOURCE_ID      "2013-07-20 00:34:31 ad0551e039ccaa9e7a28682b756b56ac2b8fef0d"
+#define SQLITE_SOURCE_ID      "2013-08-02 16:41:02 478113f18b1d28606b107b5a0bed04cb90a82cf2"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -488,6 +488,7 @@ SQLITE_API int sqlite3_exec(
 #define SQLITE_IOERR_SEEK              (SQLITE_IOERR | (22<<8))
 #define SQLITE_IOERR_DELETE_NOENT      (SQLITE_IOERR | (23<<8))
 #define SQLITE_IOERR_MMAP              (SQLITE_IOERR | (24<<8))
+#define SQLITE_IOERR_GETTEMPPATH       (SQLITE_IOERR | (25<<8))
 #define SQLITE_LOCKED_SHAREDCACHE      (SQLITE_LOCKED |  (1<<8))
 #define SQLITE_BUSY_RECOVERY           (SQLITE_BUSY   |  (1<<8))
 #define SQLITE_BUSY_SNAPSHOT           (SQLITE_BUSY   |  (2<<8))
@@ -2589,7 +2590,8 @@ SQLITE_API SQLITE_EXPERIMENTAL void *sqlite3_profile(sqlite3*,
 ** ^The parameter P is passed through as the only parameter to the 
 ** callback function X.  ^The parameter N is the approximate number of 
 ** [virtual machine instructions] that are evaluated between successive
-** invocations of the callback X.
+** invocations of the callback X.  ^If N is less than one then the progress
+** handler is disabled.
 **
 ** ^Only a single progress handler may be defined at one time per
 ** [database connection]; setting a new progress handler cancels the
@@ -6303,9 +6305,9 @@ SQLITE_API int sqlite3_db_status(sqlite3*, int op, int *pCur, int *pHiwtr, int r
 ** </dd>
 **
 ** [[SQLITE_DBSTATUS_DEFERRED_FKS]] ^(<dt>SQLITE_DBSTATUS_DEFERRED_FKS</dt>
-** <dd>This parameter returns the zero for the current value if and only if
-** there all foreign key constraints (deferred or immediate) have been
-** resolved.  The highwater mark is always 0.
+** <dd>This parameter returns zero for the current value if and only if
+** all foreign key constraints (deferred or immediate) have been
+** resolved.)^  ^The highwater mark is always 0.
 ** </dd>
 ** </dl>
 */

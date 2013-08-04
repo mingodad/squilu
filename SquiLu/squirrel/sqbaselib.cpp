@@ -1396,10 +1396,11 @@ static const SQChar *lmemfind (const SQChar *s1, size_t l1,
 
 /*DAD */
 static SQRESULT string_replace(HSQUIRRELVM v) {
-    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_FUNC_VARS(v);
     SQ_GET_STRING(v, 1, src);
     SQ_GET_STRING(v, 2, p);
     SQ_GET_STRING(v, 3, p2);
+    SQ_OPT_INTEGER(v, 4, count, 0);
     const SQChar *s2;
     int n = 0;
     int init = 0;
@@ -1413,6 +1414,9 @@ static SQRESULT string_replace(HSQUIRRELVM v) {
             b.Write(p2, p2_size);
             init = init + (s2-(src+init)) + p_size;
             n++;
+            if(count && (n >= count)) {
+                break;
+            }
         } else {
             b.Write(src+init, src_size-init);
             break;
@@ -1738,7 +1742,7 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
 	{_SC("slice"),string_slice,-1, _SC(" s n  n")},
 	{_SC("substr"),string_substr,-2, _SC(" s n  n")},
-	{_SC("replace"),string_replace,3, _SC("sss")},
+	{_SC("replace"),string_replace,-3, _SC("sssi")},
 	{_SC("find"),string_find,-2, _SC("s s n ")},
 	{_SC("find_lua"),string_find_lua,-2, _SC("ss a|t|c nb")},
 	{_SC("find_close_quote"),string_find_close_quote,-1, _SC("sn")},
