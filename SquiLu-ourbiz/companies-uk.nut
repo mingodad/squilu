@@ -11,9 +11,9 @@
 local globals = getroottable();
 
 local function getCompaniesUkDBFileName(){
-	if (globals.get("jniLog", false)) return APP_CODE_FOLDER + "/companies-uk-RG.db";
-	if (globals.get("WIN32", false)) return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-RG.db";
-	return "/media/USBHD320/bo/uk/companies-uk-RG.db";
+	if (globals.rawget("jniLog", false)) return APP_CODE_FOLDER + "/companies-uk-RG.db";
+	if (globals.rawget("WIN32", false)) return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-RG.db";
+	return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-RG.db";
 }
 
 local companiesUkDB = null;
@@ -509,7 +509,7 @@ add_uri_hanlders({
 			foreach(k in filed_names) data[k] <-request.get_var(query_string, k);
 		}
 		else foreach(k in filed_names) data[k] <- null;
-		if(!data.get("page", null))  data.page <- 0;
+		if(!data.rawget("page", null))  data.page <- 0;
 		else data.page = data.page.tointeger();
 
 		local errcode;

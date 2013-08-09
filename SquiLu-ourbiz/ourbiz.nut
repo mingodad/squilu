@@ -188,13 +188,13 @@ const C_zip = "zip";
 // generated-code:end 
 
 local globals = getroottable();
-if(!globals.get("APP_CODE_FOLDER", false)) ::APP_CODE_FOLDER <- ".";
+if(!globals.rawget("APP_CODE_FOLDER", false)) ::APP_CODE_FOLDER <- ".";
 
 local constants = getconsttable();
 
 local function getOurbizDBFileName(){
-	if(globals.get("jniLog", false)) return APP_CODE_FOLDER + "/ourbiz.db";
-	if(globals.get("WIN32", false)) return APP_CODE_FOLDER + "/../../ourbiz-uk/ourbiz.db";
+	if(globals.rawget("jniLog", false)) return APP_CODE_FOLDER + "/ourbiz.db";
+	if(globals.rawget("WIN32", false)) return APP_CODE_FOLDER + "/../../ourbiz-uk/ourbiz.db";
 	return "/home/mingo/dev/FrontAccountLua/ourbiz.db";
 }
 
@@ -205,7 +205,7 @@ local function getOurbizDB(){
 	//return checkCachedDB(APP_CODE_FOLDER + "/ourbiz.db");
 }
 
-if(globals.get("AT_DEV_DBG", false) || !globals.get("PdfSqlTable", false)) {
+if(globals.rawget("AT_DEV_DBG", false) || !globals.rawget("PdfSqlTable", false)) {
 	dofile(APP_CODE_FOLDER + "/pdf-table.nut");
 }
 
@@ -224,7 +224,7 @@ local function escape_sql_like_search_str(str){
 local function mkEmptyWhenZero(tbl, key){
 	if (type(key) == "array"){
 		foreach( v in key ) {
-			if (tbl.get(v, false) == "0") tbl[v] = "";
+			if (tbl.rawget(v, false) == "0") tbl[v] = "";
 		}
 	}
 	else if (tbl[key] == 0) tbl[key] = "";
@@ -333,17 +333,17 @@ local function get_sql_bar_chart_statistics_periodes (periode_count, periode_typ
 
 local function getOptionsFromMap(map){
 	local opt = {};
-	opt.search_str <- map.get("search_str", null);
-	opt.select_fields <- map.get("select_fields", null);
-	opt.search_on <- map.get("search_on", "1"); //to make easy on html interface
+	opt.search_str <- map.rawget("search_str", null);
+	opt.select_fields <- map.rawget("select_fields", null);
+	opt.search_on <- map.rawget("search_on", "1"); //to make easy on html interface
 	local CHECK_BOOL = function(field){
-		local value = map.get(field, null);
+		local value = map.rawget(field, null);
 		if (value == "1") opt[field] <- "1";
 		else opt[field] <- null;
 	}
 	local math_floor = math.floor;
 	local CHECK_INT_DFLT = function(field, dflt) {
-		local value = map.get(field, dflt).tointeger();
+		local value = map.rawget(field, dflt).tointeger();
 		opt[field] <- math_floor(value);
 	}
 	local CHECK_INT = function(field) {CHECK_INT_DFLT(field, 0) };
@@ -385,7 +385,7 @@ local function getOptionsFromMap(map){
 }
 
 local function checkQueryStringSAB(qs_tbl, so=null){
-	local qs_sab = qs_tbl.get("sab", null);
+	local qs_sab = qs_tbl.rawget("sab", null);
 	if (qs_sab){
 		if (qs_sab == "S") {
 			if(so) so.sales <- true;
@@ -403,7 +403,7 @@ local function checkQueryStringSAB(qs_tbl, so=null){
 local function get_search_options(req){
 	local search_opt = getOptionsFromMap(req);
 
-	local sab = req.get("sab", null);
+	local sab = req.rawget("sab", null);
 	if (sab && sab.len() > 0){
 		local c = sab.toupper();
 		if (c == "S") search_opt.sales <- true;
@@ -439,7 +439,7 @@ local DB_Manager = class {
 		mf.write("insert into ", table_name,  "(")
 		local isFirst = true;
 		foreach( k,v in editable_fields) {
-			if (data.get(v, false)){
+			if (data.rawget(v, false)){
 				if (isFirst) isFirst = false;
 				else mf.write(",");
 				mf.write(v);
@@ -448,7 +448,7 @@ local DB_Manager = class {
 		mf.write(") values(");
 		isFirst = true;
 		foreach( k,v in editable_fields) {
-			if (data.get(v, false)){
+			if (data.rawget(v, false)){
 				if (isFirst) isFirst = false;
 				else mf.write(",");
 				mf.write("?");
@@ -459,7 +459,7 @@ local DB_Manager = class {
 		local stmt = db.prepare(mf.tostring());
 		local x = 0;
 		foreach( k,v in editable_fields) {
-			if (data.get(v, false)){
+			if (data.rawget(v, false)){
 				stmt.bind_empty_null(++x, data[v]);
 			}
 		}
@@ -474,7 +474,7 @@ local DB_Manager = class {
 		mf.write("update ", table_name,  " set ");
 		local isFirst = true;
 		foreach( k,v in editable_fields) {
-			if (data.get(v, false)){
+			if (data.rawget(v, false)){
 				if (isFirst) isFirst = false;
 				else mf.write(",");
 				mf.write(v, "=?");
@@ -488,7 +488,7 @@ local DB_Manager = class {
 		local stmt = db.prepare(mf.tostring());
 		local x = 0;
 		foreach( k,v in editable_fields) {
-			if (data.get(v, false)) {
+			if (data.rawget(v, false)) {
 				stmt.bind_empty_null(++x, data[v]);
 			}
 		}
@@ -557,13 +557,13 @@ WHERE entity_id = ]==], aId);
 	}
 	
 	function save_image (db, tbl_qs, tbl, sle_buf)                                                                              {
-		local thumbnail = tbl_qs.get("thumbnail", null);
+		local thumbnail = tbl_qs.rawget("thumbnail", null);
 		if(thumbnail)
 		{
-			local image = tbl_qs.get("image", null);
-			local mime_type = tbl_qs.get("mime_type", null);
+			local image = tbl_qs.rawget("image", null);
+			local mime_type = tbl_qs.rawget("mime_type", null);
 
-			local id = tbl_qs.get("__id__", 0);
+			local id = tbl_qs.rawget("__id__", 0);
 			local isNewRecord = id == 0;
 			if(isNewRecord) id = db.last_row_id(); //new record get last_insert_rowid
 			if(id)
@@ -1537,30 +1537,30 @@ local DB_Entities = class extends DB_Manager {
 
 	function sql_list(qs_tbl, post_tbl){
 		local entity_id;
-		if (qs_tbl.get("search", false)) return entities_sql_search_list(qs_tbl, post_tbl);
-		else if (qs_tbl.get("past_products", false)) return entity_past_products_get_sql(qs_tbl.past_products.tointeger());
-		else if ( (entity_id = qs_tbl.get("history", 0)) ){
-			local htype = qs_tbl.get("htype", 0);
+		if (qs_tbl.rawget("search", false)) return entities_sql_search_list(qs_tbl, post_tbl);
+		else if (qs_tbl.rawget("past_products", false)) return entity_past_products_get_sql(qs_tbl.past_products.tointeger());
+		else if ( (entity_id = qs_tbl.rawget("history", 0)) ){
+			local htype = qs_tbl.rawget("htype", 0);
 			local query_limit = qs_tbl.get(C_query_limit, 50).tointeger();
 			return entity_sales_history_sql(htype, query_limit, entity_id.tointeger());
 		}
-		else if ( (entity_id = qs_tbl.get("statistics", 0)) ){
+		else if ( (entity_id = qs_tbl.rawget("statistics", 0)) ){
 			local periode_count = qs_tbl.get(C_periode_count, 12).tointeger();
 			local periode_type = getStatisticsPeriodeType(qs_tbl.get(C_periode_type, C_months));
-			local sab = qs_tbl.get("sab", "S");
+			local sab = qs_tbl.rawget("sab", "S");
 			return entity_bar_chart_statistics_sql(entity_id.tointeger(), sab, periode_count, periode_type);
 		}
-		else if (qs_tbl.get("print_list", false)){
+		else if (qs_tbl.rawget("print_list", false)){
 			return entities_list_sql();
 		}
-		else if (qs_tbl.get("pdf", false)){
+		else if (qs_tbl.rawget("pdf", false)){
 			qs_tbl._doc_pdf_ <- get_pdf_list(qs_tbl);
 			return true;
 		}
 	}
 	
 	function get_pdf_list(tbl_qs){
-		local clipped = tbl_qs.get("clipped", false);
+		local clipped = tbl_qs.rawget("clipped", false);
 		local pdf = new PdfSqlTable();
 		pdf.page_title = "Entities List";
 		pdf.water_mark = "T H I S   I S   A   D E M O";
@@ -1580,18 +1580,18 @@ order by name
 
 	function sql_get_one(tbl_qs){
 		local id = tbl_qs.get(table_name, 0).tointeger();
-		if(tbl_qs.get("for_order", false))
+		if(tbl_qs.rawget("for_order", false))
 		{
 			return entity_for_order_get_one(id);
 		}
-		else if(tbl_qs.get("with_thumbnail", false))
+		else if(tbl_qs.rawget("with_thumbnail", false))
 		{
 			return [==[
 select e.*, i.thumbnail, i.mime_type
 from entities e left join images i
 on e.image_id = i.id where e.id=?]==];
 		}
-		else if(tbl_qs.get("pdf", false))
+		else if(tbl_qs.rawget("pdf", false))
 		{
 			return get_pdf_list(tbl_qs);
 		}
@@ -1614,7 +1614,7 @@ db_ourbiz_tables.entities <- new DB_Entities();
 // orders
 //
 
-if(globals.get("AT_DEV_DBG", false) || !globals.get("PDF_Order", false)) {
+if(globals.rawget("AT_DEV_DBG", false) || !globals.rawget("PDF_Order", false)) {
 	dofile(APP_CODE_FOLDER + "/pdf-order.nut");
 }
 
@@ -2145,32 +2145,32 @@ local DB_Orders = class extends DB_Manager {
 
 	function sql_list(qs_tbl, post_tbl){
 		local order_id
-		if (qs_tbl.get("search", false)) return orders_sql_search_list(qs_tbl, post_tbl);
-		else if( (order_id = qs_tbl.get("lines", 0)) )
+		if (qs_tbl.rawget("search", false)) return orders_sql_search_list(qs_tbl, post_tbl);
+		else if( (order_id = qs_tbl.rawget("lines", 0)) )
 		{
 			return orders_lines_sql_for_order(order_id.tointeger());
 		}
-		else if(  (order_id = qs_tbl.get("sum", 0)) )
+		else if(  (order_id = qs_tbl.rawget("sum", 0)) )
 		{
-			local query_limit = qs_tbl.get("query_limit", 50);
+			local query_limit = qs_tbl.rawget("query_limit", 50);
 			return orders_sum_search_sql(query_limit);
 		}
-		else if( (order_id = qs_tbl.get("lines_onhand", 0)) )
+		else if( (order_id = qs_tbl.rawget("lines_onhand", 0)) )
 		{
 			return order_lines_onhand_get_sql(order_id.tointeger());
 		}		
-		else if (qs_tbl.get("history", false)){
-			local htype = qs_tbl.get("htype", 0).tointeger();
-			local query_limit = qs_tbl.get("query_limit", 50).tointeger();
+		else if (qs_tbl.rawget("history", false)){
+			local htype = qs_tbl.rawget("htype", 0).tointeger();
+			local query_limit = qs_tbl.rawget("query_limit", 50).tointeger();
 			return orders_sales_history_sql(htype, query_limit, qs_tbl.history);
 		}
-		else if (qs_tbl.get("statistics", false)){
+		else if (qs_tbl.rawget("statistics", false)){
 			local periode_count = qs_tbl.get(C_periode_count, 12).tointeger();
-			local periode_type = getStatisticsPeriodeType(qs_tbl.get("periode_type", "months"));
-			local sab = qs_tbl.get("sab", "S");
+			local periode_type = getStatisticsPeriodeType(qs_tbl.rawget("periode_type", "months"));
+			local sab = qs_tbl.rawget("sab", "S");
 			return sql_bar_chart_statistics(sab, periode_count, periode_type);
 		}
-		else if (qs_tbl.get("print_list", false)){
+		else if (qs_tbl.rawget("print_list", false)){
 		}
 	}
 
@@ -2178,7 +2178,7 @@ local DB_Orders = class extends DB_Manager {
 	{
 		_calc_line.reset();
 		local product_id = tbl_qs.get(C_product_id, 0).tointeger();
-		local order_id = tbl_qs.get("__id__", 0).tointeger();
+		local order_id = tbl_qs.rawget("__id__", 0).tointeger();
 		if(product_id  && order_id)
 		{
 			local db = getOurbizDB();
@@ -2268,11 +2268,11 @@ where o.id = %d and p.id = %d]==], order_id, product_id));
 	
 	function sql_get_one(tbl_qs) {
 		local id = tbl_qs.get(table_name, 0).tointeger();
-		if(tbl_qs.get("line", false))
+		if(tbl_qs.rawget("line", false))
 		{
 			orders_lines_get_one(id);
 		}
-		else if(tbl_qs.get("line_calculated", false))
+		else if(tbl_qs.rawget("line_calculated", false))
 		{
 			local db = getOurbizDB();
 			local stmt = db.prepare(orders_lines_get_one(id));
@@ -2283,7 +2283,7 @@ where o.id = %d and p.id = %d]==], order_id, product_id));
 			calc_order_line(tbl_qs, buf, rec_map);
 			return buf;
 		}
-		else if (tbl_qs.get("with_lines", false)){
+		else if (tbl_qs.rawget("with_lines", false)){
 			local db = getOurbizDB();
 			local buf = blob(0, 8192);
 
@@ -2310,7 +2310,7 @@ where o.id = %d and p.id = %d]==], order_id, product_id));
 			buf.write(stmt.asSleArray());
 			return buf;
 		}
-		else if (tbl_qs.get("pdf", false)){
+		else if (tbl_qs.rawget("pdf", false)){
 			local db = getOurbizDB();
 			local calc_order = new MyCalcOrderTotals(db);
 			tbl_qs._doc_pdf_ <- calc_order.getPdfOrder(id, "en");
@@ -2321,7 +2321,7 @@ where o.id = %d and p.id = %d]==], order_id, product_id));
 
 	function db_action(db, data){
 		//dbg_dump_map(p.post_map);
-		local action = data.get("__action__", false);
+		local action = data.rawget("__action__", false);
 
 		if(action == "calc_line" || action == "calc_order_line")
 		{
@@ -2331,8 +2331,8 @@ where o.id = %d and p.id = %d]==], order_id, product_id));
 		}
 		else if(action == "order_numbering")
 		{
-			local order_id = data.get("__id__", 0).tointeger();
-			local version = data.get("__version__", 0).tointeger();
+			local order_id = data.rawget("__id__", 0).tointeger();
+			local version = data.rawget("__version__", 0).tointeger();
 			db.exec_dml("begin;");
 			try {
 				if(db.exec_dml(orders_numbering_get_sql(order_id, version)) < 1)
@@ -2363,9 +2363,9 @@ where o.id = %d and p.id = %d]==], order_id, product_id));
 
 	function do_db_action2(db, data){
 /*
-		local action = data.get("__action__", false);
-		local order_id = data.get("__id__", 0).tointeger();
-		local version = data.get("__version__", 0).tointeger();
+		local action = data.rawget("__action__", false);
+		local order_id = data.rawget("__id__", 0).tointeger();
+		local version = data.rawget("__version__", 0).tointeger();
 		
 		local line_id, entity_id, order_type_id, changes = 0;
 		map_str_t order_type_map;
@@ -2730,7 +2730,7 @@ local DB_Products = class extends DB_Manager {
 	}
 	
 	function getPdfList(qs_tbl){
-		local clipped = qs_tbl.get("clipped", false);
+		local clipped = qs_tbl.rawget("clipped", false);
 		local pdf = new PdfSqlTable();
 		pdf.page_title = "Products List";
 		pdf.water_mark = "T H I S   I S   A   D E M O";
@@ -2745,26 +2745,26 @@ local DB_Products = class extends DB_Manager {
 
 	function sql_list(qs_tbl, post_tbl){
 		local product_id;
-		if (qs_tbl.get("search", false)) return products_sql_search_list(qs_tbl, post_tbl);
-		else if ( (product_id = qs_tbl.get("prices_by_quantity", 0)) ) return product_prices_list_sql(product_id.tointeger());
-		else if ( (product_id = qs_tbl.get("past_products", 0)) ) return entity_past_products_get_sql(product_id.tointeger());
-		else if ( (product_id = qs_tbl.get("last_order_lines", 0)) ) return last_product_order_lines_get_sql(product_id.tointeger());
-		else if ( (product_id = qs_tbl.get("appear_together", 0)) ) return product_appear_together_get_sql(product_id.tointeger());
-		else if ( (product_id = qs_tbl.get("history", 0)) ) {
-			local htype = qs_tbl.get("htype", 0).tointeger();
+		if (qs_tbl.rawget("search", false)) return products_sql_search_list(qs_tbl, post_tbl);
+		else if ( (product_id = qs_tbl.rawget("prices_by_quantity", 0)) ) return product_prices_list_sql(product_id.tointeger());
+		else if ( (product_id = qs_tbl.rawget("past_products", 0)) ) return entity_past_products_get_sql(product_id.tointeger());
+		else if ( (product_id = qs_tbl.rawget("last_order_lines", 0)) ) return last_product_order_lines_get_sql(product_id.tointeger());
+		else if ( (product_id = qs_tbl.rawget("appear_together", 0)) ) return product_appear_together_get_sql(product_id.tointeger());
+		else if ( (product_id = qs_tbl.rawget("history", 0)) ) {
+			local htype = qs_tbl.rawget("htype", 0).tointeger();
 			local query_limit = qs_tbl.get(C_query_limit, 50).tointeger();
 			return product_sales_history_sql(htype, query_limit, product_id.tointeger());
 		}
-		else if ( (product_id = qs_tbl.get("statistics", 0)) ){
+		else if ( (product_id = qs_tbl.rawget("statistics", 0)) ){
 			local periode_count = qs_tbl.get(C_periode_count, 12).tointeger();
 			local periode_type = getStatisticsPeriodeType(qs_tbl.periode_type);
-			local sab = qs_tbl.get("sab", "S");
+			local sab = qs_tbl.rawget("sab", "S");
 			return product_bar_chart_statistics_sql(product_id.tointeger(), sab, periode_count, periode_type);
 		}
-		else if (qs_tbl.get("print_list", false)){
+		else if (qs_tbl.rawget("print_list", false)){
 			return products_list_sql();
 		}
-		else if (qs_tbl.get("pdf", false)){
+		else if (qs_tbl.rawget("pdf", false)){
 			return getPdfList(qs_tbl);
 		}
 	}
@@ -2780,23 +2780,23 @@ where p.id=?]==];
 	function sql_get_one(tbl_qs) {
 		local id = tbl_qs.get(table_name, 0).tointeger();
 		
-		if(tbl_qs.get("discount_by_quantity", false))
+		if(tbl_qs.rawget("discount_by_quantity", false))
 		{
 			local quantity = tbl_qs.get(C_quantity, 0);
 			if(!quantity) return;
 			return discount_by_quantity_get_one(id, quantity);
 		}
-		else if(tbl_qs.get("price_for_calc", false))
+		else if(tbl_qs.rawget("price_for_calc", false))
 		{
 			return get_one_record_sql( _table_name, id,
                                 "buy_price, buy_discount, buy_other_costs, sell_price, price_decimals");
 		}
-		else if (tbl_qs.get("product_for_edit", false)){
+		else if (tbl_qs.rawget("product_for_edit", false)){
 			local db = getOurbizDB();
 			local buf = blob(0, 8192);
 			local sql;
 			
-			if(tbl_qs.get("with_thumbnail", false)){
+			if(tbl_qs.rawget("with_thumbnail", false)){
 				sql = getOneSqlWithThumbnail();
 			} else {
 				sql = base.sql_get_one(tbl_qs)
@@ -2821,7 +2821,7 @@ where p.id=?]==];
 
 			return buf;
 		}
-		else if(tbl_qs.get("product_aux_data", false))
+		else if(tbl_qs.rawget("product_aux_data", false))
 		{
 			local db = getOurbizDB();
 			local buf = blob(0, 8192);
@@ -2837,11 +2837,11 @@ where p.id=?]==];
 
 			return buf;
 		}
-		else if(tbl_qs.get("pdf", false))
+		else if(tbl_qs.rawget("pdf", false))
 		{
 			return getPdfList(qs_tbl);
 		}
-		else if(tbl_qs.get("with_thumbnail", false)){
+		else if(tbl_qs.rawget("with_thumbnail", false)){
 			return getOneSqlWithThumbnail().replace("?", id.tostring());
 		}
 		else return base.sql_get_one(tbl_qs);
@@ -2849,10 +2849,10 @@ where p.id=?]==];
 
 	function db_action(db, data)
 	{
-		local str = data.get("__action__", false);
+		local str = data.rawget("__action__", false);
 		if(str == "calc_price_by_quantity")
 		{
-			local id = data.get("__id__", 0);
+			local id = data.rawget("__id__", 0);
 			if(!id) return;
 
 			_calc_prices.clear();
@@ -2937,7 +2937,7 @@ local DB_Images = class extends DB_Manager {
 	function sql_get_one(req){
 		local mf = blob();
 		mf.write("select id, _version_, mime_type, name, description, group_set, cdate, mdate, length(image) as img_size ");
-		if (req.get("image_and_size", false)) mf.write(", image ");
+		if (req.rawget("image_and_size", false)) mf.write(", image ");
 		mf.write("from ", table_name ," where id=?");
 		return  mf.tostring();
 	}
@@ -2955,9 +2955,9 @@ local DB_order_types = class extends DB_Manager {
 	}
 
 	function sql_list(qs_tbl, post_tbl){
-		if (qs_tbl.get("short_list", false)){
+		if (qs_tbl.rawget("short_list", false)){
 			local sql = "select id, description from order_types where is_active = 1 ";
-			local group_order = qs_tbl.get("group_order", false);
+			local group_order = qs_tbl.rawget("group_order", false);
 			if (group_order && (group_order == "S" || group_order == "B")){
 				sql = format("%s and group_order='%s' ", sql, group_order);
 			}
@@ -3134,14 +3134,14 @@ local function ourbizDbGetList(request){
 	if (query_string){
 		local db = getOurbizDB();
 		local qs_tbl = parse_qs_to_table(query_string);
-		local list = qs_tbl.get("list", null);
-		local sab = qs_tbl.get("sab", "S");
+		local list = qs_tbl.rawget("list", null);
+		local sab = qs_tbl.rawget("sab", "S");
 		local isPost = request.info.request_method == "POST";
 		local sql, post_tbl, data;
 		if (isPost) post_tbl = get_post_fields(request, 1024);
 		else post_tbl = {};
 
-		if (!post_tbl.get("query_limit", false)) post_tbl.query_limit <- 50;
+		if (!post_tbl.rawget("query_limit", false)) post_tbl.query_limit <- 50;
 		gmFile.clear();
 
 		if (list == "entity_groups") db_ourbiz_tables.entity_groups.get_list(db, gmFile);
@@ -3149,7 +3149,7 @@ local function ourbizDbGetList(request){
 		else if (list == "config") sql = "select id, key,value from config";
 		else if (db_ourbiz_tables.get(list, false)){
 			sql = db_ourbiz_tables[list].sql_list(qs_tbl, post_tbl);
-			local doc_pdf = qs_tbl.get("_doc_pdf_", false);
+			local doc_pdf = qs_tbl.rawget("_doc_pdf_", false);
 			if (doc_pdf){
 				request.print(format([==[
 HTTP/1.1 200 OK
@@ -3201,7 +3201,7 @@ local function ourbizDbGetOne(request){
 		if (tbl == "config") sql = "select * from config where id=?";
 		else if (db_ourbiz_tables.get(tbl, false)) sql = db_ourbiz_tables[tbl].sql_get_one(tbl_qs);
 		
-		local doc_pdf = tbl_qs.get("_doc_pdf_", false);
+		local doc_pdf = tbl_qs.rawget("_doc_pdf_", false);
 		if (doc_pdf){
 			request.print(format([==[
 HTTP/1.1 200 OK
@@ -3279,8 +3279,8 @@ local function ourbizDbAction(request) {
 	if (isPost){
 		local data = get_post_fields(request, 10*1024);
 		local db = getOurbizDB();
-		local tbl = data.get("__table__", null);
-		local action = data.get("__action__", null);
+		local tbl = data.rawget("__table__", null);
+		local action = data.rawget("__action__", null);
 		local result;
 		//debug_print(tbl, "\n", action, "\n", data.__id__, "\n")
 		gmFile.clear();

@@ -5,7 +5,7 @@
  */
  
 local globals = getroottable();
-if(!globals.get("APP_CODE_FOLDER", false)) ::APP_CODE_FOLDER <- ".";
+if(!globals.rawget("APP_CODE_FOLDER", false)) ::APP_CODE_FOLDER <- ".";
 WIN32 <- os.getenv("WINDIR") != null;
 
 //local AT_DEV_DBG=true;
@@ -14,11 +14,11 @@ WIN32 <- os.getenv("WINDIR") != null;
 //local EDIT_MD5_PASSWORD = md5("edit_user:r.dadbiz.es:okdoedit");
 //local VIEW_MD5_PASSWORD = md5("view_user:r.dadbiz.es:okdoview");
 
-if(!globals.get("gmFile", false)) ::gmFile <- blob();
-if(!globals.get("__tplCache", false)) ::__tplCache <- {};
+if(!globals.rawget("gmFile", false)) ::gmFile <- blob();
+if(!globals.rawget("__tplCache", false)) ::__tplCache <- {};
 
 function getTemplate(fname, nocache){
-	local mixBase = ::__tplCache.get(fname, false);
+	local mixBase = ::__tplCache.rawget(fname, false);
 	if (!mixBase || nocache){
 		local rfn = format("%s/%s", APP_CODE_FOLDER, fname);
 		//debug_print("\n", rfn);
@@ -33,9 +33,9 @@ function getTemplate(fname, nocache){
 }
 
 /*
-if(!globals.get("__stmtCache", false)) ::__stmtCache <- {};
+if(!globals.rawget("__stmtCache", false)) ::__stmtCache <- {};
 function getCachedStmt(db, stmt_key, sql_or_func){
-	local stmt = ::__stmtCache.get(stmt_key, false);
+	local stmt = ::__stmtCache.rawget(stmt_key, false);
 	if (!stmt){
 		//local db =checkCompaniesUkDB()
 		local sql;
@@ -90,7 +90,7 @@ function split_filename(path){
 }
 
 function insert_field (dest, key, value){
-  local fld = dest.get(key, null);
+  local fld = dest.rawget(key, null);
   if (!fld) dest[key] <- value;
   else
   {
@@ -100,14 +100,16 @@ function insert_field (dest, key, value){
 }
 
 function multipart_data_get_field_names(headers, name_value){
+  //foreach(k,v in headers) debug_print(k, "::", v, "\n");
   local disp_header = headers["content-disposition"] || "";
   local attrs = {};
   disp_header.gmatch(";%s*([^%s=]+)=\"(.-)\"", function(attr, val) {
 	attrs[attr] <- val;
+	//debug_print(attr, "::", val, "\n");
 	return true;
   });
-  name_value[0] = attrs.name;
-  name_value[1] = attrs.filename ? split_filename(attrs.filename) : null;
+  name_value.push(attrs.name);
+  name_value.push(attrs.rawget("filename", false) ? split_filename(attrs.filename) : null);
 }
 
 function multipart_data_break_headers(header_data){
@@ -121,12 +123,12 @@ function multipart_data_break_headers(header_data){
 
 function multipart_data_read_field_headers(input, state){
 	local s, e, pos = state.pos;
-	input.lua_find("\r\n\r\n", function(start, end){s=start; e=end; return false;}, pos, true);
+	input.find_lua("\r\n\r\n", function(start, end){s=start; e=end; return false;}, pos, true);
 	if( s ) {
-		state.pos = e+1;
-		return multipart_data_break_headers(input.slice(pos, s-1));
+		state.pos <- e;
+		return multipart_data_break_headers(input.slice(pos, s));
 	}
-	else return nil;
+	else return null;
 }
 
 function multipart_data_read_field_contents(input, state){
@@ -134,20 +136,20 @@ function multipart_data_read_field_contents(input, state){
 	local s, e, pos = state.pos;
 	input.find_lua(boundaryline, function(start, end){ s=start; e=end; return false;}, pos, true)
 	if (s) {
-		state.pos = e+1;
-		state.size = s-pos;
-		return input.slice(pos, s-1);
+		state.pos <- e;
+		state.size <- s-pos;
+		return input.slice(pos, s);
 	}
 	else {
-		state.size = 0;
-		return nil;
+		state.size <- 0;
+		return null;
 	}
 }
 
 function multipart_data_file_value(file_contents, file_name, file_size, headers){
   local value = { contents = file_contents, name = file_name, size = file_size };
   foreach( h, v in headers) {
-	if (h != "content-disposition") value[h] = v;
+	if (h != "content-disposition") value[h] <- v;
   }
   return value;
 }
@@ -182,8 +184,8 @@ function multipart_data_get_boundary(content_type){
 function parse_multipart_data(input, input_type, tab=null){
 	if(!tab) tab = {};
 	local state = {};
-	state.boundary <- get_boundary(input_type);
-	input.find_lua(state.boundary, function(start, end){state.pos = end+1;return false;}, 0, true);
+	state.boundary <- multipart_data_get_boundary(input_type);
+	input.find_lua(state.boundary, function(start, end){state.pos <- end+1;return false;}, 0, true);
 	while(true){
 		local name_value = multipart_data_parse_field(input, state);
 		if(!name_value) break;
@@ -264,15 +266,32 @@ function get_post_fields(request, max_len=1024*1000){
 	if (data_len > 0 && data_len <= max_len) {
 		local content_type = request.get_header("Content-Type") || "x-www-form-urlencoded";
 		local data = request.read(data_len);
+		
 /*
-		local fd = file("post.txt", "wb");
+		local fd = file(::APP_CODE_FOLDER + "/post.txt", "wb");
 		fd.write(data, data.len());
 		fd.close();
-		debug_print(conn_get_header("Content-Type"), "\n");
+		debug_print(request.get_header("Content-Type"), "\n");
 */
+		if(content_type == "application/json; charset=UTF-8"){
+			return data;
+		}
 		parse_post_data(content_type, data, post_fields);
 	}
 	return post_fields;
+}
+
+local allowedUploadFileExtensions = {
+	[".png"] = "image/png",
+	[".jpg"] = "image/jpeg",
+	[".gif"] = "image/gif",
+}
+
+function getMimeType(fname){
+	local ext;
+	fname.gmatch("(%.?[^%.\\/]*)$", @(m) ext=m);
+	if( ext ) return allowedUploadFileExtensions.rawget(ext, "unknown");
+	return "unknown";
 }
 
 function sanitizePath(path){
@@ -310,8 +329,8 @@ local allowedEditFileExtensions = {
 
 function isExtensionAllowed(fname){
 	local ext;
-	fname.gmatch("(%.?[^%.\\/]*)$", @(m) ext=m)
-	if( ext ) return allowedEditFileExtensions.get(ext, false);
+	fname.gmatch("(%.?[^%.\\/]*)$", @(m) ext=m);
+	if( ext ) return allowedEditFileExtensions.rawget(ext, false);
 	return false;
 }
 
@@ -410,8 +429,8 @@ local uri_handlers = {
 		//password protected
 		bool_t canEdit = false;
 		//print("EDIT_MD5_PASSWORD=", EDIT_MD5_PASSWORD, "\n")
-		bool_t isViewOnly = globals.get("VIEW_MD5_PASSWORD", false) && request.check_password(VIEW_MD5_PASSWORD);
-		if (!isViewOnly) canEdit = globals.get("EDIT_MD5_PASSWORD", false) && request.check_password(EDIT_MD5_PASSWORD);
+		bool_t isViewOnly = globals.rawget("VIEW_MD5_PASSWORD", false) && request.check_password(VIEW_MD5_PASSWORD);
+		if (!isViewOnly) canEdit = globals.rawget("EDIT_MD5_PASSWORD", false) && request.check_password(EDIT_MD5_PASSWORD);
 
 		if(!(canEdit || isViewOnly) ) {
 			request.send_authorization_request("r.dadbiz.es");
@@ -427,8 +446,8 @@ local uri_handlers = {
 		bool_t isPost = request.info.request_method == "POST";
 		if (isPost && canEdit) {
 			local post_fields = get_post_fields(request);
-			if (post_fields.get("save", false)) {
-				local content = post_fields.get("content", null);
+			if (post_fields.rawget("save", false)) {
+				local content = post_fields.rawget("content", null);
 				if (content){
 					data.file_name <- sanitizePath(post_fields.file_name);
 					if (!isExtensionAllowed(data.file_name)) data.file_name = NULL;
@@ -474,11 +493,11 @@ function add_uri_hanlders(tbl){
 	foreach(k,v in tbl) uri_handlers[k] <- v;
 }
 
-if(AT_DEV_DBG || !globals.get("checkCompaniesUkDBFile", false)) {
+if(AT_DEV_DBG || !globals.rawget("checkCompaniesUkDBFile", false)) {
 	dofile(APP_CODE_FOLDER + "/companies-uk.nut");
 }
 
-if(AT_DEV_DBG || !globals.get("ourbizDB", false)) {
+if(AT_DEV_DBG || !globals.rawget("ourbizDB", false)) {
 	dofile(APP_CODE_FOLDER + "/ourbiz.nut");
 }
 
@@ -486,7 +505,7 @@ local ourbiz_password = md5("mingote:ourbiz.dadbiz.es:tr14pink");
 function handle_request(request){
 	//static content served by mongoose directly
 	local request_uri = request.info.uri;
-	//debug_print(request.get_option("document_root"), request_uri, "\n")
+	//debug_print(request.get_option("document_root"), "::", request_uri, "\n")
 	if(request_uri.startswith("/DB/")){
 		if(!request.check_password(ourbiz_password)) {
 			request.send_authorization_request("ourbiz.dadbiz.es");
@@ -495,6 +514,6 @@ function handle_request(request){
 	}
 	if (request_uri.endswith(".js") || request_uri.endswith(".css") ) return false;
 	if (request_uri == "/index.html" || request_uri == "/" ) return uri_handlers["/search"](request);
-	if( uri_handlers.get(request_uri, false) ) return uri_handlers[request_uri](request);
+	if( uri_handlers.rawget(request_uri, false) ) return uri_handlers[request_uri](request);
 	return false;
 }

@@ -199,7 +199,7 @@ class HappyHttpConnection {
 		// check headers for content-length
 		// TODO: check for "Host" and "Accept-Encoding" too
 		// and avoid adding them ourselves in putrequest()
-		if( headers ) gotcontentlength = headers.get("content-length", false);
+		if( headers ) gotcontentlength = headers.rawget("content-length", false);
 
 		putrequest( method, url );
 

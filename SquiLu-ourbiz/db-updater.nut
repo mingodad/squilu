@@ -6,7 +6,7 @@
  
 local globals = getroottable();
 
-if(!globals.get("HTTPConn", false)) dofile("ourbiz-client.nut");
+if(!globals.rawget("HTTPConn", false)) dofile("ourbiz-client.nut");
 
 enum edbAction {e_none, e_insert, e_update, e_delete};
 
@@ -140,7 +140,7 @@ class DBTableUpdateBase {
 		httpRequest.send_my_request("POST", url, body_str, body_str.len(),
 					 useMultiPart ? boundary + 2 : 0, //+2 to discount "--"
 					 useSLE);
-		//local check_idle = globals.get("Fl", false);
+		//local check_idle = globals.rawget("Fl", false);
 		while( httpRequest.outstanding() )
 		{
 			httpRequest.pump();
@@ -155,7 +155,7 @@ class DBTableUpdateBase {
 			version = 0;
 			local rec = {};
 			appServer.asle2map(my_result, rec);
-			local new_id = rec.get("id", 0).tointeger();
+			local new_id = rec.rawget("id", 0).tointeger();
 			if(new_id == 0) throw("Could not update this record !");
 			edit_id = new_id;
 		}
@@ -165,7 +165,7 @@ class DBTableUpdateBase {
 		{
 			local rec = {};
 			appServer.sle2map(my_result, rec);
-			local changes = rec.get("changes", 0).tointeger();
+			local changes = rec.rawget("changes", 0).tointeger();
 			if(changes == 0) {
 				if(dbAction == edbAction.e_update) throw("Could not update this record !");
 				else throw("Could not delete this record !");

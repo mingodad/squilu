@@ -92,9 +92,9 @@ class OurBizSearchOptions
 
     function getOptionsFromMap(map)
     {
-        search_str = map.get("search_str", "");
-        select_fields = map.get("select_fields", "");
-        search_on = map.get("search_on", "1");
+        search_str = map.rawget("search_str", "");
+        select_fields = map.rawget("select_fields", "");
+        search_on = map.rawget("search_on", "1");
 
 	foreach(k,v in this){
 		local ktype = type(v);

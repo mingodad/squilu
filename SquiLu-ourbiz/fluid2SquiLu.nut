@@ -229,12 +229,12 @@ Write.Function <- function(t, ind){
 	t.varname <- "res";
 	Write.group(t.body, ind+1);
 	local names = [];
-	foreach(i in t.body) names.push(i.get("varname", null));
+	foreach(i in t.body) names.push(i.rawget("varname", null));
 	if (names.len() > 0) Output(ind+1, "return %s;\n", names.concat(", "));
 	Output(ind, "}\n\n");
 }
 
-function getClassNameOrKey(t){return  t.attr.get("class", false) || t.key;}
+function getClassNameOrKey(t){return  t.attr.rawget("class", false) || t.key;}
 
 Write.Atributes <- function(t, ind, name){
 	local lname;
@@ -258,11 +258,11 @@ Write.Atributes <- function(t, ind, name){
 
 Write.widget <- function(t, ind){
 	local fgroup = Grammar.groups.get(t.key, false);
-	if (Grammar.composed.get(t.key, false) && t.attr.get("type", false)){
+	if (Grammar.composed.get(t.key, false) && t.attr.rawget("type", false)){
 		t.key = t.key.slice(0,3) + t.attr.type + t.key.slice(2);
 		t.attr.type = null;
 	}
-	local klass = t.attr.get("class", false) || t.key;
+	local klass = t.attr.rawget("class", false) || t.key;
 	local constClearLabel = "_ClearLabel";
 	local isClearLabel = false;
 	if (klass.match(constClearLabel)){ 
@@ -273,8 +273,8 @@ Write.widget <- function(t, ind){
 	local ar = t.attr.xywh;
 	local x = ar[0], y = ar[1], w = ar[2], h = ar[3];
 	local name = configuration.currentvar;
-	t.xoffset <- t.parent.get("xoffset", "");
-	t.yoffset <- t.parent.get("yoffset", "");
+	t.xoffset <- t.parent.rawget("xoffset", "");
+	t.yoffset <- t.parent.rawget("yoffset", "");
 	local newMethodCallStr, firstParamStr;
 	if (klass.match("^fltk%.")) {
 		newMethodCallStr = "";
@@ -288,7 +288,7 @@ Write.widget <- function(t, ind){
 	//print(t.key, name, klass)
 	Output(ind, "{\n"); 
 	++ind;
-	local dirty_name =  t.attr.get("dirty_name", false);
+	local dirty_name =  t.attr.rawget("dirty_name", false);
 	local need_var_assign = true;
 	if(dirty_name && dirty_name[0] == '@'){
 		need_var_assign = false;
@@ -296,14 +296,14 @@ Write.widget <- function(t, ind){
 		Output(ind, "local o = %s;\n", dirty_name);
 		Output(ind, "Fl_Group.current()->add(o);\n", dirty_name);
 		Output(ind, "o->resize(%s%s%d, %s%d, %d, %d);\n",  firstParamStr, t.xoffset, x, t.yoffset, y, w, h);
-		if (! isClearLabel && t.attr.get("label", false)) 
+		if (! isClearLabel && t.attr.rawget("label", false)) 
 			Output(ind, "o->lable(%s(%q));\n", configuration.textfilter, t.attr.label);
 	}
 	else
 	{
 		Output(ind, "local %s = %s%s(%s%s%d, %s%d, %d, %d", name, 
 			klass, newMethodCallStr, firstParamStr, t.xoffset, x, t.yoffset, y, w, h);
-		if (! isClearLabel && t.attr.get("label", false)) Output(0, ", %s(%q)", configuration.textfilter, t.attr.label);
+		if (! isClearLabel && t.attr.rawget("label", false)) Output(0, ", %s(%q)", configuration.textfilter, t.attr.label);
 		Output(0, ");\n");
 	}	
 
@@ -336,19 +336,19 @@ Write.widget <- function(t, ind){
 	
 	Write.Atributes(t, ind, name);
 
-	local img = t.attr.get("image", false);
+	local img = t.attr.rawget("image", false);
 	if (img){
 		local ext = img.match("%.(%a+)$").toupper();
 		Output(ind, "%s.image(Fl_%s_Image(%q));\n", name, Grammar.images[ext], img);
 	}
-	if (t.attr.get("modal", false)) Output(ind, "%s.set_modal();\n", name);
-	if (t.attr.get("non_modal", false)) Output(ind, "%s.set_non_modal();\n", name);
+	if (t.attr.rawget("modal", false)) Output(ind, "%s.set_modal();\n", name);
+	if (t.attr.rawget("non_modal", false)) Output(ind, "%s.set_non_modal();\n", name);
 	for(local i=0; i <= 3; ++i){
-		local code = t.attr.get("code" + i, false);
+		local code = t.attr.rawget("code" + i, false);
 		if (code && code.len()) {
 			if(code[0] == '='){
 				code = code.slice(1);
-				local macro = t.attr.get("macro_name", false);
+				local macro = t.attr.rawget("macro_name", false);
 				if(macro){
 					macro = macro.split(' ');
 					code = code.gsub("$%((%d+)%)", function(m){
@@ -365,9 +365,9 @@ Write.widget <- function(t, ind){
 			else Output(ind, "%s\n", code);
 		}
 	}
-	if (t.attr.get("noborder", false)) Output(ind, "%s.clear_border();\n", name);
-	if (t.attr.get("size_range", false)) Output(ind, "%s.size_range(%s);\n", name, table.concat(t.attr.size_range, ", "));
-	local cb = t.attr.get("callback", false);
+	if (t.attr.rawget("noborder", false)) Output(ind, "%s.clear_border();\n", name);
+	if (t.attr.rawget("size_range", false)) Output(ind, "%s.size_range(%s);\n", name, table.concat(t.attr.size_range, ", "));
+	local cb = t.attr.rawget("callback", false);
 	if (cb){
 		if (cb.match("^[%w_]+$")) Output(ind, "%s.callback(%s);\n", name, cb);
 		else
@@ -377,7 +377,7 @@ Write.widget <- function(t, ind){
 			Output(ind, "});\n");
 		}
 	}
-	if (t.get("body", false) && t.body.len() > 0) {
+	if (t.rawget("body", false) && t.body.len() > 0) {
 		Output(ind, "{\n");
 		Write.group(t.body, ind+1);
 		Output(ind, "}\n");
@@ -387,18 +387,18 @@ Write.widget <- function(t, ind){
 		if (klass.match("^fltk%.")) Output(ind, "%s.end();\n", name);
 		else Output(ind, "%s.end();\n", name);
 	}
-	if (t.attr.get("resizable", false)) { 
+	if (t.attr.rawget("resizable", false)) { 
 		if (t.parent.key != "Function"){
 			Output(ind, "Fl_Group.current().resizable(%s);\n", name);
 			t.parent.resized <- true;
 		}
-		else if (! t.get("resized", false) ) Output(ind, "%s.resizable(%s);\n", name, name);
+		else if (! t.rawget("resized", false) ) Output(ind, "%s.resizable(%s);\n", name, name);
 	}
 	Output(ind-1, "}\n"); 
 }
 
 Write.Submenu <- function(t, ind){
-	if (t.parent.get("path", false)) t.path <- t.parent.path + "/" + t.attr.label;
+	if (t.parent.rawget("path", false)) t.path <- t.parent.path + "/" + t.attr.label;
 	else t.path <- t.attr.label;
 
 	Output(ind, "//%s %s\n", t.name, t.path);
@@ -407,13 +407,13 @@ Write.Submenu <- function(t, ind){
 }
 
 Write.MenuItem <- function(t, ind){
-	if (t.parent.get("path", false)) t.path <- t.parent.path + "/" +  t.attr.get("label", "");
+	if (t.parent.rawget("path", false)) t.path <- t.parent.path + "/" +  t.attr.rawget("label", "");
 	else t.path <- t.attr.label;
 
 	local w = t;
-	while (!w.get("varname", false)) w = w.parent;
+	while (!w.rawget("varname", false)) w = w.parent;
 
-	local cb = t.attr.get("callback", false);
+	local cb = t.attr.rawget("callback", false);
 	
 	if (!cb && t.name > ""){
 		//cb = "dispatch_func(" + t.name + "_cb, self)";
@@ -426,7 +426,7 @@ Write.MenuItem <- function(t, ind){
 		Output(ind, "o.add(%s(%q)", configuration.textfilter, t.path);
 	}
 
-	Output(0, ", %s", t.attr.get("shortcut", "0").tostring());
+	Output(0, ", %s", t.attr.rawget("shortcut", "0").tostring());
 	if (cb){
 		if (cb.match("^[%w_]+$")) Output(ind, ", %s", cb);
 		else
@@ -438,27 +438,27 @@ Write.MenuItem <- function(t, ind){
 
 		if (t.name > ""){
 			local ind2 = 0;
-			if (t.attr.get("deactivate", false)) Output2(ind2, "// deactivated base_class.%s\n", t.name);
+			if (t.attr.rawget("deactivate", false)) Output2(ind2, "// deactivated base_class.%s\n", t.name);
 			Output2(ind2, "function base_class.%s_cb(sender);\n", t.name);
 			Output2(ind2+2, "fl_alert(\"%s en construccion\");\n", t.name);
 			Output2(ind2, "}\n\n", t.name);
 		}
 	}
 	local type = null;
-	if(t.attr.get("type", false)) type = Grammar.menu_const[t.attr.type];
-	if (t.attr.get("divider", false)){ 
+	if(t.attr.rawget("type", false)) type = Grammar.menu_const[t.attr.type];
+	if (t.attr.rawget("divider", false)){ 
 		if (type) type = type + Grammar.menu_const.divider;
 		else type = Grammar.menu_const.divider;
 	}
-	if (t.attr.get("deactivate", false)){ 
+	if (t.attr.rawget("deactivate", false)){ 
 		if (type) type = type + Grammar.menu_const.deactivate;
 		else type = Grammar.menu_const.deactivate ;
 	}
-	if (t.attr.get("hide", false)) { 
+	if (t.attr.rawget("hide", false)) { 
 		if (type) type = type + Grammar.menu_const.hide;
 		else type = Grammar.menu_const.hide;
 	}
-	if (t.attr.get("value", false)){
+	if (t.attr.rawget("value", false)){
 		if (type) type = type + 4; // FL_MENU_VALUE = 4
 		else type = 4; // FL_MENU_VALUE = 4 
 	}
@@ -498,11 +498,11 @@ Write.decl <- function(t, ind){}
 Write.declblock <- function(t, ind){
 	Output(ind, "%s\n", t.name);
 	Write.group(t.body, ind+1);
-	Output(ind, "%s\n", t.attr.get("after", "}"));
+	Output(ind, "%s\n", t.attr.rawget("after", "}"));
 }
 
 Write["class"] <- function(t, ind){
-	Output(ind, "class %s extends %s {\n", t.name, t.get("class", "?"));
+	Output(ind, "class %s extends %s {\n", t.name, t.rawget("class", "?"));
 	local vars = [];
 	FindMembers.group(t.body, vars);
 	WriteVariables(ind+1, vars, "class members");
@@ -517,9 +517,9 @@ Write.widget_class <- function(t, ind){
 	local vars = [];
 	local wObj = "";
 	local typeName;
-	//if (t.attr.get("class", false) && t.attr["class"].match("^Fl_")) typeName = "fltk." + t.attr["class"];
+	//if (t.attr.rawget("class", false) && t.attr["class"].match("^Fl_")) typeName = "fltk." + t.attr["class"];
 	//else  
-	typeName = t.attr.get("class", "Fl_Group");
+	typeName = t.attr.rawget("class", "Fl_Group");
 
 	local widgetType = typeName;
 	Output(ind, "class %s extends %s {\n", t.name, widgetType);
@@ -530,13 +530,13 @@ Write.widget_class <- function(t, ind){
 	
 	local ar = t.attr.xywh;
 	local x = ar[0], y = ar[1], w = ar[2], h = ar[3];
-	local wlabel = t.attr.get("label", false);
+	local wlabel = t.attr.rawget("label", false);
 
 	local strCreateWidget = format("constructor(px=%d, py=%d, pw=%d, ph=%d, pl=%s){\n",
 		x, y, w, h, wlabel ? format( "%s(%q)", configuration.textfilter, wlabel): "null");
 	Output(ind+1, strCreateWidget);
 	Output(ind+2, "base.constructor(px, py, pw, ph, pl);\n");
-	if (! (t.attr.get("class", "")).match("_Window$") ) {
+	if (! (t.attr.rawget("class", "")).match("_Window$") ) {
 		t.xoffset <- "_x + ";
 		t.yoffset <- "_y + ";
 		Output(ind+2, "local _x = %d, _y = %d;\n", x, y);
@@ -578,7 +578,7 @@ FindMembers.Function <- function(t, list){
 }
 
 FindMembers["class"] <- function(t, list){
-	list.push([ t.name, "public", t.attr.get("class", "null") ]);
+	list.push([ t.name, "public", t.attr.rawget("class", "null") ]);
 }
 
 FindMembers.widget_class <- FindMembers["class"];
@@ -590,7 +590,7 @@ FindMembers.widget <- function(t, list){
 	else if (t.name.match("^[%w_]+$")){
 		list.push([ t.name, GetAccessMode(t, "public") , getClassNameOrKey(t)]);
 	}
-	if (t.get("body", false)) FindMembers.group(t.body, list);
+	if (t.rawget("body", false)) FindMembers.group(t.body, list);
 }
 
 FindMembers.decl <- function(t, list){
@@ -605,7 +605,7 @@ FindMembers.submenu <- function(t, list){
 				//print("body", k2, v2);
 				if(type(v2) == "table"){
 					//foreach(k3,v3 in v2) print("menuitem", k3,v3);
-					if(v2.get("name", false)) list.push([ v2.name, GetAccessMode(t, "public"), getClassNameOrKey(t)]);
+					if(v2.rawget("name", false)) list.push([ v2.name, GetAccessMode(t, "public"), getClassNameOrKey(t)]);
 				}
 			}
 		}
@@ -735,7 +735,7 @@ function mydebughook(event_type,sourcefile,line,funcname)
 			else print(k,v);
 		}
 */
-		local pos = getstackinfos(2).locals.get("pos", false);
+		local pos = getstackinfos(2).locals.rawget("pos", false);
 		if(isDebugging || pos == 8926) {
 			foreach(k,v in getstackinfos(2)) {
 				if(type(v) == "table") {
