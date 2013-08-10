@@ -1046,6 +1046,7 @@ SQUIRREL_API SQRESULT sqext_register_sqfs(HSQUIRRELVM v);
 SQUIRREL_API void sqstd_seterrorhandlers(HSQUIRRELVM v);
 SQUIRREL_API void sqstd_printcallstack(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sqext_register_sq_socket(HSQUIRRELVM v);
+SQUIRREL_API SQRESULT sqext_register_sq_slave_vm(HSQUIRRELVM v);
 
 #ifdef __cplusplus
 } /*extern "C"*/
@@ -1101,6 +1102,7 @@ static HSQUIRRELVM my_new_squirrel(struct mg_context *ctx) {
 	sqext_register_sqfs(v);
 	sqext_register_mix(v);
 	sqext_register_sq_socket(v);
+	sqext_register_sq_slave_vm(v);
 
     sq_pushstring(v,sq_http_request_TAG, -1);
     sq_newclass(v,SQFalse);
