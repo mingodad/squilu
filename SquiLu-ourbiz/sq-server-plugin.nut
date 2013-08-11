@@ -71,6 +71,43 @@ function escapeHtml ( str ){
 	}
 }
 
+function var2json(v){
+	switch(type(v)){
+		case "table":
+			local result = [];
+			foreach(k2, v2 in v) {
+				result.push( format([==["%s":%s]==], k2, var2json(v2)));
+			}
+			return "{" + result.concat(",") + "}";
+			break;
+			
+		case "array":
+			local result = [];
+			for(local i=0, len=v.len(); i<len; ++i) {
+				result.push(var2json(v[i]));
+			}
+			return "[" + result.concat(",") + "]";
+			break;
+			
+		case "integer":
+		case "float":
+			return v.tostring();
+			break;
+
+		case "bool":
+			return v ? "true" : "false";
+			break;
+
+		case "null":
+			return "null";
+			break;
+
+		default:
+			return "\"" + v.tostring().replace("\"", "\\\"").replace("\n", "\\n") + "\"";
+	}
+	return "";
+}
+
 function fillTemplate(template, data, nocache){
 	data.escapeHtml <- escapeHtml;
 	local mixFunc =getTemplate(template, nocache);
@@ -493,6 +530,30 @@ function add_uri_hanlders(tbl){
 	foreach(k,v in tbl) uri_handlers[k] <- v;
 }
 
+local uri_filters = [];
+
+function add_uri_filters(func){
+	uri_filters.push(func);
+}
+
+function remove_uri_filters(func){
+	for(local i=0, len=uri_filters.len(); i < len; ++i){
+		if(uri_filters[i] == func) {
+			uri_filters.remove(i);
+			break;
+		}
+	}
+}
+
+function apply_uri_filters(request){
+	for(local i=0, len=uri_filters.len(); i < len; ++i){
+		if(uri_filters[i](request)) {
+			return true;
+		}
+	}
+	return false;
+}
+
 if(AT_DEV_DBG || !globals.rawget("checkCompaniesUkDBFile", false)) {
 	dofile(APP_CODE_FOLDER + "/companies-uk.nut");
 }
@@ -505,7 +566,12 @@ local ourbiz_password = md5("mingote:ourbiz.dadbiz.es:tr14pink");
 function handle_request(request){
 	//static content served by mongoose directly
 	local request_uri = request.info.uri;
-	//debug_print(request.get_option("document_root"), "::", request_uri, "\n")
+	debug_print(request.get_option("document_root"), "::", request_uri, "\n")
+	
+	if(apply_uri_filters(request)) {
+		return true;
+	}
+	
 	if(request_uri.startswith("/DB/")){
 		if(!request.check_password(ourbiz_password)) {
 			request.send_authorization_request("ourbiz.dadbiz.es");
