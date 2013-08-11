@@ -1178,7 +1178,7 @@ public:
 			//the following is an attempt to allow local declared functions be called recursivelly
 			SQInteger old_pos = _fs->GetCurrentPos(); //save current instructions position
 			_fs->PushLocalVariable(varname, _scope.nested, _VAR_CLOSURE); //add function name to find it as outer var if needed
-			CreateFunction(varname,false);
+			CreateFunction(varname,false, -1);
 			_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
 			//rellocate any stack operation (default parameters & _OP_Closure)
 			for(int i=old_pos+1, curr_pos = _fs->GetCurrentPos(); i <= curr_pos; ++i){
@@ -1713,7 +1713,7 @@ if(color == "yellow"){
 		}
 		_es = es;
 	}
-	void CreateFunction(SQObject &name,bool lambda = false)
+	void CreateFunction(SQObject &name,bool lambda = false, int stack_offset=0)
 	{
 		SQFuncState *funcstate = _fs->PushChildState(_ss(_vm));
 		funcstate->_name = name;
@@ -1744,7 +1744,7 @@ if(color == "yellow"){
 					Lex();
 					if(_token == _SC('[') || _token == _SC('{')) Error(_SC("default parameter with array/table values not supported"));
 					Expression();
-					funcstate->AddDefaultParam(_fs->TopTarget());
+					funcstate->AddDefaultParam(_fs->TopTarget()+stack_offset);
 					defparams++;
 				}
 			else if(_token == _SC(':')){
