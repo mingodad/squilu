@@ -64,8 +64,9 @@ header {
 }
 .logo {
 	float: left;
-	background: url(../images/logoBackground.png) no-repeat;
-	width: 122px;
+	/*background: url(../images/logoBackground.png) no-repeat;*/
+	background: url(../images/huawei-u8150-ideos.jpg) no-repeat;
+	width: 150px;
 	height: 123px;
 }
 .logo h1 a {
