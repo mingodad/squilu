@@ -1677,10 +1677,10 @@ static int pull(FILE *fp, struct mg_connection *conn, char *buf, int len) {
     // pipe, fread() may block until IO buffer is filled up. We cannot afford
     // to block and must pass all read bytes immediately to the client.
     nread = read(fileno(fp), buf, (size_t) len);
-  } else if (!wait_until_socket_is_readable(conn)) {
-    nread = -1;
+#ifndef NO_SSL
   } else if (conn->ssl != NULL) {
     nread = SSL_read(conn->ssl, buf, len);
+#endif
   } else {
     nread = recv(conn->client.sock, buf, (size_t) len, 0);
   }
@@ -1688,12 +1688,36 @@ static int pull(FILE *fp, struct mg_connection *conn, char *buf, int len) {
   return conn->ctx->stop_flag ? -1 : nread;
 }
 
+static int pull_all(FILE *fp, struct mg_connection *conn, char *buf, int len) {
+  int n, nread = 0;
+
+  while (len > 0 && conn->ctx->stop_flag == 0) {
+    n = pull(fp, conn, buf + nread, len);
+    if (n < 0) {
+      nread = n;  // Propagate the error
+      break;
+    } else if (n == 0) {
+      break;  // No more data to read
+    } else {
+      conn->consumed_content += n;
+      nread += n;
+      len -= n;
+    }
+  }
+
+  return nread;
+}
+
 int mg_read(struct mg_connection *conn, void *buf, size_t len) {
   int n, buffered_len, nread;
+  const char *body;
 
-  assert(conn->next_request != NULL &&
-         conn->body != NULL &&
-         conn->next_request >= conn->body);
+  // If Content-Length is not set, read until socket is closed
+  if (conn->consumed_content == 0 && conn->content_len == 0) {
+    conn->content_len = INT64_MAX;
+    conn->must_close = 1;
+  }
+
   nread = 0;
   if (conn->consumed_content < conn->content_len) {
     // Adjust number of bytes to read.
@@ -1703,34 +1727,22 @@ int mg_read(struct mg_connection *conn, void *buf, size_t len) {
     }
 
     // Return buffered data
-    buffered_len = conn->next_request - conn->body;
+    body = conn->buf + conn->request_len + conn->consumed_content;
+    buffered_len = &conn->buf[conn->data_len] - body;
     if (buffered_len > 0) {
       if (len < (size_t) buffered_len) {
         buffered_len = (int) len;
       }
-      memcpy(buf, conn->body, (size_t) buffered_len);
+      memcpy(buf, body, (size_t) buffered_len);
       len -= buffered_len;
-      conn->body += buffered_len;
       conn->consumed_content += buffered_len;
       nread += buffered_len;
       buf = (char *) buf + buffered_len;
     }
 
     // We have returned all buffered data. Read new data from the remote socket.
-    while (len > 0) {
-      n = pull(NULL, conn, (char *) buf, (int) len);
-      if (n < 0) {
-        nread = n;  // Propagate the error
-        break;
-      } else if (n == 0) {
-        break;  // No more data to read
-      } else {
-        buf = (char *) buf + n;
-        conn->consumed_content += n;
-        nread += n;
-        len -= n;
-      }
-    }
+    n = pull_all(NULL, conn, (char *) buf, (int) len);
+    nread = n >= 0 ? nread + n : n;
   }
   return nread;
 }

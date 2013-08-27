@@ -157,6 +157,7 @@ sq_http_request_read(HSQUIRRELVM v)
     if (rlen > n) rlen = n;  /* cannot read more than asked */
     char *p = sq_getscratchpad(v,rlen);
     do {
+        //there is a bug in axtls that can return a number bigger than the actual bytes transfered
         nr = mg_read(conn, p, rlen);
         blob.Write(p, nr);
         n -= nr;  /* still have to read `n' chars */
