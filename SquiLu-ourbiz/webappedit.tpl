@@ -9,6 +9,35 @@
 <link rel="stylesheet" href="/docs.css">
 <style type="text/css">
 .CodeMirror {border: 1px solid #ccc;}
+
+.CodeMirror-foldmarker {
+	color: blue;
+	text-shadow: #b9f 1px 1px 2px, #b9f -1px -1px 2px, #b9f 1px -1px 2px, #b9f -1px 1px 2px;
+	font-family: arial;
+	line-height: .3;
+	cursor: pointer;
+}
+.CodeMirror-foldgutter {
+	width: .7em;
+}
+.CodeMirror-foldgutter-open,
+.CodeMirror-foldgutter-folded {
+	color: #555;
+	cursor: pointer;
+}
+.CodeMirror-foldgutter-open:after {
+	content: "\25BE";
+}
+.CodeMirror-foldgutter-folded:after {
+	content: "\25B8";
+}
+  
+.CodeMirror-focused .cm-matchhighlight {
+	background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAFklEQVQI12NgYGBgkKzc8x9CMDAwAAAmhwSbidEoSQAAAABJRU5ErkJggg==);
+	background-position: bottom;
+	background-repeat: repeat-x;
+}
+
 #editTable {
 }
 table, th, td
@@ -18,7 +47,9 @@ table, th, td
 #editTable td {
 	vertical-align:top;
 }
-#filesCell {
+#filesCell div {
+	height:30em;
+	overflow-y: auto;
 }
 #editCell {
 	width:80%;
@@ -27,6 +58,7 @@ table, th, td
 	width:100%;
 	height: 30em;
 }
+li:nth-child(odd)  { background-color:#ddd; }
 </style>
 </head>
 <body>
@@ -34,12 +66,14 @@ table, th, td
 <form method="post">
 <table id="editTable">
 <tr><td id="filesCell">
+<div>
 <h4>Files</h4>
 <ol>
 <? foreach( k,v in files) { ?>
   <li><a href="?file=<?=v?>"><?=v?></a></li>
 <? } ?>
 </ol>
+</div>
 </td><td id="editCell">
 <input type="submit" name="save" value="Save">
 <!--<input type="submit" name="reload" value="Reload">-->
@@ -67,19 +101,26 @@ table, th, td
 </table>
 </form>
 <script>
-      var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-        tabMode: "indent",
-        matchBrackets: true,
-        lineNumbers: true,
-    	mode: "<?=getMode()?>"
-      });
-var modeInput = document.getElementById("mode");
-CodeMirror.connect(modeInput, "keypress", function(e) {
-  if (e.keyCode == 13) change();
-});
-function change() {
-   editor.setOption("mode", modeInput.value);
-}
+	var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+		tabMode: "indent",
+		matchBrackets: true,
+		indentWithTabs: true,
+		lineNumbers: true,
+	  	extraKeys: {"Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); }},
+    	foldGutter: {
+    		rangeFinder: new CodeMirror.fold.combine(CodeMirror.fold.brace, CodeMirror.fold.comment)
+    	},    
+    	gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+	  	highlightSelectionMatches: {showToken: /\w/},
+		mode: "<?=getMode()?>"
+		});
+	var modeInput = document.getElementById("mode");
+	CodeMirror.connect(modeInput, "keypress", function(e) {
+		if (e.keyCode == 13) change();
+	});
+	function change() {
+		editor.setOption("mode", modeInput.value);
+	}
 </script>
 </body>
 </html>
