@@ -459,7 +459,8 @@ local uri_handlers = {
 	},
 	["/SQ/logout"] = function(request){
 		request.close_session();
-		request.print(format("HTTP/1.1 302 Found\r\nLocation: http://%s\r\n\r\n", request.info.http_headers.Host))
+		request.print(format("HTTP/1.1 302 Found\r\nLocation: http%s://%s\r\n\r\n", 
+			request.info.is_ssl ? "s" : "", request.info.http_headers.Host))
 		return true;
 	},
 	["/SQ/edit"] = function(request){
@@ -566,7 +567,7 @@ local ourbiz_password = md5("mingote:ourbiz.dadbiz.es:tr14pink");
 function handle_request(request){
 	//static content served by mongoose directly
 	local request_uri = request.info.uri;
-	debug_print(request.get_option("document_root"), "::", request_uri, "\n")
+	//debug_print(request.get_option("document_root"), "::", request_uri, "\n")
 	
 	if(apply_uri_filters(request)) {
 		return true;
