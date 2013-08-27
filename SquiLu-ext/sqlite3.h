@@ -109,7 +109,7 @@ extern "C" {
 */
 #define SQLITE_VERSION        "3.8.0"
 #define SQLITE_VERSION_NUMBER 3008000
-#define SQLITE_SOURCE_ID      "2013-08-02 16:41:02 478113f18b1d28606b107b5a0bed04cb90a82cf2"
+#define SQLITE_SOURCE_ID      "2013-08-27 20:16:48 9d1424c91a21ed740aca53e437b8f7c1f0823c03"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -7269,7 +7269,7 @@ SQLITE_API int sqlite3_vtab_on_conflict(sqlite3 *);
 #ifdef __cplusplus
 }  /* End of the 'extern "C"' block */
 #endif
-#endif
+#endif /* _SQLITE3_H_ */
 
 /*
 ** 2010 August 30
