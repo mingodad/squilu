@@ -528,6 +528,7 @@ public:
 			SQInteger pos = _es.epos;
 
 			if(ds == EXPR) Error(_SC("can't assign expression"));
+			else if(ds == BASE) Error(_SC("'base' cannot be modified"));
 			Lex(); Expression();
 
 			switch(op){
