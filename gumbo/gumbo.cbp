@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="gumbo" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="libgumbo" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Debug/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="libgumbo" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-std=gnu99" />
+		</Compiler>
+		<Unit filename="attribute.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="attribute.h" />
+		<Unit filename="char_ref.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="char_ref.h" />
+		<Unit filename="error.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="error.h" />
+		<Unit filename="gumbo.h" />
+		<Unit filename="insertion_mode.h" />
+		<Unit filename="main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="parser.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="parser.h" />
+		<Unit filename="string_buffer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="string_buffer.h" />
+		<Unit filename="string_piece.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="string_piece.h" />
+		<Unit filename="tag.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="token_type.h" />
+		<Unit filename="tokenizer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tokenizer.h" />
+		<Unit filename="tokenizer_states.h" />
+		<Unit filename="utf8.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="utf8.h" />
+		<Unit filename="util.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="util.h" />
+		<Unit filename="vector.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="vector.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<lib_finder disable_auto="1" />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

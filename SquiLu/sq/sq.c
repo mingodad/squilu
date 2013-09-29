@@ -533,6 +533,7 @@ SQRESULT sqext_register_ThreadObjects(HSQUIRRELVM v);
 SQRESULT sqext_register_csv_parser (HSQUIRRELVM v);
 SQRESULT sqext_register_fltklib(HSQUIRRELVM v);
 SQRESULT sqext_register_dad_utils(HSQUIRRELVM v);
+SQRESULT sqext_register_gumbo(HSQUIRRELVM v);
 
 int main(int argc, char* argv[])
 {
@@ -559,6 +560,7 @@ int main(int argc, char* argv[])
 
 #ifdef WITH_DAD_EXTRAS
 #ifndef SQUILU_ALONE
+	sqext_register_gumbo(v);
 	sqext_register_base64(v);
 	sqext_register_Sq_Fpdf(v);
 	sqext_register_SQLite3(v);

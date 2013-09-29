@@ -1,0 +1,174 @@
+# depslib dependency file v1.0
+1380152090 source:/home/mingo/dev/SquiLu/gumbo/attribute.c
+	"attribute.h"
+	<assert.h>
+	<stdlib.h>
+	<string.h>
+	<strings.h>
+	"util.h"
+
+1380152090 /home/mingo/dev/SquiLu/gumbo/attribute.h
+	"gumbo.h"
+
+1380152090 /home/mingo/dev/SquiLu/gumbo/gumbo.h
+	<stdbool.h>
+	<stddef.h>
+
+1380152090 /home/mingo/dev/SquiLu/gumbo/util.h
+	<stdbool.h>
+	<stddef.h>
+
+1380152090 source:/home/mingo/dev/SquiLu/gumbo/char_ref.c
+	"char_ref.h"
+	<assert.h>
+	<ctype.h>
+	<stddef.h>
+	<string.h>
+	"error.h"
+	"string_piece.h"
+	"utf8.h"
+	"util.h"
+
+1380152090 /home/mingo/dev/SquiLu/gumbo/char_ref.h
+	<stdbool.h>
+
+1380152090 /home/mingo/dev/SquiLu/gumbo/error.h
+	<stdint.h>
+	"gumbo.h"
+	"insertion_mode.h"
+	"string_buffer.h"
+	"token_type.h"
+
+1380152090 /home/mingo/dev/SquiLu/gumbo/insertion_mode.h
+
+1380152090 /home/mingo/dev/SquiLu/gumbo/string_buffer.h
+	<stdbool.h>
+	<stddef.h>
+	"gumbo.h"
+
+1380152090 /home/mingo/dev/SquiLu/gumbo/token_type.h
+
+1380152090 /home/mingo/dev/SquiLu/gumbo/string_piece.h
+	"gumbo.h"
+
+1380152090 /home/mingo/dev/SquiLu/gumbo/utf8.h
+	<stdbool.h>
+	<stddef.h>
+	"gumbo.h"
+
+1380152090 source:/home/mingo/dev/SquiLu/gumbo/error.c
+	"error.h"
+	<assert.h>
+	<stdarg.h>
+	<stdio.h>
+	<string.h>
+	"gumbo.h"
+	"parser.h"
+	"string_buffer.h"
+	"util.h"
+	"vector.h"
+
+1380152090 /home/mingo/dev/SquiLu/gumbo/parser.h
+
+1380152090 /home/mingo/dev/SquiLu/gumbo/vector.h
+	"gumbo.h"
+
+1380152090 source:/home/mingo/dev/SquiLu/gumbo/parser.c
+	<assert.h>
+	<ctype.h>
+	<stdarg.h>
+	<stdlib.h>
+	<string.h>
+	<strings.h>
+	"attribute.h"
+	"error.h"
+	"gumbo.h"
+	"insertion_mode.h"
+	"parser.h"
+	"tokenizer.h"
+	"tokenizer_states.h"
+	"utf8.h"
+	"util.h"
+	"vector.h"
+
+1380152090 /home/mingo/dev/SquiLu/gumbo/tokenizer.h
+	<stdbool.h>
+	<stddef.h>
+	"gumbo.h"
+	"token_type.h"
+	"tokenizer_states.h"
+
+1380152090 /home/mingo/dev/SquiLu/gumbo/tokenizer_states.h
+
+1380152090 source:/home/mingo/dev/SquiLu/gumbo/string_buffer.c
+	"string_buffer.h"
+	<assert.h>
+	<stdlib.h>
+	<string.h>
+	<strings.h>
+	"string_piece.h"
+	"util.h"
+
+1380152090 source:/home/mingo/dev/SquiLu/gumbo/string_piece.c
+	"string_piece.h"
+	<assert.h>
+	<stdlib.h>
+	<string.h>
+	<strings.h>
+	"util.h"
+
+1380152090 source:/home/mingo/dev/SquiLu/gumbo/tag.c
+	"gumbo.h"
+	<assert.h>
+	<ctype.h>
+	<strings.h>
+
+1380152090 source:/home/mingo/dev/SquiLu/gumbo/tokenizer.c
+	"tokenizer.h"
+	<assert.h>
+	<stdbool.h>
+	<string.h>
+	"attribute.h"
+	"char_ref.h"
+	"error.h"
+	"gumbo.h"
+	"parser.h"
+	"string_buffer.h"
+	"string_piece.h"
+	"token_type.h"
+	"tokenizer_states.h"
+	"utf8.h"
+	"util.h"
+	"vector.h"
+
+1380152090 source:/home/mingo/dev/SquiLu/gumbo/utf8.c
+	"utf8.h"
+	<assert.h>
+	<stdint.h>
+	<string.h>
+	<strings.h>
+	"error.h"
+	"gumbo.h"
+	"parser.h"
+	"util.h"
+	"vector.h"
+
+1380152090 source:/home/mingo/dev/SquiLu/gumbo/util.c
+	"util.h"
+	<assert.h>
+	<stdlib.h>
+	<string.h>
+	<strings.h>
+	<stdarg.h>
+	<stdio.h>
+	"gumbo.h"
+	"parser.h"
+
+1380152090 source:/home/mingo/dev/SquiLu/gumbo/vector.c
+	"vector.h"
+	<assert.h>
+	<stdlib.h>
+	<string.h>
+	<strings.h>
+	"util.h"
+
