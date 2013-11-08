@@ -35,6 +35,35 @@
 
 SQ_OPT_STRING_STRLEN();
 
+#ifdef WITH_UUID
+
+#ifdef _WIN32
+#include <Rpc.h> //uuid
+#else
+#include <uuid/uuid.h>
+#endif
+
+static SQRESULT _system_getuuid(HSQUIRRELVM v)
+{
+#ifdef _WIN32
+    UUID uuid;
+    UuidCreate ( &uuid );
+
+    UuidToStringA ( &uuid, &str );
+
+    sq_pushstring(v,s,-1);
+
+    RpcStringFreeA ( &str );
+#else
+    uuid_t uuid;
+    uuid_generate_random ( uuid );
+    char s[37];
+    uuid_unparse ( uuid, s );
+    sq_pushstring(v,s,-1);
+#endif
+	return 1;
+}
+#endif
 static SQRESULT _system_getenv(HSQUIRRELVM v)
 {
 	const SQChar *s;
@@ -524,6 +553,9 @@ static SQRegFunction systemlib_funcs[]={
 	_DECL_FUNC(difftime,-2,_SC(".nn")),
 	_DECL_FUNC(exit, -1,_SC(". b|i b")),
 	_DECL_FUNC(sleep, 2,_SC(".n")),
+#ifdef WITH_UUID
+	_DECL_FUNC(getuuid, 0, NULL),
+#endif
 #ifndef _WIN32_WCE
 	_DECL_FUNC(getmillicount,1,_SC(".")),
 	_DECL_FUNC(getmillispan,2,_SC(".i")),

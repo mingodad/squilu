@@ -107,9 +107,9 @@ extern "C" {
 ** [sqlite3_libversion_number()], [sqlite3_sourceid()],
 ** [sqlite_version()] and [sqlite_source_id()].
 */
-#define SQLITE_VERSION        "3.8.1"
-#define SQLITE_VERSION_NUMBER 3008001
-#define SQLITE_SOURCE_ID      "2013-09-26 15:21:16 1f8f4fdf3ff2b8de27e167a44a19b0f479f5ee1a"
+#define SQLITE_VERSION        "3.8.2"
+#define SQLITE_VERSION_NUMBER 3008002
+#define SQLITE_SOURCE_ID      "2013-11-08 17:13:23 0077c0772a884b54d81fa3733aac6f0c364ef1a8"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -511,6 +511,7 @@ SQLITE_API int sqlite3_exec(
 #define SQLITE_CONSTRAINT_TRIGGER      (SQLITE_CONSTRAINT | (7<<8))
 #define SQLITE_CONSTRAINT_UNIQUE       (SQLITE_CONSTRAINT | (8<<8))
 #define SQLITE_CONSTRAINT_VTAB         (SQLITE_CONSTRAINT | (9<<8))
+#define SQLITE_CONSTRAINT_ROWID        (SQLITE_CONSTRAINT |(10<<8))
 #define SQLITE_NOTICE_RECOVER_WAL      (SQLITE_NOTICE | (1<<8))
 #define SQLITE_NOTICE_RECOVER_ROLLBACK (SQLITE_NOTICE | (2<<8))
 #define SQLITE_WARNING_AUTOINDEX       (SQLITE_WARNING | (1<<8))
@@ -924,6 +925,14 @@ struct sqlite3_io_methods {
 ** can be queried by passing in a pointer to a negative number.  This
 ** file-control is used internally to implement [PRAGMA mmap_size].
 **
+** <li>[[SQLITE_FCNTL_TRACE]]
+** The [SQLITE_FCNTL_TRACE] file control provides advisory information
+** to the VFS about what the higher layers of the SQLite stack are doing.
+** This file control is used by some VFS activity tracing [shims].
+** The argument is a zero-terminated string.  Higher layers in the
+** SQLite stack may generate instances of this file control if
+** the [SQLITE_USE_FCNTL_TRACE] compile-time option is enabled.
+**
 ** </ul>
 */
 #define SQLITE_FCNTL_LOCKSTATE               1
@@ -943,6 +952,7 @@ struct sqlite3_io_methods {
 #define SQLITE_FCNTL_BUSYHANDLER            15
 #define SQLITE_FCNTL_TEMPFILENAME           16
 #define SQLITE_FCNTL_MMAP_SIZE              18
+#define SQLITE_FCNTL_TRACE                  19
 
 /*
 ** CAPI3REF: Mutex Handle
@@ -1629,27 +1639,27 @@ struct sqlite3_mem_methods {
 ** function must be threadsafe. </dd>
 **
 ** [[SQLITE_CONFIG_URI]] <dt>SQLITE_CONFIG_URI
-** <dd> This option takes a single argument of type int. If non-zero, then
+** <dd>^(This option takes a single argument of type int. If non-zero, then
 ** URI handling is globally enabled. If the parameter is zero, then URI handling
-** is globally disabled. If URI handling is globally enabled, all filenames
+** is globally disabled.)^ ^If URI handling is globally enabled, all filenames
 ** passed to [sqlite3_open()], [sqlite3_open_v2()], [sqlite3_open16()] or
 ** specified as part of [ATTACH] commands are interpreted as URIs, regardless
 ** of whether or not the [SQLITE_OPEN_URI] flag is set when the database
-** connection is opened. If it is globally disabled, filenames are
+** connection is opened. ^If it is globally disabled, filenames are
 ** only interpreted as URIs if the SQLITE_OPEN_URI flag is set when the
-** database connection is opened. By default, URI handling is globally
+** database connection is opened. ^(By default, URI handling is globally
 ** disabled. The default value may be changed by compiling with the
-** [SQLITE_USE_URI] symbol defined.
+** [SQLITE_USE_URI] symbol defined.)^
 **
 ** [[SQLITE_CONFIG_COVERING_INDEX_SCAN]] <dt>SQLITE_CONFIG_COVERING_INDEX_SCAN
-** <dd> This option takes a single integer argument which is interpreted as
+** <dd>^This option takes a single integer argument which is interpreted as
 ** a boolean in order to enable or disable the use of covering indices for
-** full table scans in the query optimizer.  The default setting is determined
+** full table scans in the query optimizer.  ^The default setting is determined
 ** by the [SQLITE_ALLOW_COVERING_INDEX_SCAN] compile-time option, or is "on"
 ** if that compile-time option is omitted.
 ** The ability to disable the use of covering indices for full table scans
 ** is because some incorrectly coded legacy applications might malfunction
-** malfunction when the optimization is enabled.  Providing the ability to
+** when the optimization is enabled.  Providing the ability to
 ** disable the optimization allows the older, buggy application code to work
 ** without change even with newer versions of SQLite.
 **
@@ -1678,16 +1688,16 @@ struct sqlite3_mem_methods {
 **
 ** [[SQLITE_CONFIG_MMAP_SIZE]]
 ** <dt>SQLITE_CONFIG_MMAP_SIZE
-** <dd>SQLITE_CONFIG_MMAP_SIZE takes two 64-bit integer (sqlite3_int64) values
+** <dd>^SQLITE_CONFIG_MMAP_SIZE takes two 64-bit integer (sqlite3_int64) values
 ** that are the default mmap size limit (the default setting for
 ** [PRAGMA mmap_size]) and the maximum allowed mmap size limit.
-** The default setting can be overridden by each database connection using
+** ^The default setting can be overridden by each database connection using
 ** either the [PRAGMA mmap_size] command, or by using the
-** [SQLITE_FCNTL_MMAP_SIZE] file control.  The maximum allowed mmap size
+** [SQLITE_FCNTL_MMAP_SIZE] file control.  ^(The maximum allowed mmap size
 ** cannot be changed at run-time.  Nor may the maximum allowed mmap size
 ** exceed the compile-time maximum mmap size set by the
-** [SQLITE_MAX_MMAP_SIZE] compile-time option.  
-** If either argument to this option is negative, then that argument is
+** [SQLITE_MAX_MMAP_SIZE] compile-time option.)^
+** ^If either argument to this option is negative, then that argument is
 ** changed to its compile-time default.
 ** </dl>
 */

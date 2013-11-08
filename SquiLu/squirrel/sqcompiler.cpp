@@ -636,8 +636,6 @@ public:
 			_fs->SetIntructionParam(jpos, 1, (_fs->GetCurrentPos() - jpos));
 			break;
 			}
-		case TK_IN: BIN_EXP(_OP_EXISTS, &SQCompiler::BitwiseOrExp); break;
-		case TK_INSTANCEOF: BIN_EXP(_OP_INSTANCEOF, &SQCompiler::BitwiseOrExp); break;
 		default:
 			return;
 		}
@@ -681,6 +679,8 @@ public:
 		case _SC('<'): BIN_EXP(_OP_CMP, &SQCompiler::ShiftExp,CMP_L); break;
 		case TK_GE: BIN_EXP(_OP_CMP, &SQCompiler::ShiftExp,CMP_GE); break;
 		case TK_LE: BIN_EXP(_OP_CMP, &SQCompiler::ShiftExp,CMP_LE); break;
+		case TK_IN: BIN_EXP(_OP_EXISTS, &SQCompiler::ShiftExp); break;
+		case TK_INSTANCEOF: BIN_EXP(_OP_INSTANCEOF, &SQCompiler::ShiftExp); break;
 		default: return;
 		}
 	}
@@ -864,9 +864,9 @@ public:
 
 				switch(_token) {
 					case TK_IDENTIFIER:  id = _fs->CreateString(_lex._svalue);       break;
-					case TK_THIS:        id = _fs->CreateString(_SC("this"));        break;
-					case TK_CONSTRUCTOR: id = _fs->CreateString(_SC("constructor")); break;
-					case TK_DESTRUCTOR: id = _fs->CreateString(_SC("destructor")); break;
+					case TK_THIS:        id = _fs->CreateString(_SC("this"), 4);        break;
+					case TK_CONSTRUCTOR: id = _fs->CreateString(_SC("constructor"), 11); break;
+					case TK_DESTRUCTOR: id = _fs->CreateString(_SC("destructor"), 10); break;
 				}
 
 				SQInteger pos = -1;

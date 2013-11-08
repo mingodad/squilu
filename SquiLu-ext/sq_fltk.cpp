@@ -3850,7 +3850,7 @@ static SQRESULT _fl_globals_fl_alert(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 2, msg);
-    fl_alert(msg);
+    fl_alert("%s", msg);
     return 0;
 }
 
