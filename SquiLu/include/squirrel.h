@@ -344,6 +344,7 @@ typedef struct tagSQFunctionInfo {
 	SQUserPointer funcid;
 	const SQChar *name;
 	const SQChar *source;
+	SQInteger line;
 }SQFunctionInfo;
 
 #if !defined(sq_assert)
