@@ -1176,6 +1176,7 @@ public:
 			varname = Expect(TK_IDENTIFIER);
 			CheckLocalNameScope(varname, _scope.nested);
 			Expect(_SC('('));
+#if 1 //doing this way works but prevents garbage collection when doing multiple reloads on the same vm
 			//the following is an attempt to allow local declared functions be called recursivelly
 			SQInteger old_pos = _fs->GetCurrentPos(); //save current instructions position
 			_fs->PushLocalVariable(varname, _scope.nested, _VAR_CLOSURE); //add function name to find it as outer var if needed
@@ -1188,6 +1189,12 @@ public:
 			    _fs->SetIntructionParam(i, 0, inst._arg0 -1);
 			}
 			_fs->PopTarget();
+#else
+			CreateFunction(varname,false);
+			_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
+			_fs->PopTarget();
+			_fs->PushLocalVariable(varname, _scope.nested, _VAR_CLOSURE);
+#endif
 			return;
 		}
 
