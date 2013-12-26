@@ -557,11 +557,12 @@ static int sendraw(p_buffer buf, const char *data, size_t count, size_t *sent);
 /*-------------------------------------------------------------------------*\
 * Initializes module
 \*-------------------------------------------------------------------------*/
+/*
 static SQRESULT buffer_open(HSQUIRRELVM v) {
     (void) v;
     return 0;
 }
-
+*/
 /*-------------------------------------------------------------------------*\
 * Initializes C structure
 \*-------------------------------------------------------------------------*/
@@ -650,21 +651,23 @@ static int buffer_meth_receive(HSQUIRRELVM v, p_buffer buf) {
     lua_timeout_markstart(buf->tm);
     /* initialize buffer with optional extra prefix
      * (useful for concatenating previous partial results) */
-    b.Write(prefix, prefix_size);
+    if(prefix) {
+        b.Write(prefix, prefix_size);
+    }
     /* receive new patterns */
     SQObjectType ptype = sq_gettype(v, 2);
-    if (ptype == OT_STRING) {
-        SQ_GET_STRING(v, 2, p);
-        if (p[0] == _SC('*') && p[1] == _SC('l')) err = recvline(buf, b);
-        else if (p[0] == _SC('*') && p[1] == _SC('a')) err = recvall(buf, b);
-        else return sq_throwerror(v, _SC("invalid receive pattern"));
+    if (ptype == OT_INTEGER) {
         /* get a fixed number of bytes (minus what was already partially
          * received) */
+        SQ_GET_INTEGER(v, 2, recv_size);
+        err = recvraw(buf, (size_t) recv_size-prefix_size, b);
     }
     else
     {
-        SQ_GET_INTEGER(v, 2, recv_size);
-        err = recvraw(buf, (size_t) recv_size-prefix_size, b);
+        SQ_OPT_STRING(v, 2, p, "*l");
+        if (p[0] == _SC('*') && p[1] == _SC('l')) err = recvline(buf, b);
+        else if (p[0] == _SC('*') && p[1] == _SC('a')) err = recvall(buf, b);
+        else return sq_throwerror(v, _SC("invalid receive pattern"));
     }
     sq_newarray(v,2);
     sq_pushinteger(v, 0);
@@ -1380,6 +1383,343 @@ static SQRESULT udp_constructor(HSQUIRRELVM v) {
     return sq_throwerror(v, err);
 }
 
+#ifdef HAS_UNIX_DOMAIN_SOCKETS
+/*=========================================================================*\
+* Unix domain socket
+* LuaSocket toolkit
+\*=========================================================================*/
+//#include "unix.h"
+#include <sys/un.h>
+
+/*=========================================================================*\
+* Internal function prototypes
+\*=========================================================================*/
+
+/* unix socket option handlers */
+static t_opt unix_opt[] = {
+    {"keepalive",   opt_keepalive},
+    {"reuseaddr",   opt_reuseaddr},
+    {"linger",      opt_linger},
+    {NULL,          NULL}
+};
+
+/*=========================================================================*\
+* Lua methods
+\*=========================================================================*/
+#define UNIX_TYPE_ANY 0
+#define UNIX_TYPE_CLIENT 1
+#define UNIX_TYPE_SERVER 2
+#define UNIX_TYPE_MASTER 3
+
+typedef struct t_unix_ {
+    t_socket sock;
+    t_io io;
+    t_buffer buf;
+    t_timeout tm;
+    int type;
+} t_unix;
+
+typedef t_unix *p_unix;
+
+static const SQChar SQ_unix_TAG[] = _SC("sq_unix_socket");
+#define GET_unix_INSTANCE_AT(v, idx) \
+	p_unix unix_sock; \
+	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)&unix_sock,(void*)SQ_unix_TAG)) < 0) return _rc_;
+
+#define GET_unix_client_INSTANCE_AT(v, idx) GET_unix_INSTANCE_AT(v, idx)\
+	if(unix_sock->type != UNIX_TYPE_CLIENT) return sq_throwerror(v, _SC("unix client expected"));
+
+#define GET_unix_server_INSTANCE_AT(v, idx) GET_unix_INSTANCE_AT(v, idx)\
+	if(unix_sock->type != UNIX_TYPE_SERVER) return sq_throwerror(v, _SC("unix server expected"));
+
+#define GET_unix_master_INSTANCE_AT(v, idx) GET_unix_INSTANCE_AT(v, idx)\
+	if(unix_sock->type != UNIX_TYPE_MASTER) return sq_throwerror(v, _SC("unix master expected"));
+
+
+/*-------------------------------------------------------------------------*\
+* Creates a master unix object
+\*-------------------------------------------------------------------------*/
+static SQRESULT unix_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+{
+	p_unix unix_sock = (p_unix)p;
+	if(unix_sock) {
+	    lua_socket_destroy(&unix_sock->sock);
+	    sq_free(unix_sock, sizeof(t_unix));
+	}
+	return 0;
+}
+
+static SQRESULT unix_constructor_for_socket(HSQUIRRELVM v, int idx, t_socket sock, int type)
+{
+    /* allocate unix object */
+    p_unix unix_sock = (p_unix) sq_malloc(sizeof(t_unix));
+    /* set its type as master object */
+    unix_sock->type = type;
+    /* initialize remaining structure fields */
+    lua_socket_setnonblocking(&sock);
+    unix_sock->sock = sock;
+    lua_io_init(&unix_sock->io, (p_send) lua_socket_send, (p_recv) lua_socket_recv,
+            (p_error) lua_socket_ioerror, &unix_sock->sock);
+    lua_timeout_init(&unix_sock->tm, -1, -1);
+    buffer_init(&unix_sock->buf, &unix_sock->io, &unix_sock->tm);
+    sq_setinstanceup(v, idx, unix_sock);
+    sq_setreleasehook(v, idx, unix_releasehook);
+    return 1;
+}
+
+static SQRESULT unix__tostring(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_unix_INSTANCE_AT(v, 1);
+    char buff[64];
+    snprintf(buff, sizeof(buff), "unix sockets %d (%p)", unix_sock->type, unix_sock);
+    sq_pushstring(v, buff, -1);
+    return 1;
+}
+
+/*-------------------------------------------------------------------------*\
+* Just call buffered IO methods
+\*-------------------------------------------------------------------------*/
+static SQRESULT unix_meth_send(HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_unix_client_INSTANCE_AT(v, 1);
+    return buffer_meth_send(v, &unix_sock->buf);
+}
+
+static SQRESULT unix_meth_receive(HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_unix_client_INSTANCE_AT(v, 1);
+    return buffer_meth_receive(v, &unix_sock->buf);
+}
+
+static SQRESULT unix_meth_getstats(HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_unix_client_INSTANCE_AT(v, 1);
+    return buffer_meth_getstats(v, &unix_sock->buf);
+}
+
+static SQRESULT unix_meth_setstats(HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_unix_client_INSTANCE_AT(v, 1);
+    return buffer_meth_setstats(v, &unix_sock->buf);
+}
+
+/*-------------------------------------------------------------------------*\
+* Just call option handler
+\*-------------------------------------------------------------------------*/
+static SQRESULT unix_meth_setoption(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_unix_INSTANCE_AT(v, 1);
+    return opt_meth_setoption(v, unix_opt, &unix_sock->sock);
+}
+
+/*-------------------------------------------------------------------------*\
+* Select support methods
+\*-------------------------------------------------------------------------*/
+static SQRESULT unix_meth_getfd(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_unix_INSTANCE_AT(v, 1);
+    sq_pushinteger(v, (int) unix_sock->sock);
+    return 1;
+}
+
+/* this is very dangerous, but can be handy for those that are brave enough */
+static SQRESULT unix_meth_setfd(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_unix_INSTANCE_AT(v, 1);
+    SQ_GET_INTEGER(v, 2, fd);
+    unix_sock->sock = (t_socket) fd;
+    return 0;
+}
+
+static SQRESULT unix_meth_dirty(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_unix_INSTANCE_AT(v, 1);
+    sq_pushbool(v, !buffer_isempty(&unix_sock->buf));
+    return 1;
+}
+
+/*-------------------------------------------------------------------------*\
+* Waits for and returns a client object attempting connection to the
+* server object
+\*-------------------------------------------------------------------------*/
+static SQRESULT unix_meth_accept(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_unix_server_INSTANCE_AT(v, 1);
+    p_timeout tm = lua_timeout_markstart(&unix_sock->tm);
+    t_socket sock;
+    int err = lua_socket_accept(&unix_sock->sock, &sock, NULL, NULL, tm);
+    /* if successful, push client socket */
+    if (err == IO_DONE) {
+        sq_pushstring(v,_SC("socket"),-1);
+        int rc = sq_getonroottable(v);
+        if(rc < 0) return rc;
+        sq_pushstring(v,_SC("unix"),-1);
+        rc = sq_rawget(v, -2);
+        if(rc < 0) return rc;
+        rc = sq_createinstance(v, -1);
+        if(rc < 0) return rc;
+        unix_constructor_for_socket(v, sq_gettop(v), sock, UNIX_TYPE_CLIENT);
+    } else {
+        return sq_throwerror(v, lua_socket_strerror(err));
+    }
+    return 1;
+}
+
+/*-------------------------------------------------------------------------*\
+* Binds an object to an address
+\*-------------------------------------------------------------------------*/
+static const char *unix_trybind(p_unix un, const char *path) {
+    struct sockaddr_un local;
+    size_t len = strlen(path);
+    int err;
+    if (len >= sizeof(local.sun_path)) return "path too long";
+    memset(&local, 0, sizeof(local));
+    strcpy(local.sun_path, path);
+    local.sun_family = AF_UNIX;
+#ifdef UNIX_HAS_SUN_LEN
+    local.sun_len = sizeof(local.sun_family) + sizeof(local.sun_len)
+        + len + 1;
+    err = lua_socket_bind(&un->sock, (SA *) &local, local.sun_len);
+
+#else
+    err = lua_socket_bind(&un->sock, (SA *) &local,
+            sizeof(local.sun_family) + len);
+#endif
+    if (err != IO_DONE) lua_socket_destroy(&un->sock);
+    return lua_socket_strerror(err);
+}
+
+static SQRESULT unix_meth_bind(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_unix_master_INSTANCE_AT(v, 1);
+    SQ_GET_STRING(v, 2, path);
+    const char *err = unix_trybind(unix_sock, path);
+    if (err) return sq_throwerror(v, err);
+    return 0;
+}
+
+/*-------------------------------------------------------------------------*\
+* Turns a master unix object into a client object.
+\*-------------------------------------------------------------------------*/
+static const char *unix_tryconnect(p_unix un, const char *path)
+{
+    struct sockaddr_un remote;
+    int err;
+    size_t len = strlen(path);
+    if (len >= sizeof(remote.sun_path)) return "path too long";
+    memset(&remote, 0, sizeof(remote));
+    strcpy(remote.sun_path, path);
+    remote.sun_family = AF_UNIX;
+    lua_timeout_markstart(&un->tm);
+#ifdef UNIX_HAS_SUN_LEN
+    remote.sun_len = sizeof(remote.sun_family) + sizeof(remote.sun_len)
+        + len + 1;
+    err = lua_socket_connect(&un->sock, (SA *) &remote, remote.sun_len, &un->tm);
+#else
+    err = lua_socket_connect(&un->sock, (SA *) &remote,
+            sizeof(remote.sun_family) + len, &un->tm);
+#endif
+    if (err != IO_DONE) lua_socket_destroy(&un->sock);
+    return lua_socket_strerror(err);
+}
+
+static SQRESULT unix_meth_connect(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_unix_INSTANCE_AT(v, 1);
+    SQ_GET_STRING(v, 2, path);
+    const char *err = unix_tryconnect(unix_sock, path);
+    if (err) return sq_throwerror(v, err);
+    unix_sock->type = UNIX_TYPE_CLIENT;
+    return 0;
+}
+
+/*-------------------------------------------------------------------------*\
+* Closes socket used by object
+\*-------------------------------------------------------------------------*/
+static SQRESULT unix_meth_close(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_unix_INSTANCE_AT(v, 1);
+    lua_socket_destroy(&unix_sock->sock);
+    return 0;
+}
+
+/*-------------------------------------------------------------------------*\
+* Puts the sockt in listen mode
+\*-------------------------------------------------------------------------*/
+static SQRESULT unix_meth_listen(HSQUIRRELVM v) {
+    SQ_FUNC_VARS(v);
+    GET_unix_master_INSTANCE_AT(v, 1);
+    SQ_OPT_INTEGER(v, 2, backlog, 32);
+    int err = lua_socket_listen(&unix_sock->sock, backlog);
+    if (err != IO_DONE) return sq_throwerror(v, lua_socket_strerror(err));
+    /* turn master object into a server object */
+    unix_sock->type = UNIX_TYPE_SERVER;
+    return 0;
+}
+
+/*-------------------------------------------------------------------------*\
+* Shuts the connection down partially
+\*-------------------------------------------------------------------------*/
+static SQRESULT unix_meth_shutdown(HSQUIRRELVM v) {
+    SQ_FUNC_VARS(v);
+    GET_unix_INSTANCE_AT(v, 1);
+    /* SHUT_RD,  SHUT_WR,  SHUT_RDWR  have  the value 0, 1, 2, so we can use method index directly */
+    SQ_OPT_STRING(v, 2, how, _SC("both"));
+    switch (how[0]) {
+        case _SC('b'):
+            if (strcmp(how, "both")) goto error;
+            lua_socket_shutdown(&unix_sock->sock, 2);
+            break;
+        case _SC('s'):
+            if (strcmp(how, "send")) goto error;
+            lua_socket_shutdown(&unix_sock->sock, 1);
+            break;
+        case _SC('r'):
+            if (strcmp(how, "receive")) goto error;
+            lua_socket_shutdown(&unix_sock->sock, 0);
+            break;
+    }
+    return 0;
+error:
+    return sq_throwerror(v, _SC("invalid shutdown method"));
+}
+
+/*-------------------------------------------------------------------------*\
+* Just call tm methods
+\*-------------------------------------------------------------------------*/
+static SQRESULT unix_meth_settimeout(HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_unix_INSTANCE_AT(v, 1);
+    return timeout_meth_settimeout(v, &unix_sock->tm);
+}
+
+/*=========================================================================*\
+* Library functions
+\*=========================================================================*/
+/*-------------------------------------------------------------------------*\
+* Creates a master unix object
+\*-------------------------------------------------------------------------*/
+static SQRESULT unix_constructor(HSQUIRRELVM v) {
+    t_socket sock;
+    const char *err = lua_socket_strerror(lua_socket_create(&sock, AF_UNIX, SOCK_STREAM, 0));
+    /* try to allocate a system socket */
+    if (!err) {
+        return unix_constructor_for_socket(v, 1, sock, UNIX_TYPE_MASTER);
+    }
+    return sq_throwerror(v, err);
+}
+
+#endif //HAS_UNIX_DOMAIN_SOCKETS
+
 /*=========================================================================*\
 * Internal Select function prototypes.
 \*=========================================================================*/
@@ -1390,7 +1730,7 @@ static t_socket collect_fd(HSQUIRRELVM v, int tab, t_socket max_fd,
 static int check_dirty(HSQUIRRELVM v, int tab, int dtab, fd_set *set);
 static void return_fd(HSQUIRRELVM v, fd_set *set, t_socket max_fd,
         int itab, int tab, int start);
-static void make_assoc(HSQUIRRELVM v, int tab);
+//static void make_assoc(HSQUIRRELVM v, int tab);
 
 /*-------------------------------------------------------------------------*\
 * Waits for a set of sockets until a condition is met or timeout.
@@ -1602,6 +1942,30 @@ extern "C" {
         sq_insertfunc(v, _SC("setoption"), udp_meth_setoption, -2, _SC("xs s|n|b"), SQFalse);
         sq_insertfunc(v, _SC("settimeout"), udp_meth_settimeout, 2, _SC("xn"), SQFalse);
         sq_newslot(v,-3,SQTrue);
+
+#ifdef HAS_UNIX_DOMAIN_SOCKETS
+        sq_pushliteral(v, _SC("unix"));
+        sq_newclass(v, SQFalse);
+        sq_settypetag(v,-1,(void*)SQ_unix_TAG);
+        sq_insertfunc(v, _SC("_tostring"), unix__tostring, -1, _SC("x"), SQFalse),
+        sq_insertfunc(v, _SC("constructor"), unix_constructor, 1, _SC("x"), SQFalse);
+        sq_insertfunc(v, _SC("accept"), unix_meth_accept, 1, _SC("x"), SQFalse);
+        sq_insertfunc(v, _SC("bind"), unix_meth_bind, 2, _SC("xs"), SQFalse);
+        sq_insertfunc(v, _SC("close"), unix_meth_close, 1, _SC("x"), SQFalse);
+        sq_insertfunc(v, _SC("connect"), unix_meth_connect, 2, _SC("xs"), SQFalse);
+        sq_insertfunc(v, _SC("dirty"), unix_meth_dirty, 1, _SC("x"), SQFalse);
+        sq_insertfunc(v, _SC("getfd"), unix_meth_getfd, 1, _SC("x"), SQFalse);
+        sq_insertfunc(v, _SC("getstats"), unix_meth_getstats, 1, _SC("x"), SQFalse);
+        sq_insertfunc(v, _SC("listen"), unix_meth_listen, -1, _SC("xi"), SQFalse);
+        sq_insertfunc(v, _SC("receive"), unix_meth_receive, -1, _SC("x i|s s"), SQFalse);
+        sq_insertfunc(v, _SC("send"), unix_meth_send, -2, _SC("xsii"), SQFalse);
+        sq_insertfunc(v, _SC("setfd"), unix_meth_setfd, 2, _SC("xi"), SQFalse);
+        sq_insertfunc(v, _SC("setoption"), unix_meth_setoption, -2, _SC("xs s|n|b"), SQFalse);
+        sq_insertfunc(v, _SC("setstats"), unix_meth_setstats, 4, _SC("xiii"), SQFalse);
+        sq_insertfunc(v, _SC("settimeout"), unix_meth_settimeout, -2, _SC("xns"), SQFalse);
+        sq_insertfunc(v, _SC("shutdown"), unix_meth_shutdown, 2, _SC("xs"), SQFalse);
+        sq_newslot(v,-3,SQTrue);
+#endif
 
         sq_newslot(v,-3,SQTrue); //push socket table
         return 0;
