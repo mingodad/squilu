@@ -157,6 +157,10 @@ class HTTPConnAuthBase extends HTTPConnBase
                     else str = "x-www-form-urlencoded";
                     putheader("Content-Type", str);
                 }
+		
+		//without line bellow for now it takes to long for the first connection
+		putheader("Connection", "close");
+		
                 if(_digest_auth->okToAuthDigest())
                     putheader("Authorization", _digest_auth->auth_digest(method, uri));
                 putheader("Content-Length", bodysize || 0);
@@ -164,7 +168,7 @@ class HTTPConnAuthBase extends HTTPConnBase
                 if(body && bodysize) send( body, bodysize );
                 while( outstanding() )
                 {
-                    if(globals.get("Fl", false)) Fl.check();//check_idle();
+                    if(globals.rawget("Fl", false)) Fl.check();//check_idle();
                     pump();
 		    //os.sleep(0.01);
                 }
