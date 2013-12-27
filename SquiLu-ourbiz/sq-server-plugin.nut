@@ -555,11 +555,11 @@ function apply_uri_filters(request){
 	return false;
 }
 
-if(AT_DEV_DBG || !globals.rawget("checkCompaniesUkDBFile", false)) {
+if(AT_DEV_DBG || !globals.rawget("MyCompaniesUkLoaded", false)) {
 	dofile(APP_CODE_FOLDER + "/companies-uk.nut");
 }
 
-if(AT_DEV_DBG || !globals.rawget("ourbizDB", false)) {
+if(AT_DEV_DBG || !globals.rawget("MyOurBizLoaded", false)) {
 	dofile(APP_CODE_FOLDER + "/ourbiz.nut");
 }
 

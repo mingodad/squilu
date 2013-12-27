@@ -534,6 +534,7 @@ SQRESULT sqext_register_csv_parser (HSQUIRRELVM v);
 SQRESULT sqext_register_fltklib(HSQUIRRELVM v);
 SQRESULT sqext_register_dad_utils(HSQUIRRELVM v);
 SQRESULT sqext_register_gumbo(HSQUIRRELVM v);
+SQRESULT sqext_register_sys(HSQUIRRELVM v);
 
 int main(int argc, char* argv[])
 {
@@ -567,7 +568,9 @@ int main(int argc, char* argv[])
 	sqext_register_mix(v);
 	sqext_register_sqfs(v);
 	sqext_register_sq_socket(v);
+#ifdef USE_AXTLS
 	sqext_register_axtls(v);
+#endif
 	sqext_register_sq_zlib(v);
 	sqext_register_mongoose(v);
 	sqrat_register_importlib(v);
@@ -580,6 +583,7 @@ int main(int argc, char* argv[])
 	sqext_register_sq_slave_vm(v);
 	//sqext_register_ThreadObjects(v);
 	sqext_register_dad_utils(v);
+	//sqext_register_sys(v);
 
 #ifdef WITH_FULL_DAD_EXTRAS
 	sqext_register_csv_parser(v);

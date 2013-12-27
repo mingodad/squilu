@@ -36,6 +36,7 @@
 					<Add option="-Wall" />
 					<Add option="-DNDEBUG=1" />
 					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
+					<Add option="-DHAS_UNIX_DOMAIN_SOCKETS=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 				</Compiler>
 				<Linker>
@@ -409,6 +410,7 @@
 					<Add option="-DPROFILE_SQVM22=1" />
 					<Add option="-D_SQ64=1" />
 					<Add option="-DCONFIG_64=1" />
+					<Add option="-DHAS_UNIX_DOMAIN_SOCKETS=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 					<Add directory="../fltk" />
 					<Add directory="../libharu/include" />
@@ -444,6 +446,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="test-socket-unix-server.nut" />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-Wall" />
@@ -452,6 +455,7 @@
 					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
 					<Add option="-D_SQ64=1" />
 					<Add option="-DCONFIG_64=1" />
+					<Add option="-DHAS_UNIX_DOMAIN_SOCKETS=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 				</Compiler>
 				<Linker>
@@ -518,14 +522,17 @@
 			<Add directory=".." />
 			<Add directory="../SquiLu-ext" />
 			<Add directory="/usr/include/mysql" />
+			<Add directory="../gumbo" />
 		</Compiler>
 		<Linker>
 			<Add library="m" />
 			<Add library="uuid" />
+			<Add library="gumbo" />
 			<Add directory="lib" />
 			<Add directory="../myaxtls" />
 			<Add directory="../mpdecimal" />
 			<Add directory="../discount" />
+			<Add directory="../gumbo" />
 		</Linker>
 		<Unit filename="../SquiLu-ext/HighResolutionTimer.cpp" />
 		<Unit filename="../SquiLu-ext/HighResolutionTimer.h" />
@@ -725,6 +732,9 @@
 			<Option target="Release FLTK 64bits" />
 			<Option target="Debug 64bits" />
 		</Unit>
+		<Unit filename="../SquiLu-ext/sq_fastcgi.cpp">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
 		<Unit filename="../SquiLu-ext/sq_fltk.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
@@ -768,6 +778,7 @@
 			<Option target="Release FLTK 64bits" />
 			<Option target="Debug 64bits" />
 		</Unit>
+		<Unit filename="../SquiLu-ext/sq_gumbo.cpp" />
 		<Unit filename="../SquiLu-ext/sq_markdown.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
@@ -892,6 +903,9 @@
 			<Option target="Release 64bits" />
 			<Option target="Release FLTK 64bits" />
 			<Option target="Debug 64bits" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sq_sys.cpp">
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_tinyxml2.cpp">
 			<Option target="Debug" />

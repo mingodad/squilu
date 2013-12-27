@@ -3336,6 +3336,8 @@ add_uri_hanlders({
 	["/DB/m"] = ourbizDbMobile,
 });
 
+ ::MyOurBizLoaded <- true;
+ 
 } //end dummy nested scope
 
 

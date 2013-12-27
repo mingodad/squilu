@@ -27,7 +27,7 @@ Command line parameters.
 -password	password to authenticate
 */
 local appServer_host = app_cmd_parameters.get("-host", "localhost");
-local appServer_port = app_cmd_parameters.get("-port", 8855);
+local appServer_port = app_cmd_parameters.get("-port", 8855).tointeger() ;
 local appServer_user = app_cmd_parameters.get("-user", "mingote");
 local appServer_password = app_cmd_parameters.get("-password", "tr14pink");
 

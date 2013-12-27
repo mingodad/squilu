@@ -7,13 +7,14 @@
 //start dummy nested scope to allow reload without complain about constants already defined 
 //also it hides from outer scope anything declared as local
 {
- 
+
 local globals = getroottable();
 
 local function getCompaniesUkDBFileName(){
 	if (globals.rawget("jniLog", false)) return APP_CODE_FOLDER + "/companies-uk-RG.db";
 	if (globals.rawget("WIN32", false)) return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-RG.db";
-	return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-RG.db";
+	//return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-RG.db";
+	return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-2013-10.db";
 }
 
 local companiesUkDB = null;
@@ -52,6 +53,7 @@ local function getCiaUkSearchList(search_str, search_post_code, search_sic_code,
 	//debug_print(search_str or "nil", "\t",search_post_code or "nil", "\t", search_sic_code or "nil", "\t", page, "\n")
 	//print(search_str, search_post_code, search_sic_code, search_origin_post_code, search_around_post_code , page, limit)
 	//print("AtLine:", __LINE__)
+
 	if (strHasContent(search_str) && search_str.find_lua("%d+") == 0){
 		bind_str1 = search_str;
 		limit = 0;
@@ -181,6 +183,7 @@ limit ? offset ?
 			stmt.bind(xp++, offset);
 		}
 	}
+
 	local result = getDbListFromStmt(stmt, 30);
 	result.push(limit);
 	return  result;
@@ -246,7 +249,7 @@ from post_codes
 where post_code = ?
 ]=]);
 	stmt.bind(1, post_code);
-	local easting, northing;
+	local easting=0, northing=0;
 	if (stmt.step() == stmt.SQLITE_ROW){
 		easting = stmt.col(0);
 		northing = stmt.col(1);
@@ -492,7 +495,7 @@ local function getExtraCompanyData(cid, cnum){
 	}
 }
 
-add_uri_hanlders({
+local my_uri_handlers = {
 	["/search"] = function(request){
 		table_t data = {};
 		data.page_name <- "search_results"
@@ -574,7 +577,11 @@ add_uri_hanlders({
 		request.write_blob(mFile);
 		return true;
 	},
-});
+}
+
+add_uri_hanlders(my_uri_handlers);
+
+ ::MyCompaniesUkLoaded <- true;
 
 } //end dummy nested scope
  
