@@ -1162,8 +1162,9 @@ dad.fillFormWithExistingFields = function(form, record){
 
 dad.getImageForImg = function(img, img_id, thumbnail){
 	if(img_id && img_id !== ""){
-		img.src="/DB/GetBin?image=" + img_id;
-		if(thumbnail) img.src += "&thumbnail=1";
+		var img_src = "/DB/GetBin?image=" + img_id;
+		if(thumbnail) img_src += "&thumbnail=1";
+		img.src=img_src;
 		img.style.visibility="visible";
 	} else img.style.visibility="hidden";
 }

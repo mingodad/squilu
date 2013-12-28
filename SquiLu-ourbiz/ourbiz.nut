@@ -3245,15 +3245,34 @@ local function ourbizDbGetBin(request){
 		local db = getOurbizDB();
 		local image = request.get_var(query_string, "image");
 		local thumbnail = request.get_var(query_string, "thumbnail");
+		local etag = request.info.http_headers.rawget("If-None-Match", false);
 		local stmt;
 		gmFile.clear();
+		
+		if(etag) {
+			gmFile.write("select ifnull(mdate, cdate) as etag from images where id=",  image.tointeger());
+			stmt = db.prepare(gmFile.tostring());
+			local result = stmt.step() == stmt.SQLITE_ROW;
+			if (result){
+				local img_etag = stmt.col(0)
+				if( etag == img_etag) {
+					gmFile.clear();
+					gmFile.write("HTTP/1.1 304 OK\r\nContent-Length: 0\r\n\r\n");
+					request.write_blob(gmFile);
+					stmt.finalize();
+					return result;
+				}
+			}
+			stmt.finalize();
+			gmFile.clear();
+		}
 
 		if (image){
 			gmFile.write("select ");
 			if (thumbnail) gmFile.write("thumbnail");
 			else gmFile.write("image");
 
-			gmFile.write(", mime_type from images where id=",  image.tointeger());
+			gmFile.write(", mime_type, ifnull(mdate, cdate) as etag from images where id=",  image.tointeger());
 			stmt = db.prepare(gmFile.tostring());
 		}
 
@@ -3262,9 +3281,10 @@ local function ourbizDbGetBin(request){
 			if (result){
 				local data = stmt.col(0);
 				local mime = stmt.col(1);
+				local img_etag = stmt.col(2)
 				//using string.format with binary data gives wrong results
 				gmFile.clear();
-				gmFile.write("HTTP/1.1 200 OK\r\nContent-type: ", mime, "\r\nContent-Length: ", data.len(), "\r\n\r\n", data);
+				gmFile.write("HTTP/1.1 200 OK\r\nContent-type: ", mime, "\r\nContent-Length: ", data.len(), "\r\nETag: ", img_etag, "\r\n\r\n", data);
 				request.write_blob(gmFile);
 			}
 			stmt.finalize();
