@@ -4487,6 +4487,19 @@ static const struct {
     INT_CONST(FL_KP_Enter)
     INT_CONST(FL_KP_Last)
     INT_CONST(FL_F)
+    {"FL_F1", FL_F+1},
+    {"FL_F2", FL_F+2},
+    {"FL_F3", FL_F+3},
+    {"FL_F4", FL_F+4},
+    {"FL_F5", FL_F+5},
+    {"FL_F6", FL_F+6},
+    {"FL_F7", FL_F+7},
+    {"FL_F8", FL_F+8},
+    {"FL_F9", FL_F+9},
+    {"FL_F10", FL_F+10},
+    {"FL_F11", FL_F+11},
+    {"FL_F12", FL_F+12},
+    INT_CONST(FL_F)
     INT_CONST(FL_F_Last)
     INT_CONST(FL_Shift_L)
     INT_CONST(FL_Shift_R)
