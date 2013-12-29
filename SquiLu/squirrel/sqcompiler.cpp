@@ -165,6 +165,39 @@ public:
         return false;
 	}
 
+	SQInteger ExpressionConstant(SQObject id) {
+        SQObject constant;
+        SQInteger epos;
+        if(IsConstant(id, constant)) {
+            /* Handle named constant */
+            SQObjectPtr constval;
+            SQObject    constid;
+            if(type(constant) == OT_TABLE) {
+                Expect('.');
+                constid = Expect(TK_IDENTIFIER);
+                if(!_table(constant)->Get(constid, constval)) {
+                    constval.Null();
+                    Error(_SC("invalid constant [%s.%s]"), _stringval(id), _stringval(constid));
+                }
+            }
+            else {
+                constval = constant;
+            }
+            epos = _fs->PushTarget();
+
+            /* generate direct or literal function depending on size */
+            SQObjectType ctype = type(constval);
+            switch(ctype) {
+                case OT_INTEGER: EmitLoadConstInt(_integer(constval),epos); break;
+                case OT_FLOAT: EmitLoadConstFloat(_float(constval),epos); break;
+                default: _fs->AddInstruction(_OP_LOAD,epos,_fs->GetConstant(constval)); break;
+            }
+        } else {
+            Error(_SC("invalid constant [%s]"), _stringval(id));
+        }
+        return epos;
+    }
+
 	void CheckConstsExists(const SQObjectPtr &key){
 	    int found = -1;
 	    for(int i=_scope.nested-1; i >= 0; --i){
@@ -1474,7 +1507,7 @@ if(color == "yellow"){
 				_fs->SetIntructionParam(tonextcondjmp, 1, _fs->GetCurrentPos() - tonextcondjmp);
 			}
 			//condition
-			Lex(); Expression(); Expect(_SC(':'));
+			Lex(); ExpressionScalar() /*Expression()*/; Expect(_SC(':'));
 			SQInteger trg = _fs->PopTarget();
 			_fs->AddInstruction(_OP_EQ, trg, trg, expr);
 			_fs->AddInstruction(_OP_JZ, trg, 0);
@@ -1577,14 +1610,57 @@ if(color == "yellow"){
 					val._unVal.fFloat = -_lex._fvalue;
 				break;
 				default:
-					Error(_SC("scalar expected : integer,float"));
+					Error(_SC("scalar expected : integer, float"));
 				}
 				break;
 			default:
-				Error(_SC("scalar expected : integer,float or string"));
+				Error(_SC("scalar expected : integer, float or string"));
 		}
 		Lex();
 		return val;
+	}
+	SQInteger ExpressionScalar()
+	{
+	    SQInteger tk_type = _token;
+		switch(_token) {
+			case TK_INTEGER:
+                EmitLoadConstInt(_lex._nvalue,-1);
+				break;
+			case TK_FLOAT:
+                EmitLoadConstFloat(_lex._fvalue,-1);
+				break;
+			case TK_STRING_LITERAL:
+                _fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(_fs->CreateString(_lex._svalue,_lex._longstr.size()-1)));
+				break;
+            case TK_IDENTIFIER: {
+                    SQObject id = _fs->CreateString(_lex._svalue);
+                    Lex();
+                    ExpressionConstant(id);
+                    return tk_type;
+                }
+                break;
+			case '-':
+				Lex();
+				tk_type = _token;
+				switch(_token)
+				{
+				case TK_INTEGER:
+                    EmitLoadConstInt(-_lex._nvalue,-1);
+				break;
+				case TK_FLOAT:
+                    EmitLoadConstFloat(-_lex._fvalue,-1);
+				break;
+				default:
+					Error(_SC("scalar expected : integer, float"));
+				}
+				break;
+			default:
+				goto error;
+		}
+		Lex();
+		return tk_type;
+error:
+        Error(_SC("constant or scalar expected : integer, float or string"));
 	}
 	void EnumStatement()
 	{

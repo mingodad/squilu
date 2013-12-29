@@ -411,6 +411,7 @@
 					<Add option="-D_SQ64=1" />
 					<Add option="-DCONFIG_64=1" />
 					<Add option="-DHAS_UNIX_DOMAIN_SOCKETS=1" />
+					<Add option="-DUSE_SIGNAL_HANDLER=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 					<Add directory="../fltk" />
 					<Add directory="../libharu/include" />
@@ -456,6 +457,7 @@
 					<Add option="-D_SQ64=1" />
 					<Add option="-DCONFIG_64=1" />
 					<Add option="-DHAS_UNIX_DOMAIN_SOCKETS=1" />
+					<Add option="-DUSE_SIGNAL_HANDLER=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 				</Compiler>
 				<Linker>

@@ -95,7 +95,7 @@ void PrintUsage()
 {
 	scfprintf(stderr,_SC("usage: sq <options> <scriptpath [args]>.\n")
 		_SC("Available options are:\n")
-		_SC("   -c              compiles the file to bytecode(default output 'out.cnut')\n")
+		_SC("   -s              compiles the file to bytecode(default output 'out.cnut')\n")
 		_SC("   -o              specifies output file for the -c option\n")
 		_SC("   -c              compiles only\n")
 		_SC("   -d              generates debug infos\n")

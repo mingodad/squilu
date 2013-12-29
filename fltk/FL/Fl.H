@@ -240,7 +240,7 @@ public: // should be private!
   static Fl_Widget* selection_owner_;
   static Fl_Window* modal_;
   static Fl_Window* grab_;
-  static int compose_state;
+  static int compose_state; // used for dead keys (WIN32) or marked text (MacOS)
   static void call_screen_init(); // recompute screen number and dimensions
   static void* user_data;
   static Fl_Do_Call_Timeout do_call_timeout_;

@@ -14,6 +14,8 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#else
+#include <unistd.h>
 #endif
 
 #ifdef SQUNICODE
@@ -319,24 +321,16 @@ static SQRESULT _system_setlocale (HSQUIRRELVM v) {
 }
 
 /*-------------------------------------------------------------------------*\
-* Sleep for n seconds.
+* Sleep for n miliseconds.
 \*-------------------------------------------------------------------------*/
 static SQRESULT  _system_sleep(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
-    SQ_GET_FLOAT(v, 2, n);
+    SQ_GET_INTEGER(v, 2, n);
 #ifdef _WIN32
-    Sleep((int)(n*1000));
+    Sleep((int)n);
 #else
-    struct timespec t, r;
-    t.tv_sec = (int) n;
-    n -= t.tv_sec;
-    t.tv_nsec = (int) (n * 1000000000);
-    if (t.tv_nsec >= 1000000000) t.tv_nsec = 999999999;
-    while (nanosleep(&t, &r) != 0) {
-        t.tv_sec = r.tv_sec;
-        t.tv_nsec = r.tv_nsec;
-    }
+    usleep((n)*1000);
 #endif
     return 0;
 }
@@ -376,10 +370,10 @@ static SQRESULT _system_getmillispan (HSQUIRRELVM v) {
 }
 #endif
 
-#if 0
+#ifdef USE_SIGNAL_HANDLER
 struct sq_signal_list
 {
-  char *name; /* name of the signal */
+  const char *name; /* name of the signal */
   int sig; /* the signal */
 };
 
@@ -487,36 +481,66 @@ static const struct sq_signal_list sq_signals_list[] = {
   {NULL, 0}
 };
 
-static HSQUIRRELVM vsig = NULL;
+static int _signal_received = 0;
 
 static void sq_sig_handle(int sig)
 {
-    if(vsig){
-        sq_pushliteral(vsig, _SC("sq_sig_handler"));
-        if(sq_getonregistrytable(vsig) == SQ_OK){
-            SQObjectType ptype = sq_gettype(v, -1);
-            if(ptype == OT_CLOSURE || ptype == OT_NATIVECLOSURE){
-                sq_pushroottable(v);
-                sq_pushinteger(v, sig);
-                sq_call(v, 2, SQFalse, SQFalse);
-            }
-        }
-    }
+    _signal_received =  sig;
 }
 
-/*
- * _system_raise == raise(signal)
- *
- * signal = signal number or string
-*/
+static SQRESULT _system_set_signal_received (HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_INTEGER(v, 2, nvalue);
+    _signal_received = nvalue;
+    return SQ_OK;
+}
 
-static int _system_raise(HSQUIRRELVM v)
+static SQRESULT _system_get_signal_received (HSQUIRRELVM v) {
+    sq_pushinteger(v, _signal_received);
+    return 1;
+}
+
+static SQRESULT _system_signal_str2int (HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 2, signame);
+    int sig = 0;
+    for(int i=0, len = sizeof(sq_signals_list)/sizeof(sq_signal_list); i < len; ++i){
+        if(strcmp(sq_signals_list[i].name, signame) == 0){
+            sig = sq_signals_list[i].sig;
+            break;
+        }
+    }
+    if(sig) {
+        sq_pushinteger(v, sig);
+        return 1;
+    }
+    return sq_throwerror(v, _SC("invalid signal (%s)"), signame);
+}
+
+static SQRESULT _system_signal_int2str (HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_INTEGER(v, 2, sig);
+    const char *signame = NULL;
+    for(int i=0, len = sizeof(sq_signals_list)/sizeof(sq_signal_list); i < len; ++i){
+        if(sq_signals_list[i].sig == sig){
+            signame = sq_signals_list[i].name;
+            break;
+        }
+    }
+    if(signame) {
+        sq_pushstring(v, signame, -1);
+        return 1;
+    }
+    return sq_throwerror(v, _SC("invalid signal (%d)"), sig);
+}
+
+static int _get_signal(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS(v);
+    SQ_FUNC_VARS_NO_TOP(v);
     switch(sq_gettype(v, 2)){
         case OT_INTEGER:{
             SQ_GET_INTEGER(v, 2, iparam);
-            sq_pushinteger(v, raise(iparam));
+            return iparam;
         }
         break;
         case OT_STRING:{
@@ -528,14 +552,32 @@ static int _system_raise(HSQUIRRELVM v)
                     break;
                 }
             }
-            if(sig) sq_pushinteger(v, raise(sig));
+            if(sig) return sig;
             else return sq_throwerror(v, _SC("invalid signal (%s)"), signame);
         }
         break;
-        default:
-            return sq_throwerror(v, _SC("invalid paramter (%s)"), sq_gettypename(v, 2));
     }
-    return 1;
+    return sq_throwerror(v, _SC("invalid paramter (%s)"), sq_gettypename(v, 2));
+}
+
+static SQRESULT _system_signal(HSQUIRRELVM v)
+{
+    int sig = _get_signal(v);
+    if(sig > 0) {
+        sq_pushbool(v, signal(sig, sq_sig_handle) != SIG_ERR);
+        return 1;
+    }
+    return sig;
+}
+
+static SQRESULT _system_raise(HSQUIRRELVM v)
+{
+    int sig = _get_signal(v);
+    if(sig > 0) {
+        sq_pushbool(v, raise(sig) == 0);
+        return 1;
+    }
+    return sig;
 }
 #endif
 
@@ -552,13 +594,21 @@ static SQRegFunction systemlib_funcs[]={
 	_DECL_FUNC(time,-1,_SC(".t")),
 	_DECL_FUNC(difftime,-2,_SC(".nn")),
 	_DECL_FUNC(exit, -1,_SC(". b|i b")),
-	_DECL_FUNC(sleep, 2,_SC(".n")),
+	_DECL_FUNC(sleep, 2,_SC(".i")),
 #ifdef WITH_UUID
 	_DECL_FUNC(getuuid, 0, NULL),
 #endif
 #ifndef _WIN32_WCE
 	_DECL_FUNC(getmillicount,1,_SC(".")),
 	_DECL_FUNC(getmillispan,2,_SC(".i")),
+#endif
+#ifdef USE_SIGNAL_HANDLER
+	_DECL_FUNC(set_signal_received,2,_SC(".i")),
+	_DECL_FUNC(get_signal_received,1,_SC(".")),
+	_DECL_FUNC(signal,2,_SC(". i|s")),
+	_DECL_FUNC(raise,2,_SC(". i|s")),
+	_DECL_FUNC(signal_str2int,2,_SC(".s")),
+	_DECL_FUNC(signal_int2str,2,_SC(".i")),
 #endif
 	{0,0}
 };
