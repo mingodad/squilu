@@ -764,10 +764,12 @@ static const char *ssl_error(int err_code) {
             break;
     }
     return ssl_get_error(err_code, buf, sizeof(buf));
-#else
+#elif !defined(NO_SSL)
   unsigned long err;
   err = ERR_get_error();
   return err == 0 ? "" : ERR_error_string(err, NULL);
+#else
+  return "";
 #endif
 }
 
@@ -4542,7 +4544,7 @@ static int load_dll(struct mg_context *ctx, const char *dll_name,
 // Dynamically load SSL library. Set up ctx->ssl_ctx pointer.
 static int set_ssl_option(struct mg_context *ctx) {
   struct mg_request_info request_info;
-  SSL_CTX *CTX;
+  SSL_CTX *CTX = 0;
   int i, size;
   int ssl_result;
   const char *pem = ctx->config[SSL_CERTIFICATE];
@@ -4640,7 +4642,9 @@ static void uninitialize_ssl(struct mg_context *ctx) {
   if (ctx->ssl_ctx != NULL) {
     CRYPTO_set_locking_callback(NULL);
     for (i = 0; i < CRYPTO_num_locks(); i++) {
-      pthread_mutex_destroy(&ssl_mutexes[i]);
+      if(ssl_mutexes[i]) {
+          pthread_mutex_destroy(&ssl_mutexes[i]);
+      }
     }
     CRYPTO_set_locking_callback(NULL);
     CRYPTO_set_id_callback(NULL);

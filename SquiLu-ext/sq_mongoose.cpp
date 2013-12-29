@@ -151,7 +151,7 @@ sq_http_request_read(HSQUIRRELVM v)
     if(n <= 0) return sq_throwerror(v, _SC("invalid size to read (%d)"), n);
     size_t rlen;  /* how much to read */
     size_t nr;  /* number of chars actually read */
-    rlen = 8192;  /* try to read that much each time */
+    rlen = 8192*2;  /* try to read that much each time */
 
     SQBlob blob(0, rlen);
     if (rlen > n) rlen = n;  /* cannot read more than asked */
@@ -1240,8 +1240,8 @@ user_callback_proxy(enum mg_event event,
 #ifdef USE_AXTLS
             //lua_pushstring(L, "MG_INIT_SSL");
             *((void**)conn) = SSL_CTX_new(0);
-            return 0;
 #endif
+            return 0;
         case MG_NEW_REQUEST:
         case MG_HTTP_ERROR:
         case MG_EVENT_LOG:{
