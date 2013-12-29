@@ -302,27 +302,19 @@ local function get_sql_bar_chart_statistics_periodes (periode_count, periode_typ
 	local periodeMultiplier = 1;
 	local speriode;
 
-	switch(periode_type){
-		case TimePeriode.is_years:{
-			speriode2 = "%Y";
-			speriode = C_years;
-		}
-		break;
-		case TimePeriode.is_weeks:{
-			periodeMultiplier = 7;
-			speriode2 = "%Y-%W";
-			speriode = C_days;
-		}
-		break;
-		case TimePeriode.is_days:{
-			speriode2 = "%Y-%m-%d";
-			speriode = C_days;
-		}
-		break;
-		default:{
-			speriode2 = "%Y-%m";
-			speriode = C_months;
-		}
+	if(periode_type == TimePeriode.is_years) {
+		speriode2 = "%Y";
+		speriode = C_years;
+	} else if(periode_type ==  TimePeriode.is_weeks) {
+		periodeMultiplier = 7;
+		speriode2 = "%Y-%W";
+		speriode = C_days;
+	}else if(periode_type ==  TimePeriode.is_days) {
+		speriode2 = "%Y-%m-%d";
+		speriode = C_days;
+	} else {
+		speriode2 = "%Y-%m";
+		speriode = C_months;
 	}
 
 	periode_count = periode_count * periodeMultiplier;

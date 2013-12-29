@@ -170,7 +170,7 @@ class HTTPConnAuthBase extends HTTPConnBase
                 {
                     if(globals.rawget("Fl", false)) Fl.check();//check_idle();
                     pump();
-		    //os.sleep(0.01);
+		    //os.sleep(10);
                 }
                 break;
             }

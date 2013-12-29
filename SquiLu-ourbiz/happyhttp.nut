@@ -140,13 +140,11 @@ class HappyHttpConnection {
 		if( !datawaiting( m_Sock, milisec) ) return;	// recv will block
 
 		local rc = m_Sock.receive(8192); //2048
-		switch(rc[1]){
-			case socket.IO_DONE:
-			case socket.IO_TIMEOUT:
+		local rc_status = rc[1];
+		if( (rc_status == socket.IO_DONE) || rc_status == socket.IO_TIMEOUT) {
 			//case socket.IO_CLOSED:
-				break;
-			default:
-				if(rc[0].len() == 0) throw(format("socket io error %d", rc[1]));
+		} else {
+			if(rc[0].len() == 0) throw(format("socket io error %d", rc_status));
 		}
 		local buf = rc[0];
 		local a = buf.len();
@@ -421,7 +419,7 @@ class HappyHttpResponse {
 				data_idx += bytesused;
 				count -= bytesused;
 			}
-			//os.sleep(0.001);
+			//os.sleep(1);
 		}
 		// return number of bytes used
 		return datasize - count;

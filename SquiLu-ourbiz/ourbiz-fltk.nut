@@ -385,9 +385,10 @@ class Base_Window extends Fl_Window {
 	function handle(event){
 		if(event == FL_KEYBOARD && Fl.event_command() == 0){
 			local key = Fl.event_key();
-			switch(key){
-				//case FL_Menu:  menu_bar_navigate();break;
-				case FL_F+1: show_help_window(); break;
+			if(key == (FL_F+1)){
+				show_help_window();
+			} else if(key == FL_Menu){
+				//menu_bar_navigate();
 			}
 		}
 		return base.handle(event);
@@ -2992,12 +2993,12 @@ class MyEditOrderWindow extends EditOrderWindow {
 			local key = Fl.event_key();
 			switch(key)
 			{
-			case FL_F+5:
+			case FL_F5:
 				show_dynamic_data(_tr("Entity past products"),
 					appServer.entity_past_products_list,
 					db_orders_entity_id->value());
 			break;
-			case FL_F+6:
+			case FL_F6:
 			if(grid_lines->row() >=0)
 			{
 				show_dynamic_data(_tr("Product last 20 order lines"),
@@ -3006,7 +3007,7 @@ class MyEditOrderWindow extends EditOrderWindow {
 						grid_lines->row(), 1));
 			}
 			break;
-			case FL_F+7:
+			case FL_F7:
 			if(grid_lines->row() >=0)
 			{
 				show_dynamic_data(_tr("Appear together"),
@@ -3015,7 +3016,7 @@ class MyEditOrderWindow extends EditOrderWindow {
 						grid_lines->row(), 1));
 			}
 			break;
-			case FL_F+8:
+			case FL_F8:
 			if(grid_lines->row() >=0)
 			{
 				show_dynamic_data(_tr("Order lines onhand"),

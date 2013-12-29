@@ -64,6 +64,7 @@ local mongoose_start_params = {
 		debug_print("done user_callback_exit\n");
 	},
 	user_callback = function(event, request){
+		//debug_print("\nevent :\n", event);
 		if(event == "MG_NEW_REQUEST"){
 			//debug_print("\n", request.get_option("num_threads"), request.get_conn_buf());
 			if(AT_DEV_DBG || !this.get("handle_request", false)) {
