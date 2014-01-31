@@ -499,39 +499,40 @@ public:
 		SQInteger p1 = _fs->PopTarget(); //key in OP_GET
 		_fs->AddInstruction(op,_fs->PushTarget(), p1, p2, p3);
 	}
-	void EmitCompoundArith(SQInteger tok, SQInteger etype, SQInteger pos)
-	{
-		/* Generate code depending on the expression type */
-		switch(etype) {
-		case LOCAL:{
-			SQInteger p2 = _fs->PopTarget(); //src in OP_GET
-			SQInteger p1 = _fs->PopTarget(); //key in OP_GET
-			_fs->PushTarget(p1);
-			//EmitCompArithLocal(tok, p1, p1, p2);
-			_fs->AddInstruction(ChooseArithOpByToken(tok),p1, p2, p1, 0);
-				   }
-			break;
-		case OBJECT:
-		case BASE:
-			{
-				SQInteger val = _fs->PopTarget();
-				SQInteger key = _fs->PopTarget();
-				SQInteger src = _fs->PopTarget();
-				/* _OP_COMPARITH mixes dest obj and source val in the arg1 */
-				_fs->AddInstruction(_OP_COMPARITH, _fs->PushTarget(), (src<<16)|val, key, ChooseCompArithCharByToken(tok));
-			}
-			break;
-		case OUTER:
-			{
-				SQInteger val = _fs->TopTarget();
-				SQInteger tmp = _fs->PushTarget();
-				_fs->AddInstruction(_OP_GETOUTER,   tmp, pos);
-				_fs->AddInstruction(ChooseArithOpByToken(tok), tmp, val, tmp, 0);
-				_fs->AddInstruction(_OP_SETOUTER, tmp, pos, tmp);
-			}
-			break;
-		}
-	}
+    void EmitCompoundArith(SQInteger tok, SQInteger etype, SQInteger pos)
+    {
+        /* Generate code depending on the expression type */
+        switch(etype) {
+        case LOCAL:{
+            SQInteger p2 = _fs->PopTarget(); //src in OP_GET
+            SQInteger p1 = _fs->PopTarget(); //key in OP_GET
+            _fs->PushTarget(p1);
+            //EmitCompArithLocal(tok, p1, p1, p2);
+            _fs->AddInstruction(ChooseArithOpByToken(tok),p1, p2, p1, 0);
+            _fs->SnoozeOpt(); //FIX: stop optimizer in retargeting opcode
+                   }
+            break;
+        case OBJECT:
+        case BASE:
+            {
+                SQInteger val = _fs->PopTarget();
+                SQInteger key = _fs->PopTarget();
+                SQInteger src = _fs->PopTarget();
+                /* _OP_COMPARITH mixes dest obj and source val in the arg1 */
+                _fs->AddInstruction(_OP_COMPARITH, _fs->PushTarget(), (src<<16)|val, key, ChooseCompArithCharByToken(tok));
+            }
+            break;
+        case OUTER:
+            {
+                SQInteger val = _fs->TopTarget();
+                SQInteger tmp = _fs->PushTarget();
+                _fs->AddInstruction(_OP_GETOUTER,   tmp, pos);
+                _fs->AddInstruction(ChooseArithOpByToken(tok), tmp, val, tmp, 0);
+                _fs->AddInstruction(_OP_SETOUTER, tmp, pos, tmp);
+            }
+            break;
+        }
+    }
 	void CommaExpr(bool warningAssign=false)
 	{
 		for(Expression(warningAssign);_token == ',';_fs->PopTarget(), Lex(), CommaExpr(warningAssign));
@@ -627,52 +628,63 @@ public:
 		}
 		_es = es;
 	}
-	template<typename T> void BIN_EXP(SQOpcode op, T f,SQInteger op3 = 0)
-	{
-		Lex(); (this->*f)();
-		SQInteger op1 = _fs->PopTarget();SQInteger op2 = _fs->PopTarget();
-		_fs->AddInstruction(op, _fs->PushTarget(), op1, op2, op3);
-	}
-	void LogicalOrExp()
-	{
-		LogicalAndExp();
-		for(;;) if(_token == TK_OR) {
-			SQInteger first_exp = _fs->PopTarget();
-			SQInteger trg = _fs->PushTarget();
-			_fs->AddInstruction(_OP_OR, trg, 0, first_exp, 0);
-			SQInteger jpos = _fs->GetCurrentPos();
-			if(trg != first_exp) _fs->AddInstruction(_OP_MOVE, trg, first_exp);
-			Lex(); LogicalOrExp();
-			_fs->SnoozeOpt();
-			SQInteger second_exp = _fs->PopTarget();
-			if(trg != second_exp) _fs->AddInstruction(_OP_MOVE, trg, second_exp);
-			_fs->SnoozeOpt();
-			_fs->SetIntructionParam(jpos, 1, (_fs->GetCurrentPos() - jpos));
-			break;
-		}else return;
-	}
-	void LogicalAndExp()
-	{
-		BitwiseOrExp();
-		for(;;) switch(_token) {
-		case TK_AND: {
-			SQInteger first_exp = _fs->PopTarget();
-			SQInteger trg = _fs->PushTarget();
-			_fs->AddInstruction(_OP_AND, trg, 0, first_exp, 0);
-			SQInteger jpos = _fs->GetCurrentPos();
-			if(trg != first_exp) _fs->AddInstruction(_OP_MOVE, trg, first_exp);
-			Lex(); LogicalAndExp();
-			_fs->SnoozeOpt();
-			SQInteger second_exp = _fs->PopTarget();
-			if(trg != second_exp) _fs->AddInstruction(_OP_MOVE, trg, second_exp);
-			_fs->SnoozeOpt();
-			_fs->SetIntructionParam(jpos, 1, (_fs->GetCurrentPos() - jpos));
-			break;
-			}
-		default:
-			return;
-		}
-	}
+    template<typename T> void INVOKE_EXP(T f)
+    {
+        SQExpState es = _es;
+        _es.etype     = EXPR;
+        _es.epos      = -1;
+        _es.donot_get = false;
+        (this->*f)();
+        _es = es;
+    }
+    template<typename T> void BIN_EXP(SQOpcode op, T f,SQInteger op3 = 0)
+    {
+        Lex();
+        INVOKE_EXP(f);
+        SQInteger op1 = _fs->PopTarget();SQInteger op2 = _fs->PopTarget();
+        _fs->AddInstruction(op, _fs->PushTarget(), op1, op2, op3);
+    }
+    void LogicalOrExp()
+    {
+        LogicalAndExp();
+        for(;;) if(_token == TK_OR) {
+            SQInteger first_exp = _fs->PopTarget();
+            SQInteger trg = _fs->PushTarget();
+            _fs->AddInstruction(_OP_OR, trg, 0, first_exp, 0);
+            SQInteger jpos = _fs->GetCurrentPos();
+            if(trg != first_exp) _fs->AddInstruction(_OP_MOVE, trg, first_exp);
+            Lex(); INVOKE_EXP(&SQCompiler::LogicalOrExp);
+            _fs->SnoozeOpt();
+            SQInteger second_exp = _fs->PopTarget();
+            if(trg != second_exp) _fs->AddInstruction(_OP_MOVE, trg, second_exp);
+            _fs->SnoozeOpt();
+            _fs->SetIntructionParam(jpos, 1, (_fs->GetCurrentPos() - jpos));
+            break;
+        }else return;
+    }
+    void LogicalAndExp()
+    {
+        BitwiseOrExp();
+        for(;;) switch(_token) {
+        case TK_AND: {
+            SQInteger first_exp = _fs->PopTarget();
+            SQInteger trg = _fs->PushTarget();
+            _fs->AddInstruction(_OP_AND, trg, 0, first_exp, 0);
+            SQInteger jpos = _fs->GetCurrentPos();
+            if(trg != first_exp) _fs->AddInstruction(_OP_MOVE, trg, first_exp);
+            Lex(); INVOKE_EXP(&SQCompiler::LogicalAndExp);
+            _fs->SnoozeOpt();
+            SQInteger second_exp = _fs->PopTarget();
+            if(trg != second_exp) _fs->AddInstruction(_OP_MOVE, trg, second_exp);
+            _fs->SnoozeOpt();
+            _fs->SetIntructionParam(jpos, 1, (_fs->GetCurrentPos() - jpos));
+            break;
+            }
+
+        default:
+            return;
+        }
+    }
 	void BitwiseOrExp()
 	{
 		BitwiseXorExp();
