@@ -542,6 +542,7 @@ static SQRESULT sq_mysql_statement_bind(HSQUIRRELVM v){
             break;
 
             case OT_STRING:{
+                unsigned long	slength;          /* output length pointer */
                 SQ_GET_STRING(v, argn, param_string);
                 str_len = (size_t *)(buffer.mem + offset);
                 offset += sizeof(size_t);
@@ -550,7 +551,8 @@ static SQRESULT sq_mysql_statement_bind(HSQUIRRELVM v){
                 bind[i].buffer_type = MYSQL_TYPE_STRING;
                 bind[i].is_null = (my_bool*)0;
                 bind[i].buffer = (char *)str;
-                bind[i].length = str_len;
+                slength = *str_len;
+                bind[i].length = &slength;
             }
             break;
 
