@@ -1636,6 +1636,30 @@ static SQRESULT string_empty(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT string_isalpha(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, str);
+    SQ_GET_INTEGER(v, 2, idx);
+    if(idx >= str_size) {
+        return sq_throwerror(v, _SC("index %d out of range"), idx);
+    }
+	sq_pushbool(v, scisalpha(str[idx]));
+	return 1;
+}
+
+static SQRESULT string_isdigit(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, str);
+    SQ_GET_INTEGER(v, 2, idx);
+    if(idx >= str_size) {
+        return sq_throwerror(v, _SC("index %d out of range"), idx);
+    }
+	sq_pushbool(v, scisdigit(str[idx]));
+	return 1;
+}
+
 #ifdef SQ_SUBLATIN
 #include "sublatin.h"
 
@@ -1765,6 +1789,8 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("split"),string_split,2, _SC("si")},
 	{_SC("split_by_strtok"),string_split_by_strtok,2, _SC("ss")},
 	{_SC("empty"),string_empty,1, _SC("s")},
+	{_SC("isalpha"),string_isalpha,2, _SC("si")},
+	{_SC("isdigit"),string_isdigit,2, _SC("si")},
 #ifdef SQ_SUBLATIN
 	{_SC("sl_len"),string_sl_len,1, _SC("s")},
 	{_SC("sl_lower"),string_sl_lower,1, _SC("s")},
