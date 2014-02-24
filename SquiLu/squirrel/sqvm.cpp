@@ -685,6 +685,15 @@ bool SQVM::IsEqual(const SQObjectPtr &o1,const SQObjectPtr &o2)
 	return res;
 }
 
+bool SQVM::IsEqualIdentity(const SQObjectPtr &o1,const SQObjectPtr &o2)
+{
+	bool res = false;
+	if(type(o1) == type(o2)) {
+		res = (_rawval(o1) == _rawval(o2));
+	}
+	return res;
+}
+
 bool SQVM::IsFalse(SQObjectPtr &o)
 {
 	if(((type(o) & SQOBJECT_CANBEFALSE)
@@ -918,8 +927,14 @@ exception_restore:
 			case _OP_EQ:
 				TARGET = IsEqual(STK(arg2),COND_LITERAL)?true:false;
 				continue;
+			case _OP_EQI:
+				TARGET = IsEqualIdentity(STK(arg2),COND_LITERAL)?true:false;
+				continue;
 			case _OP_NE:
 				TARGET = (!IsEqual(STK(arg2),COND_LITERAL))?true:false;
+				continue;
+			case _OP_NEI:
+				TARGET = (!IsEqualIdentity(STK(arg2),COND_LITERAL))?true:false;
 				continue;
 			case _OP_ADD: _ARITH_(+,TARGET,STK(arg2),STK(arg1)); continue;
 			case _OP_SUB: _ARITH_(-,TARGET,STK(arg2),STK(arg1)); continue;

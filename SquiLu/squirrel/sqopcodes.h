@@ -98,7 +98,9 @@ enum AppendArrayType {
 	ENUM_OP(_OP_NEWSLOTA, 0x3A)\
 	ENUM_OP(_OP_GETBASE, 0x3B)\
 	ENUM_OP(_OP_CLOSE, 0x3C)\
-	ENUM_OP(_OP__LAST__, 0x3D)
+	ENUM_OP(_OP_EQI, 0x3D)\
+	ENUM_OP(_OP_NEI, 0x3E)\
+	ENUM_OP(_OP__LAST__, 0x3F)
 
 //#define ENUM_OP(a,b) a = b,
 //there is no point right now to manually number the opcodes

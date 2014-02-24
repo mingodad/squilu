@@ -711,7 +711,9 @@ public:
 		CompExp();
 		for(;;) switch(_token) {
 		case TK_EQ: BIN_EXP(_OP_EQ, &SQCompiler::CompExp); break;
+		case TK_EQ_IDENTITY :BIN_EXP(_OP_EQI, &SQCompiler::CompExp); break;
 		case TK_NE: BIN_EXP(_OP_NE, &SQCompiler::CompExp); break;
+		case TK_NE_IDENTITY: BIN_EXP(_OP_NEI, &SQCompiler::CompExp); break;
 		case TK_3WAYSCMP: BIN_EXP(_OP_CMP, &SQCompiler::CompExp,CMP_3W); break;
 		default: return;
 		}

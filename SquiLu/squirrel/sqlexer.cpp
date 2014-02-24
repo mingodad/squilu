@@ -214,7 +214,11 @@ SQInteger SQLexer::Lex()
 		case _SC('='):
 			NEXT();
 			if (CUR_CHAR != _SC('=')){ RETURN_TOKEN('=') }
-			else { NEXT(); RETURN_TOKEN(TK_EQ); }
+			else {
+                NEXT();
+                if (CUR_CHAR == _SC('=')){ NEXT(); RETURN_TOKEN(TK_EQ_IDENTITY) }
+                else { RETURN_TOKEN(TK_EQ); }
+            }
 		case _SC('<'):
 			NEXT();
 			switch(CUR_CHAR) {
@@ -246,7 +250,11 @@ SQInteger SQLexer::Lex()
 		case _SC('!'):
 			NEXT();
 			if (CUR_CHAR != _SC('=')){ RETURN_TOKEN('!')}
-			else { NEXT(); RETURN_TOKEN(TK_NE); }
+			else {
+                NEXT();
+                if (CUR_CHAR == _SC('=')){ NEXT(); RETURN_TOKEN(TK_NE_IDENTITY)}
+                else { RETURN_TOKEN(TK_NE); }
+            }
 		case _SC('@'): {
 			SQInteger stype;
 			NEXT();
