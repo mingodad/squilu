@@ -100,12 +100,11 @@ public:
 
 	void Error(const SQChar *s, ...)
 	{
-		static SQChar temp[256];
 		va_list vl;
 		va_start(vl, s);
-		scvsprintf(temp, s, vl);
+		scvsnprintf(error_buf, sizeof(error_buf), s, vl);
 		va_end(vl);
-		compilererror = temp;
+		compilererror = error_buf;
 		longjmp(_errorjmp,1);
 	}
 
@@ -1929,6 +1928,7 @@ private:
 	SQVM *_vm;
 	SQObjectPtrVec _scope_consts;
 	SQObjectPtr _globals;
+	SQChar error_buf[256];
 };
 
 bool Compile(SQVM *vm,SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, SQObjectPtr &out,
