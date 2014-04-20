@@ -2739,7 +2739,7 @@ const char * mg_url_encode_to(const char *src, char *dst, size_t dst_len) {
 }
 
 char * mg_url_encode(const char *src) {
-    size_t dst_len = strlen(src)*2;
+    size_t dst_len = (strlen(src)*2)+1;
     char *dst = (char*)MG_MALLOC(dst_len);
     if(dst){
         const char *done = mg_url_encode_to(src, dst, dst_len);
