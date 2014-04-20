@@ -26,6 +26,8 @@ struct SQExpState {
   bool       donot_get;   /* signal not to deref the next value */
 };
 
+#define MAX_COMPILER_ERROR_LEN 256
+
 struct SQScope {
 	SQInteger outers;
 	SQInteger stacksize;
@@ -85,7 +87,7 @@ public:
 		_scope.outers = 0;
 		_scope.stacksize = 0;
 		_scope.nested = 0;
-		compilererror = NULL;
+		_compilererror = NULL;
 		_globals = SQTable::Create(_ss(_vm),0);
 	}
 	~SQCompiler(){
@@ -104,7 +106,7 @@ public:
 		va_start(vl, s);
 		scvsnprintf(error_buf, sizeof(error_buf), s, vl);
 		va_end(vl);
-		compilererror = error_buf;
+		_compilererror = error_buf;
 		longjmp(_errorjmp,1);
 	}
 
@@ -328,10 +330,10 @@ public:
 		}
 		else {
 			if(_raiseerror && _ss(_vm)->_compilererrorhandler) {
-				_ss(_vm)->_compilererrorhandler(_vm, compilererror, type(_sourcename) == OT_STRING?_stringval(_sourcename):_SC("unknown"),
+				_ss(_vm)->_compilererrorhandler(_vm, _compilererror, type(_sourcename) == OT_STRING?_stringval(_sourcename):_SC("unknown"),
 					_lex._currentline, _lex._currentcolumn);
 			}
-			_vm->_lasterror = SQString::Create(_ss(_vm), compilererror, -1);
+			_vm->_lasterror = SQString::Create(_ss(_vm), _compilererror, -1);
 			return false;
 		}
 		return true;
@@ -1522,8 +1524,17 @@ if(color == "yellow"){
 			//condition
 			Lex(); ExpressionScalar() /*Expression()*/; Expect(_SC(':'));
 			SQInteger trg = _fs->PopTarget();
-			_fs->AddInstruction(_OP_EQ, trg, trg, expr);
-			_fs->AddInstruction(_OP_JZ, trg, 0);
+			SQInteger eqtarget = trg;
+			bool local = _fs->IsLocal(trg);
+			if(local) {
+				eqtarget = _fs->PushTarget(); //we need to allocate a extra reg
+			}
+			_fs->AddInstruction(_OP_EQ, eqtarget, trg, expr);
+			_fs->AddInstruction(_OP_JZ, eqtarget, 0);
+			if(local) {
+				_fs->PopTarget();
+			}
+
 			//end condition
 			if(skipcondjmp != -1) {
 				_fs->SetIntructionParam(skipcondjmp, 1, (_fs->GetCurrentPos() - skipcondjmp));
@@ -1609,6 +1620,11 @@ if(color == "yellow"){
 				break;
 			case TK_STRING_LITERAL:
 				val = _fs->CreateString(_lex._svalue,_lex._longstr.size()-1);
+				break;
+			case TK_TRUE:
+			case TK_FALSE:
+				val._type = OT_BOOL;
+				val._unVal.nInteger = _token == TK_TRUE ? 1 : 0;
 				break;
 			case '-':
 				Lex();
@@ -1923,12 +1939,12 @@ private:
 	SQInteger _debugop;
 	SQExpState   _es;
 	SQScope _scope;
-	SQChar *compilererror;
+	SQChar *_compilererror;
 	jmp_buf _errorjmp;
 	SQVM *_vm;
 	SQObjectPtrVec _scope_consts;
 	SQObjectPtr _globals;
-	SQChar error_buf[256];
+	SQChar error_buf[MAX_COMPILER_ERROR_LEN];
 };
 
 bool Compile(SQVM *vm,SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, SQObjectPtr &out,

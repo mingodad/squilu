@@ -709,6 +709,27 @@ bool SQVM::IsFalse(SQObjectPtr &o)
 	return false;
 }
 
+#if defined(__GNUC__) && defined(USE_COMPUTED_GOTOS)
+    //it doesn't generate faster code, even slower
+    //on lua it has a small noticeable improvement
+    //needs -fno-gcse or even -fno-crossjumping
+    #define COMPUTED_GOTO 1
+    #pragma GCC push_options
+    //#pragma GCC optimize ("no-gcse")
+    //#pragma GCC optimize ("no-crossjumping")
+#endif
+
+#ifdef COMPUTED_GOTO
+	#define OPCODE_TARGET(op) DO_OP_##op:
+	#define CALL_OPCODE(op) \
+		if ((op < sizeof(opcodes) / sizeof(opcodes[0])) && opcodes[op]) \
+			goto *opcodes[op];
+	#define OPCODE_PTR(op) [_OP_##op] = &&DO_OP_##op
+#else
+	#define OPCODE_TARGET(op) case _OP_##op:
+	#define CALL_OPCODE(op) switch (op)
+#endif
+
 bool SQVM::Execute(SQObjectPtr &closure, SQInteger nargs, SQInteger stackbase,SQObjectPtr &outres, SQBool raiseerror,ExecutionType et)
 {
 	if ((_nnativecalls + 1) > MAX_NATIVE_CALLS) { Raise_Error(_SC("Native stack overflow")); return false; }
@@ -716,6 +737,73 @@ bool SQVM::Execute(SQObjectPtr &closure, SQInteger nargs, SQInteger stackbase,SQ
 	AutoDec ad(&_nnativecalls);
 	SQInteger traps = 0;
 	CallInfo *prevci = ci;
+#ifdef COMPUTED_GOTO
+  static const void *opcodes[] = {
+	OPCODE_PTR(LINE),
+	OPCODE_PTR(LOAD),
+	OPCODE_PTR(LOADINT),
+	OPCODE_PTR(LOADFLOAT),
+	OPCODE_PTR(DLOAD),
+	OPCODE_PTR(TAILCALL),
+	OPCODE_PTR(CALL),
+	OPCODE_PTR(PREPCALL),
+	OPCODE_PTR(PREPCALLK),
+	OPCODE_PTR(GETK),
+	OPCODE_PTR(MOVE),
+	OPCODE_PTR(NEWSLOT),
+	OPCODE_PTR(DELETE),
+	OPCODE_PTR(SET),
+	OPCODE_PTR(GET),
+	OPCODE_PTR(EQ),
+	OPCODE_PTR(NE),
+	OPCODE_PTR(ADD),
+	OPCODE_PTR(SUB),
+	OPCODE_PTR(MUL),
+	OPCODE_PTR(DIV),
+	OPCODE_PTR(MOD),
+	OPCODE_PTR(BITW),
+	OPCODE_PTR(RETURN),
+	OPCODE_PTR(LOADNULLS),
+	OPCODE_PTR(LOADROOT),
+	OPCODE_PTR(LOADBOOL),
+	OPCODE_PTR(DMOVE),
+	OPCODE_PTR(JMP),
+	OPCODE_PTR(JCMP),
+	OPCODE_PTR(JZ),
+	OPCODE_PTR(SETOUTER),
+	OPCODE_PTR(GETOUTER),
+	OPCODE_PTR(NEWOBJ),
+	OPCODE_PTR(APPENDARRAY),
+	OPCODE_PTR(COMPARITH),
+	OPCODE_PTR(INC),
+	OPCODE_PTR(INCL),
+	OPCODE_PTR(PINC),
+	OPCODE_PTR(PINCL),
+	OPCODE_PTR(CMP),
+	OPCODE_PTR(EXISTS),
+	OPCODE_PTR(INSTANCEOF),
+	OPCODE_PTR(AND),
+	OPCODE_PTR(OR),
+	OPCODE_PTR(NEG),
+	OPCODE_PTR(NOT),
+	OPCODE_PTR(BWNOT),
+	OPCODE_PTR(CLOSURE),
+	OPCODE_PTR(YIELD),
+	OPCODE_PTR(RESUME),
+	OPCODE_PTR(FOREACH),
+	OPCODE_PTR(POSTFOREACH),
+	OPCODE_PTR(CLONE),
+	OPCODE_PTR(TYPEOF),
+	OPCODE_PTR(PUSHTRAP),
+	OPCODE_PTR(POPTRAP),
+	OPCODE_PTR(THROW),
+	OPCODE_PTR(NEWSLOTA),
+	OPCODE_PTR(GETBASE),
+	OPCODE_PTR(CLOSE),
+	OPCODE_PTR(EQI),
+	OPCODE_PTR(NEI),
+};
+#endif
 
 	switch(et) {
 		case ET_CALL: {
@@ -796,19 +884,19 @@ exception_restore:
 			OpProfile &opp = _op_profile[_i_.op];
 			++opp.count;
 #endif
-			switch(_i_.op)
+			CALL_OPCODE(_i_.op)
 			{
-			case _OP_LINE: if (_debughook) CallDebugHook(_SC('l'),arg1); continue;
-			case _OP_LOAD: TARGET = ci->_literals[arg1]; continue;
-			case _OP_LOADINT:
+			OPCODE_TARGET(LINE) { if (_debughook) CallDebugHook(_SC('l'),arg1); continue;}
+			OPCODE_TARGET(LOAD) { TARGET = ci->_literals[arg1]; continue;}
+			OPCODE_TARGET(LOADINT) {
 #ifndef _SQ64
-				TARGET = (SQInteger)arg1; continue;
+				TARGET = (SQInteger)arg1; continue;}
 #else
-				TARGET = (SQInteger)((SQUnsignedInteger32)arg1); continue;
+				TARGET = (SQInteger)((SQUnsignedInteger32)arg1); continue;}
 #endif
-			case _OP_LOADFLOAT: TARGET = *((SQFloat *)&arg1); continue;
-			case _OP_DLOAD: TARGET = ci->_literals[arg1]; STK(arg2) = ci->_literals[arg3];continue;
-			case _OP_TAILCALL:{
+			OPCODE_TARGET(LOADFLOAT) { TARGET = *((SQFloat *)&arg1); continue;}
+			OPCODE_TARGET(DLOAD) { TARGET = ci->_literals[arg1]; STK(arg2) = ci->_literals[arg3];continue;}
+			OPCODE_TARGET(TAILCALL) {
 				SQObjectPtr &t = STK(arg1);
 				if (type(t) == OT_CLOSURE
 					&& (!_closure(t)->_function->_bgenerator)){
@@ -819,7 +907,7 @@ exception_restore:
 					continue;
 				}
 							  }
-			case _OP_CALL: {
+			OPCODE_TARGET(CALL) {
 					SQObjectPtr clo = STK(arg1);
 					switch (type(clo)) {
 					case OT_CLOSURE:
@@ -890,8 +978,8 @@ exception_restore:
 					}
 				}
 				  continue;
-			case _OP_PREPCALL:
-			case _OP_PREPCALLK:	{
+			OPCODE_TARGET(PREPCALL)
+			OPCODE_TARGET(PREPCALLK) {
 					SQObjectPtr &key = _i_.op == _OP_PREPCALLK?(ci->_literals)[arg1]:STK(arg1);
 					SQObjectPtr &o = STK(arg2);
 					if (!Get(o, key, temp_reg,false,arg2)) {
@@ -901,7 +989,7 @@ exception_restore:
 					_Swap(TARGET,temp_reg);//TARGET = temp_reg;
 				}
 				continue;
-			case _OP_GETK:
+			OPCODE_TARGET(GETK) {
 #ifndef NO_EXCEPTION_KEY_NOT_FOUND
 				if (!Get(STK(arg2), ci->_literals[arg1], temp_reg, false,arg2)) { SQ_THROW();}
 #else
@@ -909,40 +997,40 @@ exception_restore:
 				if(!Get(STK(arg2), ci->_literals[arg1], temp_reg, false,arg2)) temp_reg.Null();
 #endif
 				_Swap(TARGET,temp_reg);//TARGET = temp_reg;
-				continue;
-			case _OP_MOVE: TARGET = STK(arg1); continue;
-			case _OP_NEWSLOT:
+				continue;}
+			OPCODE_TARGET(MOVE) { TARGET = STK(arg1); continue;}
+			OPCODE_TARGET(NEWSLOT) {
 				_GUARD(NewSlot(STK(arg1), STK(arg2), STK(arg3),false));
 				if(arg0 != 0xFF) TARGET = STK(arg3);
-				continue;
-			case _OP_DELETE: _GUARD(DeleteSlot(STK(arg1), STK(arg2), TARGET)); continue;
-			case _OP_SET:
+				continue;}
+			OPCODE_TARGET(DELETE) { _GUARD(DeleteSlot(STK(arg1), STK(arg2), TARGET)); continue;}
+			OPCODE_TARGET(SET) {
 				if (!Set(STK(arg1), STK(arg2), STK(arg3),arg1)) { SQ_THROW(); }
 				if (arg0 != 0xFF) TARGET = STK(arg3);
-				continue;
-			case _OP_GET:
+				continue;}
+			OPCODE_TARGET(GET) {
 				if (!Get(STK(arg1), STK(arg2), temp_reg, false,arg1)) { SQ_THROW(); }
 				_Swap(TARGET,temp_reg);//TARGET = temp_reg;
-				continue;
-			case _OP_EQ:
+				continue;}
+			OPCODE_TARGET(EQ) {
 				TARGET = IsEqual(STK(arg2),COND_LITERAL)?true:false;
-				continue;
-			case _OP_EQI:
+				continue;}
+			OPCODE_TARGET(EQI) {
 				TARGET = IsEqualIdentity(STK(arg2),COND_LITERAL)?true:false;
-				continue;
-			case _OP_NE:
+				continue;}
+			OPCODE_TARGET(NE) {
 				TARGET = (!IsEqual(STK(arg2),COND_LITERAL))?true:false;
-				continue;
-			case _OP_NEI:
+				continue;}
+			OPCODE_TARGET(NEI) {
 				TARGET = (!IsEqualIdentity(STK(arg2),COND_LITERAL))?true:false;
-				continue;
-			case _OP_ADD: _ARITH_(+,TARGET,STK(arg2),STK(arg1)); continue;
-			case _OP_SUB: _ARITH_(-,TARGET,STK(arg2),STK(arg1)); continue;
-			case _OP_MUL: _ARITH_(*,TARGET,STK(arg2),STK(arg1)); continue;
-			case _OP_DIV: _ARITH_NOZERO(/,TARGET,STK(arg2),STK(arg1),_SC("division by zero")); continue;
-			case _OP_MOD: ARITH_OP('%',TARGET,STK(arg2),STK(arg1)); continue;
-			case _OP_BITW:	_GUARD(BW_OP( arg3,TARGET,STK(arg2),STK(arg1))); continue;
-			case _OP_RETURN:
+				continue;}
+			OPCODE_TARGET(ADD) { _ARITH_(+,TARGET,STK(arg2),STK(arg1)); continue;}
+			OPCODE_TARGET(SUB) { _ARITH_(-,TARGET,STK(arg2),STK(arg1)); continue;}
+			OPCODE_TARGET(MUL) { _ARITH_(*,TARGET,STK(arg2),STK(arg1)); continue;}
+			OPCODE_TARGET(DIV) { _ARITH_NOZERO(/,TARGET,STK(arg2),STK(arg1),_SC("division by zero")); continue;}
+			OPCODE_TARGET(MOD) { ARITH_OP('%',TARGET,STK(arg2),STK(arg1)); continue;}
+			OPCODE_TARGET(BITW) {	_GUARD(BW_OP( arg3,TARGET,STK(arg2),STK(arg1))); continue;}
+			OPCODE_TARGET(RETURN) {
 				if((ci)->_generator) {
 					(ci)->_generator->Kill();
 				}
@@ -952,25 +1040,25 @@ exception_restore:
 					_Swap(outres,temp_reg);
 					return true;
 				}
-				continue;
-			case _OP_LOADNULLS:{ for(SQInt32 n=0; n < arg1; n++) STK(arg0+n).Null(); }continue;
-			case _OP_LOADROOT:	TARGET = _roottable; continue;
-			case _OP_LOADBOOL: TARGET = arg1?true:false; continue;
-			case _OP_DMOVE: STK(arg0) = STK(arg1); STK(arg2) = STK(arg3); continue;
-			case _OP_JMP: ci->_ip += (sarg1); continue;
-			//case _OP_JNZ: if(!IsFalse(STK(arg0))) ci->_ip+=(sarg1); continue;
-			case _OP_JCMP:
+				continue;}
+			OPCODE_TARGET(LOADNULLS) { for(SQInt32 n=0; n < arg1; n++) STK(arg0+n).Null(); }continue;
+			OPCODE_TARGET(LOADROOT) {	TARGET = _roottable; continue;}
+			OPCODE_TARGET(LOADBOOL) { TARGET = arg1?true:false; continue;}
+			OPCODE_TARGET(DMOVE) { STK(arg0) = STK(arg1); STK(arg2) = STK(arg3); continue;}
+			OPCODE_TARGET(JMP) { ci->_ip += (sarg1); continue;}
+			//OPCODE_TARGET(JNZ) { if(!IsFalse(STK(arg0))) ci->_ip+=(sarg1); continue;
+			OPCODE_TARGET(JCMP) {
 				_GUARD(CMP_OP((CmpOP)arg3,STK(arg2),STK(arg0),temp_reg));
 				if(IsFalse(temp_reg)) ci->_ip+=(sarg1);
-				continue;
-			case _OP_JZ: if(IsFalse(STK(arg0))) ci->_ip+=(sarg1); continue;
-			case _OP_GETOUTER: {
+				continue;}
+			OPCODE_TARGET(JZ) { if(IsFalse(STK(arg0))) ci->_ip+=(sarg1); continue;}
+			OPCODE_TARGET(GETOUTER) {
 				SQClosure *cur_cls = _closure(ci->_closure);
 				SQOuter *otr = _outer(cur_cls->_outervalues[arg1]);
 				TARGET = *(otr->_valptr);
 				}
 			continue;
-			case _OP_SETOUTER: {
+			OPCODE_TARGET(SETOUTER) {
 				SQClosure *cur_cls = _closure(ci->_closure);
 				SQOuter   *otr = _outer(cur_cls->_outervalues[arg1]);
 				*(otr->_valptr) = STK(arg2);
@@ -979,14 +1067,14 @@ exception_restore:
 				}
 				}
 			continue;
-			case _OP_NEWOBJ:
+			OPCODE_TARGET(NEWOBJ) {
 				switch(arg3) {
 					case NOT_TABLE: TARGET = SQTable::Create(_ss(this), arg1); continue;
 					case NOT_ARRAY: TARGET = SQArray::Create(_ss(this), 0); _array(TARGET)->Reserve(arg1); continue;
 					case NOT_CLASS: _GUARD(CLASS_OP(TARGET,arg1,arg2)); continue;
 					default: assert(0); continue;
-				}
-			case _OP_APPENDARRAY:
+				}}
+			OPCODE_TARGET(APPENDARRAY) {
 				{
 					SQObject val;
 					val._unVal.raw = 0;
@@ -1015,14 +1103,14 @@ exception_restore:
 
 				}
 				_array(STK(arg0))->Append(val);	continue;
-				}
-			case _OP_COMPARITH: {
+				}}
+			OPCODE_TARGET(COMPARITH) {
 				SQInteger selfidx = (((SQUnsignedInteger)arg1&0xFFFF0000)>>16);
 				_GUARD(DerefInc(arg3, TARGET, STK(selfidx), STK(arg2), STK(arg1&0x0000FFFF), false, selfidx));
 								}
 				continue;
-			case _OP_INC: {SQObjectPtr o(sarg3); _GUARD(DerefInc('+',TARGET, STK(arg1), STK(arg2), o, false, arg1));} continue;
-			case _OP_INCL: {
+			OPCODE_TARGET(INC) {SQObjectPtr o(sarg3); _GUARD(DerefInc('+',TARGET, STK(arg1), STK(arg2), o, false, arg1));} continue;
+			OPCODE_TARGET(INCL) {
 				SQObjectPtr &a = STK(arg1);
 				if(type(a) == OT_INTEGER) {
 					a._unVal.nInteger = _integer(a) + sarg3;
@@ -1032,8 +1120,8 @@ exception_restore:
 					_ARITH_(+,a,a,o);
 				}
 						   } continue;
-			case _OP_PINC: {SQObjectPtr o(sarg3); _GUARD(DerefInc('+',TARGET, STK(arg1), STK(arg2), o, true, arg1));} continue;
-			case _OP_PINCL:	{
+			OPCODE_TARGET(PINC) {SQObjectPtr o(sarg3); _GUARD(DerefInc('+',TARGET, STK(arg1), STK(arg2), o, true, arg1));} continue;
+			OPCODE_TARGET(PINCL) {
 				SQObjectPtr &a = STK(arg1);
 				if(type(a) == OT_INTEGER) {
 					TARGET = a;
@@ -1044,42 +1132,42 @@ exception_restore:
 				}
 
 						} continue;
-			case _OP_CMP:	_GUARD(CMP_OP((CmpOP)arg3,STK(arg2),STK(arg1),TARGET))	continue;
-			case _OP_EXISTS: TARGET = Get(STK(arg1), STK(arg2), temp_reg, true,DONT_FALL_BACK)?true:false;continue;
-			case _OP_INSTANCEOF:
+			OPCODE_TARGET(CMP) {	_GUARD(CMP_OP((CmpOP)arg3,STK(arg2),STK(arg1),TARGET))	continue;}
+			OPCODE_TARGET(EXISTS) { TARGET = Get(STK(arg1), STK(arg2), temp_reg, true,DONT_FALL_BACK)?true:false;continue;}
+			OPCODE_TARGET(INSTANCEOF) {
 				if(type(STK(arg1)) != OT_CLASS)
 				{Raise_Error(_SC("cannot apply instanceof between a %s and a %s"),GetTypeName(STK(arg1)),GetTypeName(STK(arg2))); SQ_THROW();}
 				TARGET = (type(STK(arg2)) == OT_INSTANCE) ? (_instance(STK(arg2))->InstanceOf(_class(STK(arg1)))?true:false) : false;
-				continue;
-			case _OP_AND:
+				continue;}
+			OPCODE_TARGET(AND) {
 				if(IsFalse(STK(arg2))) {
 					TARGET = STK(arg2);
 					ci->_ip += (sarg1);
 				}
-				continue;
-			case _OP_OR:
+				continue;}
+			OPCODE_TARGET(OR) {
 				if(!IsFalse(STK(arg2))) {
 					TARGET = STK(arg2);
 					ci->_ip += (sarg1);
 				}
-				continue;
-			case _OP_NEG: _GUARD(NEG_OP(TARGET,STK(arg1))); continue;
-			case _OP_NOT: TARGET = IsFalse(STK(arg1)); continue;
-			case _OP_BWNOT:
+				continue;}
+			OPCODE_TARGET(NEG) { _GUARD(NEG_OP(TARGET,STK(arg1))); continue;}
+			OPCODE_TARGET(NOT) { TARGET = IsFalse(STK(arg1)); continue;}
+			OPCODE_TARGET(BWNOT) {
 				if(type(STK(arg1)) == OT_INTEGER) {
 					SQInteger t = _integer(STK(arg1));
 					TARGET = SQInteger(~t);
 					continue;
 				}
 				Raise_Error(_SC("attempt to perform a bitwise op on a %s"), GetTypeName(STK(arg1)));
-				SQ_THROW();
-			case _OP_CLOSURE: {
+				SQ_THROW();}
+			OPCODE_TARGET(CLOSURE) {
 				SQClosure *c = ci->_closure._unVal.pClosure;
 				SQFunctionProto *fp = c->_function;
 				if(!CLOSURE_OP(TARGET,fp->_functions[arg1]._unVal.pFunctionProto)) { SQ_THROW(); }
 				continue;
 			}
-			case _OP_YIELD:{
+			OPCODE_TARGET(YIELD) {
 				if(ci->_generator) {
 					if(sarg1 != MAX_FUNC_STACKSIZE) temp_reg = STK(arg1);
 					_GUARD(ci->_generator->Yield(this,arg2));
@@ -1095,40 +1183,40 @@ exception_restore:
 
 				}
 				continue;
-			case _OP_RESUME:
+			OPCODE_TARGET(RESUME) {
 				if(type(STK(arg1)) != OT_GENERATOR){ Raise_Error(_SC("trying to resume a '%s',only genenerator can be resumed"), GetTypeName(STK(arg1))); SQ_THROW();}
 				_GUARD(_generator(STK(arg1))->Resume(this, TARGET));
 				traps += ci->_etraps;
-                continue;
-			case _OP_FOREACH:{ int tojump;
+                continue;}
+			OPCODE_TARGET(FOREACH) { int tojump;
 				_GUARD(FOREACH_OP(STK(arg0),STK(arg2),STK(arg2+1),STK(arg2+2),arg2,sarg1,tojump));
 				ci->_ip += tojump; }
 				continue;
-			case _OP_POSTFOREACH:
+			OPCODE_TARGET(POSTFOREACH) {
 				assert(type(STK(arg0)) == OT_GENERATOR);
 				if(_generator(STK(arg0))->_state == SQGenerator::eDead)
 					ci->_ip += (sarg1 - 1);
-				continue;
-			case _OP_CLONE: _GUARD(Clone(STK(arg1), TARGET)); continue;
-			case _OP_TYPEOF: _GUARD(TypeOf(STK(arg1), TARGET)) continue;
-			case _OP_PUSHTRAP:{
+				continue;}
+			OPCODE_TARGET(CLONE) { _GUARD(Clone(STK(arg1), TARGET)); continue;}
+			OPCODE_TARGET(TYPEOF) { _GUARD(TypeOf(STK(arg1), TARGET)) continue;}
+			OPCODE_TARGET(PUSHTRAP) {
 				SQInstruction *_iv = _closure(ci->_closure)->_function->_instructions;
 				_etraps.push_back(SQExceptionTrap(_top,_stackbase, &_iv[(ci->_ip-_iv)+arg1], arg0)); traps++;
 				ci->_etraps++;
 							  }
 				continue;
-			case _OP_POPTRAP: {
+			OPCODE_TARGET(POPTRAP) {
 				for(SQInteger i = 0; i < arg0; i++) {
 					_etraps.pop_back(); traps--;
 					ci->_etraps--;
 				}
 							  }
 				continue;
-			case _OP_THROW:	Raise_Error(TARGET); SQ_THROW(); continue;
-			case _OP_NEWSLOTA:
+			OPCODE_TARGET(THROW) {	Raise_Error(TARGET); SQ_THROW(); continue;}
+			OPCODE_TARGET(NEWSLOTA) {
 				_GUARD(NewSlotA(STK(arg1),STK(arg2),STK(arg3),(arg0&NEW_SLOT_ATTRIBUTES_FLAG) ? STK(arg2-1) : SQObjectPtr(),(arg0&NEW_SLOT_STATIC_FLAG)?true:false,false));
-				continue;
-			case _OP_GETBASE:{
+				continue;}
+			OPCODE_TARGET(GETBASE) {
 				SQClosure *clo = _closure(ci->_closure);
 				if(clo->_base) {
 					TARGET = clo->_base;
@@ -1138,12 +1226,17 @@ exception_restore:
 				}
 				continue;
 			}
-			case _OP_CLOSE:
+			OPCODE_TARGET(CLOSE) {
 				if(_openouters) CloseOuters(&(STK(arg1)));
-				continue;
+				continue;}
 			}
 		}
 	}
+
+#if defined(__GNUC__) && defined(USE_COMPUTED_GOTOS)
+    #pragma GCC pop_options
+#endif
+
 #endif
 
 exception_trap:
