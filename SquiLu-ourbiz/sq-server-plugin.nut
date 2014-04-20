@@ -49,6 +49,14 @@ function getCachedStmt(db, stmt_key, sql_or_func){
 }
 */
 
+function glob2Sql(v){
+	if( v ) {
+		v = v.gsub("*", "%%");
+		v = v.gsub("%?", "_");
+	}
+	return v;
+}
+
 function unescapeHtml ( str ){
 	if (str){
 		return str.gsub("(&[^;]-;)", function(m){
