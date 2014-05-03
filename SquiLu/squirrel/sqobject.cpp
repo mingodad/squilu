@@ -558,6 +558,19 @@ static const SQChar *get_arith_op(int it){
 #undef SCASE
 }
 
+static const SQChar *getOpName(int op_code) {
+	const SQChar *str_op;
+
+    switch(op_code){
+#define ENUM_OP(a,b) case a: str_op = _SC(#a); break;
+        SQ_OP_CODE_LIST()
+#undef ENUM_OP
+        default:
+            str_op = _SC("???");
+    }
+    return str_op;
+}
+
 bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 {
 	SQInteger i,nliterals = _nliterals,nparameters = _nparameters;
@@ -613,7 +626,7 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 	SafeWriteFmt(v,write,up,"\tlineinfos = [\n\t\t//[op, line],\n");
 	for(i=0;i<nlineinfos;i++){
 	    SQLineInfo &li=_lineinfos[i];
-		SafeWriteFmt(v,write,up,"\t\t/*%d*/ [%d, %d],\n", i, li._op, li._line);
+		SafeWriteFmt(v,write,up,"\t\t/*%d*/ [%d, %d], /*%s*/\n", i, li._op, li._line, getOpName(li._op));
 	}
     SafeWriteFmt(v,write,up,"\t],\n");
 
@@ -623,18 +636,12 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 	}
     SafeWriteFmt(v,write,up,"],\n");
 
-	SafeWriteFmt(v,write,up,"\tinstructions = [\n");
+	SafeWriteFmt(v,write,up,"\tinstructions = [ /*stack*/\n");
     SafeWriteFmt(v,write,up,"\t\t//[op_str, op, arg0, arg1, arg2, arg3],\n");
 	const SQChar *str_op;
 	for(i=0;i<ninstructions;i++){
 	    SQInstruction &inst = _instructions[i];
-	    switch(inst.op){
-#define ENUM_OP(a,b) case a: str_op = _SC(#a); break;
-	        SQ_OP_CODE_LIST()
-#undef ENUM_OP
-            default:
-                str_op = _SC("???");
-	    }
+        str_op = getOpName(inst.op);
 		SafeWriteFmt(v,write,up,"\t\t/*%d*/ [\"%s\", %d, %d, %d, %d, %d],", i, str_op, inst.op, inst._arg0, inst._arg1, inst._arg2, inst._arg3);
 
         switch(inst.op){
@@ -646,12 +653,16 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
                 else
                 {
                     SafeWriteFmt(v,write,up,"\t\t/* stk[%d] <- literals[%d] */", inst._arg0, lidx);
+                    //_CHECK_IO(WriteObjectAsCode(v,up,write,_literals[lidx], false));
+                    //SafeWriteFmt(v,write,up," */");
                 }
                 if(inst.op == _OP_DLOAD) {
                     lidx = inst._arg3;
                     if(lidx >= 0xFFFFFFFF)  SafeWriteFmt(v,write,up," /* stk[%d] <- null */", inst._arg2);
                     else {
-                        SafeWriteFmt(v,write,up," /* stk[%d] <- literals[%d] */", inst._arg2, lidx);
+                        SafeWriteFmt(v,write,up," /* stk[%d] <- literals[%d] ", inst._arg2, lidx);
+                        _CHECK_IO(WriteObjectAsCode(v,up,write,_literals[lidx], false));
+                        SafeWriteFmt(v,write,up," */");
                     }
                 }
             }
@@ -699,7 +710,7 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
                                      inst._arg0, inst._arg1, i + inst._arg1 + 1);
             break;
             case _OP_RETURN:
-                        SafeWriteFmt(v,write,up,"\t/* _arg0(0x%X) != 0xFF ? stk[%d] : null */",
+                        SafeWriteFmt(v,write,up,"\t/* _arg0(%d) != 255 ? stk[%d] : null */",
                                      inst._arg0, inst._arg1);
             break;
             case _OP_NEWOBJ:
