@@ -1,3 +1,5 @@
+#ifndef SQUILU_ALONE
+
 #include "squirrel.h"
 #include "mysql.h"
 #include <string.h>
@@ -397,6 +399,33 @@ static SQRESULT sq_mysql_result_row_as_array(HSQUIRRELVM v){
 	return 1;
 }
 
+static SQRESULT sq_mysql_result_row_as_table(HSQUIRRELVM v){
+	SQ_FUNC_VARS(v);
+	GET_mysql_result_INSTANCE();
+	SQ_OPT_INTEGER(v, 2, row, -1);
+    if(row < 0){
+        sq_pushstring(v, _curr_row_key, -1);
+        if(sq_get(v, 1) == SQ_OK){
+            sq_getinteger(v, -1, &row);
+        }
+    }
+    int row_count = dlmysql_num_rows(self);
+    if(row < 0 || row >= row_count) return sq_throwerror(v, _SC("invalid row (%d)"), row);
+
+    int col_count = dlmysql_num_fields(self);
+    sq_newtableex(v, col_count);
+    dlmysql_data_seek(self, row);
+    const MYSQL_ROW res_row = dlmysql_fetch_row(self);
+    unsigned long *lengths = dlmysql_fetch_lengths(self);
+    MYSQL_FIELD *fields = dlmysql_fetch_fields(self);
+    for(int i=0; i < col_count; ++i){
+        sq_pushstring(v, fields[i].name, -1);
+        sq_pushstring(v, (const SQChar*)res_row[i], lengths[i]);
+        sq_rawset(v, -3);
+    }
+	return 1;
+}
+
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_mysql_result_##name,nparams,tycheck}
 static SQRegFunction sq_mysql_result_methods[] =
 {
@@ -409,6 +438,7 @@ static SQRegFunction sq_mysql_result_methods[] =
 	_DECL_FUNC(col_index,  2, _SC("xs")),
 	_DECL_FUNC(col_value,  2, _SC("x i|s")),
 	_DECL_FUNC(row_as_array,  -1, _SC("xi")),
+	_DECL_FUNC(row_as_table,  -1, _SC("xi")),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -783,7 +813,7 @@ static SQRegFunction sq_mysql_methods[] =
 	_DECL_FUNC(error_message,  1, _SC("x")),
 	_DECL_FUNC(version,  1, _SC("x")),
 	_DECL_FUNC(last_insert_id,  1, _SC("x")),
-	_DECL_FUNC(escape_string,  1, _SC("xs")),
+	_DECL_FUNC(escape_string,  2, _SC("xs")),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -823,3 +853,4 @@ SQRESULT sqext_register_MySQL(HSQUIRRELVM v)
 }
 #endif
 
+#endif
