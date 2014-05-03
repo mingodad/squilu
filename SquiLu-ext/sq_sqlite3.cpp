@@ -1361,7 +1361,7 @@ static SQRESULT sq_sqlite3_changes(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_sqlite3_INSTANCE();
-    sq_pushinteger(v, sqlite3_total_changes(self));
+    sq_pushinteger(v, sqlite3_changes(self));
     return 1;
 }
 
