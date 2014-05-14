@@ -1054,7 +1054,9 @@ dad.appOnMouseDown = function(event) {
 
 		_resizingObject.grabx = dad.getClientX(evt);
 		_resizingObject.graby = dad.getClientY(evt);
+		_resizingObject.minWidth = 0;
 		_resizingObject.width = el.offsetWidth;
+		_resizingObject.minHeight = 0;
 		_resizingObject.height = el.offsetHeight;
 		_resizingObject.left = el.offsetLeft;
 		_resizingObject.top = el.offsetTop;
@@ -1079,32 +1081,53 @@ dad.appOnMouseMove = function(event){
 	//Dragging starts here
 
 	if(dad._resizingObject != null) {
-		var xMin = 8; //The smallest width possible
-		var yMin = 8; //             height
 		var obj = dad._resizingObject;
 		el = obj.el;
+		var xMin = obj.minWidth ?  obj.minWidth : 8; //The smallest width possible
+		var yMin = obj.minHeight ?  obj.minHeight : 8; //             height
+		var newWidth = 0, newHeight = 0;
 		var dir = obj.dir;
 		var rd = dad.RESIZE_DIR;
 		var mousePos = dad.getMousePos(evt);
-
-		if (dir & rd.east)
-			el.style.width = Math.max(xMin, obj.width + mousePos.x - obj.grabx) + "px";
+		
+		if (dir & rd.east) {
+			newWidth = Math.max(xMin, obj.width + mousePos.x - obj.grabx);
+			el.style.width = newWidth + "px";
+		}
 	
-		if (dir & rd.south)
-			el.style.height = Math.max(yMin, obj.height + mousePos.y - obj.graby) + "px";
+		if (dir & rd.south) {
+			newHeight = Math.max(yMin, obj.height + mousePos.y - obj.graby);
+			el.style.height = newHeight + "px";
+		}
 
 		if (dir & rd.west) {
 			var leftPos = Math.min(obj.left + mousePos.x - obj.grabx, obj.left + obj.width - xMin);
 			if(leftPos < 0) leftPos = 0;
 			el.style.left = leftPos + "px";
-			el.style.width = Math.max(xMin, obj.width - mousePos.x + obj.grabx) + "px";
+			newWidth = Math.max(xMin, obj.width - mousePos.x + obj.grabx);
+			el.style.width = newWidth + "px";
 		}
 		if (dir & rd.north) {
 			var topPos = Math.min(obj.top + mousePos.y - obj.graby, obj.top + obj.height - yMin);
 			if(topPos < 0) topPos = 0;
 			el.style.top = topPos + "px";
-			el.style.height = Math.max(yMin, obj.height - mousePos.y + obj.graby) + "px";
+			newHeight = Math.max(yMin, obj.height - mousePos.y + obj.graby);
+			el.style.height = newHeight + "px";
 		}
+				
+		var child = dad.getFirstChild(el);
+		if(child)
+		{
+			if ( newWidth && (child.offsetWidth > newWidth) )
+			{
+				obj.minWidth = child.offsetWidth;
+			}
+			if ( newHeight && (child.offsetHeight > newHeight) )
+			{
+				obj.minHeight = child.offsetHeight;
+			}
+		}
+
 		dad.cancelEvent(evt, true);
 	} else {
 		if(el && dad.getIsCalssResizeable(el)){
