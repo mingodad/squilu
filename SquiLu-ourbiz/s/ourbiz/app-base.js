@@ -485,6 +485,24 @@ dad.dragDrop = {
 	}
 }
 
+// one-time code
+if(dad.isIE) {
+    var IEBinaryToString_Script =
+    "<!-- IEBinaryToArray_ByteStr -->\r\n"+
+    "<script type='text/vbscript'>\r\n"+
+    "Function IEVB_BinaryToString(Binary)\r\n"+
+    "   Dim I,S\r\n"+
+    "   For I = 1 to LenB(Binary)\r\n"+
+    "     S = S & Chr(AscB(MidB(Binary,I,1)))\r\n"+
+    "   Next\r\n"+
+    "   IEVB_BinaryToString = S\r\n"+
+    "End Function\r\n"+
+    "</script>\r\n";
+
+    // inject VBScript
+    document.write(IEBinaryToString_Script);
+}
+
 dad.newAjaxRequest = function(){
  var activexmodes=["Msxml2.XMLHTTP", "Microsoft.XMLHTTP"] //activeX versions to check for in IE
  if (window.ActiveXObject){ //Test for support for ActiveXObject in IE first (as XMLHttpRequest in IE7 is broken)
@@ -516,7 +534,7 @@ dad.Ajax = function(callback, params, cache)
          {
             if (thisObj.request.readyState != 4)
                return;
-            thisObj.responseText            = thisObj.request.responseText;
+            thisObj.responseText            =  dad.isIE ? IEVB_BinaryToString(thisObj.request.responseBody) : thisObj.request.responseText;
             thisObj.responseXML             = thisObj.request.responseXML;
             thisObj.status                  = thisObj.request.status;
             thisObj.cache[thisObj.cacheKey] = thisObj.responseText;
