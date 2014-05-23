@@ -129,7 +129,7 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
                       *ts2++ = _SC('"');
                       while (size--) {
                         if (*ts == _SC('\r') && *(ts+1) == _SC('\n') ) {
-                          ++ts;//eat \r and output only \n
+                          ++ts; --size;//eat \r and output only \n
                         }
                         if (*ts == _SC('"') || *ts == _SC('\\')) {
                             *ts2++ = _SC('\\');
