@@ -139,6 +139,10 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
                             *ts2++ = _SC('\\');
                             *ts2++ = _SC('n');
                         }
+                        else if (*ts == _SC('\t')) {
+                            *ts2++ = _SC('\\');
+                            *ts2++ = _SC('t');
+                        }
                         else if (*ts == _SC('\0') || iscntrl(uchar(*ts))) {
                           SQChar buff[10];
                           int iw;
