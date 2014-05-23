@@ -109,7 +109,7 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
                           ++addlen;
                           ++ts2; --size;//eat \r and output only \n
                         }
-                        else if (*ts2 == _SC('"') || *ts2 == _SC('\\') || *ts2 == _SC('\n')) {
+                        else if (*ts2 == _SC('"') || *ts2 == _SC('\\') || *ts2 == _SC('\n')  || *ts2 == _SC('\t')) {
                           ++addlen;
                         }
                         else if (*ts2 == _SC('\0') || iscntrl(uchar(*ts2))) {
@@ -129,7 +129,7 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
                       *ts2++ = _SC('"');
                       while (size--) {
                         if (*ts == _SC('\r') && *(ts+1) == _SC('\n') ) {
-                          ++ts; --size;//eat \r and output only \n
+                          ++ts;//eat \r and output only \n
                         }
                         if (*ts == _SC('"') || *ts == _SC('\\')) {
                             *ts2++ = _SC('\\');
