@@ -1626,6 +1626,9 @@ static SQRESULT string_split(HSQUIRRELVM v) {
     if(*str){ //there is anything left ?
         sq_pushstring(v, str, -1);
         sq_arrayappend(v, -2);
+    } else if( str_size && (*(str-1) == sep) ){ //last empty column ?
+        sq_pushstring(v, _SC(""), 0);
+        sq_arrayappend(v, -2);
     }
     return 1;
 }
