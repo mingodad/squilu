@@ -506,9 +506,18 @@ class MyEvaLayoutManager extends EvaLayoutManager {
 		//print("show", cId, bShowHide);
 	}
 	
+	function getComponentRect(cId, rect)
+	{
+		rect.left <- cId.x();
+		rect.top <- cId.y();
+		rect.right <- cId.w();
+		rect.bottom <- rect.top + cId.h();
+	}
+	
 	function moveComponent (cId, x, y, dx, dy, bShowHide)
 	{
-		print(format([==[document.getElementById("%s").setAttribute("style", "position:absolute;left:%dpx;top:%dpx;right:%dpx;bottom:%dpx;");]==], cId, x, y, dx, dy, bShowHide));
+		//print(format([==[document.getElementById("%s").setAttribute("style", "position:absolute;left:%dpx;top:%dpx;right:%dpx;bottom:%dpx;");]==], cId, x, y, dx, dy, bShowHide));
+		cId.resize(x, y, dx, dy);
 	}	
 }
 
@@ -525,6 +534,57 @@ var layInfo = [
 var manager = new MyEvaLayoutManager();
 manager.setLayout(layInfo);
 
+class EvaWindow extends Fl_Window {
+	boton1 = null;
+	boton2 = null;
+	boton3 = null;
+	boton4 = null;
+	memo = null;
+	edit1 = null;
+	
+	constructor() {
+		base.constructor(10, 50, 300, 280, "EvaWindow");
+		begin();
+		
+		boton1 = new Fl_Button(0, 0, 35, 25,"button1");
+		boton1->labelsize(16);
+		boton2 = new Fl_Button(0, 0, 35, 25,"button2");
+		boton2->labelsize(16);
+		boton3 = new Fl_Button(0, 0, 35, 25,"button3");
+		boton3->labelsize(16);
+		boton4 = new Fl_Button(0, 0, 105, 25,"button4");
+		boton4->labelsize(16);
+		memo = new Fl_Input(0, 0, 35, 25,"memo");
+		memo->labelsize(16);
+		edit1 = new Fl_Input(0, 0, 35, 25,"edit1");
+		edit1->labelsize(16);
+		
+		end();
+	}
+}
+
+local win = new EvaWindow();
+win->resizable(win);
+win->show_main();
+
+manager.addComponent("memo",   win.memo);
+manager.addComponent("boton1",  win.boton1);
+manager.addComponent("boton2",  win.boton2);
+manager.addComponent("boton3",  win.boton3);
+manager.addComponent("boton4",  win.boton4);
+manager.addComponent("edit1",  win.edit1);
+manager.doLayout(win.w(), win.h());
+
+//Fl:scheme("plastic");
+Fl.scheme("gtk+");
+//use partial match to find verdana font
+Fl.visual(FL_RGB);
+//allow arrow keys navigation
+Fl.option(Fl.OPTION_ARROW_FOCUS, true);
+
+Fl.run();
+
+/*
 manager.addComponent("memo",    "memo");
 manager.addComponent("boton1",  "boton1");
 manager.addComponent("boton2",  "boton2");
@@ -539,3 +599,4 @@ manager.doLayout(300, 400);
 manager.doLayout(400, 300);
 manager.doLayout(500, 600);
 manager.doLayout(600, 500);
+*/
