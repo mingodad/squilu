@@ -2,14 +2,14 @@ dad.barChart = function()
 {
     this.init = function(elm)
     {
-        if(typeof elm == 'string') elm = document.getElementById(elm);
+        if(typeof elm === 'string') elm = document.getElementById(elm);
         this.canvas = elm;
-    }
+    };
     this.canvas = null;
     this.getContext = function()
     {
         return this.canvas.getContext('2d');
-    }
+    };
     this.label = "Bar Chart";
     this.label_align = -1; /*-1, 0, 1*/
     this._bars = [];
@@ -21,15 +21,15 @@ dad.barChart = function()
     this.bar_count = function()
     {
         return this._bars.length;
-    }
+    };
     this.bar_add = function(bheader, bvalue, bcolor)
     {
         this._bars.push([bheader, bvalue, bcolor]);
-    }
+    };
     this.getBar = function (idx)
     {
         return this._bars[idx];
-    }
+    };
 
     this.get_bar_depth = function()
     {
@@ -39,7 +39,7 @@ dad.barChart = function()
     {
         this._bar_depth = val;
         this.update_bar_chart();
-    }
+    };
 
     this.get_bar_num_format_decimals = function()
     {
@@ -49,28 +49,28 @@ dad.barChart = function()
     {
         this._bar_num_format_decimals = val;
         this.update_bar_chart();
-    }
+    };
 
     this.bar_begin_update = function()
     {
         return ++this._bar_update_count;
-    }
+    };
     this.bar_end_update = function()
     {
-        if(this._bar_update_count == 0) throw "Barchart begin/end update out of sync !";
-        if(--this._bar_update_count == 0) this.update_bar_chart();
-    }
+        if(this._bar_update_count === 0) throw "Barchart begin/end update out of sync !";
+        if(--this._bar_update_count === 0) this.update_bar_chart();
+    };
 
     this.update_bar_chart = function()
     {
-        if(this._bar_update_count == 0) this.draw();
-    }
+        if(this._bar_update_count === 0) this.draw();
+    };
 
     this.bar_clear = function()
     {
         this._bars.length = 0;
         this.update_bar_chart();
-    }
+    };
 
     this._tmpSpan = document.createElement("span");
     this.getFontMetrics = function(text, font)
@@ -85,7 +85,7 @@ dad.barChart = function()
 				var hmetrics = ctx.measureText("L");
         metrics.height = hmetrics.width * 3;
         return metrics;
-    }
+    };
     this.normalize_scale_units = function(oldScale)
     {
         var result = oldScale;
@@ -105,7 +105,7 @@ dad.barChart = function()
             return t;
         }
         return result;
-    }
+    };
 
     this.draw_mypolygon = function(x1, y1, x2, y2, x3, y3, x4, y4, line_color, fill_color)
     {
@@ -131,7 +131,7 @@ dad.barChart = function()
         //fl_line_style(FL_SOLID, 1, NULL);
         //fl_loop(x1, y1, x2, y2, x3, y3, x4, y4);
         ctx.restore();
-    }
+    };
 
     this.draw_mybar = function(pbx, pby, pw, ph, pdepth, line_color, fill_color)
     {
@@ -166,7 +166,7 @@ dad.barChart = function()
             line_color,
             fill_color
         );
-    }
+    };
 
     // Fixed: Minus xStep bug (when x2 < x, original code bugs)
     // Fixed: Vertical line bug (when abs(x - x2) is zero, original code bugs because of NaN)
@@ -190,7 +190,7 @@ dad.barChart = function()
             if(xSlope)
             {
                 if(dx < 0) step = -step;
-                x += step
+                x += step;
                 y += slope * step;
             }
             else
@@ -199,11 +199,11 @@ dad.barChart = function()
                 x += slope * step;
                 y += step;
             }
-            this_canvas[(dashIndex % 2 == 0) ? 'lineTo' : 'moveTo'](x, y);
+            this_canvas[(dashIndex % 2 === 0) ? 'lineTo' : 'moveTo'](x, y);
             distRemaining -= dashLength;
             dashIndex++;
         }
-    }
+    };
 
     this.draw = function()
     {
@@ -299,7 +299,7 @@ dad.barChart = function()
         max_value_str_height = tm.height;
 
         var pixelPerUnit, nScaleLines, scaleUnits, itmp;
-        if(value_max == 0)
+        if(value_max === 0)
         {
             pixelPerUnit = 1;
             nScaleLines = 1;
@@ -311,11 +311,11 @@ dad.barChart = function()
             nScaleLines = Math.ceil(itmp / (2*max_value_str_width));
         }
 
-        if(nScaleLines == 0) scaleUnits = value_max +1;
+        if(nScaleLines === 0) scaleUnits = value_max +1;
         else scaleUnits = Math.floor(value_max / nScaleLines) +1;
 
         scaleUnits = this.normalize_scale_units(scaleUnits);
-        if(scaleUnits == 0)	nScaleLines = 1;
+        if(scaleUnits === 0)	nScaleLines = 1;
         else nScaleLines = (value_max / scaleUnits)+1;
 
         ctx.strokeStyle = color_dark3;
@@ -342,12 +342,12 @@ dad.barChart = function()
             ctx.fillStyle = color_black;
             ctx.fillText(s, bars_box_x + dk - half_max_value_str_width, bars_box_bottom+char_height);
             ctx.restore();
-        }
+        };
 
         var half_max_value_str_width = Math.floor(max_value_str_width / 2);
         var bars_box_bottom = bars_box_y+bar_depth+bars_box_height+2;
         var str_zero = "0";
-        if(value_max == 0)
+        if(value_max === 0)
         {
             var ik = Math.floor(bars_box_width / 2);
             draw_scaleLine(ik,str_zero);
@@ -367,7 +367,7 @@ dad.barChart = function()
         }
 
         var bar_height, bar_y;
-        if(this._bars.length == 0) bar_height = 0;
+        if(this._bars.length === 0) bar_height = 0;
         else bar_height = ((bars_box_height- bar_depth) / ((2.0*this._bars.length+1)));
 
         bars_box_bottom -= 2*bar_height + bar_depth;
@@ -441,5 +441,5 @@ dad.barChart = function()
             ctx.fillText(str, str_x, str_y);
         }
         //fl_line_style(0);
-    }
+    };
 };
