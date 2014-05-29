@@ -1,4 +1,5 @@
-dad = {}
+//var undefined;
+dad = {};
 
 function $id(id){return document.getElementById(id);}
 
@@ -20,17 +21,17 @@ dad.detectEnvironment = function () {
     if ((document.all) && (!dad.isOpera)) {
       dad.isIE = (ua.indexOf('MSIE ') > -1);
     }
-		if(dad.isIE){
-			dad.isIE = (function(){
-				var undef, v = 3, div = document.createElement('div'),
-					all = div.getElementsByTagName('i');
-				while (
-						div.innerHTML = '<!--[if gt IE ' + (++v) + ']><i></i><![endif]-->',
-						all[0]
-				){};
-				return v > 4 ? v : undef;
-			}());
-		}
+	if(dad.isIE){
+		dad.isIE = (function(){
+			var undef, v = 3, div = document.createElement('div'),
+				all = div.getElementsByTagName('i');
+			while (
+					div.innerHTML = '<!--[if gt IE ' + (++v) + ']><i></i><![endif]-->',
+					all[0]
+			){};
+			return v > 4 ? v : undef;
+		}());
+	}
   }
   // Squelch
   catch(e) {}
@@ -44,16 +45,16 @@ dad.detectEnvironment = function () {
 dad.detectEnvironment();
 
 dad._seqID_ = 0;
-dad.newSeqId = function(){return this._seqID_++;}
+dad.newSeqId = function(){return this._seqID_++;};
 dad._renewLastSeqId = true;
 dad._lastSeqId = false;
 dad.newIdBy2calls = function(){
 	if(dad._renewLastSeqId)	dad._lastSeqId = 'rb' + dad.newSeqId();
 	dad._renewLastSeqId = !dad._renewLastSeqId;
 	return dad._lastSeqId;
-}
+};
 
-dad.isArray = function(obj) { return Object.prototype.toString.call( obj ) === '[object Array]';}
+dad.isArray = function(obj) { return Object.prototype.toString.call( obj ) === '[object Array]';};
 
 dad.number_format = function(num, decp){
 	if(decp == null) decp = 2;
@@ -64,12 +65,12 @@ dad.number_format = function(num, decp){
 	b = parseFloat(b).toFixed(decp); //in case we get 0.0, we pad it out to 0.00
 	a = a.toLocaleString();//put in commas - IE also puts in .00, so we'll get 12,345,678.00
 	//if IE (our number ends in .00)
-	if(a < 1 && a.lastIndexOf('.00') == (a.length - 3))
+	if(a < 1 && a.lastIndexOf('.00') === (a.length - 3))
 	{
 			a=a.substr(0, a.length-3); //delete the .00
 	}
 	return a+b.substr(1);//remove the 0 from b, then return a + b = 12,345,678.90
-}
+};
 
 dad.dumpObj = function(obj){
 	var result = '';
@@ -77,30 +78,30 @@ dad.dumpObj = function(obj){
 		result += key + '\n';
 	}
 	return result;
-}
+};
 
-dad._scriptsIncluded = {}
+dad._scriptsIncluded = {};
 dad.include = function(jsFile){
-	if (dad._scriptsIncluded[jsFile] != null) return;
+	if (dad._scriptsIncluded[jsFile] !== null) return;
 	var scriptElt = document.createElement('script');
 	scriptElt.type = 'text/javascript';
 	scriptElt.src = jsFile;
 	document.getElementsByTagName('head')[0].appendChild(scriptElt);
 	dad._scriptsIncluded[jsFile] = true; // or whatever value your prefer
-}
+};
 
-dad.getAsPixels = function(x){ return x + "px";}
+dad.getAsPixels = function(x){ return x + "px";};
 dad.getEventSource = function(evt) {
 	var target = evt.target ? evt.target : evt.srcElement;
-	return (target.nodeType == 3) ? target.parentNode : target;
-}
-dad.getOffsetX = function(evt) {return evt.changedTouches ? evt.changedTouches[0].offsetX : evt.offsetX || evt.layerX;}
-dad.getOffsetY = function(evt) {return evt.changedTouches ? evt.changedTouches[0].offsetY : evt.offsetY || evt.layerY;}
-dad.getClientX = function(evt) {return evt.changedTouches ? evt.changedTouches[0].pageX : evt.clientX;}
-dad.getClientY = function(evt) {return evt.changedTouches ? evt.changedTouches[0].pageY : evt.clientY;}
+	return (target.nodeType === 3) ? target.parentNode : target;
+};
+dad.getOffsetX = function(evt) {return evt.changedTouches ? evt.changedTouches[0].offsetX : evt.offsetX || evt.layerX;};
+dad.getOffsetY = function(evt) {return evt.changedTouches ? evt.changedTouches[0].offsetY : evt.offsetY || evt.layerY;};
+dad.getClientX = function(evt) {return evt.changedTouches ? evt.changedTouches[0].pageX : evt.clientX;};
+dad.getClientY = function(evt) {return evt.changedTouches ? evt.changedTouches[0].pageY : evt.clientY;};
 
 dad.getMousePos = function (evt){
-	if (evt.targetTouches && evt.targetTouches.length){
+	if (('targetTouches' in evt) && evt.targetTouches.length){
 		var t = evt.targetTouches[0];
 		 return { x: t.pageX, y: t.pageY };
 	} else if (evt.pageX || evt.pageY)
@@ -111,94 +112,104 @@ dad.getMousePos = function (evt){
 		return { x: evt.clientX + delm.scrollLeft - bdy.clientLeft,
 							y: evt.clientY + delm.scrollTop  - bdy.clientTop };
 	}
-}
-
-if( document.documentElement && document.documentElement.scrollTop ){
-	dad.getScrolledX = function() {return document.documentElement.scrollLeft;}
-	dad.getScrolledY = function() {return document.documentElement.scrollTop;}
-} else {
-	dad.getScrolledX = function() {return document.body.scrollLeft;}
-	dad.getScrolledY = function() {return document.body.scrollTop;}
-}
-if( document.documentElement && document.documentElement.clientHeight ){
-	dad.getClientWidth = function() {return document.documentElement.clientWidth;}
-	dad.getClientHeight = function() {return document.documentElement.clientHeight;}
-} else {
-	dad.getClientWidth = function() {return document.body.clientWidth;}
-	dad.getClientHeight = function() {return document.body.clientHeight;}
-}
-dad.checkEvent = function(evt) {return evt || window.event;}
-dad.getEventKey = function(evt){
-	var key = (evt.charCode) ? evt.charCode:
-		((evt.keyCode) ? evt.keyCode: ((evt.which) ? evt.which : 0));
-	return key;
-}
-dad.trim = function (st) {return st.replace(/^\s+|\s+$/g, '');}
-dad.inArray = function (v, a){
-for (var i = 0, numA = a.length; i < numA; i++)
-	if ((v != null && a[i].constructor == Array && 
-			v.constructor == Array && a[i].toString() == v.toString()) || 
-			(a[i] == v)) return true;
-}
-
-dad.parseJSON = window.JSON ? window.JSON.parse : function(str) {return eval('(' + str + ')')}
-
-dad.arrayApply = function (ary, func) {
-	var isFunc = (typeof p == 'function');
-	for (var i = 0, numObjs = ary.length; i < numObjs; i++) 
-		isFunc ? func(ary[i]) : eval('ary[i].' + func);
 };
 
-dad.getHash = function ( url ) {return url.substring( url.lastIndexOf ( '#' ) + 1 );}
+if( ('documentElement' in document) && ('scrollTop' in document.documentElement) ){
+	dad.getScrolledX = function() {return document.documentElement.scrollLeft;};
+	dad.getScrolledY = function() {return document.documentElement.scrollTop;};
+} else {
+	dad.getScrolledX = function() {return document.body.scrollLeft;};
+	dad.getScrolledY = function() {return document.body.scrollTop;};
+}
+if( ('documentElement' in document) && ('clientHeight' in document.documentElement) ){
+	dad.getClientWidth = function() {return document.documentElement.clientWidth;};
+	dad.getClientHeight = function() {return document.documentElement.clientHeight;};
+} else {
+	dad.getClientWidth = function() {return document.body.clientWidth;};
+	dad.getClientHeight = function() {return document.body.clientHeight;};
+}
+dad.checkEvent = function(evt) {return evt || window.event;};
+dad.getEventKey = function(evt){
+	var key = ('charCode' in evt) ? evt.charCode:
+		(('keyCode' in evt) ? evt.keyCode: (('which' in evt) ? evt.which : 0));
+	return key;
+};
+dad.trim = function (st) {return st.replace(/^\s+|\s+$/g, '');};
+dad.inArray = function (v, a){
+	for (var i = 0, numA = a.length; i < numA; i++) {
+		var elm = a[i];
+		if ((v !== null && elm.constructor === Array &&
+			v.constructor === Array && elm.toString() === v.toString()) ||
+			(elm === v)) return true;
+	}
+};
+
+dad.parseJSON = ('JSON' in window) ? window.JSON.parse : function(str) {return eval('(' + str + ')');};
+
+dad.arrayApply = function (ary, func) {
+	var isFunc = (typeof func === 'function');
+	for (var i = 0, numObjs = ary.length; i < numObjs; i++) {
+		var elm = ary[i];
+		if(isFunc){
+			func(elm);
+		} else {
+			if(typeof elm[func] === 'function') {
+				elm[func]();
+			}
+		}
+	}
+};
+
+dad.getHash = function ( url ) {return url.substring( url.lastIndexOf ( '#' ) + 1 );};
 
 //check if the first node is an element node
 dad.getFirstChild = function(n){
 	x=n.firstChild;
-	while (x.nodeType!=1) x=x.nextSibling;
+	while (x.nodeType!==1) x=x.nextSibling;
 	return x;
-}
+};
 
 dad.getFirstChildWithTagName = function( element, tagName ) {
 	var cn = element.childNodes;
 	for ( var i = 0, cnl = cn.length; i < cnl; i++ ) {
 		var elm = cn[i];
-		if ( elm.nodeName == tagName ) return elm;
+		if ( elm.nodeName === tagName ) return elm;
 		var found = dad.getFirstChildWithTagName( elm, tagName );
 		if( found ) return found;
 	}
-}
+};
 
 dad.isSpace = function( ch ) {
-		return (ch == " ") || (ch == "\t") || (ch == "\n") || (ch == "\r") || (ch == "\v");
-}
+		return (ch === " ") || (ch === "\t") || (ch === "\n") || (ch === "\r") || (ch === "\v");
+};
 
 dad.strHasWord = function(str, word){
 	var found = str.indexOf(word);
 	while(found >= 0) {
-		if(found == 0){
-			if( (str.length == word.length) ||
+		if(found === 0){
+			if( (str.length === word.length) ||
 				(dad.isSpace(str[word.length])) ) return true;
 		} else {
 			if( dad.isSpace(str[found-1]) ) {
-				if( (str.length == found+word.length) ||
+				if( (str.length === found+word.length) ||
 					(dad.isSpace(str[found+word.length]))) return true;
 			}
 		}
 		found = str.indexOf(word, found+1);
 	}
 	return false;
-}
+};
 
 dad.strRemoveWord = function(str, word){
 	var found = str.indexOf(word);
 	while(found >= 0) {
-		if(found == 0){
-			if(str.length == word.length) return "";
+		if(found === 0){
+			if(str.length === word.length) return "";
 			if(dad.isSpace(str[word.length])) return str.substring(word.length+1);
 		} else {
 			if( dad.isSpace(str[found-1]) ) {
 				var lastPos = found+word.length;
-				if(str.length == lastPos) {
+				if(str.length === lastPos) {
 					return str.substring(0, found-1);
 				}
 				if(dad.isSpace(str[lastPos])) {
@@ -209,76 +220,112 @@ dad.strRemoveWord = function(str, word){
 		found = str.indexOf(word, found+1);
 	}
 	return str;
+};
+
+if('classList' in document)
+{
+	dad.hasClass = function(elm, className) {
+		return className && elm.classList.indexOf(className) >= 0;
+	};
+
+	dad.addClass = function(elm, className) {
+		if(className)
+		{
+			if(elm.classList.indexOf(className) >= 0) return;
+			elm.classList.add(className);
+		}
+	};
+
+	dad.removeClass = function(elm, className) {
+		elm.classList.remove(className);
+	};
+} else {
+	dad.hasClass = function(elm, className) {
+		var elm_className = elm.className;
+		return elm_className && dad.strHasWord(elm_className, className);
+	};
+
+	dad.addClass = function(elm, className) {
+		if(dad.hasClass(elm, className)) return;
+		var elm_className = elm.className;
+		if(elm_className) elm.className = elm_className + " " + className;
+		else elm.className = className;
+	};
+
+	dad.removeClass = function(elm, className) {
+		elm.className = dad.strRemoveWord(elm.className, className);
+	};
 }
 
-dad.hasClass = function(elm, className) {
-	var elm_className = elm.className;
-	return elm_className && dad.strHasWord(elm_className, className);
-}
+dad.toggleClass = function(elm, className, doAdd) {
+	if(doAdd) {
+		dad.addClass(elm, className);
+		return;
+	}
+	dad.removeClass(elm, className);
+};
 
-dad.addClass = function(elm, className) {
-	if(dad.hasClass(elm, className)) return;
-	var elm_className = elm.className;
-	if(elm_className) elm.className = elm_className + " " + className;
-	else elm.className = className;
-}
-
-dad.removeClass = function(elm, className) {
-	elm.className = dad.strRemoveWord(elm.className, className);
-}
+dad.setCss = function(elm, k, v){
+	var style = elm.style;
+	if(typeof k === "object") {
+		for(var i in k) {style[i] = k[i];}
+	} else {
+		style[k] = v;
+	}
+};
 
 dad.getFirstChildWithClassName = function( element, className ) {
-	if(element.childNodes){
+	if('childNodes' in element){
 		var cn = element.childNodes;
 		for ( var i = 0, cnl = cn.length; i < cnl; i++ ) {
 			var elm = cn[i];
 			if(dad.hasClass(elm, className)) return elm;
-	
+
 			var found = dad.getFirstChildWithClassName( elm, className );
 			if( found ) return found;
 		}
 	}
-}
+};
 
 dad.getFirstChildWithAttribute = function( element, attrName, attrValue ) {
 	var cn = element.childNodes;
 	for ( var i = 0, cnl = cn.length; i < cnl; i++ ) {
 		var elm = cn[i];
-		if ( elm[attrName] && ((attrValue == null) || (elm[attrName] == attrValue))) {
+		if ( elm[attrName] && ((attrValue === null) || (elm[attrName] === attrValue))) {
 			return elm;
 		}
 		var found = dad.getFirstChildWithAttribute( elm, attrName, attrValue );
 		if( found ) return found;
 	}
-}
+};
 
 dad.getFirstParentWithClassName = function( element, className ) {
 	var pn = element;
 	while(pn = pn.parentNode){
 		if ( dad.hasClass(pn, className) ) return pn;
 	}
-}
+};
 
 dad.getFirstParentWithTagName = function( element, tagName ) {
 	var pn = element;
 	while(pn = pn.parentNode){
-		if ( pn.tagName == tagName ) return pn;
+		if ( pn.tagName === tagName ) return pn;
 	}
-}
+};
 
 dad.getFirstParentWithWithAttribute = function( element, attrName ) {
 	var pn = element;
 	while(pn = pn.parentNode){
 		if ( pn[attrName] ) return pn;
 	}
-}
+};
 
 dad.getChildById = function( element, id , recurse) {
 	var cn = element.childNodes;
 	for ( var i = 0, cnl = cn.length; i < cnl; i++ ) {
-		if ( cn[i].id == id ) return cn[i];
+		if ( cn[i].id === id ) return cn[i];
 	}
-}
+};
 
 dad.resizeImg = function (img, maxWidth){
 	maxWidth = maxWidth || 400;
@@ -286,7 +333,7 @@ dad.resizeImg = function (img, maxWidth){
 		if (img.style.msInterpolationMode) img.style.msInterpolationMode = 'bicubic';
 		img.width = maxWidth;
 	}
-}
+};
 
 dad.initTab = function(tabContainer) {
   var buttons = new Array();
@@ -294,18 +341,18 @@ dad.initTab = function(tabContainer) {
   var tabObj = {
 	'buttons': buttons,
 	'table_rows': table_rows
-  }
+  };
   var cn = tabContainer.cells[0].childNodes;
   for ( var i = 0, j = 0, tl = cn.length; i < tl; i++ ) {
 		var item = cn[i];
-		if ( item.nodeName == "BUTTON" ) {
+		if ( item.nodeName === "BUTTON" ) {
 			var id = item.name;
 			buttons[id] = item;
 			item.tabObj = tabObj;
 		// Assign onclick events to the tab links, and
 			item.onclick = dad.showTab;
 		// highlight the first tab
-			if ( j == 0 ) dad.addClass(item, 'selected');
+			if ( j === 0 ) dad.addClass(item, 'selected');
 			var tabContent = $id(id);
 			table_rows[id] = tabContent;
 			// Hide all content divs except the first
@@ -313,7 +360,7 @@ dad.initTab = function(tabContainer) {
 			j++;
 		}
   }
-}
+};
 
 dad.showTab = function() {
   var selectedId = this.name;
@@ -322,7 +369,7 @@ dad.showTab = function() {
   var table_rows = this.tabObj.table_rows;
   var buttons = this.tabObj.buttons;
   for ( var id in table_rows ) {
-		if ( id == selectedId ) {
+		if ( id === selectedId ) {
 			dad.addClass(buttons[id], 'selected');
 			dad.removeClass(table_rows[id], 'hide');
 		} else {
@@ -332,29 +379,29 @@ dad.showTab = function() {
   }
   // Stop the browser following the link
   return false;
-}
+};
 
-dad.addEvent = window.addEventListener ? 
+dad.addEvent = 'addEventListener' in window ?
 	function(obj,evt,fn) {obj.addEventListener(evt,fn,false);} :
-	function(obj,evt,fn) {obj.attachEvent('on'+evt,fn)};
+	function(obj,evt,fn) {obj.attachEvent('on'+evt,fn);};
 
-dad.removeEvent = window.removeEventListener ?
+dad.removeEvent = 'removeEventListener' in window ?
 	function(obj,evt,fn) {obj.removeEventListener(evt,fn,false);} :
-	function(obj,evt,fn) {obj.detachEvent('on'+evt,fn)};
-	
-dad.cancelEvent = window.addEventListener ? 
+	function(obj,evt,fn) {obj.detachEvent('on'+evt,fn);};
+
+dad.cancelEvent = 'addEventListener' in window ?
 	function (e, c) {e.preventDefault(); if (c) e.stopPropagation();}:
-	function (e, c) {e.preventDefault ? e.preventDefault() : e.returnValue = false; if (c) e.cancelBubble = true;};
+	function (e, c) {'preventDefault' in e ? e.preventDefault() : e.returnValue = false; if (c) e.cancelBubble = true;};
 
 dad.addEventMulti = function(obj, evts, fn){
 	var ary = evts.split(' ');
 	for(var i in ary) dad.addEvent(obj, ary[i], fn);
-}
+};
 
 dad.removeEventMulti = function(obj, evts, fn){
 	var ary = evts.split(' ');
 	for(var i in ary) dad.removeEvent(obj, ary[i], fn);
-}
+};
 
 dad.dragDrop = {
 	keySpeed: 10, // pixels per keypress event
@@ -368,12 +415,12 @@ dad.dragDrop = {
 	draggedObject: undefined,
 	initElement: function (element, dragThisObj, keyboardLink) {
 		var dd = dad.dragDrop;
-		if (typeof element == 'string') element = $id(element);
+		if (typeof element === 'string') element = $id(element);
 		element.onmousedown = dd.startDragMouse;
 		element.ontouchstart = dd.startDragMouse;
 		element._dragThisObj = dragThisObj;
 		if(keyboardLink) {
-			if (typeof keyboardLink == 'string')
+			if (typeof keyboardLink === 'string')
 				keyboardLink = $id(keyboardLink);
 			keyboardLink.relatedElement = element;
 			keyboardLink.onclick = dd.startDragKeys;
@@ -449,8 +496,7 @@ dad.dragDrop = {
 				return true;
 		}
 		dd.setPosition(dd.dXKeys,dd.dYKeys);
-		if (evt.preventDefault)
-			evt.preventDefault();
+		dad.cancelEvent(evt);
 		return false;
 	},
 	setPosition: function (dx,dy) {
@@ -472,18 +518,19 @@ dad.dragDrop = {
 	},
 	releaseElement: function() {
 		var dd = dad.dragDrop;
+		var dobj = dd.draggedObject;
+		if(!dobj) return;
 		var removeEvent = dad.removeEvent;
 		var removeEventMulti = dad.removeEventMulti;
 		removeEventMulti(document,'mousemove touchmove',dd.dragMouse);
 		removeEventMulti(document,'mouseup touchend',dd.releaseElement);
 		removeEventMulti(document,'keypress keydown',dd.dragKeys);
 		removeEvent(document,'keypress',dd.switchKeyEvents);
-		var dobj = dd.draggedObject;
 		dad.removeClass(dobj, 'dragged');
 		if(dobj.onStopDragging)  dobj.onStopDragging();
 		dd.draggedObject = null;
 	}
-}
+};
 
 // one-time code
 if(dad.isIE) {
@@ -504,22 +551,22 @@ if(dad.isIE) {
 }
 
 dad.newAjaxRequest = function(){
- var activexmodes=["Msxml2.XMLHTTP", "Microsoft.XMLHTTP"] //activeX versions to check for in IE
- if (window.ActiveXObject){ //Test for support for ActiveXObject in IE first (as XMLHttpRequest in IE7 is broken)
+ var activexmodes=["Msxml2.XMLHTTP", "Microsoft.XMLHTTP"]; //activeX versions to check for in IE
+ if ('ActiveXObject' in window){ //Test for support for ActiveXObject in IE first (as XMLHttpRequest in IE7 is broken)
   for (var i=0; i<activexmodes.length; i++){
    try{
-    return new ActiveXObject(activexmodes[i])
+    return new ActiveXObject(activexmodes[i]);
    }
    catch(e){
     //suppress error
    }
   }
  }
- else if (window.XMLHttpRequest) // if Mozilla, Safari etc
-  return new XMLHttpRequest()
+ else if ('XMLHttpRequest' in window) // if Mozilla, Safari etc
+  return new XMLHttpRequest();
  else
-  return false
-}
+  return false;
+};
 
 dad.Ajax = function(callback, params, cache)
 {
@@ -532,7 +579,7 @@ dad.Ajax = function(callback, params, cache)
    {
       if (!cached)
          {
-            if (thisObj.request.readyState != 4)
+            if (thisObj.request.readyState !== 4)
                return;
             thisObj.responseText            =  dad.isIE ? IEVB_BinaryToString(thisObj.request.responseBody) : thisObj.request.responseText;
             thisObj.responseXML             = thisObj.request.responseXML;
@@ -541,14 +588,14 @@ dad.Ajax = function(callback, params, cache)
          }
 
       if(thisObj.callback) thisObj.callback(params);
-   }
+   };
 
 
    this.post = function (where, what, verb, headers)
    {
       var cachedValue;
       this.cacheKey = where + '?' + what;
-      if (cache && ((cachedValue = this.cache[this.cacheKey]) != null))
+      if (cache && ((cachedValue = this.cache[this.cacheKey]) !== null))
          {
             this.responseText = cachedValue;
             this.runCallback('', true);
@@ -556,10 +603,10 @@ dad.Ajax = function(callback, params, cache)
          }
 
 	  /*IE needs a fresh new ajax obj each time*/
-	  if(dad.isIE) this.request = dad.newAjaxRequest(); 
+	  if(dad.isIE) this.request = dad.newAjaxRequest();
       this.request.onreadystatechange = this.runCallback;
 
-      verb = verb ? dad.trim(((verb == true) ? 'GET' : verb).toUpperCase()) : 'POST';
+      verb = verb ? dad.trim(((verb === true) ? 'GET' : verb).toUpperCase()) : 'POST';
       this.request.open(verb, dad.inArray(verb, ['POST', 'PUT']) ? where : where + (what ? '?' + what : ''), true);
 
       if (dad.inArray(verb, ['POST', 'PUT']))
@@ -573,22 +620,22 @@ dad.Ajax = function(callback, params, cache)
             this.request.setRequestHeader(headers[i][0], headers[i][1]);
 
       this.request.send(dad.inArray(verb, ['POST', 'PUT']) ? what : null);
-   }
+   };
    return this;
-}
+};
 
 dad._topmost_zindex = false;
 
 dad.find_topmost_zindex = function() {
   var current_top = 0;
   var page_elements = null;
-  
-  if(document.getElementsByTagName) {
+
+  if('getElementsByTagName' in document) {
     page_elements = document.body.getElementsByTagName('div');
-  } else if(document.all) {
+  } else if('all' in document) {
     page_elements = document.all;
   } else { return false; }
- 
+
   for(var i=0;i<page_elements.length;i++) {
 	var elm = page_elements[i];
     if(elm.style.zIndex){
@@ -599,23 +646,23 @@ dad.find_topmost_zindex = function() {
 	}
   }
   return current_top;
-} 
+};
 
 dad.bringToFront = function(el){
-	if (typeof el == 'string')
+	if (typeof el === 'string')
 			el = $id(el);
-	if(el != dad._topmost_zindex){
+	if(el !== dad._topmost_zindex){
 		el.style.zIndex = dad.find_topmost_zindex()+1;
 		dad._topmost_zindex = el;
 	}
-	if(el.style.display == 'none') el.style.display = "block";
-}
+	if(el.style.display === 'none') el.style.display = "block";
+};
 
 dad.bringToFrontParent = function(event){
 	var evt = dad.checkEvent(event);
 	var el = dad.getEventSource(evt);
 	dad.bringToFront(el.parentNode);
-}
+};
 
 dad.getStyle = function(el,styleProp){
 	if (el.currentStyle)
@@ -623,7 +670,7 @@ dad.getStyle = function(el,styleProp){
 	else if (window.getComputedStyle)
 		var y = document.defaultView.getComputedStyle(el,null).getPropertyValue(styleProp);
 	return y;
-}
+};
 
 dad._winOnAfterResize = function(){
 /*
@@ -648,20 +695,20 @@ dad._winOnAfterResize = function(){
 			this._onAfterResizeList[id]();
 		}
 	}
-}
+};
 
 dad.addWinOnAfterResize = function(win, id, func){
 	if(!win._onAfterResizeList) win._onAfterResizeList = {};
 	win._onAfterResizeList[id] = func;
-}
+};
 
-dad._windows = {}
+dad._windows = {};
 
 dad.closeTopParent = function (child){
 	var topParent = dad.getWindowForChild(child);
 	if(topParent) {
-		for(win in dad._windows){
-			if(topParent == dad._windows[win]) {
+		for(var win in dad._windows){
+			if(topParent === dad._windows[win]) {
 				if(!dad.hasClass(topParent, "mainWindow")){
 					dad._windows[win] = null;
 					document.body.removeChild(topParent);
@@ -671,20 +718,20 @@ dad.closeTopParent = function (child){
 		}
 	}
 	return false;
-}
+};
 
 dad.hideWindow = function (win){
 	if(win && (!dad.hasClass(win, "mainWindow"))){
 		win.style.display="none";
 	}
 	return false;
-}
+};
 
 dad.hideTopParent = function (child){
 	var topParent = dad.getWindowForChild(child);
 	dad.hideWindow(topParent);
 	return false;
-}
+};
 
 dad.centerOnScreen = function(win){
 	// Xwidth is the width of the div, Yheight is the height of the
@@ -698,18 +745,18 @@ dad.centerOnScreen = function(win){
 	if(leftOffset < 0) leftOffset = 0;
 	style.top = topOffset + 'px';
 	style.left = leftOffset + 'px';
-}
+};
 
-Jaml.register('Window', function(args) {
+Jaml.register('Window0', function(args) {
 		var AsPixels = dad.getAsPixels;
 		var swidth = "";
 		if(args.x > 0) swidth += "left:" + AsPixels(args.x) + ";";
 		if(args.y > 0) swidth += "top:" + AsPixels(args.y) + ";";
 		if(args.w > 0) swidth += "width:" + AsPixels(args.w) + ";";
 		if(args.h > 0) swidth += "height:" + AsPixels(args.h) + ";";
-		
-		var winOptClass = args.noWinOpt ? "noWinOpt" : "winOpt";
-		
+
+		var winOptClass = 'noWinOpt' in args ? "noWinOpt" : "winOpt";
+
 		div({
 				style: swidth,
 				"class":"resizeable",
@@ -733,7 +780,33 @@ Jaml.register('Window', function(args) {
 					)
 				)
 			)
-		)
+		);
+	});
+
+Jaml.register('Window', function(args) {
+		var AsPixels = dad.getAsPixels;
+		var swidth = "";
+		if(args.x > 0) swidth += "left:" + AsPixels(args.x) + ";";
+		if(args.y > 0) swidth += "top:" + AsPixels(args.y) + ";";
+		if(args.w > 0) swidth += "width:" + AsPixels(args.w) + ";";
+		if(args.h > 0) swidth += "height:" + AsPixels(args.h) + ";";
+
+		var winOptClass = 'noWinOpt' in args ? "noWinOpt" : "winOpt";
+
+		div({
+				"class":"dialogBox resizeable",
+				onAfterResize: "dad._winOnAfterResize"
+			},
+			div({"class":"dialogHeader"},
+				span({"class":"dialogTitle"}, args.title),
+				a({"class":"dialogCloseIcon", href:"#",  onclick: "return dad.closeTopParent(this)"}, "X"),
+				a({"class":"dialogMaximizeIcon", href:"#"}, "^"),
+				a({"class":"dialogMinizeIcon", href:"#",  onclick: "return dad.hideTopParent(this)"}, "_")
+			),
+			div({"class":"dialogBody", style: swidth},
+				args.content
+			)
+		);
 	});
 
 Jaml.register('Window2', function(args) {
@@ -743,9 +816,9 @@ Jaml.register('Window2', function(args) {
 		if(args.y > 0) swidth += "top:" + AsPixels(args.y) + ";";
 		if(args.w > 0) swidth += "width:" + AsPixels(args.w) + ";";
 		if(args.h > 0) swidth += "height:" + AsPixels(args.h) + ";";
-		
+
 		var winOptClass = args.noWinOpt ? "noWinOpt" : "winOpt";
-		
+
 		div({
 				style: swidth,
 				"class":"resizeable window",
@@ -760,15 +833,15 @@ Jaml.register('Window2', function(args) {
 			div({style:"position:absolute;top:1.6em;bottom:0.1em;left:0.1em;right:0.1em", "class":"winContent", id:"divContent" + args.id},
 				args.content
 			)
-		)
+		);
 	});
-	
+
 dad.setOpacity = function setOpacity(obj, value) {
 	obj.style.opacity = value/10;
 	obj.style.filter = 'alpha(opacity=' + value*10 + ')';
-}
+};
 
-dad.newWindow = function(id,x,y,w,h,title, content, noWinOpt, noCenter){
+dad.newWindow0 = function(id,x,y,w,h,title, content, noWinOpt, noCenter){
 	var args = {id:id, x: x, y: y, w: w, h: h, title: title, content: content, noWinOpt: noWinOpt};
 	var swin = Jaml.render("Window", args);
 	var elm = document.createElement('div');
@@ -787,34 +860,63 @@ dad.newWindow = function(id,x,y,w,h,title, content, noWinOpt, noCenter){
 	dad.dragDrop.initElement(win.ud.header, win);
 	win.onStartDragging = function(){
 		dad.setOpacity(win, 7);
-		win.ud.content.style.visibility="hidden"
-	}
+		win.ud.content.style.visibility="hidden";
+	};
 	win.onStopDragging = function(){
 		dad.setOpacity(win, 10);
-		win.ud.content.style.visibility="visible"
-	}
+		win.ud.content.style.visibility="visible";
+	};
 	dad._windows[title] = win;
 	if(!noCenter) dad.centerOnScreen(win);
 	return win;
-}
+};
+
+dad.newWindow = function(id,x,y,w,h,title, content, noWinOpt, noCenter){
+	var args = {id:id, x: x, y: y, w: w, h: h, title: title, content: content, noWinOpt: noWinOpt};
+	var swin = Jaml.render("Window", args);
+	var elm = document.createElement('div');
+	elm.innerHTML = swin;
+	var win = elm.firstChild;
+	document.body.appendChild(win);
+	win = document.body.lastChild;
+	win.onAfterResize = dad._winOnAfterResize;
+	win.style.position = "absolute";
+
+	win.ud = {};
+	win.ud.header = dad.getFirstChildWithClassName(win, "dialogHeader");
+	win.ud.content = dad.getFirstChildWithClassName(win, "dialogBody");
+	//set draggable
+	dad.dragDrop.initElement(win.ud.header, win);
+	win.onStartDragging = function(){
+		dad.setOpacity(win, 7);
+		win.ud.content.style.visibility="hidden";
+	};
+	win.onStopDragging = function(){
+		dad.setOpacity(win, 10);
+		win.ud.content.style.visibility="visible";
+	};
+	dad._windows[title] = win;
+	if(!noCenter) dad.centerOnScreen(win);
+	return win;
+};
 
 dad.setContentOverflow = function(id, value){
 	var divContent = $id("divContent" + id);
 	divContent.style.overflow = value || "auto";
-}
+};
 
 dad.isFocusableTag = function(tag, extra_tags){
 	var focusabeTags = ['INPUT', 'SELECT', "BUTTON", "SELECT"];
 	for(var i in focusabeTags){
-		if(tag == focusabeTags[i]) return true;
+		if(tag === focusabeTags[i]) return true;
 	}
 	if(extra_tags){
 		for(var i in extra_tags){
-			if(tag == extra_tags[i]) return true;
+			if(tag === extra_tags[i]) return true;
 		}
 	}
 	return false;
-}
+};
 
 dad.formGetNextFormFocusableElement = function(elm, backward){
 	var result = null;
@@ -828,7 +930,7 @@ dad.formGetNextFormFocusableElement = function(elm, backward){
 					result = curr_elm;
 					break;
 				}
-			} else if(curr_elm == elm) startChecking = true;
+			} else if(curr_elm === elm) startChecking = true;
 		}
 	} else {
 		for(var x=0, len=form.length; x < len; x++){
@@ -838,23 +940,23 @@ dad.formGetNextFormFocusableElement = function(elm, backward){
 					result = curr_elm;
 					break;
 				}
-			} else if(curr_elm == elm) startChecking = true;
+			} else if(curr_elm === elm) startChecking = true;
 		}
 	}
 	return result;
-}
+};
 
 dad.formFocusNext = function(elm, backward){
 	var nextElm = dad.formGetNextFormFocusableElement(elm, backward);
 	if(nextElm) nextElm.focus();
 	return nextElm;
-}
+};
 
 dad.formFocusNextFromEvent = function(evt, backward){
 	var nextElm = dad.formGetNextFormFocusableElement(dad.getEventSource(evt), backward);
 	if(nextElm) nextElm.focus();
 	return nextElm;
-}
+};
 
 dad.formInputTextOnKeydown = function(event){
 	var evt = dad.checkEvent(event);
@@ -904,11 +1006,11 @@ dad.formInputTextOnKeydown = function(event){
 		case 27: //escape
 		break;
 	}
-}	
+};
 
 dad.getTableForTableChild = function(child){
 	return dad.getFirstParentWithTagName(child, 'TABLE');
-}
+};
 
 dad.createTable = function(header){
 	var table = document.createElement('table');
@@ -920,7 +1022,7 @@ dad.createTable = function(header){
 		tr.insertCell(-1).innerHTML = header[i];
 	}
 	return table;
-}
+};
 
 dad.tableAddRow = function(table, row){
 	var tr = table.insertRow(-1);
@@ -928,7 +1030,7 @@ dad.tableAddRow = function(table, row){
 	for(var i=0; i < len; i++){
 		tr.insertCell(-1).innerHTML = row[i];
 	}
-}
+};
 
 dad.tableAddRows = function(table, rows, cellClass){
 	var rlen = rows.length;
@@ -941,38 +1043,38 @@ dad.tableAddRows = function(table, rows, cellClass){
 			rows[i].display = 'none';
 		}
 	}
-}
+};
 
 dad.onTableClick = function(table){
 	alert(table.rowIndex);
-}
+};
 
 dad.onTableRowClick = function(){
 	alert(this.rowIndex);
 	return false;
-}
+};
 
 dad.appLogShow = false;
 
-dad.showDebug = function(str){ if(this.appLogShow) this.appLogShow.innerHTML = str; }
+dad.showDebug = function(str){ if('appLogShow' in this) this.appLogShow.innerHTML = str; };
 
 dad.RESIZE_DIR = {
 	north: 0x01,
 	south: 0x02,
 	east: 0x04,
 	west: 0x08
-}
-var rd = dad.RESIZE_DIR;
-dad.CursorResizeDirection = new Array(rd.west+1);
-var crd = dad.CursorResizeDirection;
-crd[rd.north] = "n-resize";
-crd[rd.south] = "s-resize";
-crd[rd.east] = "e-resize";
-crd[rd.west] = "w-resize";
-crd[rd.north | rd.east] = "ne-resize";
-crd[rd.south | rd.east] = "se-resize";
-crd[rd.north | rd.west] = "nw-resize";
-crd[rd.south | rd.west] = "sw-resize";
+};
+var tmp = dad.RESIZE_DIR;
+dad.CursorResizeDirection = new Array(tmp.west+1);
+var tmp2 = dad.CursorResizeDirection;
+tmp2[tmp.north] = "n-resize";
+tmp2[tmp.south] = "s-resize";
+tmp2[tmp.east] = "e-resize";
+tmp2[tmp.west] = "w-resize";
+tmp2[tmp.north | tmp.east] = "ne-resize";
+tmp2[tmp.south | tmp.east] = "se-resize";
+tmp2[tmp.north | tmp.west] = "nw-resize";
+tmp2[tmp.south | tmp.west] = "sw-resize";
 
 //Find out what kind of resize! Return a string inlcluding the directions
 dad.getResizeDirection = function(el, evt) {
@@ -990,37 +1092,37 @@ dad.getResizeDirection = function(el, evt) {
 	else if (xPos > el.offsetWidth-offset) dir |= dad.RESIZE_DIR.east;
 
 	return dir;
-}
+};
 
 dad._resizingObject = null;
 dad.getIsCalssResizeable = function(el){
 	return dad.hasClass(el, "resizeable");
-}
+};
 
 dad.getWindowForChild = function(child){
 	return topParent = dad.getFirstParentWithClassName(child, "resizeable");
-}
+};
 
 dad.checkIsTop = function(el){
 	var topParent = dad.getWindowForChild(el);
-	var result = topParent == dad._topmost_zindex;
+	var result = topParent === dad._topmost_zindex;
 	if(topParent) dad.bringToFront(topParent);
 	return result;
-}
+};
 
 dad._nonChar = false;
-dad.handleNonChar = function(vchar){}
-dad.handleChar = function(vchar){}
-	 
+dad.handleNonChar = function(vchar){};
+dad.handleChar = function(vchar){};
+
 dad.handleKeyboard = function(e) {
     var vchar;
     var evt = (e) ? e : window.event;       //IE reports window.event not arg
-    if (evt.type == "keydown") {
+    if (evt.type === "keydown") {
         vchar = evt.keycode;
         if (vchar < 16 ||                    // non printables
             (vchar > 16 && vchar < 32) ||     // avoid shift
             (vchar > 32 && vchar < 41) ||     // navigation keys
-            vchar == 46) {                   // Delete Key (Add to these if you need)
+            vchar === 46) {                   // Delete Key (Add to these if you need)
             dad.handleNonChar(vchar);            // function to handle non Characters
             dad.nonChar = true;
         } else
@@ -1034,12 +1136,12 @@ dad.handleKeyboard = function(e) {
     }
     if (e)                                  // Non IE
         Event.stop(evt);                    // Using prototype
-    else if (evt.keyCode == 8)              // Catch IE backspace
+    else if (evt.keyCode === 8)              // Catch IE backspace
         evt.returnValue = false;            // and stop it!
-}
+};
 
 dad.appOnKeyDown = function(event) {
-	if(event.keyCode==27) {
+	if(event.keyCode===27) {
 		//ESC key hide windows
 		if(dad._topmost_zindex) {
 			var win = dad._topmost_zindex;
@@ -1051,23 +1153,23 @@ dad.appOnKeyDown = function(event) {
 		}
 		return false;
 	}
-}
+};
 
 dad.appOnMouseDown = function(event) {
 	var evt = dad.checkEvent(event);
 	var el = dad.getEventSource(evt);
-	
-	if (el == null) {
+
+	if (el === null) {
 		dad._resizingObject = null;
 		return;
-	}		
+	}
 	if(dad.getIsCalssResizeable(el)){
 		var dir = dad.getResizeDirection(el, evt);
-		if (dir == "") return;
+		if (dir === "") return;
 		dad._resizingObject = {};
 		var _resizingObject = dad._resizingObject;
-		
-		_resizingObject.el = el;
+
+		_resizingObject.el = el.lastElementChild;
 		_resizingObject.dir = dir;
 
 		_resizingObject.grabx = dad.getClientX(evt);
@@ -1083,22 +1185,22 @@ dad.appOnMouseDown = function(event) {
 	} else 	{
 		if(!dad.checkIsTop(el)) dad.cancelEvent(evt, true);
 	}
-}
+};
 
 dad.appOnMouseUp = function() {
-	if (dad._resizingObject != null) {
+	if (dad._resizingObject !== null) {
 		var el = dad._resizingObject.el;
 		if(el.onAfterResize) el.onAfterResize();
 		dad._resizingObject = null;
 	}
-}
+};
 
 dad.appOnMouseMove = function(event){
 	var evt = dad.checkEvent(event);
 	var el = dad.getEventSource(evt);
 	//Dragging starts here
 
-	if(dad._resizingObject != null) {
+	if(dad._resizingObject !== null) {
 		var obj = dad._resizingObject;
 		el = obj.el;
 		var xMin = obj.minWidth ?  obj.minWidth : 8; //The smallest width possible
@@ -1107,12 +1209,12 @@ dad.appOnMouseMove = function(event){
 		var dir = obj.dir;
 		var rd = dad.RESIZE_DIR;
 		var mousePos = dad.getMousePos(evt);
-		
+
 		if (dir & rd.east) {
 			newWidth = Math.max(xMin, obj.width + mousePos.x - obj.grabx);
 			el.style.width = newWidth + "px";
 		}
-	
+
 		if (dir & rd.south) {
 			newHeight = Math.max(yMin, obj.height + mousePos.y - obj.graby);
 			el.style.height = newHeight + "px";
@@ -1132,7 +1234,7 @@ dad.appOnMouseMove = function(event){
 			newHeight = Math.max(yMin, obj.height - mousePos.y + obj.graby);
 			el.style.height = newHeight + "px";
 		}
-				
+
 		var child = dad.getFirstChild(el);
 		if(child)
 		{
@@ -1153,9 +1255,9 @@ dad.appOnMouseMove = function(event){
 			if(dir) el.style.cursor = dir;
 		}
 	}
-}
+};
 
-var _transalations_ = {}
+var _transalations_ = {};
 
 function _tr(str){
 	var val = _transalations_[str];
@@ -1174,24 +1276,24 @@ Jaml.register('ActionSelect', function(actionOnChange) {
 dad.actionSelectOnActionChange = function (select) {
 	var fields = select.form.elements;
 	fields.btnAction.value = select.options[select.selectedIndex].text;
-}
+};
 
 dad.fillFormField = function(fld, fld_value){
 		if(fld.type){
-			if(fld.type == 'checkbox')
+			if(fld.type === 'checkbox')
 				fld.checked = fld_value == 1;
-			else if(fld.type == 'text')
+			else if(fld.type === 'text')
 				fld.value = fld_value || '';
-			else if(fld.type == 'textarea')
+			else if(fld.type === 'textarea')
 				fld.innerHTML = fld_value || '';
-			else if(fld.type == 'select-one'){
+			else if(fld.type === 'select-one'){
 				for(var i=0; i < fld.options.length; ++i){
 					var opt = fld.options[i];
 					opt.selected = opt.value == fld_value;
 				}
 			}
 		}
-}
+};
 
 dad.fillFormWithExistingFields = function(form, record){
 	var prefix = form.my_field_prefix;
@@ -1199,7 +1301,7 @@ dad.fillFormWithExistingFields = function(form, record){
 		var fld = form[prefix + name];
 		if(fld) dad.fillFormField(fld, record[name]);
 	}
-}
+};
 
 dad.getImageForImg = function(img, img_id, thumbnail){
 	if(img_id && img_id !== ""){
@@ -1208,7 +1310,7 @@ dad.getImageForImg = function(img, img_id, thumbnail){
 		img.src=img_src;
 		img.style.visibility="visible";
 	} else img.style.visibility="hidden";
-}
+};
 
 dad.formFillByRecord = function(form, record, prefix){
 	var prefix_len = prefix ? prefix.length : 0;
@@ -1216,29 +1318,29 @@ dad.formFillByRecord = function(form, record, prefix){
 	for (i=0; i < fields.length; i++){
 		var fld = fields[i];
 		if(!fld.name) continue;
-		if(prefix_len && fld.name.indexOf(prefix) != 0) continue;
+		if(prefix_len && fld.name.indexOf(prefix) !== 0) continue;
 		var fld_name = prefix_len ? fld.name.substring(prefix_len) : fld.name;
 		var fld_value = record[fld_name];
 		if(form.onFillForm && form.onFillForm(fld, fld_value)) continue;
 		dad.fillFormField(fld, fld_value);
 	}
-}
+};
 
 dad.formAjaxLoadResponse = function(id){
-	if(this.status == 200){
+	if(this.status === 200){
 		var form = $id('form' + id);
 		var result_array;
 		if(form.processResponse){
 			result_array = form.processResponse(this.responseText);
 		}
 		else  result_array = dad.parseSLEData(this.responseText, true);
-		
+
 		var record = {};
 		if(result_array.length > 1){
 			var names = result_array[0];
 			var values = result_array[1];
 			for(var i in names){
-				record[names[i]] = values[i]; 
+				record[names[i]] = values[i];
 			}
 		}
 		form._dbrecord = record;
@@ -1246,14 +1348,14 @@ dad.formAjaxLoadResponse = function(id){
 		dad.formFillByRecord(form, record, form.my_field_prefix);
 		if(form.afterFill) form.afterFill();
 		var formAction = fields.formAction;
-		if(formAction && (formAction.value != 'update')){
+		if(formAction && (formAction.value !== 'update')){
 			formAction.value = 'update';
 			formAction.onchange();
 		}
 	} else {
 		alert("An error has occured making the request");
 	}
-}
+};
 
 dad.stringBytesLength = function (str) {
   str = str.toString();
@@ -1267,11 +1369,11 @@ dad.stringBytesLength = function (str) {
 			else throw new Error("Bad Charcode: " + ch);
 	}
 	return len;
-}
+};
 
 dad.encodeSizeString = function(str){
 	return dad.stringBytesLength(str) + ':' + str;
-}
+};
 
 dad.getFormDataWithPrefix = function(form, prefix, doNotCheckOriginal) {
 	var prefix_len = prefix ? prefix.length : 0;
@@ -1282,21 +1384,21 @@ dad.getFormDataWithPrefix = function(form, prefix, doNotCheckOriginal) {
 		var fld = fields[i];
 		if(!fld.name) continue;
 		var fld_value;
-		if(fld.type == "text") {
+		if(fld.type === "text") {
 			fld_value = fld.value;
 		}
-		else if(fld.type == "checkbox") {
+		else if(fld.type === "checkbox") {
 			if(fld.checked) fld_value = 1;
 			else fld_value = 0;
 		}
-		else if(fld.type == "radio"){
+		else if(fld.type === "radio"){
 			if(!fld.checked) continue;
 		}
 		else if(fld.options && (fld.selectedIndex >= 0)) {
 			fld_value = fld.options[fld.selectedIndex].value;
 		}
 		else fld_value = fld.value;
-		if(prefix_len && fld.name.indexOf(prefix) != 0) continue;
+		if(prefix_len && fld.name.indexOf(prefix) !== 0) continue;
 		var fld_name = prefix_len ? fld.name.substring(prefix_len) : fld.name;
 		if(original && !doNotCheckOriginal){
 			if(original[fld_name] == fld_value) continue;
@@ -1305,24 +1407,24 @@ dad.getFormDataWithPrefix = function(form, prefix, doNotCheckOriginal) {
 		values.push(encodeURIComponent(fld_name) + '=' + encodeURIComponent(fld_value));
 	}
 	return values;
-}
+};
 
 dad.getFormData = function(form) {
 	return dad.getFormDataWithPrefix(form, form.my_field_prefix);
-}
+};
 
 dad.formOnSubmit = function(EditWindowRefresh, form, table) {
 	var fields = form.elements;
 	var action = fields.formAction.value;
-	if(action == 'refresh'){
+	if(action === 'refresh'){
 		EditWindowRefresh(this.ajax);
 		return false;
 	}
 	var values = dad.getFormDataWithPrefix(form, form.my_field_prefix);
-	if(values.length == 0 && action != "delete") return;
+	if(values.length === 0 && action !== "delete") return;
 	var original = form._dbrecord;
 	values.push(encodeURIComponent("__table__") + '=' + encodeURIComponent(table));
-	if(action != "insert"){
+	if(action !== "insert"){
 		values.push(encodeURIComponent("__id__") + '=' + encodeURIComponent(original["id"]));
 		values.push(encodeURIComponent("__version__") + '=' + encodeURIComponent(original["_version_"]));
 	}
@@ -1331,10 +1433,10 @@ dad.formOnSubmit = function(EditWindowRefresh, form, table) {
 	ajax.post(form.action, values.join('&'), 'POST', null);
 	//form.submit();
 	return false;
-}
+};
 
 dad.listEditWindowOnSubmitRespose = function (id) {
-	if(this.status == 200){
+	if(this.status === 200){
 		//retrieve result as an JavaScript object
 		var myform = $id('form' +id);
 		var record = dad.parseSLEData2Object(this.responseText);
@@ -1347,14 +1449,14 @@ dad.listEditWindowOnSubmitRespose = function (id) {
 	} else {
 		alert("An error has occured making the request");
 	}
-}
+};
 
 dad.setupEditForm = function(myform){
 	for(var x=0, len=myform.length; x < len; x++){
 		var elm = myform[x];
 		if(dad.isFocusableTag(elm.tagName)) elm.onkeydown = dad.formInputTextOnKeydown;
 	}
-}
+};
 
 dad.setupKeyboardNavigation = function(node, extra_tags){
 	var cn = node.childNodes;
@@ -1364,15 +1466,15 @@ dad.setupKeyboardNavigation = function(node, extra_tags){
 			elm.onkeydown = dad.formInputTextOnKeydown;
 		dad.setupKeyboardNavigation( elm , extra_tags);
 	}
-}
+};
 
-dad.onLoadInit = function(){	
+dad.onLoadInit = function(){
 	dad.appLogShow = $id("logShow");
 	dad.addEventMulti(document, 'mousedown', dad.appOnMouseDown);
 	dad.addEventMulti(document, 'mousemove', dad.appOnMouseMove);
 	dad.addEventMulti(document, 'mouseup', dad.appOnMouseUp);
 	dad.addEvent(document, "keydown", dad.appOnKeyDown);
-}
+};
 
 dad.loadScript = function(scriptName) {
 	if(!self.myScripts) self.myScripts = [];
@@ -1385,7 +1487,7 @@ dad.loadScript = function(scriptName) {
 	script.src = scriptName;
 	head.appendChild(script);
 	self.myScripts[scriptName] = true;
-}
+};
 
 dad._getTableAndHeaderKey = function(id){
 	var keys = {};
@@ -1397,7 +1499,7 @@ dad._getTableAndHeaderKey = function(id){
 		keys.table_header_key = 'table_header' + id;
 	}
 	return keys;
-}
+};
 
 dad.AjaxDataTableResizeHeader = function(id) {
 	var keys = dad._getTableAndHeaderKey(id);
@@ -1413,7 +1515,7 @@ dad.AjaxDataTableResizeHeader = function(id) {
 		if(dad.hasClass(th0[i], "display_none")) continue;
 		th0[i].style.width = (th1[i].offsetWidth -3) +'px';
 	}
-}
+};
 
 dad.tableInputOnKeydown = function(event){
 	var evt = dad.checkEvent(event);
@@ -1432,11 +1534,11 @@ dad.tableInputOnKeydown = function(event){
 		case 39: //arrow right
 			var elm = dad.getEventSource(evt);
 			elm = dad.getFirstParentWithTagName( this, "TABLE" );
-			if(key == 37 && elm.myPrevFocus){
+			if(key === 37 && elm.myPrevFocus){
 				elm.myPrevFocus.focus();
 				return false;
 			}
-			if(key == 39 && elm.myNextFocus){
+			if(key === 39 && elm.myNextFocus){
 				elm.myNextFocus.focus();
 				return false;
 			}
@@ -1444,8 +1546,8 @@ dad.tableInputOnKeydown = function(event){
 		case 45: //insert
 		case 46: //delete
 			var tbl = dad.getFirstParentWithTagName( this, "TABLE" );
-			if(key == 45 && tbl._onInsert_cb) tbl._onInsert_cb(this);
-			else if(key == 46 && tbl._onDelete_cb) tbl._onDelete_cb(this);
+			if(key === 45 && tbl._onInsert_cb) tbl._onInsert_cb(this);
+			else if(key === 46 && tbl._onDelete_cb) tbl._onDelete_cb(this);
 			return false;
 		break;
 		case 32: //space bar
@@ -1460,18 +1562,18 @@ dad.tableInputOnKeydown = function(event){
 			return false;
 		break;
 	}
-}
+};
 
 dad.tableInputOnFocus = function(){
 	var tr = dad.getFirstParentWithTagName( this, "TR" );
 	this.tr_color = tr.style.backgroundColor;
 	tr.style.backgroundColor = "blue";
-}
+};
 
 dad.tableInputOnBlur = function(){
 	var tr = dad.getFirstParentWithTagName( this, "TR" );
 	tr.style.backgroundColor = this.tr_color;
-}
+};
 
 dad.localeDecimalSeparator = (1.1).toLocaleString().substring(1, 2);
 
@@ -1480,33 +1582,33 @@ dad.formatCurrency = function(v, number_of_decimals, decimal_separator, currency
 	if(currency_sign == null) currency_sign = "";
 	if(decimal_separator == null) decimal_separator = dad.localeDecimalSeparator;
 
-  return (isNaN(v)? v : parseInt(v||0).toLocaleString() + 
-		(decimal_separator) + 
-		(v*1).toFixed(number_of_decimals).slice(-number_of_decimals)) + 
+  return (isNaN(v)? v : parseInt(v||0).toLocaleString() +
+		(decimal_separator) +
+		(v*1).toFixed(number_of_decimals).slice(-number_of_decimals)) +
 		currency_sign;
-}
+};
 
 dad.formatNumeric = function(v){
 	return isNaN(v)? v : parseFloat(v);
-}
+};
 
 dad.formatBoolean = function(v){
 	return v == "1" ? "+" : "";
-}
+};
 
 dad.fillTableById = function(records, id){
 	var keys = dad._getTableAndHeaderKey(id);
 	var table = $id(keys.table_key);
 	table.style.display = "none";
-	var header_title_col = 1
+	var header_title_col = 1;
 	var record_header = table.my_record_header;
 	if(!record_header) {
 		record_header = records[0];
 		var col = record_header[0];
 		header_title_col = (col && col.indexOf('|') > 0) ? 1 : 0;
 	}
-	var col_count = record_header.length;				
-	
+	var col_count = record_header.length;
+
 	var row_over_cb = table.row_over_cb;
 	var row_click_cb = table.row_click_cb;
 	var row_dblclick_cb = table.row_dblclick_cb;
@@ -1516,7 +1618,7 @@ dad.fillTableById = function(records, id){
 	/*if(!dad.isFF)*/ th_row.style.visibility = "hidden";
 	var th_cells = th_row.cells;
 	var tBody = table.tBodies[0];
-	try { 
+	try {
 		tBody.innerHTML = "";
 	} catch(e) {
 		var rows = tBody.rows;
@@ -1529,7 +1631,7 @@ dad.fillTableById = function(records, id){
 	var table_header = $id(keys.table_header_key);
 	var th_header_row = table_header.tHead.rows[0];
 	var th_cells_header = th_header_row.cells;
-	
+
 	//setting the header
 	//header, width, align, format, color, bgcolor
 	for(var i = th_cells.length-1; i > 0; --i){
@@ -1550,13 +1652,13 @@ dad.fillTableById = function(records, id){
 				default: myColsAlign[i] = "left"; //default align left
 			}
 		}
-		if(ar[2] && ar[2] == "0"){
+		if(ar[2] && ar[2] === "0"){
 			dad.addClass(new_th, "display_none");//hide the col
 		}
 		var format = ar[4];
-		if(format == "M") myColsFormat[i] = dad.formatCurrency;
-		else if(format == "N") myColsFormat[i] = dad.formatNumeric;
-		else if(format == "B") myColsFormat[i] = dad.formatBoolean;
+		if(format === "M") myColsFormat[i] = dad.formatCurrency;
+		else if(format === "N") myColsFormat[i] = dad.formatNumeric;
+		else if(format === "B") myColsFormat[i] = dad.formatBoolean;
 		else myColsFormat[i] = false;
 
 		th_row.appendChild(new_th);
@@ -1568,7 +1670,7 @@ dad.fillTableById = function(records, id){
 		var rec_count = records.length;
 		var rowVisible = dad.isMOZ ? 'table-row' : 'block';
 		var alignSupported = !dad.isIE;
-		
+
 		for (var i = first_record_no; i < rec_count; i++) { //1 to skip header
 			var rec = records[i];
 			var tr = rows[i];
@@ -1589,8 +1691,8 @@ dad.fillTableById = function(records, id){
 			chk.onblur = dad.tableInputOnBlur;
 			chk.onclick = selection_click_cb;
 			cell.appendChild(chk);
-			if(i==1) chk.focus();
-			
+			if(i===1) chk.focus();
+
 			for(var j=0, k=1; j < col_count; ++j, ++k){
 				var cell = cells[k];
 				if(!cell){
@@ -1599,7 +1701,7 @@ dad.fillTableById = function(records, id){
 					if(cn) cell.className = cn + '_c';
 					if(alignSupported) cell.align = myColsAlign[j];
 				}
-				if(j==0 && first_row_click_cb) cell.onclick = first_row_click_cb;
+				if(j===0 && first_row_click_cb) cell.onclick = first_row_click_cb;
 				var value = rec[j] || '';
 				if(myColsFormat[j]) value = myColsFormat[j](value);
 				cell.innerHTML = value;
@@ -1612,8 +1714,8 @@ dad.fillTableById = function(records, id){
 		dad.AjaxDataTableResizeHeader(id);
 	},100);
 	return table;
-}
-		
+};
+
 dad.parseSLEData = function(data, withHeader){
 	var records = [];
 	sle = dad.StrLenEncoded();
@@ -1623,7 +1725,7 @@ dad.parseSLEData = function(data, withHeader){
 	}
 	if(!withHeader) records.shift();
 	return records;
-}
+};
 
 dad.parseSLEData2Object = function(data){
 		var result_array = dad.parseSLEData(data, true);
@@ -1632,20 +1734,20 @@ dad.parseSLEData2Object = function(data){
 			var names = result_array[0];
 			var values = result_array[1];
 			for(var i in names){
-				record[names[i]] = values[i]; 
+				record[names[i]] = values[i];
 			}
 		}
 		return record;
-}
+};
 
 dad.newAjaxDataTableAjax = function(win, newId){
 	// win.onAfterResize = function(){
 		// setTimeout(function() {
 				// dad.AjaxDataTableResizeHeader(newId);
 			// },100);
-	// }		
+	// }
 	return new dad.Ajax(function(id){
-			if(this.status == 200){
+			if(this.status === 200){
 				//retrieve result as an JavaScript object
 				var records = dad.parseSLEData(this.responseText, true);
 				//remove headers
@@ -1655,18 +1757,18 @@ dad.newAjaxDataTableAjax = function(win, newId){
 							setTimeout(function() {
 							dad.AjaxDataTableResizeHeader(newId);
 						},100);
-					});	
+					});
 			} else {
 				alert("An error has occured making the request");
 			}
 		}, newId, false);
-}
+};
 
 dad._getSABTitle = function(all_sales_buys, title){
-	if(all_sales_buys == "S") title += ' Sales';
-	else if(all_sales_buys == "B") title += ' Buys';
+	if(all_sales_buys === "S") title += ' Sales';
+	else if(all_sales_buys === "B") title += ' Buys';
 	return title;
-}
+};
 
 dad.fillSelectByRecords = function(select, records, addDumy, dummyValue){
 	var options = select.options;
@@ -1684,7 +1786,7 @@ dad.fillSelectByRecords = function(select, records, addDumy, dummyValue){
 			else options.add(opt, i+1);
 		}
 	}
-}
+};
 
 dad.StrLenEncoded = function(){
 var IBYTE1 = 255;
@@ -1702,11 +1804,11 @@ var SLEEND = 255;
 
 this.charCodeAt = function(str, idx){
 	return str.charCodeAt(idx) & 0xFF;
-}
+};
 
-this.stringToBytesFaster = function ( str ) { 
+this.stringToBytesFaster = function ( str ) {
     var ch, st, re = [], j=0;
-    for (var i = 0; i < str.length; i++ ) { 
+    for (var i = 0; i < str.length; i++ ) {
         ch = str.charCodeAt(i);
         if(ch < 127)
         {
@@ -1726,12 +1828,12 @@ this.stringToBytesFaster = function ( str ) {
             for(var k=0;k<st.length; ++k)
                 re[j++] = st[k];
         }
-    }   
+    }
     // return an array of bytes
-    return re; 
-}
+    return re;
+};
 
-this.utf8toUtf16 = function(string) {   
+this.utf8toUtf16 = function(string) {
       var result = '';
       var start = 0;
       var end = 0;
@@ -1740,7 +1842,7 @@ this.utf8toUtf16 = function(string) {
       for (var i = 0, len = string.length; i < len; ++i) {
         c1 = mycharCodeAt(string, i);
         enc = null;
-    
+
         if (c1 < 128) end++;
         else if (c1 > 0x07FF) {
 			c2 = mycharCodeAt(string, ++i);
@@ -1751,50 +1853,50 @@ this.utf8toUtf16 = function(string) {
 			c2 = mycharCodeAt(string, ++i);
 			enc = String.fromCharCode(((c1 & 0x1F) << 6) | (c2 & 0x3F));
 		}
-    
+
         if (enc !== null) {
           if (end > start) result += string.slice(start, end);
-    
+
           result += enc;
           start = end = i + 1;
         }
       }
-    
+
       if (end > start) result += string.slice(start, string.length);
-    
+
       return result;
-}
+};
 
 this.sle2array = function(strascii, strascii_size, p, result_array)
 {
-    if(strascii_size == 0) return 0;
+    if(strascii_size === 0) return 0;
     var size = 0, data_count = 0, data_len = 0;
 	var rec = [];
 	var mycharCodeAt = this.charCodeAt;
-    while((mycharCodeAt(strascii, p) != SLEEND) || (p >= strascii_size)) //data finished now follow digest
+    while((mycharCodeAt(strascii, p) !== SLEEND) || (p >= strascii_size)) //data finished now follow digest
     {
         size = mycharCodeAt(strascii, p++);
         if(size >= SIZE1BYTE)
         {
-            if(size == SIZE1BYTE)
+            if(size === SIZE1BYTE)
             {
                 //data bigger than 250 and less 500 next byte has more info
                 size += mycharCodeAt(strascii, p++);
             }
-            else if(size == SIZE2BYTE)
+            else if(size === SIZE2BYTE)
             {
                 //data bigger than 250 next two bytes has more info
                 size = mycharCodeAt(strascii, p++) * IBYTE1;
                 size += mycharCodeAt(strascii, p++);
             }
-            else if(size == SIZE3BYTE)
+            else if(size === SIZE3BYTE)
             {
                 //data bigger than 250 next three bytes has more info
                 size = mycharCodeAt(strascii, p++) * IBYTE2;
                 size += mycharCodeAt(strascii, p++) * IBYTE1;
                 size += mycharCodeAt(strascii, p++);
             }
-            else if(size == SIZE4BYTE)
+            else if(size === SIZE4BYTE)
             {
                 //data bigger than 250 next four bytes has more info
                 size = mycharCodeAt(strascii, p++) * IBYTE3;
@@ -1802,7 +1904,7 @@ this.sle2array = function(strascii, strascii_size, p, result_array)
                 size += mycharCodeAt(strascii, p++) * IBYTE1;
                 size += mycharCodeAt(strascii, p++);
             }
-            else if(size == SLEMARK)
+            else if(size === SLEMARK)
             {
                 //reserved can be used for multi part data, metadata, digest, ...
                 break;
@@ -1814,7 +1916,7 @@ this.sle2array = function(strascii, strascii_size, p, result_array)
 			//try {rec.push(decodeURIComponent(escape(segment)));} catch(e) {rec.push(segment);}
 		}
 		else rec.push("");
-        p += size;		
+        p += size;
         data_count++;
         data_len += size;
         if(data_len > strascii_size)
@@ -1826,31 +1928,31 @@ this.sle2array = function(strascii, strascii_size, p, result_array)
     }
 	result_array.push(rec);
     return ++p;
-}
+};
 
 this.sle2vec = function(strascii, strascii_size, p, result_array)
 {
-    if(strascii[p] != '[') throw "Invalid encoded vector !";
-    if(strascii[p+1] == ']') return p+2; //empty array
+    if(strascii[p] !== '[') throw "Invalid encoded vector !";
+    if(strascii[p+1] === ']') return p+2; //empty array
     result = this.sle2array(strascii, strascii_size-1, p+1, result_array);
-    if(strascii[result] != ']') throw "Invalid end of vector !";
+    if(strascii[result] !== ']') throw "Invalid end of vector !";
     return ++result;
-}
+};
 
 this.sle2vecOfvec = function(strascii, strascii_size, result_array, p)
 {
 	if(!p) p = 0;
-	if(strascii[p] != '[') throw "Invalid encoded vector !";
-	if(strascii[p+1] == ']') return 2; //empty array
+	if(strascii[p] !== '[') throw "Invalid encoded vector !";
+	if(strascii[p+1] === ']') return 2; //empty array
 	p = this.sle2vec(strascii, strascii_size-1, p+1, result_array);
-	while(strascii[p] == '['){
+	while(strascii[p] === '['){
 		p = this.sle2vec(strascii, strascii_size - (p - strascii_size), p, result_array);
 	}
-	if(strascii[p] != ']') throw "Invalid end of vector !";
+	if(strascii[p] !== ']') throw "Invalid end of vector !";
 	//printf("RowCount %d\n", row_count);
 	return ++p;
-}
-	
+};
+
 	return this;
 };
 
@@ -1858,32 +1960,32 @@ dad.rightClickMenu = null;
 
 dad.showRightClickMenu = function(event) {
      if(!dad.rightClickMenu) return;
-     /*  check whether the event is a right click 
+     /*  check whether the event is a right click
        *  because different browser (ahem IE) assign different numbers to the keys to
        *  your mouse buttons and different values to the event, you'll have to do some evaluation
        */
      var rightclick; //will be set to true or false
      var evt = dad.checkEvent(event);
      if (evt.button) {
-          rightclick = (event.button == 2);
+          rightclick = (event.button === 2);
      } else if (evt.which) {
-          rightclick = (event.which == 3);
+          rightclick = (event.which === 3);
      }
- 
+
      if(rightclick) { //if the secondary mouse botton was clicked
           var menu = document.getElementById(dad.rightClickMenu);
           menu.style.display = "block"; //show menu
- 
+
 	  var pos =  dad.getMousePos(evt);
- 
+
           //position the menu
           menu.style.position = "fixed"; // use fixed or it will not work when the window is scrolled
           menu.style.top = pos.y+"px";
           menu.style.left= pos.x+"px";
      }
-}
- 
+};
+
 dad.clearRightClickMenu = function() { //used to make the menu disappear
      //this function should be used at the beginning of any function that is called from the menu
      if(dad.rightClickMenu) document.getElementById(dad.rightClickMenu).style.display = "none"; //don't show menu
-}
+};
