@@ -51,9 +51,6 @@
 		<Unit filename="error.h" />
 		<Unit filename="gumbo.h" />
 		<Unit filename="insertion_mode.h" />
-		<Unit filename="main.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="parser.c">
 			<Option compilerVar="CC" />
 		</Unit>
