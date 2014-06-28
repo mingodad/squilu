@@ -1,5 +1,5 @@
 /*
- * "$Id: fl_call_main.c 9325 2012-04-05 05:12:30Z fabien $"
+ * "$Id: fl_call_main.c 9984 2013-09-22 17:20:48Z greg.ercolano $"
  *
  * Copyright 1998-2010 by Bill Spitzak and others.
  *
@@ -123,12 +123,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
   return rc;
 }
 
-#elif defined(__hpux)
-/* This code to prevent "empty translation unit" or similar warnings... */
-static void dummy(void) {}
+#else
+/* STR# 2973: solves "empty translation unit" error (Sun, HP-UX..) */
+typedef int dummy;
 #endif /* WIN32 && !FL_DLL && !__GNUC__ */
 
 /*
- * End of "$Id: fl_call_main.c 9325 2012-04-05 05:12:30Z fabien $".
+ * End of "$Id: fl_call_main.c 9984 2013-09-22 17:20:48Z greg.ercolano $".
  */
 

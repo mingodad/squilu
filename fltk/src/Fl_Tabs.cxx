@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Tabs.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: Fl_Tabs.cxx 10122 2014-03-24 18:24:59Z greg.ercolano $"
 //
 // Tab widget for the Fast Light Tool Kit (FLTK).
 //
@@ -114,8 +114,13 @@ int Fl_Tabs::tab_height() {
   else return (H <= 0) ? 0 : H;
 }
 
-// This is used for event handling (clicks) and by fluid to pick tabs.
-// Returns 0, if children() = 0, or if the event is outside of the tabs area.
+/**
+  Return the widget of the tab the user clicked on at \p event_x / \p event_y.
+  This is used for event handling (clicks) and by fluid to pick tabs.
+
+  \returns The child widget of the tab the user clicked on, or<br>
+           0 if there are no children or if the event is outside of the tabs area.
+*/
 Fl_Widget *Fl_Tabs::which(int event_x, int event_y) {
   if (children() == 0) return 0;
   int H = tab_height();
@@ -173,7 +178,11 @@ int Fl_Tabs::handle(int event) {
         Fl::focus(this);
         redraw_tabs();
       }
-      if (o && value(o)) {
+      if (o &&                              // Released on a tab and..
+          (value(o) ||                      // tab changed value or..
+	   (when()&(FL_WHEN_NOT_CHANGED))   // ..no change but WHEN_NOT_CHANGED set,
+	  )                                 // handles FL_WHEN_RELEASE_ALWAYS too.
+	 ) {
         Fl_Widget_Tracker wp(o);
         set_changed();
 	do_callback();
@@ -201,21 +210,17 @@ int Fl_Tabs::handle(int event) {
     return ret; }
   case FL_FOCUS:
   case FL_UNFOCUS:
-    if (!Fl::visible_focus() && visible_focus()) return Fl_Group::handle(event);
-    switch(Fl::event()){
-    	case FL_RELEASE:
-		case FL_SHORTCUT:
-		case FL_KEYBOARD:
-		case FL_FOCUS:
-		case FL_UNFOCUS:
-      		redraw_tabs();
-      		if (Fl::event() == FL_FOCUS) return Fl_Group::handle(event);
-      		if (Fl::event() == FL_UNFOCUS) return 0;
-      		return 1;
-			break;
-		default:
-			return Fl_Group::handle(event);
-    }
+    if (!Fl::visible_focus()) return Fl_Group::handle(event);
+    if (Fl::event() == FL_RELEASE ||
+	Fl::event() == FL_SHORTCUT ||
+	Fl::event() == FL_KEYBOARD ||
+	Fl::event() == FL_FOCUS ||
+	Fl::event() == FL_UNFOCUS) {
+      redraw_tabs();
+      if (Fl::event() == FL_FOCUS) return Fl_Group::handle(event);
+      if (Fl::event() == FL_UNFOCUS) return 0;
+      else return 1;
+    } else return Fl_Group::handle(event);
   case FL_KEYBOARD:
     switch (Fl::event_key()) {
       case FL_Left:
@@ -261,6 +266,17 @@ int Fl_Tabs::handle(int event) {
   }
 }
 
+/**
+  This is called by the tab widget's handle() method to set the
+  tab group widget the user last FL_PUSH'ed on. Set back to zero
+  on FL_RELEASE.
+
+  As of this writing, the value is mainly used by draw_tab()
+  to determine whether or not to draw a 'down' box for the tab
+  when it's clicked, and to turn it off if the user drags off it.
+
+  \see push().
+*/
 int Fl_Tabs::push(Fl_Widget *o) {
   if (push_ == o) return 0;
   if ( (push_ && !push_->visible()) || (o && !o->visible()) )
@@ -292,6 +308,8 @@ Fl_Widget* Fl_Tabs::value() {
   Sets the widget to become the current visible widget/tab.
   Setting the value hides all other children, and makes this one
   visible, if it is really a child.
+  \returns 1 if there was a change (new value different from previous),<BR>
+           0 if there was no change (new value already set)
 */
 int Fl_Tabs::value(Fl_Widget *newvalue) {
   Fl_Widget*const* a = array();
@@ -522,5 +540,5 @@ void Fl_Tabs::clear_tab_positions() {
 }
 
 //
-// End of "$Id: Fl_Tabs.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: Fl_Tabs.cxx 10122 2014-03-24 18:24:59Z greg.ercolano $".
 //

@@ -41,7 +41,7 @@ as in fltk2.
  Configuration
 ---------------
 
-All the changes are *inactive*  as long as the new configuration
+All the changes are *inactive* as long as the new configuration
 option --enable-cairo is not added to the configure command.
 For non configure based platforms/ide, the FLTK_HAVE_CAIRO preprocess
 variable has to be defined.

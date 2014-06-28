@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_JPEG_Image.cxx 9709 2012-11-09 16:02:08Z manolo $"
+// "$Id: Fl_JPEG_Image.cxx 9980 2013-09-21 16:41:23Z greg.ercolano $"
 //
 // Fl_JPEG_Image routines.
 //
@@ -212,35 +212,39 @@ typedef struct {
 typedef my_source_mgr *my_src_ptr;
 
 
-void init_source (j_decompress_ptr cinfo) {
-  my_src_ptr src = (my_src_ptr)cinfo->src;
-  src->s = src->data;
-}
+extern "C" {
 
-boolean fill_input_buffer(j_decompress_ptr cinfo) {
-  my_src_ptr src = (my_src_ptr)cinfo->src;
-  size_t nbytes = 4096;
-  src->pub.next_input_byte = src->s;
-  src->pub.bytes_in_buffer = nbytes;
-  src->s += nbytes;
-  return TRUE;
-}
-
-void term_source(j_decompress_ptr cinfo)
-{
-}
-
-void skip_input_data(j_decompress_ptr cinfo, long num_bytes) {
-  my_src_ptr src = (my_src_ptr)cinfo->src;
-  if (num_bytes > 0) {
-    while (num_bytes > (long)src->pub.bytes_in_buffer) {
-      num_bytes -= (long)src->pub.bytes_in_buffer;
-      fill_input_buffer(cinfo);
-    }
-    src->pub.next_input_byte += (size_t) num_bytes;
-    src->pub.bytes_in_buffer -= (size_t) num_bytes;
+  static void init_source(j_decompress_ptr cinfo) {
+    my_src_ptr src = (my_src_ptr)cinfo->src;
+    src->s = src->data;
   }
-}
+
+  static boolean fill_input_buffer(j_decompress_ptr cinfo) {
+    my_src_ptr src = (my_src_ptr)cinfo->src;
+    size_t nbytes = 4096;
+    src->pub.next_input_byte = src->s;
+    src->pub.bytes_in_buffer = nbytes;
+    src->s += nbytes;
+    return TRUE;
+  }
+
+  static void term_source(j_decompress_ptr cinfo)
+  {
+  }
+
+  static void skip_input_data(j_decompress_ptr cinfo, long num_bytes) {
+    my_src_ptr src = (my_src_ptr)cinfo->src;
+    if (num_bytes > 0) {
+      while (num_bytes > (long)src->pub.bytes_in_buffer) {
+        num_bytes -= (long)src->pub.bytes_in_buffer;
+        fill_input_buffer(cinfo);
+      }
+      src->pub.next_input_byte += (size_t) num_bytes;
+      src->pub.bytes_in_buffer -= (size_t) num_bytes;
+    }
+  }
+
+} // extern "C"
 
 static void jpeg_mem_src(j_decompress_ptr cinfo, const unsigned char *data)
 {
@@ -428,5 +432,5 @@ int Fl_JPEG_Image::encode(Fl_Image *img, int quality,
 }
 
 //
-// End of "$Id: Fl_JPEG_Image.cxx 9709 2012-11-09 16:02:08Z manolo $".
+// End of "$Id: Fl_JPEG_Image.cxx 9980 2013-09-21 16:41:23Z greg.ercolano $".
 //

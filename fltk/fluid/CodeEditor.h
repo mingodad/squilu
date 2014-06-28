@@ -1,5 +1,5 @@
 //
-// "$Id: CodeEditor.h 9341 2012-04-13 14:45:18Z ianmacarthur $"
+// "$Id: CodeEditor.h 9980 2013-09-21 16:41:23Z greg.ercolano $"
 //
 // Code editor widget for the Fast Light Tool Kit (FLTK).
 //
@@ -80,5 +80,5 @@ class CodeViewer : public CodeEditor {
 #endif // !CodeEditor_h
 
 //
-// End of "$Id: CodeEditor.h 9341 2012-04-13 14:45:18Z ianmacarthur $".
+// End of "$Id: CodeEditor.h 9980 2013-09-21 16:41:23Z greg.ercolano $".
 //

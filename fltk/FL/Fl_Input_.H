@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Input_.H 9196 2011-12-06 16:55:51Z AlbrechtS $"
+// "$Id: Fl_Input_.H 10134 2014-04-29 02:56:34Z greg.ercolano $"
 //
 // Input base class header file for the Fast Light Tool Kit (FLTK).
 //
@@ -479,6 +479,8 @@ public:
 
     \param [in] val If \p val is 1, Tab advances focus (default).<BR>
                     If \p val is 0, Tab inserts a tab character (old FLTK behavior).
+
+    \see tab_nav(), Fl::OPTION_ARROW_FOCUS.
   */
   void tab_nav(int val) {
     tab_nav_ = val;
@@ -491,7 +493,8 @@ public:
 
     If disabled, hitting Tab inserts a tab character into the text field.
     \returns 1 if Tab advances focus (default), 0 if Tab inserts tab characters.
-    \see tab_nav(int)
+
+    \see tab_nav(int), Fl::OPTION_ARROW_FOCUS.
   */
   int tab_nav() const {
     return tab_nav_;
@@ -503,5 +506,5 @@ DECLARE_CLASS_CHEAP_RTTI_2(Fl_Input_, Fl_Widget)
 #endif 
 
 //
-// End of "$Id: Fl_Input_.H 9196 2011-12-06 16:55:51Z AlbrechtS $".
+// End of "$Id: Fl_Input_.H 10134 2014-04-29 02:56:34Z greg.ercolano $".
 //

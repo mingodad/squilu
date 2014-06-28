@@ -1,4 +1,4 @@
-// "$Id: Fl_Native_File_Chooser_common.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: Fl_Native_File_Chooser_common.cxx 10064 2014-01-16 16:10:19Z manolo $"
 //
 // FLTK native OS file chooser widget
 //
@@ -71,6 +71,7 @@ static void chrcat(char *s, char c) {
   strcat(s, tmp);
 }
 
+
 //
-// End of "$Id: Fl_Native_File_Chooser_common.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: Fl_Native_File_Chooser_common.cxx 10064 2014-01-16 16:10:19Z manolo $".
 //

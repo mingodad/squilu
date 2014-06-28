@@ -112,8 +112,8 @@ static void cb_print_properties_panel(Fl_Double_Window*, void*) {
 }
 
 static Fl_Menu_Item menu_print_page_size[] = {
- {"Letter", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
- {"A4", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+  {"Letter", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
+  {"A4", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
   {"Legal", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
   {"Executive", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
   {"A3", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},

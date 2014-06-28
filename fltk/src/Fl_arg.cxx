@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_arg.cxx 9365 2012-04-21 11:13:10Z matt $"
+// "$Id: Fl_arg.cxx 10145 2014-05-04 13:46:09Z manolo $"
 //
 // Optional argument initialization code for the Fast Light Tool Kit (FLTK).
 //
@@ -435,7 +435,7 @@ without express or implied warranty.
 
 static int ReadInteger(char* string, char** NextString)
 {
-  register int Result = 0;
+  int Result = 0;
   int Sign = 1;
     
   if (*string == '+')
@@ -458,7 +458,7 @@ int XParseGeometry(const char* string, int* x, int* y,
 		   unsigned int* width, unsigned int* height)
 {
   int mask = NoValue;
-  register char *strind;
+  char *strind;
   unsigned int tempWidth = 0, tempHeight = 0;
   int tempX = 0, tempY = 0;
   char *nextCharacter;
@@ -541,5 +541,5 @@ int XParseGeometry(const char* string, int* x, int* y,
 #endif // ifdef WIN32
 
 //
-// End of "$Id: Fl_arg.cxx 9365 2012-04-21 11:13:10Z matt $".
+// End of "$Id: Fl_arg.cxx 10145 2014-05-04 13:46:09Z manolo $".
 //

@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Bitmap.H 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: Fl_Bitmap.H 10110 2014-02-22 14:51:50Z manolo $"
 //
 // Bitmap header file for the Fast Light Tool Kit (FLTK).
 //
@@ -33,6 +33,7 @@ class Fl_Menu_Item;
 class FL_EXPORT Fl_Bitmap : public Fl_Image {
   friend class Fl_Quartz_Graphics_Driver;
   friend class Fl_GDI_Graphics_Driver;
+  friend class Fl_GDI_Printer_Graphics_Driver;
   friend class Fl_Xlib_Graphics_Driver;
 public:
 
@@ -42,7 +43,8 @@ public:
   int alloc_array;
   
   private:
-
+  int start(int XP, int YP, int WP, int HP, int &cx, int &cy, 
+	    int &X, int &Y, int &W, int &H);
 #if defined(__APPLE__) || defined(WIN32)
   /** for internal use */
   void *id_;
@@ -74,5 +76,5 @@ DECLARE_CLASS_CHEAP_RTTI_2(Fl_Bitmap, Fl_Image)
 #endif
 
 //
-// End of "$Id: Fl_Bitmap.H 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: Fl_Bitmap.H 10110 2014-02-22 14:51:50Z manolo $".
 //

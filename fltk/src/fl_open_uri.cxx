@@ -1,5 +1,5 @@
 //
-// "$Id: fl_open_uri.cxx 9580 2012-06-10 09:24:33Z manolo $"
+// "$Id: fl_open_uri.cxx 9995 2013-10-04 16:48:08Z greg.ercolano $"
 //
 // fl_open_uri() code for FLTK.
 //
@@ -67,6 +67,14 @@ static int	run_program(const char *program, char **argv, char *msg, int msglen);
  * was run to open the URI; on Windows, this will always be "open uri".
  *
  * On failure, the msg buffer is filled with an English error message.
+ *
+ * \note
+ * \b Platform \b Specific \b Issues: \b Windows \n
+ * With "file:" based URIs on Windows, you may encounter issues with
+ * anchors being ignored. Example: "file:///c:/some/index.html#anchor"
+ * may open in the browser without the "#anchor" suffix. The behavior
+ * seems to vary across different Windows versions. Workaround: open a link
+ * to a separate html file that redirects to the desired "file:" URI.
  *
  * \b Example
  * \code
@@ -395,5 +403,5 @@ int main(int argc, char **argv) {
 
 
 //
-// End of "$Id: fl_open_uri.cxx 9580 2012-06-10 09:24:33Z manolo $".
+// End of "$Id: fl_open_uri.cxx 9995 2013-10-04 16:48:08Z greg.ercolano $".
 //

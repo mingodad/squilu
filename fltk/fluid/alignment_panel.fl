@@ -3,7 +3,7 @@ version 1.0300
 header_name {.h} 
 code_name {.cxx}
 comment {//
-// "$Id: alignment_panel.fl 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: alignment_panel.fl 10149 2014-05-17 20:46:25Z greg.ercolano $"
 //
 // Setting and shell dialogs for the Fast Light Tool Kit (FLTK).
 //
@@ -673,6 +673,6 @@ global_settings_window->hide();}
 
 comment {
 //
-// End of "$Id: alignment_panel.fl 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: alignment_panel.fl 10149 2014-05-17 20:46:25Z greg.ercolano $".
 //} {in_source in_header
 } 

@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_cocoa.mm 9804 2013-01-19 14:07:34Z manolo $"
+// "$Id: Fl_cocoa.mm 10191 2014-06-11 14:12:29Z ossman $"
 //
 // MacOS-Cocoa specific code for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2012 by Bill Spitzak and others.
+// Copyright 1998-2013 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -41,10 +41,8 @@ extern "C" {
 #include <FL/x.H>
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Tooltip.H>
-#include <FL/Fl_Sys_Menu_Bar.H>
 #include <FL/Fl_Printer.H>
 #include <FL/Fl_Input_.H>
-#include <FL/Fl_Secret_Input.H>
 #include <FL/Fl_Text_Display.H>
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,6 +50,7 @@ extern "C" {
 #include <unistd.h>
 #include <stdarg.h>
 #include <math.h>
+#include <limits.h>
 
 #import <Cocoa/Cocoa.h>
 
@@ -89,16 +88,14 @@ static void createAppleMenu(void);
 static Fl_Region MacRegionMinusRect(Fl_Region r, int x,int y,int w,int h);
 static void cocoaMouseHandler(NSEvent *theEvent);
 static int calc_mac_os_version();
+static void clipboard_check(void);
+static NSString *calc_utf8_format(void);
 
-static Fl_Quartz_Graphics_Driver fl_quartz_driver;
-static Fl_Display_Device fl_quartz_display(&fl_quartz_driver);
-Fl_Display_Device *Fl_Display_Device::_display = &fl_quartz_display; // the platform display
+Fl_Display_Device *Fl_Display_Device::_display = new Fl_Display_Device(new Fl_Quartz_Graphics_Driver); // the platform display
 
 // public variables
 CGContextRef fl_gc = 0;
-void *fl_system_menu;                   // this is really a NSMenu*
-Fl_Sys_Menu_Bar *fl_sys_menu_bar = 0;
-void *fl_default_cursor;		// this is really a NSCursor*
+NSCursor *fl_default_cursor;
 void *fl_capture = 0;			// (NSWindow*) we need this to compensate for a missing(?) mouse capture
 bool fl_show_iconic;                    // true if called from iconize() - shows the next created window in collapsed state
 //int fl_disable_transient_for;           // secret method of removing TRANSIENT_FOR
@@ -106,11 +103,16 @@ Window fl_window;
 Fl_Window *Fl_Window::current_;
 int fl_mac_os_version = calc_mac_os_version();		// the version number of the running Mac OS X (e.g., 100604 for 10.6.4)
 static SEL inputContextSEL = (fl_mac_os_version >= 100600 ? @selector(inputContext) : @selector(FLinputContext));
+Fl_Fontdesc* fl_fonts = Fl_X::calc_fl_fonts();
+static NSString *utf8_format = calc_utf8_format();
 
 // forward declarations of variables in this file
 static int got_events = 0;
 static Fl_Window* resize_from_system;
 static int main_screen_height; // height of menubar-containing screen used to convert between Cocoa and FLTK global screen coordinates
+// through_drawRect = YES means the drawRect: message was sent to the view, 
+// thus the graphics context was prepared by the system
+static BOOL through_drawRect = NO; 
 
 #if CONSOLIDATE_MOTION
 static Fl_Window* send_motion;
@@ -464,9 +466,7 @@ static void processFLTKEvent(void) {
  * break the current event loop
  */
 static void breakMacEventLoop()
-{
-  fl_lock_function();
-  
+{  
   NSPoint pt={0,0};
   NSEvent *event = [NSEvent otherEventWithType:NSApplicationDefined location:pt 
 				 modifierFlags:0
@@ -474,7 +474,6 @@ static void breakMacEventLoop()
                                   windowNumber:0 context:NULL 
 				       subtype:FLTKTimerEvent data1:0 data2:0];
   [NSApp postEvent:event atStart:NO];
-  fl_unlock_function();
 }
 
 //
@@ -522,15 +521,16 @@ static void delete_timer(MacTimeout& t)
 
 static void do_timer(CFRunLoopTimerRef timer, void* data)
 {
+  fl_lock_function();
   current_timer = (MacTimeout*)data;
   current_timer->pending = 0;
-  if(Fl::do_call_timeout_) (*Fl::do_call_timeout_)(current_timer->callback, current_timer->data);
-  else (current_timer->callback)(current_timer->data);
+  (current_timer->callback)(current_timer->data);
   if (current_timer && current_timer->pending == 0)
     delete_timer(*current_timer);
   current_timer = NULL;
 
   breakMacEventLoop();
+  fl_unlock_function();
 }
 
 void Fl::add_timeout(double time, Fl_Timeout_Handler cb, void* data)
@@ -649,6 +649,12 @@ void Fl::remove_timeout(Fl_Timeout_Handler cb, void* data)
   if (self) {
     w = flw;
     containsGLsubwindow = NO;
+    if (fl_mac_os_version >= 100700) {
+      // replaces [self setRestorable:NO] that may trigger a compiler warning
+      typedef void (*setIMP)(id, SEL, BOOL);
+      setIMP addr = (setIMP)[self methodForSelector:@selector(setRestorable:)];
+      addr(self, @selector(setRestorable:), NO);
+      }
   }
   return self;
 }
@@ -674,9 +680,6 @@ void Fl::remove_timeout(Fl_Timeout_Handler cb, void* data)
   return !(w->tooltip_window() || w->menu_window());
 }
 
-// TODO see if we really need a canBecomeMainWindow ...
-#if 0
-
 - (BOOL)canBecomeMainWindow
 {
   if (Fl::modal_ && (Fl::modal_ != w))
@@ -685,7 +688,6 @@ void Fl::remove_timeout(Fl_Timeout_Handler cb, void* data)
 
   return !(w->tooltip_window() || w->menu_window());
 }
-#endif
 
 @end
 
@@ -734,6 +736,7 @@ static double do_queued_events( double time = 0.0 )
   return time;
 }
 
+
 /*
  * This public function handles all events. It wait a maximum of 
  * 'time' seconds for an event. This version returns 1 if events
@@ -747,12 +750,26 @@ int fl_wait( double time )
   return (got_events);
 }
 
-double fl_mac_flush_and_wait(double time_to_wait, char in_idle) {
+double fl_mac_flush_and_wait(double time_to_wait) {
+  static int in_idle = 0;
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+  if (Fl::idle) {
+    if (!in_idle) {
+      in_idle = 1;
+      Fl::idle();
+      in_idle = 0;
+    }
+    // the idle function may turn off idle, we can then wait:
+    if (Fl::idle) time_to_wait = 0.0;
+  }
   Fl::flush();
   if (Fl::idle && !in_idle) // 'idle' may have been set within flush()
     time_to_wait = 0.0;
   double retval = fl_wait(time_to_wait);
+  if (fl_gc) {
+    CGContextFlush(fl_gc);
+    fl_gc = 0;
+    }  
   [pool release];
   return retval;
 }
@@ -921,21 +938,8 @@ static void cocoaMouseHandler(NSEvent *theEvent)
 - (void)setActive:(BOOL)a
 {
   isActive = a;
-  }
-@end
-
-/*
- * Open callback function to call...
- */
-static void	(*open_cb)(const char *) = 0;
-
-/*
- * Install an open documents event handler...
- */
-void fl_open_callback(void (*cb)(const char *)) {
-  fl_open_display();
-  open_cb = cb;
 }
+@end
 
 
 @interface FLWindowDelegate : NSObject 
@@ -1004,7 +1008,7 @@ void fl_open_callback(void (*cb)(const char *)) {
   FLWindow *nsw = (FLWindow*)[notif object];
   Fl_Window *window = [nsw getFl_Window];
   /* Fullscreen windows obscure all other windows so we need to return
-     to a "normal" level when the user switches to another window */
+   to a "normal" level when the user switches to another window */
   if (window->fullscreen_active())
     [nsw setLevel:NSNormalWindowLevel];
   Fl::handle( FL_UNFOCUS, window);
@@ -1076,7 +1080,7 @@ void fl_open_callback(void (*cb)(const char *)) {
     Fl_Window *w = Fl::first_window();
     while (w && (w->parent() || !w->border() || !w->visible())) {
       w = Fl::next_window(w);
-      }
+    }
     if (w) {
       [Fl_X::i(w)->xid makeKeyWindow];
     }
@@ -1090,7 +1094,7 @@ void fl_open_callback(void (*cb)(const char *)) {
 <NSApplicationDelegate>
 #endif
 {
-  BOOL seen_open_file;
+  void (*open_cb)(const char*);
 }
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication*)sender;
 - (void)applicationDidBecomeActive:(NSNotification *)notify;
@@ -1099,7 +1103,7 @@ void fl_open_callback(void (*cb)(const char *)) {
 - (void)applicationWillHide:(NSNotification *)notify;
 - (void)applicationWillUnhide:(NSNotification *)notify;
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename;
-- (void)applicationDidFinishLaunching:(NSNotification *)aNotification;
+- (void)open_cb:(void (*)(const char*))cb;
 @end
 @implementation FLAppDelegate
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication*)sender
@@ -1118,16 +1122,21 @@ void fl_open_callback(void (*cb)(const char *)) {
   fl_unlock_function();
   return reply;
 }
-/**
- * Cocoa organizes the Z depth of windows on a global priority. FLTK however
- * expects the window manager to organize Z level by application. The trickery
- * below will change Z order during activation and deactivation.
- */
 - (void)applicationDidBecomeActive:(NSNotification *)notify
 {
-  fl_lock_function();
   Fl_X *x;
   FLWindow *top = 0, *topModal = 0, *topNonModal = 0;
+
+  fl_lock_function();
+
+  // update clipboard status
+  clipboard_check();
+
+  /**
+   * Cocoa organizes the Z depth of windows on a global priority. FLTK however
+   * expects the window manager to organize Z level by application. The trickery
+   * below will change Z order during activation and deactivation.
+   */
   for (x = Fl_X::first;x;x = x->next) {
     FLWindow *cw = x->xid;
     Fl_Window *win = x->w;
@@ -1156,6 +1165,7 @@ void fl_open_callback(void (*cb)(const char *)) {
 }
 - (void)applicationDidChangeScreenParameters:(NSNotification *)unused
 { // react to changes in screen numbers and positions
+  fl_lock_function();
   main_screen_height = [[[NSScreen screens] objectAtIndex:0] frame].size.height;
   Fl::call_screen_init();
   // FLTK windows have already been notified they were moved,
@@ -1169,6 +1179,7 @@ void fl_open_callback(void (*cb)(const char *)) {
       }
     }
   Fl::handle(FL_SCREEN_CONFIGURATION_CHANGED, NULL);
+  fl_unlock_function();
 }
 - (void)applicationWillResignActive:(NSNotification *)notify
 {
@@ -1235,7 +1246,9 @@ void fl_open_callback(void (*cb)(const char *)) {
 }
 - (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename
 {
-  seen_open_file = YES;
+  // without the next statement, the opening of the 1st window is delayed by several seconds
+  // under Mac OS ≥ 10.8 when a file is dragged on the application icon
+  [[theApplication mainWindow] orderFront:self];
   if (open_cb) {
     fl_lock_function();
     (*open_cb)([filename UTF8String]);
@@ -1244,13 +1257,19 @@ void fl_open_callback(void (*cb)(const char *)) {
   }
   return NO;
 }
-- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
+- (void)open_cb:(void (*)(const char*))cb
 {
-  // without this, the opening of the 1st window is delayed by several seconds
-  // under Mac OS 10.8 when a file is dragged on the application icon
-  if (fl_mac_os_version >= 100800 && seen_open_file) [[NSApp mainWindow] orderFront:self];
+  open_cb = cb;
 }
 @end
+
+/*
+ * Install an open documents event handler...
+ */
+void fl_open_callback(void (*cb)(const char *)) {
+  fl_open_display();
+  [[NSApp delegate] open_cb:cb];
+}
 
 @implementation FLApplication
 + (void)sendEvent:(NSEvent *)theEvent
@@ -1286,16 +1305,17 @@ void fl_open_callback(void (*cb)(const char *)) {
 }
 @end
 
-extern "C" {
-  OSErr CPSEnableForegroundOperation(ProcessSerialNumber *psn, UInt32 _arg2,
-				     UInt32 _arg3, UInt32 _arg4, UInt32 _arg5);
+/* Prototype of undocumented function needed to support Mac OS 10.2 or earlier
+ extern "C" {
+  OSErr CPSEnableForegroundOperation(ProcessSerialNumber*, UInt32, UInt32, UInt32, UInt32);
 }
+*/
 
 void fl_open_display() {
   static char beenHereDoneThat = 0;
   if ( !beenHereDoneThat ) {
     beenHereDoneThat = 1;
-
+    
     BOOL need_new_nsapp = (NSApp == nil);
     if (need_new_nsapp) [NSApplication sharedApplication];
     NSAutoreleasePool *localPool;
@@ -1329,24 +1349,17 @@ void fl_open_display() {
             
       if ( !bundle )
       {
-        // Earlier versions of this code tried to use weak linking, however it
-        // appears that this does not work on 10.2.  Since 10.3 and higher provide
-        // both TransformProcessType and CPSEnableForegroundOperation, the following
-        // conditional code compiled on 10.2 will still work on newer releases...
         OSErr err;
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_3
-        if (TransformProcessType != NULL) {
-          err = TransformProcessType(&cur_psn, kProcessTransformToForegroundApplication);
-        } else
-#endif // MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_3
-          err = CPSEnableForegroundOperation(&cur_psn, 0x03, 0x3C, 0x2C, 0x1103);
+	err = TransformProcessType(&cur_psn, kProcessTransformToForegroundApplication); // needs Mac OS 10.3
+	/* support of Mac OS 10.2 or earlier used this undocumented call instead
+	 err = CPSEnableForegroundOperation(&cur_psn, 0x03, 0x3C, 0x2C, 0x1103);
+	*/
         if (err == noErr) {
           SetFrontProcess( &cur_psn );
         }
       }
     }
     if (![NSApp servicesMenu]) createAppleMenu();
-    fl_system_menu = [NSApp mainMenu];
     main_screen_height = [[[NSScreen screens] objectAtIndex:0] frame].size.height;
     [[NSNotificationCenter defaultCenter] addObserver:[FLWindowDelegate createOnce] 
 					     selector:@selector(anyWindowWillClose:) 
@@ -1441,15 +1454,6 @@ void Fl::get_mouse(int &x, int &y)
 
 
 /*
- * Initialize the given port for redraw and call the window's flush() to actually draw the content
- */ 
-void Fl_X::flush()
-{
-  w->flush();
-  if (fl_gc) CGContextFlush(fl_gc);
-}
-
-/*
  * Gets called when a window is created, resized, or deminiaturized
  */    
 static void handleUpdateEvent( Fl_Window *window ) 
@@ -1469,7 +1473,10 @@ static void handleUpdateEvent( Fl_Window *window )
       cx->region = 0;
     }
     cx->w->clear_damage(FL_DAMAGE_ALL);
+    CGContextRef gc = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+    CGContextSaveGState(gc); // save original context
     cx->flush();
+    CGContextRestoreGState(gc); // restore original context
     cx->w->clear_damage();
   }
   window->clear_damage(FL_DAMAGE_ALL);
@@ -1608,7 +1615,7 @@ static void  q_set_window_title(NSWindow *nsw, const char * name, const char *mi
 }
 
 /**                 How FLTK handles Mac OS text input
-
+ 
  Let myview be the instance of the FLView class that has the keyboard focus. FLView is an FLTK-defined NSView subclass
  that implements the NSTextInputClient protocol to properly handle text input. It also implements the old NSTextInput
  protocol to run with OS <= 10.4. The few NSTextInput protocol methods that differ in signature from the NSTextInputClient 
@@ -1624,13 +1631,20 @@ static void  q_set_window_title(NSWindow *nsw, const char * name, const char *mi
  doCommandBySelector:, setMarkedText: and insertText:. All 3 messages eventually produce Fl::handle(FL_KEYBOARD, win) calls.
  The doCommandBySelector: message allows to process events such as new-line, forward and backward delete, arrows, 
  escape, tab, F1. The message setMarkedText: is sent when marked text, that is, temporary text that gets replaced later 
- by some other text, is inserted. This happen when a dead key is pressed, and also 
+ by some other text, is inserted. This happens when a dead key is pressed, and also 
  when entering complex scripts (e.g., Chinese). Fl_X::next_marked_length gives the byte
  length of marked text before the FL_KEYBOARD event is processed. Fl::compose_state gives this length after this processing.
  Message insertText: is sent to enter text in the focused widget. If there's marked text, Fl::compose_state is > 0, and this
  marked text gets replaced by the inserted text. If there's no marked text, the new text is inserted at the insertion point. 
- When the character palette is used to enter text, the system sends an insertText: message to myview. The code processes it 
- as an FL_PASTE event. The in_key_event field of the FLView class allows to differentiate keyboard from palette inputs.
+ When the character palette is used to enter text, the system sends an insertText: message to myview. 
+ The in_key_event field of the FLView class allows to differentiate keyboard from palette inputs.
+ 
+ During processing of the handleEvent message, inserted and marked strings are concatenated in a single string
+ inserted in a single FL_KEYBOARD event after return from handleEvent. The need_handle member variable of FLView allows 
+ to determine when setMarkedText or insertText strings have been sent during handleEvent processing and must trigger 
+ an FL_KEYBOARD event. Concatenating two insertText operations or an insertText followed by a setMarkedText is possible. 
+ In contrast, setMarkedText followed by insertText or by another setMarkedText isn't correct if concatenated in a single 
+ string. Thus, in such case, the setMarkedText and the next operation produce each an FL_KEYBOARD event. 
  
  OS >= 10.7 contains a feature where pressing and holding certain keys opens a menu window that shows a list 
  of possible accented variants of this key. The selectedRange field of the FLView class and the selectedRange, insertText:
@@ -1657,7 +1671,7 @@ static void  q_set_window_title(NSWindow *nsw, const char * name, const char *mi
  by sending the interpretKeyEvents: message to the FLTextView object. The system sends back doCommandBySelector: and
  insertText: messages to the FLTextView object that are transmitted unchanged to myview to be processed as with OS >= 10.6. 
  The system also sends setMarkedText: messages directly to myview.
-  
+   
  There is furthermore an oddity of dead key processing with OS <= 10.5. It occurs when a dead key followed by a non-accented  
  key are pressed. Say, for example, that keys '^' followed by 'p' are pressed on a French or German keyboard. Resulting 
  messages are: [myview setMarkedText:@"^"], [myview insertText:@"^"], [myview insertText:@"p"], [FLTextView insertText:@"^p"]. 
@@ -1686,9 +1700,6 @@ static void cocoaKeyboardHandler(NSEvent *theEvent)
   // In this mode, there seem to be no key-down codes
   // printf("%08x %08x %08x\n", keyCode, mods, key);
   maskedKeyCode = keyCode & 0x7f;
-  if ([theEvent type] == NSKeyUp) {
-    Fl::e_state &= 0xbfffffff; // clear the deadkey flag
-  }
   mods_to_e_state( mods ); // process modifier keys
   sym = macKeyLookUp[maskedKeyCode];
   if (sym < 0xff00) { // a "simple" key
@@ -1728,11 +1739,15 @@ static void cocoaKeyboardHandler(NSEvent *theEvent)
 , NSTextInputClient
 #endif
 > {
-  BOOL in_key_event;
+  BOOL in_key_event; // YES means keypress is being processed by handleEvent
+  BOOL need_handle; // YES means Fl::handle(FL_KEYBOARD,) is needed after handleEvent processing
   NSInteger identifier;
   NSRange selectedRange;
+  @public
+  Fl_X *fl_x_to_redraw; // set by Fl_X::flush() to the Fl_X object of the window to be redrawn
 }
 + (void)prepareEtext:(NSString*)aString;
++ (void)concatEtext:(NSString*)aString;
 - (id)init;
 - (void)drawRect:(NSRect)rect;
 - (BOOL)acceptsFirstResponder;
@@ -1775,15 +1790,19 @@ static void cocoaKeyboardHandler(NSEvent *theEvent)
   if (self) {
     in_key_event = NO;
     identifier = ++counter;
+    fl_x_to_redraw = NULL;
     }
   return self;
 }
 - (void)drawRect:(NSRect)rect
 {
   fl_lock_function();
+  through_drawRect = YES;
   FLWindow *cw = (FLWindow*)[self window];
   Fl_Window *w = [cw getFl_Window];
-  handleUpdateEvent(w);
+  if (fl_x_to_redraw) fl_x_to_redraw->flush();
+  else handleUpdateEvent(w);
+  through_drawRect = NO;
   fl_unlock_function();
 }
 
@@ -1804,11 +1823,14 @@ static void cocoaKeyboardHandler(NSEvent *theEvent)
       s = [s uppercaseString]; // US keyboards return lowercase letter in s if cmd-shift-key is hit
       }
     [FLView prepareEtext:s];
+    Fl::compose_state = 0;
     handled = Fl::handle(FL_KEYBOARD, [(FLWindow*)[theEvent window] getFl_Window]);
   }
   else {
     in_key_event = YES;
+    need_handle = NO;
     handled = [[self performSelector:inputContextSEL] handleEvent:theEvent];
+    if (need_handle) handled = Fl::handle(FL_KEYBOARD, [(FLWindow*)[theEvent window] getFl_Window]);
     in_key_event = NO;
     }
   fl_unlock_function();
@@ -1860,7 +1882,9 @@ static void cocoaKeyboardHandler(NSEvent *theEvent)
   Fl::first_window(window);
   cocoaKeyboardHandler(theEvent);
   in_key_event = YES;
+  need_handle = NO;
   [[self performSelector:inputContextSEL] handleEvent:theEvent];
+  if (need_handle) Fl::handle(FL_KEYBOARD, window);
   in_key_event = NO;
   fl_unlock_function();
 }
@@ -1949,8 +1973,8 @@ static void cocoaKeyboardHandler(NSEvent *theEvent)
     CFStringGetCString(all, DragData, l + 1, kCFStringEncodingUTF8);
     CFRelease(all);
   }
-  else if ( [[pboard types] containsObject:NSStringPboardType] ) {
-    NSData *data = [pboard dataForType:NSStringPboardType];
+  else if ( [[pboard types] containsObject:utf8_format] ) {
+    NSData *data = [pboard dataForType:utf8_format];
     DragData = (char *)malloc([data length] + 1);
     [data getBytes:DragData];
     DragData[[data length]] = 0;
@@ -2018,9 +2042,17 @@ static void cocoaKeyboardHandler(NSEvent *theEvent)
   Fl::e_length = l;
 }
 
++ (void)concatEtext:(NSString*)aString {
+  // extends Fl::e_text with aString
+  NSString *newstring = [[NSString stringWithUTF8String:Fl::e_text] stringByAppendingString:aString];
+  [FLView prepareEtext:newstring];
+}
+
 - (void)doCommandBySelector:(SEL)aSelector {
-  //NSLog(@"doCommandBySelector:%s",sel_getName(aSelector));
-  [FLView prepareEtext:[[NSApp currentEvent] characters]];
+  NSString *s = [[NSApp currentEvent] characters];
+  //NSLog(@"doCommandBySelector:%s text='%@'",sel_getName(aSelector), s);
+  s = [s substringFromIndex:[s length] - 1];
+  [FLView prepareEtext:s]; // use the last character of the event; necessary for deadkey + Tab
   Fl_Window *target = [(FLWindow*)[self window] getFl_Window];
   Fl::handle(FL_KEYBOARD, target);
 }
@@ -2036,33 +2068,48 @@ static void cocoaKeyboardHandler(NSEvent *theEvent)
   } else {
     received = (NSString*)aString;
   }
-  /*NSLog(@"insertText=%@ l=%d Fl::marked_text_length()=%d range=%d,%d",
-	received,strlen([received UTF8String]),Fl::marked_text_length(),replacementRange.location,replacementRange.length);*/
+  /*NSLog(@"insertText='%@' l=%d Fl::compose_state=%d range=%d,%d",
+	received,strlen([received UTF8String]),Fl::compose_state,replacementRange.location,replacementRange.length);*/
   fl_lock_function();
-    Fl_Window *target = [(FLWindow*)[self window] getFl_Window];
+  Fl_Window *target = [(FLWindow*)[self window] getFl_Window];
   while (replacementRange.length--) { // delete replacementRange.length characters before insertion point
     int saved_keysym = Fl::e_keysym;
     Fl::e_keysym = FL_BackSpace;
     Fl::handle(FL_KEYBOARD, target);
     Fl::e_keysym = saved_keysym;
-  }
-  [FLView prepareEtext:received];
-  // We can get called outside of key events (e.g., from the character palette, from CJK text input). 
-  // Transform character palette actions to FL_PASTE events.
+    }
+  if (in_key_event && Fl_X::next_marked_length && Fl::e_length) {
+    // if setMarkedText + insertText is sent during handleEvent, text cannot be concatenated in single FL_KEYBOARD event
+    Fl::handle(FL_KEYBOARD, target);
+    Fl::e_length = 0;
+    }
+  if (in_key_event && Fl::e_length) [FLView concatEtext:received];
+  else [FLView prepareEtext:received];
   Fl_X::next_marked_length = 0;
-  int flevent = (in_key_event || Fl::marked_text_length()) ? FL_KEYBOARD : FL_PASTE;
-  Fl::handle( flevent, target);
+  // We can get called outside of key events (e.g., from the character palette, from CJK text input). 
+  BOOL palette = !(in_key_event || Fl::compose_state);
+  if (palette) Fl::e_keysym = 0;
+  // YES if key has text attached
+  BOOL has_text_key = Fl::e_keysym <= '~' || Fl::e_keysym == FL_Iso_Key ||
+                      (Fl::e_keysym >= FL_KP && Fl::e_keysym <= FL_KP_Last && Fl::e_keysym != FL_KP_Enter);
+  // insertText sent during handleEvent of a key without text cannot be processed in a single FL_KEYBOARD event.
+  // Occurs with deadkey followed by non-text key
+  if (!in_key_event || !has_text_key) {
+    Fl::handle(FL_KEYBOARD, target);
+    Fl::e_length = 0;
+    }
+  else need_handle = YES;
   selectedRange = NSMakeRange(100, 0); // 100 is an arbitrary value
   // for some reason, with the palette, the window does not redraw until the next mouse move or button push
   // sending a 'redraw()' or 'awake()' does not solve the issue!
-  if (flevent == FL_PASTE) Fl::flush();
+  if (palette) Fl::flush();
   if (fl_mac_os_version < 100600) [(FLTextView*)[[self window] fieldEditor:YES forObject:nil] setActive:NO];
   fl_unlock_function();
 }
 
 - (void)setMarkedText:(id)aString selectedRange:(NSRange)newSelection  {
   [self setMarkedText:aString selectedRange:newSelection replacementRange:NSMakeRange(NSNotFound, 0)];
-  }
+}
 
 - (void)setMarkedText:(id)aString selectedRange:(NSRange)newSelection replacementRange:(NSRange)replacementRange {
   NSString *received;
@@ -2072,8 +2119,8 @@ static void cocoaKeyboardHandler(NSEvent *theEvent)
     received = (NSString*)aString;
   }
   fl_lock_function();
-  /*NSLog(@"setMarkedText:%@ l=%d newSelection=%d,%d Fl::marked_text_length()=%d replacement=%d,%d", 
-	received, strlen([received UTF8String]), newSelection.location, newSelection.length, Fl::marked_text_length(),
+  /*NSLog(@"setMarkedText:%@ l=%d newSelection=%d,%d Fl::compose_state=%d replacement=%d,%d", 
+	received, strlen([received UTF8String]), newSelection.location, newSelection.length, Fl::compose_state,
 	replacementRange.location, replacementRange.length);*/
   Fl_Window *target = [(FLWindow*)[self window] getFl_Window];
   while (replacementRange.length--) { // delete replacementRange.length characters before insertion point
@@ -2083,9 +2130,16 @@ static void cocoaKeyboardHandler(NSEvent *theEvent)
     Fl::handle(FL_KEYBOARD, target);
     Fl::e_keysym = 'a'; // pretend a letter key was hit
   }
-  [FLView prepareEtext:received];
-  Fl_X::next_marked_length = Fl::e_length;
-  Fl::handle(FL_KEYBOARD, target);
+  if (in_key_event && Fl_X::next_marked_length && Fl::e_length) {
+    // if setMarkedText + setMarkedText is sent during handleEvent, text cannot be concatenated in single FL_KEYBOARD event
+    Fl::handle(FL_KEYBOARD, target);
+    Fl::e_length = 0;
+  }
+  if (in_key_event && Fl::e_length) [FLView concatEtext:received];
+  else [FLView prepareEtext:received];
+  Fl_X::next_marked_length = strlen([received UTF8String]);
+  if (!in_key_event) Fl::handle( FL_KEYBOARD, target);
+  else need_handle = YES;
   selectedRange = NSMakeRange(100, newSelection.length);
   fl_unlock_function();
 }
@@ -2104,13 +2158,13 @@ static void cocoaKeyboardHandler(NSEvent *theEvent)
 }
 
 - (NSRange)markedRange {
-  //NSLog(@"markedRange=%d %d", Fl::marked_text_length() > 0?0:NSNotFound, Fl::marked_text_length());
-  return NSMakeRange(Fl::marked_text_length() > 0?0:NSNotFound, Fl::marked_text_length());
+  //NSLog(@"markedRange=%d %d", Fl::compose_state > 0?0:NSNotFound, Fl::compose_state);
+  return NSMakeRange(Fl::compose_state > 0?0:NSNotFound, Fl::compose_state);
 }
 
 - (BOOL)hasMarkedText {
-  //NSLog(@"hasMarkedText %s", Fl::marked_text_length() > 0?"YES":"NO");
-  return (Fl::marked_text_length() > 0);
+  //NSLog(@"hasMarkedText %s", Fl::compose_state > 0?"YES":"NO");
+  return (Fl::compose_state > 0);
 }
 
 - (NSAttributedString *)attributedSubstringFromRange:(NSRange)aRange {
@@ -2147,8 +2201,8 @@ static void cocoaKeyboardHandler(NSEvent *theEvent)
       glyphRect.origin.y = focus->h();
       }
     else {
-    glyphRect.origin.x = focus->x();
-    glyphRect.origin.y = focus->y() + focus->h();
+      glyphRect.origin.x = focus->x();
+      glyphRect.origin.y = focus->y() + focus->h();
       }
     height = 12;
   }
@@ -2198,6 +2252,26 @@ void Fl_Window::fullscreen_off_x(int X, int Y, int W, int H) {
   show();
   Fl::handle(FL_FULLSCREEN, this);
 }
+
+/*
+ * Initialize the given port for redraw and call the window's flush() to actually draw the content
+ */ 
+void Fl_X::flush()
+{
+  if (through_drawRect || w->as_gl_window()) {
+    w->flush();
+    Fl_X::q_release_context();
+    return;
+  }
+  // have Cocoa immediately redraw the window's view
+  FLView *view = (FLView*)[fl_xid(w) contentView];
+  view->fl_x_to_redraw = this;
+  [view setNeedsDisplay:YES];
+  // will send the drawRect: message to the window's view after having prepared the adequate NSGraphicsContext
+  [view displayIfNeededIgnoringOpacity]; 
+  view->fl_x_to_redraw = NULL;
+}
+
 
 /*
  * go ahead, create that (sub)window
@@ -2316,9 +2390,32 @@ void Fl_X::make(Fl_Window* w)
 	  
     NSRect crect;
     if (w->fullscreen_active()) {
-      int sx, sy, sw, sh;
-      Fl::screen_xywh(sx, sy, sw, sh, w->x(), w->y(), w->w(), w->h());
-      w->resize(sx, sy, sw, sh);
+      int top, bottom, left, right;
+      int sx, sy, sw, sh, X, Y, W, H;
+
+      top = w->fullscreen_screen_top;
+      bottom = w->fullscreen_screen_bottom;
+      left = w->fullscreen_screen_left;
+      right = w->fullscreen_screen_right;
+
+      if ((top < 0) || (bottom < 0) || (left < 0) || (right < 0)) {
+        top = Fl::screen_num(w->x(), w->y(), w->w(), w->h());
+        bottom = top;
+        left = top;
+        right = top;
+      }
+
+      Fl::screen_xywh(sx, sy, sw, sh, top);
+      Y = sy;
+      Fl::screen_xywh(sx, sy, sw, sh, bottom);
+      H = sy + sh - Y;
+      Fl::screen_xywh(sx, sy, sw, sh, left);
+      X = sx;
+      Fl::screen_xywh(sx, sy, sw, sh, right);
+      W = sx + sw - X;
+
+      w->resize(X, Y, W, H);
+
       winstyle = NSBorderlessWindowMask;
       winlevel = NSStatusWindowLevel;
     }
@@ -2339,6 +2436,7 @@ void Fl_X::make(Fl_Window* w)
     Fl_X::first = x;
     FLView *myview = [[FLView alloc] init];
     [cw setContentView:myview];
+    [myview release];
     [cw setLevel:winlevel];
     
     q_set_window_title(cw, w->label(), w->iconlabel());
@@ -2356,8 +2454,7 @@ void Fl_X::make(Fl_Window* w)
       [cw setAlphaValue:0.97];
     }
     // Install DnD handlers 
-    [myview registerForDraggedTypes:[NSArray arrayWithObjects:
-                                     NSStringPboardType,  NSFilenamesPboardType, nil]];
+    [myview registerForDraggedTypes:[NSArray arrayWithObjects:utf8_format,  NSFilenamesPboardType, nil]];
     if ( ! Fl_X::first->next ) {	
       // if this is the first window, we need to bring the application to the front
       ProcessSerialNumber psn = { 0, kCurrentProcess };
@@ -2532,6 +2629,29 @@ void Fl_Window::resize(int X,int Y,int W,int H) {
 
 /*
  * make all drawing go into this window (called by subclass flush() impl.)
+ 
+ This can be called in 3 different instances:
+ 
+ 1) When a window is created, resized, or deminiaturized. 
+ The system sends the drawRect: message to the window's view after having prepared the current graphics context 
+ to draw to this view. Variable through_drawRect is YES, and fl_x_to_redraw is NULL. Processing of drawRect: calls 
+ handleUpdateEvent() that calls Fl_X::flush() for the window and its subwindows. Fl_X::flush() calls 
+ Fl_Window::flush() that calls Fl_Window::make_current() that only needs to identify the graphics port of the 
+ current graphics context. The window's draw() function is then executed.
+ 
+ 2) At each round of the FLTK event loop.
+ Fl::flush() is called, that calls Fl_X::flush() on each window that needs drawing. Fl_X::flush() sets 
+ fl_x_to_redraw to this and sends the displayIfNeededIgnoringOpacity message to the window's view. 
+ This message makes the system prepare the current graphics context adequately for drawing to this view, and 
+ send it the drawRect: message which sets through_drawRect to YES. Processing of the drawRect: message calls 
+ Fl_X::flush() for the window which proceeds as in 1) above.
+ 
+ 3) An FLTK application can call Fl_Window::make_current() at any time before it draws to a window.
+ This occurs for instance in the idle callback function of the mandelbrot test program. Variable through_drawRect is NO,
+ so Fl_Window::make_current() creates a new graphics context adequate for the window. 
+ Subsequent drawing requests go to this window. CAUTION: it's not possible to call Fl::wait(), Fl::check()
+ nor Fl::ready() while in the draw() function of a widget. Use an idle callback instead.
+ 
  */
 void Fl_Window::make_current() 
 {
@@ -2548,12 +2668,9 @@ void Fl_Window::make_current()
     yp += win->y();
     win = (Fl_Window*)win->window();
   }
-  
-  NSView *current_focus = [NSView focusView]; 
-  // sometimes current_focus is set to a non-FLTK view: don't touch that
-  if ( [current_focus isKindOfClass:[FLView class]] ) [current_focus unlockFocus];
-  [[i->xid contentView]  lockFocus];
-  i->gc = (CGContextRef)[[NSGraphicsContext currentContext] graphicsPort];
+  NSGraphicsContext *nsgc = through_drawRect ? [NSGraphicsContext currentContext] : 
+					       [NSGraphicsContext graphicsContextWithWindow:fl_window];
+  i->gc = (CGContextRef)[nsgc graphicsPort];
   fl_gc = i->gc;
   Fl_Region fl_window_region = XRectangleRegion(0,0,w(),h());
   if ( ! this->window() ) {
@@ -2621,7 +2738,8 @@ void Fl_X::q_clear_clipping() {
 void Fl_X::q_release_context(Fl_X *x) {
   if (x && x->gc!=fl_gc) return;
   if (!fl_gc) return;
-  CGContextRestoreGState(fl_gc); // matches the CGContextSaveGState of make_current
+  CGContextRestoreGState(fl_gc); // KEEP IT: matches the CGContextSaveGState of make_current
+  CGContextFlush(fl_gc);
   fl_gc = 0;
 #if defined(FLTK_USE_CAIRO)
   if (Fl::cairo_autolink_context()) Fl::cairo_make_current((Fl_Window*) 0); // capture gc changes automatically to update the cairo context adequately
@@ -2658,35 +2776,55 @@ static void convert_crlf(char * s, size_t len)
 }
 
 // fltk 1.3 clipboard support constant definitions:
-const CFStringRef	flavorNames[] = {
-  CFSTR("public.utf16-plain-text"), 
-  CFSTR("public.utf8-plain-text"),
-  CFSTR("com.apple.traditional-mac-plain-text") };
-const CFStringEncoding encodings[] = { 
-  kCFStringEncodingUnicode, 
-  kCFStringEncodingUTF8, 
-  kCFStringEncodingMacRoman};
-const size_t handledFlavorsCount = sizeof(encodings)/sizeof(CFStringEncoding);
-
-// clipboard variables definitions :
-char *fl_selection_buffer[2];
-int fl_selection_length[2];
-static int fl_selection_buffer_length[2];
-
-static PasteboardRef myPasteboard = 0;
-static void allocatePasteboard() {
-  if (!myPasteboard)
-    PasteboardCreate(kPasteboardClipboard, &myPasteboard);
+static NSString *calc_utf8_format(void)
+{
+#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
+#define NSPasteboardTypeString @"public.utf8-plain-text"
+#endif
+  if (fl_mac_os_version >= 100600) return NSPasteboardTypeString;
+  return NSStringPboardType;
 }
 
+// clipboard variables definitions :
+char *fl_selection_buffer[2] = {NULL, NULL};
+int fl_selection_length[2] = {0, 0};
+static int fl_selection_buffer_length[2];
+
+static PasteboardRef allocatePasteboard(void) 
+{
+  PasteboardRef clip;
+  PasteboardCreate(kPasteboardClipboard, &clip); // requires Mac OS 10.3
+  return clip;
+}
+static PasteboardRef myPasteboard = allocatePasteboard();
+
+extern void fl_trigger_clipboard_notify(int source);
+
+void fl_clipboard_notify_change() {
+  // No need to do anything here...
+}
+
+static void clipboard_check(void)
+{
+  PasteboardSyncFlags flags;
+  
+  flags = PasteboardSynchronize(myPasteboard); // requires Mac OS 10.3
+
+  if (!(flags & kPasteboardModified))
+    return;
+  if (flags & kPasteboardClientIsOwner)
+    return;
+
+  fl_trigger_clipboard_notify(1);
+}
 
 /*
  * create a selection
- * owner: widget that created the selection
  * stuff: pointer to selected data
- * size of selected data
+ * len: size of selected data
+ * type: always "plain/text" for now
  */
-void Fl::copy(const char *stuff, int len, int clipboard) {
+void Fl::copy(const char *stuff, int len, int clipboard, const char *type) {
   if (!stuff || len<0) return;
   if (len+1 > fl_selection_buffer_length[clipboard]) {
     delete[] fl_selection_buffer[clipboard];
@@ -2697,82 +2835,178 @@ void Fl::copy(const char *stuff, int len, int clipboard) {
   fl_selection_buffer[clipboard][len] = 0; // needed for direct paste
   fl_selection_length[clipboard] = len;
   if (clipboard) {
-    allocatePasteboard();
-    OSStatus err = PasteboardClear(myPasteboard);
-    if (err!=noErr) return; // clear did not work, maybe not owner of clipboard.
-    PasteboardSynchronize(myPasteboard);
     CFDataRef text = CFDataCreate(kCFAllocatorDefault, (UInt8*)fl_selection_buffer[1], len);
     if (text==NULL) return; // there was a pb creating the object, abort.
-    err=PasteboardPutItemFlavor(myPasteboard, (PasteboardItemID)1, CFSTR("public.utf8-plain-text"), text, 0);
+    NSPasteboard *clip = [NSPasteboard generalPasteboard];
+    [clip declareTypes:[NSArray arrayWithObject:utf8_format] owner:nil];
+    [clip setData:(NSData*)text forType:utf8_format];
     CFRelease(text);
   }
 }
 
-// Call this when a "paste" operation happens:
-void Fl::paste(Fl_Widget &receiver, int clipboard) {
-  if (clipboard) {
-    // see if we own the selection, if not go get it:
-    fl_selection_length[1] = 0;
-    OSStatus err = noErr;
-    Boolean found = false;
-    CFDataRef flavorData = NULL;
-    CFStringEncoding encoding = 0;
-    
-    allocatePasteboard();
-    PasteboardSynchronize(myPasteboard);
-    ItemCount nFlavor = 0, i, j;
-    err = PasteboardGetItemCount(myPasteboard, &nFlavor);
-    if (err==noErr) {
-      for (i=1; i<=nFlavor; i++) {
-        PasteboardItemID itemID = 0;
-        CFArrayRef flavorTypeArray = NULL;
-        found = false;
-        err = PasteboardGetItemIdentifier(myPasteboard, i, &itemID);
-        if (err!=noErr) continue;
-        err = PasteboardCopyItemFlavors(myPasteboard, itemID, &flavorTypeArray);
-        if (err!=noErr) {
-          if (flavorTypeArray) {CFRelease(flavorTypeArray); flavorTypeArray = NULL;}
-          continue;
-        }
-        CFIndex flavorCount = CFArrayGetCount(flavorTypeArray);
-        for (j = 0; j < handledFlavorsCount; j++) {
-          for (CFIndex flavorIndex=0; flavorIndex<flavorCount; flavorIndex++) {
-            CFStringRef flavorType = (CFStringRef)CFArrayGetValueAtIndex(flavorTypeArray, flavorIndex);
-            if (UTTypeConformsTo(flavorType, flavorNames[j])) {
-              err = PasteboardCopyItemFlavorData( myPasteboard, itemID, flavorNames[j], &flavorData );
-              if (err != noErr) continue;
-              encoding = encodings[j];
-              found = true;
-              break;
-            }
-          }
-          if (found) break;
-        }
-        if (flavorTypeArray) {CFRelease(flavorTypeArray); flavorTypeArray = NULL;}
-        if (found) break;
+static int get_plain_text_from_clipboard(char **buffer, int previous_length)
+{
+  NSInteger length = 0;
+  NSPasteboard *clip = [NSPasteboard generalPasteboard];
+  NSString *found = [clip availableTypeFromArray:[NSArray arrayWithObjects:utf8_format, @"public.utf16-plain-text", @"com.apple.traditional-mac-plain-text", nil]];
+  if (found) {
+    NSData *data = [clip dataForType:found];
+    if (data) {
+      NSInteger len;
+      char *aux_c = NULL;
+      if (![found isEqualToString:utf8_format]) {
+	NSString *auxstring;
+	auxstring = (NSString *)CFStringCreateWithBytes(NULL, 
+							(const UInt8*)[data bytes], 
+							[data length],
+							[found isEqualToString:@"public.utf16-plain-text"] ? kCFStringEncodingUnicode : kCFStringEncodingMacRoman,
+							false);
+	aux_c = strdup([auxstring UTF8String]);
+	[auxstring release];
+	len = strlen(aux_c) + 1;
       }
-      if (found) {
-        CFIndex len = CFDataGetLength(flavorData);
-        CFStringRef mycfs = CFStringCreateWithBytes(NULL, CFDataGetBytePtr(flavorData), len, encoding, false);
-        CFRelease(flavorData);
-        len = CFStringGetMaximumSizeForEncoding(CFStringGetLength(mycfs), kCFStringEncodingUTF8) + 1;
-        if ( len >= fl_selection_buffer_length[1] ) {
-          fl_selection_buffer_length[1] = len;
-          delete[] fl_selection_buffer[1];
-          fl_selection_buffer[1] = new char[len];
-        }
-        CFStringGetCString(mycfs, fl_selection_buffer[1], len, kCFStringEncodingUTF8);
-        CFRelease(mycfs);
-        len = strlen(fl_selection_buffer[1]);
-        fl_selection_length[1] = len;
-        convert_crlf(fl_selection_buffer[1],len); // turn all \r characters into \n:
+      else len = [data length] + 1;
+      if ( len >= previous_length ) {
+	length = len;
+	delete[] *buffer;
+	*buffer = new char[len];
+      }
+      if (![found isEqualToString:utf8_format]) {
+	strcpy(*buffer, aux_c);
+	free(aux_c);
+      }
+      else {
+	[data getBytes:*buffer];
+      }
+      (*buffer)[len - 1] = 0;
+      length = len - 1;
+      convert_crlf(*buffer, len - 1); // turn all \r characters into \n:
+      Fl::e_clipboard_type = Fl::clipboard_plain_text;
+    }
+  }    
+  return length;
+}
+
+static Fl_Image* get_image_from_clipboard()
+{
+  Fl_RGB_Image *image = NULL;
+  uchar *imagedata;
+  NSBitmapImageRep *bitmap;
+  NSPasteboard *clip = [NSPasteboard generalPasteboard];
+  NSArray *present = [clip types]; // types in pasteboard in order of decreasing preference
+  NSArray  *possible = [NSArray arrayWithObjects:@"com.adobe.pdf", @"public.tiff", @"com.apple.pict", nil];
+  NSString *found = nil;
+  NSUInteger rank;
+  for (rank = 0; rank < [present count]; rank++) { // find first of possible types present in pasteboard
+    for (NSUInteger i = 0; i < [possible count]; i++) {
+      if ([[present objectAtIndex:rank] isEqualToString:[possible objectAtIndex:i]]) {
+	found = [present objectAtIndex:rank];
+	goto after_loop;
       }
     }
   }
+after_loop: 
+  if (found) {
+    NSData *data = [clip dataForType:found];
+    if (data) {
+      if ([found isEqualToString:@"public.tiff"]) {
+	bitmap = [NSBitmapImageRep imageRepWithData:data];
+	int bpp = [bitmap bytesPerPlane];
+	int bpr = [bitmap bytesPerRow];
+	int depth = [bitmap samplesPerPixel], w = bpr/depth, h = bpp/bpr;
+	imagedata = new uchar[w * h * depth];
+	memcpy(imagedata, [bitmap bitmapData], w * h * depth);
+	image = new Fl_RGB_Image(imagedata, w, h, depth);
+	image->alloc_array = 1;
+      }
+      else if ([found isEqualToString:@"com.adobe.pdf"] || [found isEqualToString:@"com.apple.pict"]) {
+	NSRect rect;
+	NSImageRep *vectorial;
+	NSAffineTransform *dilate = [NSAffineTransform transform];
+	if ([found isEqualToString:@"com.adobe.pdf"] ) {
+	  vectorial = [NSPDFImageRep imageRepWithData:data];
+	  rect = [(NSPDFImageRep*)vectorial bounds]; // in points =  1/72 inch
+	  Fl_Window *win = Fl::first_window();
+	  int screen_num = win ? Fl::screen_num(win->x(), win->y(), win->w(), win->h()) : 0;
+	  float hr, vr;
+	  Fl::screen_dpi(hr, vr, screen_num); // 1 inch = hr pixels = 72 points -> hr/72 pixel/point	  
+	  CGFloat scale = hr/72;
+	  [dilate scaleBy:scale];
+	  rect.size.width *= scale;
+	  rect.size.height *= scale;
+	  rect = NSIntegralRect(rect);
+	  }
+	else {
+	  vectorial = [NSPICTImageRep imageRepWithData:data];
+	  rect = [(NSPICTImageRep*)vectorial boundingBox]; // in pixel, no scaling required
+	  }
+	imagedata = new uchar[(int)(rect.size.width * rect.size.height) * 4];
+	memset(imagedata, -1, (int)(rect.size.width * rect.size.height) * 4);
+	bitmap = [[NSBitmapImageRep alloc]  initWithBitmapDataPlanes:&imagedata
+							  pixelsWide:rect.size.width
+							  pixelsHigh:rect.size.height
+						       bitsPerSample:8
+						     samplesPerPixel:3
+							    hasAlpha:NO
+							    isPlanar:NO
+						      colorSpaceName:NSDeviceRGBColorSpace
+							 bytesPerRow:rect.size.width*4
+							bitsPerPixel:32];
+	NSDictionary *dict = [NSDictionary dictionaryWithObject:bitmap 
+							 forKey:NSGraphicsContextDestinationAttributeName];
+	NSGraphicsContext *oldgc = [NSGraphicsContext currentContext];
+	[NSGraphicsContext setCurrentContext:[NSGraphicsContext graphicsContextWithAttributes:dict]];
+	[dilate concat];
+	[vectorial draw];
+	[NSGraphicsContext setCurrentContext:oldgc];
+	[bitmap release];
+	image = new Fl_RGB_Image(imagedata, rect.size.width, rect.size.height, 4);
+	image->alloc_array = 1;
+      }
+      Fl::e_clipboard_type = Fl::clipboard_image;
+    }
+  }
+  return image;
+}
+
+// Call this when a "paste" operation happens:
+void Fl::paste(Fl_Widget &receiver, int clipboard, const char *type) {
+  if (type[0] == 0) type = Fl::clipboard_plain_text;
+  if (clipboard) {
+    Fl::e_clipboard_type = "";
+   if (strcmp(type, Fl::clipboard_plain_text) == 0) {
+      fl_selection_length[1] = get_plain_text_from_clipboard( &fl_selection_buffer[1],  fl_selection_length[1]);   
+      }
+    else if (strcmp(type, Fl::clipboard_image) == 0) {
+      Fl::e_clipboard_data = get_image_from_clipboard( );
+      if (Fl::e_clipboard_data) {
+	int done = receiver.handle(FL_PASTE);
+	Fl::e_clipboard_type = "";
+	if (done == 0) {
+	  delete (Fl_Image*)Fl::e_clipboard_data;
+	  Fl::e_clipboard_data = NULL;
+	}
+      }
+      return;
+      }
+    else
+      fl_selection_length[1] = 0;
+  }
   Fl::e_text = fl_selection_buffer[clipboard];
   Fl::e_length = fl_selection_length[clipboard];
-  if (!Fl::e_text) Fl::e_text = (char *)"";
+  if (!Fl::e_length) Fl::e_text = (char *)"";
   receiver.handle(FL_PASTE);
+}
+
+int Fl::clipboard_contains(const char *type) {
+  NSString *found = nil;
+  if (strcmp(type, Fl::clipboard_plain_text) == 0) {
+    found = [[NSPasteboard generalPasteboard] availableTypeFromArray:[NSArray arrayWithObjects:utf8_format, @"public.utf16-plain-text", @"com.apple.traditional-mac-plain-text", nil]];
+    }
+  else if (strcmp(type, Fl::clipboard_image) == 0) {
+    found = [[NSPasteboard generalPasteboard] availableTypeFromArray:[NSArray arrayWithObjects:@"public.tiff", @"com.adobe.pdf", @"com.apple.pict", nil]];
+    }
+  return found != nil;
 }
 
 int Fl_X::unlink(Fl_X *start) {
@@ -2818,11 +3052,6 @@ void Fl_X::relink(Fl_Window *w, Fl_Window *wp) {
 void Fl_X::destroy() {
   // subwindows share their xid with their parent window, so should not close it
   if (!subwindow && w && !w->parent() && xid) {
-    NSView *topview = [xid contentView]; 
-    if ( [NSView focusView] == topview ) {
-      [topview unlockFocus];
-    }
-    [topview release];
     [xid close];
   }
 }
@@ -2924,20 +3153,50 @@ void Fl_X::collapse() {
 static NSImage *CGBitmapContextToNSImage(CGContextRef c)
 // the returned NSImage is autoreleased
 {
+  NSImage* image;
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
+  if (fl_mac_os_version >= 100600) {
+    CGImageRef cgimg = CGBitmapContextCreateImage(c);  // requires 10.4
+    image = [[NSImage alloc] initWithCGImage:cgimg size:NSZeroSize]; // requires 10.6
+    CFRelease(cgimg);
+  }
+  else 
+#endif
+    {
+      unsigned char *pdata = (unsigned char *)CGBitmapContextGetData(c);
+      NSBitmapImageRep *imagerep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:&pdata
+									   pixelsWide:CGBitmapContextGetWidth(c)
+									   pixelsHigh:CGBitmapContextGetHeight(c)
+									bitsPerSample:8
+								      samplesPerPixel:4
+									     hasAlpha:YES
+									     isPlanar:NO
+								       colorSpaceName:NSDeviceRGBColorSpace
+									  bytesPerRow:CGBitmapContextGetBytesPerRow(c)
+									 bitsPerPixel:CGBitmapContextGetBitsPerPixel(c)];
+      image = [[NSImage alloc] initWithData: [imagerep TIFFRepresentation]];
+      [imagerep release];
+    }
+  return [image autorelease];
+}
+
+
+CFDataRef Fl_X::CGBitmapContextToTIFF(CGContextRef c)
+{ // the returned value is autoreleased
   unsigned char *pdata = (unsigned char *)CGBitmapContextGetData(c);
   NSBitmapImageRep *imagerep = [[NSBitmapImageRep alloc] initWithBitmapDataPlanes:&pdata
-                                                                       pixelsWide:CGBitmapContextGetWidth(c)
-                                                                       pixelsHigh:CGBitmapContextGetHeight(c)
-                                                                    bitsPerSample:8
-                                                                  samplesPerPixel:4
-                                                                         hasAlpha:YES
-                                                                         isPlanar:NO
-                                                                   colorSpaceName:NSDeviceRGBColorSpace
-                                                                      bytesPerRow:CGBitmapContextGetBytesPerRow(c)
-                                                                     bitsPerPixel:CGBitmapContextGetBitsPerPixel(c)];
-  NSImage* image = [[NSImage alloc] initWithData: [imagerep TIFFRepresentation]];
+								       pixelsWide:CGBitmapContextGetWidth(c)
+								       pixelsHigh:CGBitmapContextGetHeight(c)
+								    bitsPerSample:8
+								  samplesPerPixel:3
+									 hasAlpha:NO
+									 isPlanar:NO
+								   colorSpaceName:NSDeviceRGBColorSpace
+								      bytesPerRow:CGBitmapContextGetBytesPerRow(c)
+								     bitsPerPixel:CGBitmapContextGetBitsPerPixel(c)];
+  NSData* tiff = [imagerep TIFFRepresentation];
   [imagerep release];
-  return [image autorelease];
+  return (CFDataRef)tiff;
 }
 
 static NSCursor *PrepareCursor(NSCursor *cursor, CGContextRef (*f)() )
@@ -3023,7 +3282,7 @@ void Fl_X::set_cursor(Fl_Cursor c)
 }
 //#include <FL/Fl_PostScript.H>
 - (void)printPanel
-{
+{  
   Fl_Printer printer;
   //Fl_PostScript_File_Device printer;
   int w, h, ww, wh;
@@ -3067,21 +3326,23 @@ static void createAppleMenu(void)
   NSMenu *mainmenu, *services = nil, *appleMenu;
   NSMenuItem *menuItem;
   NSString *title;
-
-  NSString *nsappname = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleName"];
+  
+  SEL infodictSEL = (fl_mac_os_version >= 100200 ? @selector(localizedInfoDictionary) : @selector(infoDictionary));
+  NSString *nsappname = [[[NSBundle mainBundle] performSelector:infodictSEL] objectForKey:@"CFBundleName"];  
   if (nsappname == nil)
     nsappname = [[NSProcessInfo processInfo] processName];
   appleMenu = [[NSMenu alloc] initWithTitle:@""];
   /* Add menu items */
-  title = [[NSString stringWithUTF8String:Fl_Mac_App_Menu::about] stringByAppendingString:nsappname];
+  title = [NSString stringWithFormat:NSLocalizedString([NSString stringWithUTF8String:Fl_Mac_App_Menu::about],nil), nsappname];
   menuItem = [appleMenu addItemWithTitle:title action:@selector(showPanel) keyEquivalent:@""];
   FLaboutItemTarget *about = [[FLaboutItemTarget alloc] init];
   [menuItem setTarget:about];
   [appleMenu addItem:[NSMenuItem separatorItem]];
   // Print front window
-  if (strlen(Fl_Mac_App_Menu::print) > 0) {
+  title = NSLocalizedString([NSString stringWithUTF8String:Fl_Mac_App_Menu::print], nil);
+  if ([title length] > 0) {
     menuItem = [appleMenu 
-		addItemWithTitle:[NSString stringWithUTF8String:Fl_Mac_App_Menu::print] 
+		addItemWithTitle:title
 		action:@selector(printPanel) 
 		keyEquivalent:@""];
     [menuItem setTarget:about];
@@ -3090,35 +3351,35 @@ static void createAppleMenu(void)
     [appleMenu addItem:[NSMenuItem separatorItem]];
     }
   if (fl_mac_os_version >= 100400) { // services+hide+quit already in menu in OS 10.3
-  // Services Menu
-  services = [[NSMenu alloc] init];
-  menuItem = [appleMenu 
-	      addItemWithTitle:[NSString stringWithUTF8String:Fl_Mac_App_Menu::services] 
-	      action:nil 
-	      keyEquivalent:@""];
-  [appleMenu setSubmenu:services forItem:menuItem];
-  [appleMenu addItem:[NSMenuItem separatorItem]];
-  // Hide AppName
-  title = [[NSString stringWithUTF8String:Fl_Mac_App_Menu::hide] stringByAppendingString:nsappname];
-  [appleMenu addItemWithTitle:title 
-		       action:@selector(hide:) 
+    // Services Menu
+    services = [[NSMenu alloc] init];
+    menuItem = [appleMenu 
+		addItemWithTitle:NSLocalizedString([NSString stringWithUTF8String:Fl_Mac_App_Menu::services], nil)
+		action:nil 
+		keyEquivalent:@""];
+    [appleMenu setSubmenu:services forItem:menuItem];
+    [appleMenu addItem:[NSMenuItem separatorItem]];
+    // Hide AppName
+    title = [NSString stringWithFormat:NSLocalizedString([NSString stringWithUTF8String:Fl_Mac_App_Menu::hide],nil), nsappname];
+    [appleMenu addItemWithTitle:title 
+			 action:@selector(hide:) 
+		  keyEquivalent:@"h"];
+    // Hide Others
+    menuItem = [appleMenu 
+		addItemWithTitle:NSLocalizedString([NSString stringWithUTF8String:Fl_Mac_App_Menu::hide_others] , nil)
+		action:@selector(hideOtherApplications:) 
 		keyEquivalent:@"h"];
-  // Hide Others
-  menuItem = [appleMenu 
-	      addItemWithTitle:[NSString stringWithUTF8String:Fl_Mac_App_Menu::hide_others] 
-	      action:@selector(hideOtherApplications:) 
-	      keyEquivalent:@"h"];
-  [menuItem setKeyEquivalentModifierMask:(NSAlternateKeyMask|NSCommandKeyMask)];
-  // Show All
-  [appleMenu addItemWithTitle:[NSString stringWithUTF8String:Fl_Mac_App_Menu::show] 
-		       action:@selector(unhideAllApplications:) keyEquivalent:@""];
-  [appleMenu addItem:[NSMenuItem separatorItem]];
-  // Quit AppName
-  title = [[NSString stringWithUTF8String:Fl_Mac_App_Menu::quit] 
-	   stringByAppendingString:nsappname];
-  [appleMenu addItemWithTitle:title 
-		       action:@selector(terminate:) 
-		keyEquivalent:@"q"];
+    [menuItem setKeyEquivalentModifierMask:(NSAlternateKeyMask|NSCommandKeyMask)];
+    // Show All
+    [appleMenu addItemWithTitle:NSLocalizedString([NSString stringWithUTF8String:Fl_Mac_App_Menu::show] , nil)
+			 action:@selector(unhideAllApplications:) keyEquivalent:@""];
+    [appleMenu addItem:[NSMenuItem separatorItem]];
+    // Quit AppName
+    title = [NSString stringWithFormat:NSLocalizedString([NSString stringWithUTF8String:Fl_Mac_App_Menu::quit] , nil),
+	     nsappname];
+    [appleMenu addItemWithTitle:title 
+			 action:@selector(terminate:) 
+		  keyEquivalent:@"q"];
     }
   /* Put menu into the menubar */
   menuItem = [[NSMenuItem alloc] initWithTitle:@"" action:nil keyEquivalent:@""];
@@ -3133,223 +3394,13 @@ static void createAppleMenu(void)
   [NSApp setMainMenu:mainmenu];
   if (services) {
     [NSApp setServicesMenu:services];
-  [services release];
+    [services release];
     }
   [mainmenu release];
   [appleMenu release];
   [menuItem release];
 }
 
-@interface FLMenuItem : NSMenuItem {
-}
-- (void) doCallback:(id)unused;
-- (void) directCallback:(id)unused;
-- (const Fl_Menu_Item*) getFlItem;
-@end
-@implementation FLMenuItem
-- (const Fl_Menu_Item*) getFlItem
-{
-  return *(const Fl_Menu_Item **)[(NSData*)[self representedObject] bytes];
-}
-- (void) doCallback:(id)unused
-{
-  fl_lock_function();
-  const Fl_Menu_Item *item = [self getFlItem];
-  fl_sys_menu_bar->picked(item);
-  if ( item->flags & FL_MENU_TOGGLE ) {	// update the menu toggle symbol
-    [self setState:(item->value() ? NSOnState : NSOffState)];
-  }
-  else if ( item->flags & FL_MENU_RADIO ) {	// update the menu radio symbols
-    NSMenu* menu = [self menu];
-    NSInteger flRank = [menu indexOfItem:self];
-    NSInteger last = [menu numberOfItems] - 1;
-    int from = flRank;
-    while(from > 0) {
-      if ([[menu itemAtIndex:from-1] isSeparatorItem]) break;
-      item = [(FLMenuItem*)[menu itemAtIndex:from-1] getFlItem];
-      if ( !(item->flags & FL_MENU_RADIO) ) break;
-        from--;
-      }
-    int to = flRank;
-    while (to < last) {
-      if ([[menu itemAtIndex:to+1] isSeparatorItem]) break;
-      item = [(FLMenuItem*)[menu itemAtIndex:to+1] getFlItem];
-      if (!(item->flags & FL_MENU_RADIO)) break;
-        to++;
-      }
-    for(int i =  from; i <= to; i++) {
-      NSMenuItem *nsitem = [menu itemAtIndex:i];
-      [nsitem setState:(nsitem != self ? NSOffState : NSOnState)];
-    }
-  }
-  fl_unlock_function();
-}
-- (void) directCallback:(id)unused
-{
-  fl_lock_function();
-  Fl_Menu_Item *item = (Fl_Menu_Item *)[(NSData*)[self representedObject] bytes];
-  if ( item && item->callback() ) item->do_callback(NULL);
-  fl_unlock_function();
-}
-@end
-
-void fl_mac_set_about( Fl_Callback *cb, void *user_data, int shortcut) 
-{
-  fl_open_display();
-  Fl_Menu_Item aboutItem;
-  memset(&aboutItem, 0, sizeof(Fl_Menu_Item));
-  aboutItem.callback(cb);
-  aboutItem.user_data(user_data);
-  aboutItem.shortcut(shortcut);
-  NSMenu *appleMenu = [[[NSApp mainMenu] itemAtIndex:0] submenu];
-  CFStringRef cfname = CFStringCreateCopy(NULL, (CFStringRef)[[appleMenu itemAtIndex:0] title]);
-  [appleMenu removeItemAtIndex:0];
-  FLMenuItem *item = [[[FLMenuItem alloc] initWithTitle:(NSString*)cfname 
-						 action:@selector(directCallback:) 
-					  keyEquivalent:@""] autorelease];
-  if (aboutItem.shortcut()) {
-    Fl_Sys_Menu_Bar::doMenuOrItemOperation(Fl_Sys_Menu_Bar::setKeyEquivalent, item, aboutItem.shortcut() & 0xff);
-    Fl_Sys_Menu_Bar::doMenuOrItemOperation(Fl_Sys_Menu_Bar::setKeyEquivalentModifierMask, item, aboutItem.shortcut() );
-  }
-  NSData *pointer = [NSData dataWithBytes:&aboutItem length:sizeof(Fl_Menu_Item)];
-  [item setRepresentedObject:pointer];
-  [appleMenu insertItem:item atIndex:0];
-  CFRelease(cfname);
-  [item setTarget:item];
-}
-
-static char *remove_ampersand(const char *s)
-{
-  char *ret = strdup(s);
-  const char *p = s;
-  char *q = ret;
-  while(*p != 0) {
-    if (p[0]=='&') {
-      if (p[1]=='&') {
-        *q++ = '&'; p+=2;
-      } else {
-        p++;
-      }
-    } else {
-      *q++ = *p++;
-    }
-  }
-  *q = 0;
-  return ret;
-}
-
-void *Fl_Sys_Menu_Bar::doMenuOrItemOperation(Fl_Sys_Menu_Bar::menuOrItemOperation operation, ...)
-/* these operations apply to menus, submenus, or menu items
- */
-{
-  NSAutoreleasePool *localPool;
-  localPool = [[NSAutoreleasePool alloc] init]; 
-  NSMenu *menu;
-  NSMenuItem *item;
-  int value;
-  void *pter;
-  void *retval = NULL;
-  va_list ap;
-  va_start(ap, operation);
-  
-  if (operation == Fl_Sys_Menu_Bar::itemAtIndex) {	// arguments: NSMenu*, int. Returns the item
-    menu = va_arg(ap, NSMenu*);
-    value = va_arg(ap, int);
-    retval = (void *)[menu itemAtIndex:value];
-  }
-  else if (operation == Fl_Sys_Menu_Bar::setKeyEquivalent) {	// arguments: NSMenuItem*, int
-    item = va_arg(ap, NSMenuItem*);
-    value = va_arg(ap, int);
-    char key = value;
-    NSString *equiv = [[NSString alloc] initWithBytes:&key length:1 encoding:NSASCIIStringEncoding];
-    [item setKeyEquivalent:equiv];
-    [equiv release];
-  }
-  else if (operation == Fl_Sys_Menu_Bar::setKeyEquivalentModifierMask) {		// arguments: NSMenuItem*, int
-    item = va_arg(ap, NSMenuItem*);
-    value = va_arg(ap, int);
-    NSUInteger macMod = 0;
-    if ( value & FL_META ) macMod = NSCommandKeyMask;
-    if ( value & FL_SHIFT || isupper(value) ) macMod |= NSShiftKeyMask;
-    if ( value & FL_ALT ) macMod |= NSAlternateKeyMask;
-    if ( value & FL_CTRL ) macMod |= NSControlKeyMask;
-    [item setKeyEquivalentModifierMask:macMod];
-  }
-  else if (operation == Fl_Sys_Menu_Bar::setState) {	// arguments: NSMenuItem*, int
-    item = va_arg(ap, NSMenuItem*);
-    value = va_arg(ap, int);
-    [item setState:(value ? NSOnState : NSOffState)];
-  }
-  else if (operation == Fl_Sys_Menu_Bar::initWithTitle) {	// arguments: const char*title. Returns the newly created menu
-                                                                // creates a new (sub)menu
-    char *ts = remove_ampersand(va_arg(ap, char *));
-    CFStringRef title = CFStringCreateWithCString(NULL, ts, kCFStringEncodingUTF8);
-    free(ts);
-    NSMenu *menu = [[NSMenu alloc] initWithTitle:(NSString*)title];
-    CFRelease(title);
-    [menu setAutoenablesItems:NO];
-    retval = (void *)menu;
-  }
-  else if (operation == Fl_Sys_Menu_Bar::numberOfItems) {	// arguments: NSMenu *menu, int *pcount
-                                                                // upon return, *pcount is set to menu's item count
-    menu = va_arg(ap, NSMenu*);
-    pter = va_arg(ap, void *);
-    *(int*)pter = [menu numberOfItems];
-  }
-  else if (operation == Fl_Sys_Menu_Bar::setSubmenu) {		// arguments: NSMenuItem *item, NSMenu *menu
-                                                        	// sets 'menu' as submenu attached to 'item'
-    item = va_arg(ap, NSMenuItem*);
-    menu = va_arg(ap, NSMenu*);
-    [item setSubmenu:menu];
-    [menu release];
-  }
-  else if (operation == Fl_Sys_Menu_Bar::setEnabled) {		// arguments: NSMenuItem*, int
-    item = va_arg(ap, NSMenuItem*);
-    value = va_arg(ap, int);
-    [item setEnabled:(value ? YES : NO)];
-  }
-  else if (operation == Fl_Sys_Menu_Bar::addSeparatorItem) {	// arguments: NSMenu*
-    menu = va_arg(ap, NSMenu*);
-    [menu addItem:[NSMenuItem separatorItem]];
-  }
-  else if (operation == Fl_Sys_Menu_Bar::setTitle) {		// arguments: NSMenuItem*, const char *
-    item = va_arg(ap, NSMenuItem*);
-    char *ts = remove_ampersand(va_arg(ap, char *));
-    CFStringRef title = CFStringCreateWithCString(NULL, ts, kCFStringEncodingUTF8);
-    free(ts);
-    [item setTitle:(NSString*)title];
-    CFRelease(title);
-  }
-  else if (operation == Fl_Sys_Menu_Bar::removeItem) {		// arguments: NSMenu*, int
-    menu = va_arg(ap, NSMenu*);
-    value = va_arg(ap, int);
-    [menu removeItem:[menu itemAtIndex:value]];
-  }
-  else if (operation == Fl_Sys_Menu_Bar::addNewItem) {		// arguments: NSMenu *menu, Fl_Menu_Item* mitem, int *prank
-    // creates a new menu item at the end of 'menu'
-    // attaches the item of fl_sys_menu_bar to it
-    // upon return, puts the rank (counted in NSMenu) of the new item in *prank unless prank is NULL
-    menu = va_arg(ap, NSMenu*);
-    Fl_Menu_Item *mitem = va_arg(ap, Fl_Menu_Item *);
-    int *prank = va_arg(ap, int*);
-    char *name = remove_ampersand(mitem->label());
-    CFStringRef cfname = CFStringCreateWithCString(NULL, name, kCFStringEncodingUTF8);
-    free(name);
-    FLMenuItem *item = [[FLMenuItem alloc] initWithTitle:(NSString*)cfname 
-						  action:@selector(doCallback:) 
-					   keyEquivalent:@""];
-    NSData *pointer = [NSData dataWithBytes:&mitem length:sizeof(Fl_Menu_Item*)];
-    [item setRepresentedObject:pointer];
-    [menu addItem:item];
-    CFRelease(cfname);
-    [item setTarget:item];
-    if (prank != NULL) *prank = [menu indexOfItem:item];
-    [item release];
-  }
-  va_end(ap);
-  [localPool release];
-  return retval;
-}
 
 void Fl_X::set_key_window()
 {
@@ -3363,7 +3414,7 @@ static NSImage *imageFromText(const char *text, int *pwidth, int *pheight)
   fl_font(FL_HELVETICA, 10);
   p = text;
   int nl = 0;
-  while((q=strchr(p, '\n')) != NULL) { 
+  while(nl < 100 && (q=strchr(p, '\n')) != NULL) { 
     nl++; 
     w2 = int(fl_width(p, q - p));
     if (w2 > width) width = w2;
@@ -3404,14 +3455,30 @@ static NSImage *imageFromText(const char *text, int *pwidth, int *pheight)
 
 static NSImage *defaultDragImage(int *pwidth, int *pheight)
 {
-  const int width = 16, height = 16;
+  const int version_threshold = 100700;
+  int width, height;
+  if (fl_mac_os_version >= version_threshold) {
+    width = 50; height = 40;
+    }
+  else {
+    width = 16; height = 16;
+    }
   Fl_Offscreen off = Fl_Quartz_Graphics_Driver::create_offscreen_with_alpha(width, height);
   fl_begin_offscreen(off);
-  CGContextSetRGBFillColor( (CGContextRef)off, 0,0,0,0);
-  fl_rectf(0,0,width,height);
-  CGContextSetRGBStrokeColor( (CGContextRef)off, 0,0,0,0.6);
-  fl_rect(0,0,width,height);
-  fl_rect(2,2,width-4,height-4);
+  if (fl_mac_os_version >= version_threshold) {
+    fl_font(FL_HELVETICA, 20);
+    fl_color(FL_BLACK);
+    char str[4];
+    int l = fl_utf8encode(0x1F69A, str); // the "Delivery truck" Unicode character from "Apple Color Emoji" font
+    fl_draw(str, l, 1, 16);
+    }
+  else { // draw two squares
+    CGContextSetRGBFillColor( (CGContextRef)off, 0,0,0,0);
+    fl_rectf(0,0,width,height);
+    CGContextSetRGBStrokeColor( (CGContextRef)off, 0,0,0,0.6);
+    fl_rect(0,0,width,height);
+    fl_rect(2,2,width-4,height-4);
+  }
   fl_end_offscreen();
   NSImage* image = CGBitmapContextToNSImage( (CGContextRef)off );
   fl_delete_offscreen( off );
@@ -3427,16 +3494,11 @@ int Fl::dnd(void)
   NSAutoreleasePool *localPool;
   localPool = [[NSAutoreleasePool alloc] init]; 
   NSPasteboard *mypasteboard = [NSPasteboard pasteboardWithName:NSDragPboard];
-  [mypasteboard declareTypes:[NSArray arrayWithObjects:@"public.utf8-plain-text", nil] owner:nil];
-  [mypasteboard setData:(NSData*)text forType:@"public.utf8-plain-text"];
+  [mypasteboard declareTypes:[NSArray arrayWithObject:utf8_format] owner:nil];
+  [mypasteboard setData:(NSData*)text forType:utf8_format];
   CFRelease(text);
   Fl_Widget *w = Fl::pushed();
-  Fl_Window *win = w->window();
-  if (win == NULL) {
-    win = (Fl_Window*)w;
-  } else { 
-    while(win->window()) win = win->window();
-  }
+  Fl_Window *win = w->top_window();
   NSView *myview = [Fl_X::i(win)->xid contentView];
   NSEvent *theEvent = [NSApp currentEvent];
   
@@ -3467,20 +3529,29 @@ int Fl::dnd(void)
 }
 
 static NSBitmapImageRep* rect_to_NSBitmapImageRep(Fl_Window *win, int x, int y, int w, int h)
-// release the returned value after use
+// the returned value is autoreleased
 {
-  while(win->window()) {
+  NSRect rect;
+  NSView *winview = nil;
+  while (win->window()) {
     x += win->x();
     y += win->y();
     win = win->window();
   }
-  CGFloat epsilon = 0;
-  if (fl_mac_os_version >= 100600) epsilon = 0.5; // STR #2887
-  // The epsilon offset is absolutely necessary under 10.6. Without it, the top pixel row and
-  // left pixel column are not read, and bitmap is read shifted by one pixel in both directions. 
-  // Under 10.5, we want no offset.
-  NSRect rect = NSMakeRect(x - epsilon, y - epsilon, w, h);
-  return [[NSBitmapImageRep alloc] initWithFocusedViewRect:rect];
+  if ( through_drawRect ) {
+    CGFloat epsilon = 0;
+    if (fl_mac_os_version >= 100600) epsilon = 0.5; // STR #2887
+    rect = NSMakeRect(x - epsilon, y - epsilon, w, h);
+    }
+  else {
+    rect = NSMakeRect(x, win->h()-(y+h), w, h);
+    // lock focus to win's view
+    winview = [fl_xid(win) contentView];
+    [winview lockFocus];
+    }
+  NSBitmapImageRep *bitmap = [[[NSBitmapImageRep alloc] initWithFocusedViewRect:rect] autorelease];
+  if ( !through_drawRect ) [winview unlockFocus];
+  return bitmap;
 }
 
 unsigned char *Fl_X::bitmap_from_window_rect(Fl_Window *win, int x, int y, int w, int h, int *bytesPerPixel)
@@ -3492,6 +3563,7 @@ unsigned char *Fl_X::bitmap_from_window_rect(Fl_Window *win, int x, int y, int w
  */
 {
   NSBitmapImageRep *bitmap = rect_to_NSBitmapImageRep(win, x, y, w, h);
+  if (bitmap == nil) return NULL;
   *bytesPerPixel = [bitmap bitsPerPixel]/8;
   int bpp = (int)[bitmap bytesPerPlane];
   int bpr = (int)[bitmap bytesPerRow];
@@ -3509,7 +3581,6 @@ unsigned char *Fl_X::bitmap_from_window_rect(Fl_Window *win, int x, int y, int w
       q += w * *bytesPerPixel;
       }
   }
-  [bitmap release];
   return data;
 }
 
@@ -3522,15 +3593,15 @@ CGImageRef Fl_X::CGImage_from_window_rect(Fl_Window *win, int x, int y, int w, i
 // CFRelease the returned CGImageRef after use
 {
   CGImageRef img;
-  if (fl_mac_os_version >= 100600) { // crashes with 10.5
+  if (fl_mac_os_version >= 100500) {
     NSBitmapImageRep *bitmap = rect_to_NSBitmapImageRep(win, x, y, w, h);
     img = (CGImageRef)[bitmap performSelector:@selector(CGImage)]; // requires Mac OS 10.5
     CGImageRetain(img);
-    [bitmap release];
     }
   else {
     int bpp;
     unsigned char *bitmap = bitmap_from_window_rect(win, x, y, w, h, &bpp);
+    if (!bitmap) return NULL;
     CGColorSpaceRef lut = CGColorSpaceCreateDeviceRGB();
     CGDataProviderRef provider = CGDataProviderCreateWithData(NULL, bitmap, w*h*bpp, imgProviderReleaseData);
     img = CGImageCreate(w, h, 8, 8*bpp, w*bpp, lut,
@@ -3580,22 +3651,53 @@ void Fl_Paged_Device::print_window(Fl_Window *win, int x_offset, int y_offset)
     this->print_widget(win, x_offset, y_offset);
     return;
   }
-  int bx, by, bt;
+  int bx, by, bt, bpp;
   get_window_frame_sizes(bx, by, bt);
   Fl_Display_Device::display_device()->set_current(); // send win to front and make it current
+  const char *title = win->label();
+  win->label(""); // temporarily set a void window title
   win->show();
   fl_gc = NULL;
   Fl::check();
-  win->make_current();
-  this->set_current(); // back to the Fl_Paged_Device
-  // capture the window title bar
-  CGImageRef img = Fl_X::CGImage_from_window_rect(win, 0, -bt, win->w(), bt);
+  // capture the window title bar with no title
+  unsigned char *bitmap = Fl_X::bitmap_from_window_rect(win, 0, -bt, win->w(), bt, &bpp);
+  win->label(title); // put back the window title
   // and print it
-  CGRect rect = { { x_offset, y_offset }, { win->w(), bt } };
-  Fl_X::q_begin_image(rect, 0, 0, win->w(), bt);
-  CGContextDrawImage(fl_gc, rect, img);
-  Fl_X::q_end_image();
-  CFRelease(img);
+  this->set_current(); // back to the Fl_Paged_Device
+  Fl_RGB_Image *rgb = new Fl_RGB_Image(bitmap, win->w(), bt, bpp);
+  rgb->draw(x_offset, y_offset);
+  delete rgb;
+  delete[] bitmap;
+  if (title) { // print the window title
+    const int skip = 68; // approx width of the zone of the 3 window control buttons
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
+    if (fl_mac_os_version >= 100400 && dynamic_cast<Fl_Printer*>(this)) { // use Cocoa string drawing with exact title bar font
+      NSGraphicsContext *current = [NSGraphicsContext currentContext];
+      [NSGraphicsContext setCurrentContext:[NSGraphicsContext graphicsContextWithGraphicsPort:fl_gc flipped:YES]];//10.4
+      NSDictionary *attr = [NSDictionary dictionaryWithObject:[NSFont titleBarFontOfSize:0] 
+						       forKey:NSFontAttributeName];
+      NSString *title_s = [fl_xid(win) title];
+      NSSize size = [title_s sizeWithAttributes:attr];
+      int x = x_offset + win->w()/2 - size.width/2;
+      if (x < x_offset+skip) x = x_offset+skip;
+      NSRect r = {{x, y_offset+bt/2+4}, {win->w() - skip, bt}};
+      [[NSGraphicsContext currentContext] setShouldAntialias:YES];
+      [title_s drawWithRect:r options:(NSStringDrawingOptions)0 attributes:attr]; // 10.4
+      [[NSGraphicsContext currentContext] setShouldAntialias:NO];
+      [NSGraphicsContext setCurrentContext:current];
+    }
+    else
+#endif
+    {
+      fl_font(FL_HELVETICA, 14); // the exact font is LucidaGrande 13 pts
+      fl_color(FL_BLACK);
+      int x = x_offset + win->w()/2 - fl_width(title)/2;
+      if (x < x_offset+skip) x = x_offset+skip;
+      fl_push_clip(x_offset, y_offset, win->w(), bt);
+      fl_draw(title, x, y_offset+bt/2+4);
+      fl_pop_clip();
+    }
+  }
   this->print_widget(win, x_offset, y_offset + bt); // print the window inner part
 }
 
@@ -3634,5 +3736,5 @@ static int calc_mac_os_version() {
 #endif // __APPLE__
 
 //
-// End of "$Id: Fl_cocoa.mm 9804 2013-01-19 14:07:34Z manolo $".
+// End of "$Id: Fl_cocoa.mm 10191 2014-06-11 14:12:29Z ossman $".
 //

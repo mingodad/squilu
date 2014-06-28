@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Window.cxx 9706 2012-11-06 20:46:14Z matt $"
+// "$Id: Fl_Window.cxx 9876 2013-04-12 18:40:00Z greg.ercolano $"
 //
 // Window widget class for the Fast Light Tool Kit (FLTK).
 //
@@ -80,11 +80,48 @@ Fl_Window::Fl_Window(int W, int H, const char *l)
   clear_visible();
 }
 
+/** Returns a pointer to the nearest parent window up the widget hierarchy.
+    This will return sub-windows if there are any, or the parent window if there's no sub-windows.
+    If this widget IS the top-level window, NULL is returned.
+    \retval  NULL if no window is associated with this widget.
+    \note for an Fl_Window widget, this returns its <I>parent</I> window 
+          (if any), not <I>this</I> window.
+    \see top_window()
+*/
 Fl_Window *Fl_Widget::window() const {
   for (Fl_Widget *o = parent(); o; o = o->parent())
     if (o->type() >= FL_WINDOW) return (Fl_Window*)o;
   return 0;
 }
+
+/** Returns a pointer to the top-level window for the widget.
+    In other words, the 'window manager window' that contains this widget.
+    This method differs from window() in that it won't return sub-windows (if there are any).
+    \returns the top-level window, or NULL if no top-level window is associated with this widget.
+    \see window()
+*/
+Fl_Window *Fl_Widget::top_window() const {
+  const Fl_Widget *w = this;
+  while (w->parent()) { w = w->parent(); }		// walk up the widget hierarchy to top-level item
+  return const_cast<Fl_Widget*>(w)->as_window();	// return if window, or NULL if not
+}
+
+/**
+  Finds the x/y offset of the current widget relative to the top-level window.
+  \param[out] xoff,yoff Returns the x/y offset
+  \returns the top-level window (or NULL for a widget that's not in any window)
+*/
+Fl_Window* Fl_Widget::top_window_offset(int& xoff, int& yoff) const {
+  xoff = yoff = 0;
+  const Fl_Widget *w = this;
+  while (w && w->window()) {
+    xoff += w->x();			// accumulate offsets
+    yoff += w->y();
+    w = w->window();			// walk up window hierarchy
+  }
+  return const_cast<Fl_Widget*>(w)->as_window();
+}
+
 /** Gets the x position of the window on the screen */
 int Fl_Window::x_root() const {
   Fl_Window *p = window();
@@ -278,7 +315,6 @@ void Fl_Window::icon(const void * ic) {
   icon_ = ic;
 }
 
-
 //
-// End of "$Id: Fl_Window.cxx 9706 2012-11-06 20:46:14Z matt $".
+// End of "$Id: Fl_Window.cxx 9876 2013-04-12 18:40:00Z greg.ercolano $".
 //

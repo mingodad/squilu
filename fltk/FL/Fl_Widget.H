@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Widget.H 9792 2013-01-13 15:25:37Z manolo $"
+// "$Id: Fl_Widget.H 10096 2014-02-08 01:10:44Z AlbrechtS $"
 //
 // Widget header file for the Fast Light Tool Kit (FLTK).
 //
@@ -29,7 +29,7 @@
   \todo	typedef's fl_intptr_t and fl_uintptr_t should be documented.
 */
 #ifdef _WIN64
-#ifdef __GNUC__
+#if defined(__GNUC__) || defined(__clang__)
 #include <stdint.h>
 #else
 #include <stddef.h>  // M$VC
@@ -1038,6 +1038,10 @@ Returns the full rectangle occupied by a widget plus it's external label if any
 
   /** Sets width ww and height hh accordingly with the label size.
       Labels with images will return w() and h() of the image.
+      
+      This calls fl_measure() internally. For more information about
+      the arguments \p ww and \p hh and word wrapping
+      \see fl_measure(const char*, int&, int&, int)
    */
   void measure_label(int& ww, int& hh) const {label_.measure(ww, hh);}
 
@@ -1047,6 +1051,8 @@ Returns the full rectangle occupied by a widget plus it's external label if any
             (if any), not <I>this</I> window.
    */
   Fl_Window* window() const ;
+  Fl_Window* top_window() const;
+  Fl_Window* top_window_offset(int& xoff, int& yoff) const;
 
   /** Returns an Fl_Group pointer if this widget is an Fl_Group.
 
@@ -1213,5 +1219,5 @@ DECLARE_CLASS_CHEAP_RTTI_1(Fl_Widget)
 #endif
 
 //
-// End of "$Id: Fl_Widget.H 9792 2013-01-13 15:25:37Z manolo $".
+// End of "$Id: Fl_Widget.H 10096 2014-02-08 01:10:44Z AlbrechtS $".
 //

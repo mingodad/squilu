@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Widget_Type.cxx 9082 2011-09-28 20:43:05Z matt $"
+// "$Id: Fl_Widget_Type.cxx 10113 2014-02-25 04:24:41Z greg.ercolano $"
 //
 // Widget type code for the Fast Light Tool Kit (FLTK).
 //
@@ -814,6 +814,12 @@ Fl_Menu_Item boxmenu[] = {
 {"GTK_THIN_DOWN_BOX",0,0,(void *)FL_GTK_THIN_DOWN_BOX},
 {"GTK_ROUND_UP_BOX",0,0,(void *)FL_GTK_ROUND_UP_BOX},
 {"GTK_ROUND_DOWN_BOX",0,0,(void *)FL_GTK_ROUND_DOWN_BOX},
+{"GLEAM_UP_BOX",0,0,(void *)FL_GLEAM_UP_BOX},
+{"GLEAM_DOWN_BOX",0,0,(void *)FL_GLEAM_DOWN_BOX},
+{"GLEAM_THIN_UP_BOX",0,0,(void *)FL_GLEAM_THIN_UP_BOX},
+{"GLEAM_THIN_DOWN_BOX",0,0,(void *)FL_GLEAM_THIN_DOWN_BOX},
+{"GLEAM_ROUND_UP_BOX",0,0,(void *)FL_GLEAM_ROUND_UP_BOX},
+{"GLEAM_ROUND_DOWN_BOX",0,0,(void *)FL_GLEAM_ROUND_DOWN_BOX},
 {0},
 {"frames",0,0,0,FL_SUBMENU},
 {"UP_FRAME",0,0,(void *)FL_UP_FRAME},
@@ -832,6 +838,8 @@ Fl_Menu_Item boxmenu[] = {
 {"GTK_DOWN_FRAME",0,0,(void *)FL_GTK_DOWN_FRAME},
 {"GTK_THIN_UP_FRAME",0,0,(void *)FL_GTK_THIN_UP_FRAME},
 {"GTK_THIN_DOWN_FRAME",0,0,(void *)FL_GTK_THIN_DOWN_FRAME},
+{"GLEAM_UP_FRAME",0,0,(void *)FL_GLEAM_UP_FRAME},
+{"GLEAM_DOWN_FRAME",0,0,(void *)FL_GLEAM_DOWN_FRAME},
 {0},
 {0}};
 
@@ -3178,5 +3186,5 @@ void Fl_Pack_Type::copy_properties()
 }
 
 //
-// End of "$Id: Fl_Widget_Type.cxx 9082 2011-09-28 20:43:05Z matt $".
+// End of "$Id: Fl_Widget_Type.cxx 10113 2014-02-25 04:24:41Z greg.ercolano $".
 //

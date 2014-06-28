@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Preferences.H 9228 2012-01-18 11:39:57Z AlbrechtS $"
+// "$Id: Fl_Preferences.H 9978 2013-09-16 20:25:14Z greg.ercolano $"
 //
 // Preferences .
 //
@@ -185,6 +185,7 @@ private:
   static char uuidBuffer[40];
   static Fl_Preferences *runtimePrefs;
 
+public:  // older Sun compilers need this (public definition of the following classes)
   class RootNode;
   
   class FL_EXPORT Node {	// a node contains a list to all its entries 
@@ -264,5 +265,5 @@ protected:
 #endif // !Fl_Preferences_H
 
 //
-// End of "$Id: Fl_Preferences.H 9228 2012-01-18 11:39:57Z AlbrechtS $".
+// End of "$Id: Fl_Preferences.H 9978 2013-09-16 20:25:14Z greg.ercolano $".
 //

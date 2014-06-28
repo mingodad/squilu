@@ -1,5 +1,5 @@
 //
-// "$Id: screen_xywh.cxx 9299 2012-03-23 16:47:53Z manolo $"
+// "$Id: screen_xywh.cxx 9983 2013-09-22 03:22:41Z greg.ercolano $"
 //
 // Screen/monitor bounding box API for the Fast Light Tool Kit (FLTK).
 //
@@ -135,10 +135,9 @@ static void screen_init() {
       CGSize s = CGDisplayScreenSize(displays[i]); // from 10.3
       dpi_h[i] = screens[i].width / (s.width/25.4);
       dpi_v[i] = screens[i].height / (s.height/25.4);
-      }
-    else {
+    } else {
       dpi_h[i] = dpi_v[i] = 75.;
-      }
+    }
   }
   num_screens = count;
 }
@@ -149,11 +148,11 @@ static void screen_init() {
 #  include <X11/extensions/Xinerama.h>
 #endif
 typedef struct {
-   short x_org;
-   short y_org;
-   short width;
-   short height;
-  } FLScreenInfo;
+  short x_org;
+  short y_org;
+  short width;
+  short height;
+} FLScreenInfo;
 static FLScreenInfo screens[MAX_SCREENS];
 static float dpi[MAX_SCREENS][2];
 
@@ -215,21 +214,6 @@ int Fl::screen_count() {
   return num_screens ? num_screens : 1;
 }
 
-static int find_screen_with_point(int mx, int my) {
-  int screen = 0;
-  if (num_screens < 0) screen_init();
-  
-  for (int i = 0; i < num_screens; i ++) {
-    int sx, sy, sw, sh;
-    Fl::screen_xywh(sx, sy, sw, sh, i);
-    if ((mx >= sx) && (mx < (sx+sw)) && (my >= sy) && (my < (sy+sh))) {
-      screen = i;
-      break;
-    }
-  }
-  return screen;
-}
-
 /**
   Gets the bounding box of a screen
   that contains the specified screen position \p mx, \p my
@@ -237,7 +221,7 @@ static int find_screen_with_point(int mx, int my) {
   \param[in] mx, my the absolute screen position
 */
 void Fl::screen_xywh(int &X, int &Y, int &W, int &H, int mx, int my) {
-  screen_xywh(X, Y, W, H, find_screen_with_point(mx, my));
+  screen_xywh(X, Y, W, H, screen_num(mx, my));
 }
 
 
@@ -248,7 +232,7 @@ void Fl::screen_xywh(int &X, int &Y, int &W, int &H, int mx, int my) {
  \param[in] mx, my the absolute screen position
  */
 void Fl::screen_work_area(int &X, int &Y, int &W, int &H, int mx, int my) {
-  screen_work_area(X, Y, W, H, find_screen_with_point(mx, my));
+  screen_work_area(X, Y, W, H, screen_num(mx, my));
 }
 
 /**
@@ -273,8 +257,7 @@ void Fl::screen_work_area(int &X, int &Y, int &W, int &H, int n) {
     Y = Fl::y();
     W = Fl::w();
     H = Fl::h();
-    }
-  else { // for other screens, work area is full screen,
+  } else { // for other screens, work area is full screen,
     screen_xywh(X, Y, W, H, n);
   }
 #endif
@@ -307,10 +290,10 @@ void Fl::screen_xywh(int &X, int &Y, int &W, int &H, int n) {
     H = GetSystemMetrics(SM_CYSCREEN);
   }
 #elif defined(__APPLE__)
-    X = screens[n].x;
-    Y = screens[n].y;
-    W = screens[n].width;
-    H = screens[n].height;
+  X = screens[n].x;
+  Y = screens[n].y;
+  W = screens[n].width;
+  H = screens[n].height;
 #else
   if (num_screens > 0) {
     X = screens[n].x_org;
@@ -319,17 +302,6 @@ void Fl::screen_xywh(int &X, int &Y, int &W, int &H, int n) {
     H = screens[n].height;
   }
 #endif // WIN32
-}
-
-static inline float fl_intersection(int x1, int y1, int w1, int h1,
-                        int x2, int y2, int w2, int h2) {
-  if(x1+w1 < x2 || x2+w2 < x1 || y1+h1 < y2 || y2+h2 < y1)
-    return 0.;
-  int int_left = x1 > x2 ? x1 : x2;
-  int int_right = x1+w1 > x2+w2 ? x2+w2 : x1+w1;
-  int int_top = y1 > y2 ? y1 : y2;
-  int int_bottom = y1+h1 > y2+h2 ? y2+h2 : y1+h1;
-  return (float)(int_right - int_left) * (int_bottom - int_top);
 }
 
 /**
@@ -341,21 +313,61 @@ static inline float fl_intersection(int x1, int y1, int w1, int h1,
   \see void screen_xywh(int &X, int &Y, int &W, int &H, int n)
   */
 void Fl::screen_xywh(int &X, int &Y, int &W, int &H, int mx, int my, int mw, int mh) {
-  int best_screen = 0;
-  float best_intersection = 0.;
-  for(int i = 0; i < Fl::screen_count(); i++) {
+  screen_xywh(X, Y, W, H, screen_num(mx, my, mw, mh));
+}
+
+/**
+  Gets the screen number of a screen
+  that contains the specified screen position \p x, \p y
+  \param[in] x, y the absolute screen position
+*/
+int Fl::screen_num(int x, int y) {
+  int screen = 0;
+  if (num_screens < 0) screen_init();
+  
+  for (int i = 0; i < num_screens; i ++) {
     int sx, sy, sw, sh;
     Fl::screen_xywh(sx, sy, sw, sh, i);
-    float sintersection = fl_intersection(mx, my, mw, mh, sx, sy, sw, sh);
-    if(sintersection > best_intersection) {
+    if ((x >= sx) && (x < (sx+sw)) && (y >= sy) && (y < (sy+sh))) {
+      screen = i;
+      break;
+    }
+  }
+  return screen;
+}
+
+// Return the number of pixels common to the two rectangular areas
+static inline float fl_intersection(int x1, int y1, int w1, int h1,
+                                    int x2, int y2, int w2, int h2) {
+  if(x1+w1 < x2 || x2+w2 < x1 || y1+h1 < y2 || y2+h2 < y1)
+    return 0.;
+  int int_left = x1 > x2 ? x1 : x2;
+  int int_right = x1+w1 > x2+w2 ? x2+w2 : x1+w1;
+  int int_top = y1 > y2 ? y1 : y2;
+  int int_bottom = y1+h1 > y2+h2 ? y2+h2 : y1+h1;
+  return (float)(int_right - int_left) * (int_bottom - int_top);
+}
+
+/**
+  Gets the screen number for the screen
+  which intersects the most with the rectangle
+  defined by \p x, \p y, \p w, \p h.
+  \param[in] x, y, w, h the rectangle to search for intersection with
+  */
+int Fl::screen_num(int x, int y, int w, int h) {
+  int best_screen = 0;
+  float best_intersection = 0.;
+  for (int i = 0; i < Fl::screen_count(); i++) {
+    int sx, sy, sw, sh;
+    Fl::screen_xywh(sx, sy, sw, sh, i);
+    float sintersection = fl_intersection(x, y, w, h, sx, sy, sw, sh);
+    if (sintersection > best_intersection) {
       best_screen = i;
       best_intersection = sintersection;
     }
   }
-  screen_xywh(X, Y, W, H, best_screen);
+  return best_screen;
 }
-
-
 
 /**
  Gets the screen resolution in dots-per-inch for the given screen.
@@ -389,5 +401,5 @@ void Fl::screen_dpi(float &h, float &v, int n)
 
 
 //
-// End of "$Id: screen_xywh.cxx 9299 2012-03-23 16:47:53Z manolo $".
+// End of "$Id: screen_xywh.cxx 9983 2013-09-22 03:22:41Z greg.ercolano $".
 //

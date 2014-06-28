@@ -1,5 +1,5 @@
 //
-// "$Id: about_panel.fl 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: about_panel.cxx 9827 2013-02-20 10:27:47Z ianmacarthur $"
 //
 // About dialog for the Fast Light Tool Kit (FLTK).
 //
@@ -269,7 +269,7 @@ Fl_Double_Window* make_about_panel() {
     { Fl_Box* o = new Fl_Box(10, 10, 115, 120);
       o->image(image_fluid);
     } // Fl_Box* o
-    { Fl_Box* o = new Fl_Box(135, 10, 200, 70, "FLTK User\nInterface Designer\nVersion 1.3.0");
+    { Fl_Box* o = new Fl_Box(135, 10, 200, 70, "FLTK User\nInterface Designer\nVersion 1.3.2");
       o->color((Fl_Color)12);
       o->selection_color(FL_DARK1);
       o->labelfont(1);
@@ -873,5 +873,5 @@ unsigned char fluid_org_png[12690] = /* binary data included from ../documentati
 73,69,78,68,174,66,96,130};
 
 //
-// End of "$Id: about_panel.fl 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: about_panel.cxx 9827 2013-02-20 10:27:47Z ianmacarthur $".
 //

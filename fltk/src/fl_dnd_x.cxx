@@ -1,5 +1,5 @@
 //
-// "$Id: fl_dnd_x.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: fl_dnd_x.cxx 9979 2013-09-20 03:36:02Z greg.ercolano $"
 //
 // Drag & Drop code for the Fast Light Tool Kit (FLTK).
 //
@@ -55,9 +55,11 @@ static int dnd_aware(Window& window) {
 		     0, 4, False, XA_ATOM,
 		     &actual, &format,
 		     &count, &remaining, &data);
+  int ret = 0;
   if (actual == XA_ATOM && format==32 && count && data)
-    return int(*(Atom*)data);
-  return 0;
+    ret = int(*(Atom*)data);
+  if (data) { XFree(data); data = 0; }
+  return ret;
 }
 
 static int grabfunc(int event) {
@@ -189,5 +191,5 @@ int Fl::dnd() {
 
 
 //
-// End of "$Id: fl_dnd_x.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: fl_dnd_x.cxx 9979 2013-09-20 03:36:02Z greg.ercolano $".
 //

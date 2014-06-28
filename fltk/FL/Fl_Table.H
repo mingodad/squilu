@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Table.H 9731 2012-11-23 20:07:22Z greg.ercolano $"
+// "$Id: Fl_Table.H 9843 2013-03-23 08:14:08Z greg.ercolano $"
 //
 // Fl_Table -- A table widget
 //
@@ -209,6 +209,12 @@ private:
   int _selecting;
 #if FLTK_ABI_VERSION >= 10301
   int _scrollbar_size;
+#endif
+#if FLTK_ABI_VERSION >= 10303
+  enum {
+    TABCELLNAV = 1<<0,			///> tab cell navigation flag
+  };
+  unsigned int flags_;
 #endif
   
   // An STL-ish vector without templates
@@ -823,6 +829,7 @@ public:
   int is_selected(int r, int c);		// selected cell
   void get_selection(int &row_top, int &col_left, int &row_bot, int &col_right);
   void set_selection(int row_top, int col_left, int row_bot, int col_right);
+  int move_cursor(int R, int C, int shiftselect);
   int move_cursor(int R, int C);
   
   /**
@@ -1107,6 +1114,36 @@ public:
       _scrollbar_size = newSize;
   }   
 #endif
+#if FLTK_ABI_VERSION >= 10303
+  /**
+    Flag to control if Tab navigates table cells or not.
+
+    If on, Tab key navigates table cells.
+    If off, Tab key navigates fltk widget focus. (default)
+
+    As of fltk 1.3, the default behavior of the Tab key is to navigate focus off
+    of the current widget, and on to the next one.  But in some applications,
+    it's useful for Tab to be used to navigate cells in the Fl_Table.
+
+    \param [in] val If \p val is 1, Tab key navigates cells in table, not fltk widgets.<BR>
+                    If \p val is 0, Tab key will advance focus to the next fltk widget (default), and does not navigate cells in table.
+  */
+  void tab_cell_nav(int val) {
+    if ( val ) flags_ |=  TABCELLNAV;
+    else       flags_ &= ~TABCELLNAV;
+  }
+
+  /**
+    Get state of table's 'Tab' key cell navigation flag.
+
+    \returns 1 if Tab configured to navigate cells in table<br>0 to navigate widget focus (default)
+
+    \see tab_cell_nav(int)
+  */
+  int tab_cell_nav() const {
+    return(flags_ & TABCELLNAV ? 1 : 0);
+  }
+#endif
 
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Table, Fl_Group)
 };
@@ -1114,5 +1151,5 @@ DECLARE_CLASS_CHEAP_RTTI_2(Fl_Table, Fl_Group)
 #endif /*_FL_TABLE_H*/
 
 //
-// End of "$Id: Fl_Table.H 9731 2012-11-23 20:07:22Z greg.ercolano $".
+// End of "$Id: Fl_Table.H 9843 2013-03-23 08:14:08Z greg.ercolano $".
 //

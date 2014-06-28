@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_compose.cxx 9792 2013-01-13 15:25:37Z manolo $"
+// "$Id: Fl_compose.cxx 9966 2013-09-06 09:03:22Z manolo $"
 //
 // Character compose processing for the Fast Light Tool Kit (FLTK).
 //
@@ -41,7 +41,7 @@ extern XIC fl_xim_ic;
  
  <p>If <i>true</i> is returned, then it has modified the
  Fl::event_text() and Fl::event_length() to a set of <i>bytes</i> to
- insert (it may be of zero length!).  In will also set the "del"
+ insert (it may be of zero length!).  It will also set the "del"
  parameter to the number of <i>bytes</i> to the left of the cursor to
  delete, this is used to delete the results of the previous call to
  Fl::compose().
@@ -54,8 +54,8 @@ extern XIC fl_xim_ic;
  temporary text replaced by other text during the input process. This occurs,
  e.g., when using dead keys or when entering CJK characters.
  Text editing widgets should preferentially signal
- marked text, usually underlining it. Widgets can call
- <tt>int Fl::marked_text_length()</tt> <i>after</i> having called Fl::compose(int&)
+ marked text, usually underlining it. Widgets can use
+ <tt>int Fl::compose_state</tt> <i>after</i> having called Fl::compose(int&)
  to obtain the length in bytes of marked text that always finishes at the
  current insertion point. It's the widget's task to underline marked text.
  Widgets should also call <tt>void Fl::reset_marked_text()</tt> when processing FL_UNFOCUS
@@ -93,22 +93,18 @@ unsigned char ascii = (unsigned char)e_text[0];
 #endif // WIN32
 #endif // __APPLE__
   if (condition) { del = 0; return 0;} // this stuff is to be treated as a function key
-    del = Fl::compose_state;
+  del = Fl::compose_state;
 #ifdef __APPLE__
   Fl::compose_state = Fl_X::next_marked_length;
 #else
-    Fl::compose_state = 0;
-    // Only insert non-control characters:
+  Fl::compose_state = 0;
+// Only insert non-control characters:
   if ( (!Fl::compose_state) && ! (ascii & ~31 && ascii!=127)) { return 0; }
 #endif
   return 1;
 }
 
 #ifdef __APPLE__
-int Fl::marked_text_length() {
-  return (Fl::compose_state ? Fl::compose_state : Fl_X::next_marked_length);
-  }
-
 static int insertion_point_x = 0;
 static int insertion_point_y = 0;
 static int insertion_point_height = 0;
@@ -151,6 +147,6 @@ void Fl::compose_reset()
 }
 
 //
-// End of "$Id: Fl_compose.cxx 9792 2013-01-13 15:25:37Z manolo $"
+// End of "$Id: Fl_compose.cxx 9966 2013-09-06 09:03:22Z manolo $"
 //
 

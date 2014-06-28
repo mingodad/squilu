@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Tree_Prefs.H 9706 2012-11-06 20:46:14Z matt $"
+// "$Id: Fl_Tree_Prefs.H 10034 2013-12-15 18:59:02Z greg.ercolano $"
 //
 
 #ifndef FL_TREE_PREFS_H
@@ -11,7 +11,7 @@
 // FL/Fl_Tree_Prefs.H
 //////////////////////
 //
-// Fl_Tree -- This file is part of the Fl_Tree widget for FLTK
+// Fl_Tree_Prefs -- This file is part of the Fl_Tree widget for FLTK
 // Copyright (C) 2009-2010 by Greg Ercolano.
 //
 // This library is free software. Distribution and use rights are outlined in
@@ -47,7 +47,7 @@
 /// Sort order options for items added to the tree
 ///
 enum Fl_Tree_Sort {
-  FL_TREE_SORT_NONE=0,	///< No sorting; items are added in the order defined (default).
+  FL_TREE_SORT_NONE=0,		///< No sorting; items are added in the order defined (default).
   FL_TREE_SORT_ASCENDING=1,	///< Add items in ascending sort order.
   FL_TREE_SORT_DESCENDING=2	///< Add items in descending sort order.
 };
@@ -93,6 +93,11 @@ enum Fl_Tree_Item_Draw_Mode {
 };
 #endif /*FLTK_ABI_VERSION*/
 
+#if FLTK_ABI_VERSION >= 10303
+class Fl_Tree_Item;
+typedef void (Fl_Tree_Item_Draw_Callback)(Fl_Tree_Item*, void*);
+#endif
+
 /// \class Fl_Tree_Prefs
 ///
 /// \brief Fl_Tree's Preferences class.
@@ -134,6 +139,10 @@ class FL_EXPORT Fl_Tree_Prefs {
   Fl_Tree_Item_Reselect_Mode _itemreselectmode;	// controls item selection callback() behavior
   Fl_Tree_Item_Draw_Mode     _itemdrawmode;	// controls how items draw label + widget()
 #endif /*FLTK_ABI_VERSION*/
+#if FLTK_ABI_VERSION >= 10303
+  Fl_Tree_Item_Draw_Callback *_itemdrawcallback;	// callback to handle drawing items (0=none)
+  void                       *_itemdrawuserdata;	// data for drawing items (0=none)
+#endif
 public:
   Fl_Tree_Prefs();
   
@@ -412,11 +421,26 @@ public:
   inline void item_draw_mode(Fl_Tree_Item_Draw_Mode val) {
     _itemdrawmode = val;
   }
-#endif /*FLTK_ABI_VERSION*/
+#endif
+#if FLTK_ABI_VERSION >= 10303
+  void item_draw_callback(Fl_Tree_Item_Draw_Callback *cb, void *data=0) {
+    _itemdrawcallback = cb;
+    _itemdrawuserdata = data;
+  }
+  Fl_Tree_Item_Draw_Callback* item_draw_callback() const {
+    return(_itemdrawcallback);
+  }
+  void* item_draw_user_data() const {
+    return(_itemdrawuserdata);
+  }
+  void do_item_draw_callback(Fl_Tree_Item *o) const {
+    _itemdrawcallback(o, _itemdrawuserdata);
+  }
+#endif
 };
 
 #endif /*FL_TREE_PREFS_H*/
 
 //
-// End of "$Id: Fl_Tree_Prefs.H 9706 2012-11-06 20:46:14Z matt $".
+// End of "$Id: Fl_Tree_Prefs.H 10034 2013-12-15 18:59:02Z greg.ercolano $".
 //

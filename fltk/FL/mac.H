@@ -1,5 +1,5 @@
 //
-// "$Id: mac.H 9792 2013-01-13 15:25:37Z manolo $"
+// "$Id: mac.H 10159 2014-05-23 16:47:21Z manolo $"
 //
 // Mac header file for the Fast Light Tool Kit (FLTK).
 //
@@ -49,6 +49,28 @@ typedef CGContextRef Fl_Offscreen;
 #include <ApplicationServices/ApplicationServices.h>
 #undef check // because of Fl::check()
 
+#ifndef MAC_OS_X_VERSION_10_4
+#define MAC_OS_X_VERSION_10_4 1040
+#endif
+#ifndef MAC_OS_X_VERSION_10_5
+#define MAC_OS_X_VERSION_10_5 1050
+#endif
+#ifndef MAC_OS_X_VERSION_10_6
+#define MAC_OS_X_VERSION_10_6 1060
+#endif
+#ifndef MAC_OS_X_VERSION_10_7
+#define MAC_OS_X_VERSION_10_7 1070
+#endif
+#ifndef MAC_OS_X_VERSION_10_8
+#define MAC_OS_X_VERSION_10_8 1080
+#endif
+
+#ifdef __OBJC__
+@class NSCursor;
+#else
+class NSCursor;
+#endif // __OBJC__
+
 typedef CGContextRef Fl_Offscreen;
 
 typedef struct flCocoaRegion {
@@ -57,6 +79,7 @@ typedef struct flCocoaRegion {
 } *Fl_Region;  // a region is the union of a series of rectangles
 
 #  include "Fl_Window.H"
+#  include "../src/Fl_Font.H"
 
 // Some random X equivalents
 struct XPoint { int x, y; };
@@ -83,8 +106,7 @@ inline void XDestroyRegion(Fl_Region r) {
     free(r);
   }
 }
-extern void *fl_system_menu;
-extern void *fl_default_cursor;
+extern NSCursor *fl_default_cursor;
 
 // This object contains all mac-specific stuff about a window:
 // WARNING: this object is highly subject to change!
@@ -99,7 +121,7 @@ public:
   Fl_X *next;              // linked tree to support subwindows
   Fl_X *xidChildren, *xidNext; // more subwindow tree
   int wait_for_expose;
-  void *cursor;	           // is really NSCursor*
+  NSCursor *cursor;
   static Fl_X* first;
   static Fl_X* i(const Fl_Window* w) {return w->i;}
   static int fake_X_wm(const Fl_Window*,int&,int&,int&,int&,int&);
@@ -123,6 +145,7 @@ public:
   void set_cursor(Fl_Cursor);
   static CGImageRef CGImage_from_window_rect(Fl_Window *win, int x, int y, int w, int h);
   static unsigned char *bitmap_from_window_rect(Fl_Window *win, int x, int y, int w, int h, int *bytesPerPixel);
+  static CFDataRef CGBitmapContextToTIFF(CGContextRef c);
   static Fl_Region intersect_region_and_rect(Fl_Region current, int x,int y,int w, int h);
   static CGContextRef watch_cursor_image(void);
   static CGContextRef help_cursor_image(void);
@@ -133,6 +156,8 @@ public:
   static void screen_work_area(int &X, int &Y, int &W, int &H, int n); // compute work area of a given screen
   static int next_marked_length; // next length of marked text after current marked text will have been replaced
   static int insertion_point_location(int *px, int *py, int *pheight); // computes window coordinates & height of insertion point
+  static const int CoreText_threshold;  // Mac OS version from which the Core Text API is used to display text
+  static Fl_Fontdesc* calc_fl_fonts(void); // computes the fl_fonts global variable
 private:
   static void relink(Fl_Window*, Fl_Window*);
   bool subwindow;
@@ -142,26 +167,9 @@ extern Window fl_window;
 
 #endif // FL_LIBRARY || FL_INTERNALS
 
-#ifndef MAC_OS_X_VERSION_10_4
-#define MAC_OS_X_VERSION_10_4 1040
-#endif
-#ifndef MAC_OS_X_VERSION_10_5
-#define MAC_OS_X_VERSION_10_5 1050
-#endif
-#ifndef MAC_OS_X_VERSION_10_6
-#define MAC_OS_X_VERSION_10_6 1060
-#endif
-#ifndef MAC_OS_X_VERSION_10_7
-#define MAC_OS_X_VERSION_10_7 1070
-#endif
-#ifndef MAC_OS_X_VERSION_10_8
-#define MAC_OS_X_VERSION_10_8 1080
-#endif
-
 typedef CGImageRef Fl_Bitmask;
 
 extern CGContextRef fl_gc;
-extern class Fl_Sys_Menu_Bar *fl_sys_menu_bar;
 
 extern Window fl_xid(const Fl_Window*);
 extern Fl_Window* fl_find(Window xid);
@@ -186,6 +194,7 @@ extern void fl_open_display();
 
 /** \defgroup group_macosx Mac OS X-specific symbols
  Mac OS X-specific symbols declared in <FL/x.H> or <FL/gl.h>
+ \sa \ref osissues_macos
  @{ */
 
 /** @brief Register a function called for each file dropped onto an application icon.
@@ -207,6 +216,11 @@ extern void fl_mac_set_about( Fl_Callback *cb, void *user_data, int shortcut = 0
 /** \brief The version number of the running Mac OS X (e.g., 100604 for 10.6.4)
  */
 extern int fl_mac_os_version;
+
+/** The system menu bar.
+ */
+extern class Fl_Sys_Menu_Bar *fl_sys_menu_bar;
+
 
 class Fl_Mac_App_Menu {
 public:
@@ -232,6 +246,6 @@ public:
 /** @} */
 
 //
-// End of "$Id: mac.H 9792 2013-01-13 15:25:37Z manolo $".
+// End of "$Id: mac.H 10159 2014-05-23 16:47:21Z manolo $".
 //
 

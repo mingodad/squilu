@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# "$Id: fltk-config.in 8864 2011-07-19 04:49:30Z greg.ercolano $"
+# "$Id: fltk-config.in 9861 2013-04-05 15:28:43Z manolo $"
 #
 # FLTK configuration utility.
 #
@@ -21,7 +21,7 @@
 
 MAJOR_VERSION=1
 MINOR_VERSION=3
-PATCH_VERSION=0
+PATCH_VERSION=2
 VERSION="$MAJOR_VERSION.$MINOR_VERSION.$PATCH_VERSION"
 APIVERSION="$MAJOR_VERSION.$MINOR_VERSION"
 
@@ -45,7 +45,7 @@ ARCHFLAGS=""
 CFLAGS="  -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -D_THREAD_SAFE -D_REENTRANT"
 CXXFLAGS="-I/usr/include/freetype2   -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -D_THREAD_SAFE -D_REENTRANT"
 LDFLAGS=" "
-LDLIBS="-lXext -lXft -lfontconfig -lXinerama -lpthread -ldl -lm  -lX11 "
+LDLIBS="-lXfixes -lXext -lXft -lfontconfig -lXinerama -lpthread -ldl -lm  -lX11 "
 OPTIM=" -Os -Wall -Wunused -Wno-format-y2k  -fno-exceptions -fno-strict-aliasing"
 CAIROFLAGS=""
 
@@ -317,6 +317,8 @@ if test -n "$post"; then
 	<string>$post</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
     </dict>
 </plist>
 EOF
@@ -393,5 +395,5 @@ if test "$echo_includedir" = "yes"; then
 fi
 
 #
-# End of "$Id: fltk-config.in 8864 2011-07-19 04:49:30Z greg.ercolano $".
+# End of "$Id: fltk-config.in 9861 2013-04-05 15:28:43Z manolo $".
 #

@@ -1,5 +1,5 @@
 //
-// "$Id: fl_read_image.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: fl_read_image.cxx 9980 2013-09-21 16:41:23Z greg.ercolano $"
 //
 // X11 image reading routines for the Fast Light Tool Kit (FLTK).
 //
@@ -70,8 +70,10 @@ fl_subimage_offsets(int a, int aw, int b, int bw, int &obw)
 
 // this handler will catch and ignore exceptions during XGetImage
 // to avoid an application crash
-static int xgetimageerrhandler(Display *display, XErrorEvent *error) {
-  return 0;
+extern "C" {
+  static int xgetimageerrhandler(Display *display, XErrorEvent *error) {
+    return 0;
+  }
 }
 
 //
@@ -496,5 +498,5 @@ fl_read_image(uchar *p,		// I - Pixel buffer or NULL to allocate
 #endif
 
 //
-// End of "$Id: fl_read_image.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: fl_read_image.cxx 9980 2013-09-21 16:41:23Z greg.ercolano $".
 //

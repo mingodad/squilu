@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Tree_Item_Array.H 9706 2012-11-06 20:46:14Z matt $"
+// "$Id: Fl_Tree_Item_Array.H 10071 2014-01-20 21:23:24Z greg.ercolano $"
 //
 
 #ifndef _FL_TREE_ITEM_ARRAY_H
@@ -49,6 +49,12 @@ class FL_EXPORT Fl_Tree_Item_Array {
   int _total;			// #items in array
   int _size;			// #items *allocated* for array
   int _chunksize;		// #items to enlarge mem allocation
+#if FLTK_ABI_VERSION >= 10303
+  enum {			
+    MANAGE_ITEM = 1,		///> manage the Fl_Tree_Item's internals (internal use only)
+  };
+  char _flags;			// flags to control behavior
+#endif
   void enlarge(int count);
 public:
   Fl_Tree_Item_Array(int new_chunksize = 10);		// CTOR
@@ -81,12 +87,24 @@ public:
   void clear();
   void add(Fl_Tree_Item *val);
   void insert(int pos, Fl_Tree_Item *new_item);
+  void replace(int pos, Fl_Tree_Item *new_item);
   void remove(int index);
   int  remove(Fl_Tree_Item *item);
+#if FLTK_ABI_VERSION >= 10303
+  /// Option to control if Fl_Tree_Item_Array's destructor will also destroy the Fl_Tree_Item's.
+  /// If set: items and item array is destroyed. 
+  /// If clear: only the item array is destroyed, not items themselves.
+  void manage_item_destroy(int val) {
+    if ( val ) _flags |= MANAGE_ITEM; else _flags &= ~MANAGE_ITEM;
+  }
+  int manage_item_destroy() const {
+    return _flags & MANAGE_ITEM ? 1 : 0;
+  }
+#endif
 };
 
 #endif /*_FL_TREE_ITEM_ARRAY_H*/
 
 //
-// End of "$Id: Fl_Tree_Item_Array.H 9706 2012-11-06 20:46:14Z matt $".
+// End of "$Id: Fl_Tree_Item_Array.H 10071 2014-01-20 21:23:24Z greg.ercolano $".
 //

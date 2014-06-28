@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Paged_Device.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: Fl_Paged_Device.cxx 10116 2014-03-05 12:55:34Z manolo $"
 //
 // implementation of Fl_Paged_Device class for the Fast Light Tool Kit (FLTK).
 //
@@ -42,6 +42,7 @@ void Fl_Paged_Device::print_widget(Fl_Widget* widget, int delta_x, int delta_y)
   int old_x, old_y, new_x, new_y, is_window;
   if ( ! widget->visible() ) return;
   is_window = (widget->as_window() != NULL);
+  uchar old_damage = widget->damage();
   widget->damage(FL_DAMAGE_ALL);
   // set origin to the desired top-left position of the widget
   origin(&old_x, &old_y);
@@ -54,29 +55,34 @@ void Fl_Paged_Device::print_widget(Fl_Widget* widget, int delta_x, int delta_y)
   if (new_x != old_x || new_y != old_y) {
     translate(new_x - old_x, new_y - old_y );
   }
-  // if widget is a window, clip all drawings to the window area
-  if (is_window) fl_push_clip(0, 0, widget->w(), widget->h() );
+  // if widget is a main window, clip all drawings to the window area
+  if (is_window && !widget->window()) fl_push_clip(0, 0, widget->w(), widget->h() );
   // we do some trickery to recognize OpenGL windows and draw them via a plugin
   int drawn_by_plugin = 0;
   if (widget->as_gl_window()) {
     Fl_Plugin_Manager pm("fltk:device");
     Fl_Device_Plugin *pi = (Fl_Device_Plugin*)pm.plugin("opengl.device.fltk.org");
     if (pi) {
-      int width, height;
+      int height = 0;
+#ifdef __APPLE__
+      int width;
       this->printable_rect(&width, &height);
+#endif
       drawn_by_plugin = pi->print(widget, 0, 0, height);
     }
   }
   if (!drawn_by_plugin) {
     widget->draw();
   }
-  if (is_window) fl_pop_clip();
+  if (is_window && !widget->window()) fl_pop_clip();
   // find subwindows of widget and print them
   traverse(widget);
   // reset origin to where it was
   if (new_x != old_x || new_y != old_y) {
     untranslate();
   }
+  if ((old_damage & FL_DAMAGE_CHILD) == 0) widget->clear_damage(old_damage);
+  else widget->damage(FL_DAMAGE_ALL);
 }
 
 
@@ -284,5 +290,5 @@ const Fl_Paged_Device::page_format Fl_Paged_Device::page_formats[NO_PAGE_FORMATS
 };
 
 //
-// End of "$Id: Fl_Paged_Device.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: Fl_Paged_Device.cxx 10116 2014-03-05 12:55:34Z manolo $".
 //

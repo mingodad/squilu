@@ -1,5 +1,5 @@
 //
-// "$Id: win32.H 9278 2012-03-12 11:55:50Z manolo $"
+// "$Id: win32.H 10189 2014-06-11 09:10:53Z ossman $"
 //
 // WIN32 header file for the Fast Light Tool Kit (FLTK).
 //
@@ -79,6 +79,7 @@ public:
   static Fl_X* i(const Fl_Window* w) {return w->i;}
   static int fake_X_wm(const Fl_Window* w,int &X, int &Y,
 		                 int &bt,int &bx,int &by);
+  void make_fullscreen(int X, int Y, int W, int H);
   void setwindow(Fl_Window* wi) {w=wi; wi->i=this;}
   void flush() {w->flush();}
   void set_minmax(LPMINMAXINFO minmax);
@@ -151,5 +152,5 @@ inline void fl_open_callback(void (*)(const char *)) {}
 extern FL_EXPORT int fl_parse_color(const char* p, uchar& r, uchar& g, uchar& b);
 #endif // FL_DOXYGEN
 //
-// End of "$Id: win32.H 9278 2012-03-12 11:55:50Z manolo $".
+// End of "$Id: win32.H 10189 2014-06-11 09:10:53Z ossman $".
 //

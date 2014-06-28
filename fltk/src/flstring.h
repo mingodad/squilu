@@ -1,5 +1,5 @@
 /*
- * "$Id: flstring.h 9573 2012-06-06 03:38:02Z fabien $"
+ * "$Id: flstring.h 10074 2014-01-21 11:07:43Z AlbrechtS $"
  *
  * Common string header file for the Fast Light Tool Kit (FLTK).
  *
@@ -39,7 +39,7 @@
 #    undef index
 #  endif /* index */
 
-#  if defined(WIN32) && !defined(__CYGWIN__)
+#  if defined(WIN32) && !defined(__CYGWIN__) && !defined(__MINGW32__)
 #    define strcasecmp(s,t)	_stricmp((s), (t))
 #    define strncasecmp(s,t,n)	_strnicmp((s), (t), (n))
 /* Visual C++ 2005 incorrectly displays a warning about the use of POSIX APIs
@@ -97,5 +97,5 @@ FL_EXPORT extern int fl_ascii_strcasecmp(const char *s, const char *t);
 #endif /* !flstring_h */
 
 /*
- * End of "$Id: flstring.h 9573 2012-06-06 03:38:02Z fabien $".
+ * End of "$Id: flstring.h 10074 2014-01-21 11:07:43Z AlbrechtS $".
  */

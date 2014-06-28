@@ -1,5 +1,5 @@
 /*
- * "$Id: scandir_win32.c 9325 2012-04-05 05:12:30Z fabien $"
+ * "$Id: scandir_win32.c 10082 2014-01-25 23:04:36Z AlbrechtS $"
  *
  * WIN32 scandir function for the Fast Light Tool Kit (FLTK).
  *
@@ -44,7 +44,7 @@ int fl_scandir(const char *dirname, struct dirent ***namelist,
   /* #warning FIXME This probably needs to be MORE UTF8 aware now */
   /* #endif */
   for (d = findIn; *d; d++) if (*d=='/') *d='\\';
-  if ((len==0)) { strcpy(findIn, ".\\*"); }
+  if (len==0) { strcpy(findIn, ".\\*"); }
   if ((len==2)&&findIn[1]==':'&&isalpha(findIn[0])) { *d++ = '\\'; *d = 0; }
   if ((len==1)&& (d[-1]=='.')) { strcpy(findIn, ".\\*"); is_dir = 1; }
   if ((len>0) && (d[-1]=='\\')) { *d++ = '*'; *d = 0; is_dir = 1; }
@@ -122,5 +122,5 @@ int fl_scandir(const char *dirname, struct dirent ***namelist,
 #endif
 
 /*
- * End of "$Id: scandir_win32.c 9325 2012-04-05 05:12:30Z fabien $".
+ * End of "$Id: scandir_win32.c 10082 2014-01-25 23:04:36Z AlbrechtS $".
  */

@@ -16,7 +16,7 @@
 #      http://www.fltk.org/str.php
 #
 
-%define version 1.3.0
+%define version 1.3.2
 %define release 1
 %define prefix /usr
 

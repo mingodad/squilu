@@ -3,7 +3,7 @@ version 1.0302
 header_name {.h} 
 code_name {.cxx}
 comment {//
-// "$Id: about_panel.fl 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: about_panel.fl 9827 2013-02-20 10:27:47Z ianmacarthur $"
 //
 // About dialog for the Fast Light Tool Kit (FLTK).
 //
@@ -28,8 +28,8 @@ decl {void show_help(const char *name);} {public local
 Function {make_about_panel()} {open
 } {
   Fl_Window about_panel {
-    label {About FLUID} open selected
-    xywh {419 216 345 180} type Double color 50 selection_color 47 hotspot non_modal visible
+    label {About FLUID} open
+    xywh {680 247 345 180} type Double color 50 selection_color 47 hotspot non_modal visible
   } {
     Fl_Box {} {
       image {icons/fluid-96.xpm} xywh {10 10 115 120}
@@ -37,7 +37,7 @@ Function {make_about_panel()} {open
     Fl_Box {} {
       label {FLTK User
 Interface Designer
-Version 1.3.0}
+Version 1.3.2} selected
       xywh {135 10 200 70} color 12 selection_color 47 labelfont 1 labelsize 18 align 21
     }
     Fl_Box {} {
@@ -64,6 +64,6 @@ data fluid_org_png {
 
 comment {
 //
-// End of "$Id: about_panel.fl 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: about_panel.fl 9827 2013-02-20 10:27:47Z ianmacarthur $".
 //} {in_source in_header
 } 

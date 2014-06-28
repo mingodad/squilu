@@ -1,5 +1,5 @@
 //
-// "$Id: fl_font_xft.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: fl_font_xft.cxx 10177 2014-05-30 05:57:00Z manolo $"
 //
 // Xft font code for the Fast Light Tool Kit (FLTK).
 //
@@ -153,7 +153,7 @@ static XftFont* fontopen(const char* name, Fl_Fontsize size, bool core, int angl
   fl_open_display();
 
   if(!is_xlfd) { // Not an XLFD - open as a XFT style name
-    XftFont *the_font; // the font we will return;
+    XftFont *the_font = NULL; // the font we will return;
     XftPattern *fnt_pat = XftPatternCreate(); // the pattern we will use for matching
     int slant = XFT_SLANT_ROMAN;
     int weight = XFT_WEIGHT_MEDIUM;
@@ -270,7 +270,10 @@ static XftFont* fontopen(const char* name, Fl_Fontsize size, bool core, int angl
     free(picked_name);
 #endif
 
-    if (!match_pat) {
+    // open the matched font
+    if (match_pat) the_font = XftFontOpenPattern(fl_display, match_pat);
+
+    if (!match_pat || !the_font) {
       // last chance, just open any font in the right size
       the_font = XftFontOpen (fl_display, fl_screen,
                         XFT_FAMILY, XftTypeString, "sans",
@@ -283,9 +286,6 @@ static XftFont* fontopen(const char* name, Fl_Fontsize size, bool core, int angl
       }
       return the_font;
     }
-
-    // open the matched font
-    the_font = XftFontOpenPattern(fl_display, match_pat);
 
 #if 0 // diagnostic to print the "full name" of the font we actually opened. This works.
     FcChar8 *picked_name2 =  FcNameUnparse(the_font->pattern);
@@ -673,9 +673,9 @@ void Fl_Xlib_Graphics_Driver::rtl_draw(const char* c, int n, int x, int y) {
   if (num_chars < n) n = num_chars; // limit drawing to usable characters in input array
   FcChar32 *ucs_txt = new FcChar32[n+1];
   FcChar32* pu;
-  int in, out, sz;
+  int out, sz;
   ucs_txt[n] = 0;
-  in = 0; out = n-1;
+  out = n-1;
   while ((out >= 0) && (utf_len > 0))
   {
     pu = &ucs_txt[out];
@@ -693,5 +693,5 @@ void Fl_Xlib_Graphics_Driver::rtl_draw(const char* c, int n, int x, int y) {
 #endif
 
 //
-// End of "$Id: fl_font_xft.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// End of "$Id: fl_font_xft.cxx 10177 2014-05-30 05:57:00Z manolo $"
 //

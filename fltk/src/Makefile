@@ -1,5 +1,5 @@
 #
-# "$Id: Makefile 9707 2012-11-06 21:13:54Z matt $"
+# "$Id: Makefile 10159 2014-05-23 16:47:21Z manolo $"
 #
 # Library makefile for the Fast Light Tool Kit (FLTK).
 #
@@ -31,6 +31,7 @@ CPPFILES = \
 	Fl_Choice.cxx \
 	Fl_Clock.cxx \
 	Fl_Color_Chooser.cxx \
+	Fl_Copy_Surface.cxx \
 	Fl_Counter.cxx \
 	Fl_Dial.cxx \
 	Fl_Device.cxx \
@@ -43,13 +44,13 @@ CPPFILES = \
 	Fl_Group.cxx \
 	Fl_Help_View.cxx \
 	Fl_Image.cxx \
+	Fl_Image_Surface.cxx \
 	Fl_Input.cxx \
 	Fl_Input_.cxx \
 	Fl_Light_Button.cxx \
 	Fl_Menu.cxx \
 	Fl_Menu_.cxx \
 	Fl_Menu_Bar.cxx \
-	Fl_Sys_Menu_Bar.cxx \
 	Fl_Menu_Button.cxx \
 	Fl_Menu_Window.cxx \
 	Fl_Menu_add.cxx \
@@ -107,6 +108,7 @@ CPPFILES = \
 	Fl_get_system_colors.cxx \
 	Fl_grab.cxx \
 	Fl_lock.cxx \
+	Fl_sleep.cxx \
 	Fl_own_colormap.cxx \
 	Fl_visual.cxx \
 	Fl_x.cxx \
@@ -134,6 +136,7 @@ CPPFILES = \
 	fl_engraved_label.cxx \
 	fl_file_dir.cxx \
 	fl_font.cxx \
+	fl_gleam.cxx \
 	fl_gtk.cxx \
 	fl_labeltype.cxx \
 	fl_line_style.cxx \
@@ -171,8 +174,9 @@ CPPFILES = \
 OBJCPPFILES = \
     Fl_cocoa.mm \
     Fl_Quartz_Printer.mm \
-    Fl_Native_File_Chooser_MAC.mm
-	
+    Fl_Native_File_Chooser_MAC.mm \
+    Fl_Sys_Menu_Bar.mm
+
 FLCPPFILES = \
 	forms_compatability.cxx \
 	forms_bitmap.cxx \
@@ -256,7 +260,7 @@ libfltk.1.3.dylib: $(OBJECTS)
 	echo $(DSOCOMMAND) $@ ...
 	$(DSOCOMMAND) $@ \
 		-install_name $(libdir)/$@ \
-		-current_version 1.3.1 \
+		-current_version 1.3.2 \
 		-compatibility_version 1.3.0 \
 		$(OBJECTS) $(LDLIBS)
 	$(RM) libfltk.dylib
@@ -292,7 +296,7 @@ libfltk_forms.1.3.dylib: $(FLOBJECTS) libfltk.1.3.dylib
 	echo $(DSOCOMMAND) $@ ...
 	$(DSOCOMMAND) $@ \
 		-install_name $(libdir)/$@ \
-		-current_version 1.3.1 \
+		-current_version 1.3.2 \
 		-compatibility_version 1.3.0 \
 		$(FLOBJECTS) -L. $(LDLIBS) -lfltk
 	$(RM) libfltk_forms.dylib
@@ -328,7 +332,7 @@ libfltk_gl.1.3.dylib: $(GLOBJECTS) libfltk.1.3.dylib
 	echo $(DSOCOMMAND) $@ ...
 	$(DSOCOMMAND) $@ \
 		-install_name $(libdir)/$@ \
-		-current_version 1.3.1 \
+		-current_version 1.3.2 \
 		-compatibility_version 1.3.0 \
 		$(GLOBJECTS) -L. $(GLDLIBS) -lfltk
 	$(RM) libfltk_gl.dylib
@@ -364,7 +368,7 @@ libfltk_images.1.3.dylib: $(IMGOBJECTS) libfltk.1.3.dylib
 	echo $(DSOCOMMAND) $@ ...
 	$(DSOCOMMAND) $@ \
 		-install_name $(libdir)/$@ \
-		-current_version 1.3.1 \
+		-current_version 1.3.2 \
 		-compatibility_version 1.3.0 \
 		$(IMGOBJECTS)  -L. $(LDLIBS) $(IMAGELIBS) -lfltk
 	$(RM) libfltk_images.dylib
@@ -808,5 +812,5 @@ uninstall:
 	fi
 
 #
-# End of "$Id: Makefile 9707 2012-11-06 21:13:54Z matt $".
+# End of "$Id: Makefile 10159 2014-05-23 16:47:21Z manolo $".
 #

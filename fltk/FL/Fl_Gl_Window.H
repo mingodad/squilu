@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Gl_Window.H 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: Fl_Gl_Window.H 10063 2014-01-16 15:38:06Z manolo $"
 //
 // OpenGL header file for the Fast Light Tool Kit (FLTK).
 //
@@ -70,6 +70,7 @@ class FL_EXPORT Fl_Gl_Window : public Fl_Window {
 
   static int can_do(int, const int *);
   int mode(int, const int *);
+  static int gl_plugin_linkage();
 
 public:
 
@@ -229,5 +230,5 @@ DECLARE_CLASS_CHEAP_RTTI_2(Fl_Gl_Window, Fl_Window)
 #endif
 
 //
-// End of "$Id: Fl_Gl_Window.H 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: Fl_Gl_Window.H 10063 2014-01-16 15:38:06Z manolo $".
 //

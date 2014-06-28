@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Menu_Window.cxx 9637 2012-07-24 04:37:22Z matt $"
+// "$Id: Fl_Menu_Window.cxx 10095 2014-02-07 00:09:52Z AlbrechtS $"
 //
 // Menu window code for the Fast Light Tool Kit (FLTK).
 //
@@ -54,6 +54,7 @@ void Fl_Menu_Window::show() {
 }
 
 void Fl_Menu_Window::flush() {
+  if (!shown()) return;
 #if HAVE_OVERLAY
   if (!fl_overlay_visual || !overlay()) {Fl_Single_Window::flush(); return;}
   Fl_X *myi = Fl_X::i(this);
@@ -111,5 +112,5 @@ Fl_Menu_Window::Fl_Menu_Window(int X, int Y, int W, int H, const char *l)
 
 
 //
-// End of "$Id: Fl_Menu_Window.cxx 9637 2012-07-24 04:37:22Z matt $".
+// End of "$Id: Fl_Menu_Window.cxx 10095 2014-02-07 00:09:52Z AlbrechtS $".
 //

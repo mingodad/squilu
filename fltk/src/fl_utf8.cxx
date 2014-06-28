@@ -1,5 +1,5 @@
 //
-// "$Id: fl_utf8.cxx 9704 2012-10-19 11:23:51Z manolo $"
+// "$Id: fl_utf8.cxx 10089 2014-01-31 15:52:56Z greg.ercolano $"
 //
 // Unicode to UTF-8 conversion functions.
 //
@@ -609,7 +609,7 @@ int fl_execvp(const char *file, char *const *argv)
 	return _execvp(fl_utf2mbcs(file), argv);
 #else
 		size_t l = strlen(file);
-		int i, n, ret;
+		int i, n;
 		xchar **ar;
 //		wbuf = (xchar*)realloc(wbuf, sizeof(xchar) * (l+1));
 //		wbuf[fl_utf2unicode((const unsigned char*)file, l, wbuf)] = 0;
@@ -634,14 +634,14 @@ int fl_execvp(const char *file, char *const *argv)
 			i++;
 		}
 		ar[n] = NULL;
-		ret = _wexecvp(wbuf, ar);
+		_wexecvp(wbuf, ar);  // STR #3040
 		i = 0;
 		while (i <= n) {
 			free(ar[i]);
 			i++;
 		}
 		free(ar);
-		return ret;
+		return -1;	     // STR #3040
 #endif
 #else
 	return execvp(file, argv);
@@ -825,5 +825,5 @@ void fl_make_path_for_file( const char *path )
 /** @} */
 
 //
-// End of "$Id: fl_utf8.cxx 9704 2012-10-19 11:23:51Z manolo $".
+// End of "$Id: fl_utf8.cxx 10089 2014-01-31 15:52:56Z greg.ercolano $".
 //

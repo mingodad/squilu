@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Gl_Device_Plugin.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: Fl_Gl_Device_Plugin.cxx 10051 2014-01-10 16:50:55Z manolo $"
 //
 // implementation of class Fl_Gl_Device_Plugin for the Fast Light Tool Kit (FLTK).
 //
@@ -34,33 +34,12 @@ static void imgProviderReleaseData (void *info, const void *data, size_t size)
 
 static void print_gl_window(Fl_Gl_Window *glw, int x, int y, int height)
 {
-#ifdef WIN32
-  HDC save_gc = fl_gc;
-  const int bytesperpixel = 3;
-#elif defined(__APPLE__)
-  CGContextRef save_gc = fl_gc;
+#if defined(__APPLE__)
   const int bytesperpixel = 4;
 #else
-  _XGC *save_gc = fl_gc;
   const int bytesperpixel = 3;
 #endif
-  Fl_Surface_Device *save_surface = Fl_Surface_Device::surface();
-  fl_gc = NULL;
-  Fl_Display_Device::display_device()->set_current();
-#ifdef WIN32
-  Fl::check();
-  Fl_Window *win = (Fl_Window*)glw;
-  while( win->window() ) win = win->window();
-  win->redraw();
-  Fl::check();
-  glw->make_current();
-#else
-  glw->make_current();
-  glw->redraw();
-  glFlush();
-  Fl::check();
-  glFinish();
-#endif
+  glw->flush(); // forces a GL redraw necessary for the glpuzzle demo
   // Read OpenGL context pixels directly.
   // For extra safety, save & restore OpenGL states that are changed
   glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);
@@ -73,17 +52,13 @@ static void print_gl_window(Fl_Gl_Window *glw, int x, int y, int height)
   mByteWidth = (mByteWidth + 3) & ~3;    // Align to 4 bytes
   uchar *baseAddress = (uchar*)malloc(mByteWidth * glw->h());
   glReadPixels(0, 0, glw->w(), glw->h(), 
-#ifdef WIN32
-	       GL_RGB, GL_UNSIGNED_BYTE,
-#elif defined(__APPLE__)
+#if defined(__APPLE__)
 	       GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,
-#else // FIXME Linux/Unix
+#else
 	       GL_RGB, GL_UNSIGNED_BYTE,
 #endif
 	       baseAddress);
   glPopClientAttrib();
-  save_surface->set_current();
-  fl_gc = save_gc;
 #if defined(__APPLE__)
 // kCGBitmapByteOrder32Host and CGBitmapInfo are supposed to arrive with 10.4
 // but some 10.4 don't have kCGBitmapByteOrder32Host, so we play a little #define game
@@ -143,5 +118,5 @@ static Fl_Gl_Device_Plugin Gl_Device_Plugin;
 FL_EXPORT int fl_gl_load_plugin = 0;
 
 //
-// End of "$Id: Fl_Gl_Device_Plugin.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: Fl_Gl_Device_Plugin.cxx 10051 2014-01-10 16:50:55Z manolo $".
 //

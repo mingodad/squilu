@@ -692,6 +692,14 @@ FL_PATCH_VERSION
 FL_MINOR_VERSION
 FL_MAJOR_VERSION
 USEMMFILES
+host_os
+host_vendor
+host_cpu
+host
+build_os
+build_vendor
+build_cpu
+build
 target_alias
 host_alias
 build_alias
@@ -753,6 +761,7 @@ with_x
 enable_xinerama
 enable_xft
 enable_xdbe
+enable_xfixes
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1369,6 +1378,10 @@ _ACEOF
 X features:
   --x-includes=DIR    X include files are in DIR
   --x-libraries=DIR   X library files are in DIR
+
+System types:
+  --build=BUILD     configure for building on BUILD [guessed]
+  --host=HOST       cross-compile to build programs to run on HOST [BUILD]
 _ACEOF
 fi
 
@@ -1396,6 +1409,7 @@ Optional Features:
   --enable-xinerama       turn on Xinerama support default=yes
   --enable-xft            turn on Xft support default=yes
   --enable-xdbe           turn on Xdbe support default=yes
+  --enable-xfixes       turn on Xfixes support default=yes
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1618,74 +1632,6 @@ fi
 
 } # ac_fn_c_try_run
 
-# ac_fn_c_try_cpp LINENO
-# ----------------------
-# Try to preprocess conftest.$ac_ext, and return whether this succeeded.
-ac_fn_c_try_cpp ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  if { { ac_try="$ac_cpp conftest.$ac_ext"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-$as_echo "$ac_try_echo"; } >&5
-  (eval "$ac_cpp conftest.$ac_ext") 2>conftest.err
-  ac_status=$?
-  if test -s conftest.err; then
-    grep -v '^ *+' conftest.err >conftest.er1
-    cat conftest.er1 >&5
-    mv -f conftest.er1 conftest.err
-  fi
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; } > conftest.i && {
-	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       }; then :
-  ac_retval=0
-else
-  $as_echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-    ac_retval=1
-fi
-  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
-  as_fn_set_status $ac_retval
-
-} # ac_fn_c_try_cpp
-
-# ac_fn_c_check_header_compile LINENO HEADER VAR INCLUDES
-# -------------------------------------------------------
-# Tests whether HEADER exists and can be compiled using the include files in
-# INCLUDES, setting the cache variable VAR accordingly.
-ac_fn_c_check_header_compile ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
-$as_echo_n "checking for $2... " >&6; }
-if eval \${$3+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$4
-#include <$2>
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  eval "$3=yes"
-else
-  eval "$3=no"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-eval ac_res=\$$3
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
-
-} # ac_fn_c_check_header_compile
-
 # ac_fn_c_compute_int LINENO EXPR VAR INCLUDES
 # --------------------------------------------
 # Tries to find the compile-time value of EXPR in a program that includes
@@ -1863,6 +1809,74 @@ rm -f conftest.val
   as_fn_set_status $ac_retval
 
 } # ac_fn_c_compute_int
+
+# ac_fn_c_try_cpp LINENO
+# ----------------------
+# Try to preprocess conftest.$ac_ext, and return whether this succeeded.
+ac_fn_c_try_cpp ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  if { { ac_try="$ac_cpp conftest.$ac_ext"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
+$as_echo "$ac_try_echo"; } >&5
+  (eval "$ac_cpp conftest.$ac_ext") 2>conftest.err
+  ac_status=$?
+  if test -s conftest.err; then
+    grep -v '^ *+' conftest.err >conftest.er1
+    cat conftest.er1 >&5
+    mv -f conftest.er1 conftest.err
+  fi
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; } > conftest.i && {
+	 test -z "$ac_c_preproc_warn_flag$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       }; then :
+  ac_retval=0
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+    ac_retval=1
+fi
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+  as_fn_set_status $ac_retval
+
+} # ac_fn_c_try_cpp
+
+# ac_fn_c_check_header_compile LINENO HEADER VAR INCLUDES
+# -------------------------------------------------------
+# Tests whether HEADER exists and can be compiled using the include files in
+# INCLUDES, setting the cache variable VAR accordingly.
+ac_fn_c_check_header_compile ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
+$as_echo_n "checking for $2... " >&6; }
+if eval \${$3+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$4
+#include <$2>
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  eval "$3=yes"
+else
+  eval "$3=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+eval ac_res=\$$3
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+
+} # ac_fn_c_check_header_compile
 
 # ac_fn_c_try_link LINENO
 # -----------------------
@@ -2326,7 +2340,7 @@ $as_echo "$as_me: loading site script $ac_site_file" >&6;}
       || { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "failed to load site script $ac_site_file
-See \`config.log' for more details" "$LINENO" 5 ; }
+See \`config.log' for more details" "$LINENO" 5; }
   fi
 done
 
@@ -2416,36 +2430,129 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-if test `uname` = Darwin; then
-  if test "x$with_archflags" != x ; then
-    CFLAGS="$CFLAGS $with_archflags"
+ac_aux_dir=
+for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
+  if test -f "$ac_dir/install-sh"; then
+    ac_aux_dir=$ac_dir
+    ac_install_sh="$ac_aux_dir/install-sh -c"
+    break
+  elif test -f "$ac_dir/install.sh"; then
+    ac_aux_dir=$ac_dir
+    ac_install_sh="$ac_aux_dir/install.sh -c"
+    break
+  elif test -f "$ac_dir/shtool"; then
+    ac_aux_dir=$ac_dir
+    ac_install_sh="$ac_aux_dir/shtool install -c"
+    break
   fi
-  USEMMFILES="Yes"
-else
-  USEMMFILES="No"
+done
+if test -z "$ac_aux_dir"; then
+  as_fn_error $? "cannot find install-sh, install.sh, or shtool in \"$srcdir\" \"$srcdir/..\" \"$srcdir/../..\"" "$LINENO" 5
 fi
+
+# These three variables are undocumented and unsupported,
+# and are intended to be withdrawn in a future Autoconf release.
+# They can cause serious problems if a builder's source tree is in a directory
+# whose full name contains unusual characters.
+ac_config_guess="$SHELL $ac_aux_dir/config.guess"  # Please don't use this var.
+ac_config_sub="$SHELL $ac_aux_dir/config.sub"  # Please don't use this var.
+ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
+
+
+# Make sure we can run config.sub.
+$SHELL "$ac_aux_dir/config.sub" sun4 >/dev/null 2>&1 ||
+  as_fn_error $? "cannot run $SHELL $ac_aux_dir/config.sub" "$LINENO" 5
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking build system type" >&5
+$as_echo_n "checking build system type... " >&6; }
+if ${ac_cv_build+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_build_alias=$build_alias
+test "x$ac_build_alias" = x &&
+  ac_build_alias=`$SHELL "$ac_aux_dir/config.guess"`
+test "x$ac_build_alias" = x &&
+  as_fn_error $? "cannot guess build type; you must specify one" "$LINENO" 5
+ac_cv_build=`$SHELL "$ac_aux_dir/config.sub" $ac_build_alias` ||
+  as_fn_error $? "$SHELL $ac_aux_dir/config.sub $ac_build_alias failed" "$LINENO" 5
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_build" >&5
+$as_echo "$ac_cv_build" >&6; }
+case $ac_cv_build in
+*-*-*) ;;
+*) as_fn_error $? "invalid value of canonical build" "$LINENO" 5;;
+esac
+build=$ac_cv_build
+ac_save_IFS=$IFS; IFS='-'
+set x $ac_cv_build
+shift
+build_cpu=$1
+build_vendor=$2
+shift; shift
+# Remember, the first character of IFS is used to create $*,
+# except with old shells:
+build_os=$*
+IFS=$ac_save_IFS
+case $build_os in *\ *) build_os=`echo "$build_os" | sed 's/ /-/g'`;; esac
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking host system type" >&5
+$as_echo_n "checking host system type... " >&6; }
+if ${ac_cv_host+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test "x$host_alias" = x; then
+  ac_cv_host=$ac_cv_build
+else
+  ac_cv_host=`$SHELL "$ac_aux_dir/config.sub" $host_alias` ||
+    as_fn_error $? "$SHELL $ac_aux_dir/config.sub $host_alias failed" "$LINENO" 5
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_host" >&5
+$as_echo "$ac_cv_host" >&6; }
+case $ac_cv_host in
+*-*-*) ;;
+*) as_fn_error $? "invalid value of canonical host" "$LINENO" 5;;
+esac
+host=$ac_cv_host
+ac_save_IFS=$IFS; IFS='-'
+set x $ac_cv_host
+shift
+host_cpu=$1
+host_vendor=$2
+shift; shift
+# Remember, the first character of IFS is used to create $*,
+# except with old shells:
+host_os=$*
+IFS=$ac_save_IFS
+case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
+
+
+
+case $host_os in
+    darwin*)
+        if test "x$with_archflags" != x ; then
+            CFLAGS="$CFLAGS $with_archflags"
+        fi
+        USEMMFILES="Yes"
+        ;;
+    *)
+        USEMMFILES="No"
+        ;;
+esac
 
 
 FL_MAJOR_VERSION=1
 FL_MINOR_VERSION=3
-FL_PATCH_VERSION=0
+FL_PATCH_VERSION=2
 FL_API_VERSION=${FL_MAJOR_VERSION}.${FL_MINOR_VERSION}
 
 
 
 
 
-
-uname=`uname`
-uversion=`uname -r | sed -e '1,$s/[^0-9]//g'`
-if test "x$uname" = xIRIX64; then
-    uname="IRIX"
-fi
-if test "x$uname" = x; then
-    # Older MinGW doesn't provide any output when uname is run, even with "-s".
-    # Current MinGW (as of Jan. 2011) however does, so this is not necessary anymore...
-    uname="MINGW"
-fi
 
 ARCHFLAGS="${ARCHFLAGS:=}"
 CFLAGS="${CFLAGS:=}"
@@ -2458,17 +2565,9 @@ OPTIM="${OPTIM:=}"
 
 
 
-if test "x$cross_compiling" != xno ; then
-  case $host_alias in
-    *mingw*)
-    uname=MINGW
-    ;;
-  esac
-fi
-
-uname_GUI=$uname
-case $uname in
-    CYGWIN*)
+host_os_gui=$host_os
+case $host_os in
+    cygwin*)
         # Handle Cygwin option *first*, before all other tests.
 	# Check whether --enable-cygwin was given.
 if test "${enable_cygwin+set}" = set; then :
@@ -2492,7 +2591,7 @@ fi
 	else
 	    # we target Cygwin in combination with X11
 	    if test x$enable_x11 = xyes; then
-		uname_GUI="X11$uname"
+		host_os_gui="X11$host_os"
 	    fi
 	fi
 	;;
@@ -2622,8 +2721,8 @@ if test x$enable_shared = xyes; then
     SHAREDSUFFIX=""
     FLUID="fluid-shared"
 
-    case $uname in
-	Darwin*)
+    case $host_os in
+	darwin*)
             DSONAME="libfltk.$FL_API_VERSION.dylib"
             FLDSONAME="libfltk_forms.$FL_API_VERSION.dylib"
             GLDSONAME="libfltk_gl.$FL_API_VERSION.dylib"
@@ -2632,7 +2731,7 @@ if test x$enable_shared = xyes; then
 	    DSOCOMMAND="\$(CXX) \$(ARCHFLAGS) \$(DSOFLAGS) -dynamiclib -lc -o"
 	    ;;
 
-	SunOS* | UNIX_S*)
+	solaris*)
             DSONAME="libfltk.so.$FL_API_VERSION"
             FLDSONAME="libfltk_forms.so.$FL_API_VERSION"
             GLDSONAME="libfltk_gl.so.$FL_API_VERSION"
@@ -2643,7 +2742,7 @@ if test x$enable_shared = xyes; then
 		    DSOLINK="-R$libdir"
             fi
 	    ;;
-	HP-UX*)
+	hpux*)
             DSONAME="libfltk.sl.$FL_API_VERSION"
             FLDSONAME="libfltk_forms.sl.$FL_API_VERSION"
             GLDSONAME="libfltk_gl.sl.$FL_API_VERSION"
@@ -2654,7 +2753,7 @@ if test x$enable_shared = xyes; then
 		    DSOLINK="-Wl,-rpath,$libdir"
             fi
 	    ;;
-	IRIX*)
+	irix*)
             DSONAME="libfltk.so.$FL_API_VERSION"
             FLDSONAME="libfltk_forms.so.$FL_API_VERSION"
             GLDSONAME="libfltk_gl.so.$FL_API_VERSION"
@@ -2665,7 +2764,7 @@ if test x$enable_shared = xyes; then
 		    DSOLINK="-Wl,-rpath,$libdir"
             fi
 	    ;;
-	OSF1*)
+	osf*)
             DSONAME="libfltk.so.$FL_API_VERSION"
             FLDSONAME="libfltk_forms.so.$FL_API_VERSION"
             GLDSONAME="libfltk_gl.so.$FL_API_VERSION"
@@ -2676,7 +2775,7 @@ if test x$enable_shared = xyes; then
 		    DSOLINK="-Wl,-rpath,$libdir"
             fi
 	    ;;
-	Linux* | *BSD*)
+	linux* | *bsd*)
             DSONAME="libfltk.so.$FL_API_VERSION"
             FLDSONAME="libfltk_forms.so.$FL_API_VERSION"
             GLDSONAME="libfltk_gl.so.$FL_API_VERSION"
@@ -2687,7 +2786,7 @@ if test x$enable_shared = xyes; then
 		    DSOLINK="-Wl,-rpath,$libdir"
             fi
 	    ;;
-	AIX*)
+	aix*)
             DSONAME="libfltk_s.a"
             FLDSONAME="libfltk_forms_s.a"
             GLDSONAME="libfltk_gl_s.a"
@@ -2696,7 +2795,7 @@ if test x$enable_shared = xyes; then
             DSOCOMMAND="\$(CXX) \$(DSOFLAGS) -Wl,-bexpall,-bM:SRE,-bnoentry -o"
             SHAREDSUFFIX="_s"
             ;;
-        CYGWIN* | MINGW*)
+        cygwin* | mingw*)
 	    PICFLAG=0
 	    if test x$enable_cygwin != xyes; then
 		DSONAME="mgwfltknox-$FL_API_VERSION.dll"
@@ -2787,8 +2886,8 @@ if test "${with_archflags+set}" = set; then :
   withval=$with_archflags; ARCHFLAGS="$withval"
 fi
 
-case $uname in
-    Darwin*)
+case $host_os in
+    darwin*)
 # QD is not supported anymore since 1.3
 	$as_echo "#define __APPLE_QUARTZ__ 1" >>confdefs.h
 
@@ -3096,7 +3195,7 @@ fi
 test -z "$CC" && { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "no acceptable C compiler found in \$PATH
-See \`config.log' for more details" "$LINENO" 5 ; }
+See \`config.log' for more details" "$LINENO" 5; }
 
 # Provide some information about the compiler.
 $as_echo "$as_me:${as_lineno-$LINENO}: checking for C compiler version" >&5
@@ -3211,7 +3310,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error 77 "C compiler cannot create executables
-See \`config.log' for more details" "$LINENO" 5 ; }
+See \`config.log' for more details" "$LINENO" 5; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
@@ -3254,7 +3353,7 @@ else
   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "cannot compute suffix of executables: cannot compile and link
-See \`config.log' for more details" "$LINENO" 5 ; }
+See \`config.log' for more details" "$LINENO" 5; }
 fi
 rm -f conftest conftest$ac_cv_exeext
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_exeext" >&5
@@ -3313,7 +3412,7 @@ $as_echo "$ac_try_echo"; } >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "cannot run C compiled programs.
 If you meant to cross compile, use \`--host'.
-See \`config.log' for more details" "$LINENO" 5 ; }
+See \`config.log' for more details" "$LINENO" 5; }
     fi
   fi
 fi
@@ -3365,7 +3464,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "cannot compute suffix of object files: cannot compile
-See \`config.log' for more details" "$LINENO" 5 ; }
+See \`config.log' for more details" "$LINENO" 5; }
 fi
 rm -f conftest.$ac_cv_objext conftest.$ac_ext
 fi
@@ -3842,35 +3941,6 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
-ac_aux_dir=
-for ac_dir in "$srcdir" "$srcdir/.." "$srcdir/../.."; do
-  if test -f "$ac_dir/install-sh"; then
-    ac_aux_dir=$ac_dir
-    ac_install_sh="$ac_aux_dir/install-sh -c"
-    break
-  elif test -f "$ac_dir/install.sh"; then
-    ac_aux_dir=$ac_dir
-    ac_install_sh="$ac_aux_dir/install.sh -c"
-    break
-  elif test -f "$ac_dir/shtool"; then
-    ac_aux_dir=$ac_dir
-    ac_install_sh="$ac_aux_dir/shtool install -c"
-    break
-  fi
-done
-if test -z "$ac_aux_dir"; then
-  as_fn_error $? "cannot find install-sh, install.sh, or shtool in \"$srcdir\" \"$srcdir/..\" \"$srcdir/../..\"" "$LINENO" 5
-fi
-
-# These three variables are undocumented and unsupported,
-# and are intended to be withdrawn in a future Autoconf release.
-# They can cause serious problems if a builder's source tree is in a directory
-# whose full name contains unusual characters.
-ac_config_guess="$SHELL $ac_aux_dir/config.guess"  # Please don't use this var.
-ac_config_sub="$SHELL $ac_aux_dir/config.sub"  # Please don't use this var.
-ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
-
-
 # Find a good install program.  We prefer a C program (faster),
 # so one script is as good as another.  But avoid the broken or
 # incompatible versions:
@@ -3964,8 +4034,8 @@ test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL}'
 
 test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
 
-case $uname in
-    OSF1*)
+case $host_os in
+    osf*)
 	INSTALL="`pwd`/install-sh -c"
 	;;
 esac
@@ -4444,7 +4514,6 @@ else
 fi
 
 
-if test "$uname" != Darwin; then
 
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -4574,7 +4643,7 @@ else
   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "C preprocessor \"$CPP\" fails sanity check
-See \`config.log' for more details" "$LINENO" 5 ; }
+See \`config.log' for more details" "$LINENO" 5; }
 fi
 
 ac_ext=c
@@ -4843,7 +4912,123 @@ fi
 done
 
 
- { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether byte ordering is bigendian" >&5
+# The cast to long int works around a bug in the HP C Compiler
+# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
+# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
+# This bug is HP SR number 8606223364.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of short" >&5
+$as_echo_n "checking size of short... " >&6; }
+if ${ac_cv_sizeof_short+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (short))" "ac_cv_sizeof_short"        "$ac_includes_default"; then :
+
+else
+  if test "$ac_cv_type_short" = yes; then
+     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error 77 "cannot compute sizeof (short)
+See \`config.log' for more details" "$LINENO" 5; }
+   else
+     ac_cv_sizeof_short=0
+   fi
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_short" >&5
+$as_echo "$ac_cv_sizeof_short" >&6; }
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define SIZEOF_SHORT $ac_cv_sizeof_short
+_ACEOF
+
+
+# The cast to long int works around a bug in the HP C Compiler
+# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
+# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
+# This bug is HP SR number 8606223364.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of int" >&5
+$as_echo_n "checking size of int... " >&6; }
+if ${ac_cv_sizeof_int+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (int))" "ac_cv_sizeof_int"        "$ac_includes_default"; then :
+
+else
+  if test "$ac_cv_type_int" = yes; then
+     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error 77 "cannot compute sizeof (int)
+See \`config.log' for more details" "$LINENO" 5; }
+   else
+     ac_cv_sizeof_int=0
+   fi
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_int" >&5
+$as_echo "$ac_cv_sizeof_int" >&6; }
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define SIZEOF_INT $ac_cv_sizeof_int
+_ACEOF
+
+
+# The cast to long int works around a bug in the HP C Compiler
+# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
+# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
+# This bug is HP SR number 8606223364.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of long" >&5
+$as_echo_n "checking size of long... " >&6; }
+if ${ac_cv_sizeof_long+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (long))" "ac_cv_sizeof_long"        "$ac_includes_default"; then :
+
+else
+  if test "$ac_cv_type_long" = yes; then
+     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error 77 "cannot compute sizeof (long)
+See \`config.log' for more details" "$LINENO" 5; }
+   else
+     ac_cv_sizeof_long=0
+   fi
+fi
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_long" >&5
+$as_echo "$ac_cv_sizeof_long" >&6; }
+
+
+
+cat >>confdefs.h <<_ACEOF
+#define SIZEOF_LONG $ac_cv_sizeof_long
+_ACEOF
+
+
+if test $ac_cv_sizeof_short -eq 2; then
+    $as_echo "#define U16 unsigned short" >>confdefs.h
+
+fi
+if test $ac_cv_sizeof_int -eq 4; then
+    $as_echo "#define U32 unsigned" >>confdefs.h
+
+else
+    if test $ac_cv_sizeof_long -eq 4; then
+        $as_echo "#define U32 unsigned long" >>confdefs.h
+
+    fi
+fi
+case $host_os in
+    darwin*)
+        ;;
+    *)
+         { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether byte ordering is bigendian" >&5
 $as_echo_n "checking whether byte ordering is bigendian... " >&6; }
 if ${ac_cv_c_bigendian+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -5064,124 +5249,10 @@ $as_echo "#define AC_APPLE_UNIVERSAL_BUILD 1" >>confdefs.h
      ;; #(
    *)
      as_fn_error $? "unknown endianness
- presetting ac_cv_c_bigendian=no (or yes) will help" "$LINENO" 5  ;;
+ presetting ac_cv_c_bigendian=no (or yes) will help" "$LINENO" 5 ;;
  esac
 
-fi
 
-# The cast to long int works around a bug in the HP C Compiler
-# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
-# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
-# This bug is HP SR number 8606223364.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of short" >&5
-$as_echo_n "checking size of short... " >&6; }
-if ${ac_cv_sizeof_short+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (short))" "ac_cv_sizeof_short"        "$ac_includes_default"; then :
-
-else
-  if test "$ac_cv_type_short" = yes; then
-     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error 77 "cannot compute sizeof (short)
-See \`config.log' for more details" "$LINENO" 5 ; }
-   else
-     ac_cv_sizeof_short=0
-   fi
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_short" >&5
-$as_echo "$ac_cv_sizeof_short" >&6; }
-
-
-
-cat >>confdefs.h <<_ACEOF
-#define SIZEOF_SHORT $ac_cv_sizeof_short
-_ACEOF
-
-
-# The cast to long int works around a bug in the HP C Compiler
-# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
-# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
-# This bug is HP SR number 8606223364.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of int" >&5
-$as_echo_n "checking size of int... " >&6; }
-if ${ac_cv_sizeof_int+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (int))" "ac_cv_sizeof_int"        "$ac_includes_default"; then :
-
-else
-  if test "$ac_cv_type_int" = yes; then
-     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error 77 "cannot compute sizeof (int)
-See \`config.log' for more details" "$LINENO" 5 ; }
-   else
-     ac_cv_sizeof_int=0
-   fi
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_int" >&5
-$as_echo "$ac_cv_sizeof_int" >&6; }
-
-
-
-cat >>confdefs.h <<_ACEOF
-#define SIZEOF_INT $ac_cv_sizeof_int
-_ACEOF
-
-
-# The cast to long int works around a bug in the HP C Compiler
-# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
-# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
-# This bug is HP SR number 8606223364.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of long" >&5
-$as_echo_n "checking size of long... " >&6; }
-if ${ac_cv_sizeof_long+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (long))" "ac_cv_sizeof_long"        "$ac_includes_default"; then :
-
-else
-  if test "$ac_cv_type_long" = yes; then
-     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error 77 "cannot compute sizeof (long)
-See \`config.log' for more details" "$LINENO" 5 ; }
-   else
-     ac_cv_sizeof_long=0
-   fi
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_long" >&5
-$as_echo "$ac_cv_sizeof_long" >&6; }
-
-
-
-cat >>confdefs.h <<_ACEOF
-#define SIZEOF_LONG $ac_cv_sizeof_long
-_ACEOF
-
-
-if test $ac_cv_sizeof_short -eq 2; then
-    $as_echo "#define U16 unsigned short" >>confdefs.h
-
-fi
-if test $ac_cv_sizeof_int -eq 4; then
-    $as_echo "#define U32 unsigned" >>confdefs.h
-
-else
-    if test $ac_cv_sizeof_long -eq 4; then
-        $as_echo "#define U32 unsigned long" >>confdefs.h
-
-    fi
-fi
-if test "$uname" != Darwin; then
 	if test $ac_cv_sizeof_int -eq 8; then
 		$as_echo "#define U64 unsigned" >>confdefs.h
 
@@ -5191,7 +5262,8 @@ if test "$uname" != Darwin; then
 
 		fi
 	fi
-fi
+        ;;
+esac
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the compiler recognizes bool as a built-in type" >&5
@@ -5474,13 +5546,17 @@ if test "$ac_cv_cxx_scandir_posix" = yes; then
 else
     ac_fn_c_check_func "$LINENO" "scandir" "ac_cv_func_scandir"
 if test "x$ac_cv_func_scandir" = xyes; then :
-  if test "x$uname" = xSunOS -o "x$uname" = xQNX; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Not using $uname scandir emulation function." >&5
-$as_echo "$as_me: WARNING: Not using $uname scandir emulation function." >&2;}
-	else
-            $as_echo "#define HAVE_SCANDIR 1" >>confdefs.h
 
-        fi
+        case $host_os in
+            solaris* | *qnx*)
+                { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Not using $host_os scandir emulation function." >&5
+$as_echo "$as_me: WARNING: Not using $host_os scandir emulation function." >&2;}
+                ;;
+            *)
+                $as_echo "#define HAVE_SCANDIR 1" >>confdefs.h
+
+                ;;
+        esac
 fi
 
 fi
@@ -5488,62 +5564,38 @@ fi
 ac_fn_c_check_func "$LINENO" "vsnprintf" "ac_cv_func_vsnprintf"
 if test "x$ac_cv_func_vsnprintf" = xyes; then :
 
-    case "$uname" in
-    	HP-UX*)
-	    if test "$uversion" = "1020"; then
-	        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Not using built-in vsnprintf function because you are running HP-UX 10.20." >&5
+    case $host_os in
+        hpux1020)
+            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Not using built-in vsnprintf function because you are running HP-UX 10.20." >&5
 $as_echo "$as_me: WARNING: Not using built-in vsnprintf function because you are running HP-UX 10.20." >&2;}
-	    else
-        	$as_echo "#define HAVE_VSNPRINTF 1" >>confdefs.h
-
-	    fi
-	    ;;
-
-    	OSF1*)
-	    if test "$uversion" = "40"; then
-                { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Not using built-in vsnprintf function because you are running Tru64 4.0." >&5
+            ;;
+        osf4)
+            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Not using built-in vsnprintf function because you are running Tru64 4.0." >&5
 $as_echo "$as_me: WARNING: Not using built-in vsnprintf function because you are running Tru64 4.0." >&2;}
-	    else
-        	$as_echo "#define HAVE_VSNPRINTF 1" >>confdefs.h
-
-	    fi
-	    ;;
-
+            ;;
         *)
             $as_echo "#define HAVE_VSNPRINTF 1" >>confdefs.h
 
-	    ;;
+            ;;
     esac
 fi
 
 ac_fn_c_check_func "$LINENO" "snprintf" "ac_cv_func_snprintf"
 if test "x$ac_cv_func_snprintf" = xyes; then :
 
-    case "$uname" in
-    	HP-UX*)
-	    if test "$uversion" = "1020"; then
-	        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Not using built-in snprintf function because you are running HP-UX 10.20." >&5
+    case $host_os in
+        hpux1020)
+            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Not using built-in snprintf function because you are running HP-UX 10.20." >&5
 $as_echo "$as_me: WARNING: Not using built-in snprintf function because you are running HP-UX 10.20." >&2;}
-	    else
-        	$as_echo "#define HAVE_SNPRINTF 1" >>confdefs.h
-
-	    fi
-	    ;;
-
-    	OSF1*)
-	    if test "$uversion" = "40"; then
-                { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Not using built-in snprintf function because you are running Tru64 4.0." >&5
+            ;;
+        osf4)
+            { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Not using built-in snprintf function because you are running Tru64 4.0." >&5
 $as_echo "$as_me: WARNING: Not using built-in snprintf function because you are running Tru64 4.0." >&2;}
-	    else
-        	$as_echo "#define HAVE_SNPRINTF 1" >>confdefs.h
-
-	    fi
-	    ;;
-
+            ;;
         *)
             $as_echo "#define HAVE_SNPRINTF 1" >>confdefs.h
 
-	    ;;
+            ;;
     esac
 fi
 
@@ -5891,13 +5943,6 @@ if test $ac_cv_c_long_long = yes; then
 
 fi
 
-ac_fn_c_check_func "$LINENO" "strtoll" "ac_cv_func_strtoll"
-if test "x$ac_cv_func_strtoll" = xyes; then :
-  $as_echo "#define HAVE_STRTOLL 1" >>confdefs.h
-
-fi
-
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing dlsym" >&5
 $as_echo_n "checking for library containing dlsym... " >&6; }
 if ${ac_cv_search_dlsym+:} false; then :
@@ -5965,12 +6010,12 @@ fi
 
 AUDIOLIBS=""
 
-case $uname in
-    CYGWIN* | MINGW*)
+case $host_os in
+    cygwin* | mingw*)
 		AUDIOLIBS="-lwinmm"
 	;;
 
-    Darwin*)
+    darwin*)
 	AUDIOLIBS="-framework CoreAudio"
 	;;
 
@@ -6364,11 +6409,11 @@ have_pthread=no
 PTHREAD_FLAGS=""
 
 check_pthread=yes
-case $uname in
-    MINGW*)
+case $host_os in
+    mingw*)
 	check_pthread=no
 	;;
-    CYGWIN*)
+    cygwin*)
 	if test "x$enable_cygwin" != xyes; then
 	    check_pthread=no
 	fi
@@ -6420,9 +6465,11 @@ $as_echo "$have_pthread" >&6; }
 
 		# Solaris requires -D_POSIX_PTHREAD_SEMANTICS to
 		# be POSIX-compliant... :(
-		if test $uname = SunOS; then
-		    PTHREAD_FLAGS="$PTHREAD_FLAGS -D_POSIX_PTHREAD_SEMANTICS"
-		fi
+		case $host_os in
+		    solaris*)
+		        PTHREAD_FLAGS="$PTHREAD_FLAGS -D_POSIX_PTHREAD_SEMANTICS"
+		        ;;
+		esac
 		break
 	    fi
 	done
@@ -6445,8 +6492,8 @@ fi
 INSTALL_DESKTOP=""
 UNINSTALL_DESKTOP=""
 
-case $uname_GUI in
-    CYGWIN* | MINGW*)
+case $host_os_gui in
+    cygwin* | mingw*)
 		# Recent versions of Cygwin are seriously broken and the size
 	# checks don't work because the shell puts out \r\n instead of
 	# \n.  Here we just force U32 to be defined to "unsigned"...
@@ -6456,7 +6503,7 @@ case $uname_GUI in
 	CXXFLAGS="-mwindows -DWIN32 -DUSE_OPENGL32 $CXXFLAGS"
 	LDFLAGS="-mwindows $LDFLAGS"
 	DSOFLAGS="-mwindows $DSOFLAGS"
-	LIBS="$LIBS -lole32 -luuid -lcomctl32 -lwinspool"
+	LIBS="$LIBS -lole32 -luuid -lcomctl32"
 	if test "x$with_optim" = x; then
 	    	    with_optim="-O3"
 	fi
@@ -6500,7 +6547,7 @@ fi
 	fi
 	;;
 
-    Darwin*)
+    darwin*)
         # MacOS X uses Cocoa for graphics.
         LIBS="$LIBS -framework Cocoa"
 
@@ -6560,7 +6607,7 @@ if test "x$with_x" = xno; then
   have_x=disabled
 else
   case $x_includes,$x_libraries in #(
-    *\'*) as_fn_error $? "cannot use X directory names containing '" "$LINENO" 5 ;; #(
+    *\'*) as_fn_error $? "cannot use X directory names containing '" "$LINENO" 5;; #(
     *,NONE | NONE,*) if ${ac_cv_have_x+:} false; then :
   $as_echo_n "(cached) " >&6
 else
@@ -7721,6 +7768,63 @@ fi
 
 	fi
 
+	        # Check whether --enable-xfixes was given.
+if test "${enable_xfixes+set}" = set; then :
+  enableval=$enable_xfixes;
+fi
+
+
+	if test x$enable_xfixes != xno; then
+	    ac_fn_c_check_header_compile "$LINENO" "X11/extensions/Xfixes.h" "ac_cv_header_X11_extensions_Xfixes_h" "#include <X11/Xlib.h>
+"
+if test "x$ac_cv_header_X11_extensions_Xfixes_h" = xyes; then :
+  $as_echo "#define HAVE_XFIXES 1" >>confdefs.h
+
+fi
+
+
+	    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for XFixesQueryExtension in -lXfixes" >&5
+$as_echo_n "checking for XFixesQueryExtension in -lXfixes... " >&6; }
+if ${ac_cv_lib_Xfixes_XFixesQueryExtension+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lXfixes  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char XFixesQueryExtension ();
+int
+main ()
+{
+return XFixesQueryExtension ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_Xfixes_XFixesQueryExtension=yes
+else
+  ac_cv_lib_Xfixes_XFixesQueryExtension=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_Xfixes_XFixesQueryExtension" >&5
+$as_echo "$ac_cv_lib_Xfixes_XFixesQueryExtension" >&6; }
+if test "x$ac_cv_lib_Xfixes_XFixesQueryExtension" = xyes; then :
+  LIBS="-lXfixes $LIBS"
+fi
+
+	fi
+
 		# Extract the first word of "xprop", so it can be a program name with args.
 set dummy xprop; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
@@ -7786,8 +7890,8 @@ $as_echo "$ac_cv_have_overlay" >&6; }
 
 	# Make symlinks since UNIX/Linux is case sensitive,
 	# but Cygwin in general not.
-	case $uname in
-	    CYGWIN*)
+	case $host_os in
+	    cygwin*)
 		HLINKS="#"
 	    ;;
 	    *)
@@ -7814,14 +7918,14 @@ esac
 
 
 
-case "$uname" in
-    *BSD* | Darwin*)
+case "$host_os" in
+    *bsd* | darwin*)
 	# *BSD
 	CAT1EXT=0
 	CAT3EXT=0
 	CAT6EXT=0
 	;;
-    IRIX*)
+    irix*)
 	# SGI IRIX
 	CAT1EXT=z
 	CAT3EXT=z
@@ -7840,12 +7944,12 @@ esac
 
 
 if test "$mandir" = "\${prefix}/man" -a "$prefix" = "/usr"; then
-    case "$uname" in
-        *BSD* | Darwin* | Linux*)
+    case "$host_os" in
+        *bsd* | darwin* | linux*)
             # *BSD, Darwin, and Linux
             mandir="\${prefix}/share/man"
             ;;
-        IRIX*)
+        irix*)
             # SGI IRIX
             mandir="\${prefix}/share/catman"
             ;;
@@ -7860,9 +7964,15 @@ if test "$exec_prefix" = NONE; then
     exec_prefix="\${prefix}"
 fi
 
-if test "$uname" = "IRIX" -a $uversion -ge 62 -a "$libdir" = "\${exec_prefix}/lib" -a "$exec_prefix" = "\${prefix}" -a "$prefix" = "/usr"; then
-    libdir="/usr/lib32"
-fi
+case $host_os in
+    irix1-5*)
+        ;;
+    irix*)
+        if test "$libdir" = "\${exec_prefix}/lib" -a "$exec_prefix" = "\${prefix}" -a "$prefix" = "/usr"; then
+            libdir="/usr/lib32"
+        fi
+        ;;
+esac
 
 MAKEDEPEND="\$(CXX) -M"
 
@@ -7878,9 +7988,13 @@ if test -n "$GCC"; then
 
     # We know that Carbon is deprecated on OS X 10.4. To avoid hundreds of warnings
     # we will temporarily disable 'deprecated' warnings on OS X.
-    if test "$uname" = "Darwin" -a $uversion -ge 800; then
-        OPTIM="-Wno-deprecated-declarations $OPTIM"
-    fi
+    case $host_os in
+        darwin1-7)
+            ;;
+        darwin*)
+            OPTIM="-Wno-deprecated-declarations $OPTIM"
+            ;;
+    esac
 
     # Set the default compiler optimizations...
     if test -z "$DEBUGFLAG"; then
@@ -7971,13 +8085,14 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     # Unlike the other compiler/optimization settings, this one is placed
     # in CFLAGS and CXXFLAGS so that fltk-config will provide the option
     # to clients - otherwise client apps will not compile properly...
-    if test "$uname" = SunOS; then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if GCC supports -fpermissive" >&5
+    case $host_os in
+        solaris*)
+	    { $as_echo "$as_me:${as_lineno-$LINENO}: checking if GCC supports -fpermissive" >&5
 $as_echo_n "checking if GCC supports -fpermissive... " >&6; }
 
-	OLDCFLAGS="$CFLAGS"
-	CFLAGS="$CFLAGS -fpermissive"
-	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+	    OLDCFLAGS="$CFLAGS"
+	    CFLAGS="$CFLAGS -fpermissive"
+	    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 int
@@ -7990,18 +8105,19 @@ main ()
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
   CXXFLAGS="$CXXFLAGS -fpermissive"
-	    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+	        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 else
   CFLAGS="$OLDCFLAGS"
-	    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+	        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-    fi
+	    ;;
+    esac
 else
-    case "$uname" in
-        IRIX*)
+    case "$host_os" in
+        irix*)
 	    # Running some flavor of IRIX; see which version and
 	    # set things up according...
 	    if test "$uversion" -ge 62; then
@@ -8031,7 +8147,7 @@ $as_echo "$as_me: WARNING: FOR BEST RESULTS BEFORE COMPILING: setenv SGI_ABI \"-
 		fi
 	    fi
 	    ;;
-	HP-UX*)
+	hpux*)
 	    # Running HP-UX; these options should work for the HP compilers.
 	    if test -z "$DEBUGFLAG"; then
         	if test "x$with_optim" != x; then
@@ -8058,7 +8174,7 @@ $as_echo "$as_me: WARNING: FOR BEST RESULTS BEFORE COMPILING: setenv SGI_ABI \"-
 		fi
 	    fi
 	    ;;
-	SunOS*)
+	solaris*)
 	    # Solaris
 	    if test -z "$DEBUGFLAG"; then
         	if test "x$with_optim" != x; then
@@ -8072,7 +8188,7 @@ $as_echo "$as_me: WARNING: FOR BEST RESULTS BEFORE COMPILING: setenv SGI_ABI \"-
 		OPTIM="-KPIC $OPTIM"
 	    fi
 	    ;;
-	AIX*)
+	aix*)
 	    if test -z "$DEBUGFLAG"; then
         	if test "x$with_optim" != x; then
 		    OPTIM="$with_optim $OPTIM"
@@ -8097,14 +8213,16 @@ fi
 
 OPTIM="$DEBUGFLAG $OPTIM"
 
-if test `uname` = Darwin; then
-  if test "x$with_archflags" != x ; then
-    CFLAGS="`echo $CFLAGS | sed -e "s/$with_archflags//g"`"
-  fi
-fi
+case $host_os in
+    darwin*)
+        if test "x$with_archflags" != x ; then
+            CFLAGS="`echo $CFLAGS | sed -e "s/$with_archflags//g"`"
+        fi
+        ;;
+esac
 
-case $uname in
-  MINGW*)
+case $host_os in
+  mingw*)
      # Determine the path where MSys has /usr installed
  	msyspath=`mount | grep '\/usr ' | cut -d ' ' -f -1 | sed -e 's/\\\/\// g'`
      # Then substitute that in the WIN32 path instead of /usr
@@ -8144,11 +8262,11 @@ echo ""
 echo "Configuration Summary"
 echo "-------------------------------------------------------------------------"
 
-case $uname_GUI in
-    CYGWIN* | MINGW*)
+case $host_os_gui in
+    cygwin* | mingw*)
         graphics="GDI"
 	;;
-    Darwin*)
+    darwin*)
         graphics="Quartz"
         ;;
     *)
@@ -8173,8 +8291,8 @@ echo "                 exec_prefix=$exec_prefix"
 echo "                 includedir=$includedir"
 echo "                 libdir=$libdir"
 echo "                 mandir=$mandir"
-case $uname in
-  MINGW*)
+case $host_os in
+  mingw*)
     echo "                 MSys docpath=$msyspath/local/share/doc/fltk"
   ;;
 esac
@@ -8935,7 +9053,7 @@ do
     "fltk.spec") CONFIG_FILES="$CONFIG_FILES fltk.spec" ;;
     "FL/Makefile") CONFIG_FILES="$CONFIG_FILES FL/Makefile" ;;
 
-  *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5 ;;
+  *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
 done
 
@@ -9252,7 +9370,7 @@ do
   esac
   case $ac_mode$ac_tag in
   :[FHL]*:*);;
-  :L* | :C*:*) as_fn_error $? "invalid tag \`$ac_tag'" "$LINENO" 5 ;;
+  :L* | :C*:*) as_fn_error $? "invalid tag \`$ac_tag'" "$LINENO" 5;;
   :[FH]-) ac_tag=-:-;;
   :[FH]*) ac_tag=$ac_tag:$ac_tag.in;;
   esac
@@ -9280,7 +9398,7 @@ do
 	   [\\/$]*) false;;
 	   *) test -f "$srcdir/$ac_f" && ac_f="$srcdir/$ac_f";;
 	   esac ||
-	   as_fn_error 1 "cannot find input file: \`$ac_f'" "$LINENO" 5 ;;
+	   as_fn_error 1 "cannot find input file: \`$ac_f'" "$LINENO" 5;;
       esac
       case $ac_f in *\'*) ac_f=`$as_echo "$ac_f" | sed "s/'/'\\\\\\\\''/g"`;; esac
       as_fn_append ac_file_inputs " '$ac_f'"
@@ -9307,7 +9425,7 @@ $as_echo "$as_me: creating $ac_file" >&6;}
 
     case $ac_tag in
     *:-:* | *:-) cat >"$ac_tmp/stdin" \
-      || as_fn_error $? "could not create $ac_file" "$LINENO" 5  ;;
+      || as_fn_error $? "could not create $ac_file" "$LINENO" 5 ;;
     esac
     ;;
   esac

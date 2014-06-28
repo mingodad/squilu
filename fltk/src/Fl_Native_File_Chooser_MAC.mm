@@ -1,4 +1,4 @@
-// "$Id: Fl_Native_File_Chooser_MAC.mm 9798 2013-01-16 15:25:39Z manolo $"
+// "$Id: Fl_Native_File_Chooser_MAC.mm 9825 2013-02-19 15:19:58Z manolo $"
 //
 // FLTK native OS file chooser widget
 //
@@ -344,8 +344,7 @@ int Fl_Native_File_Chooser::filters() const {
 
 int Fl_Native_File_Chooser::get_saveas_basename(void) {
   char *q = strdup( [[[(NSSavePanel*)_panel URL] path] UTF8String] );
-  id delegate = [(NSSavePanel*)_panel delegate];
-  if (delegate != nil) {
+  if ( !(_options & SAVEAS_CONFIRM) ) {
     const char *d = [[[[(NSSavePanel*)_panel URL] path] stringByDeletingLastPathComponent] UTF8String];
     int l = strlen(d) + 1;
     if (strcmp(d, "/") == 0) l = 1;
@@ -435,16 +434,52 @@ static char *prepareMacFilter(int count, const char *filter, char **patterns) {
 <NSOpenSavePanelDelegate>
 #endif
 {
+  NSSavePanel *dialog;
+  BOOL saveas_confirm;
 }
 - (NSString *)panel:(id)sender userEnteredFilename:(NSString *)filename confirmed:(BOOL)okFlag;
+- (void)changedPopup:(id)sender;
+- (void)panel:(NSSavePanel*)p;
+- (void)option:(BOOL)o;
 @end
 @implementation FLsaveDelegate
 - (NSString *)panel:(id)sender userEnteredFilename:(NSString *)filename confirmed:(BOOL)okFlag
 {
-  if (! okFlag) return filename;
+  if ( !okFlag || saveas_confirm ) return filename;
   // User has clicked save, and no overwrite confirmation should occur.
   // To get the latter, we need to change the name we return (hence the prefix):
   return [@ UNLIKELYPREFIX stringByAppendingString:filename];
+}
+- (void)changedPopup:(id)sender
+// runs when the save panel popup menu changes output file type
+// correspondingly changes the extension of the output file name
+{
+  if (fl_mac_os_version < 100600) return; // because of setNameFieldStringValue and nameFieldStringValue
+  char *s = strdup([[(NSPopUpButton*)sender titleOfSelectedItem] UTF8String]);
+  if (!s) return;
+  char *p = strchr(s, '(');
+  if (!p) p = s;
+  p = strchr(p, '.');
+  if (!p) {free(s); return;}
+  p++;
+  while (*p == ' ') p++;
+  if (!p || *p == '{') {free(s); return;}
+  char *q = p+1;
+  while (*q != ' ' && *q != ')' && *q != 0) q++;
+  *q = 0;
+  NSString *ns = [NSString stringWithFormat:@"%@.%@", 
+		  [[dialog performSelector:@selector(nameFieldStringValue)] stringByDeletingPathExtension],
+		  [NSString stringWithUTF8String:p]];
+  free(s);
+  [dialog performSelector:@selector(setNameFieldStringValue:) withObject:ns];
+}
+- (void)panel:(NSSavePanel*)p
+{
+  dialog = p;
+}
+- (void) option:(BOOL)o
+{
+  saveas_confirm = o;
 }
 @end
   
@@ -501,8 +536,8 @@ int Fl_Native_File_Chooser::runmodal()
   }
   if (_directory && !dir) dir = [[NSString alloc] initWithUTF8String:_directory];
   if (fl_mac_os_version >= 100600) {
-    if (dir) [(NSSavePanel*)_panel performSelector:@selector(setDirectoryURL) withObject:[NSURL fileURLWithPath:dir]];
-    if (fname) [(NSSavePanel*)_panel performSelector:@selector(setNameFieldStringValue) withObject:fname];
+    if (dir) [(NSSavePanel*)_panel performSelector:@selector(setDirectoryURL:) withObject:[NSURL fileURLWithPath:dir]];
+    if (fname) [(NSSavePanel*)_panel performSelector:@selector(setNameFieldStringValue:) withObject:fname];
     retval = [(NSSavePanel*)_panel runModal];
   }
   else {
@@ -541,7 +576,6 @@ int Fl_Native_File_Chooser::post() {
       _panel =  [NSSavePanel savePanel];
       break;
   }
-  int retval;
   NSString *nstitle = [NSString stringWithUTF8String: (_title ? _title : "No Title")];
   [(NSSavePanel*)_panel setTitle:nstitle];
   switch (_btype) {
@@ -561,8 +595,9 @@ int Fl_Native_File_Chooser::post() {
   
   // SHOW THE DIALOG
   NSWindow *key = [NSApp keyWindow];
-  if ( [(NSSavePanel*)_panel isKindOfClass:[NSOpenPanel class]] ) {
-    NSPopUpButton *popup = nil;
+  BOOL is_open_panel = [(NSSavePanel*)_panel isKindOfClass:[NSOpenPanel class]];
+  NSPopUpButton *popup = nil;
+  if ( is_open_panel ) {
     if (_filt_total) {
       char *t = prepareMacFilter(_filt_total, _filter, _filt_patt);
       popup = createPopupAccessory((NSSavePanel*)_panel, t, Fl_File_Chooser::show_label, 0);
@@ -571,19 +606,35 @@ int Fl_Native_File_Chooser::post() {
       [popup addItemWithTitle:[[NSString alloc] initWithUTF8String:Fl_File_Chooser::all_files_label]];
       [popup setAction:@selector(validateVisibleColumns)];
       [popup setTarget:(NSObject*)_panel];
-      static FLopenDelegate *openDelegate = nil;
-      if (openDelegate == nil) {
-	// not to be ever freed
-	openDelegate = [[FLopenDelegate alloc] init];
-      }
+      FLopenDelegate *openDelegate = [[[FLopenDelegate alloc] init] autorelease];
       [openDelegate setPopup:popup filter_pattern:_filt_patt];
       [(NSOpenPanel*)_panel setDelegate:openDelegate];
     }
-    retval = runmodal();
+  }
+  else {
+    FLsaveDelegate *saveDelegate = [[[FLsaveDelegate alloc] init] autorelease]; 
+    [(NSSavePanel*)_panel setAllowsOtherFileTypes:YES];
+    [(NSSavePanel*)_panel setDelegate:saveDelegate];
+    [saveDelegate option:(_options & SAVEAS_CONFIRM)];
     if (_filt_total) {
-      _filt_value = [popup indexOfSelectedItem];
+      if (_filt_value >= _filt_total) _filt_value = _filt_total - 1;
+      char *t = prepareMacFilter(_filt_total, _filter, _filt_patt);
+      popup = createPopupAccessory((NSSavePanel*)_panel, t, [[(NSSavePanel*)_panel nameFieldLabel] UTF8String], _filt_value);
+      delete[] t;
+      if (_options & USE_FILTER_EXT) {
+	[popup setAction:@selector(changedPopup:)];
+	[popup setTarget:saveDelegate];
+	[saveDelegate panel:(NSSavePanel*)_panel];
+      }
+      [(NSSavePanel*)_panel setCanSelectHiddenExtension:YES];
     }
-    if ( retval == NSOKButton ) {
+  }
+  int retval = runmodal();
+  if (_filt_total) {
+    _filt_value = [popup indexOfSelectedItem];
+  }
+  if ( retval == NSOKButton ) {
+    if (is_open_panel) {
       clear_pathnames();
       NSArray *array = [(NSOpenPanel*)_panel URLs];
       _tpathnames = [array count];
@@ -592,26 +643,7 @@ int Fl_Native_File_Chooser::post() {
 	_pathnames[i] = strnew([[(NSURL*)[array objectAtIndex:i] path] UTF8String]);
       }
     }
-  }
-  else {
-    NSPopUpButton *popup = nil;
-    [(NSSavePanel*)_panel setAllowsOtherFileTypes:YES];
-    if ( !(_options & SAVEAS_CONFIRM) ) {
-      static FLsaveDelegate *saveDelegate = nil;
-      if (saveDelegate == nil)saveDelegate = [[FLsaveDelegate alloc] init]; // not to be ever freed
-      [(NSSavePanel*)_panel setDelegate:saveDelegate];
-    }
-    if (_filt_total) {
-      if (_filt_value >= _filt_total) _filt_value = _filt_total - 1;
-      char *t = prepareMacFilter(_filt_total, _filter, _filt_patt);
-      popup = createPopupAccessory((NSSavePanel*)_panel, t, [[(NSSavePanel*)_panel nameFieldLabel] UTF8String], _filt_value);
-      delete[] t;
-    }
-    retval = runmodal();
-    if (_filt_total) {
-      _filt_value = [popup indexOfSelectedItem];
-    }
-    if ( retval == NSOKButton ) get_saveas_basename();
+    else get_saveas_basename();
   }
   [key makeKeyWindow];
   [localPool release];
@@ -621,5 +653,5 @@ int Fl_Native_File_Chooser::post() {
 #endif // __APPLE__
 
 //
-// End of "$Id: Fl_Native_File_Chooser_MAC.mm 9798 2013-01-16 15:25:39Z manolo $".
+// End of "$Id: Fl_Native_File_Chooser_MAC.mm 9825 2013-02-19 15:19:58Z manolo $".
 //

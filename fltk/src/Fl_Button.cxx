@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Button.cxx 9637 2012-07-24 04:37:22Z matt $"
+// "$Id: Fl_Button.cxx 9855 2013-03-29 18:26:36Z greg.ercolano $"
 //
 // Button widget for the Fast Light Tool Kit (FLTK).
 //
@@ -89,12 +89,12 @@ int Fl_Button::handle(int event) {
     return 1;
   case FL_PUSH:
     if (Fl::visible_focus() && visible_focus() && handle(FL_FOCUS)) Fl::focus(this);
+    /* FALLTHROUGH */
   case FL_DRAG:
     if (Fl::event_inside(this)) {
       if (type() == FL_RADIO_BUTTON) newval = 1;
       else newval = !oldval;
-    } else
-    {
+    } else {
       clear_changed();
       newval = oldval;
     }
@@ -142,6 +142,7 @@ int Fl_Button::handle(int event) {
       } else redraw();
       return 1;
     } else return 0;
+    /* NOTREACHED */
   case FL_KEYBOARD :
     if (Fl::focus() == this && Fl::event_key() == ' ' &&
         !(Fl::event_state() & (FL_SHIFT | FL_CTRL | FL_ALT | FL_META))) {
@@ -224,5 +225,5 @@ Fl_Toggle_Button::Fl_Toggle_Button(int X,int Y,int W,int H,const char *l)
 
 
 //
-// End of "$Id: Fl_Button.cxx 9637 2012-07-24 04:37:22Z matt $".
+// End of "$Id: Fl_Button.cxx 9855 2013-03-29 18:26:36Z greg.ercolano $".
 //

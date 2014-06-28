@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Tree_Prefs.cxx 9706 2012-11-06 20:46:14Z matt $"
+// "$Id: Fl_Tree_Prefs.cxx 10018 2013-11-10 04:33:44Z greg.ercolano $"
 //
 
 #include <FL/Fl.H>
@@ -156,6 +156,10 @@ Fl_Tree_Prefs::Fl_Tree_Prefs() {
   _itemreselectmode       = FL_TREE_SELECTABLE_ONCE;
   _itemdrawmode           = FL_TREE_ITEM_DRAW_DEFAULT;
 #endif
+#if FLTK_ABI_VERSION >= 10303
+  _itemdrawcallback       = 0;
+  _itemdrawuserdata       = 0;
+#endif
   // Let fltk's current 'scheme' affect defaults
   if ( Fl::scheme() ) {
     if ( strcmp(Fl::scheme(), "gtk+") == 0 ) {
@@ -167,5 +171,5 @@ Fl_Tree_Prefs::Fl_Tree_Prefs() {
 }
 
 //
-// End of "$Id: Fl_Tree_Prefs.cxx 9706 2012-11-06 20:46:14Z matt $".
+// End of "$Id: Fl_Tree_Prefs.cxx 10018 2013-11-10 04:33:44Z greg.ercolano $".
 //

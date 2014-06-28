@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_PostScript.cxx 9775 2012-12-25 21:18:12Z manolo $"
+// "$Id: Fl_PostScript.cxx 10006 2013-10-23 09:24:30Z manolo $"
 //
 // PostScript device support for the Fast Light Tool Kit (FLTK).
 //
@@ -94,7 +94,7 @@ int Fl_PostScript_File_Device::start_job (int pagecount, enum Fl_Paged_Device::P
   // Show native chooser
   if ( fnfc.show() ) return 1;
   Fl_PostScript_Graphics_Driver *ps = driver();
-  ps->output = fopen(fnfc.filename(), "w");
+  ps->output = fl_fopen(fnfc.filename(), "w");
   if(ps->output == NULL) return 2;
   ps->ps_filename_ = strdup(fnfc.filename());
   ps->start_postscript(pagecount, format, layout);
@@ -102,9 +102,11 @@ int Fl_PostScript_File_Device::start_job (int pagecount, enum Fl_Paged_Device::P
   return 0;
 }
 
-static int dont_close(FILE *f)
-{
-  return 0;
+extern "C" {
+  static int dont_close(FILE *f)
+  {
+    return 0;
+  }
 }
 
 /**
@@ -962,6 +964,10 @@ double Fl_PostScript_Graphics_Driver::width(const char *s, int n) {
   return Fl_Display_Device::display_device()->driver()->width(s, n);
 }
 
+double Fl_PostScript_Graphics_Driver::width(unsigned u) {
+  return Fl_Display_Device::display_device()->driver()->width(u);
+}
+
 int Fl_PostScript_Graphics_Driver::height() {
   return Fl_Display_Device::display_device()->driver()->height();
 }
@@ -1254,6 +1260,7 @@ void Fl_PostScript_Graphics_Driver::arc(double x, double y, double r, double sta
 }
 
 void Fl_PostScript_Graphics_Driver::arc(int x, int y, int w, int h, double a1, double a2) {
+  if (w <= 1 || h <= 1) return;
   fprintf(output, "GS\n");
   //fprintf(output, "BP\n");
   begin_line();
@@ -1617,5 +1624,5 @@ int Fl_PostScript_Printer::start_job(int pages, int *firstpage, int *lastpage) {
 #endif // FL_DOXYGEN
 
 //
-// End of "$Id: Fl_PostScript.cxx 9775 2012-12-25 21:18:12Z manolo $".
+// End of "$Id: Fl_PostScript.cxx 10006 2013-10-23 09:24:30Z manolo $".
 //

@@ -1,5 +1,5 @@
 /*
- * "$Id: configh.cmake.in 8864 2011-07-19 04:49:30Z greg.ercolano $"
+ * "$Id: configh.cmake.in 9974 2013-09-11 12:54:40Z ossman $"
  *
  * Configuration file for the Fast Light Tool Kit (FLTK).
  * @configure_input@
@@ -106,6 +106,14 @@
  */
 
 #define USE_XDBE HAVE_XDBE
+
+/*
+ * HAVE_XFIXES:
+ *
+ * Do we have the X fixes extension?
+ */
+
+#cmakedefine01 HAVE_XFIXES
 
 /*
  * __APPLE_QUARTZ__:
@@ -310,5 +318,5 @@
 #cmakedefine HAVE_DLSYM @HAVE_DLSYM@
 
 /*
- * End of "$Id: configh.cmake.in 8864 2011-07-19 04:49:30Z greg.ercolano $".
+ * End of "$Id: configh.cmake.in 9974 2013-09-11 12:54:40Z ossman $".
  */

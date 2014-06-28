@@ -15,6 +15,7 @@ set(CPPFILES
   Fl_Choice.cxx
   Fl_Clock.cxx
   Fl_Color_Chooser.cxx
+  Fl_Copy_Surface.cxx
   Fl_Counter.cxx
   Fl_Device.cxx
   Fl_Dial.cxx
@@ -27,13 +28,13 @@ set(CPPFILES
   Fl_Group.cxx
   Fl_Help_View.cxx
   Fl_Image.cxx
+  Fl_Image_Surface.cxx
   Fl_Input.cxx
   Fl_Input_.cxx
   Fl_Light_Button.cxx
   Fl_Menu.cxx
   Fl_Menu_.cxx
   Fl_Menu_Bar.cxx
-  Fl_Sys_Menu_Bar.cxx
   Fl_Menu_Button.cxx
   Fl_Menu_Window.cxx
   Fl_Menu_add.cxx
@@ -91,6 +92,7 @@ set(CPPFILES
   Fl_get_system_colors.cxx
   Fl_grab.cxx
   Fl_lock.cxx
+  Fl_sleep.cxx
   Fl_own_colormap.cxx
   Fl_visual.cxx
   Fl_x.cxx
@@ -116,6 +118,7 @@ set(CPPFILES
   fl_engraved_label.cxx
   fl_file_dir.cxx
   fl_font.cxx
+  fl_gleam.cxx
   fl_gtk.cxx
   fl_labeltype.cxx
   fl_line_style.cxx
@@ -199,6 +202,7 @@ if(APPLE)
 		Fl_cocoa.mm
 		Fl_Quartz_Printer.mm
 		Fl_Native_File_Chooser_MAC.mm
+		Fl_Sys_Menu_Bar.mm
 		)
 else()
    set(MMFILES
@@ -220,7 +224,7 @@ if(MSVC)
 endif(MSVC)
 
 if(USE_THREADS)
-   target_link_libraries(fltk ${CMAKE_THREAD_LIBS_INIT})
+   target_link_libraries(fltk ${CMAKE_THREAD_LIBS_INIT} ${LIB_dl})
 endif(USE_THREADS)
 
 if(USE_X11)
@@ -238,6 +242,10 @@ ENDif(FLTK_HAVE_CAIRO)
 if(HAVE_XINERAMA)
    target_link_libraries(fltk ${X11_Xinerama_LIB})
 endif(HAVE_XINERAMA)
+
+if(HAVE_XFIXES)
+   target_link_libraries(fltk ${X11_Xfixes_LIB})
+endif(HAVE_XFIXES)
 
 if(USE_XFT)
    target_link_libraries(fltk ${X11_Xft_LIB})
@@ -334,7 +342,7 @@ else()
 endif(MSVC)
 
 if(USE_THREADS)
-   target_link_libraries(fltk_SHARED ${CMAKE_THREAD_LIBS_INIT})
+   target_link_libraries(fltk_SHARED ${CMAKE_THREAD_LIBS_INIT} ${LIB_dl})
 endif(USE_THREADS)
 
 if(USE_X11)
@@ -363,7 +371,7 @@ endif(LIB_fontconfig)
 
 #######################################################################
 add_library(fltk_forms_SHARED SHARED ${FLCPPFILES})
-target_link_libraries(fltk_forms_SHARED fltk)
+target_link_libraries(fltk_forms_SHARED fltk_SHARED)
 set_target_properties(fltk_forms_SHARED
    PROPERTIES CLEAN_DIRECT_OUTPUT 1
    VERSION ${FLTK_VERSION_MAJOR}.${FLTK_VERSION_MINOR}
@@ -384,16 +392,16 @@ else()
 endif(MSVC)
 
 if(USE_THREADS)
-   target_link_libraries(fltk_SHARED ${CMAKE_THREAD_LIBS_INIT})
+   target_link_libraries(fltk_forms_SHARED ${CMAKE_THREAD_LIBS_INIT} ${LIB_dl})
 endif(USE_THREADS)
 
 if(USE_X11)
-   target_link_libraries(fltk_SHARED ${X11_LIBRARIES})
+   target_link_libraries(fltk_forms_SHARED ${X11_LIBRARIES})
 endif(USE_X11)
 
 #######################################################################
 add_library(fltk_images_SHARED SHARED ${IMGCPPFILES})
-target_link_libraries(fltk_images_SHARED fltk
+target_link_libraries(fltk_images_SHARED fltk_SHARED
    ${FLTK_PNG_LIBRARIES} ${FLTK_JPEG_LIBRARIES} ${FLTK_ZLIB_LIBRARIES}
 )
 set_target_properties(fltk_images_SHARED
@@ -424,7 +432,7 @@ install(TARGETS fltk_SHARED fltk_forms_SHARED fltk_images_SHARED
 #######################################################################
 if(OPENGL_FOUND)
    add_library(fltk_gl_SHARED SHARED ${GLCPPFILES})
-   target_link_libraries(fltk_gl_SHARED fltk ${OPENGL_LIBRARIES})
+   target_link_libraries(fltk_gl_SHARED fltk_SHARED ${OPENGL_LIBRARIES})
    set_target_properties(fltk_gl_SHARED
       PROPERTIES CLEAN_DIRECT_OUTPUT 1
       VERSION ${FLTK_VERSION_MAJOR}.${FLTK_VERSION_MINOR}

@@ -1,4 +1,4 @@
-/* "$Id: utf8Wrap.c 9549 2012-05-26 22:51:07Z greg.ercolano $"
+/* "$Id: utf8Wrap.c 9994 2013-09-25 21:09:00Z greg.ercolano $"
  *
  * Author: Jean-Marc Lienher ( http://oksid.ch )
  * Copyright 2000-2003 by O'ksi'D.
@@ -79,7 +79,7 @@ get_font_list(
   while (*ptr) {
     int l = 0, i = 0;
 
-    while(isspace(*ptr)) ptr++;
+    while(isspace((int)(unsigned char)*ptr)) ptr++;
     p = ptr;
     while (*ptr && *ptr != ',') { ptr++; l++; }
     if (l > 2) {
@@ -1039,5 +1039,5 @@ XFreeUtf8FontStruct(Display 	    *dpy,
 #endif /* X11 only */
 
 /*
- *  End of "$Id: utf8Wrap.c 9549 2012-05-26 22:51:07Z greg.ercolano $".
+ *  End of "$Id: utf8Wrap.c 9994 2013-09-25 21:09:00Z greg.ercolano $".
  */

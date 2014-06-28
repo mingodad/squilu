@@ -1,5 +1,5 @@
 //
-// "$Id: factory.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: factory.cxx 10074 2014-01-21 11:07:43Z AlbrechtS $"
 //
 // Widget factory code for the Fast Light Tool Kit (FLTK).
 //
@@ -37,7 +37,20 @@
 
 extern Fl_Pixmap *pixmap[];
 
-#if !HAVE_STRCASECMP
+// Note: current MinGW versions don't find strcasecmp() in configure,
+// since it has been #define'd to _stricmp, and hence it does work,
+// although it is actually not available as a function in any lib.
+// The following "&& !defined(strcasecmp)" fixes this *temporarily*,
+// until a better fix can be found. One way would be to rename this
+// local, static version of function strcasecmp()...
+// AlbrechtS, Jan 03, 2014, svn -r ~10044, see STR #2994
+//
+// For some (yet unknown) reason the previous fix didn't work with
+// CMake-generated MinGW (MSYS) Makefiles, hence we have to use
+// !defined(__MINGW32__) instead of !defined(strcasecmp).
+// AlbrechtS, Jan 21, 2014, svn -r ~10074, see STR #2994
+
+#if !HAVE_STRCASECMP && !defined(__MINGW32__)
 //
 // 'strcasecmp()' - Do a case-insensitive compare...
 //
@@ -1267,5 +1280,5 @@ int lookup_symbol(const char *name, int &v, int numberok) {
 }
 
 //
-// End of "$Id: factory.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: factory.cxx 10074 2014-01-21 11:07:43Z AlbrechtS $".
 //

@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Font.H 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: Fl_Font.H 10011 2013-10-29 12:46:51Z manolo $"
 //
 // Font definitions for the Fast Light Tool Kit (FLTK).
 //
@@ -60,7 +60,6 @@ public:
 #     endif
   ATSUStyle style;
   short ascent, descent, q_width;
-  char *q_name;
 #  elif USE_XFT
   XftFont* font;
   //const char* encoding;
@@ -105,5 +104,5 @@ FL_EXPORT char *fl_find_fontsize(char *name);
 #endif
 
 //
-// End of "$Id: Fl_Font.H 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: Fl_Font.H 10011 2013-10-29 12:46:51Z manolo $".
 //

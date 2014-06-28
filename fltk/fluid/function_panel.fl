@@ -3,7 +3,7 @@ version 1.0300
 header_name {.h} 
 code_name {.cxx}
 comment {//
-// "$Id: function_panel.fl 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: function_panel.fl 10010 2013-10-25 22:03:47Z greg.ercolano $"
 //
 // Code dialogs for the Fast Light Tool Kit (FLTK).
 //
@@ -129,11 +129,15 @@ Function {make_function_panel()} {} {
   }
 } 
 
-Function {make_code_panel()} {} {
+Function {make_code_panel()} {open
+} {
   Fl_Window code_panel {
-    label {Code Properties} open
-    xywh {-32000 -32000 540 216} type Double labelsize 11 hide resizable
-    code0 {o->size_range(200, 150);} modal
+    label {Code Properties}
+    callback {if (Fl::event()==FL_SHORTCUT && Fl::event_key()==FL_Escape) 
+    return; // ignore Escape
+code_panel->hide(); // otherwise hide..} open selected
+    xywh {353 262 540 180} type Double labelsize 11 resizable
+    code0 {o->size_range(200, 150);} modal visible
   } {
     Fl_Text_Editor code_input {
       xywh {10 45 520 130} box DOWN_BOX labelsize 11 textfont 4 textsize 11 resizable
@@ -1019,6 +1023,6 @@ Function {make_sourceview()} {open
 
 comment {
 //
-// End of "$Id: function_panel.fl 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: function_panel.fl 10010 2013-10-25 22:03:47Z greg.ercolano $".
 //} {in_source in_header
 } 

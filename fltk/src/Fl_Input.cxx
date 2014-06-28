@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Input.cxx 9792 2013-01-13 15:25:37Z manolo $"
+// "$Id: Fl_Input.cxx 10031 2013-12-13 16:28:38Z manolo $"
 //
 // Input widget for the Fast Light Tool Kit (FLTK).
 //
@@ -535,8 +535,8 @@ int Fl_Input::handle_key() {
 	           Fl::event_text(), Fl::event_length());
     }
 #ifdef __APPLE__
-    if (Fl::marked_text_length()) {
-      this->mark( this->position() - Fl::marked_text_length() );
+    if (Fl::compose_state) {
+      this->mark( this->position() - Fl::compose_state );
       }
 #endif
     return 1;
@@ -764,11 +764,11 @@ int Fl_Input::handle_key() {
 
 int Fl_Input::handle(int event) {
   static int dnd_save_position, dnd_save_mark, drag_start = -1, newpos;
-  static Fl_Widget *dnd_save_focus;
+  static Fl_Widget *dnd_save_focus = NULL;
   switch (event) {
 #ifdef __APPLE__
     case FL_UNFOCUS:
-      if (Fl::marked_text_length()) {
+      if (Fl::compose_state) {
 	this->mark( this->position() );
 	Fl::reset_marked_text();
       }
@@ -858,6 +858,7 @@ int Fl_Input::handle(int event) {
                                               // save the position because sometimes we don't get DND_ENTER:
           dnd_save_position = position();
           dnd_save_mark = mark();
+	      dnd_save_focus = this;
           // drag the data:
           copy(0); Fl::dnd();
           return 1;
@@ -889,10 +890,10 @@ int Fl_Input::handle(int event) {
 
     case FL_DND_ENTER:
       Fl::belowmouse(this); // send the leave events first
-      dnd_save_position = position();
-      dnd_save_mark = mark();
-      dnd_save_focus = Fl::focus();
       if (dnd_save_focus != this) {
+		dnd_save_position = position();
+		dnd_save_mark = mark();
+		dnd_save_focus = Fl::focus();
         Fl::focus(this);
         handle(FL_FOCUS);
       }
@@ -918,16 +919,33 @@ int Fl_Input::handle(int event) {
 #if DND_OUT_XXXX
       if (!focused())
 #endif
-        if (dnd_save_focus != this) {
+        if (dnd_save_focus && dnd_save_focus != this) {
           Fl::focus(dnd_save_focus);
           handle(FL_UNFOCUS);
         }
 #if !(defined(__APPLE__) || defined(WIN32))
       Fl::first_window()->cursor(FL_CURSOR_MOVE);
 #endif
+      dnd_save_focus = NULL;
       return 1;
 
     case FL_DND_RELEASE:
+      if (dnd_save_focus == this) { // if the dragged text comes from the same widget
+	// remove the selected text
+	int old_position = position();
+	if (dnd_save_mark > dnd_save_position) {
+	  int tmp = dnd_save_mark;
+	  dnd_save_mark = dnd_save_position;
+	  dnd_save_position = tmp;
+	  }
+	replace(dnd_save_mark, dnd_save_position, NULL, 0);
+	if (old_position > dnd_save_position) position(old_position - (dnd_save_position - dnd_save_mark));
+	else position(old_position);
+	}
+      else if(dnd_save_focus) {
+	dnd_save_focus->handle(FL_UNFOCUS);
+	}
+      dnd_save_focus = NULL;
       take_focus();
       return 1;
 
@@ -1036,7 +1054,7 @@ Fl_Secret_Input::Fl_Secret_Input(int X,int Y,int W,int H,const char *l)
 int Fl_Secret_Input::handle(int event) {
   int retval = Fl_Input::handle(event);
 #ifdef __APPLE__
-  if (event == FL_KEYBOARD && Fl::marked_text_length()) {
+  if (event == FL_KEYBOARD && Fl::compose_state) {
     this->mark( this->position() ); // don't underline marked text
   }
 #endif
@@ -1044,5 +1062,5 @@ int Fl_Secret_Input::handle(int event) {
 }
 
 //
-// End of "$Id: Fl_Input.cxx 9792 2013-01-13 15:25:37Z manolo $".
+// End of "$Id: Fl_Input.cxx 10031 2013-12-13 16:28:38Z manolo $".
 //

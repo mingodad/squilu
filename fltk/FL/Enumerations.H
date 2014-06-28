@@ -1,5 +1,5 @@
 //
-// "$Id: Enumerations.H 9779 2012-12-26 19:44:56Z manolo $"
+// "$Id: Enumerations.H 10113 2014-02-25 04:24:41Z greg.ercolano $"
 //
 // Enumerations for the Fast Light Tool Kit (FLTK).
 //
@@ -520,6 +520,14 @@ enum Fl_Boxtype { // boxtypes (if you change these you must fix fl_boxtype.C):
   _FL_GTK_THIN_DOWN_FRAME,	///< gtk+ version of FL_THIN_DOWN_FRAME
   _FL_GTK_ROUND_UP_BOX,		///< gtk+ version of FL_ROUND_UP_BOX
   _FL_GTK_ROUND_DOWN_BOX,	///< gtk+ version of FL_ROUND_DOWN_BOX
+  _FL_GLEAM_UP_BOX,		///< gleam version of FL_GLEAM_UP_BOX
+  _FL_GLEAM_DOWN_BOX,		///< gleam version of FL_GLEAM_DOWN_BOX
+  _FL_GLEAM_UP_FRAME, 		///< gleam version of FL_GLEAM_UP_FRAME
+  _FL_GLEAM_DOWN_FRAME,		///< gleam version of FL_GLEAM_DOWN_FRAME
+  _FL_GLEAM_THIN_UP_BOX,    	///< gleam version of FL_GLEAM_THIN_UP_BOX
+  _FL_GLEAM_THIN_DOWN_BOX,	///< gleam version of FL_GLEAM_THIN_DOWN_BOX
+  _FL_GLEAM_ROUND_UP_BOX,   	///< gleam version of FL_GLEAM_ROUND_UP_BOX
+  _FL_GLEAM_ROUND_DOWN_BOX,	///< gleam version of FL_GLEAM_ROUND_DOWN_BOX
   FL_FREE_BOXTYPE		///< the first free box type for creation of new box types
 };
 extern FL_EXPORT Fl_Boxtype fl_define_FL_ROUND_UP_BOX();
@@ -565,6 +573,16 @@ extern FL_EXPORT Fl_Boxtype fl_define_FL_GTK_UP_BOX();
 #define FL_GTK_THIN_DOWN_FRAME (Fl_Boxtype)(fl_define_FL_GTK_UP_BOX()+7)
 #define FL_GTK_ROUND_UP_BOX (Fl_Boxtype)(fl_define_FL_GTK_UP_BOX()+8)
 #define FL_GTK_ROUND_DOWN_BOX (Fl_Boxtype)(fl_define_FL_GTK_UP_BOX()+9)
+
+extern FL_EXPORT Fl_Boxtype fl_define_FL_GLEAM_UP_BOX();
+#define FL_GLEAM_UP_BOX fl_define_FL_GLEAM_UP_BOX()
+#define FL_GLEAM_DOWN_BOX (Fl_Boxtype)(fl_define_FL_GLEAM_UP_BOX()+1)
+#define FL_GLEAM_UP_FRAME (Fl_Boxtype)(fl_define_FL_GLEAM_UP_BOX()+2)
+#define FL_GLEAM_DOWN_FRAME (Fl_Boxtype)(fl_define_FL_GLEAM_UP_BOX()+3)
+#define FL_GLEAM_THIN_UP_BOX (Fl_Boxtype)(fl_define_FL_GLEAM_UP_BOX()+4)
+#define FL_GLEAM_THIN_DOWN_BOX (Fl_Boxtype)(fl_define_FL_GLEAM_UP_BOX()+5)
+#define FL_GLEAM_ROUND_UP_BOX (Fl_Boxtype)(fl_define_FL_GLEAM_UP_BOX()+6)
+#define FL_GLEAM_ROUND_DOWN_BOX (Fl_Boxtype)(fl_define_FL_GLEAM_UP_BOX()+7)
 
 // conversions of box types to other boxtypes:
 /**
@@ -755,7 +773,7 @@ extern FL_EXPORT Fl_Fontsize FL_NORMAL_SIZE;	///< normal font size
     The Fl_Color type holds an FLTK color value.
 
     Colors are either 8-bit indexes into a virtual colormap
-    or 24-bit RGB color values.
+    or 24-bit RGB color values. (See \ref drawing_colors for the default FLTK colormap)
 
     Color indices occupy the lower 8 bits of the value, while
     RGB colors occupy the upper 24 bits, for a byte organization of RGBI.
@@ -763,7 +781,7 @@ extern FL_EXPORT Fl_Fontsize FL_NORMAL_SIZE;	///< normal font size
 <pre>
  Fl_Color => 0xrrggbbii
                 | | | |
-                | | | +--- index between 0 and 255
+                | | | +--- \ref drawing_colors "index" between 0 and 255
                 | | +----- blue color component (8 bit)
                 | +------- green component (8 bit)
                 +--------- red component (8 bit)
@@ -774,7 +792,7 @@ extern FL_EXPORT Fl_Fontsize FL_NORMAL_SIZE;	///< normal font size
 
  */
 /*@{*/
-/** an FLTK color value */
+/** An FLTK color value; see also \ref drawing_colors  */
 typedef unsigned int Fl_Color;
 
 // Standard colors. These are used as default colors in widgets and altered as necessary
@@ -997,5 +1015,5 @@ enum Fl_Layout {
 #endif
 
 //
-// End of "$Id: Enumerations.H 9779 2012-12-26 19:44:56Z manolo $".
+// End of "$Id: Enumerations.H 10113 2014-02-25 04:24:41Z greg.ercolano $".
 //

@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_File_Chooser2.cxx 9704 2012-10-19 11:23:51Z manolo $"
+// "$Id: Fl_File_Chooser2.cxx 10004 2013-10-21 04:58:43Z greg.ercolano $"
 //
 // More Fl_File_Chooser routines.
 //
@@ -1423,6 +1423,15 @@ Fl_File_Chooser::update_preview()
       previewBox->labelsize(size);
       previewBox->labelfont(FL_COURIER);
     }
+  } else if (image && ( (image->w() <= 0) ||
+                        (image->h() <= 0) ||
+                        (image->d() <= 0) )) {
+    // Image has errors? Show big 'X'
+    previewBox->label("X");
+    previewBox->align(FL_ALIGN_CLIP);
+    previewBox->labelsize(70);
+    previewBox->labelfont(FL_HELVETICA);
+    previewBox->redraw();
   } else if (image) {
     pbw = previewBox->w() - 20;
     pbh = previewBox->h() - 20;
@@ -1696,5 +1705,5 @@ unquote_pathname(char       *dst,	// O - Destination string
 
 
 //
-// End of "$Id: Fl_File_Chooser2.cxx 9704 2012-10-19 11:23:51Z manolo $".
+// End of "$Id: Fl_File_Chooser2.cxx 10004 2013-10-21 04:58:43Z greg.ercolano $".
 //

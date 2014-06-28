@@ -1,5 +1,5 @@
 //
-// "$Id: Fl.H 9792 2013-01-13 15:25:37Z manolo $"
+// "$Id: Fl.H 10186 2014-06-07 12:01:59Z manolo $"
 //
 // Main header file for the Fast Light Tool Kit (FLTK).
 //
@@ -108,6 +108,9 @@ typedef int (*Fl_Args_Handler)(int argc, char **argv, int &i);
 /** Signature of event_dispatch functions passed as parameters.
     \see Fl::event_dispatch(Fl_Event_Dispatch) */
 typedef int (*Fl_Event_Dispatch)(int event, Fl_Window *w);
+
+/** Signature of add_clipboard_notify functions passed as parameters */
+typedef void (*Fl_Clipboard_Notify_Handler)(int source, void *data);
 
 /** signature of add_handler functions passed as parameters */
 typedef int (*Fl_Focus_Changing_Handler)(Fl_Widget *from, Fl_Widget *to);
@@ -232,6 +235,8 @@ public: // should be private!
   static int e_keysym;
   static char* e_text;
   static int e_length;
+  static void *e_clipboard_data;
+  static const char *e_clipboard_type;
   static Fl_Event_Dispatch e_dispatch;
   static Fl_Widget* belowmouse_;
   static Fl_Widget* pushed_;
@@ -266,8 +271,13 @@ public:
   typedef enum {
       /// When switched on, moving the text cursor beyond the start or end of
       /// a text in a text widget will change focus to the next text widget.
-      /// When switched off, the cursor will stop at the end of the text.
+      /// (This is considered 'old' behavior)
+      ///
+      /// When switched off (default), the cursor will stop at the end of the text.
       /// Pressing Tab or Ctrl-Tab will advance the keyboard focus.
+      ///
+      /// See also: Fl_Input_::tab_nav()
+      ///
     OPTION_ARROW_FOCUS = 0,
       // When switched on, FLTK will use the file chooser dialog that comes 
       // with your operating system whenever possible. When switched off, FLTK
@@ -279,19 +289,23 @@ public:
       // decides to choose the file.
       // \todo implement me
     //OPTION_FILECHOOSER_PREVIEW,
-      /// If visible focus is switched on, FLTK will draw a dotted rectangle 
+      /// If visible focus is switched on (default), FLTK will draw a dotted rectangle 
       /// inside the widget that will receive the next keystroke. If switched
       /// off, no such indicator will be drawn and keyboard navigation
       /// is disabled.
     OPTION_VISIBLE_FOCUS,
-      /// If text drag-and-drop is enabled, the user can select and drag text
+      /// If text drag-and-drop is enabled (default), the user can select and drag text
       /// from any text widget. If disabled, no dragging is possible, however
       /// dropping text from other applications still works.
     OPTION_DND_TEXT,
-      /// If tooltips are enabled, hovering the mouse over a widget with a 
+      /// If tooltips are enabled (default), hovering the mouse over a widget with a 
       /// tooltip text will open a little tooltip window until the mouse leaves
       /// the widget. If disabled, no tooltip is shown.
     OPTION_SHOW_TOOLTIPS,
+     /// When switched on (default), Fl_Native_File_Chooser runs GTK file dialogs
+     /// if the GTK library is available on the platform (linux/unix only).
+     /// When switched off, GTK file dialogs aren't used even if the GTK library is available.
+    OPTION_FNFC_USES_GTK,
       // don't change this, leave it always as the last element
       /// For internal use only.
     OPTION_LAST
@@ -375,9 +389,40 @@ public:
   static void background2(uchar, uchar, uchar);
 
   // schemes:
-  static int scheme(const char*);
+  static int scheme(const char *name);
   /** See void scheme(const char *name) */
   static const char* scheme() {return scheme_;}
+
+  /** Returns whether the current scheme is the given name.
+
+    This is a fast inline convenience function to support scheme-specific
+    code in widgets, e.g. in their draw() methods, if required.
+
+    Use a valid scheme name, not \p NULL (although \p NULL is allowed,
+    this is not a useful argument - see below).
+
+    If Fl::scheme() has not been set or has been set to the default
+    scheme ("none" or "base"), then this will always return 0 regardless
+    of the argument, because Fl::scheme() is \p NULL in this case.
+
+    \note The stored scheme name is always lowercase, and this method will
+    do a case-sensitive compare, so you \b must provide a lowercase string to
+    return the correct value. This is intentional for performance reasons.
+
+    Example:
+    \code
+      if (Fl::is_scheme("gtk+")) { your_code_here(); }
+    \endcode
+
+    \param[in] name \b lowercase string of requested scheme name.
+
+    \return 1 if the given scheme is active, 0 otherwise.
+
+    \see Fl::scheme(const char *name)
+  */
+  static int is_scheme(const char *name) {
+    return (scheme_ && name && !strcmp(name,scheme_));
+  }
   /**
     Called by scheme according to scheme name.
     Loads or reloads the current scheme selection.
@@ -797,6 +842,16 @@ public:
     you paste a nul character.
   */
   static int event_length() {return e_length;}
+  
+  /** During an FL_PASTE event of non-textual data, returns a pointer to the pasted data.
+   The returned data is an Fl_Image * when the result of Fl::event_clipboard_type() is Fl::clipboard_image.
+   */
+  static void *event_clipboard() { return e_clipboard_data; }
+  /** Returns the type of the pasted data during an FL_PASTE event.
+   This type can be Fl::clipboard_plain_text or Fl::clipboard_image.
+   */
+  static const char *event_clipboard_type() {return e_clipboard_type; }
+
 
   static int compose(int &del);
   static void compose_reset();
@@ -834,19 +889,35 @@ public:
   /**
   Copies the data pointed to by \p stuff to the selection buffer
   (\p destination is 0) or
-  the clipboard (\p destination is 1); \p len is the number of relevant
-  bytes in \p stuff.
+  the clipboard (\p destination is 1).
+  \p len is the number of relevant bytes in \p stuff.
+  \p type is always Fl::clipboard_plain_text.
   The selection buffer is used for
   middle-mouse pastes and for drag-and-drop selections. The
   clipboard is used for traditional copy/cut/paste operations.
   */
-  static void copy(const char* stuff, int len, int destination = 0); // platform dependent
+#if FLTK_ABI_VERSION >= 10303 || defined(FL_DOXYGEN)
+  static void copy(const char* stuff, int len, int destination = 0, const char *type = Fl::clipboard_plain_text); // platform dependent
+#else
+  static void copy(const char* stuff, int len, int destination, const char *type);
+  static void copy(const char* stuff, int len, int destination = 0);
+#endif
+  
+#if !(defined(__APPLE__) || defined(WIN32) || defined(FL_DOXYGEN))
+  static void copy_image(const unsigned char* data, int W, int H, int destination = 0); // platform dependent
+#endif
   /**
-  Pastes the data from the selection buffer (\p source is 0) or the clipboard
-  (\p source is 1) into \p receiver.
-  Set things up so the receiver widget will be called with an FL_PASTE event some
-  time in the future with the data from the specified \p source in Fl::event_text()
-  and the number of characters in Fl::event_length().
+  Pastes the data from the selection buffer (\p source is 0) or the clipboard 
+  (\p source is 1) into \p receiver.  If \p source is 1,
+  the optional \p type argument indicates what type of data is requested from the clipboard
+  (at present, Fl::clipboard_plain_text - requesting text data - and 
+  Fl::clipboard_image - requesting image data - are possible).
+  Set things up so the handle function of the \p receiver widget will be called with an FL_PASTE event some
+  time in the future if the clipboard does contain data of the requested type. During processing of this event,
+  and if \p type is Fl::clipboard_plain_text, the text data from the specified \p source are in Fl::event_text()
+  with UTF-8 encoding, and the number of characters in Fl::event_length();
+  if \p type is Fl::clipboard_image, Fl::event_clipboard() returns a pointer to the
+  image data, as an Fl_Image *.
   The receiver
   should be prepared to be called \e directly by this, or for
   it to happen \e later, or possibly <i>not at all</i>.  This
@@ -857,8 +928,59 @@ public:
   The selection buffer is used for middle-mouse pastes and for
   drag-and-drop selections. The clipboard is used for traditional
   copy/cut/paste operations.
+   
+   \par Platform details for image data:
+   \li Unix/Linux platform: Image data in PNG or BMP formats are recognized. Requires linking with the fltk_images library.
+   \li MSWindows platform: Both bitmap and vectorial (Enhanced metafile) data from clipboard
+   can be pasted as image data.
+   \li Mac OS X platform: Both bitmap (TIFF) and vectorial (PDF) data from clipboard
+   can be pasted as image data.
+    
+   */
+#if FLTK_ABI_VERSION >= 10303 || defined(FL_DOXYGEN)
+  static void paste(Fl_Widget &receiver, int source, const char *type = Fl::clipboard_plain_text); // platform dependent
+#else
+  static void paste(Fl_Widget &receiver, int source, const char *type);
+  static void paste(Fl_Widget &receiver, int source /*=0*/);
+#endif
+  /**
+  FLTK will call the registered callback whenever there is a change to the
+  selection buffer or the clipboard. The source argument indicates which
+  of the two has changed. Only changes by other applications are reported.
+
+  Example:
+  \code
+    void clip_callback(int source, void *data) {
+        if ( source == 0 ) printf("CLIP CALLBACK: selection buffer changed\n");
+	if ( source == 1 ) printf("CLIP CALLBACK: clipboard changed\n");
+    }
+    [..]
+    int main() {
+        [..]
+	Fl::add_clipboard_notify(clip_callback);
+	[..]
+    }
+  \endcode
+  \note Some systems require polling to monitor the clipboard and may
+  therefore have some delay in detecting changes.
   */
-  static void paste(Fl_Widget &receiver, int source /*=0*/); // platform dependent
+  static void add_clipboard_notify(Fl_Clipboard_Notify_Handler h, void *data = 0);
+  /**
+  Stop calling the specified callback when there are changes to the selection
+  buffer or the clipboard.
+  */
+  static void remove_clipboard_notify(Fl_Clipboard_Notify_Handler h);
+  /** Returns non 0 if the clipboard contains data matching \p type.
+   \p type can be Fl::clipboard_plain_text or Fl::clipboard_image.
+   */
+  static int clipboard_contains(const char *type);
+  /**  Denotes plain textual data
+   */
+  static char const * const clipboard_plain_text;
+  /**  Denotes image data
+   */
+  static char const * const clipboard_image;
+
   /**
     Initiate a Drag And Drop operation. The selection buffer should be
     filled with relevant data before calling this method. FLTK will
@@ -906,6 +1028,8 @@ public:
   static void screen_xywh(int &X, int &Y, int &W, int &H, int mx, int my);
   static void screen_xywh(int &X, int &Y, int &W, int &H, int n); 
   static void screen_xywh(int &X, int &Y, int &W, int &H, int mx, int my, int mw, int mh);
+  static int screen_num(int x, int y);
+  static int screen_num(int x, int y, int w, int h);
   static void screen_dpi(float &h, float &v, int n=0);
   static void screen_work_area(int &X, int &Y, int &W, int &H, int mx, int my);
   static void screen_work_area(int &X, int &Y, int &W, int &H, int n);
@@ -1118,6 +1242,16 @@ public:
   static void awake(void* message = 0);
   /** See void awake(void* message=0). */
   static int awake(Fl_Awake_Handler cb, void* message = 0);
+ 
+  // Cross platform sleep API
+
+  /** flexible sleep function in seconds, accepts decimals typically up to 100usec resolution (depends on your hardware) */
+  static void sleep(double seconds);
+  /** milli seconds sleep */
+  static void msleep(unsigned long milliseconds);
+  /** microseconds sleep */
+  static void usleep(unsigned long long microseconds);
+  
   /**
     The thread_message() method returns the last message
     that was sent from a child by the awake() method.
@@ -1301,5 +1435,5 @@ public:
 #endif // !Fl_H
 
 //
-// End of "$Id: Fl.H 9792 2013-01-13 15:25:37Z manolo $".
+// End of "$Id: Fl.H 10186 2014-06-07 12:01:59Z manolo $".
 //

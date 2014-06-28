@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Spinner.H 9706 2012-11-06 20:46:14Z matt $"
+// "$Id: Fl_Spinner.H 9918 2013-05-16 05:02:18Z greg.ercolano $"
 //
 // Spinner widget for the Fast Light Tool Kit (FLTK).
 //
@@ -241,6 +241,14 @@ private:
     Return the background color of the spinner widget's input field.
   */
   Fl_Color	color() const { return(input_.color()); }
+  /**
+    Change the selection color of the spinner widget's input field.
+  */
+  void		selection_color(Fl_Color val) { input_.selection_color(val); }
+  /**
+    Return the selection color of the spinner widget's input field.
+  */
+  Fl_Color	selection_color() const { return input_.selection_color(); }
 
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Spinner, Fl_Group)
 };
@@ -248,5 +256,5 @@ DECLARE_CLASS_CHEAP_RTTI_2(Fl_Spinner, Fl_Group)
 #endif // !Fl_Spinner_H
 
 //
-// End of "$Id: Fl_Spinner.H 9706 2012-11-06 20:46:14Z matt $".
+// End of "$Id: Fl_Spinner.H 9918 2013-05-16 05:02:18Z greg.ercolano $".
 //

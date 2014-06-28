@@ -1,5 +1,5 @@
 //
-// "$Id: fl_draw.H 9463 2012-05-08 16:15:34Z greg.ercolano $"
+// "$Id: fl_draw.H 9937 2013-06-22 12:01:11Z greg.ercolano $"
 //
 // Portable drawing function header file for the Fast Light Tool Kit (FLTK).
 //
@@ -394,6 +394,24 @@ inline void fl_curve(double X0, double Y0, double X1, double Y1, double X2, doub
  \param[in] start,end angles of start and end of arc measured in degrees
  counter-clockwise from 3 o'clock. If \p end is less than \p start
  then it draws the arc in a clockwise direction.
+
+ Examples:
+ \code
+    // Draw an arc of points
+    fl_begin_points();
+    fl_arc(100.0, 100.0, 50.0, 0.0, 180.0);
+    fl_end_points();
+
+    // Draw arc with a line
+    fl_begin_line();
+    fl_arc(200.0, 100.0, 50.0, 0.0, 180.0);
+    fl_end_line();
+
+    // Draw filled arc
+    fl_begin_polygon();
+    fl_arc(300.0, 100.0, 50.0, 0.0, 180.0);
+    fl_end_polygon();
+ \endcode
  */
 inline void fl_arc(double x, double y, double r, double start, double end) {fl_graphics_driver->arc(x,y,r,start,end); }
 /**
@@ -599,7 +617,7 @@ inline void fl_draw(const char* str, int n, int x, int y) {fl_graphics_driver->d
   Draws at the given \p x, \p y location a UTF-8 string of length \p n bytes 
   rotating \p angle degrees counter-clockwise.
 */
-inline void fl_draw(int angle,const char* str, int n, int x, int y) {fl_graphics_driver->draw(angle,str,n,x,y); }
+inline void fl_draw(int angle, const char* str, int n, int x, int y) {fl_graphics_driver->draw(angle,str,n,x,y); }
 /**
   Draws a UTF-8 string of length \p n bytes right to left starting at the given \p x, \p y location.
 */
@@ -774,5 +792,5 @@ FL_EXPORT int fl_add_symbol(const char* name, void (*drawit)(Fl_Color), int scal
 #endif
 
 //
-// End of "$Id: fl_draw.H 9463 2012-05-08 16:15:34Z greg.ercolano $".
+// End of "$Id: fl_draw.H 9937 2013-06-22 12:01:11Z greg.ercolano $".
 //

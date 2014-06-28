@@ -1,4 +1,4 @@
-/* "$Id: Xutf8.h 8864 2011-07-19 04:49:30Z greg.ercolano $"
+/* "$Id: Xutf8.h 9958 2013-09-02 15:05:58Z manolo $"
  *
  * Author: Jean-Marc Lienher ( http://oksid.ch )
  * Copyright 2000-2010 by O'ksi'D.
@@ -14,7 +14,7 @@
  *     http://www.fltk.org/str.php
  */
 
-#ifndef _Xutf8_h
+#if ! ( defined(_Xutf8_h) || defined(FL_DOXYGEN) )
 #define _Xutf8_h
 
 #  ifdef __cplusplus
@@ -176,5 +176,5 @@ XUtf8Toupper(
 #endif
 
 /*
- *  End of "$Id: Xutf8.h 8864 2011-07-19 04:49:30Z greg.ercolano $".
+ *  End of "$Id: Xutf8.h 9958 2013-09-02 15:05:58Z manolo $".
  */

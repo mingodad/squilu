@@ -1,7 +1,7 @@
 //
 // "$Id: Fl_Printer.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $"
 //
-// Encompasses platform-specific printing-support code and
+// Encompasses platform-specific printing-support code and 
 // PostScript output code for the Fast Light Tool Kit (FLTK).
 //
 // Copyright 2010 by Bill Spitzak and others.

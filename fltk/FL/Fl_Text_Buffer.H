@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Text_Buffer.H 9366 2012-04-21 15:05:00Z fabien $"
+// "$Id: Fl_Text_Buffer.H 9956 2013-08-12 15:46:57Z greg.ercolano $"
 //
 // Header file for Fl_Text_Buffer class.
 //
@@ -207,7 +207,7 @@ public:
   /**
    Returns the character at the specified position pos in the buffer.
    Positions start at 0 
-   \param pos byte offset into buffer, pos must be at acharacter boundary
+   \param pos byte offset into buffer, pos must be at a character boundary
    \return Unicode UCS-4 encoded character
    */
   unsigned int char_at(int pos) const;
@@ -766,5 +766,5 @@ protected:
 #endif
 
 //
-// End of "$Id: Fl_Text_Buffer.H 9366 2012-04-21 15:05:00Z fabien $".
+// End of "$Id: Fl_Text_Buffer.H 9956 2013-08-12 15:46:57Z greg.ercolano $".
 //

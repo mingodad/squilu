@@ -1,5 +1,5 @@
 //
-// "$Id: about_panel.fl 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: about_panel.h 9827 2013-02-20 10:27:47Z ianmacarthur $"
 //
 // About dialog for the Fast Light Tool Kit (FLTK).
 //
@@ -32,5 +32,5 @@ extern unsigned char fluid_org_png[12690];
 #endif
 
 //
-// End of "$Id: about_panel.fl 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: about_panel.h 9827 2013-02-20 10:27:47Z ianmacarthur $".
 //

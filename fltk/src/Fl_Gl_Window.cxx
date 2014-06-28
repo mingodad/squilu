@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Gl_Window.cxx 9264 2012-03-05 08:46:30Z manolo $"
+// "$Id: Fl_Gl_Window.cxx 10095 2014-02-07 00:09:52Z AlbrechtS $"
 //
 // OpenGL window code for the Fast Light Tool Kit (FLTK).
 //
@@ -23,8 +23,6 @@ extern int fl_gl_load_plugin;
 #ifdef __APPLE__
 extern void gl_texture_reset();
 #endif
-
-static int temp = fl_gl_load_plugin;
 
 #include <FL/Fl.H>
 #include <FL/x.H>
@@ -183,8 +181,10 @@ void Fl_Gl_Window::make_current() {
   GLint xywh[4];
 
   if (window()) {
-    xywh[0] = x();
-    xywh[1] = window()->h() - y() - h();
+    int xoff,yoff;
+    const Fl_Window *win = top_window_offset(xoff, yoff);	// STR #2944 [2]
+    xywh[0] = xoff;
+    xywh[1] = win->h() - yoff - h();
   } else {
     xywh[0] = 0;
     xywh[1] = 0;
@@ -249,10 +249,34 @@ void Fl_Gl_Window::swap_buffers() {
 #  endif
 #elif defined(__APPLE_QUARTZ__)
   if(overlay != NULL) {
-    //aglSwapBuffers does not work well with overlays under cocoa
-    glReadBuffer(GL_BACK);
-    glDrawBuffer(GL_FRONT);
-    glCopyPixels(0,0,w(),h(),GL_COLOR);
+    // STR# 2944 [1]
+    //    Save matrixmode/proj/modelview/rasterpos before doing overlay.
+    //
+    int wo=w(), ho=h();
+    GLint matrixmode;
+    GLfloat pos[4];
+    glGetIntegerv(GL_MATRIX_MODE, &matrixmode);
+    glGetFloatv(GL_CURRENT_RASTER_POSITION, pos);       // save original glRasterPos
+    glMatrixMode(GL_PROJECTION);			// save proj/model matrices
+    glPushMatrix();
+      glLoadIdentity();
+      glMatrixMode(GL_MODELVIEW);
+      glPushMatrix();
+        glLoadIdentity();
+        glScalef(2.0f/wo, 2.0f/ho, 1.0f);
+        glTranslatef(-wo/2.0f, -ho/2.0f, 0.0f);         // set transform so 0,0 is bottom/left of Gl_Window
+        glRasterPos2i(0,0);                             // set glRasterPos to bottom left corner
+        {
+          // Emulate overlay by doing copypixels
+          glReadBuffer(GL_BACK);
+          glDrawBuffer(GL_FRONT);
+          glCopyPixels(0, 0, wo, ho, GL_COLOR);         // copy GL_BACK to GL_FRONT
+        }
+        glPopMatrix(); // GL_MODELVIEW                  // restore model/proj matrices
+      glMatrixMode(GL_PROJECTION);
+      glPopMatrix();
+    glMatrixMode(matrixmode);
+    glRasterPos3f(pos[0], pos[1], pos[2]);              // restore original glRasterPos
   }
   else
     aglSwapBuffers((AGLContext)context_);
@@ -268,6 +292,7 @@ int fl_overlay_depth = 0;
 
 
 void Fl_Gl_Window::flush() {
+  if (!shown()) return;
   uchar save_valid = valid_f_ & 1;
 #if HAVE_GL_OVERLAY && defined(WIN32)
   uchar save_valid_f = valid_f_;
@@ -549,6 +574,11 @@ int Fl_Gl_Window::handle(int event)
   return Fl_Window::handle(event);
 }
 
+// don't remove me! this serves only to force linking of Fl_Gl_Device_Plugin.o
+int Fl_Gl_Window::gl_plugin_linkage() {
+  return fl_gl_load_plugin;
+}
+
 //
-// End of "$Id: Fl_Gl_Window.cxx 9264 2012-03-05 08:46:30Z manolo $".
+// End of "$Id: Fl_Gl_Window.cxx 10095 2014-02-07 00:09:52Z AlbrechtS $".
 //

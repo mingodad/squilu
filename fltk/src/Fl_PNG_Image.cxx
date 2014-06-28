@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_PNG_Image.cxx 9713 2012-11-10 09:01:16Z manolo $"
+// "$Id: Fl_PNG_Image.cxx 9980 2013-09-21 16:41:23Z greg.ercolano $"
 //
 // Fl_PNG_Image routines.
 //
@@ -51,20 +51,22 @@ typedef struct  {
   const unsigned char *last;
 } fl_png_memory;
 
-static void png_read_data_from_mem( png_structp png_ptr, //pointer to our data
-				   png_bytep data,  // where to copy the image data for libpng computing
-				   png_size_t length) // length of data to copy
-{
-  fl_png_memory *png_mem_data = (fl_png_memory*)png_get_io_ptr(png_ptr); // get the pointer to our struct
-  if (png_mem_data->current + length > png_mem_data->last) {
-    png_error(png_mem_data->pp, "Invalid attempt to read row data");
-    return;
+extern "C" {
+  static void png_read_data_from_mem( png_structp png_ptr, //pointer to our data
+				      png_bytep data,  // where to copy the image data for libpng computing
+				      png_size_t length) // length of data to copy
+  {
+    fl_png_memory *png_mem_data = (fl_png_memory*)png_get_io_ptr(png_ptr); // get the pointer to our struct
+    if (png_mem_data->current + length > png_mem_data->last) {
+      png_error(png_mem_data->pp, "Invalid attempt to read row data");
+      return;
+    }
+    /* copy data from image buffer */
+    memcpy (data, png_mem_data->current, length);
+    /* advance in the memory data */
+    png_mem_data->current += length;
   }
-  /* copy data from image buffer */
-  memcpy (data, png_mem_data->current, length);
-  /* advance in the memory data */
-  png_mem_data->current += length;
-}
+} // extern "C"
 #endif // HAVE_LIBPNG && HAVE_LIBZ
 
 
@@ -330,5 +332,5 @@ int Fl_PNG_Image::encode(Fl_Image *img, unsigned char **outbuffer, int &outlen){
 }
 
 //
-// End of "$Id: Fl_PNG_Image.cxx 9713 2012-11-10 09:01:16Z manolo $".
+// End of "$Id: Fl_PNG_Image.cxx 9980 2013-09-21 16:41:23Z greg.ercolano $".
 //

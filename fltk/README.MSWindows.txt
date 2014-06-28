@@ -214,9 +214,11 @@ in my dev directory:
  Configuring FLTK
 ------------------
 
-Stay in your FLTK source-code directory. Type:
+If you got FLTK via subversion then you need one extra step. Otherwise skip
+over this part. Stay in your FLTK source-code directory and type the
+following:
 
-  autoconf
+  NOCONFIGURE=1 ./autogen.sh
 
 Now configure your FLTK installation:
 

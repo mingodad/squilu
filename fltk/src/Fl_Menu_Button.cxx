@@ -57,7 +57,7 @@ const Fl_Menu_Item* Fl_Menu_Button::popup(int px, int py) {
   redraw();
   Fl_Widget_Tracker mb(this);
   if (!box() || type()) {
-    m = menu()->popup(px, py, label(), mvalue(), this);
+    m = menu()->popup(Fl::event_x(), Fl::event_y(), label(), mvalue(), this);
   } else {
     m = menu()->pulldown(x(), y(), w(), h(), 0, this);
   }
