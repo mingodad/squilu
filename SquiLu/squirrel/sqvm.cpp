@@ -392,9 +392,10 @@ bool SQVM::Init(SQVM *friendvm, SQInteger stacksize)
 	_callsstack = &_callstackdata[0];
 	_stackbase = 0;
 	_top = 0;
-	if(!friendvm)
+	if(!friendvm) {
 		_roottable = SQTable::Create(_ss(this), 0);
-	else {
+        sq_base_register(this);
+	} else {
 		_roottable = friendvm->_roottable;
 		_errorhandler = friendvm->_errorhandler;
 		_debughook = friendvm->_debughook;
@@ -402,7 +403,6 @@ bool SQVM::Init(SQVM *friendvm, SQInteger stacksize)
 		_debughook_closure = friendvm->_debughook_closure;
 	}
 
-	sq_base_register(this);
 	return true;
 }
 
@@ -973,7 +973,8 @@ exception_restore:
 						//SQ_THROW();
 					  }
 					default:
-						Raise_Error(_SC("attempt to call '%s'"), GetTypeName(clo));
+						Raise_Error(_SC("attempt to call '%s' [%s]"), GetTypeName(clo),
+                            type(clo) == OT_STRING ? _stringval(clo) : "");
 						SQ_THROW();
 					}
 				}
