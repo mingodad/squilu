@@ -253,13 +253,17 @@ static SQRESULT get_slice_params(HSQUIRRELVM v,SQInteger &sidx,SQInteger &eidx,S
 	return 1;
 }
 
-static SQRESULT base_print1(HSQUIRRELVM v)
+static SQInteger base_print1(HSQUIRRELVM v)
 {
-	const SQChar *str;
-	sq_tostring(v,2);
-	sq_getstring(v,-1,&str);
-	if(_ss(v)->_printfunc) _ss(v)->_printfunc(v,_SC("%s"),str);
-	return 0;
+    const SQChar *str;
+    if(SQ_SUCCEEDED(sq_tostring(v,2)))
+    {
+        if(SQ_SUCCEEDED(sq_getstring(v,-1,&str))) {
+            if(_ss(v)->_printfunc) _ss(v)->_printfunc(v,_SC("%s"),str);
+            return 0;
+        }
+    }
+    return SQ_ERROR;
 }
 
 static SQRESULT base_print(HSQUIRRELVM v)
@@ -270,10 +274,13 @@ static SQRESULT base_print(HSQUIRRELVM v)
         SQInteger nargs=sq_gettop(v);
         for(int i=2; i<=nargs; ++i){
             if(i>2) sqprint(v,_SC("\t"));
-            sq_tostring(v,i);
-            sq_getstring(v,-1,&str);
-            sqprint(v,_SC("%s"),str);
-            sq_poptop(v); //remove converted string
+            if(SQ_SUCCEEDED(sq_tostring(v,i))) {
+                sq_getstring(v,-1,&str);
+                sqprint(v,_SC("%s"),str);
+                sq_poptop(v); //remove converted string
+            } else {
+                return SQ_ERROR;
+            }
         }
         sqprint(v,_SC("\n"));
     }
@@ -283,10 +290,14 @@ static SQRESULT base_print(HSQUIRRELVM v)
 static SQRESULT base_error(HSQUIRRELVM v)
 {
 	const SQChar *str;
-	sq_tostring(v,2);
-	sq_getstring(v,-1,&str);
-	if(_ss(v)->_errorfunc) _ss(v)->_errorfunc(v,_SC("%s"),str);
-	return 0;
+    if(SQ_SUCCEEDED(sq_tostring(v,2)))
+    {
+        if(SQ_SUCCEEDED(sq_getstring(v,-1,&str))) {
+            if(_ss(v)->_errorfunc) _ss(v)->_errorfunc(v,_SC("%s"),str);
+            return 0;
+        }
+    }
+    return SQ_ERROR;
 }
 
 static SQRESULT base_get_last_error(HSQUIRRELVM v)
@@ -512,8 +523,10 @@ static SQRESULT default_delegate_tointeger(HSQUIRRELVM v)
 
 static SQRESULT default_delegate_tostring(HSQUIRRELVM v)
 {
-	sq_tostring(v,1);
-	return 1;
+    if(SQ_SUCCEEDED(sq_tostring(v,1))) {
+        return 1;
+    }
+    return SQ_ERROR;
 }
 
 static SQRESULT obj_delegate_weakref(HSQUIRRELVM v)
