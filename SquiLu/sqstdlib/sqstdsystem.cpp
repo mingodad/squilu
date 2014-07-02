@@ -147,18 +147,16 @@ static SQRESULT _system_time(HSQUIRRELVM v) {
 
     rc = get_int_field(v, _SC("month"), -1);
     if(rc == SQ_ERROR) return rc;
-    else ts.tm_mon = rc;
+    else ts.tm_mon = rc - 1;
 
     rc = get_int_field(v, _SC("year"), -1);
     if(rc == SQ_ERROR) return rc;
     else ts.tm_year = rc - 1900;
 
-    SQBool isdst = SQTrue;
+    SQBool isdst = SQFalse;
     sq_pushstring(v, _SC("isdst"), -1);
     if(sq_get(v, 2) == SQ_OK){
-        if(sq_getbool(v, -1, &isdst) == SQ_OK){
-            ts.tm_isdst = isdst;
-        }
+        sq_getbool(v, -1, &isdst);
         sq_poptop(v);
     }
     ts.tm_isdst = isdst;
@@ -208,8 +206,30 @@ static void _set_integer_slot(HSQUIRRELVM v,const SQChar *name,SQInteger val)
 static SQRESULT _system_date(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
-    SQ_OPT_STRING(v, 2, arg_format, _SC("%c"));
-    SQ_OPT_FLOAT(v, 3, arg_time, time(NULL));
+    const SQChar *arg_format;
+    SQInteger arg_format_size, arg_time;
+    if(_top_ > 1) {
+        if(sq_gettype(v, 2) == OT_STRING) {
+            //assume format, time
+            if((_rc_ = sq_getstr_and_size(v,2, &arg_format, &arg_format_size)) < 0) return _rc_;
+            if(_top_ > 2) {
+                if((_rc_ = sq_getinteger(v,3, &arg_time)) < 0) return _rc_;
+            } else {
+                arg_time = time(NULL);
+            }
+        } else {
+            //assume time, format
+            if((_rc_ = sq_getinteger(v,2, &arg_time)) < 0) return _rc_;
+            if(_top_ > 2) {
+                if((_rc_ = sq_getstr_and_size(v,3, &arg_format, &arg_format_size)) < 0) return _rc_;
+            } else {
+                arg_format = _SC("%c");
+            }
+        }
+    } else {
+        arg_format = _SC("%c");
+        arg_time = time(NULL);
+    }
 	time_t t = (time_t)arg_time;
 
     struct tm *stm;
@@ -588,7 +608,7 @@ static SQRegFunction systemlib_funcs[]={
 	_DECL_FUNC(clock,0,NULL),
 	_DECL_FUNC(remove,2,_SC(".s")),
 	_DECL_FUNC(rename,3,_SC(".ss")),
-	_DECL_FUNC(date,-1,_SC(".sn")),
+	_DECL_FUNC(date,-1,_SC(". s|n")),
 	_DECL_FUNC(tmpname,1,_SC(".")),
 	_DECL_FUNC(setlocale,-1,_SC(".ss")),
 	_DECL_FUNC(time,-1,_SC(".t")),
