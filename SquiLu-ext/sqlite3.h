@@ -107,9 +107,9 @@ extern "C" {
 ** [sqlite3_libversion_number()], [sqlite3_sourceid()],
 ** [sqlite_version()] and [sqlite_source_id()].
 */
-#define SQLITE_VERSION        "3.8.5"
-#define SQLITE_VERSION_NUMBER 3008005
-#define SQLITE_SOURCE_ID      "2014-05-29 03:17:29 e58f4bd39d51c4c1a28684dab6427de81173d564"
+#define SQLITE_VERSION        "3.8.6"
+#define SQLITE_VERSION_NUMBER 3008006
+#define SQLITE_SOURCE_ID      "2014-06-30 19:28:57 f925e9baafea625f63105f8013abb3807b418379"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -959,6 +959,12 @@ struct sqlite3_io_methods {
 ** on whether or not the file has been renamed, moved, or deleted since it
 ** was first opened.
 **
+** <li>[[SQLITE_FCNTL_WIN32_SET_HANDLE]]
+** The [SQLITE_FCNTL_WIN32_SET_HANDLE] opcode is used for debugging.  This
+** opcode causes the xFileControl method to swap the file handle with the one
+** pointed to by the pArg argument.  This capability is used during testing
+** and only needs to be supported when SQLITE_TEST is defined.
+**
 ** </ul>
 */
 #define SQLITE_FCNTL_LOCKSTATE               1
@@ -982,6 +988,7 @@ struct sqlite3_io_methods {
 #define SQLITE_FCNTL_HAS_MOVED              20
 #define SQLITE_FCNTL_SYNC                   21
 #define SQLITE_FCNTL_COMMIT_PHASETWO        22
+#define SQLITE_FCNTL_WIN32_SET_HANDLE       23
 
 /*
 ** CAPI3REF: Mutex Handle
