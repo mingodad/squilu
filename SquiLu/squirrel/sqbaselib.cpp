@@ -822,7 +822,7 @@ static SQRESULT array_bsearch(HSQUIRRELVM v)
 	SQObjectPtr &val = stack_get(v,2);
 	SQArray *a = _array(o);
 	SQObjectPtr temp;
-	SQInteger imid, imin = 0, imax = a->Size()-1;
+	SQInteger imid = 0, imin = 0, imax = a->Size()-1;
 	while(imax >= imin) {
 	    /* calculate the midpoint for roughly equal partition */
         imid = (imin + imax) / 2;
@@ -1504,7 +1504,7 @@ static SQRESULT string_find_close_quote(HSQUIRRELVM v) {
 }
 
 static SQRESULT string_find_delimiter(HSQUIRRELVM v) {
-    SQ_FUNC_VARS(v);
+    SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, src);
     SQ_GET_INTEGER(v, 2, delimiter);
     SQ_GET_INTEGER(v, 3, escape_char);
@@ -1676,6 +1676,22 @@ static SQRESULT string_isdigit(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT string_count_char(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, str);
+    SQ_GET_INTEGER(v, 2, char_to_count);
+    SQInteger i, count = 0;
+    for(i=0; i < str_size; ++i) {
+        if(str[i] == char_to_count)
+        {
+            ++count;
+        }
+    }
+	sq_pushinteger(v, count);
+	return 1;
+}
+
 #ifdef SQ_SUBLATIN
 #include "sublatin.h"
 
@@ -1807,6 +1823,7 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("empty"),string_empty,1, _SC("s")},
 	{_SC("isalpha"),string_isalpha,2, _SC("si")},
 	{_SC("isdigit"),string_isdigit,2, _SC("si")},
+	{_SC("count_char"),string_count_char,2, _SC("si")},
 #ifdef SQ_SUBLATIN
 	{_SC("sl_len"),string_sl_len,1, _SC("s")},
 	{_SC("sl_lower"),string_sl_lower,1, _SC("s")},
