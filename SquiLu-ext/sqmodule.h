@@ -103,7 +103,9 @@ extern "C" {
 #else
         void            (*tostring)(HSQUIRRELVM v,SQInteger idx);
 #endif
-        void            (*tobool)(HSQUIRRELVM v, SQInteger idx, SQBool *b);
+        SQRESULT        (*tobool)(HSQUIRRELVM v, SQInteger idx);
+        SQRESULT        (*tointeger)(HSQUIRRELVM v, SQInteger idx);
+        SQRESULT        (*tofloat)(HSQUIRRELVM v, SQInteger idx);
         SQRESULT        (*getstring)(HSQUIRRELVM v,SQInteger idx,const SQChar **c);
         SQRESULT        (*getinteger)(HSQUIRRELVM v,SQInteger idx,SQInteger *i);
         SQRESULT        (*getfloat)(HSQUIRRELVM v,SQInteger idx,SQFloat *f);

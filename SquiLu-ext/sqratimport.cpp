@@ -101,6 +101,8 @@ static HSQAPI sqrat_newapi() {
     sq->instanceof = sq_instanceof;
     sq->tostring = sq_tostring;
     sq->tobool = sq_tobool;
+    sq->tointeger = sq_tointeger;
+    sq->tofloat = sq_tofloat;
     sq->getstring = sq_getstring;
     sq->getinteger = sq_getinteger;
     sq->getthread = sq_getthread;

@@ -751,10 +751,34 @@ SQRESULT sq_tostring(HSQUIRRELVM v,SQInteger idx)
 	return SQ_OK;
 }
 
-void sq_tobool(HSQUIRRELVM v, SQInteger idx, SQBool *b)
+SQRESULT sq_tobool(HSQUIRRELVM v, SQInteger idx)
 {
-	SQObjectPtr &o = stack_get(v, idx);
-	*b = SQVM::IsFalse(o)?SQFalse:SQTrue;
+	SQObjectPtr res;
+	SQBool b;
+	SQ_RETURN_IF_ERROR(sq_getbool(v,idx, &b));
+	_integer(res) = b;
+	v->Push(res);
+	return SQ_OK;
+}
+
+SQRESULT sq_tointeger(HSQUIRRELVM v, SQInteger idx)
+{
+	SQObjectPtr res;
+	SQInteger i;
+	SQ_RETURN_IF_ERROR(sq_getinteger(v,idx, &i));
+	_integer(res) = i;
+	v->Push(res);
+	return SQ_OK;
+}
+
+SQRESULT sq_tofloat(HSQUIRRELVM v, SQInteger idx)
+{
+	SQObjectPtr res;
+	SQFloat f;
+	SQ_RETURN_IF_ERROR(sq_getfloat(v,idx, &f));
+	_float(res) = f;
+	v->Push(res);
+	return SQ_OK;
 }
 
 SQRESULT sq_getinteger(HSQUIRRELVM v,SQInteger idx,SQInteger *i)

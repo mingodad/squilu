@@ -2157,7 +2157,7 @@ static SQRESULT class_newmember(HSQUIRRELVM v)
 	SQBool bstatic = SQFalse;
 	if(top == 5)
 	{
-		sq_tobool(v,-1,&bstatic);
+		sq_getbool(v,-1,&bstatic);
 		sq_pop(v,1);
 	}
 
@@ -2173,7 +2173,7 @@ static SQRESULT class_rawnewmember(HSQUIRRELVM v)
 	SQBool bstatic = SQFalse;
 	if(top == 5)
 	{
-		sq_tobool(v,-1,&bstatic);
+		sq_getbool(v,-1,&bstatic);
 		sq_pop(v,1);
 	}
 
