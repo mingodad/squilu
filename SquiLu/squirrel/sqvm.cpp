@@ -20,6 +20,7 @@
 #endif
 
 #define TOP() (_stack._vals[_top-1])
+#define EXISTS_FALL_BACK -1
 
 bool SQVM::BW_OP(SQUnsignedInteger op,SQObjectPtr &trg,const SQObjectPtr &o1,const SQObjectPtr &o2)
 {
@@ -1134,7 +1135,7 @@ exception_restore:
 
 						} continue;
 			OPCODE_TARGET(CMP) {	_GUARD(CMP_OP((CmpOP)arg3,STK(arg2),STK(arg1),TARGET))	continue;}
-			OPCODE_TARGET(EXISTS) { TARGET = Get(STK(arg1), STK(arg2), temp_reg, true,DONT_FALL_BACK)?true:false;continue;}
+			OPCODE_TARGET(EXISTS) { TARGET = Get(STK(arg1), STK(arg2), temp_reg, true,EXISTS_FALL_BACK);continue;}
 			OPCODE_TARGET(INSTANCEOF) {
 				if(type(STK(arg1)) != OT_CLASS)
 				{Raise_Error(_SC("cannot apply instanceof between a %s and a %s"),GetTypeName(STK(arg1)),GetTypeName(STK(arg2))); SQ_THROW();}
@@ -1412,7 +1413,7 @@ bool SQVM::Get(const SQObjectPtr &self,const SQObjectPtr &key,SQObjectPtr &dest,
 		if(_table(self)->Get(key,dest))return true;
 		break;
 	case OT_ARRAY:
-		if(sq_isnumeric(key)) { if(_array(self)->Get(tointeger(key),dest)) { return true; } Raise_IdxError(key); return false; }
+		if(sq_isnumeric(key)) { if(_array(self)->Get(tointeger(key),dest)) { return true; } if(selfidx != EXISTS_FALL_BACK) Raise_IdxError(key); return false; }
 		break;
 	case OT_INSTANCE:
 		if(_instance(self)->Get(key,dest)) return true;
@@ -1428,11 +1429,12 @@ bool SQVM::Get(const SQObjectPtr &self,const SQObjectPtr &key,SQObjectPtr &dest,
 				dest = SQInteger(_stringval(self)[n]);
 				return true;
 			}
-			Raise_IdxError(key);
+			if(selfidx != EXISTS_FALL_BACK) Raise_IdxError(key);
 			return false;
 		}
 		break;
-	default:break; //shut up compiler
+	default:
+        break; //shut up compiler
 	}
 	if(!raw) {
 		switch(FallBackGet(self,key,dest)) {
@@ -1449,7 +1451,7 @@ bool SQVM::Get(const SQObjectPtr &self,const SQObjectPtr &key,SQObjectPtr &dest,
 		if(_table(_roottable)->Get(key,dest)) return true;
 	}
 //#endif
-	Raise_IdxError(key);
+	if(selfidx != EXISTS_FALL_BACK) Raise_IdxError(key);
 	return false;
 }
 
