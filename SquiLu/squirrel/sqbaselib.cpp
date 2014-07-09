@@ -1647,7 +1647,7 @@ static SQRESULT string_split(HSQUIRRELVM v) {
     return 1;
 }
 
-static SQRESULT string_empty(HSQUIRRELVM v)
+static SQRESULT string_isempty(HSQUIRRELVM v)
 {
 	sq_pushbool(v,sq_getsize(v,1) == 0);
 	return 1;
@@ -1818,11 +1818,14 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("weakref"),obj_delegate_weakref,1, NULL },
 	{_SC("getdelegate"),string_getdelegate,1, _SC(".")},
 	{_SC("strip"),string_strip,1, _SC("s")},
+	{_SC("trim"),string_strip,1, _SC("s")},
 	{_SC("lstrip"),string_lstrip,1, _SC("s")},
+	{_SC("ltrim"),string_lstrip,1, _SC("s")},
 	{_SC("rstrip"),string_rstrip,1, _SC("s")},
+	{_SC("rtrim"),string_rstrip,1, _SC("s")},
 	{_SC("split"),string_split,2, _SC("si")},
 	{_SC("split_by_strtok"),string_split_by_strtok,2, _SC("ss")},
-	{_SC("empty"),string_empty,1, _SC("s")},
+	{_SC("isempty"),string_isempty,1, _SC("s")},
 	{_SC("isalpha"),string_isalpha,2, _SC("si")},
 	{_SC("isdigit"),string_isdigit,2, _SC("si")},
 	{_SC("count_char"),string_count_char,2, _SC("si")},
