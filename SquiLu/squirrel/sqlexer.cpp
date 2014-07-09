@@ -398,10 +398,19 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 	}
 	NEXT();
 	if(IS_EOB()) return -1;
-	if(start_equals && CUR_CHAR == _SC('\n')) {
-	    ++_currentline;
-	    NEXT(); //if a new line follows the start of delimiter drop it
-        if(IS_EOB()) return -1;
+	if(start_equals) {
+	    int cr_nl = CUR_CHAR == _SC('\r');
+        if(cr_nl) NEXT();
+        cr_nl = CUR_CHAR == _SC('\n');
+        if(cr_nl) NEXT();
+        if(cr_nl) {//if a new line follows the start of delimiter drop it
+            ++_currentline;
+            if(IS_EOB())
+            {
+                Error(_SC("unfinished string"));
+                return -1;
+            }
+        }
 	}
 	for(;;) {
 		while(CUR_CHAR != ndelim) {
