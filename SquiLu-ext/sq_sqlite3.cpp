@@ -2132,6 +2132,7 @@ static void db_sql_finalize_function(sqlite3_context *context)
 static SQRESULT db_register_function(HSQUIRRELVM v, int aggregate)
 {
     SQ_FUNC_VARS(v);
+    SQInteger ftype = 0;
     GET_sqlite3_INSTANCE();
     SQ_GET_STRING(v, 2, name);
     SQ_GET_INTEGER(v, 3, nargs);
@@ -2141,6 +2142,8 @@ static SQRESULT db_register_function(HSQUIRRELVM v, int aggregate)
     {
         if(sq_gettype(v,5) != OT_CLOSURE)
             return sq_throwerror(v, "invalid parameter 4 expected closure");
+    } else {
+        sq_optinteger(v, 5, &ftype, 0);
     }
 
     sq_sqlite3_sdb_func *func;
@@ -2148,7 +2151,8 @@ static SQRESULT db_register_function(HSQUIRRELVM v, int aggregate)
     func = (sq_sqlite3_sdb_func*)sq_malloc(sizeof(sq_sqlite3_sdb_func));
     memset(func, 0, sizeof(sq_sqlite3_sdb_func));
     _rc_ = sqlite3_create_function(
-               self, name, nargs, SQLITE_UTF8, func,
+               self, name, nargs, SQLITE_UTF8 | (ftype == SQLITE_DETERMINISTIC ? ftype : 0),
+                func,
                aggregate ? NULL : db_sql_normal_function,
                aggregate ? db_sql_normal_function : NULL,
                aggregate ? db_sql_finalize_function : NULL
@@ -2306,6 +2310,7 @@ extern "C" {
 
         INT_CONST(v,SQLITE_OK);
         INT_CONST(v,SQLITE_INTERRUPT);
+        INT_CONST(v,SQLITE_DETERMINISTIC);
 
         //push sqlite3_NULL as a member
         sq_pushstring(v, nullName,-1);
