@@ -980,6 +980,13 @@ void sq_replace(HSQUIRRELVM v, SQInteger idx)
 	v->Replace(idx);
 }
 
+SQInteger sq_compare(HSQUIRRELVM v, SQInteger idx1, SQInteger idx2)
+{
+	SQInteger res;
+	v->ObjCmp(stack_get(v, idx1), stack_get(v, idx2),res);
+	return res;
+}
+
 SQInteger sq_cmp(HSQUIRRELVM v)
 {
 	SQInteger res;

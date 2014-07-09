@@ -388,6 +388,7 @@ SQUIRREL_API void sq_replace(HSQUIRRELVM v,SQInteger idx);
 SQUIRREL_API SQInteger sq_gettop(HSQUIRRELVM v);
 SQUIRREL_API void sq_settop(HSQUIRRELVM v,SQInteger newtop);
 SQUIRREL_API SQRESULT sq_reservestack(HSQUIRRELVM v,SQInteger nsize);
+SQUIRREL_API SQInteger sq_compare(HSQUIRRELVM v, SQInteger idx1, SQInteger idx2);
 SQUIRREL_API SQInteger sq_cmp(HSQUIRRELVM v);
 SQUIRREL_API void sq_move(HSQUIRRELVM dest,HSQUIRRELVM src,SQInteger idx);
 
