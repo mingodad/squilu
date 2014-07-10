@@ -1055,8 +1055,9 @@ SQRegFunction SQSharedState::_array_default_delegate_funcz[]={
 	{_SC("len"),default_delegate_len,1, _SC("a")},
 	{_SC("size"),default_delegate_len,1, _SC("a")},
 	{_SC("append"),array_append,2, _SC("a")},
-	{_SC("extend"),array_extend,2, _SC("aa")},
 	{_SC("push"),array_append,2, _SC("a")},
+	{_SC("push_back"),array_append,2, _SC("a")},
+	{_SC("extend"),array_extend,2, _SC("aa")},
 	{_SC("pop"),array_pop,1, _SC("a")},
 	{_SC("top"),array_top,1, _SC("a")},
 	{_SC("insert"),array_insert,3, _SC("an")},
@@ -1076,11 +1077,12 @@ SQRegFunction SQSharedState::_array_default_delegate_funcz[]={
 	{_SC("indexOf"),array_find,2, _SC("a.")},
 	{_SC("bsearch"),array_bsearch,2, _SC("a.")},
 	{_SC("concat"),array_concat,-1, _SC("as")},
+	{_SC("join"),array_concat,-1, _SC("as")},
 	{_SC("concat2"),array_concat2,-1, _SC("as")},
 	{_SC("getdelegate"),array_getdelegate,1, _SC(".")},
 	{_SC("get"),container_rawget, -2, _SC("ai.")},
 	{_SC("set"),array_set, 3, _SC("ai.")},
-	{_SC("empty"),array_empty, 1, _SC("a")},
+	{_SC("isempty"),array_empty, 1, _SC("a")},
 	{0,0}
 };
 
