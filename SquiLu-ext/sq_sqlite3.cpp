@@ -2215,7 +2215,6 @@ static SQRegFunction sq_sqlite3_methods[] =
     _DECL_FUNC(db_ptr,  1, _SC("x")),
 
     _DECL_FUNC(IsAutoCommitOn,  1, _SC("x")),
-    _DECL_FUNC(close,  1, _SC("x")),
     _DECL_FUNC(version,  1, _SC("x")),
     _DECL_FUNC(errcode,  1, _SC("x")),
     _DECL_FUNC(errmsg,  1, _SC("x")),
