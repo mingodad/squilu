@@ -134,7 +134,7 @@ class HappyHttpConnection {
 	// Update the connection (non-blocking)
 	// Just keep calling this regularly to service outstanding requests.
 	function pump(milisec=10) { //10 miliseconds to prevent high cpu load
-		if( m_Outstanding.empty() ) return;		// no requests outstanding
+		if( m_Outstanding.isempty() ) return;		// no requests outstanding
 		assert( m_Sock != null );	// outstanding requests but no connection!
 
 		if( !datawaiting( m_Sock, milisec) ) return;	// recv will block
@@ -162,7 +162,7 @@ class HappyHttpConnection {
 		else
 		{
 			local used = 0;
-			while( used < a && !m_Outstanding.empty() )
+			while( used < a && !m_Outstanding.isempty() )
 			{
 				local r = m_Outstanding[0];
 				local u = r->pump( buf, used, a-used );
@@ -181,7 +181,7 @@ class HappyHttpConnection {
 	}
 
 	// any requests still outstanding?
-	function outstanding() { return m_Outstanding && !m_Outstanding.empty(); }
+	function outstanding() { return m_Outstanding && !m_Outstanding.isempty(); }
 
 	// ---------------------------
 	// high-level request interface
@@ -436,7 +436,7 @@ class HappyHttpResponse {
 	}
 	
 	function FlushHeader(){
-		if( m_HeaderAccum.empty() ) return;	// no flushing required
+		if( m_HeaderAccum.isempty() ) return;	// no flushing required
 		local rc = m_HeaderAccum.match("([^:]+):%s*(.+)");
 		if(!rc) throw(format("Invalid header (%s)", m_HeaderAccum));
 		m_Headers[ rc[0].tolower() ] <- rc[1];
@@ -464,7 +464,7 @@ class HappyHttpResponse {
 	}
 	
 	function ProcessHeaderLine( line ){
-		if( line.empty() )
+		if( line.isempty() )
 		{
 			FlushHeader();
 			// end of headers
@@ -493,7 +493,7 @@ class HappyHttpResponse {
 	function ProcessTrailerLine(line){
 		// TODO: handle trailers?
 		// (python httplib doesn't seem to!)
-		if( line.empty() ) Finish();
+		if( line.isempty() ) Finish();
 		// just ignore all the trailers...
 	}
 	

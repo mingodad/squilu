@@ -129,7 +129,7 @@ class OurHelpWindow extends HelpWindow
 
 	function on_navigate(sender, udata){
 		this = sender->window();
-		if(sender == btnBackward && !_navigation.empty() )
+		if(sender == btnBackward && !_navigation.isempty() )
 		{
 			view_html->topline(_navigation.top());
 			_navigation.pop();

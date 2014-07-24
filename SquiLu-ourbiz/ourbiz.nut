@@ -1391,18 +1391,21 @@ local function orders_sql_search_list(qs_tbl, post_tbl){
 		else if (search_str && search_str.len() > 0) {
 			if (so.products){
 				mf.write(" and o.id in ( select order_id from orders_lines where ",
-					" description like "" , search_str , "" order by id desc limit " , so.query_limit , ")");
+					" description like '" , search_str , "' order by id desc limit " , so.query_limit , ")");
 			}
-			else mf.write(" and ");
+			else
+			{
+				mf.write(" and ");
 
-			if (so.notes) mf.write(" o.notes ");
-			else if (so.date) mf.write(" o.order_date ");
-			//lo_search_str = escapeSqlLikeSearchStr(dbDate(search_str))
-			//table.insert(sql, " and order_date = (("")
-			else if (so.total) mf.write(" o.total_amt ");
-			else  mf.write(" o.entity_name ");
+				if (so.notes) mf.write(" o.notes ");
+				else if (so.date) mf.write(" o.order_date ");
+				//lo_search_str = escapeSqlLikeSearchStr(dbDate(search_str))
+				//table.insert(sql, " and order_date = (("")
+				else if (so.total) mf.write(" o.total_amt ");
+				else  mf.write(" o.entity_name ");
 
-			mf.write(" like '" , search_str , "' ");
+				mf.write(" like '" , search_str , "' ");
+			}
 		}
 	}
 
@@ -3157,6 +3160,7 @@ Content-Length: %d
 		}
 
 		if (sql){
+			debug_print(sql, "\n", db.errmsg(), "\n")
 			local stmt = db.prepare(sql);
 			//debug_print(sql, "\n", db.errmsg(), "\n")
 			data = stmt.asSleArray();

@@ -8,11 +8,185 @@ local globals = getroottable();
 if(!globals.rawget("APP_CODE_FOLDER", false)) ::APP_CODE_FOLDER <- ".";
 WIN32 <- os.getenv("WINDIR") != null;
 
+math.srand(os.time());
+
 //local AT_DEV_DBG=true;
 
 //local APP_CODE_FOLDER = sqfs.currentdir();
 //local EDIT_MD5_PASSWORD = md5("edit_user:r.dadbiz.es:okdoedit");
 //local VIEW_MD5_PASSWORD = md5("view_user:r.dadbiz.es:okdoview");
+
+class MySMTP  {
+	boundary = null;
+	smtp_server = null;
+	smtp_port = null;
+	smtp_user_name = null;
+	smtp_user_passw = null;
+	smtp_from = null;
+	smtp_to = null;
+	smtp_subject = null;
+	smtp_message = null;
+	attachments = null;
+	_ssl = null;
+	_quite = null;
+	_fout = null;
+	
+	constructor(smtp, port){
+		server(smtp, port);
+		attachments = [];
+		_quite = false;
+	}
+	function server(smtp, port) {
+		smtp_server = smtp; 
+		smtp_port = port;
+		boundary = "_=_+-mixed-+19JK4720AB04PX483";
+		_fout = file("MySMPT.log", "wb");
+	}
+	function login(user, passw) {
+		smtp_user_name = user;
+		smtp_user_passw = passw;
+	}
+	function from(pfrom) {smtp_from = pfrom;}
+	function to(pto) {smtp_to = pto; }
+	function subject(psubject) {smtp_subject = psubject; }
+	function message(pmessage) {smtp_message = pmessage; }
+	function attach(fn, mime) {
+		attachments.push([fn, mime]);
+	}
+	function _write(str){
+		_ssl.write(str);
+		_fout.write(str);
+	}
+	function _read_line(expected_code){
+		local result;
+		while (true){
+			result = _ssl.read();
+			if(type(result) == "integer"){
+				if (result < 0){ 
+					throw(axtls.get_error(result));
+				}
+			}
+			if(type(result) == "string"){
+				//print(result);
+				local response_code;
+				result.gmatch("^(%d+)", function(m){
+						response_code = m.tointeger();
+						return false;
+					});
+				//print("Code check", expected_code, response_code);
+				if(!response_code || (expected_code != response_code)){
+					throw(format("Response code '%d' not equal to expected '%d'", 
+						response_code, expected_code));
+				}
+				return true;
+			}
+			os.sleep(10);
+		}
+	}
+	function _write_line(line){
+		local end_line = "\r\n";
+		local result = _write(line);
+		_write(end_line);
+		return result;
+	}
+	function _write_message(msg){
+		local end_msg = "\r\n.\r\n";
+		local result = _write(msg);
+		_write(end_msg);
+		return result;
+	}
+	function _getAttachemt(fn){
+		local fd = file(fn, "rb");
+		local fc = fd.read(fd.len());
+		fd.close();
+		return base64.encode(fc);
+	}
+	function send(){
+		local client_sock = socket.tcp();
+		client_sock.connect(smtp_server, smtp_port);
+
+		local options = axtls.SSL_SERVER_VERIFY_LATER;
+		local ssl_ctx = axtls.ssl_ctx(options, axtls.SSL_DEFAULT_CLNT_SESS);
+
+		_ssl = ssl_ctx.client_new(client_sock.getfd());
+		// check the return status
+		local res = _ssl.handshake_status();
+		if (res != axtls.SSL_OK) throw( axtls.get_error(res));
+		
+		_read_line(220);
+		_write_line("ehlo " + smtp_user_name);
+		_read_line(250);
+		local credentials = base64.encode(format("\x00%s\x00%s", 
+			smtp_user_name, smtp_user_passw));
+		//print("credentials", credentials);
+		_write_line(format("AUTH PLAIN %s", credentials));
+		_read_line(235);
+		_write_line(format("mail from: <%s>", smtp_from || smtp_user_name));
+		_read_line(250);
+		_write_line(format("rcpt to: <%s>", smtp_to));
+		_read_line(250);
+		_write_line("data");
+		_read_line(354);
+
+		local buf = format([==[
+From: Tais Alvarez <%s>
+To: Domingo <%s>
+Subject: %s
+]==], smtp_from || smtp_user_name, smtp_to, smtp_subject);
+		_write(buf);
+		local hasAttachment = attachments.len() > 0;
+		if (hasAttachment){
+			buf = format([==[
+Content-Type: multipart/mixed; boundary="%s"
+
+--%s
+Content-Type: text/plain; charset="utf-8" 
+Content-Transfer-Encoding: 8bit
+]==], boundary, boundary);
+			_write(buf);
+		}
+		buf = format([==[
+
+%s
+%s
+]==], os.date(), smtp_message);
+		_write(buf);
+		if (hasAttachment){
+			foreach( k,v in attachments) {
+				buf = format([==[
+--%s
+Content-Type: %s; name="%s" 
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment
+
+%s
+]==], boundary, v[1], v[0], _getAttachemt(v[0]));
+				_write(buf);
+			}
+			buf = format("--%s--", boundary);
+			_write(buf);
+		}
+		_write_message("");
+		//print("Done !");
+		_read_line(250);
+		_write_line("quit");
+		_read_line(221);
+		_ssl.free();
+		ssl_ctx.free();
+		client_sock.close();
+	}
+}
+
+function IntToDottedIP( intip )
+{
+	local octet = [0,0,0,0];
+	for(local i=3; i >= 0; --i)
+	{
+		octet[i] = (intip & 0xFF).tostring();
+		intip = intip >> 8;
+	}
+	return octet.concat(".");
+}
 
 if(!globals.rawget("gmFile", false)) ::gmFile <- blob();
 if(!globals.rawget("__tplCache", false)) ::__tplCache <- {};
@@ -114,6 +288,73 @@ function var2json(v){
 			return "\"" + v.tostring().replace("\"", "\\\"").replace("\n", "\\n") + "\"";
 	}
 	return "";
+}
+
+function json2var(json) {
+	local vm = SlaveVM();
+	local slave_func = "getTable";
+	
+	//debug_print(json, "\n");
+	//convert new data from json to squilu table for merge
+	vm.compilestring(slave_func, "return " + json);
+	local tbl = vm.call(true, slave_func);
+	return tbl;
+}
+
+function doSaveTableArrayToFD(ta, fd){
+	local function dumpValue(val){
+		local vtype = type(val);
+		if(vtype == "string") fd.write(format("%q,\n", val));
+		else if(vtype == "integer") fd.write(format("%d,\n", val));
+		else if(vtype == "float") fd.write(format("%f,\n", val));
+		else if(vtype == "bool") fd.write(format("%s,\n", val ? "true" : "false"));
+		else if(vtype == "null") fd.write("null,\n");
+		else throw format("Only string, integer, float, bool are supported ! (%s)", vtype);
+	}
+	local tatype = type(ta);
+	if(tatype == "table"){
+		fd.write(format("{\n"));
+		foreach(k,v in ta){
+			fd.write(format("[%q] = ", k));
+			local vtype = type(v);
+			if(vtype == "table" || vtype == "array"){
+				doSaveTableArrayToFD(v, fd);
+			}
+			else
+			{
+				dumpValue(v);
+			}
+		}
+		fd.write(format("},\n"));
+	}
+	else if(tatype == "array"){
+		fd.write(format("[\n"));		
+		foreach(k,v in ta){
+			local vtype = type(v);
+			if(vtype == "table" || vtype == "array"){
+				doSaveTableArrayToFD(v, fd);
+			}
+			else
+			{
+				dumpValue(v);
+			}
+		}
+		fd.write(format("],\n"));		
+	}
+	else throw "Only table/array suported";
+}
+
+function doSaveTableArrayToFileName(tbl, fname){
+	local fd = file(fname, "w");
+	fd.write("return [\n");
+	doSaveTableArrayToFD(tbl, fd);
+	fd.write("];");
+	fd.close();
+}
+
+function doLoadTableArrayFromFileName(fname){
+	local func = loadfile(fname);
+	return func()[0];
 }
 
 function fillTemplate(template, data, nocache){
@@ -569,6 +810,10 @@ if(AT_DEV_DBG || !globals.rawget("MyCompaniesUkLoaded", false)) {
 
 if(AT_DEV_DBG || !globals.rawget("MyOurBizLoaded", false)) {
 	dofile(APP_CODE_FOLDER + "/ourbiz.nut");
+}
+
+if(AT_DEV_DBG || !globals.rawget("MyOurShoppingCartLoaded", false)) {
+	dofile(APP_CODE_FOLDER + "/ourbiz-shopping-cart.nut");
 }
 
 local ourbiz_password = md5("mingote:ourbiz.dadbiz.es:tr14pink");

@@ -90,7 +90,7 @@ class PDF_Order extends Sq_Fpdf
 	}
 
 	function getLogo(){
-		if(!logoFileName || logoFileName.empty()){
+		if(!logoFileName || logoFileName.isempty()){
 			logoFileName = "dadbiz_120.png";
 		}
 		return logoFileName;
@@ -98,7 +98,7 @@ class PDF_Order extends Sq_Fpdf
 
 	function logoImage(px, py, pwidth){
 		local logoImg = getLogo();
-		if(!logoImg.empty()) Image(logoImg, px, py, pwidth);
+		if(!logoImg.isempty()) Image(logoImg, px, py, pwidth);
 	}
 
 	function orderTable(lineCount)
@@ -261,7 +261,7 @@ class PDF_Order extends Sq_Fpdf
 				x++;
 			}
 
-			if(!water_mark.empty()){
+			if(!water_mark.isempty()){
 				SetAlpha(0.7, "Darken");
 				//SetAlpha(0.5);
 				SetFont("Arial","B",50);
