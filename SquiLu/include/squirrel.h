@@ -419,7 +419,9 @@ SQUIRREL_API SQHash sq_gethash(HSQUIRRELVM v, SQInteger idx);
 SQUIRREL_API SQRESULT sq_getbase(HSQUIRRELVM v,SQInteger idx);
 SQUIRREL_API SQBool sq_instanceof(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sq_tostring(HSQUIRRELVM v,SQInteger idx);
-SQUIRREL_API void sq_tobool(HSQUIRRELVM v, SQInteger idx, SQBool *b);
+SQUIRREL_API SQRESULT sq_tobool(HSQUIRRELVM v, SQInteger idx);
+SQUIRREL_API SQRESULT sq_tointeger(HSQUIRRELVM v, SQInteger idx);
+SQUIRREL_API SQRESULT sq_tofloat(HSQUIRRELVM v, SQInteger idx);
 SQUIRREL_API SQRESULT sq_getstring(HSQUIRRELVM v,SQInteger idx,const SQChar **c);
 SQUIRREL_API SQRESULT sq_getinteger(HSQUIRRELVM v,SQInteger idx,SQInteger *i);
 SQUIRREL_API SQRESULT sq_getfloat(HSQUIRRELVM v,SQInteger idx,SQFloat *f);
@@ -576,6 +578,7 @@ SQUIRREL_API void sq_getlaststackinfo(HSQUIRRELVM v);
 
 #define SQ_FAILED(res) (res<0)
 #define SQ_SUCCEEDED(res) (res>=0)
+#define SQ_RETURN_IF_ERROR(res) if(SQ_FAILED(res)) return res
 
 /*DAD*/
 #define SQ_FUNC_VARS(v) \
