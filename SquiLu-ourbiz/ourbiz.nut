@@ -1323,7 +1323,7 @@ local function entities_sql_search_list(qs_tbl : table, post_tbl : table){
 			if (so.products){
 				mf.write(" and e.id in ( select entity_id from orders where id in (",
 					" select order_id from orders_lines where ",
-					" description like "", search_str, "" order by id desc )) ");
+					" description like '", search_str, "' order by id desc )) ");
 			}
 			else
 			{
