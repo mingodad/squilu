@@ -42,11 +42,10 @@ http://code.google.com/p/lua-regex-standalone/
 #define LUA_QL(x)    "'" x "'"
 #define LUA_QS        LUA_QL("%s")
 
-/* translate a relative string position: negative means back from end */
-static size_t posrelat (ptrdiff_t pos, size_t len) {
-  if (pos >= 0) return (size_t)pos;
-  else if (0u - (size_t)pos > len) return 0;
-  else return len - ((size_t)-pos) + 1;
+static ptrdiff_t posrelat (ptrdiff_t pos, size_t len) {
+  /* relative string position: negative means back from end */
+  if (pos < 0) pos += (ptrdiff_t)len;
+  return (pos >= 0) ? pos : 0;
 }
 
 
