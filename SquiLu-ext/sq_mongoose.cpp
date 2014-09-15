@@ -212,7 +212,7 @@ sq_http_request_get_cookie(HSQUIRRELVM v)
     const char *start;
     int len = mg_find_cookie(conn, cookie_name, &start);
 
-    if(len > 0) sq_pushstring(v, start, len);
+    if(len > 0) sq_pushstring(v, start, len-1);
     else sq_pushnull(v);
     return 1;
 }
@@ -1035,6 +1035,7 @@ static void write_error_message(struct mg_connection *conn,
 extern "C" {
 #endif
 SQUIRREL_API SQRESULT sqext_register_SQLite3(HSQUIRRELVM v);
+SQRESULT sqext_register_MySQL(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sqext_register_base64(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sqext_register_mix(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sqstd_register_bloblib(HSQUIRRELVM v);
@@ -1048,6 +1049,7 @@ SQUIRREL_API void sqstd_seterrorhandlers(HSQUIRRELVM v);
 SQUIRREL_API void sqstd_printcallstack(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sqext_register_sq_socket(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sqext_register_sq_slave_vm(HSQUIRRELVM v);
+SQUIRREL_API SQRESULT sqext_register_axtls (HSQUIRRELVM v);
 
 #ifdef __cplusplus
 } /*extern "C"*/
@@ -1100,10 +1102,12 @@ static HSQUIRRELVM my_new_squirrel(struct mg_context *ctx) {
 	sqext_register_base64(v);
 	sqext_register_Sq_Fpdf(v);
 	sqext_register_SQLite3(v);
+	sqext_register_MySQL(v);
 	sqext_register_sqfs(v);
 	sqext_register_mix(v);
 	sqext_register_sq_socket(v);
 	sqext_register_sq_slave_vm(v);
+	sqext_register_axtls(v);
 
     sq_pushstring(v,sq_http_request_TAG, -1);
     sq_newclass(v,SQFalse);
