@@ -926,7 +926,6 @@ static SQRESULT _Fl_Widget_as_window(HSQUIRRELVM v)
 
 static SQRESULT _Fl_Widget_contains(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_WIDGET(v);
     SETUP_FL_WIDGET_AT(v, 2, wdg);
     sq_pushbool(v, self->contains(wdg));
@@ -1214,7 +1213,7 @@ static SQRESULT _Fl_Menu__copy(HSQUIRRELVM v)
     SQInteger menu_size = sq_getsize(v, 2);
     sq_reservestack(v, 20);
     SQInteger work_top = sq_gettop(v);
-    SQInteger nested = 0;
+    //SQInteger nested = 0;
     for(int i=0; i < menu_size; ++i){
         sq_pushinteger(v, i);
         sq_rawget(v, 2);
@@ -1280,7 +1279,6 @@ static SQRESULT _Fl_Menu__text(HSQUIRRELVM v)
 
 static SQRESULT _Fl_Menu__menu(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_MENU_(v);
     const Fl_Menu_Item *mi = self->menu();
     if(mi) return fltk_pushinstance(v, FLTK_TAG(Fl_Menu_Item), (void*)mi);
@@ -1301,7 +1299,6 @@ static SQRESULT _Fl_Menu__menu_at(HSQUIRRELVM v)
 
 static SQRESULT _Fl_Menu__picked(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FL_MENU_(v);
     SETUP_FL_MENU_ITEM_AT(v, 2, arg_mi);
     const Fl_Menu_Item *mi = self->picked(arg_mi);
@@ -1818,7 +1815,6 @@ static SQRESULT _MyFlu_Tree_Browser_set_hilighted(HSQUIRRELVM v){
 }
 
 static SQRESULT _MyFlu_Tree_Browser_get_hilighted(HSQUIRRELVM v){
-    SQ_FUNC_VARS_NO_TOP(v);
     SETUP_FLU_TREE_BROWSER(v);
     Flu_Tree_Browser::Node* node = self->get_hilighted();
     if(node) return fltk_pushinstance(v, FLTK_TAG(Flu_Tree_Browser_Node), node);
