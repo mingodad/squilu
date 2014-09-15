@@ -58,9 +58,11 @@ SQInteger _stream_read(HSQUIRRELVM v)
 	SQChar *data;
 	SQInteger size,res;
 	sq_getinteger(v,2,&size);
-	if(size > self->Len()) {
+	/* DAD come back here
+	if(self->GetHandle() != stdin && size > self->Len()) {
 		size = self->Len();
 	}
+	*/
 	data = sq_getscratchpad(v,size);
 	res = self->Read(data,size);
 	if(res <= 0)
