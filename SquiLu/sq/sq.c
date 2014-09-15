@@ -514,6 +514,7 @@ SQRESULT sqext_register_sqfs(HSQUIRRELVM v);
 SQRESULT sqext_register_sq_zmq3(HSQUIRRELVM v);
 SQRESULT sqext_register_sq_socket(HSQUIRRELVM v);
 SQRESULT sqext_register_sq_zlib(HSQUIRRELVM v);
+SQRESULT sqext_register_sq_miniz(HSQUIRRELVM v);
 SQRESULT sqext_register_mongoose(HSQUIRRELVM v);
 SQRESULT sqrat_register_importlib(HSQUIRRELVM v);
 SQRESULT sqext_register_sq_slave_vm(HSQUIRRELVM v);
@@ -572,6 +573,7 @@ int main(int argc, char* argv[])
 	sqext_register_axtls(v);
 #endif
 	sqext_register_sq_zlib(v);
+	//sqext_register_sq_miniz(v);
 	sqext_register_mongoose(v);
 	sqrat_register_importlib(v);
 	sqext_register_tinyxml2(v);
