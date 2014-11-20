@@ -14,7 +14,9 @@ local function getCompaniesUkDBFileName(){
 	if (globals.rawget("jniLog", false)) return APP_CODE_FOLDER + "/companies-uk-RG.db";
 	if (globals.rawget("WIN32", false)) return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-RG.db";
 	//return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-RG.db";
-	return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-2013-10.db";
+	//return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-RG-2014-07.db";
+	//return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-2013-10.db";
+	return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-2014-07.db";
 }
 
 local companiesUkDB = null;
@@ -43,23 +45,28 @@ local function getCachedStmt(stmt_key, sql_or_func){
 
 
 local function getCiaUkSearchList(search_str, search_post_code, search_sic_code,
-			search_origin_post_code, search_around_post_code , sic_street, page, limit){
+			search_origin_post_code, search_around_post_code , sic_street, page, limit, search_extra_info){
 	local offset = page * limit;
 	local post_code_radius = strHasContent(search_around_post_code) ? search_around_post_code.tointeger() : 0;
 	local stmt, stmt_count, bind_str;
 	local hasSicSearch = false;
 	local bind_names;
 	local base_sql = "select c.id, c.number, c.name, round((julianday('now') - julianday(incorporation_date)) / 354, 1) as age, c.post_code from companies  c "
-	//debug_print(search_str or "nil", "\t",search_post_code or "nil", "\t", search_sic_code or "nil", "\t", page, "\n")
+	//debug_print(search_str || "nil", "\t",search_post_code || "nil", "\t", search_sic_code || "nil", "\t", page, "\n")
 	//print(search_str, search_post_code, search_sic_code, search_origin_post_code, search_around_post_code , page, limit)
 	//print("AtLine:", __LINE__)
 
 	if (strHasContent(search_str) && search_str.find_lua("%d+") == 0){
-		bind_str1 = search_str;
+		bind_str = search_str;
 		limit = 0;
 		stmt = getCachedStmt("getCiaUkSearchList1", @() format(" %s where c.number = ?", base_sql));
 	}
+	/*
+	else if (strHasContent(search_extra_info) ){
+	}
+	*/
 	else if (post_code_radius > 0 && strHasContent(search_origin_post_code)){
+
 		local sic_codes_sql = "";
 		local sic_code = null;
 		local cached_stmt_name = "";
@@ -74,6 +81,7 @@ and c.post_code = pc.post_code
 limit :limit offset :offset
 ]==];
 		if (strHasContent(search_sic_code)){
+
 			if (search_sic_code.find_lua("%d+") == 0){
 				sic_codes_sql = "and c.id in(select company_id from companies_sic_codes where sic_code like :sic_code)";
 				sic_code = search_sic_code + "%";
@@ -95,6 +103,7 @@ limit :limit offset :offset
 		if (sic_code) bind_names.sic_code <- sic_code;
 	}
 	else if (strHasContent(search_str) && strHasContent(search_post_code)){
+
 		stmt = getCachedStmt("getCiaUkSearchList4", @() format([==[
 %s, companies_fts cf
 where companies_fts match ?
@@ -105,6 +114,7 @@ limit ? offset ?
 		bind_str = format("name:%s post_code:%s", search_str, search_post_code);
 	}
 	else if (strHasContent(search_post_code)){
+
 		if (strHasContent(search_sic_code)){
 			hasSicSearch = true;
 			local sic_code_sql;
@@ -144,6 +154,7 @@ limit ? offset ?
 		bind_str = format("post_code:%s*", search_post_code);
 	}
 	else if ( (!strHasContent(search_str)) && (!strHasContent(search_post_code)) && strHasContent(search_sic_code)) {
+
 		if (sic_street && sic_street == "street"){
 			search_sic_code = "%" + search_sic_code + "%";
 			stmt = getCachedStmt("getCiaUkSearchList8", "select distinct id, address, post_code from companies where address like ? order by 2 limit ? offset ?");
@@ -160,6 +171,7 @@ limit ? offset ?
 	}
 	else
 	{
+
 		bind_str = search_str;
 		stmt = getCachedStmt("getCiaUkSearchList11", @() format([==[
 %s, companies_fts cf
@@ -172,6 +184,7 @@ limit ? offset ?
 	local xp = 1;
 	stmt.reset();
 //debug_print("\n", bind_str, ":", limit, ":", offset);
+//debug_print("\n", stmt.get_sql(), " == ", limit, ":", offset);
 	if (bind_names) stmt.bind_names(bind_names);
 	else
 	{
@@ -238,7 +251,14 @@ and ref.post_code = ?
 		}
 		//stmt.reset();
 		stmt.finalize();
-		rows.sort(@(a,b) (a[6] || 0) <=> (b[6] || 0));
+		//rows.sort(@(a,b) (a[6] || 0) <=> (b[6] || 0));
+		rows.sort(@(a,b) (a[5] || 0) <=> (b[5] || 0));
+/*
+		foreach( k,v in rows) {
+			foreach(zk, zv in v) debug_print(zk.tostring(), ":", zv);
+			debug_print("\n");
+		}
+*/
 	}
 }
 
@@ -293,21 +313,32 @@ local function osGridToLatLong(easting, northing){
 
   local lat=lat0;
   local M=0.0;
+  
+  local ma_p1 = (1.0 + n + (5.0/4.0)*n2 + (5.0/4.0)*n3);
+  local mb_p1 = (3.0*n + 3.0*n2 + (21.0/8.0)*n3);
+  local mc_p1 = ((15.0/8.0)*n2 + (15.0/8.0)*n3);
+  local md_p1 = (35.0/24.0)*n3;
+  local n_less_n0 = N-N0;
+  local bf0 = b * F0;
+  local af0 = a * F0;
+  
   do {
-    lat = (N-N0-M)/(a*F0) + lat;
+    lat = (n_less_n0-M)/af0 + lat;  
+    local lat_less_lat0 =  lat-lat0;
+    local lat_plus_lat0 =  lat+lat0;
+    local Ma =  ma_p1 * lat_less_lat0;
+    local Mb =  mb_p1 * sin(lat_less_lat0) * cos(lat_plus_lat0);
+    local Mc =  mc_p1 * sin(2*lat_less_lat0) * cos(2*lat_plus_lat0);
+    local Md =  md_p1 * sin(3.0*lat_less_lat0) * cos(3*lat_plus_lat0);
+    M = bf0 * (Ma - Mb + Mc - Md);                // meridional arc
 
-    local Ma = (1.0 + n + (5.0/4.0)*n2 + (5.0/4.0)*n3) * (lat-lat0);
-    local Mb = (3.0*n + 3.0*n*n + (21.0/8.0)*n3) * sin(lat-lat0) * cos(lat+lat0);
-    local Mc = ((15.0/8.0)*n2 + (15.0/8.0)*n3) * sin(2*(lat-lat0)) * cos(2*(lat+lat0));
-    local Md = (35.0/24.0)*n3 * sin(3.0*(lat-lat0)) * cos(3*(lat+lat0));
-    M = b * F0 * (Ma - Mb + Mc - Md);                // meridional arc
-
-  } while (N-N0-M >= 0.00001);  // ie until < 0.01mm
+  } while (n_less_n0-M >= 0.00001);  // ie until < 0.01mm
 
   local cosLat = cos(lat);
   local sinLat = sin(lat);
-  local nu = a*F0/math.sqrt(1.0-e2*sinLat*sinLat);              // transverse radius of curvature
-  local rho = a*F0*(1.0-e2)/math.pow(1.0-e2*sinLat*sinLat, 1.5);  // meridional radius of curvature
+  local e2_sinLat2 = 1.0-e2*sinLat*sinLat;
+  local nu = a*F0/math.sqrt(e2_sinLat2);              // transverse radius of curvature
+  local rho = a*F0*(1.0-e2)/math.pow(e2_sinLat2, 1.5);  // meridional radius of curvature
   local eta2 = nu/rho-1.0;
 
   local tanLat = math.tan(lat);
@@ -383,7 +414,56 @@ local function downloadChunked(host, file, extra_header=null){
 	return data.concat("\n");
 }
 
-local function getExtraCompanyDataOnNet(cnum){
+local function downloadChunked2(host, file, extra_header=null){
+	local sock = socket.tcp();
+	sock.settimeout(1000);
+	sock.connect(host, 80);
+
+	local count = 0;    // counts number of bytes read
+	local req;
+	if (extra_header) req = extra_header;
+	else req = format("GET %s HTTP/1.1\r\nHost: %s\r\n\r\n", file, host);
+
+	//print("REQUEST:", req)
+	sock.send(req);
+	local rc, s;
+	local data = [];
+
+	// load header
+	while (true){
+		rc = sock.receive("*l");
+		s = rc[0];
+		//print("s", s, rc[1]);
+		//if err == "closed" then break end
+		if (s.len() == 0) break;
+		//if (rc[1] == socket.IO_CLOSED) break;
+	}
+	
+	// load data
+	while (true){
+		rc = sock.receive("*l");
+		s = rc[0];
+		//print("s", s, rc[1]);
+		if (s.len() == 0) break;
+		local chunk_size = ("0x" + rc[0]).tointeger(16);
+		//print(chunk_size);
+		
+		rc = sock.receive(chunk_size);
+		if(rc[1] == socket.IO_CLOSED) break;
+		else if(rc[1] != socket.IO_DONE) throw (format("socket io error (%d)", rc[1]));
+		s = rc[0];
+		if (s.len() == 0){
+			break;
+		}
+		data.push(s);
+		rc = sock.receive("*l"); //eat the new line after chunk
+	}
+	sock.close();
+	//print(file, count)
+	return data.concat("");
+}
+
+local function getExtraCompanyDataOnNet0(cnum){
 	local mainHost = "wck2.companieshouse.gov.uk";
 
 	//get session
@@ -467,6 +547,29 @@ User-Agent:Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.11 (KHTML, like Gecko) 
 	return data;
 }
 
+local function getExtraCompanyDataOnNet(cnum){
+	local mainHost = "wck2.companieshouse.gov.uk";
+	local page = null;
+	try {
+		page = downloadChunked2(mainHost, "/api/filinghistory?q=" + cnum);
+	} catch(e){
+		if(e != "closed") throw e;
+	}
+	if (!page) return "";
+	
+	local data = json2var(page);
+	local tdata = [];
+	local results = data.rawget("results", []);
+	for(var i=0, len=results.len(); i < len; ++i)
+	{
+		local rec = results[i];
+		local line = rec.rawget("type", "") + "|" + rec.rawget("date", "") + "|" + rec.rawget("description", "");
+		line = line.gsub("\n", "\\n");
+		tdata.push( line );
+	}
+	return tdata.concat("\n");
+}
+
 local function getExtraCompanyData(cid, cnum){
 	local data;
 	local db = getCompaniesUkDB();
@@ -502,7 +605,7 @@ local my_uri_handlers = {
 		data.limit <- 25;
 		local query_string = request.info.query_string;
 		bool_t isPost = request.info.request_method == "POST";
-		local filed_names = ["search_str", "search_post_code", "search_origin_post_code",
+		local filed_names = ["search_str", "search_extra_info", "search_post_code", "search_origin_post_code",
 			"search_around_post_code", "search_sic_code", "sic_street", "page"];
 		if (isPost) {
 			local post_fields =  get_post_fields(request);
@@ -516,10 +619,11 @@ local my_uri_handlers = {
 		else data.page = data.page.tointeger();
 
 		local errcode;
-		if (strHasContent(data.search_str) || strHasContent(data.search_post_code) || strHasContent(data.search_sic_code)) {
+		if (strHasContent(data.search_str) || strHasContent(data.search_extra_info) || strHasContent(data.search_post_code) 
+				|| strHasContent(data.search_sic_code)) {
 			data.sicSearchResults <- strHasContent(data.search_sic_code) && !(strHasContent(data.search_str) || strHasContent(data.search_post_code))
 			local result = getCiaUkSearchList(data.search_str, data.search_post_code, data.search_sic_code,
-				data.search_origin_post_code, data.search_around_post_code , data.sic_street, data.page, data.limit);
+				data.search_origin_post_code, data.search_around_post_code , data.sic_street, data.page, data.limit, data.search_extra_info);
 
 			if (result[1] /*errcode*/ == SQLite3.SQLITE_INTERRUPT) {
 				data.queryWasInterrupted <- true;
@@ -564,7 +668,7 @@ local my_uri_handlers = {
 			}
 		}
 		local filed_names = ["search_str", "search_post_code", "search_origin_post_code",
-			"search_around_post_code", "search_sic_code", "sic_street", "page"];
+			"search_around_post_code", "search_sic_code", "sic_street", "page", "search_extra_info"];
 		foreach(k in filed_names) data[k] <- null;
 
 		//debug_tprint(data.company)
@@ -577,9 +681,51 @@ local my_uri_handlers = {
 		request.write_blob(mFile);
 		return true;
 	},
+	["/api/v2/companysearch"] = function(request){
+		local query_string = request.info.query_string;
+		if(!query_string) return false;
+		
+		local data = {};
+		data.limit <- 25;
+		local filed_names = ["search_str", "search_extra_info", "search_post_code", "search_origin_post_code",
+			"search_around_post_code", "search_sic_code", "sic_street", "page"];
+		foreach(k in filed_names) data[k] <-request.get_var(query_string, k);
+
+		data.page <- 0;
+		data.search_str <- request.get_var(query_string, "q");
+
+		local result = getCiaUkSearchList(data.search_str, data.search_post_code, data.search_sic_code,
+			data.search_origin_post_code, data.search_around_post_code , data.sic_street, data.page, data.limit, data.search_extra_info);
+
+		if (result[1] /*errcode*/ == SQLite3.SQLITE_INTERRUPT) {
+			data.queryWasInterrupted <- true;
+		}
+		
+
+		result = var2json(result[0]);
+		request.print(format("HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: %d\r\n\r\n", result.len()));
+		request.print(result);
+		return true;
+	},
+	["/hello"] = function(request){
+		local response = "<html><body>Hello World !</body></html>"
+		request.print(format("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: %d\r\n\r\n%s", response.len(), response));
+		return true;
+	},
 }
 
 add_uri_hanlders(my_uri_handlers);
+
+/*
+local function my_uri_filter(request)
+{
+	local request_uri = request.info.uri;
+	if(request_uri.startswith("/api/"))
+	{
+	}
+}
+add_uri_filters(my_uri_filter);
+*/
 
  ::MyCompaniesUkLoaded <- true;
 

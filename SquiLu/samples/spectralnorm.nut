@@ -8,6 +8,7 @@ local function A(i, j){
 }
 
 local function Av(x, y, N){
+  local A = A;
   for(local i=0; i < N; ++i){
     local a = 0
     for(local j=0; j < N; ++j) a += x[j] * A(i, j)
@@ -16,6 +17,7 @@ local function Av(x, y, N){
 }
 
 local function Atv(x, y, N){
+  local A = A;
   for(local i=0; i < N; ++i){
     local a = 0
     for(local j=0; j < N; ++j) a += x[j] * A(j, i)

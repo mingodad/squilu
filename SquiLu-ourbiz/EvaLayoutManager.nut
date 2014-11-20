@@ -100,7 +100,7 @@ class EvaLayoutManager
 	
 	function setLayout (layoutInfo)
 	{
-		if(type(layoutInfo) === "string")
+		if(type(layoutInfo) == "string")
 		{
 			var linfo = [];
 			var lines = layoutInfo.split('\n');
@@ -110,7 +110,7 @@ class EvaLayoutManager
 			{
 				var rec = lines[i].split(',');
 				var rec_len = rec.len();
-				if(rec_len === 1) continue; //ignore blank lines
+				if(rec_len == 1) continue; //ignore blank lines
 				for(var j=0; j < rec_len; ++j)
 				{
 					rec[j] = rec[j].strip();
@@ -199,7 +199,7 @@ class EvaLayoutManager
 		var arsize = aryReparto.len();
 		var totalWeight = 0;
 		for (var ii = 0; ii < arsize; ii ++) totalWeight += aryReparto[ii][1];
-		var repartHV = totalReparto / ((totalWeight === 0) ? 1 : totalWeight);
+		var repartHV = totalReparto / ((totalWeight == 0) ? 1 : totalWeight);
 		for (var ii = 0; ii < arsize; ii ++)
 		{
 			var colAry = aryReparto[ii];
@@ -242,12 +242,12 @@ class EvaLayoutManager
 			var mm;
 			for (mm = indxPosLeft; mm <= indxPosRight; mm ++)
 			{
-				if (mm !== indxPosLeft) dx += Hgap;
+				if (mm != indxPosLeft) dx += Hgap;
 				dx += Hdim[mm];
 			}
 			for (mm = indxPosTop; mm <= indxPosBottom; mm ++)
 			{
-				if (mm !== indxPosTop) dy += Vgap;
+				if (mm != indxPosTop) dy += Vgap;
 				dy += Vdim[mm];
 			}
 
@@ -331,7 +331,7 @@ class EvaLayoutManager
 	function isExpandWeight (headStr, aryToStore, idxToStore)
 	{
 		var strLen = headStr.len() ;
-		if (strLen && headStr[0] === HEADER_EXPAND[0])
+		if (strLen && headStr[0] == HEADER_EXPAND[0])
 		{
 			var weight = 1;
 			if(strLen > 1)
@@ -351,7 +351,7 @@ class EvaLayoutManager
 		for (var rr = 0; rr < nrcsize; rr ++)
 		{
 			var heaStr = getHeader(rr);
-			var gap = (rr === 0) ? 0 : VHgap;
+			var gap = (rr == 0) ? 0 : VHgap;
 
 			VHdim.push (0);
 			VHpos.push (0);
@@ -359,7 +359,7 @@ class EvaLayoutManager
 
 			if (!isExpandWeight(heaStr, aryReparto, rr))
 			{
-				if (heaStr === "" || heaStr === HEADER_ADAPT)
+				if (heaStr == "" || heaStr == HEADER_ADAPT)
 				{
 					VHdim[rr] = getMinOf(rr);   // maximum-minimum of the row
 				}
@@ -419,7 +419,7 @@ class EvaLayoutManager
 				var name = widgetAt(rr, cc);
 
 				var indx = indxComponent (name);
-				if (indx === -1) continue;
+				if (indx == -1) continue;
 
 				var wid = componentArray[indx];
 				var indxPos = wid.indxPos;
@@ -430,11 +430,11 @@ class EvaLayoutManager
 
 				// set position x2,y2
 				var ava = cc;
-				while (ava+1 < ncsize && widgetAt(rr, ava+1) === EXPAND_HORIZONTAL) ava ++;
+				while (ava+1 < ncsize && widgetAt(rr, ava+1) == EXPAND_HORIZONTAL) ava ++;
 				indxPos.right = ava;
 
 				ava = rr;
-				while (ava+1 < nrsize && widgetAt(ava+1, cc) === EXPAND_VERTICAL) ava ++;
+				while (ava+1 < nrsize && widgetAt(ava+1, cc) == EXPAND_VERTICAL) ava ++;
 				indxPos.bottom = ava;
 
 				wid.isLaidOut = true;
@@ -500,7 +500,7 @@ class EvaLayoutManager
 	};
 }
 
-class MyEvaLayoutManager extends EvaLayoutManager {
+class FltkEvaLayoutManager extends EvaLayoutManager {
 	function showComponent(cId, bShowHide)
 	{
 		//print("show", cId, bShowHide);
@@ -531,7 +531,7 @@ var layInfo = [
 	[  "A"   ,  "edit1"     ,   "-"        , "boton4" ],
 ];
 
-var manager = new MyEvaLayoutManager();
+var manager = new FltkEvaLayoutManager();
 manager.setLayout(layInfo);
 
 class EvaWindow extends Fl_Window {

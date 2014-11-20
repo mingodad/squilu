@@ -46,4 +46,3 @@ AClass.count = 3;
 print(a.count);
 AClass.count++;
 print(AClass.count);
-

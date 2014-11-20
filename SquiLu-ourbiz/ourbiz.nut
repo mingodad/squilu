@@ -3160,7 +3160,7 @@ Content-Length: %d
 		}
 
 		if (sql){
-			debug_print(sql, "\n", db.errmsg(), "\n")
+			//debug_print(sql, "\n", db.errmsg(), "\n")
 			local stmt = db.prepare(sql);
 			//debug_print(sql, "\n", db.errmsg(), "\n")
 			data = stmt.asSleArray();

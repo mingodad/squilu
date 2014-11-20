@@ -367,6 +367,7 @@ function sortTable(id, col, numeric){
 <form action="/#results" method="post" onsubmit="saveFormFields(this)" id="search_form">
 <table>
 <tr><td>Company Name</td><td><input type="text" name="search_str" value="<?=search_str?>" title="enter a company name to search"></td></tr>
+<tr><td>Extra info</td><td><input type="text" name="search_extra_info" value="<?=search_extra_info?>" title="enter extra info to search"></td></tr>
 <tr><td>Post Code</td><td><input type="text" name="search_post_code" value="<?=search_post_code?>" title="enter a complete or parcial post code"></td></tr>
 <tr><td><select name="sic_street"><option value="sic">SIC Code</option><option value="street">Street</option></select></td>
 <td><input type="text" name="search_sic_code" value="<?=search_sic_code?>" title="enter a complete or parcial sic code"></td></tr>
@@ -427,7 +428,7 @@ function sortTable(id, col, numeric){
 <table class="nj">
 <tr><th>Code</th><th>Description</th><th>#Companies</th></tr>
 <? foreach( k, rec in rows){ ?>
-<tr><td><a href="#search_form" onclick="setSicCode(<?=rec[1]?>)"><?=rec[1]?></a></td><td><?=rec[2]?></td><td><?=rec[3]?></td></tr>
+<tr><td><a href="#search_form" onclick="setSicCode(<?=rec[1]?>)"><?=rec[1]?></a></td><td><?=rec[2]?></td><td><?=rec.get(3, "")?></td></tr>
 <? }
 	page = page.tointeger();
 	local hasPrevious = page > 0;

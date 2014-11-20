@@ -1,7 +1,7 @@
 Jaml.register('CalendarChooserWindow', function(args) {
 	var callOpFunc = "CalendarChooserSetDate('" + args.id + "','";
-	var callOp = function(op){return callOpFunc + op + "')";}
-	var cbtn = function() {return input({type:"button"});}
+	var callOp = function(op){return callOpFunc + op + "')";};
+	var cbtn = function() {return input({type:"button"});};
 	form({id: args.form_id, style: "width:100%;height:100%;", onsubmit:"return false;"},
 		table({style: "width:100%;", cls:"calTbl"},
 			tr(
@@ -75,7 +75,7 @@ function CalendarChooserMakemonth(y,m){
 	// get back to the nearest monday
 	adate.setTime(adate.getTime()-(DAY_MILISECONDS * (adate.getDay()-1)));
 	var day = adate.getDate();
-	if(day < 7 && day != 1){
+	if(day < 7 && day !== 1){
 		//go back one more week
 		adate.setTime(adate.getTime() - (DAY_MILISECONDS * 7));
 	}
@@ -85,8 +85,8 @@ function CalendarChooserMakemonth(y,m){
 		do { // insert the week days
 			weekArray.push(adate.getDate());
 			adate.setTime(adate.getTime() + DAY_MILISECONDS);
-		} while( adate.getDay() != 1 ) // monday
-	} while( adate.getMonth() == m );
+		} while( adate.getDay() !== 1 ) // monday
+	} while( adate.getMonth() === m );
 	return monthArray;
 }
 
@@ -139,7 +139,7 @@ function CalendarChooserFocusUpDown(elm, up){
 	for(var r=rows.length-1; r >= 0; --r){
 		var cells = rows[r].cells;
 		for(var c=cells.length-1; c >= 0; --c){
-			if(getFirstChild(cells[c]) == elm){
+			if(getFirstChild(cells[c]) === elm){
 				if(up){
 					if(r > 1){ //second row and bellow
 						getFirstChild(rows[r-1].cells[c]).focus();
@@ -181,7 +181,7 @@ function CalendarChooserInputOnKeydown(event){
 }	
 
 function newCalendarChooserWindow(){
-	var title = "Calendar Chooser"
+	var title = "Calendar Chooser";
 	var win = dad._windows[title];
 	if(!win){
 		var newId = dad.newSeqId();
@@ -195,7 +195,7 @@ function newCalendarChooserWindow(){
 			Action_id: Action_id,
 			btnAction_id: btnAction_id,
 			table_id: table_id
-		}
+		};
 		var win = dad.newWindow(newId, 220,20, 300, 0, _tr(title), Jaml.render('CalendarChooserWindow', data));
 		CalendarChooserSetDate(newId, 0);
 		
@@ -207,5 +207,5 @@ function newCalendarChooserWindow(){
 			}
 		}
 	}
-	dad.bringToFront(win)
+	dad.bringToFront(win);
 }

@@ -36,7 +36,18 @@ if(!globals.get("_slave_", false)){
 }
 else print("I'm a slave !");
 
+/*
 local slave_func = "say_something";
 vm.compilestring(slave_func, "::print(\"ciao\")");
 vm.call(false, slave_func);
+*/
 
+try {
+	local slave_func = "getTable";
+	vm.compilestring(slave_func, [==[return {"nodes":[{"_id":"5206163192518f6f21000180","tag":"body","classes":[],"@class":[],"children":["1d4048ee-0942-df4c-a506-5ee3e3ca8b6d"],"data":{"attr":{},"clearfix":false}},{"_id":"1d4048ee-0942-df4c-a506-5ee3e3ca8b6d","tag":"img","classes":[],"@class":[],"@src":"/wf/design/blank/comment.png","children":[],"data":{"attr":{"src":"/wf/design/blank/comment.png"},"image":{"width":100,"height":35,"size":1943,"fileName":"comment.png","_id":"dad234"}}}],"dropCount":0,"lastSynced":null}]==]);
+	local slave_tbl = vm.call(true, slave_func);
+	foreach(k,v in slave_tbl) print(k,v);
+}
+catch(e){
+	print(e);
+}
