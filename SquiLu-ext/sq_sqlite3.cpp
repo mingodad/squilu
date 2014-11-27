@@ -2207,6 +2207,85 @@ static SQRESULT sq_sqlite3_create_aggregate(HSQUIRRELVM v)
     return db_register_function(v, 1);
 }
 
+static SQRESULT sq_sqlite3_backup(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    GET_sqlite3_INSTANCE();
+    SQ_GET_STRING(v, 2, fname);
+    SQ_OPT_STRING(v, 3, dbname, _SC("main"));
+
+    sqlite3 *pDest;
+    sqlite3_backup *pBackup;
+
+    int rc = sqlite3_open(fname, &pDest);
+    if(rc!=SQLITE_OK)
+    {
+        sqlite3_close(pDest);
+        return sq_throwerror(v, _SC("SQLite can't open %s"), fname);
+    }
+
+    pBackup = sqlite3_backup_init(pDest, "main", self, dbname);
+    if( pBackup==0 ){
+        rc = sq_throwerror(v, _SC("Error: %s\n"), sqlite3_errmsg(pDest));
+        sqlite3_close(pDest);
+    }
+    while(  (rc = sqlite3_backup_step(pBackup,100))==SQLITE_OK ){}
+    sqlite3_backup_finish(pBackup);
+    if( rc==SQLITE_DONE ){
+        rc = SQ_OK;
+    }else{
+        rc = sq_throwerror(v, _SC("Error: %s\n"), sqlite3_errmsg(pDest));
+    }
+    sqlite3_close(pDest);
+
+    return rc;
+}
+
+static SQRESULT sq_sqlite3_restore(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    GET_sqlite3_INSTANCE();
+    SQ_GET_STRING(v, 2, fname);
+    SQ_OPT_STRING(v, 3, dbname, _SC("main"));
+
+    sqlite3 *pSrc;
+    sqlite3_backup *pBackup;
+    int nTimeout = 0;
+
+    int rc = sqlite3_open(fname, &pSrc);
+    if(rc!=SQLITE_OK)
+    {
+        sqlite3_close(pSrc);
+        return sq_throwerror(v, _SC("SQLite can't open %s"), fname);
+    }
+
+    pBackup = sqlite3_backup_init(self, "main", pSrc, dbname);
+    if( pBackup==0 ){
+        sqlite3_close(pSrc);
+        return sq_throwerror(v, _SC("Error: %s\n"), sqlite3_errmsg(self));
+    }
+    while( (rc = sqlite3_backup_step(pBackup,100))==SQLITE_OK
+          || rc==SQLITE_BUSY  ){
+      if( rc==SQLITE_BUSY ){
+        if( nTimeout++ >= 3 ) break;
+        sqlite3_sleep(100);
+      }
+    }
+
+    sqlite3_backup_finish(pBackup);
+    if( rc==SQLITE_DONE ){
+        rc = SQ_OK;
+    }else if( rc==SQLITE_BUSY || rc==SQLITE_LOCKED ){
+        rc = sq_throwerror(v, _SC("Error: source database is busy\n"));
+    }else{
+        rc = sq_throwerror(v, _SC("Error: %s\n"), sqlite3_errmsg(self));
+    }
+    sqlite3_close(pSrc);
+
+    return rc;
+}
+
+
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_sqlite3_##name,nparams,tycheck}
 static SQRegFunction sq_sqlite3_methods[] =
 {
@@ -2240,6 +2319,8 @@ static SQRegFunction sq_sqlite3_methods[] =
     _DECL_FUNC(prepare,  2, _SC("xs")),
     _DECL_FUNC(set_busy_timeout,  -1, _SC("xi")),
     _DECL_FUNC(total_changes,  1, _SC("x")),
+    _DECL_FUNC(backup,  -2, _SC("xss")),
+    _DECL_FUNC(restore,  -2, _SC("xss")),
 #ifdef SQLITE_HAS_CODEC
     _DECL_FUNC(key,  2, _SC("xs")),
     _DECL_FUNC(rekey,  2, _SC("xs")),
