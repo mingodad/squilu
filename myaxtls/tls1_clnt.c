@@ -153,13 +153,13 @@ int do_client_connect(SSL *ssl)
     {
         while (ssl->hs_status != SSL_OK)
         {
-            ret = ssl_read(ssl, NULL);
+            ret = ssl_read(ssl, NULL, 0);
 
             if (ret < SSL_OK)
                 break;
         }
 
-        ssl->hs_status = ret;            /* connected? */    
+        ssl->hs_status = ret;            /* connected? */
     }
 
     return ret;

@@ -292,7 +292,7 @@ EXP_FUNC void LIB_CALLTYPE ssl_free(SSL *ssl);
  * @see ssl.h for the error code list.
  * @note Use in_data before doing any successive ssl calls.
  */
-EXP_FUNC int LIB_CALLTYPE ssl_read(SSL *ssl, uint8_t **in_data);
+EXP_FUNC int LIB_CALLTYPE ssl_read(SSL *ssl, uint8_t **in_data, int in_num);
 
 /**
  * @brief Write to the SSL data stream.

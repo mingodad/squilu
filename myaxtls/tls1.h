@@ -75,6 +75,8 @@ extern "C" {
 #define IS_SET_SSL_FLAG(A)          (ssl->flag & A)
 
 #define MAX_KEY_BYTE_SIZE           512     /* for a 4096 bit key */
+
+/*then values bellow should not sum up more than what can be stored on uint16_t*/
 #define RT_MAX_PLAIN_LENGTH         16384
 #define RT_EXTRA                    1024
 #define BM_RECORD_OFFSET            5
@@ -177,6 +179,12 @@ struct _SSL
     void *decrypt_ctx;
     uint8_t bm_all_data[RT_MAX_PLAIN_LENGTH+RT_EXTRA];
     uint8_t *bm_data;
+
+    /*read buffer*/
+    uint8_t bm_read_data[RT_MAX_PLAIN_LENGTH+RT_EXTRA];
+    uint16_t read_data_in_buffer_bytes;
+    uint16_t read_data_in_buffer_start;
+
     uint16_t bm_index;
     uint16_t bm_read_index;
     struct _SSL *next;                  /* doubly linked list */
@@ -242,7 +250,7 @@ int process_sslv23_client_hello(SSL *ssl);
 int send_alert(SSL *ssl, int error_code);
 int send_finished(SSL *ssl);
 int send_certificate(SSL *ssl);
-int basic_read(SSL *ssl, uint8_t **in_data);
+int basic_read(SSL *ssl, uint8_t **in_data, int in_num);
 int send_change_cipher_spec(SSL *ssl);
 void finished_digest(SSL *ssl, const char *label, uint8_t *digest);
 void generate_master_secret(SSL *ssl, const uint8_t *premaster_secret);

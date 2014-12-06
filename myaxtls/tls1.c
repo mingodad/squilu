@@ -295,9 +295,9 @@ EXP_FUNC void LIB_CALLTYPE ssl_free(SSL *ssl)
 /*
  * Read the SSL connection and send any alerts for various errors.
  */
-EXP_FUNC int LIB_CALLTYPE ssl_read(SSL *ssl, uint8_t **in_data)
+EXP_FUNC int LIB_CALLTYPE ssl_read(SSL *ssl, uint8_t **in_data, int in_num)
 {
-    int ret = basic_read(ssl, in_data);
+    int ret = basic_read(ssl, in_data, in_num);
 
     /* check for return code so we can send an alert */
     if (ret < SSL_OK && ret != SSL_CLOSE_NOTIFY)
@@ -354,7 +354,7 @@ int add_cert(SSL_CTX *ssl_ctx, const uint8_t *buf, int len)
     X509_CTX *cert = NULL;
     int offset;
 
-    while (ssl_ctx->certs[i].buf && i < CONFIG_SSL_MAX_CERTS)
+    while (i < CONFIG_SSL_MAX_CERTS && ssl_ctx->certs[i].buf) 
         i++;
 
     if (i == CONFIG_SSL_MAX_CERTS) /* too many certs */
@@ -1205,10 +1205,26 @@ static int set_key_block(SSL *ssl, int is_write)
 
 /**
  * Read the SSL connection.
+ * if the third paramenter "in_num" is 0 read as much as possible
  */
-int basic_read(SSL *ssl, uint8_t **in_data)
+int basic_read(SSL *ssl, uint8_t **in_data, int in_num)
 {
     int ret = SSL_OK;
+    if((in_num > 0) && ssl->read_data_in_buffer_bytes) {
+        int ret_val = 0;
+        *in_data = ssl->bm_read_data + ssl->read_data_in_buffer_start;
+
+        if(in_num >= ssl->read_data_in_buffer_bytes) {
+            ret_val = ssl->read_data_in_buffer_bytes;
+            ssl->read_data_in_buffer_start = ssl->read_data_in_buffer_bytes = 0;
+        } else { //in_num < ssl->data_in_buffer_bytes
+            ret_val = in_num;
+            ssl->read_data_in_buffer_start += in_num;
+            ssl->read_data_in_buffer_bytes -= in_num;
+        }
+
+        return ret_val;
+    }
     int read_len, is_client = IS_SET_SSL_FLAG(SSL_IS_CLIENT);
     uint8_t *buf = ssl->bm_data;
 
@@ -1347,25 +1363,31 @@ int basic_read(SSL *ssl, uint8_t **in_data)
                 goto error;
             }
 
-            /* all encrypted from now on */
-            SET_SSL_FLAG(SSL_RX_ENCRYPTED);
             if (set_key_block(ssl, 0) < 0)
             {
                 ret = SSL_ERROR_INVALID_HANDSHAKE;
                 goto error;
             }
-
+            
+            /* all encrypted from now on */
+            SET_SSL_FLAG(SSL_RX_ENCRYPTED);
             memset(ssl->read_sequence, 0, 8);
             break;
 
         case PT_APP_PROTOCOL_DATA:
+            ret = read_len;
             if (in_data)
             {
                 *in_data = buf;   /* point to the work buffer */
                 (*in_data)[read_len] = 0;  /* null terminate just in case */
-            }
 
-            ret = read_len;
+                if((in_num > 0) && (read_len > in_num)) {
+                    ret = in_num;
+                    ssl->read_data_in_buffer_start = 0;
+                    ssl->read_data_in_buffer_bytes = read_len - in_num;
+                    memcpy(ssl->bm_read_data, buf+in_num, ssl->read_data_in_buffer_bytes);
+                }
+            }
             break;
 
         case PT_ALERT_PROTOCOL:
@@ -1454,10 +1476,14 @@ int send_change_cipher_spec(SSL *ssl)
 {
     int ret = send_packet(ssl, PT_CHANGE_CIPHER_SPEC,
             g_chg_cipher_spec_pkt, sizeof(g_chg_cipher_spec_pkt));
-    SET_SSL_FLAG(SSL_TX_ENCRYPTED);
 
     if (ret >= 0 && set_key_block(ssl, 1) < 0)
         ret = SSL_ERROR_INVALID_HANDSHAKE;
+    
+    if (ssl->cipher_info)
+        SET_SSL_FLAG(SSL_TX_ENCRYPTED);
+    if (ssl->cipher_info)
+        SET_SSL_FLAG(SSL_TX_ENCRYPTED);
 
     memset(ssl->write_sequence, 0, 8);
     return ret;
@@ -2184,7 +2210,7 @@ EXP_FUNC void LIB_CALLTYPE ssl_display_error(int error_code) {}
 EXP_FUNC SSL * LIB_CALLTYPE ssl_client_new(SSL_CTX *ssl_ctx, int client_fd, const
         uint8_t *session_id, uint8_t sess_id_size)
 {
-    printf(unsupported_str);
+    printf("%s", unsupported_str);
     return NULL;
 }
 #endif
@@ -2192,20 +2218,20 @@ EXP_FUNC SSL * LIB_CALLTYPE ssl_client_new(SSL_CTX *ssl_ctx, int client_fd, cons
 #if !defined(CONFIG_SSL_CERT_VERIFICATION)
 EXP_FUNC int LIB_CALLTYPE ssl_verify_cert(const SSL *ssl)
 {
-    printf(unsupported_str);
+    printf("%s", unsupported_str);
     return -1;
 }
 
 
 EXP_FUNC const char * LIB_CALLTYPE ssl_get_cert_dn(const SSL *ssl, int component)
 {
-    printf(unsupported_str);
+    printf("%s", unsupported_str);
     return NULL;
 }
 
 EXP_FUNC const char * LIB_CALLTYPE ssl_get_cert_subject_alt_dnsname(const SSL *ssl, int index)
 {
-    printf(unsupported_str);
+    printf("%s", unsupported_str);
     return NULL;
 }
 

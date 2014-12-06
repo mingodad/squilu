@@ -2,6 +2,8 @@
 extern "C" {
 #endif
 
+#ifdef USE_AXTLS
+
 #include "squirrel.h"
 #include <string.h>
 #include <stdio.h>
@@ -61,10 +63,11 @@ static SQRESULT ssl_constructor(HSQUIRRELVM v, SSL *ssl, int free_on_gc)
 }
 
 static SQRESULT sq_ssl_read(HSQUIRRELVM v){
-    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_FUNC_VARS(v);
     GET_ssl_INSTANCE();
+    SQ_OPT_INTEGER(v, 2, count, 0);
 	uint8_t *in_data;
-	int result = ssl_read(self, &in_data);
+	int result = ssl_read(self, &in_data, count);
 	if (result > SSL_OK) sq_pushstring(v, (const SQChar*)in_data, result);
 	else sq_pushinteger(v, result);
 	return 1;
@@ -294,7 +297,7 @@ static SQRegFunction ssl_ctx_obj_funcs[]={
 #define _DECL_SSL_FUNC(name,nparams,pmask) {_SC(#name),sq_ssl_##name,nparams,pmask}
 static SQRegFunction ssl_obj_funcs[]={
 	_DECL_SSL_FUNC(free,1,_SC("x")),
-	_DECL_SSL_FUNC(read,1,_SC("x")),
+	_DECL_SSL_FUNC(read,-1,_SC("xi")),
 	_DECL_SSL_FUNC(write,-2,_SC("xsi")),
 	_DECL_SSL_FUNC(get_session_id,1,_SC("x")),
 	_DECL_SSL_FUNC(get_session_id_size,1,_SC("x")),
@@ -421,4 +424,7 @@ SQRESULT sqext_register_axtls (HSQUIRRELVM v) {
 
 #ifdef __cplusplus
 }
+
+#endif //USE_AXTLS
+
 #endif

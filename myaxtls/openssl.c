@@ -124,7 +124,7 @@ int SSL_set_fd(SSL *s, int fd)
 
 int SSL_accept(SSL *ssl)
 {
-    while (ssl_read(ssl, NULL) == SSL_OK)
+    while (ssl_read(ssl, NULL, 0) == SSL_OK)
     {
         if (ssl->next_state == HS_CLIENT_HELLO)
             return 1;   /* we're done */
@@ -150,11 +150,11 @@ int SSL_read(SSL *ssl, void *buf, int num)
     uint8_t *read_buf;
     int ret;
 
-    while ((ret = ssl_read(ssl, &read_buf)) == SSL_OK);
+    while ((ret = ssl_read(ssl, &read_buf, num)) == SSL_OK);
 
     if (ret > SSL_OK)
     {
-        memcpy(buf, read_buf, ret > num ? num : ret);
+        memcpy(buf, read_buf, ret);
     }
 
     return ret;
