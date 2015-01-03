@@ -109,7 +109,7 @@ extern "C" {
 */
 #define SQLITE_VERSION        "3.8.8"
 #define SQLITE_VERSION_NUMBER 3008008
-#define SQLITE_SOURCE_ID      "2014-12-09 22:24:42 cf9be419a16156a9814e1378bb49b780de977343"
+#define SQLITE_SOURCE_ID      "2015-01-01 16:47:43 30891c6b8ebe9dfc939f9695bb45a159fbaaf262"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -201,7 +201,7 @@ SQLITE_API const char *sqlite3_compileoption_get(int N);
 ** SQLITE_THREADSAFE=1 or =2 then mutexes are enabled by default but
 ** can be fully or partially disabled using a call to [sqlite3_config()]
 ** with the verbs [SQLITE_CONFIG_SINGLETHREAD], [SQLITE_CONFIG_MULTITHREAD],
-** or [SQLITE_CONFIG_MUTEX].  ^(The return value of the
+** or [SQLITE_CONFIG_SERIALIZED].  ^(The return value of the
 ** sqlite3_threadsafe() function shows only the compile-time setting of
 ** thread safety, not any run-time changes to that setting made by
 ** sqlite3_config(). In other words, the return value from sqlite3_threadsafe()
@@ -1582,7 +1582,7 @@ struct sqlite3_mem_methods {
 ** 8-byte aligned
 ** memory, the size of each page buffer (sz), and the number of pages (N).
 ** The sz argument should be the size of the largest database page
-** (a power of two between 512 and 32768) plus some extra bytes for each
+** (a power of two between 512 and 65536) plus some extra bytes for each
 ** page header.  ^The number of extra bytes needed by the page header
 ** can be determined using the [SQLITE_CONFIG_PCACHE_HDRSZ] option 
 ** to [sqlite3_config()].
@@ -5193,22 +5193,22 @@ SQLITE_API SQLITE_DEPRECATED void sqlite3_soft_heap_limit(int N);
 /*
 ** CAPI3REF: Extract Metadata About A Column Of A Table
 **
-** ^The sqlite3_table_column_metadata(X,D,T,C,....) routine returns
+** ^(The sqlite3_table_column_metadata(X,D,T,C,....) routine returns
 ** information about column C of table T in database D
-** on [database connection] X.  ^The sqlite3_table_column_metadata()
+** on [database connection] X.)^  ^The sqlite3_table_column_metadata()
 ** interface returns SQLITE_OK and fills in the non-NULL pointers in
-** the final five arguments with appropriate vaules if the specified
+** the final five arguments with appropriate values if the specified
 ** column exists.  ^The sqlite3_table_column_metadata() interface returns
 ** SQLITE_ERROR and if the specified column does not exist.
-** If the column-name parameter to sqlite3_table_column_metadata() is a
-** NULL pointer, then the routine simply checks for the existance of the
+** ^If the column-name parameter to sqlite3_table_column_metadata() is a
+** NULL pointer, then this routine simply checks for the existance of the
 ** table and returns SQLITE_OK if the table exists and SQLITE_ERROR if it
 ** does not.
 **
 ** ^The column is identified by the second, third and fourth parameters to
-** this function. ^The second parameter is either the name of the database
+** this function. ^(The second parameter is either the name of the database
 ** (i.e. "main", "temp", or an attached database) containing the specified
-** table or NULL. ^If it is NULL, then all attached databases are searched
+** table or NULL.)^ ^If it is NULL, then all attached databases are searched
 ** for the table using the same algorithm used by the database engine to
 ** resolve unqualified table references.
 **
@@ -7221,12 +7221,10 @@ SQLITE_API void sqlite3_log(int iErrCode, const char *zFormat, ...);
 ** CAPI3REF: Write-Ahead Log Commit Hook
 **
 ** ^The [sqlite3_wal_hook()] function is used to register a callback that
-** will be invoked each time a database connection commits data to a
-** [write-ahead log] (i.e. whenever a transaction is committed in
-** [journal_mode | journal_mode=WAL mode]). 
+** is invoked each time data is committed to a database in wal mode.
 **
-** ^The callback is invoked by SQLite after the commit has taken place and 
-** the associated write-lock on the database released, so the implementation 
+** ^(The callback is invoked by SQLite after the commit has taken place and 
+** the associated write-lock on the database released)^, so the implementation 
 ** may read, write or [checkpoint] the database as required.
 **
 ** ^The first parameter passed to the callback function when it is invoked
