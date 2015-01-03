@@ -48,6 +48,15 @@ static int opt_meth_setoption(HSQUIRRELVM v, p_opt opt, p_socket ps)
 }
 
 /* enables reuse of local address */
+static int opt_bindtodevice(HSQUIRRELVM v, p_socket ps)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    if(sq_gettype(v, 3) != OT_STRING) return sq_throwerror(v, _SC("string expected as parameter 2"));
+    SQ_GET_STRING(v, 3, device);
+    return opt_set(v, ps, SOL_SOCKET, SO_BINDTODEVICE, (void *)device, device_size+1);
+}
+
+/* enables reuse of local address */
 static int opt_reuseaddr(HSQUIRRELVM v, p_socket ps)
 {
     return opt_setboolean(v, ps, SOL_SOCKET, SO_REUSEADDR);
@@ -848,6 +857,7 @@ static t_opt tcp_opt[] = {
     {"reuseaddr",   opt_reuseaddr},
     {"tcp-nodelay", opt_tcp_nodelay},
     {"linger",      opt_linger},
+    {"bindtodevice",      opt_bindtodevice},
     {NULL,          NULL}
 };
 
@@ -1124,6 +1134,7 @@ static t_opt udp_opt[] = {
     {"ip-multicast-loop",  opt_ip_multicast_loop},
     {"ip-add-membership",  opt_ip_add_membership},
     {"ip-drop-membership", opt_ip_drop_membersip},
+    {"bindtodevice",      opt_bindtodevice},
     {NULL,          NULL}
 };
 

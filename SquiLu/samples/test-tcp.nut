@@ -1,6 +1,7 @@
 function download(host, file, extra_header=null){
 	local sock = socket.tcp();
 	sock.connect(host, 80);
+	//sock.setoption("bindtodevice", "wlan0"); //requires root privileges
 	local info = sock.getpeername()
 	print(info.address, info.port);
 	//sock.settimeout(1);
