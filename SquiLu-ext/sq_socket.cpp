@@ -47,13 +47,35 @@ static int opt_meth_setoption(HSQUIRRELVM v, p_opt opt, p_socket ps)
     return opt->func(v, ps);
 }
 
+#ifdef linux
+#include <linux/if.h>
+#include <sys/ioctl.h>
+#endif
+
 /* enables reuse of local address */
 static int opt_bindtodevice(HSQUIRRELVM v, p_socket ps)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     if(sq_gettype(v, 3) != OT_STRING) return sq_throwerror(v, _SC("string expected as parameter 2"));
     SQ_GET_STRING(v, 3, device);
-    return opt_set(v, ps, SOL_SOCKET, SO_BINDTODEVICE, (void *)device, device_size+1);
+#ifdef linux
+	struct ifreq ifr;
+
+    if(device_size >= IFNAMSIZ) {
+        return sq_throwerror(v, _SC("interface name %s too long"), device);
+    }
+	memset(&ifr, 0, sizeof(ifr));	// see man 2 bind why needed
+	strncpy(ifr.ifr_name, device, IFNAMSIZ);
+	if (-1 == ioctl(*ps, SIOCGIFADDR, &ifr)) {
+		return sq_throwerror(v, _SC("ioctl failed"));
+	}
+	if (-1 == bind(*ps, &ifr.ifr_addr, sizeof(ifr))) {
+		return sq_throwerror(v, _SC("bind to interface %s failed"), device);
+	}
+	return 0;
+#else
+    return sq_throwerror(v, _SC("bind to interface not supported"));
+#endif
 }
 
 /* enables reuse of local address */
