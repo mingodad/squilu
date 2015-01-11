@@ -52,7 +52,7 @@ static int opt_meth_setoption(HSQUIRRELVM v, p_opt opt, p_socket ps)
 #include <sys/ioctl.h>
 #endif
 
-/* enables reuse of local address */
+/*bind a client socket to the address of the given device*/
 static int opt_bindtodevice(HSQUIRRELVM v, p_socket ps)
 {
     SQ_FUNC_VARS_NO_TOP(v);
