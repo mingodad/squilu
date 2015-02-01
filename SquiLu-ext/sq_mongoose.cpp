@@ -12,7 +12,7 @@ SQ_OPT_STRING_STRLEN();
 #include "lsqlite3.h"
 #endif
 
-#ifdef USE_AXTLS
+#if defined(USE_AXTLS) || defined(USE_OPENSSL)
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,6 +25,7 @@ extern "C" {
 #define USE_MG_MD5 1
 
 #include "mongoose.h"
+//#include "civetweb.h"
 
 #define PRINT_FILE_LINE printf("%s %d\n", __FILE__,__LINE__);
 
@@ -1050,6 +1051,7 @@ SQUIRREL_API void sqstd_printcallstack(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sqext_register_sq_socket(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sqext_register_sq_slave_vm(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sqext_register_axtls (HSQUIRRELVM v);
+SQUIRREL_API SQRESULT sqext_register_openssl (HSQUIRRELVM v);
 
 #ifdef __cplusplus
 } /*extern "C"*/
@@ -1107,7 +1109,12 @@ static HSQUIRRELVM my_new_squirrel(struct mg_context *ctx) {
 	sqext_register_mix(v);
 	sqext_register_sq_socket(v);
 	sqext_register_sq_slave_vm(v);
+#ifdef USE_AXTLS
 	sqext_register_axtls(v);
+#endif
+#ifdef USE_OPENSSL
+	sqext_register_openssl(v);
+#endif
 
     sq_pushstring(v,sq_http_request_TAG, -1);
     sq_newclass(v,SQFalse);
@@ -1241,7 +1248,7 @@ user_callback_proxy(enum mg_event event,
         return NULL;
 
         case MG_INIT_SSL:
-#ifdef USE_AXTLS
+#if defined(USE_AXTLS) || defined(USE_OPENSSL)
             //lua_pushstring(L, "MG_INIT_SSL");
             *((void**)conn) = SSL_CTX_new(0);
 #endif

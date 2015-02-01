@@ -519,6 +519,7 @@ SQRESULT sqext_register_mongoose(HSQUIRRELVM v);
 SQRESULT sqrat_register_importlib(HSQUIRRELVM v);
 SQRESULT sqext_register_sq_slave_vm(HSQUIRRELVM v);
 SQRESULT sqext_register_axtls (HSQUIRRELVM v);
+SQRESULT sqext_register_openssl (HSQUIRRELVM v);
 SQRESULT sqext_register_base64(HSQUIRRELVM v);
 SQRESULT sqext_register_Sq_Fpdf(HSQUIRRELVM v);
 SQRESULT sqext_register_SQLite3(HSQUIRRELVM v);
@@ -571,6 +572,9 @@ int main(int argc, char* argv[])
 	sqext_register_sq_socket(v);
 #ifdef USE_AXTLS
 	sqext_register_axtls(v);
+#endif
+#ifdef USE_OPENSSL
+	sqext_register_openssl(v);
 #endif
 	sqext_register_sq_zlib(v);
 	//sqext_register_sq_miniz(v);

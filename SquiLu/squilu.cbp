@@ -423,7 +423,6 @@
 					<Add library="pthread" />
 					<Add library="rt" />
 					<Add library="dl" />
-					<Add library="axtls" />
 					<Add library="fltkutils" />
 					<Add library="fltk_images" />
 					<Add library="fltk_png" />
@@ -438,6 +437,7 @@
 					<Add library="discount" />
 					<Add library="X11" />
 					<Add library="fontconfig" />
+					<Add library="axtls" />
 					<Add directory="../../zeromq-3.2.2" />
 					<Add directory="../fltk/lib" />
 					<Add directory="../flu" />
@@ -476,7 +476,7 @@
 				</Linker>
 			</Target>
 			<Target title="Release FLTK 64bits Lib">
-				<Option output="bin/libsquilu" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/squilu" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="obj/Release/" />
 				<Option type="2" />
@@ -599,7 +599,7 @@
 			<Add option="-DSQLITE_DEFAULT_FOREIGN_KEYS=1" />
 			<Add option="-DSQLITE_ENABLE_COLUMN_METADATA=1" />
 			<Add option="-DSQLITE_ENABLE_EXTENSION_FUNCTIONS=1" />
-			<Add option="-DSQLITE_ENABLE_FTS3=1" />
+			<Add option="-DSQLITE_ENABLE_FTS4=1" />
 			<Add option="-DSQLITE_ENABLE_FTS3_PARENTHESIS=1" />
 			<Add option="-DSQLITE_ENABLE_UNLOCK_NOTIFY=1" />
 			<Add option="-DSQLITE_ENABLE_RTREE=1" />
@@ -612,6 +612,7 @@
 			<Add option="-DNO_SSL_DL=1" />
 			<Add option="-DHAVE_STDINT=1" />
 			<Add option="-DUSE_AXTLS=1" />
+			<Add option="-DUSE_OPENSSL2=1" />
 			<Add option="-DUSE_AXTLS_ON_MEMORY=1" />
 			<Add option="-D_FILE_OFFSET_BITS=64" />
 			<Add option="-DSSL_STATIC_LIBRARY=1" />
@@ -968,6 +969,9 @@
 			<Option target="Release FLTK 64bits Computed Gotos" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_mysql.cpp" />
+		<Unit filename="../SquiLu-ext/sq_openssl.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="../SquiLu-ext/sq_parsecsv.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
