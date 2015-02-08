@@ -724,8 +724,8 @@ void bi_export(BI_CTX *ctx, bigint *x, uint8_t *data, int size)
             if (k < 0)
             {
                 goto buf_done;
+            }
         }
-    }
     }
 buf_done:
 

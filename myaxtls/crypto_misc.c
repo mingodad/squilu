@@ -102,27 +102,27 @@ int get_file(const char *filename, uint8_t **buf)
  * - If none of these work then use a custom RNG.
  */
 EXP_FUNC void STDCALL RNG_initialize()
-    {
+{
 #if !defined(WIN32) && defined(CONFIG_USE_DEV_URANDOM)
-        rng_fd = ax_open("/dev/urandom", O_RDONLY);
+    rng_fd = ax_open("/dev/urandom", O_RDONLY);
 #elif defined(WIN32) && defined(CONFIG_WIN32_USE_CRYPTO_LIB)
-        if (!CryptAcquireContext(&gCryptProv, 
-                          NULL, NULL, PROV_RSA_FULL, 0))
+    if (!CryptAcquireContext(&gCryptProv, 
+                      NULL, NULL, PROV_RSA_FULL, 0))
+    {
+        if (GetLastError() == NTE_BAD_KEYSET &&
+                !CryptAcquireContext(&gCryptProv, 
+                       NULL, 
+                       NULL, 
+                       PROV_RSA_FULL, 
+                       CRYPT_NEWKEYSET))
         {
-            if (GetLastError() == NTE_BAD_KEYSET &&
-                    !CryptAcquireContext(&gCryptProv, 
-                           NULL, 
-                           NULL, 
-                           PROV_RSA_FULL, 
-                           CRYPT_NEWKEYSET))
-            {
-                printf("CryptoLib: %x\n", unsupported_str, GetLastError());
-                exit(1);
-            }
+            printf("CryptoLib: %x\n", unsupported_str, GetLastError());
+            exit(1);
         }
-#else   
+    }
+#else
     /* start of with a stack to copy across */
-        int i;
+    int i;
     memcpy(entropy_pool, &i, ENTROPY_POOL_SIZE);
     srand((unsigned int)&i); 
 #endif
@@ -139,7 +139,7 @@ EXP_FUNC void STDCALL RNG_custom_init(const uint8_t *seed_buf, int size)
     for (i = 0; i < ENTROPY_POOL_SIZE && i < size; i++)
         entropy_pool[i] ^= seed_buf[i];
 #endif
-    }
+}
 
 /**
  * Terminate the RNG engine.
@@ -147,20 +147,21 @@ EXP_FUNC void STDCALL RNG_custom_init(const uint8_t *seed_buf, int size)
 EXP_FUNC void STDCALL RNG_terminate(void)
 {
 #ifndef WIN32
-        close(rng_fd);
+    close(rng_fd);
 #elif defined(CONFIG_WIN32_USE_CRYPTO_LIB)
-        CryptReleaseContext(gCryptProv, 0);
+    CryptReleaseContext(gCryptProv, 0);
 #endif
-    }
+}
 
 /**
  * Set a series of bytes with a random number. Individual bytes can be 0
  */
-EXP_FUNC void STDCALL get_random(int num_rand_bytes, uint8_t *rand_data)
+EXP_FUNC int STDCALL get_random(int num_rand_bytes, uint8_t *rand_data)
 {   
 #if !defined(WIN32) && defined(CONFIG_USE_DEV_URANDOM)
-    /* use the Linux default */
-    read(rng_fd, rand_data, num_rand_bytes);    /* read from /dev/urandom */
+    /* use the Linux default - read from /dev/urandom */
+    if (read(rng_fd, rand_data, num_rand_bytes) < 0) 
+        return -1;
 #elif defined(WIN32) && defined(CONFIG_WIN32_USE_CRYPTO_LIB)
     /* use Microsoft Crypto Libraries */
     CryptGenRandom(gCryptProv, num_rand_bytes, rand_data);
@@ -198,21 +199,25 @@ EXP_FUNC void STDCALL get_random(int num_rand_bytes, uint8_t *rand_data)
     /* insert the digest at the start of the entropy pool */
     memcpy(entropy_pool, digest, MD5_SIZE);
 #endif
+    return 0;
 }
 
 /**
  * Set a series of bytes with a random number. Individual bytes are not zero.
  */
-void get_random_NZ(int num_rand_bytes, uint8_t *rand_data)
+int get_random_NZ(int num_rand_bytes, uint8_t *rand_data)
 {
     int i;
-    get_random(num_rand_bytes, rand_data);
+    if (get_random(num_rand_bytes, rand_data))
+        return -1;
 
     for (i = 0; i < num_rand_bytes; i++)
     {
         while (rand_data[i] == 0)  /* can't be 0 */
             rand_data[i] = (uint8_t)(rand());
     }
+
+    return 0;
 }
 
 /**
@@ -351,7 +356,7 @@ EXP_FUNC int STDCALL base64_decode(const char *in, int len,
     if (y != 0)
         goto error;
 
-        *outlen = z;
+    *outlen = z;
     ret = 0;
 
 error:
