@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010 Stefan Krah. All rights reserved.
+ * Copyright (c) 2008-2016 Stefan Krah. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,18 +41,18 @@
 static inline mpd_ssize_t
 mpd_strtossize(const char *s, char **end, int base)
 {
-	int64_t retval;
+    int64_t retval;
 
-	errno = 0;
-	retval = _mpd_strtossize(s, end, base);
-	if (errno == 0 && (retval > MPD_SSIZE_MAX || retval < MPD_SSIZE_MIN)) {
-		errno = ERANGE;
-	}
-	if (errno == ERANGE) {
-		return (retval < 0) ? MPD_SSIZE_MIN : MPD_SSIZE_MAX;
-	}
+    errno = 0;
+    retval = _mpd_strtossize(s, end, base);
+    if (errno == 0 && (retval > MPD_SSIZE_MAX || retval < MPD_SSIZE_MIN)) {
+        errno = ERANGE;
+    }
+    if (errno == ERANGE) {
+        return (retval < 0) ? MPD_SSIZE_MIN : MPD_SSIZE_MAX;
+    }
 
-	return (mpd_ssize_t)retval;
+    return (mpd_ssize_t)retval;
 }
 #endif
 

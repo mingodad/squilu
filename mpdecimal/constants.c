@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010 Stefan Krah. All rights reserved.
+ * Copyright (c) 2008-2016 Stefan Krah. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -113,20 +113,20 @@
 #endif
 
 const char *mpd_round_string[MPD_ROUND_GUARD] = {
-	"ROUND_UP",          /* round away from 0               */
-	"ROUND_DOWN",        /* round toward 0 (truncate)       */
-	"ROUND_CEILING",     /* round toward +infinity          */
-	"ROUND_FLOOR",       /* round toward -infinity          */
-	"ROUND_HALF_UP",     /* 0.5 is rounded up               */
-	"ROUND_HALF_DOWN",   /* 0.5 is rounded down             */
-	"ROUND_HALF_EVEN",   /* 0.5 is rounded to even          */
-	"ROUND_05UP",        /* round zero or five away from 0  */
-	"ROUND_TRUNC",       /* truncate, but set infinity      */
+    "ROUND_UP",          /* round away from 0               */
+    "ROUND_DOWN",        /* round toward 0 (truncate)       */
+    "ROUND_CEILING",     /* round toward +infinity          */
+    "ROUND_FLOOR",       /* round toward -infinity          */
+    "ROUND_HALF_UP",     /* 0.5 is rounded up               */
+    "ROUND_HALF_DOWN",   /* 0.5 is rounded down             */
+    "ROUND_HALF_EVEN",   /* 0.5 is rounded to even          */
+    "ROUND_05UP",        /* round zero or five away from 0  */
+    "ROUND_TRUNC",       /* truncate, but set infinity      */
 };
 
 const char *mpd_clamp_string[MPD_CLAMP_GUARD] = {
-	"CLAMP_DEFAULT",
-	"CLAMP_IEEE_754"
+    "CLAMP_DEFAULT",
+    "CLAMP_IEEE_754"
 };
 
 

@@ -3,19 +3,19 @@
 	<FileVersion major="1" minor="6" />
 	<Project>
 		<Option title="libharu" />
-		<Option compiler="gnu_gcc_compiler_static" />
+		<Option compiler="gcc" />
 		<MakeCommands>
-			<Build command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/src/Makefile hpdfs" />
-			<CompileFile command='C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/src/Makefile &quot;$file&quot;' />
-			<Clean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/src/Makefile clean" />
-			<DistClean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/src/Makefile clean" />
+			<Build command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile all" />
+			<CompileFile command='C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile &quot;$file&quot;' />
+			<Clean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile clean" />
+			<DistClean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile clean" />
 			<AskRebuildNeeded command="$make -q -f $makefile $target" />
-			<SilentBuild command="$make -s -f $makefile $target" />
+			<SilentBuild command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile all &gt; $(CMD_NULL)" />
 		</MakeCommands>
 		<Build>
 			<Target title="all">
 				<Option type="4" />
-				<Option compiler="gnu_gcc_compiler_static" />
+				<Option compiler="gcc" />
 				<Compiler>
 					<Add directory="include" />
 				</Compiler>
@@ -25,103 +25,103 @@
 					<Clean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile clean" />
 					<DistClean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile clean" />
 					<AskRebuildNeeded command="$make -q -f $makefile $target" />
-					<SilentBuild command="$make -s -f $makefile $target" />
+					<SilentBuild command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile all &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 			<Target title="edit_cache">
 				<Option type="4" />
-				<Option compiler="gnu_gcc_compiler_static" />
+				<Option compiler="gcc" />
 				<MakeCommands>
 					<Build command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile edit_cache" />
 					<CompileFile command='C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile &quot;$file&quot;' />
 					<Clean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile clean" />
 					<DistClean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile clean" />
 					<AskRebuildNeeded command="$make -q -f $makefile $target" />
-					<SilentBuild command="$make -s -f $makefile $target" />
+					<SilentBuild command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile edit_cache &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 			<Target title="install">
 				<Option type="4" />
-				<Option compiler="gnu_gcc_compiler_static" />
+				<Option compiler="gcc" />
 				<MakeCommands>
 					<Build command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile install" />
 					<CompileFile command='C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile &quot;$file&quot;' />
 					<Clean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile clean" />
 					<DistClean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile clean" />
 					<AskRebuildNeeded command="$make -q -f $makefile $target" />
-					<SilentBuild command="$make -s -f $makefile $target" />
+					<SilentBuild command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile install &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 			<Target title="install/local">
 				<Option type="4" />
-				<Option compiler="gnu_gcc_compiler_static" />
+				<Option compiler="gcc" />
 				<MakeCommands>
 					<Build command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile install/local" />
 					<CompileFile command='C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile &quot;$file&quot;' />
 					<Clean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile clean" />
 					<DistClean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile clean" />
 					<AskRebuildNeeded command="$make -q -f $makefile $target" />
-					<SilentBuild command="$make -s -f $makefile $target" />
+					<SilentBuild command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile install/local &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 			<Target title="install/strip">
 				<Option type="4" />
-				<Option compiler="gnu_gcc_compiler_static" />
+				<Option compiler="gcc" />
 				<MakeCommands>
 					<Build command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile install/strip" />
 					<CompileFile command='C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile &quot;$file&quot;' />
 					<Clean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile clean" />
 					<DistClean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile clean" />
 					<AskRebuildNeeded command="$make -q -f $makefile $target" />
-					<SilentBuild command="$make -s -f $makefile $target" />
+					<SilentBuild command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile install/strip &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 			<Target title="list_install_components">
 				<Option type="4" />
-				<Option compiler="gnu_gcc_compiler_static" />
+				<Option compiler="gcc" />
 				<MakeCommands>
 					<Build command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile list_install_components" />
 					<CompileFile command='C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile &quot;$file&quot;' />
 					<Clean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile clean" />
 					<DistClean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile clean" />
 					<AskRebuildNeeded command="$make -q -f $makefile $target" />
-					<SilentBuild command="$make -s -f $makefile $target" />
+					<SilentBuild command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile list_install_components &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 			<Target title="package">
 				<Option type="4" />
-				<Option compiler="gnu_gcc_compiler_static" />
+				<Option compiler="gcc" />
 				<MakeCommands>
 					<Build command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile package" />
 					<CompileFile command='C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile &quot;$file&quot;' />
 					<Clean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile clean" />
 					<DistClean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile clean" />
 					<AskRebuildNeeded command="$make -q -f $makefile $target" />
-					<SilentBuild command="$make -s -f $makefile $target" />
+					<SilentBuild command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile package &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 			<Target title="package_source">
 				<Option type="4" />
-				<Option compiler="gnu_gcc_compiler_static" />
+				<Option compiler="gcc" />
 				<MakeCommands>
 					<Build command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile package_source" />
 					<CompileFile command='C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile &quot;$file&quot;' />
 					<Clean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile clean" />
 					<DistClean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile clean" />
 					<AskRebuildNeeded command="$make -q -f $makefile $target" />
-					<SilentBuild command="$make -s -f $makefile $target" />
+					<SilentBuild command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile package_source &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 			<Target title="rebuild_cache">
 				<Option type="4" />
-				<Option compiler="gnu_gcc_compiler_static" />
+				<Option compiler="gcc" />
 				<MakeCommands>
 					<Build command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile rebuild_cache" />
 					<CompileFile command='C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile &quot;$file&quot;' />
 					<Clean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile clean" />
 					<DistClean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile clean" />
 					<AskRebuildNeeded command="$make -q -f $makefile $target" />
-					<SilentBuild command="$make -s -f $makefile $target" />
+					<SilentBuild command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/Makefile rebuild_cache &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 			<Target title="hpdf">
@@ -129,7 +129,7 @@
 				<Option working_dir="G:/tmp/c/libharu-git/libharu/src" />
 				<Option object_output="./" />
 				<Option type="3" />
-				<Option compiler="gnu_gcc_compiler_static" />
+				<Option compiler="gcc" />
 				<Compiler>
 					<Add directory="C:/Program Files/Gtk+/include" />
 					<Add directory="G:/tmp/c/libharu-git/libharu/include" />
@@ -140,7 +140,7 @@
 					<Clean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/src/Makefile clean" />
 					<DistClean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/src/Makefile clean" />
 					<AskRebuildNeeded command="$make -q -f $makefile $target" />
-					<SilentBuild command="$make -s -f $makefile $target" />
+					<SilentBuild command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/src/Makefile hpdf &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 			<Target title="hpdf/fast">
@@ -148,7 +148,7 @@
 				<Option working_dir="G:/tmp/c/libharu-git/libharu/src" />
 				<Option object_output="./" />
 				<Option type="3" />
-				<Option compiler="gnu_gcc_compiler_static" />
+				<Option compiler="gcc" />
 				<Compiler>
 					<Add directory="C:/Program Files/Gtk+/include" />
 					<Add directory="G:/tmp/c/libharu-git/libharu/include" />
@@ -159,7 +159,7 @@
 					<Clean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/src/Makefile clean" />
 					<DistClean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/src/Makefile clean" />
 					<AskRebuildNeeded command="$make -q -f $makefile $target" />
-					<SilentBuild command="$make -s -f $makefile $target" />
+					<SilentBuild command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/src/Makefile hpdf/fast &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 			<Target title="hpdfs">
@@ -191,7 +191,7 @@
 				<Option working_dir="" />
 				<Option object_output="./" />
 				<Option type="2" />
-				<Option compiler="gnu_gcc_compiler_static" />
+				<Option compiler="gcc" />
 				<Compiler>
 					<Add directory="C:/Program Files/Gtk+/include" />
 					<Add directory="G:/tmp/c/libharu-git/libharu/include" />
@@ -202,7 +202,7 @@
 					<Clean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/src/Makefile clean" />
 					<DistClean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/src/Makefile clean" />
 					<AskRebuildNeeded command="$make -q -f $makefile $target" />
-					<SilentBuild command="$make -s -f $makefile $target" />
+					<SilentBuild command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/src/Makefile hpdfs/fast &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 			<Target title="hpdfs MinGW-CROSS">
@@ -210,7 +210,7 @@
 				<Option working_dir="" />
 				<Option object_output="./" />
 				<Option type="2" />
-				<Option compiler="mingw_gnu_gcc_compiler" />
+				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-Wall" />
@@ -226,20 +226,13 @@
 					<Clean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/src/Makefile clean" />
 					<DistClean command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/src/Makefile clean" />
 					<AskRebuildNeeded command="$make -q -f $makefile $target" />
-					<SilentBuild command="$make -s -f $makefile $target" />
+					<SilentBuild command="C:/MinGW32/bin/mingw32-make.exe -f G:/tmp/c/libharu-git/libharu/src/Makefile hpdfs &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-O2" />
-			<Add option="-Wall" />
-			<Add directory="../fltk/png" />
-			<Add directory="../fltk/jpeg" />
-			<Add directory="../fltk/zlib" />
+			<Add directory="include" />
 		</Compiler>
-		<Linker>
-			<Add option="-s" />
-		</Linker>
 		<Unit filename="src/hpdf_3dmeasure.c">
 			<Option compilerVar="CC" />
 		</Unit>

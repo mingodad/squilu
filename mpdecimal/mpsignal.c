@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010 Stefan Krah. All rights reserved.
+ * Copyright (c) 2008-2016 Stefan Krah. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,6 +27,9 @@
 
 
 #include "mpdecimal.h"
+
+
+/* Signaling wrappers for the quiet functions in mpdecimal.c. */
 
 
 char *
@@ -58,7 +61,7 @@ mpd_import_u32(mpd_t *result, const uint32_t *srcdata, size_t srclen,
 }
 
 size_t
-mpd_export_u16(uint16_t *rdata, size_t rlen, uint32_t base, const mpd_t *src,
+mpd_export_u16(uint16_t **rdata, size_t rlen, uint32_t base, const mpd_t *src,
                mpd_context_t *ctx)
 {
 	size_t n;
@@ -69,7 +72,7 @@ mpd_export_u16(uint16_t *rdata, size_t rlen, uint32_t base, const mpd_t *src,
 }
 
 size_t
-mpd_export_u32(uint32_t *rdata, size_t rlen, uint32_t base, const mpd_t *src,
+mpd_export_u32(uint32_t **rdata, size_t rlen, uint32_t base, const mpd_t *src,
                mpd_context_t *ctx)
 {
 	size_t n;
@@ -245,7 +248,6 @@ mpd_get_ssize(const mpd_t *a, mpd_context_t *ctx)
 	return ret;
 }
 
-#ifdef CONFIG_32
 int32_t
 mpd_get_i32(const mpd_t *a, mpd_context_t *ctx)
 {
@@ -256,7 +258,8 @@ mpd_get_i32(const mpd_t *a, mpd_context_t *ctx)
 	mpd_addstatus_raise(ctx, status);
 	return ret;
 }
-#else
+
+#ifndef LEGACY_COMPILER
 int64_t
 mpd_get_i64(const mpd_t *a, mpd_context_t *ctx)
 {
@@ -291,7 +294,6 @@ mpd_abs_uint(const mpd_t *a, mpd_context_t *ctx)
 	return ret;
 }
 
-#ifdef CONFIG_32
 uint32_t
 mpd_get_u32(const mpd_t *a, mpd_context_t *ctx)
 {
@@ -302,7 +304,8 @@ mpd_get_u32(const mpd_t *a, mpd_context_t *ctx)
 	mpd_addstatus_raise(ctx, status);
 	return ret;
 }
-#else
+
+#ifndef LEGACY_COMPILER
 uint64_t
 mpd_get_u64(const mpd_t *a, mpd_context_t *ctx)
 {
@@ -518,7 +521,7 @@ mpd_add_i32(mpd_t *result, const mpd_t *a, int32_t b, mpd_context_t *ctx)
 	mpd_addstatus_raise(ctx, status);
 }
 
-#ifdef CONFIG_64
+#ifndef LEGACY_COMPILER
 void
 mpd_add_i64(mpd_t *result, const mpd_t *a, int64_t b, mpd_context_t *ctx)
 {
@@ -544,7 +547,7 @@ mpd_add_u32(mpd_t *result, const mpd_t *a, uint32_t b, mpd_context_t *ctx)
 	mpd_addstatus_raise(ctx, status);
 }
 
-#ifdef CONFIG_64
+#ifndef LEGACY_COMPILER
 void
 mpd_add_u64(mpd_t *result, const mpd_t *a, uint64_t b, mpd_context_t *ctx)
 {
@@ -570,7 +573,7 @@ mpd_sub_i32(mpd_t *result, const mpd_t *a, int32_t b, mpd_context_t *ctx)
 	mpd_addstatus_raise(ctx, status);
 }
 
-#ifdef CONFIG_64
+#ifndef LEGACY_COMPILER
 void
 mpd_sub_i64(mpd_t *result, const mpd_t *a, int64_t b, mpd_context_t *ctx)
 {
@@ -596,7 +599,7 @@ mpd_sub_u32(mpd_t *result, const mpd_t *a, uint32_t b, mpd_context_t *ctx)
 	mpd_addstatus_raise(ctx, status);
 }
 
-#ifdef CONFIG_64
+#ifndef LEGACY_COMPILER
 void
 mpd_sub_u64(mpd_t *result, const mpd_t *a, uint64_t b, mpd_context_t *ctx)
 {
@@ -630,7 +633,7 @@ mpd_div_i32(mpd_t *result, const mpd_t *a, int32_t b, mpd_context_t *ctx)
 	mpd_addstatus_raise(ctx, status);
 }
 
-#ifdef CONFIG_64
+#ifndef LEGACY_COMPILER
 void
 mpd_div_i64(mpd_t *result, const mpd_t *a, int64_t b, mpd_context_t *ctx)
 {
@@ -656,7 +659,7 @@ mpd_div_u32(mpd_t *result, const mpd_t *a, uint32_t b, mpd_context_t *ctx)
 	mpd_addstatus_raise(ctx, status);
 }
 
-#ifdef CONFIG_64
+#ifndef LEGACY_COMPILER
 void
 mpd_div_u64(mpd_t *result, const mpd_t *a, uint64_t b, mpd_context_t *ctx)
 {
@@ -779,7 +782,7 @@ mpd_mul_i32(mpd_t *result, const mpd_t *a, int32_t b, mpd_context_t *ctx)
 	mpd_addstatus_raise(ctx, status);
 }
 
-#ifdef CONFIG_64
+#ifndef LEGACY_COMPILER
 void
 mpd_mul_i64(mpd_t *result, const mpd_t *a, int64_t b, mpd_context_t *ctx)
 {
@@ -805,7 +808,7 @@ mpd_mul_u32(mpd_t *result, const mpd_t *a, uint32_t b, mpd_context_t *ctx)
 	mpd_addstatus_raise(ctx, status);
 }
 
-#ifdef CONFIG_64
+#ifndef LEGACY_COMPILER
 void
 mpd_mul_u64(mpd_t *result, const mpd_t *a, uint64_t b, mpd_context_t *ctx)
 {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010 Stefan Krah. All rights reserved.
+ * Copyright (c) 2008-2016 Stefan Krah. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,13 +34,16 @@
 #include "mpdecimal.h"
 
 
+/* Internal header file: all symbols have local scope in the DSO */
+MPD_PRAGMA(MPD_HIDE_SYMBOLS_START)
+
+
 /* transform parameters */
 struct fnt_params {
-	int modnum;
-	mpd_uint_t modulus;
-	mpd_uint_t imag;
-	mpd_uint_t kernel;
-	mpd_uint_t wtable[];
+    int modnum;
+    mpd_uint_t modulus;
+    mpd_uint_t kernel;
+    mpd_uint_t wtable[];
 };
 
 
@@ -53,18 +56,21 @@ void _mpd_init_w3table(mpd_uint_t w3table[3], int sign, int modnum);
 static inline void
 ppro_setmodulus(int modnum, mpd_uint_t *umod, double *dmod, uint32_t dinvmod[3])
 {
-	*dmod = *umod =  mpd_moduli[modnum];
-	dinvmod[0] = mpd_invmoduli[modnum][0];
-	dinvmod[1] = mpd_invmoduli[modnum][1];
-	dinvmod[2] = mpd_invmoduli[modnum][2];
+    *dmod = *umod =  mpd_moduli[modnum];
+    dinvmod[0] = mpd_invmoduli[modnum][0];
+    dinvmod[1] = mpd_invmoduli[modnum][1];
+    dinvmod[2] = mpd_invmoduli[modnum][2];
 }
 #else
 static inline void
 std_setmodulus(int modnum, mpd_uint_t *umod)
 {
-	*umod =  mpd_moduli[modnum];
+    *umod =  mpd_moduli[modnum];
 }
 #endif
+
+
+MPD_PRAGMA(MPD_HIDE_SYMBOLS_END) /* restore previous scope rules */
 
 
 #endif

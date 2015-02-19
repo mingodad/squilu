@@ -1,25 +1,37 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
-	<ActiveTarget name="Release win32" />
-	<File name="basearith.c" open="0" top="0" tabpos="0">
-		<Cursor position="1384" topLine="16" />
+	<ActiveTarget name="Release_64bits" />
+	<File name="constants.h" open="0" top="0" tabpos="0">
+		<Cursor position="1727" topLine="27" />
 	</File>
-	<File name="context.c" open="0" top="0" tabpos="6">
-		<Cursor position="5818" topLine="274" />
+	<File name="context.c" open="0" top="0" tabpos="4">
+		<Cursor position="0" topLine="0" />
 	</File>
 	<File name="convolute.c" open="0" top="0" tabpos="0">
-		<Cursor position="1530" topLine="23" />
+		<Cursor position="1906" topLine="39" />
 	</File>
-	<File name="io.c" open="0" top="0" tabpos="0">
-		<Cursor position="1646" topLine="28" />
+	<File name="crt.c" open="0" top="0" tabpos="0">
+		<Cursor position="4185" topLine="157" />
 	</File>
-	<File name="io.h" open="0" top="0" tabpos="0">
-		<Cursor position="0" topLine="33" />
+	<File name="io.c" open="0" top="0" tabpos="5">
+		<Cursor position="0" topLine="36" />
+	</File>
+	<File name="io.h" open="0" top="0" tabpos="7">
+		<Cursor position="1373" topLine="15" />
+	</File>
+	<File name="memory.h" open="0" top="0" tabpos="0">
+		<Cursor position="0" topLine="13" />
+	</File>
+	<File name="mpdecimal.32.h" open="0" top="0" tabpos="0">
+		<Cursor position="4736" topLine="136" />
+	</File>
+	<File name="mpdecimal.64.h" open="0" top="0" tabpos="0">
+		<Cursor position="2076" topLine="47" />
 	</File>
 	<File name="mpdecimal.c" open="0" top="0" tabpos="4">
-		<Cursor position="73866" topLine="24" />
+		<Cursor position="0" topLine="0" />
 	</File>
 	<File name="mpdecimal.h" open="0" top="0" tabpos="0">
-		<Cursor position="7068" topLine="188" />
+		<Cursor position="1576" topLine="17" />
 	</File>
 </CodeBlocks_layout_file>

@@ -223,3 +223,139 @@
 	<string.h>
 	<signal.h>
 
+1328128189 source:/home/mingo/dev/SquiLu/mpdecimal/basearith.c
+	"mpdecimal.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<assert.h>
+	"constants.h"
+	"memory.h"
+	"typearith.h"
+	"basearith.h"
+
+1358964297 /home/mingo/dev/SquiLu/mpdecimal/mpdecimal.h
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<limits.h>
+	<assert.h>
+	<stdint.h>
+
+1328128189 /home/mingo/dev/SquiLu/mpdecimal/constants.h
+	"mpdecimal.h"
+
+1328128189 /home/mingo/dev/SquiLu/mpdecimal/memory.h
+	"mpdecimal.h"
+
+1328128189 /home/mingo/dev/SquiLu/mpdecimal/typearith.h
+	"mpdecimal.h"
+	<intrin.h>
+
+1328128189 /home/mingo/dev/SquiLu/mpdecimal/basearith.h
+	"mpdecimal.h"
+	<stdio.h>
+	"typearith.h"
+
+1328128189 source:/home/mingo/dev/SquiLu/mpdecimal/constants.c
+	"mpdecimal.h"
+	<stdio.h>
+	"constants.h"
+
+1362948212 source:/home/mingo/dev/SquiLu/mpdecimal/context.c
+	"mpdecimal.h"
+	<stdio.h>
+	<string.h>
+	<signal.h>
+
+1328128189 source:/home/mingo/dev/SquiLu/mpdecimal/convolute.c
+	"mpdecimal.h"
+	<stdio.h>
+	"bits.h"
+	"constants.h"
+	"fnt.h"
+	"fourstep.h"
+	"numbertheory.h"
+	"sixstep.h"
+	"umodarith.h"
+	"convolute.h"
+
+1328128189 /home/mingo/dev/SquiLu/mpdecimal/bits.h
+	"mpdecimal.h"
+	<stdio.h>
+	<intrin.h>
+
+1328128189 /home/mingo/dev/SquiLu/mpdecimal/fnt.h
+	"mpdecimal.h"
+	<stdio.h>
+
+1328128189 /home/mingo/dev/SquiLu/mpdecimal/fourstep.h
+	"mpdecimal.h"
+	<stdio.h>
+
+1328128189 /home/mingo/dev/SquiLu/mpdecimal/numbertheory.h
+	"constants.h"
+	"mpdecimal.h"
+
+1328128189 /home/mingo/dev/SquiLu/mpdecimal/sixstep.h
+	"mpdecimal.h"
+	<stdio.h>
+
+1328128189 /home/mingo/dev/SquiLu/mpdecimal/umodarith.h
+	"constants.h"
+	"mpdecimal.h"
+	"typearith.h"
+
+1328128189 /home/mingo/dev/SquiLu/mpdecimal/convolute.h
+	"mpdecimal.h"
+	<stdio.h>
+
+1328128189 source:/home/mingo/dev/SquiLu/mpdecimal/crt.c
+	"mpdecimal.h"
+	<stdio.h>
+	<assert.h>
+	"numbertheory.h"
+	"umodarith.h"
+	"crt.h"
+
+1328128189 /home/mingo/dev/SquiLu/mpdecimal/crt.h
+	"mpdecimal.h"
+	<stdio.h>
+
+1328128189 source:/home/mingo/dev/SquiLu/mpdecimal/difradix2.c
+	"mpdecimal.h"
+	<stdio.h>
+	<assert.h>
+	"bits.h"
+	"numbertheory.h"
+	"umodarith.h"
+	"difradix2.h"
+
+1328128189 /home/mingo/dev/SquiLu/mpdecimal/difradix2.h
+	"mpdecimal.h"
+	<stdio.h>
+	"numbertheory.h"
+
+1328128189 source:/home/mingo/dev/SquiLu/mpdecimal/fnt.c
+	"mpdecimal.h"
+	<stdio.h>
+	<stdlib.h>
+	<assert.h>
+	"bits.h"
+	"difradix2.h"
+	"numbertheory.h"
+	"fnt.h"
+
+1328128189 source:/home/mingo/dev/SquiLu/mpdecimal/fourstep.c
+	"mpdecimal.h"
+	<assert.h>
+	"numbertheory.h"
+	"sixstep.h"
+	"transpose.h"
+	"umodarith.h"
+	"fourstep.h"
+
+1328128189 /home/mingo/dev/SquiLu/mpdecimal/transpose.h
+	"mpdecimal.h"
+	<stdio.h>
+

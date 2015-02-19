@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010 Stefan Krah. All rights reserved.
+ * Copyright (c) 2008-2016 Stefan Krah. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,35 +33,46 @@
 #include "memory.h"
 
 
+/* Guaranteed minimum allocation for a coefficient. May be changed once
+   at program start using mpd_setminalloc(). */
 mpd_ssize_t MPD_MINALLOC = MPD_MINALLOC_MIN;
 
+/* Custom allocation and free functions */
 void *(* mpd_mallocfunc)(size_t size) = malloc;
 void *(* mpd_reallocfunc)(void *ptr, size_t size) = realloc;
 void *(* mpd_callocfunc)(size_t nmemb, size_t size) = calloc;
 void (* mpd_free)(void *ptr) = free;
 
 
-
 /* emulate calloc if it is not available */
 void *
 mpd_callocfunc_em(size_t nmemb, size_t size)
 {
-	void *ptr;
-	size_t req;
+    void *ptr;
+    size_t req;
+    mpd_size_t overflow;
 
 #if MPD_SIZE_MAX < SIZE_MAX
-	if (nmemb > MPD_SIZE_MAX || size > MPD_SIZE_MAX) {
-		return NULL;
-	}
+    /* full_coverage test only */
+    if (nmemb > MPD_SIZE_MAX || size > MPD_SIZE_MAX) {
+        return NULL;
+    }
 #endif
-	req = mul_size_t((mpd_size_t)nmemb, (mpd_size_t)size);
-	if ((ptr = mpd_mallocfunc(req)) == NULL) {
-		return NULL;
-	}
-	/* used on uint32_t or uint64_t */
-	memset(ptr, 0, req);
 
-	return ptr;
+    req = mul_size_t_overflow((mpd_size_t)nmemb, (mpd_size_t)size,
+                              &overflow);
+    if (overflow) {
+        return NULL;
+    }
+
+    ptr = mpd_mallocfunc(req);
+    if (ptr == NULL) {
+        return NULL;
+    }
+    /* used on uint32_t or uint64_t */
+    memset(ptr, 0, req);
+
+    return ptr;
 }
 
 
@@ -69,171 +80,213 @@ mpd_callocfunc_em(size_t nmemb, size_t size)
 void *
 mpd_alloc(mpd_size_t nmemb, mpd_size_t size)
 {
-	void *ptr;
-	mpd_size_t req;
+    mpd_size_t req, overflow;
 
-	req = mul_size_t(nmemb, size);
-	if ((ptr = mpd_mallocfunc(req)) == NULL) {
-		return NULL;
-	}
+    req = mul_size_t_overflow(nmemb, size, &overflow);
+    if (overflow) {
+        return NULL;
+    }
 
-	return ptr;
+    return mpd_mallocfunc(req);
 }
 
 /* calloc with overflow checking */
 void *
 mpd_calloc(mpd_size_t nmemb, mpd_size_t size)
 {
-	void *ptr;
+    mpd_size_t overflow;
 
-	if ((ptr = mpd_callocfunc(nmemb, size)) == NULL) {
-		return NULL;
-	}
+    (void)mul_size_t_overflow(nmemb, size, &overflow);
+    if (overflow) {
+        return NULL;
+    }
 
-	return ptr;
+    return mpd_callocfunc(nmemb, size);
 }
 
 /* realloc with overflow checking */
 void *
 mpd_realloc(void *ptr, mpd_size_t nmemb, mpd_size_t size, uint8_t *err)
 {
-	void *new;
-	mpd_size_t req;
+    void *new;
+    mpd_size_t req, overflow;
 
-	req = mul_size_t(nmemb, size);
-	if ((new = mpd_reallocfunc(ptr, req)) == NULL) {
-		*err = 1;
-		return ptr;
-	}
+    req = mul_size_t_overflow(nmemb, size, &overflow);
+    if (overflow) {
+        *err = 1;
+        return ptr;
+    }
 
-	return new;
+    new = mpd_reallocfunc(ptr, req);
+    if (new == NULL) {
+        *err = 1;
+        return ptr;
+    }
+
+    return new;
 }
 
 /* struct hack malloc with overflow checking */
 void *
 mpd_sh_alloc(mpd_size_t struct_size, mpd_size_t nmemb, mpd_size_t size)
 {
-	void *ptr;
-	mpd_size_t req;
+    mpd_size_t req, overflow;
 
-	req = mul_size_t(nmemb, size);
-	req = add_size_t(req, struct_size);
-	if ((ptr = mpd_mallocfunc(req)) == NULL) {
-		return NULL;
-	}
+    req = mul_size_t_overflow(nmemb, size, &overflow);
+    if (overflow) {
+        return NULL;
+    }
 
-	return ptr;
+    req = add_size_t_overflow(req, struct_size, &overflow);
+    if (overflow) {
+        return NULL;
+    }
+
+    return mpd_mallocfunc(req);
 }
 
 
-/* Allocate a new decimal with data-size 'size'.
- * In case of an error the return value is NULL.
- */
+/* Allocate a new decimal with a coefficient of length 'nwords'. In case
+   of an error the return value is NULL. */
 mpd_t *
-mpd_qnew_size(mpd_ssize_t size)
+mpd_qnew_size(mpd_ssize_t nwords)
 {
-	mpd_t *result;
+    mpd_t *result;
 
-	size = (size < MPD_MINALLOC) ? MPD_MINALLOC : size;
+    nwords = (nwords < MPD_MINALLOC) ? MPD_MINALLOC : nwords;
 
-	if ((result = mpd_alloc(1, sizeof *result)) == NULL) {
-		return NULL;
-	}
-	if ((result->data = mpd_alloc(size, sizeof *result->data)) == NULL) {
-		mpd_free(result);
-		return NULL;
-	}
+    result = mpd_alloc(1, sizeof *result);
+    if (result == NULL) {
+        return NULL;
+    }
 
-	result->flags = 0;
-	result->exp = 0;
-	result->digits = 0;
-	result->len = 0;
-	result->alloc = size;
+    result->data = mpd_alloc(nwords, sizeof *result->data);
+    if (result->data == NULL) {
+        mpd_free(result);
+        return NULL;
+    }
 
-	return result;
+    result->flags = 0;
+    result->exp = 0;
+    result->digits = 0;
+    result->len = 0;
+    result->alloc = nwords;
+
+    return result;
 }
 
-/* Allocate a new decimal with data-size MPD_MINALLOC.
- * In case of an error the return value is NULL.
- */
+/* Allocate a new decimal with a coefficient of length MPD_MINALLOC.
+   In case of an error the return value is NULL. */
 mpd_t *
 mpd_qnew(void)
 {
-	return mpd_qnew_size(MPD_MINALLOC);
+    return mpd_qnew_size(MPD_MINALLOC);
 }
 
 /* Allocate new decimal. Caller can check for NULL or MPD_Malloc_error.
- * Raises on error.
- */
+   Raises on error. */
 mpd_t *
 mpd_new(mpd_context_t *ctx)
 {
-	mpd_t *result;
+    mpd_t *result;
 
-	if ((result = mpd_qnew()) == NULL) {
-		mpd_addstatus_raise(ctx, MPD_Malloc_error);
-	}
-	return result;
+    result = mpd_qnew();
+    if (result == NULL) {
+        mpd_addstatus_raise(ctx, MPD_Malloc_error);
+    }
+    return result;
 }
 
+/*
+ * Input: 'result' is a static mpd_t with a static coefficient.
+ * Assumption: 'nwords' >= result->alloc.
+ *
+ * Resize the static coefficient to a larger dynamic one and copy the
+ * existing data. If successful, the value of 'result' is unchanged.
+ * Otherwise, set 'result' to NaN and update 'status' with MPD_Malloc_error.
+ */
 int
-mpd_switch_to_dyn(mpd_t *result, mpd_ssize_t size, uint32_t *status)
+mpd_switch_to_dyn(mpd_t *result, mpd_ssize_t nwords, uint32_t *status)
 {
-	mpd_uint_t *p = result->data;
+    mpd_uint_t *p = result->data;
 
-	if ((result->data = mpd_alloc(size, sizeof *result->data)) == NULL) {
-		result->data = p;
-		mpd_set_qnan(result);
-		mpd_set_positive(result);
-		result->exp = result->digits = result->len = 0;
-		*status |= MPD_Malloc_error;
-		return 0;
-	}
+    assert(nwords >= result->alloc);
 
-	memcpy(result->data, p, result->len * (sizeof *result->data));
-	result->alloc = size;
-	mpd_set_dynamic_data(result);
-	return 1;
+    result->data = mpd_alloc(nwords, sizeof *result->data);
+    if (result->data == NULL) {
+        result->data = p;
+        mpd_set_qnan(result);
+        mpd_set_positive(result);
+        result->exp = result->digits = result->len = 0;
+        *status |= MPD_Malloc_error;
+        return 0;
+    }
+
+    memcpy(result->data, p, result->alloc * (sizeof *result->data));
+    result->alloc = nwords;
+    mpd_set_dynamic_data(result);
+    return 1;
 }
 
+/*
+ * Input: 'result' is a static mpd_t with a static coefficient.
+ *
+ * Convert the coefficient to a dynamic one that is initialized to zero. If
+ * malloc fails, set 'result' to NaN and update 'status' with MPD_Malloc_error.
+ */
 int
-mpd_switch_to_dyn_zero(mpd_t *result, mpd_ssize_t size, uint32_t *status)
+mpd_switch_to_dyn_zero(mpd_t *result, mpd_ssize_t nwords, uint32_t *status)
 {
-	mpd_uint_t *p = result->data;
+    mpd_uint_t *p = result->data;
 
-	if ((result->data = mpd_calloc(size, sizeof *result->data)) == NULL) {
-		result->data = p;
-		mpd_set_qnan(result);
-		mpd_set_positive(result);
-		result->exp = result->digits = result->len = 0;
-		*status |= MPD_Malloc_error;
-		return 0;
-	}
+    result->data = mpd_calloc(nwords, sizeof *result->data);
+    if (result->data == NULL) {
+        result->data = p;
+        mpd_set_qnan(result);
+        mpd_set_positive(result);
+        result->exp = result->digits = result->len = 0;
+        *status |= MPD_Malloc_error;
+        return 0;
+    }
 
-	result->alloc = size;
-	mpd_set_dynamic_data(result);
+    result->alloc = nwords;
+    mpd_set_dynamic_data(result);
 
-	return 1;
+    return 1;
 }
 
+/*
+ * Input: 'result' is a static or a dynamic mpd_t with a dynamic coefficient.
+ * Resize the coefficient to length 'nwords':
+ *   Case nwords > result->alloc:
+ *     If realloc is successful:
+ *       'result' has a larger coefficient but the same value. Return 1.
+ *     Otherwise:
+ *       Set 'result' to NaN, update status with MPD_Malloc_error and return 0.
+ *   Case nwords < result->alloc:
+ *     If realloc is successful:
+ *       'result' has a smaller coefficient. result->len is undefined. Return 1.
+ *     Otherwise (unlikely):
+ *       'result' is unchanged. Reuse the now oversized coefficient. Return 1.
+ */
 int
-mpd_realloc_dyn(mpd_t *result, mpd_ssize_t size, uint32_t *status)
+mpd_realloc_dyn(mpd_t *result, mpd_ssize_t nwords, uint32_t *status)
 {
-	uint8_t err = 0;
+    uint8_t err = 0;
 
-	result->data = mpd_realloc(result->data, size, sizeof *result->data, &err);
-	if (!err) {
-		result->alloc = size;
-	}
-	else if (size > result->alloc) {
-		mpd_set_qnan(result);
-		mpd_set_positive(result);
-		result->exp = result->digits = result->len = 0;
-		*status |= MPD_Malloc_error;
-		return 0;
-	}
+    result->data = mpd_realloc(result->data, nwords, sizeof *result->data, &err);
+    if (!err) {
+        result->alloc = nwords;
+    }
+    else if (nwords > result->alloc) {
+        mpd_set_qnan(result);
+        mpd_set_positive(result);
+        result->exp = result->digits = result->len = 0;
+        *status |= MPD_Malloc_error;
+        return 0;
+    }
 
-	return 1;
+    return 1;
 }
 
 

@@ -4,14 +4,30 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head>
 <body>
 <tt>
-Build started on: <u>03-02-2013 at 21:33.47</u><br />
-Build ended on: <u>03-02-2013 at 21:33.49</u><p />
-<b>-------------- Build: Release win32 in mpdecimal ---------------</b><br />
-i686-w64-mingw32-gcc -DCONFIG_32=1 -DPPRO=1 -DASM=1  -O3 -Wall     -c /home/mingo/dev/SquiLu/ext/mpdecimal/io.c -o /home/mingo/dev/mpdecimal-2.3/.objs-win32/io.o<br />
-i686-w64-mingw32-ar -r -s libmpdecimal-win32.a /home/mingo/dev/mpdecimal-2.3/.objs-win32/basearith.o /home/mingo/dev/mpdecimal-2.3/.objs-win32/constants.o /home/mingo/dev/mpdecimal-2.3/.objs-win32/context.o /home/mingo/dev/mpdecimal-2.3/.objs-win32/convolute.o /home/mingo/dev/mpdecimal-2.3/.objs-win32/crt.o /home/mingo/dev/mpdecimal-2.3/.objs-win32/difradix2.o /home/mingo/dev/mpdecimal-2.3/.objs-win32/fnt.o /home/mingo/dev/mpdecimal-2.3/.objs-win32/fourstep.o /home/mingo/dev/mpdecimal-2.3/.objs-win32/io.o /home/mingo/dev/mpdecimal-2.3/.objs-win32/memory.o /home/mingo/dev/mpdecimal-2.3/.objs-win32/mpdecimal.o /home/mingo/dev/mpdecimal-2.3/.objs-win32/mpsignal.o /home/mingo/dev/mpdecimal-2.3/.objs-win32/numbertheory.o /home/mingo/dev/mpdecimal-2.3/.objs-win32/sixstep.o /home/mingo/dev/mpdecimal-2.3/.objs-win32/transpose.o<br />
-Output size is 236.94 KB<br />
-<font color="#0000ff">Process terminated with status 0 (0 minutes, 1 seconds)</font><br />
-<font color="#0000ff">0 errors, 0 warnings</font><br />
+Build started on: <u>18-02-2015 at 13:51.48</u><br />
+Build ended on: <u>18-02-2015 at 13:51.55</u><p />
+<b>-------------- Build: Release_64bits in mpdecimal (compiler: GNU GCC Compiler)---------------</b><br />
+gcc -O3 -Wall -DASM=1 -DCONFIG_64=1  -c /home/mingo/dev/SquiLu/mpdecimal/basearith.c -o /home/mingo/dev/mpdecimal-2.3/.objs/basearith.o<br />
+gcc -O3 -Wall -DASM=1 -DCONFIG_64=1  -c /home/mingo/dev/SquiLu/mpdecimal/constants.c -o /home/mingo/dev/mpdecimal-2.3/.objs/constants.o<br />
+gcc -O3 -Wall -DASM=1 -DCONFIG_64=1  -c /home/mingo/dev/SquiLu/mpdecimal/context.c -o /home/mingo/dev/mpdecimal-2.3/.objs/context.o<br />
+gcc -O3 -Wall -DASM=1 -DCONFIG_64=1  -c /home/mingo/dev/SquiLu/mpdecimal/convolute.c -o /home/mingo/dev/mpdecimal-2.3/.objs/convolute.o<br />
+gcc -O3 -Wall -DASM=1 -DCONFIG_64=1  -c /home/mingo/dev/SquiLu/mpdecimal/crt.c -o /home/mingo/dev/mpdecimal-2.3/.objs/crt.o<br />
+gcc -O3 -Wall -DASM=1 -DCONFIG_64=1  -c /home/mingo/dev/SquiLu/mpdecimal/difradix2.c -o /home/mingo/dev/mpdecimal-2.3/.objs/difradix2.o<br />
+gcc -O3 -Wall -DASM=1 -DCONFIG_64=1  -c /home/mingo/dev/SquiLu/mpdecimal/fnt.c -o /home/mingo/dev/mpdecimal-2.3/.objs/fnt.o<br />
+gcc -O3 -Wall -DASM=1 -DCONFIG_64=1  -c /home/mingo/dev/SquiLu/mpdecimal/fourstep.c -o /home/mingo/dev/mpdecimal-2.3/.objs/fourstep.o<br />
+gcc -O3 -Wall -DASM=1 -DCONFIG_64=1  -c /home/mingo/dev/SquiLu/mpdecimal/io.c -o /home/mingo/dev/mpdecimal-2.3/.objs/io.o<br />
+gcc -O3 -Wall -DASM=1 -DCONFIG_64=1  -c /home/mingo/dev/SquiLu/mpdecimal/memory.c -o /home/mingo/dev/mpdecimal-2.3/.objs/memory.o<br />
+gcc -O3 -Wall -DASM=1 -DCONFIG_64=1  -c /home/mingo/dev/SquiLu/mpdecimal/mpdecimal.c -o /home/mingo/dev/mpdecimal-2.3/.objs/mpdecimal.o<br />
+gcc -O3 -Wall -DASM=1 -DCONFIG_64=1  -c /home/mingo/dev/SquiLu/mpdecimal/mpsignal.c -o /home/mingo/dev/mpdecimal-2.3/.objs/mpsignal.o<br />
+gcc -O3 -Wall -DASM=1 -DCONFIG_64=1  -c /home/mingo/dev/SquiLu/mpdecimal/numbertheory.c -o /home/mingo/dev/mpdecimal-2.3/.objs/numbertheory.o<br />
+gcc -O3 -Wall -DASM=1 -DCONFIG_64=1  -c /home/mingo/dev/SquiLu/mpdecimal/sixstep.c -o /home/mingo/dev/mpdecimal-2.3/.objs/sixstep.o<br />
+gcc -O3 -Wall -DASM=1 -DCONFIG_64=1  -c /home/mingo/dev/SquiLu/mpdecimal/transpose.c -o /home/mingo/dev/mpdecimal-2.3/.objs/transpose.o<br />
+rm -f libmpdecimal.a<br />
+ar -r -s libmpdecimal.a /home/mingo/dev/mpdecimal-2.3/.objs/basearith.o /home/mingo/dev/mpdecimal-2.3/.objs/constants.o /home/mingo/dev/mpdecimal-2.3/.objs/context.o /home/mingo/dev/mpdecimal-2.3/.objs/convolute.o /home/mingo/dev/mpdecimal-2.3/.objs/crt.o /home/mingo/dev/mpdecimal-2.3/.objs/difradix2.o /home/mingo/dev/mpdecimal-2.3/.objs/fnt.o /home/mingo/dev/mpdecimal-2.3/.objs/fourstep.o /home/mingo/dev/mpdecimal-2.3/.objs/io.o /home/mingo/dev/mpdecimal-2.3/.objs/memory.o /home/mingo/dev/mpdecimal-2.3/.objs/mpdecimal.o /home/mingo/dev/mpdecimal-2.3/.objs/mpsignal.o /home/mingo/dev/mpdecimal-2.3/.objs/numbertheory.o /home/mingo/dev/mpdecimal-2.3/.objs/sixstep.o /home/mingo/dev/mpdecimal-2.3/.objs/transpose.o<br />
+ar: creating libmpdecimal.a<br />
+Output file is libmpdecimal.a with size 352.23 KB<br />
+<font color="#0000ff">Process terminated with status 0 (0 minute(s), 7 second(s))</font><br />
+<font color="#0000ff">0 error(s), 0 warning(s) (0 minute(s), 7 second(s))</font><br />
 </tt>
 </body>
 </html>

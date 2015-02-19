@@ -588,7 +588,7 @@ int main(int argc, char* argv[])
 
 	sqext_register_sq_slave_vm(v);
 	//sqext_register_ThreadObjects(v);
-	sqext_register_dad_utils(v);
+	//sqext_register_dad_utils(v);
 	//sqext_register_sys(v);
 
 #ifdef WITH_FULL_DAD_EXTRAS

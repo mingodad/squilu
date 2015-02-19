@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010 Stefan Krah. All rights reserved.
+ * Copyright (c) 2008-2016 Stefan Krah. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,6 +31,10 @@
 
 
 #include "mpdecimal.h"
+
+
+/* Internal header file: all symbols have local scope in the DSO */
+MPD_PRAGMA(MPD_HIDE_SYMBOLS_START)
 
 
 /* choice of optimized functions */
@@ -75,6 +79,9 @@ extern const mpd_uint_t INV_P1_MOD_P2;
 extern const mpd_uint_t INV_P1P2_MOD_P3;
 extern const mpd_uint_t LH_P1P2;
 extern const mpd_uint_t UH_P1P2;
+
+
+MPD_PRAGMA(MPD_HIDE_SYMBOLS_END) /* restore previous scope rules */
 
 
 #endif /* CONSTANTS_H */
