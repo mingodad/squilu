@@ -1,4 +1,4 @@
-#ifndef SQUILU_ALONE
+#ifdef WITH_MYSQL
 
 #include "squirrel.h"
 #include "mysql.h"

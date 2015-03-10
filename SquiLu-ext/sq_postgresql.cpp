@@ -1,3 +1,5 @@
+#ifdef WITH_POSTGRESQL
+
 #include "squirrel.h"
 #include "libpq-fe.h"
 #include <string.h>
@@ -819,3 +821,4 @@ SQRESULT sqext_register_PostgreSQL(HSQUIRRELVM v)
 }
 #endif
 
+#endif // WITH_POSTGRESQL

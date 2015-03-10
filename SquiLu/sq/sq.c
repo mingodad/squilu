@@ -537,6 +537,7 @@ SQRESULT sqext_register_fltklib(HSQUIRRELVM v);
 SQRESULT sqext_register_dad_utils(HSQUIRRELVM v);
 SQRESULT sqext_register_gumbo(HSQUIRRELVM v);
 SQRESULT sqext_register_sys(HSQUIRRELVM v);
+SQRESULT sqext_register_DNS_SD(HSQUIRRELVM v);
 
 int main(int argc, char* argv[])
 {
@@ -593,16 +594,24 @@ int main(int argc, char* argv[])
 
 #ifdef WITH_FULL_DAD_EXTRAS
 	sqext_register_csv_parser(v);
-	sqext_register_PostgreSQL(v);
-	sqext_register_MySQL(v);
 	sqext_register_sq_zmq3(v);
 	//sqext_register_Java(v);
 #endif
 
+#ifdef WITH_POSTGRESQL
+	sqext_register_PostgreSQL(v);
+#endif
+#ifdef WITH_MYSQL
+	sqext_register_MySQL(v);
+#endif
 	sqext_register_rs232(v);
 #ifdef WITH_FLTK
 	sqext_register_fltklib(v);
 #endif
+#ifdef WITH_DNS_SD
+	sqext_register_DNS_SD(v);
+#endif
+
 #endif //SQUILU_ALONE
 #endif
 	//aux library

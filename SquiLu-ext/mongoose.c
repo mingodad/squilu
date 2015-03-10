@@ -4637,7 +4637,8 @@ static int set_ssl_option(struct mg_context *ctx) {
 }
 
 static void uninitialize_ssl(struct mg_context *ctx) {
-#ifndef USE_AXTLS
+#if !defined(NO_SSL_DL)
+#if !defined(USE_AXTLS)
   int i;
   if (ctx->ssl_ctx != NULL) {
     CRYPTO_set_locking_callback(NULL);
@@ -4649,6 +4650,7 @@ static void uninitialize_ssl(struct mg_context *ctx) {
     CRYPTO_set_locking_callback(NULL);
     CRYPTO_set_id_callback(NULL);
   }
+#endif
 #endif
 }
 #endif // !NO_SSL

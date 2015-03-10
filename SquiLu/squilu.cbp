@@ -367,7 +367,7 @@
 				</Linker>
 			</Target>
 			<Target title="Release 64bits">
-				<Option output="bin/squilu" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/squilu-no-gui" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -378,6 +378,10 @@
 					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
 					<Add option="-D_SQ64=1" />
 					<Add option="-DCONFIG_64=1" />
+					<Add option="-DHAS_UNIX_DOMAIN_SOCKETS=1" />
+					<Add option="-DUSE_SIGNAL_HANDLER=1" />
+					<Add option="-DWITH_MYSQL=1" />
+					<Add option="-DWITH_POSTGRESQL=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 				</Compiler>
 				<Linker>
@@ -412,6 +416,9 @@
 					<Add option="-DCONFIG_64=1" />
 					<Add option="-DHAS_UNIX_DOMAIN_SOCKETS=1" />
 					<Add option="-DUSE_SIGNAL_HANDLER=1" />
+					<Add option="-DWITH_MYSQL=1" />
+					<Add option="-DWITH_POSTGRESQL=1" />
+					<Add option="-DWITH_DNS_SD2=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 					<Add directory="../fltk" />
 					<Add directory="../libharu/include" />
@@ -577,6 +584,39 @@
 					<Add directory="../libharu/src" />
 				</Linker>
 			</Target>
+			<Target title="Release 64bits static Library">
+				<Option output="bin/squilu-no-gui" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-Wall" />
+					<Add option="-DNDEBUG=1" />
+					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
+					<Add option="-D_SQ64=1" />
+					<Add option="-DCONFIG_64=1" />
+					<Add option="-DHAS_UNIX_DOMAIN_SOCKETS=1" />
+					<Add option="-DUSE_SIGNAL_HANDLER=1" />
+					<Add option="-DWITH_MYSQL=1" />
+					<Add option="-DWITH_POSTGRESQL=1" />
+					<Add directory="../../zeromq-3.2.2/include" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="../../zeromq-3.2.2/libzmq3.a" />
+					<Add library="pthread" />
+					<Add library="rt" />
+					<Add library="dl" />
+					<Add library="axtls" />
+					<Add library="mpdecimal" />
+					<Add library="discount" />
+					<Add library="fltk_z" />
+					<Add directory="../../zeromq-3.2.2" />
+					<Add directory="../fltk/lib" />
+				</Linker>
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
@@ -590,7 +630,7 @@
 			<Add option="-DSQ_SUBLATIN=1" />
 			<Add option="-DNEED_SUBLATIN_C2=1" />
 			<Add option="-DSQUSEDOUBLE=1" />
-			<Add option="-DSQUSEDECIMAL642=1" />
+			<Add option="-DSQUSEDECIMAL64x=1" />
 			<Add option="-DNO_EXCEPTION_KEY_NOT_FOUND0=1" />
 			<Add option="-DNO_GARBAGE_COLLECTOR00=1" />
 			<Add option="-DTHREADSAFE=1" />
@@ -603,7 +643,7 @@
 			<Add option="-DSQLITE_ENABLE_FTS3_PARENTHESIS=1" />
 			<Add option="-DSQLITE_ENABLE_UNLOCK_NOTIFY=1" />
 			<Add option="-DSQLITE_ENABLE_RTREE=1" />
-			<Add option="-DSQLITE_ENABLE_STAT3=1" />
+			<Add option="-DSQLITE_ENABLE_STAT4=1" />
 			<Add option="-DSQLITE_HAS_CODEC=1" />
 			<Add option="-DSQLITE_OMIT_TCL_VARIABLE=1" />
 			<Add option="-DSQLITE_USE_URI=1" />
@@ -674,6 +714,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/dynamic_library.h">
 			<Option target="Debug" />
@@ -690,6 +731,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/fpdf.cpp">
 			<Option target="Debug" />
@@ -706,6 +748,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/fpdf.h">
 			<Option target="Debug" />
@@ -722,6 +765,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/lua_socket.cpp">
 			<Option target="Debug" />
@@ -738,6 +782,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/lua_socket.h">
 			<Option target="Debug" />
@@ -754,6 +799,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/mongoose.c">
 			<Option compilerVar="CC" />
@@ -771,6 +817,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/mongoose.h">
 			<Option target="Debug" />
@@ -787,6 +834,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/pdf-font.cpp">
 			<Option target="Debug" />
@@ -803,6 +851,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/pdf-font.h">
 			<Option target="Debug" />
@@ -819,6 +868,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_axtls.c">
 			<Option compilerVar="CC" />
@@ -836,6 +886,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_base64.cpp">
 			<Option target="Debug" />
@@ -852,6 +903,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_decimal.cpp">
 			<Option target="Debug" />
@@ -867,7 +919,9 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
+		<Unit filename="../SquiLu-ext/sq_dns_sd.cpp" />
 		<Unit filename="../SquiLu-ext/sq_fastcgi.cpp">
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
@@ -886,6 +940,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_fpdf.cpp">
 			<Option target="Debug" />
@@ -902,6 +957,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_fs.c">
 			<Option compilerVar="CC" />
@@ -919,6 +975,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_gumbo.cpp" />
 		<Unit filename="../SquiLu-ext/sq_markdown.cpp">
@@ -935,6 +992,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_mix.cpp">
 			<Option target="Debug" />
@@ -951,6 +1009,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_mongoose.cpp">
 			<Option target="Debug" />
@@ -967,6 +1026,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_mysql.cpp" />
 		<Unit filename="../SquiLu-ext/sq_openssl.cpp">
@@ -986,6 +1046,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_postgresql.cpp">
 			<Option target="Debug" />
@@ -1001,6 +1062,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_rs232.c">
 			<Option compilerVar="CC" />
@@ -1018,6 +1080,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_slave_vm.cpp">
 			<Option target="Debug" />
@@ -1034,6 +1097,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_socket.cpp">
 			<Option target="Debug" />
@@ -1050,6 +1114,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_sqlite3.cpp">
 			<Option target="Debug" />
@@ -1066,6 +1131,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_sys.cpp">
 			<Option target="&lt;{~None~}&gt;" />
@@ -1085,6 +1151,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_zlib.cpp">
 			<Option target="Debug" />
@@ -1101,6 +1168,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_zmq3.cpp">
 			<Option target="Debug" />
@@ -1116,6 +1184,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sqlite3.c">
 			<Option compilerVar="CC" />
@@ -1133,6 +1202,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sqlite3.h">
 			<Option target="Debug" />
@@ -1149,6 +1219,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sqmodule.h">
 			<Option target="Debug" />
@@ -1165,6 +1236,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sqratimport.cpp">
 			<Option target="Debug" />
@@ -1181,6 +1253,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sqratimport.h">
 			<Option target="Debug" />
@@ -1197,6 +1270,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/tinyxml2.cpp">
 			<Option target="Debug" />
@@ -1213,6 +1287,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/tinyxml2.h">
 			<Option target="Debug" />
@@ -1229,6 +1304,7 @@
 			<Option target="Debug 64bits" />
 			<Option target="Release FLTK 64bits Lib" />
 			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
 		</Unit>
 		<Unit filename="dadbiz.rc">
 			<Option compilerVar="WINDRES" />

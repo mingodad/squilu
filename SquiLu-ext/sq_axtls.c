@@ -10,6 +10,7 @@ extern "C" {
 #include <stdlib.h>  /* for malloc */
 #include <assert.h>  /* for a few sanity tests */
 
+#include "os_port.h"
 #include "ssl.h"
 
 static const SQChar SQ_LIBNAME[] = _SC("axtls");

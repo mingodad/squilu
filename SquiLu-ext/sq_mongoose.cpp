@@ -152,20 +152,33 @@ sq_http_request_read(HSQUIRRELVM v)
     if(n <= 0) return sq_throwerror(v, _SC("invalid size to read (%d)"), n);
     size_t rlen;  /* how much to read */
     size_t nr;  /* number of chars actually read */
-    rlen = 8192*2;  /* try to read that much each time */
+    rlen = 8192;  /* try to read that much each time */
 
-    SQBlob blob(0, rlen);
+    SQBlob *blob = NULL;
+    if(_top_ > 2) {
+        if(SQ_FAILED(sq_getinstanceup(v,3,(SQUserPointer*)&blob,(SQUserPointer)SQBlob::SQBlob_TAG)))
+            return sq_throwerror(v,_SC("expect a blob as second parameter"));
+        if(!blob || !blob->IsValid())
+            return sq_throwerror(v,_SC("the blob is invalid"));
+    } else {
+        blob = new SQBlob(0, rlen);
+    }
+
     if (rlen > n) rlen = n;  /* cannot read more than asked */
     char *p = sq_getscratchpad(v,rlen);
     do {
         //there is a bug in axtls that can return a number bigger than the actual bytes transfered
         nr = mg_read(conn, p, rlen);
-        blob.Write(p, nr);
+        blob->Write(p, nr);
         n -= nr;  /* still have to read `n' chars */
     } while (n > 0 && nr == rlen);  /* until end of count or eof */
-    sq_pushstring(v, (const SQChar *)blob.GetBuf(), blob.Len());  /* close buffer */
 
-    return 1;
+    if(_top_ <= 2) {
+        sq_pushstring(v, (const SQChar *)blob->GetBuf(), blob->Len());  /* close buffer */
+        delete blob;
+        return 1;
+    }
+    return 0;
 }
 
 static SQRESULT
@@ -555,7 +568,7 @@ static SQRegFunction mg_http_request_methods[] =
 	_DECL_FUNC(constructor,  1, _SC("x")),
 
 	_DECL_FUNC(print,  -2, _SC("x n|s")),
-	_DECL_FUNC(read,  2, _SC("xi")),
+	_DECL_FUNC(read,  -2, _SC("xix")),
 	_DECL_FUNC(write,  3, _SC("xsi")),
 	_DECL_FUNC(write_blob,  -2, _SC("xxi")),
 	_DECL_FUNC(get_var,  3, _SC("xs")),
