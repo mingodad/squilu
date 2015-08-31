@@ -37,6 +37,8 @@ class Fl_Data_Table extends Flv_Data_Table {
 	}
 
 	function clear_data_rows(){
+		col(0);
+		cols(0);
 		row(0);
 		rows(0);
 		_data.clear();
@@ -328,13 +330,13 @@ class Pedidos2 extends PedidosWindow {
 			//print(key)
 			switch(key){
 				case FL_Menu: menu_bar_navigate(); break;
-				case FL_F+1: mostrar_ventana_ayuda(); break;
-				case FL_F+2: mostrar_ventana_pedido(); break;
-				case FL_F+3: mostrar_ventana_pedidos(); break;
-				case FL_F+4: mostrar_ventana_clientes(); break;
-				case FL_F+5: mostrar_ventana_articulos(); break;
-				case FL_F+6: mostrar_ventana_totales(); break;
-				case FL_F+9: mostrar_ventana_opciones(); break;
+				case FL_F1: mostrar_ventana_ayuda(); break;
+				case FL_F2: mostrar_ventana_pedido(); break;
+				case FL_F3: mostrar_ventana_pedidos(); break;
+				case FL_F4: mostrar_ventana_clientes(); break;
+				case FL_F5: mostrar_ventana_articulos(); break;
+				case FL_F6: mostrar_ventana_totales(); break;
+				case FL_F9: mostrar_ventana_opciones(); break;
 			}
 		}
 		

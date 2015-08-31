@@ -353,7 +353,7 @@ class Base_Window extends Fl_Window {
 	_sab = null;
 
 	constructor(px, py, pw, ph, pl=null) {
-		if(px < 0) base.constructor(pw, ph, pl);
+		if(px < 0 || py < 0) base.constructor(pw, ph, pl);
 		else base.constructor(px, py, pw, ph, pl);
 		_child_windows = {};
 		_db_map = {};
@@ -417,7 +417,7 @@ class Base_Window extends Fl_Window {
 		if(!win){
 			win = new WindowClass();
 			//win.label(winName);
-			_child_windows[winName] <- win.weakref();
+			_child_windows[winName] <- win; //.weakref();
 		}
 		return win;
 	}

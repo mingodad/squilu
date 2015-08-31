@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0302 
+version 1.0303 
 i18n_type 1 
 i18n_include i18n_function.h 
 i18n_function _tr 
@@ -7,8 +7,8 @@ header_name {.h}
 code_name {.cxx}
 widget_class Sqlite3cc_Window {
   label SQLiteCC open
-  xywh {103 78 780 520} type Double labelsize 16 hide resizable
-  class Fl_Double_Window
+  xywh {218 131 780 520} type Double labelsize 16 resizable
+  class Fl_Double_Window visible
 } {
   Fl_Menu_Bar menuBar {open
     xywh {0 0 780 25} labelsize 16 textsize 16
@@ -24,6 +24,11 @@ widget_class Sqlite3cc_Window {
       MenuItem menu_file_open {
         label {Open DB}
         xywh {0 0 30 20} shortcut 0x4006f labelsize 16
+      }
+      MenuItem menu_file_reopen {
+        label {Reopen DB}
+        dirty_name menu_file_reopen
+        xywh {0 0 36 21}
       }
       MenuItem menu_file_attach {
         label {Attach DB}
@@ -90,10 +95,20 @@ widget_class Sqlite3cc_Window {
   Fl_Tile tile {open
     xywh {0 25 780 495}
   } {
-    Fl_Browser grid_tables {
-      dirty_name grid_tables
-      xywh {5 25 160 280} labelsize 16 textsize 16
-      class Fl_Data_Table
+    Fl_Group group_db_tables {
+      dirty_name group_db_tables open
+      xywh {5 25 160 280} labeltype NO_LABEL
+    } {
+      Fl_Browser grid_tables {
+        dirty_name grid_tables
+        xywh {5 25 160 255} labelsize 16 textsize 16 resizable
+        class Fl_Data_Table
+      }
+      Fl_Input iTablesFilter {
+        label {Filter:}
+        dirty_name iTablesFilter
+        xywh {5 280 160 25} labeltype NO_LABEL when 1
+      }
     }
     Fl_Group {} {open
       xywh {165 25 615 280}
@@ -105,7 +120,7 @@ widget_class Sqlite3cc_Window {
           xywh {165 25 615 35} box DOWN_FRAME labelsize 16
         } {
           Fl_Input iMaxRows {
-            label {Max Rows} selected
+            label {Max Rows}
             xywh {265 30 49 25} type Int labelsize 16 textsize 16
             code0 {o->value("50");}
           }
@@ -113,20 +128,69 @@ widget_class Sqlite3cc_Window {
             label Query open
             xywh {370 30 120 25} down_box BORDER_BOX labelsize 16 textsize 16
           } {
-            MenuItem {} {
+            MenuItem menu_sql_select {
               label select
+              dirty_name menu_sql_select
               xywh {0 0 36 21}
             }
-            MenuItem {} {
+            MenuItem menu_sql_insert {
               label insert
+              dirty_name menu_sql_insert
               xywh {0 0 36 21}
             }
-            MenuItem {} {
+            MenuItem menu_sql_update {
               label update
+              dirty_name menu_sql_update
               xywh {0 0 36 21}
             }
-            MenuItem {} {
+            MenuItem menu_sql_delete {
               label delete
+              dirty_name menu_sql_delete
+              xywh {0 0 36 21}
+            }
+            MenuItem menu_sql_schema_update {
+              label {schema update}
+              dirty_name menu_sql_schema_update
+              xywh {0 0 36 21}
+            }
+            MenuItem menu_sql_schema_update_norefs {
+              label {schema update norefs}
+              dirty_name menu_sql_schema_update_norefs selected
+              xywh {10 10 36 21}
+            }
+            MenuItem menu_sql_sqlite_master_update {
+              label {sqlite_master update}
+              dirty_name menu_sql_sqlite_master_update
+              xywh {0 0 36 21}
+            }
+            MenuItem menu_sql_drop_table {
+              label {drop table}
+              dirty_name menu_sql_drop_table
+              xywh {0 0 36 21}
+            }
+            MenuItem menu_sql_dump_table {
+              label {dump table}
+              dirty_name menu_sql_dump_table
+              xywh {0 0 36 21}
+            }
+            MenuItem menu_sql_create_index {
+              label {create index}
+              dirty_name menu_sql_create_index
+              xywh {0 0 36 21}
+            }
+            MenuItem menu_sql_create_trigger {
+              label {create trigger}
+              dirty_name menu_sql_create_trigger
+              xywh {0 0 36 21}
+            }
+            MenuItem menu_sql_references {
+              label references
+              dirty_name menu_sql_references
+              xywh {0 0 36 21}
+            }
+            MenuItem menu_sql_search_all_tables {
+              label {search all tables}
+              dirty_name menu_sql_search_all_tables
               xywh {0 0 36 21}
             }
           }
@@ -186,12 +250,23 @@ widget_class Sqlite3cc_Window {
       } {
         Fl_Group groupData {
           label Data open
-          xywh {0 333 780 187} labelsize 16 hide resizable
+          xywh {0 333 780 187} labelsize 16 resizable
         } {
           Fl_Browser grid_data {
             dirty_name grid_data
             xywh {0 333 780 187} labelsize 16 textsize 16
             class Fl_Data_Table
+          }
+        }
+        Fl_Group groupRecord {
+          label Record
+          dirty_name groupRecord open
+          xywh {0 333 780 187} labelsize 16 hide
+        } {
+          Fl_Text_Editor edit_record {
+            dirty_name edit_record
+            xywh {5 333 770 185} labelsize 16 textsize 16
+            class Fl_Text_Editor_Buffered
           }
         }
         Fl_Group viewFields {
@@ -214,7 +289,7 @@ widget_class Sqlite3cc_Window {
         }
         Fl_Group viewTriggers {
           label Triggers open
-          xywh {0 333 780 187} labelsize 16
+          xywh {0 333 780 187} labelsize 16 hide
         } {
           Fl_Browser gridTriggers {
             xywh {0 333 780 187} labelsize 16 textsize 16
@@ -226,6 +301,17 @@ widget_class Sqlite3cc_Window {
           xywh {0 333 780 187} labelsize 16 hide
         } {
           Fl_Text_Editor edit_schema {
+            xywh {5 333 770 185} labelsize 16 textsize 16
+            class Fl_Text_Editor_Buffered
+          }
+        }
+        Fl_Group groupReferences {
+          label References
+          dirty_name groupReferences open
+          xywh {0 333 780 187} labelsize 16 hide
+        } {
+          Fl_Text_Editor edit_references {
+            dirty_name edit_references
             xywh {5 333 770 185} labelsize 16 textsize 16
             class Fl_Text_Editor_Buffered
           }
@@ -273,7 +359,7 @@ widget_class Sqlite3cc_Window {
 } 
 
 widget_class SquiLuEditWindow {
-  label {SquiLu Edit} open
+  label {SquiLu Edit}
   xywh {286 113 565 540} type Double hide resizable
   class Fl_Double_Window
 } {
@@ -310,5 +396,152 @@ widget_class SquiLuEditWindow {
     dirty_name output_editor
     xywh {10 397 550 133} labelsize 18 textsize 18 resizable
     class Fl_Text_Editor_Buffered
+  }
+} 
+
+widget_class CreateTableWindow {
+  label {Create Table}
+  xywh {648 270 565 455} type Double hide resizable
+  class Fl_Double_Window
+} {
+  Fl_Choice choice_database {
+    label {Database:}
+    dirty_name choice_database open
+    xywh {105 5 170 25} down_box BORDER_BOX
+  } {}
+  Fl_Input table_name {
+    label {Table:}
+    dirty_name table_name
+    xywh {330 5 230 25}
+  }
+  Fl_Browser grid_fields {
+    dirty_name grid_fields
+    xywh {5 35 425 195} labeltype NO_LABEL labelsize 16 textsize 16 resizable
+    class Fl_Data_Table
+  }
+  Fl_Button btnAddColumn {
+    label {Add Column}
+    dirty_name btnAddColumn
+    xywh {435 37 125 33} labelsize 16
+  }
+  Fl_Button btnDeleteColumn {
+    label {Delete Column}
+    dirty_name btnDeleteColumn
+    xywh {435 77 125 33} labelsize 16
+  }
+  Fl_Button btnEditColumn {
+    label {Edit Column}
+    dirty_name btnEditColumn
+    xywh {435 117 125 33} labelsize 16
+  }
+  Fl_Button btnUpColumn {
+    label Up
+    dirty_name btnUpColumn
+    xywh {435 157 125 33} labelsize 16
+  }
+  Fl_Button btnDownColumn {
+    label Down
+    dirty_name btnDownColumn
+    xywh {435 197 125 33} labelsize 16
+  }
+  Fl_Input table_constraints {
+    label {Table Constraints}
+    dirty_name table_constraints
+    xywh {5 255 555 75} type Multiline align 5
+  }
+  Fl_Group {} {open
+    xywh {5 336 554 39} box ENGRAVED_BOX labeltype NO_LABEL
+  } {
+    Fl_Button btnCheck {
+      label Check
+      dirty_name btnCheck
+      xywh {10 340 115 30} labelsize 16
+    }
+    Fl_Button btnOk {
+      label OK
+      dirty_name btnOk
+      xywh {310 340 115 30} labelsize 16
+    }
+    Fl_Button btnCancel {
+      label Cancel
+      dirty_name btnCancel
+      xywh {435 340 115 30} labelsize 16
+    }
+  }
+  Fl_Text_Editor output_editor {
+    dirty_name output_editor
+    xywh {5 382 555 71} labelsize 18 textsize 18
+    class Fl_Text_Editor_Buffered
+  }
+} 
+
+widget_class CreateTableFieldWindow {
+  label {Create/Edit Table Field}
+  xywh {665 216 330 375} type Double hide resizable
+  class Fl_Double_Window
+} {
+  Fl_Input field_name {
+    label {Name:}
+    dirty_name field_name
+    xywh {90 10 230 25}
+  }
+  Fl_Choice field_type {
+    label {Data type:}
+    dirty_name field_type open
+    xywh {90 40 230 25} down_box BORDER_BOX
+  } {}
+  Fl_Group group_constraints {
+    label Constraints
+    macro_name group_constraints open
+    xywh {5 90 320 240} box ENGRAVED_BOX align 5
+  } {
+    Fl_Check_Button field_primary_key {
+      label {Primary Key}
+      dirty_name field_primary_key
+      xywh {10 95 110 25} down_box DOWN_BOX
+    }
+    Fl_Check_Button field_unique {
+      label Unique
+      dirty_name field_unique
+      xywh {10 120 110 25} down_box DOWN_BOX
+    }
+    Fl_Check_Button field_not_null {
+      label {Not Null}
+      dirty_name field_not_null
+      xywh {10 145 110 25} down_box DOWN_BOX
+    }
+    Fl_Check_Button field_default {
+      label Default
+      dirty_name field_default
+      xywh {10 170 110 25} down_box DOWN_BOX
+    }
+    Fl_Input field_default_value {
+      dirty_name field_default_value
+      xywh {85 170 230 25} labeltype NO_LABEL
+    }
+    Fl_Input field_check {
+      label {Check:}
+      dirty_name field_check
+      xywh {85 200 230 25}
+    }
+    Fl_Choice field_collate {
+      label {Collate:}
+      dirty_name field_collate open
+      xywh {85 230 230 25} down_box BORDER_BOX
+    } {}
+  }
+  Fl_Group {} {open
+    xywh {5 336 320 39} box ENGRAVED_BOX labeltype NO_LABEL
+  } {
+    Fl_Button btnOk {
+      label OK
+      dirty_name btnOk
+      xywh {10 340 115 30} labelsize 16
+    }
+    Fl_Button btnCancel {
+      label Cancel
+      dirty_name btnCancel
+      xywh {205 340 115 30} labelsize 16
+    }
   }
 } 

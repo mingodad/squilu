@@ -13,7 +13,7 @@ Jaml.register('2TRDataTable', function(args) {
 		tr(
 		//(args.table_height || "100%") 65% for firefox
 			td({colspan:3, style: "width:100%;height:" + (args.table_height || "100%") + "; vertical-align:top;"},
-				div({'class': "divTable", style: "width:100%;height:100%;overflow:auto;"},
+				div({'class': "divTable", style: "width:100%;height:100%;overflow:auto;min-height:6em;"},
 					div({style:"height: 0px;"},
 						table({id: args.table_id, 'class': "wrappedTable"},
 							tbody(),

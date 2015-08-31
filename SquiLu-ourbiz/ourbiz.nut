@@ -196,6 +196,7 @@ local function getOurbizDBFileName(){
 	if(globals.rawget("jniLog", false)) return APP_CODE_FOLDER + "/ourbiz.db";
 	if(globals.rawget("WIN32", false)) return APP_CODE_FOLDER + "/../../ourbiz-uk/ourbiz.db";
 	return "/home/mingo/dev/FrontAccountLua/ourbiz.db";
+	//return "file:ourbiz_db?mode=memory&cache=shared";
 }
 
 local ourbizDB = null;
@@ -457,7 +458,7 @@ local DB_Manager = class {
 		}
 		local result = stmt.step();
 		stmt.finalize()
-		if (result == SQLite3Stmt.DONE) return db.last_insert_rowid();
+		if (result == SQLite3Stmt.DONE) return db.last_row_id();
 		throw db.errmsg();
 	}
 
@@ -3119,7 +3120,7 @@ local function ourbizDbMobile(request){
 	mFile.clear();
 	data.mix_write <- function(str){ if(str) mFile.write(str); };
 	fillTemplate("mobile-list.tpl", data, AT_DEV_DBG);
-	request.print(format("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: %d\r\n\r\n", mFile.len()));
+	request.print(format("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nConnection: Keep-Alive\r\nContent-Length: %d\r\n\r\n", mFile.len()));
 	request.write_blob(mFile);
 	return true;
 }
@@ -3149,6 +3150,7 @@ local function ourbizDbGetList(request){
 				request.print(format([==[
 HTTP/1.1 200 OK
 Content-type: application/pdf
+Connection: Keep-Alive
 Content-Disposition: attachment; filename=%s-list.pdf
 Content-Length: %d
 
@@ -3173,7 +3175,8 @@ Content-Length: %d
 		if (data){
 			//using string.format with binary data gives wrong results
 			gmFile.clear()
-			gmFile.write("HTTP/1.1 200 OK\r\nContent-type: text/plain; charset=x-user-defined\r\nContent-Length: ", data.len(), "\r\n\r\n", data);
+			gmFile.write("HTTP/1.1 200 OK\r\nContent-type: text/plain; charset=x-user-defined\r\nConnection: Keep-Alive\r\nContent-Length: ", 
+				data.len(), "\r\n\r\n", data);
 			request.write_blob(gmFile);
 			return true;
 		}
@@ -3202,6 +3205,7 @@ local function ourbizDbGetOne(request){
 			request.print(format([==[
 HTTP/1.1 200 OK
 Content-type: application/pdf
+Connection: Keep-Alive
 Content-Disposition: attachment; filename=%s-list.pdf
 Content-Length: %d
 
@@ -3227,7 +3231,8 @@ Content-Length: %d
 		if (data){
 			//using string.format with binary data gives wrong results
 			gmFile.clear();
-			gmFile.write("HTTP/1.1 200 OK\r\nContent-type: text/plain; charset=x-user-defined\r\nContent-Length: ", data.len(), "\r\n\r\n", data);
+			gmFile.write("HTTP/1.1 200 OK\r\nContent-type: text/plain; charset=x-user-defined\r\nConnection: Keep-Alive\r\nContent-Length: ", 
+				data.len(), "\r\n\r\n", data);
 			request.write_blob(gmFile);
 			return true;
 		}
@@ -3253,7 +3258,7 @@ local function ourbizDbGetBin(request){
 				local img_etag = stmt.col(0)
 				if( etag == img_etag) {
 					gmFile.clear();
-					gmFile.write("HTTP/1.1 304 OK\r\nContent-Length: 0\r\n\r\n");
+					gmFile.write("HTTP/1.1 304 OK\r\nContent-Length: 0\r\nConnection: Keep-Alive\r\n\r\n");
 					request.write_blob(gmFile);
 					stmt.finalize();
 					return result;
@@ -3280,7 +3285,10 @@ local function ourbizDbGetBin(request){
 				local img_etag = stmt.col(2)
 				//using string.format with binary data gives wrong results
 				gmFile.clear();
-				gmFile.write("HTTP/1.1 200 OK\r\nContent-type: ", mime, "\r\nContent-Length: ", data.len(), "\r\nETag: ", img_etag, "\r\n\r\n", data);
+				gmFile.write("HTTP/1.1 200 OK\r\nContent-type: ", mime, 
+					"\r\nContent-Length: ", data.len(), 
+					"\r\nConnection: Keep-Alive",
+					"\r\nETag: ", img_etag, "\r\n\r\n", data);
 				request.write_blob(gmFile);
 			}
 			stmt.finalize();
@@ -3327,7 +3335,8 @@ local function ourbizDbAction(request) {
 		if (data){
 			//using string.format with binary data gives wrong results
 			gmFile.clear();
-			gmFile.write("HTTP/1.1 200 OK\r\nContent-type: text/plain; charset=x-user-defined\r\nContent-Length: ", data.len(), "\r\n\r\n", data);
+			gmFile.write("HTTP/1.1 200 OK\r\nContent-type: text/plain; charset=x-user-defined\r\nConnection: Keep-Alive\r\nContent-Length: ", 
+				data.len(), "\r\n\r\n", data);
 			//debug_print(tostring(gmFile), "\n")
 			request.write_blob(gmFile);
 			return true;
@@ -3338,7 +3347,7 @@ local function ourbizDbAction(request) {
 
 add_uri_hanlders({
 	["/OURBIZ"] =function(request){
-		request.print("HTTP/1.1 200 OK\r\nServer: OurBiz\r\nContent-Length: 0\r\n\r\n");
+		request.print("HTTP/1.1 200 OK\r\nServer: OurBiz\r\nConnection: Keep-Alive\r\nContent-Length: 0\r\n\r\n");
 		return true;
 	},
 	["/GET-AUTH-REQ"] =function(request){

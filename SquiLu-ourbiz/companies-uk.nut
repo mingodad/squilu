@@ -17,6 +17,7 @@ local function getCompaniesUkDBFileName(){
 	//return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-RG-2014-07.db";
 	//return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-2013-10.db";
 	return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-2014-07.db";
+	//return "file:companies_uk_db?mode=memory&cache=shared";
 }
 
 local companiesUkDB = null;
@@ -631,7 +632,7 @@ local my_uri_handlers = {
 			data.rows <- result[0];
 			data.limit <- result[2];
 			if (!data.sicSearchResults && data.rows.len() == 1) {
-					request.print(format("HTTP/1.1 302 Found\r\nLocation: /view?id=%d\r\n\r\n", data.rows[0][0]));
+					request.print(format("HTTP/1.1 302 Found\r\nLocation: /view?id=%d\r\nConnection: Keep-Alive\r\n\r\n", data.rows[0][0]));
 					return true;
 			}
 			if (strHasContent(data.search_origin_post_code)) {
@@ -643,7 +644,7 @@ local my_uri_handlers = {
 		mFile.clear();
 		data.mix_write <- function(str) {if(str) mFile.write(str);}
 		fillTemplate("index.tpl", data, AT_DEV_DBG);
-		request.print(format("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: %d\r\n\r\n", mFile.len()));
+		request.print(format("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nConnection: Keep-Alive\r\nContent-Length: %d\r\n\r\n", mFile.len()));
 		request.write_blob(gmFile);
 		return true;
 	},
@@ -677,7 +678,7 @@ local my_uri_handlers = {
 		mFile.clear();
 		data.mix_write <- function(str) {mFile.write(str || "");}
 		fillTemplate("index.tpl", data, AT_DEV_DBG);
-		request.print(format("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: %d\r\n\r\n", mFile.len()));
+		request.print(format("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nConnection: Keep-Alive\r\nContent-Length: %d\r\n\r\n", mFile.len()));
 		request.write_blob(mFile);
 		return true;
 	},
@@ -703,13 +704,13 @@ local my_uri_handlers = {
 		
 
 		result = var2json(result[0]);
-		request.print(format("HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: %d\r\n\r\n", result.len()));
+		request.print(format("HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nConnection: Keep-Alive\r\nContent-Length: %d\r\n\r\n", result.len()));
 		request.print(result);
 		return true;
 	},
 	["/hello"] = function(request){
 		local response = "<html><body>Hello World !</body></html>"
-		request.print(format("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: %d\r\n\r\n%s", response.len(), response));
+		request.print(format("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nConnection: Keep-Alive\r\nContent-Length: %d\r\n\r\n%s", response.len(), response));
 		return true;
 	},
 }

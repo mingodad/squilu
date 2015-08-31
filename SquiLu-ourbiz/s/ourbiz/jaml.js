@@ -67,14 +67,14 @@ Jaml.Node.prototype = {
   setAttributes: function(attrs) {
     for (var key in attrs) {
       //convert cls to class
-      var mappedKey = key == 'cls' ? 'class' : key;
+      var mappedKey = key === 'cls' ? 'class' : key;
 	  var mappedValue = attrs[key];
-	  if(typeof mappedValue == 'object'){
+	  if(typeof mappedValue === 'object'){
 		var ary = [];
 		for(var okey in mappedValue){
 			ary.push(okey);
 			ary.push(':');
-			ary.push(mappedValue[okey])
+			ary.push(mappedValue[okey]);
 			ary.push(';');
 		}
 		mappedValue = ary.join('');
@@ -117,13 +117,13 @@ Jaml.Node.prototype = {
     for (var key in this.attributes) {
       attrs.push(key + "=\"" + this.attributes[key] + "\"");
     }    
-    attrs.sort()
+    attrs.sort();
     //add any tag attributes
     for (var i=0; i<attrs.length; i++) {
       node.push(" " + attrs[i]);
     }
     
-    if (this.isSelfClosing() && this.children.length==0) {
+    if (this.isSelfClosing() && this.children.length===0) {
       node.push("/>\n");
     } else {
       node.push(">");
@@ -152,7 +152,7 @@ Jaml.Node.prototype = {
       var child = children[i];
       if (child instanceof Array) {
         var nestedChildren = child;
-        this.renderChildren(node, nestedChildren, lpad)
+        this.renderChildren(node, nestedChildren, lpad);
       } else {
         node.push(child.render(childLpad));
       }
@@ -167,7 +167,7 @@ Jaml.Node.prototype = {
     var childLength = this.children.length,
         multiLine   = childLength > 0;
     
-    if (childLength == 1 && this.children[0] instanceof Jaml.TextNode) multiLine = false;
+    if (childLength === 1 && this.children[0] instanceof Jaml.TextNode) multiLine = false;
     
     return multiLine;
   },
@@ -187,7 +187,7 @@ Jaml.Node.prototype = {
    */
   isSelfClosing: function() {
     for (var i = this.notSelfClosingTags.length - 1; i >= 0; i--) {
-      if (this.tagName == this.notSelfClosingTags[i]) return false;
+      if (this.tagName === this.notSelfClosingTags[i]) return false;
     }
 
     return true;
@@ -246,7 +246,7 @@ Jaml.Template.prototype = {
     
     //the 'data' argument can come in two flavours - array or non-array. Normalise it
     //here so that it always looks like an array.
-    if (data.constructor.toString().indexOf("Array") == -1) {
+    if (data.constructor.toString().indexOf("Array") === -1) {
       data = [data];
     }
     
@@ -278,7 +278,7 @@ Jaml.Template.prototype = {
     for (var i=0; i < this.nodes.length; i++) {
       var node = this.nodes[i];
       
-      if (node.parent == undefined) roots.push(node);
+      if (node.parent === undefined) roots.push(node);
     };
     
     return roots;
@@ -310,7 +310,7 @@ Jaml.Template.prototype = {
     return function(attrs) {
       var node = new Jaml.Node(tagName);
 
-      var firstArgIsAttributes =  (typeof attrs == 'object')
+      var firstArgIsAttributes =  (typeof attrs === 'object')
                                && !(attrs instanceof Jaml.Node)
                                && !(attrs instanceof Jaml.TextNode);
 
@@ -321,7 +321,7 @@ Jaml.Template.prototype = {
       for (var i=startIndex; i < arguments.length; i++) {
         var arg = arguments[i];
 
-        if (typeof arg == "string" || arg == undefined) {
+        if (typeof arg === "string" || arg === undefined) {
           arg = new Jaml.TextNode(arg || "");
         }
 

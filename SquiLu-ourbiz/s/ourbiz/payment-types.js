@@ -82,7 +82,7 @@ function newPaymentTypesListEditWindow(){
 			table_id: table_id,
 			table_header_id: table_header_id
 		}
-		data.table_height = "50%";
+		//data.table_height = "50%";
 		data.data_table = Jaml.render('2TRDataTable', data);
 		
 		var win = dad.newWindow(newId,220,20, 550, 450, _tr(title), Jaml.render('PaymentTypesListEdit', data));

@@ -2,7 +2,7 @@ Jaml.register('GroupsListEdit', function(args) {
 	var newIdBy2 = dad.newIdBy2calls;
 	form({action: "/DB/Action", method: "post", id: args.form_id, style: "width:100%;height:100%;"},
 		table({style: "width:100%;height:100%;"},
-			tr(td(div({id:args.div_tree_id, 'class': "divTree", style: "width:99%;overflow:auto;height:18em;"}))),
+			tr({style: "height:100%;"},td(div({id:args.div_tree_id, 'class': "divTree", style: "width:100%;height:100%;overflow:auto;min-height:8em;"}))),
 			tr(
 				td({'class': "editBox", style: "width:100%;"},
 					fieldset(legend(_tr("Edit Form")),

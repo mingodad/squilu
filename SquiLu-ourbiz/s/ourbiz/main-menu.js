@@ -1,3 +1,10 @@
+function checkNeedNewWindow(event, win)
+{
+	var evt = dad.checkEvent(event);
+	//console.log(evt.ctrlKey);
+	return evt.ctrlKey || !win
+}
+
 function newMainOrdersListSearchWindow(otype){
 	//dad.loadScript('orders.js');
 	if(window.newOrdersListSearchWindow) newOrdersListSearchWindow(otype);

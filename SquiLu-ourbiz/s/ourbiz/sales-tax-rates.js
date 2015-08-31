@@ -73,7 +73,7 @@ function newSalesTaxListEditWindow(){
 			table_id: table_id,
 			table_header_id: table_header_id
 		}
-		data.table_height = "50%";
+		//data.table_height = "100%";
 		data.data_table = Jaml.render('2TRDataTable', data);
 
 		var win = dad.newWindow(newId,220,20, 460, 420, _tr(title), Jaml.render('SalesTaxListEdit', data));

@@ -569,7 +569,7 @@ function GetAccessMode(t, mode){
 FindMembers.Function <- function(t, list){
 	if (t.name == "") t.name = "make_window()";
 	local name = t.name.match("[%w_]+");
-	if (t.parent.name == name) { // constructor
+	if (t.parent.rawget("name",  "") == name) { // constructor
 		t.name = "__constructor()";
 		t.parent.constructor <- t.name;
 	}

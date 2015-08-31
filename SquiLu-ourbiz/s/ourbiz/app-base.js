@@ -612,8 +612,8 @@ dad.Ajax = function(callback, params, cache)
       if (dad.inArray(verb, ['POST', 'PUT']))
          {
             this.request.setRequestHeader('Content-Type',   'application/x-www-form-urlencoded; charset=utf-8');
-            this.request.setRequestHeader('Content-length', what.length);
-            this.request.setRequestHeader('Connection',     'close');
+            //this.request.setRequestHeader('Content-Length', what.length);
+            //this.request.setRequestHeader('Connection',     'close');
          }
       if (headers)
          for (var i = 0, len = headers.length; i < len; i++)

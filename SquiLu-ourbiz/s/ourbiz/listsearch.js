@@ -95,7 +95,8 @@ function newListSearchWindow(all_sales_buys, title, colHeaders, editWindow, dbTa
 			search_on: Jaml.render(search_on, obj_id),
 			search_on2: Jaml.render(search_on2, obj_id)
 		}
-		data.table_height = (dad.isIE && (dad.isIE == 9)) ? "20em" : "19em";
+		data.table_height = (dad.isIE ? ((dad.isIE == 9) ? "20em" : "19em") : "100%");
+		//data.table_height = (dad.isIE && (dad.isIE == 9)) ? "20em" : "19em";
 		data.data_table = Jaml.render('2TRDataTable', data);
 
 		var win = dad.newWindow(newId,220,20, 800, 500, title, Jaml.render('ListSearch', data));
