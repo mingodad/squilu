@@ -1423,6 +1423,8 @@ static SQRESULT sq_sqlite3_close_release(HSQUIRRELVM v, sq_sqlite3_sdb *sdb)
             sq_release(sdb->v, &sdb->trace_udata);
             sq_release(sdb->v, &sdb->update_hook_cb);
             sq_release(sdb->v, &sdb->update_hook_udata);
+            sq_release(sdb->v, &sdb->authorizer_hook_cb);
+            sq_release(sdb->v, &sdb->authorizer_hook_udata);
             sq_release(sdb->v, &sdb->null_value);
 
             sq_free(sdb, sizeof(sq_sqlite3_sdb));
@@ -1460,6 +1462,8 @@ static SQRESULT sq_sqlite3_constructor(HSQUIRRELVM v)
     sq_resetobject(&sdb->trace_udata);
     sq_resetobject(&sdb->update_hook_cb);
     sq_resetobject(&sdb->update_hook_udata);
+    sq_resetobject(&sdb->authorizer_hook_cb);
+    sq_resetobject(&sdb->authorizer_hook_udata);
     sq_resetobject(&sdb->null_value);
 
     sq_setinstanceup(v, 1, sdb);
@@ -1697,10 +1701,10 @@ static SQRESULT sq_sqlite3_rekey(HSQUIRRELVM v)
 ** Params: userdata
 ** returns: 0 to return immediatly and return SQLITE_ABORT, non-zero to continue
 */
-static int db_progress_callback(void *user)
+static int db_progress_callback(void *udata)
 {
     SQInteger result = 1; /* abort by default */
-    sq_sqlite3_sdb *sdb = (sq_sqlite3_sdb*)user;
+    sq_sqlite3_sdb *sdb = (sq_sqlite3_sdb*)udata;
     HSQUIRRELVM v = sdb->v;
     int top = sq_gettop(v);
 
@@ -1770,9 +1774,9 @@ static SQRESULT sq_sqlite3_progress_handler(HSQUIRRELVM v)
 ** callback function:
 ** Params: userdata, sql
 */
-static void db_trace_callback(void *user, const char *sql)
+static void db_trace_callback(void *udata, const char *sql)
 {
-    sq_sqlite3_sdb *sdb = (sq_sqlite3_sdb*)user;
+    sq_sqlite3_sdb *sdb = (sq_sqlite3_sdb*)udata;
     HSQUIRRELVM v = sdb->v;
     int top = sq_gettop(v);
 
@@ -1838,10 +1842,10 @@ static SQRESULT sq_sqlite3_trace(HSQUIRRELVM v)
 ** callback function:
 ** Params: userdata, sql
 */
-static void db_update_hook_callback(void *user, int update_type,
+static void db_update_hook_callback(void *udata, int update_type,
                 char const *db_name, char const *table_name, sqlite3_int64 rowid)
 {
-    sq_sqlite3_sdb *sdb = (sq_sqlite3_sdb*)user;
+    sq_sqlite3_sdb *sdb = (sq_sqlite3_sdb*)udata;
     HSQUIRRELVM v = sdb->v;
     int top = sq_gettop(v);
 
@@ -1898,6 +1902,114 @@ static SQRESULT sq_sqlite3_update_hook(HSQUIRRELVM v)
 }
 
 /*
+** authorizer hook callback:
+** Params: database, callback function, userdata
+**
+** callback function:
+** Params: userdata, sql
+*/
+#if 0
+/******************************************* 3rd ************ 4th ***********/
+#define SQLITE_CREATE_INDEX          1   /* Index Name      Table Name      */
+#define SQLITE_CREATE_TABLE          2   /* Table Name      NULL            */
+#define SQLITE_CREATE_TEMP_INDEX     3   /* Index Name      Table Name      */
+#define SQLITE_CREATE_TEMP_TABLE     4   /* Table Name      NULL            */
+#define SQLITE_CREATE_TEMP_TRIGGER   5   /* Trigger Name    Table Name      */
+#define SQLITE_CREATE_TEMP_VIEW      6   /* View Name       NULL            */
+#define SQLITE_CREATE_TRIGGER        7   /* Trigger Name    Table Name      */
+#define SQLITE_CREATE_VIEW           8   /* View Name       NULL            */
+#define SQLITE_DELETE                9   /* Table Name      NULL            */
+#define SQLITE_DROP_INDEX           10   /* Index Name      Table Name      */
+#define SQLITE_DROP_TABLE           11   /* Table Name      NULL            */
+#define SQLITE_DROP_TEMP_INDEX      12   /* Index Name      Table Name      */
+#define SQLITE_DROP_TEMP_TABLE      13   /* Table Name      NULL            */
+#define SQLITE_DROP_TEMP_TRIGGER    14   /* Trigger Name    Table Name      */
+#define SQLITE_DROP_TEMP_VIEW       15   /* View Name       NULL            */
+#define SQLITE_DROP_TRIGGER         16   /* Trigger Name    Table Name      */
+#define SQLITE_DROP_VIEW            17   /* View Name       NULL            */
+#define SQLITE_INSERT               18   /* Table Name      NULL            */
+#define SQLITE_PRAGMA               19   /* Pragma Name     1st arg or NULL */
+#define SQLITE_READ                 20   /* Table Name      Column Name     */
+#define SQLITE_SELECT               21   /* NULL            NULL            */
+#define SQLITE_TRANSACTION          22   /* Operation       NULL            */
+#define SQLITE_UPDATE               23   /* Table Name      Column Name     */
+#define SQLITE_ATTACH               24   /* Filename        NULL            */
+#define SQLITE_DETACH               25   /* Database Name   NULL            */
+#define SQLITE_ALTER_TABLE          26   /* Database Name   Table Name      */
+#define SQLITE_REINDEX              27   /* Index Name      NULL            */
+#define SQLITE_ANALYZE              28   /* Table Name      NULL            */
+#define SQLITE_CREATE_VTABLE        29   /* Table Name      Module Name     */
+#define SQLITE_DROP_VTABLE          30   /* Table Name      Module Name     */
+#define SQLITE_FUNCTION             31   /* NULL            Function Name   */
+#define SQLITE_SAVEPOINT            32   /* Operation       Savepoint Name  */
+#define SQLITE_COPY                  0   /* No longer used */
+#define SQLITE_RECURSIVE            33   /* NULL            NULL            */
+#endif
+static int db_authorizer_hook_callback(void *udata, int action_code,
+                char const *param3, char const *param4,
+                char const *param5, char const *param6)
+{
+    sq_sqlite3_sdb *sdb = (sq_sqlite3_sdb*)udata;
+    HSQUIRRELVM v = sdb->v;
+    int top = sq_gettop(v);
+    SQInteger result = SQLITE_OK;
+
+    /* setup squirrel callback call */
+    sq_pushobject(v, sdb->authorizer_hook_cb);
+    sq_pushroottable(v);
+    sq_pushobject(v, sdb->authorizer_hook_udata);
+    sq_pushinteger(v, action_code);
+    sq_pushstring(v, param3, -1);
+    sq_pushstring(v, param4, -1);
+    sq_pushstring(v, param5, -1);
+    sq_pushstring(v, param6, -1);
+
+    /* call lua function */
+    /* ignore any error generated by this function */
+    if (sq_call(v, 7, SQTrue, SQFalse) == SQ_OK)
+        sq_getinteger(v, -1, &result);
+
+    sq_settop(v, top);
+    return result;
+}
+
+static SQRESULT sq_sqlite3_set_authorizer(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    GET_sqlite3_INSTANCE();
+
+    if (_top_ < 2 || sq_gettype(v, 2) == OT_NULL)
+    {
+        sq_release(v, &sdb->authorizer_hook_cb);
+        sq_release(v, &sdb->authorizer_hook_udata);
+
+        sq_resetobject(&sdb->authorizer_hook_cb);
+        sq_resetobject(&sdb->authorizer_hook_udata);
+
+        /* clear trace handler */
+        sqlite3_set_authorizer(self, NULL, NULL);
+    }
+    else
+    {
+        if(sq_gettype(v, 2) != OT_CLOSURE)
+            return sq_throwerror(v, _SC("invalid fisrt parameter expected closure"));
+
+        sq_getstackobj(v, 2, &sdb->authorizer_hook_cb);
+        sq_addref(v, &sdb->authorizer_hook_cb);
+        if(_top_ > 2)
+        {
+            sq_getstackobj(v, 3, &sdb->authorizer_hook_udata);
+            sq_addref(v, &sdb->authorizer_hook_udata);
+        }
+
+        /* set authorizer_hook callback */
+        sqlite3_set_authorizer(self, db_authorizer_hook_callback, sdb);
+    }
+
+    return 0;
+}
+
+/*
 ** busy handler:
 ** Params: database, callback function, userdata
 **
@@ -1905,10 +2017,10 @@ static SQRESULT sq_sqlite3_update_hook(HSQUIRRELVM v)
 ** Params: userdata, number of tries
 ** returns: 0 to return immediatly and return SQLITE_BUSY, non-zero to try again
 */
-static int db_busy_callback(void *user, int tries)
+static int db_busy_callback(void *udata, int tries)
 {
     SQBool retry = SQFalse; /* abort by default */
-    sq_sqlite3_sdb *sdb = (sq_sqlite3_sdb*)user;
+    sq_sqlite3_sdb *sdb = (sq_sqlite3_sdb*)udata;
     HSQUIRRELVM v = sdb->v;
     int top = sq_gettop(v);
 
@@ -2516,6 +2628,7 @@ static SQRegFunction sq_sqlite3_methods[] =
     _DECL_FUNC(progress_handler,  -2, _SC("x i|o c .")),
     _DECL_FUNC(trace,  -2, _SC("x c|o .")),
     _DECL_FUNC(update_hook,  -2, _SC("x c|o .")),
+    _DECL_FUNC(set_authorizer,  -2, _SC("x c|o .")),
     _DECL_FUNC(busy_handler,  -2, _SC("x c|o .")),
     _DECL_FUNC(busy_timeout,  2, _SC("xi")),
     _DECL_FUNC(create_function,  -4, _SC("xsic.")),
@@ -2637,9 +2750,45 @@ extern "C" {
         INT_CONST(v,SQLITE_NOTICE_RECOVER_WAL);
         INT_CONST(v,SQLITE_NOTICE_RECOVER_ROLLBACK);
         INT_CONST(v,SQLITE_WARNING_AUTOINDEX);
-        INT_CONST(v,SQLITE_INSERT);
-        INT_CONST(v,SQLITE_UPDATE);
-        INT_CONST(v,SQLITE_DELETE);
+
+        /*Authorizer codes*/
+        INT_CONST(v, SQLITE_IGNORE);
+        INT_CONST(v, SQLITE_DENY);
+        INT_CONST(v, SQLITE_CREATE_INDEX);
+        INT_CONST(v, SQLITE_CREATE_TABLE);
+        INT_CONST(v, SQLITE_CREATE_TEMP_INDEX);
+        INT_CONST(v, SQLITE_CREATE_TEMP_TABLE);
+        INT_CONST(v, SQLITE_CREATE_TEMP_TRIGGER);
+        INT_CONST(v, SQLITE_CREATE_TEMP_VIEW);
+        INT_CONST(v, SQLITE_CREATE_TRIGGER);
+        INT_CONST(v, SQLITE_CREATE_VIEW);
+        INT_CONST(v, SQLITE_DELETE);
+        INT_CONST(v, SQLITE_DROP_INDEX);
+        INT_CONST(v, SQLITE_DROP_TABLE);
+        INT_CONST(v, SQLITE_DROP_TEMP_INDEX);
+        INT_CONST(v, SQLITE_DROP_TEMP_TABLE);
+        INT_CONST(v, SQLITE_DROP_TEMP_TRIGGER);
+        INT_CONST(v, SQLITE_DROP_TEMP_VIEW);
+        INT_CONST(v, SQLITE_DROP_TRIGGER);
+        INT_CONST(v, SQLITE_DROP_VIEW);
+        INT_CONST(v, SQLITE_INSERT);
+        INT_CONST(v, SQLITE_PRAGMA);
+        INT_CONST(v, SQLITE_READ);
+        INT_CONST(v, SQLITE_SELECT);
+        INT_CONST(v, SQLITE_TRANSACTION);
+        INT_CONST(v, SQLITE_UPDATE);
+        INT_CONST(v, SQLITE_ATTACH);
+        INT_CONST(v, SQLITE_DETACH);
+        INT_CONST(v, SQLITE_ALTER_TABLE);
+        INT_CONST(v, SQLITE_REINDEX);
+        INT_CONST(v, SQLITE_ANALYZE);
+        INT_CONST(v, SQLITE_CREATE_VTABLE);
+        INT_CONST(v, SQLITE_DROP_VTABLE);
+        INT_CONST(v, SQLITE_FUNCTION);
+        INT_CONST(v, SQLITE_SAVEPOINT);
+        INT_CONST(v, SQLITE_COPY);
+        INT_CONST(v, SQLITE_RECURSIVE);
+
         //push sqlite3_NULL as a member
         sq_pushstring(v, nullName,-1);
         sq_pushobject(v, sqlite3_NULL);

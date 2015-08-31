@@ -45,6 +45,10 @@ struct sq_sqlite3_sdb
 
     HSQOBJECT update_hook_cb;       /* update hook callback */
     HSQOBJECT update_hook_udata;
+
+    HSQOBJECT authorizer_hook_cb;       /* update hook callback */
+    HSQOBJECT authorizer_hook_udata;
+
     HSQOBJECT null_value;
 };
 
