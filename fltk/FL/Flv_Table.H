@@ -91,10 +91,6 @@ public:
     {
         return (Flv_Feature)(feature() & FLVF_COL_DIVIDER)!=0;
     }
-    bool select_row(void)	//	Selecting row convenience function
-    {
-        return feature_test(FLVF_ROW_SELECT);
-    }
 
     //	These are guaranteed style retrieval functions and get
     //	the trickle down style information.  Any style elements

@@ -953,6 +953,14 @@ int Flv_Table::col( int n )
         n=vcols-1;
     if (n<0)
         n=0;
+    if(n==0)
+   {
+	if(hscrollbar.value())
+	{
+            hscrollbar.value(0);
+            hscrollbar.do_callback();
+	}
+    }
     if (n!=vcol)
     {
         vcol = n;

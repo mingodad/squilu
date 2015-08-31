@@ -268,6 +268,10 @@ public:
     {
         return feature_test(FLVF_FULL_RESIZE);
     }
+    bool select_row(void)	//	Selecting row convenience function
+    {
+        return feature_test(FLVF_ROW_SELECT);
+    }
 
     void get_default_style( Flv_Style &s );	//	Fill in s with default style
     int get_row( int x, int y );	//	Get row from X value
@@ -283,7 +287,7 @@ public:
     }
     Flv_ShowScrollbar has_scrollbar( Flv_ShowScrollbar v );
 
-    bool move_row(int amount);	//	Change row # by amount
+    virtual bool move_row(int amount);	//	Change row # by amount
 
     int row(void)	//	Get/set current row
     {
@@ -364,9 +368,9 @@ public:
     Flv_Style_List row_style;	//	Row styles
 
     int handle(int event);
-	
+
     DECLARE_CLASS_CHEAP_RTTI_2(Flv_List, Fl_Group)
-	
+
 protected:
     int vedit_when;	//	When does editing start
     int edit_row;
@@ -384,9 +388,9 @@ protected:
     int page_size(void);	//	Calculate useable page size
 
     int vrow;	//	Current selected row
-	
+
 	int last_click_timestamp;
-	
+
     unsigned char vmax_clicks;	//	Max clicks allowed
     unsigned char vclicks;
     bool vediting;	//	Are we editing now?

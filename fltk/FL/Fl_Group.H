@@ -116,7 +116,7 @@ public:
     \sa void remove(Fl_Widget&)
   */
   void remove(Fl_Widget* o) {remove(*o);}
-  void clear();
+  virtual void clear(); //make it virtual so derived classes will work properly when casted to Fl_Group
 
   /**
     See void Fl_Group::resizable(Fl_Widget *box)

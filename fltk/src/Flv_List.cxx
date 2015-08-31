@@ -895,18 +895,20 @@ void Flv_List::draw_scrollbars(int &X, int &Y, int &W, int &H )
 
     if (sh>0)
     {
+	int mylinesize = 10;
         hscrollbar.damage_resize(X,Y+H,W,vscrollbar_width);
-        hscrollbar.value( vrow_offset, 50,	0, vrow_width );	//	Fake out page size
-        hscrollbar.linesize( 10 );
+        hscrollbar.value( vrow_offset, 50,	0, vrow_width);	//	Fake out page size
+        hscrollbar.linesize( mylinesize );
         hscrollbar.minimum(0);
         hscrollbar.maximum(vrow_width-W);
 #ifdef FLTK_2
-        x = W - vrow_width/10 - vscrollbar_width*2;
+        x = W - vrow_width/mylinesize - vscrollbar_width*2;
         if (x<vscrollbar_width) x = vscrollbar_width;
         hscrollbar.slider_size(x);
 #else
-        x = vrow_width / 10;
-        hscrollbar.slider_size( (double)((double)x/(double)(W-vscrollbar_width*2)));
+        x = vrow_width / mylinesize;
+	double slider_size = ((double)x/(double)(W-vscrollbar_width*2));
+        hscrollbar.slider_size( slider_size / (vrow_width > W ? vrow_width / W : 1));
 #endif
         hscrollbar.Fl_Valuator::value( vrow_offset );	//	, 1,	0, vrows );
         if (!hscrollbar.visible())
@@ -1432,6 +1434,4 @@ static void revert(Fl_Style* s)
 Fl_Style* Flv_List::default_style =
     new Fl_Named_Style("Browser", revert, &Flv_List::default_style);
 #endif
-
-
 
