@@ -117,13 +117,13 @@ static int opt_linger(HSQUIRRELVM v, p_socket ps)
     if(sq_gettype(v, 3) != OT_TABLE) return sq_throwerror(v, _SC("table expected as parameter 2"));
     sq_pushliteral(v, _SC("on"));
     sq_get(v, 3);
-    if (!sq_gettype(v, -1) != OT_BOOL)
+    if (sq_gettype(v, -1) != OT_BOOL)
         return sq_throwerror(v, _SC("boolean 'on' field expected"));
     SQ_GET_BOOL(v, -1, bval);
     li.l_onoff = (u_short) bval == SQTrue;
     sq_pushliteral(v, _SC("timeout"));
     sq_get(v, 3);
-    if (!sq_gettype(v, -1) != OT_INTEGER)
+    if (sq_gettype(v, -1) != OT_INTEGER)
         return sq_throwerror(v, _SC("integer 'timeout' field expected"));
     SQ_GET_INTEGER(v, -1, ival);
     li.l_linger = (u_short) ival;
@@ -201,14 +201,14 @@ static int opt_setmembership(HSQUIRRELVM v, p_socket ps, int level, int name)
     if(sq_gettype(v, 3) != OT_TABLE) return sq_throwerror(v, _SC("table expected as parameter 2"));
     sq_pushliteral(v, _SC("multiaddr"));
     sq_get(v, 3);
-    if (!sq_gettype(v, -1) != OT_STRING)
+    if (sq_gettype(v, -1) != OT_STRING)
         return sq_throwerror(v, _SC("string 'multiaddr' field expected"));
     SQ_GET_STRING(v, -1, multiaddr);
     if (!inet_aton(multiaddr, &val.imr_multiaddr))
         return sq_throwerror(v, _SC("invalid 'multiaddr' ip address"));
     sq_pushliteral(v, _SC("interface"));
     sq_get(v, 3);
-    if (!sq_gettype(v, -1) != OT_STRING)
+    if (sq_gettype(v, -1) != OT_STRING)
         return sq_throwerror(v, _SC("string 'interface' field expected"));
     val.imr_interface.s_addr = htonl(INADDR_ANY);
     SQ_GET_STRING(v, -1, saddr);
