@@ -50,7 +50,7 @@ void sqstd_printcallstack(HSQUIRRELVM v)
 					break;
 				case OT_STRING:
 					sq_getstring(v,-1,&s);
-					pf(v,_SC("[%s] \"%s\"\n"),name,s);
+					pf(v,_SC("[%s] 10k max \"%.10000s\"\n"),name,s);
 					break;
 				case OT_TABLE:
 					pf(v,_SC("[%s] TABLE\n"),name);

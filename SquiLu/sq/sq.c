@@ -538,6 +538,8 @@ SQRESULT sqext_register_dad_utils(HSQUIRRELVM v);
 SQRESULT sqext_register_gumbo(HSQUIRRELVM v);
 SQRESULT sqext_register_sys(HSQUIRRELVM v);
 SQRESULT sqext_register_DNS_SD(HSQUIRRELVM v);
+SQRESULT sqext_register_ffi(HSQUIRRELVM v);
+SQRESULT sqext_register_xjd1(HSQUIRRELVM v);
 
 int main(int argc, char* argv[])
 {
@@ -568,11 +570,15 @@ int main(int argc, char* argv[])
 	sqext_register_base64(v);
 	sqext_register_Sq_Fpdf(v);
 	sqext_register_SQLite3(v);
+	sqext_register_xjd1(v);
 	sqext_register_mix(v);
 	sqext_register_sqfs(v);
 	sqext_register_sq_socket(v);
 #ifdef USE_AXTLS
 	sqext_register_axtls(v);
+#endif
+#ifdef WITH_FFI
+	sqext_register_ffi(v);
 #endif
 #ifdef USE_OPENSSL
 	sqext_register_openssl(v);
@@ -583,7 +589,9 @@ int main(int argc, char* argv[])
 	sqrat_register_importlib(v);
 	sqext_register_tinyxml2(v);
 #ifndef _WIN32_WCE
+#ifdef WITH_MPDECIMAL
 	sqext_register_decimal(v);
+#endif
 	sqext_register_markdown(v);
 #endif
 
@@ -594,7 +602,7 @@ int main(int argc, char* argv[])
 
 #ifdef WITH_FULL_DAD_EXTRAS
 	sqext_register_csv_parser(v);
-	sqext_register_sq_zmq3(v);
+	//sqext_register_sq_zmq3(v);
 	//sqext_register_Java(v);
 #endif
 

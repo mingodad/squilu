@@ -677,6 +677,32 @@ SQRESULT sq_setonregistrytable(HSQUIRRELVM v)
     return SQ_OK;
 }
 
+int sq_preload_modules(HSQUIRRELVM v, sq_modules_preload_st *modules){
+    int result = 0;
+    int saved_top = sq_gettop(v);
+    #define EXTENSIONS_KEY _SC("__Extensions")
+    sq_pushliteral(v, EXTENSIONS_KEY);
+    if(sq_getonregistrytable(v) != SQ_OK){
+        //create a table for Extensions
+        sq_newtable(v);
+        sq_pushstring(v, EXTENSIONS_KEY, -1);
+        sq_push(v, -2);
+        sq_setonregistrytable(v);
+    }
+
+    while(modules && modules->module_name){
+      //lua_checkstack(L, 20);
+      sq_pushstring(v, modules->module_name, -1);
+      sq_pushuserpointer(v, (SQUserPointer)modules->module_load_func);
+      sq_rawset(v, -3);
+      ++modules;
+      ++result;
+    }
+
+    sq_settop(v, saved_top);
+    return result;
+}
+
 void sq_pushconsttable(HSQUIRRELVM v)
 {
 	v->Push(_ss(v)->_consts);
@@ -1926,15 +1952,16 @@ SQRESULT sq_call_va_vl(HSQUIRRELVM v, SQBool reset_stack, SQInteger idx, const S
             sq_pushstring(v, va_arg(vl, SQChar *), -1);
             break;
 
-        case _SC('b'):  /* string argument */
+        case _SC('b'):  /* bool argument */
             sq_pushbool(v, va_arg(vl, int));
             break;
 
-        case _SC('n'):  /* string argument */
+        case _SC('n'):  /* null argument */
+            va_arg(vl, void *);
             sq_pushnull(v);
             break;
 
-        case _SC('p'):  /* string argument */
+        case _SC('p'):  /* pointer argument */
             sq_pushuserpointer(v, va_arg(vl, void *));
             break;
 

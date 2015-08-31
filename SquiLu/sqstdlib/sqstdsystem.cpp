@@ -47,19 +47,19 @@ SQ_OPT_STRING_STRLEN();
 
 static SQRESULT _system_getuuid(HSQUIRRELVM v)
 {
+    char s[64];
 #ifdef _WIN32
     UUID uuid;
     UuidCreate ( &uuid );
 
-    UuidToStringA ( &uuid, &str );
+    UuidToStringA ( &uuid, (unsigned char**)&s );
 
     sq_pushstring(v,s,-1);
 
-    RpcStringFreeA ( &str );
+    RpcStringFreeA ( (unsigned char**)&s );
 #else
     uuid_t uuid;
     uuid_generate_random ( uuid );
-    char s[37];
     uuid_unparse ( uuid, s );
     sq_pushstring(v,s,-1);
 #endif

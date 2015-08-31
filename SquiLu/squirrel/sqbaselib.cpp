@@ -1126,8 +1126,12 @@ static SQRESULT string_find(HSQUIRRELVM v)
 				sq_pushinteger(v,(SQInteger)(ret-str));
 				return 1;
 			}
+			else
+            {
+				sq_pushinteger(v,-1);
+				return 1;
+            }
 		}
-		return 0;
 	}
 	return sq_throwerror(v,_SC("invalid param"));
 }
@@ -1261,7 +1265,9 @@ static SQRESULT process_string_gmatch_find(LuaMatchState *ms, void *udata, char_
         sq_pushinteger(v, ms->end_pos);
     }
     for(; i < ms->level; ++i){
-        sq_pushstring(v, ms->capture[i].init, ms->capture[i].len);
+        ptrdiff_t len = ms->capture[i].len;
+        if(len == CAP_POSITION) sq_pushinteger(v, ms->capture[i].init - ms->src_init);
+        else sq_pushstring(v, ms->capture[i].init, len);
     }
     if(!isFind && i == 0){
         sq_pushstring(v, ms->src_init + ms->start_pos, ms->end_pos-ms->start_pos+1);
@@ -1608,30 +1614,11 @@ static SQRESULT string_rstrip(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQRESULT string_split_by_strtok(HSQUIRRELVM v)
-{
-	const SQChar *str,*seps;
-	SQChar *stemp,*tok;
-	sq_getstring(v,1,&str);
-	sq_getstring(v,2,&seps);
-	if(sq_getsize(v,2) == 0) return sq_throwerror(v,_SC("empty separators string"));
-	SQInteger memsize = (sq_getsize(v,1)+1)*sizeof(SQChar);
-	stemp = sq_getscratchpad(v,memsize);
-	memcpy(stemp,str,memsize);
-	tok = scstrtok(stemp,seps);
-	sq_newarray(v,0);
-	while( tok != NULL ) {
-		sq_pushstring(v,tok,-1);
-		sq_arrayappend(v,-2);
-		tok = scstrtok( NULL, seps );
-	}
-	return 1;
-}
-
-static SQRESULT string_split(HSQUIRRELVM v) {
+static SQRESULT string_split_csv(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, str);
     SQ_GET_INTEGER(v, 2, sep);
+    if((sep > 0xFF) || (sep < 0)) return sq_throwerror(v,_SC("character separator out of range 0..255"));
     const SQChar *token;
     sq_newarray(v,0);
     while ((token = scstrchr(str, sep)) != NULL) {
@@ -1645,6 +1632,51 @@ static SQRESULT string_split(HSQUIRRELVM v) {
     } else if( str_size && (*(str-1) == sep) ){ //last empty column ?
         sq_pushstring(v, _SC(""), 0);
         sq_arrayappend(v, -2);
+    }
+    return 1;
+}
+
+static SQRESULT string_split(HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQObjectType rtype = sq_gettype(v, 2);
+    if(rtype == OT_STRING)
+    {
+        const SQChar *str,*seps;
+        SQChar *stemp,*tok;
+        sq_getstring(v,1,&str);
+        sq_getstring(v,2,&seps);
+        if(sq_getsize(v,2) == 0) return sq_throwerror(v,_SC("empty separators string"));
+        SQInteger memsize = (sq_getsize(v,1)+1)*sizeof(SQChar);
+        stemp = sq_getscratchpad(v,memsize);
+        memcpy(stemp,str,memsize);
+        tok = scstrtok(stemp,seps);
+        sq_newarray(v,0);
+        while( tok != NULL ) {
+            sq_pushstring(v,tok,-1);
+            sq_arrayappend(v,-2);
+            tok = scstrtok( NULL, seps );
+        }
+    }
+    else if(rtype == OT_INTEGER)
+    {
+        const SQChar *token;
+        SQ_GET_STRING(v, 1, str);
+        SQ_GET_INTEGER(v, 2, sep);
+        if((sep > 0xFF) || (sep < 0)) return sq_throwerror(v,_SC("character separator out of range 0..255"));
+        sq_newarray(v,0);
+        while ((token = scstrchr(str, sep)) != NULL) {
+            int sz = token - str;
+            if(sz > 0)
+            {
+                sq_pushstring(v, str, token - str);
+                sq_arrayappend(v, -2);
+            }
+            str = token + 1;
+        }
+        if(*str){ //there is anything left ?
+            sq_pushstring(v, str, -1);
+            sq_arrayappend(v, -2);
+        }
     }
     return 1;
 }
@@ -1825,8 +1857,8 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("ltrim"),string_lstrip,1, _SC("s")},
 	{_SC("rstrip"),string_rstrip,1, _SC("s")},
 	{_SC("rtrim"),string_rstrip,1, _SC("s")},
-	{_SC("split"),string_split,2, _SC("si")},
-	{_SC("split_by_strtok"),string_split_by_strtok,2, _SC("ss")},
+	{_SC("split"),string_split,2, _SC("s i|s")},
+	{_SC("split_csv"),string_split_csv,2, _SC("si")},
 	{_SC("isempty"),string_isempty,1, _SC("s")},
 	{_SC("isalpha"),string_isalpha,2, _SC("si")},
 	{_SC("isdigit"),string_isdigit,2, _SC("si")},

@@ -137,12 +137,12 @@ typedef wchar_t USQChar;
 #define _SC(a) L##a
 #define scstrchr wcschr
 #ifdef _WIN32_WCE
-#define scsnprintf _snwprintf
+#define scsnprintf	_snwprintf
 #define scvfprintf	_vfwprintf
 #define scvsprintf	_vswprintf
 #define scvsnprintf	_vsnwprintf
 #else
-#define scsnprintf wsnprintf
+#define scsnprintf	wsnprintf
 #define scvfprintf	vfwprintf
 #define scvsprintf	vswprintf
 #define scvsnprintf	vswnprintf
@@ -167,14 +167,14 @@ typedef wchar_t USQChar;
 #define sciscntrl	iswcntrl
 #define scisalnum	iswalnum
 #define scprintf	wprintf
-#define MAX_CHAR 0xFFFF
+#define MAX_CHAR	0xFFFF
 #else
 typedef char SQChar;
 typedef unsigned char USQChar;
 #define uchar(c)    ((unsigned char)(c))
-#define _SC(a) a
-#define scstrchr strchr
-#define scsnprintf snprintf
+#define _SC(a)	a
+#define scstrchr	strchr
+#define scsnprintf	snprintf
 #define	scstrcmp	strcmp
 #define scsprintf	sprintf
 #define scstrlen	strlen
@@ -195,7 +195,7 @@ typedef unsigned char USQChar;
 #define scvsnprintf	vsnprintf
 #define scstrstr	strstr
 #define scstrpbrk	strpbrk
-#define scstrtok strtok
+#define scstrtok	strtok
 #define scisspace	isspace
 #define scisdigit	isdigit
 #define scisxdigit	isxdigit
@@ -203,14 +203,14 @@ typedef unsigned char USQChar;
 #define scisalpha	isalpha
 #define scisalnum	isalnum
 #define scprintf	printf
-#define MAX_CHAR 0xFF
+#define MAX_CHAR	0xFF
 #endif
 
 #ifdef _SQ64
-#define _PRINT_INT_PREC _SC("ll")
-#define _PRINT_INT_FMT _SC("%lld")
+#define _PRINT_INT_PREC	_SC("ll")
+#define _PRINT_INT_FMT	_SC("%lld")
 #else
-#define _PRINT_INT_FMT _SC("%d")
+#define _PRINT_INT_FMT	_SC("%d")
 #endif
 
 #define SQUIRREL_VERSION	_SC("SquiLu based on Squirrel 3.0.4 stable and Lua 5.1.5")
@@ -467,6 +467,13 @@ SQUIRREL_API SQRESULT sq_setonroottable(HSQUIRRELVM v);
 SQUIRREL_API void sq_pushregistrytable(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sq_getonregistrytable(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sq_setonregistrytable(HSQUIRRELVM v);
+
+typedef struct {
+    const char* module_name;
+    SQFUNCTION module_load_func;
+} sq_modules_preload_st;
+int sq_preload_modules(HSQUIRRELVM v, sq_modules_preload_st *modules);
+
 SQUIRREL_API void sq_pushconsttable(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sq_setroottable(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sq_setconsttable(HSQUIRRELVM v);

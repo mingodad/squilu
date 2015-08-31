@@ -36,8 +36,12 @@ SQInteger SQBlob::Write(const void *buffer, SQInteger size) {
     return size;
 }
 SQInteger SQBlob::WriteZstr(const char *zStr) {
-    SQInteger size = strlen(zStr);
-    return Write(zStr, size);
+    if(zStr) //do not try to strlen(NULL)
+    {
+        SQInteger size = strlen(zStr);
+        return Write(zStr, size);
+    }
+    return 0;
 }
 SQInteger SQBlob::WriteChar(const char c) {
     return Write(&c, 1);

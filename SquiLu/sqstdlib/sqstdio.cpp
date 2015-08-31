@@ -520,8 +520,8 @@ static SQRegFunction iolib_funcs[]={
 	_DECL_GLOBALIO_FUNC(loadfile,-2,_SC(".sbb")),
 	_DECL_GLOBALIO_FUNC(dofile,-2,_SC(".sbb")),
 	_DECL_GLOBALIO_FUNC(writeclosuretofile,3,_SC(".sc")),
-	_DECL_GLOBALIO_FUNC(dostring,-2,_SC(".sbb")),
-	_DECL_GLOBALIO_FUNC(loadstring,-2,_SC(".sbb")),
+	_DECL_GLOBALIO_FUNC(dostring,-2,_SC(".sb")),
+	_DECL_GLOBALIO_FUNC(loadstring,2,_SC(".s")),
 	_DECL_GLOBALIO_FUNC(dumpclosure,3,_SC(".sc")),
 	{0,0}
 };
