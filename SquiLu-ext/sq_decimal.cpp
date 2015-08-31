@@ -521,7 +521,7 @@ static const struct {
     /*Precision and Exponents*/
     CTXC(MAX_PREC)
     CTXC(MAX_EMAX)
-    CTXC(MIN_EMIN)
+    //CTXC(MIN_EMIN)
     /* rounding */
     CTXC(ROUND_UP)                  /* round away from 0 */
     CTXC(ROUND_DOWN)                /* round toward 0 (truncate) */
