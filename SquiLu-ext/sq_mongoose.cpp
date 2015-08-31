@@ -472,7 +472,7 @@ typedef char buf_1024_t[1024];
 
 static const char *my_encode_nonce(buf_1024_t buf, md5_buf_t md5_buf, unsigned long ip)
 {
-    snprintf(buf, sizeof(buf), "%lu:%d:%d:%lu", (unsigned long) time(NULL), rand(), rand(), ip);
+    snprintf(buf, sizeof(buf_1024_t), "%lu:%d:%d:%lu", (unsigned long) time(NULL), rand(), rand(), ip);
     mg_md5(md5_buf, buf, NULL);
     return md5_buf;
 }
@@ -1050,6 +1050,7 @@ extern "C" {
 #endif
 SQUIRREL_API SQRESULT sqext_register_SQLite3(HSQUIRRELVM v);
 SQRESULT sqext_register_MySQL(HSQUIRRELVM v);
+SQRESULT sqext_register_PostgreSQL(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sqext_register_base64(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sqext_register_mix(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sqstd_register_bloblib(HSQUIRRELVM v);
@@ -1065,6 +1066,7 @@ SQUIRREL_API SQRESULT sqext_register_sq_socket(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sqext_register_sq_slave_vm(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sqext_register_axtls (HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sqext_register_openssl (HSQUIRRELVM v);
+SQRESULT sqext_register_decimal(HSQUIRRELVM v);
 
 #ifdef __cplusplus
 } /*extern "C"*/
@@ -1114,11 +1116,15 @@ static HSQUIRRELVM my_new_squirrel(struct mg_context *ctx) {
 	sqstd_register_systemlib(v);
 	sqstd_register_mathlib(v);
 	sqstd_register_stringlib(v);
+	sqstd_register_stringlib(v);
 	sqext_register_base64(v);
 	sqext_register_Sq_Fpdf(v);
 	sqext_register_SQLite3(v);
 #ifdef WITH_MYSQL
 	sqext_register_MySQL(v);
+#endif
+#ifdef WITH_POSTGRESQL
+	sqext_register_PostgreSQL(v);
 #endif
 	sqext_register_sqfs(v);
 	sqext_register_mix(v);
