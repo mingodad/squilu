@@ -23,6 +23,7 @@
 #include <FL/Fl_Choice.H>
 #include <FL/Fl_Input_.H>
 #include <FL/Fl_Input.H>
+//#include <FL/Fl_Input_Choice.H>
 #include <FL/Fl_Float_Input.H>
 #include <FL/Fl_Int_Input.H>
 #include <FL/Fl_Output.H>
@@ -84,6 +85,7 @@ CREATE_TAG(Fl_Menu_Button);
 CREATE_TAG(Fl_Menu_Item);
 CREATE_TAG(Fl_Choice);
 CREATE_TAG(Fl_Input_);
+//CREATE_TAG(Fl_Input_Choice);
 CREATE_TAG(Fl_Float_Input);
 CREATE_TAG(Fl_Int_Input);
 CREATE_TAG(Fl_Output);
@@ -131,8 +133,11 @@ CREATE_TAG(Flu_Combo_Tree);
 static SQRESULT _fl_widget_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
 {
 	Fl_Widget *self = ((Fl_Widget *)p);
-	if(self) Fl::delete_widget(self);
-    //printf("Releasing %p\n", self);
+    //printf("Releasing %p %p %s\n", self, (self ? self->parent() : NULL),(self && ((void*)self->label()) ? self->label() : "l?"));
+	if(self && !self->parent())
+    {
+        Fl::delete_widget(self);
+    }
 	return 0;
 }
 
@@ -247,8 +252,8 @@ static SQRESULT fltk_register_object_and_instance(HSQUIRRELVM v, int instance_id
         sq_setonregistrytable(v);
     }
     sq_pushuserpointer(v, cptr);
-    //sq_weakref(v, instance_idx);
-    sq_push(v, instance_idx);
+    sq_weakref(v, instance_idx);
+    //sq_push(v, instance_idx);
     sq_rawset(v, -3);
     sq_pop(v, -1);
     return SQ_OK;
@@ -344,6 +349,7 @@ static SQRESULT _##Klass##_constructor(HSQUIRRELVM v)\
         return sq_throwerror(v, _SC("Wrong number of parameters."));\
     fltk_register_object_and_instance(v, 1, cptr);\
     sq_setinstanceup(v, 1, cptr);\
+    NOTHING(printf("%d Constructor %p\n", cptr));\
     RELEASE_HOOK(sq_setreleasehook(v,1,_release_hook));\
 	return 1;\
 }
@@ -366,11 +372,12 @@ static SQRESULT _##Klass##_constructor(HSQUIRRELVM v)\
 	} else \
         return sq_throwerror(v, _SC("Wrong number of parameters."));\
     sq_setinstanceup(v, 1, cptr);\
+    NOTHING(printf("%d Constructor %p\n", cptr));\
     RELEASE_HOOK(sq_setreleasehook(v,1,_release_hook));\
 	return 1;\
 }
 
-#define FLTK_CONSTRUCTOR(Klass) FLTK_CONSTRUCTOR_RELEASE(Klass, NOTHING, a)
+#define FLTK_CONSTRUCTOR(Klass) FLTK_CONSTRUCTOR_RELEASE(Klass, AS_IS, _fl_widget_releasehook)
 
 #define FUNC_GETSET_STR(prefix, getSelf, selfPtr, funcNAME) \
 static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
@@ -413,6 +420,20 @@ static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
     if(argc > 1){\
         sq_getinteger(v, 2, &iparm);\
         sq_pushinteger(v, selfPtr funcNAME((typeCast)iparm));\
+        return 1;\
+    }\
+    return sq_throwerror(v, _SC("one integer parameter expected"));\
+}
+
+#define FUNC_GET_BOOL_SET_INT_ONE_CALL(prefix, getSelf, selfPtr, funcNAME, typeCast) \
+static SQRESULT prefix##funcNAME(HSQUIRRELVM v) \
+{\
+    getSelf(v);\
+    SQInteger argc = sq_gettop(v);\
+    SQInteger iparm;\
+    if(argc > 1){\
+        sq_getinteger(v, 2, &iparm);\
+        sq_pushbool(v, selfPtr funcNAME((typeCast)iparm));\
         return 1;\
     }\
     return sq_throwerror(v, _SC("one integer parameter expected"));\
@@ -1165,13 +1186,13 @@ static SQRESULT _Fl_Menu_Item_pulldown(HSQUIRRELVM v)
         Fl_Menu_ *mn = 0;
 
         if(sq_gettype(v, 6) != OT_NULL)
-            if(SQ_FAILED(sq_getinstanceup(v,6,(SQUserPointer*)&picked,(void*)FLTK_TAG(Fl_Menu_Item)))) return SQ_ERROR;
+            if(SQ_FAILED(get_fltk_klass_instance(v,6,(SQUserPointer*)&picked,(void*)FLTK_TAG(Fl_Menu_Item)))) return SQ_ERROR;
 
         if(sq_gettype(v, 7) != OT_NULL)
-            if(SQ_FAILED(sq_getinstanceup(v,7,(SQUserPointer*)&mn,(void*)FLTK_TAG(Fl_Menu_)))) return SQ_ERROR;
+            if(SQ_FAILED(get_fltk_klass_instance(v,7,(SQUserPointer*)&mn,(void*)FLTK_TAG(Fl_Menu_)))) return SQ_ERROR;
 
         if(sq_gettype(v, 8) != OT_NULL)
-            if(SQ_FAILED(sq_getinstanceup(v,8,(SQUserPointer*)&title,(void*)FLTK_TAG(Fl_Menu_Item)))) return SQ_ERROR;
+            if(SQ_FAILED(get_fltk_klass_instance(v,8,(SQUserPointer*)&title,(void*)FLTK_TAG(Fl_Menu_Item)))) return SQ_ERROR;
 
         SQ_OPT_INTEGER(v, 9, menubar, 0);
         mi = self->pulldown(x, y, w, h, picked, mn, title, menubar);
@@ -1478,7 +1499,7 @@ static SQRESULT _Fl_Group_dispatcher(HSQUIRRELVM v, _Fl_Group_Funcs func_idx){
     switch(func_idx){
         case add:{
             SQUserPointer rsz;
-            sq_getinstanceup(v, -1, &rsz, 0);
+            get_fltk_klass_instance(v, -1, &rsz, 0);
             self->add((Fl_Widget*)rsz);
             return 0;
         }
@@ -1579,6 +1600,20 @@ static SQRESULT _Fl_Group_remove(HSQUIRRELVM v)
 	return 0;
 }
 
+static SQRESULT _Fl_Group_clear(HSQUIRRELVM v)
+{
+    SETUP_FL_GROUP(v);
+    self->clear();
+	return 0;
+}
+
+static SQRESULT _Fl_Group_children(HSQUIRRELVM v)
+{
+    SETUP_FL_GROUP(v);
+    sq_pushinteger(v, self->children());
+	return 1;
+}
+
 /*
 static SQRESULT _Fl_Group_resize(HSQUIRRELVM v)
 {
@@ -1604,7 +1639,9 @@ static SQRegFunction fl_group_obj_funcs[]={
 	_DECL_FUNC(add,2,_SC("xx"), SQFalse),
 	_DECL_FUNC(insert,3,_SC("xx x|i"), SQTrue),
 	_DECL_FUNC(remove,2,_SC("x x|i"), SQTrue),
+	_DECL_FUNC(children,1,_SC("x"), SQTrue),
 	_DECL_FUNC(current,1,_SC("y"), SQTrue),
+	_DECL_FUNC(clear,1,_SC("x"), SQFalse), //segfaulting right now
 	//_DECL_FUNC(resize,5,_SC("xiiii"), SQFalse),
 	{0,0}
 };
@@ -1947,7 +1984,7 @@ static SQRESULT Flv_Style_constructor(HSQUIRRELVM v){
 static SQRESULT Flv_Style_class(HSQUIRRELVM v){
     SQ_FUNC_VARS(v);
     Flv_Style *self;
-    if(sq_getinstanceup(v, 1, (void**)&self, (void*)FLTK_TAG(Flv_Style)) < 0) return SQ_ERROR;
+    if(get_fltk_klass_instance(v, 1, (void**)&self, (void*)FLTK_TAG(Flv_Style)) < 0) return SQ_ERROR;
     if(sq_getclosurename(v, 0) == SQ_OK) {
         SQ_GET_STRING(v, -1, name);
         sq_poptop(v);
@@ -2132,6 +2169,7 @@ FLTK_CONSTRUCTOR(Flv_List);
 #define FLV_LIST_GETSET_INT_CAST(funcNAME, typeNAME) FUNC_GETSET_INT(_Flv_List_, SETUP_FLV_LIST, self->, funcNAME, typeNAME)
 #define FLV_LIST_GETSET_INT(funcNAME) FLV_LIST_GETSET_INT_CAST(funcNAME, int)
 #define FLV_LIST_GETSET_INT_ONE_CALL_CAST(funcNAME, typeNAME) FUNC_GETSET_INT_ONE_CALL(_Flv_List_, SETUP_FLV_LIST, self->, funcNAME, typeNAME)
+#define FLV_LIST_GET_BOOL_SET_INT_ONE_CALL(funcNAME) FUNC_GET_BOOL_SET_INT_ONE_CALL(_Flv_List_, SETUP_FLV_LIST, self->, funcNAME, int)
 FLV_LIST_GETSET_INT_CAST(has_scrollbar, Flv_ShowScrollbar);
 FLV_LIST_GETSET_INT(scrollbar_width);
 FLV_LIST_GETSET_INT_ONE_CALL_CAST(feature, int);
@@ -2140,6 +2178,7 @@ FLV_LIST_GETSET_INT_ONE_CALL_CAST(feature_remove, int);
 FLV_LIST_GETSET_INT(rows);
 FLV_LIST_GETSET_INT(row);
 FLV_LIST_GETSET_INT(top_row);
+FLV_LIST_GET_BOOL_SET_INT_ONE_CALL(move_row);
 FLV_LIST_GETSET_INT(why_event);
 FLV_LIST_GETSET_INT(callback_when);
 
@@ -2158,7 +2197,7 @@ static SQRESULT _Flv_List_add_callback_when(HSQUIRRELVM v){
     SETUP_FLV_LIST(v);
     SQ_GET_INTEGER(v, 2, when);
     self->add_callback_when(when);
-    return 1;
+    return 0;
 }
 
 static SQRESULT _Flv_List_clear_callback_when(HSQUIRRELVM v){
@@ -2166,7 +2205,7 @@ static SQRESULT _Flv_List_clear_callback_when(HSQUIRRELVM v){
     SETUP_FLV_LIST(v);
     SQ_GET_INTEGER(v, 2, when);
     self->clear_callback_when(when);
-    return 1;
+    return 0;
 }
 
 //void get_style( Flv_Style &s, int R, int C=0 )
@@ -2178,6 +2217,19 @@ static SQRESULT _Flv_List_get_style(HSQUIRRELVM v){
     SQ_OPT_INTEGER(v, 4, col, 0);
     self->get_style(*style, row, col);
     return 0;
+}
+
+static SQRESULT _Flv_List_hscrollbar_value(HSQUIRRELVM v){
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FLV_LIST(v);
+    if(sq_gettop(v) > 1)
+    {
+        SQ_GET_INTEGER(v, 2, value);
+        self->get_hscrollbar()->value(value);
+        return 0;
+    }
+    sq_pushinteger(v, self->get_hscrollbar()->value());
+    return 1;
 }
 
 CHEAP_RTTI_FOR(Flv_List);
@@ -2192,6 +2244,7 @@ static SQRegFunction flv_list_obj_funcs[]={
 	_DECL_FUNC(feature_remove,-1,_SC("xi"),SQFalse),
 	_DECL_FUNC(rows,-1,_SC("xi"),SQFalse),
 	_DECL_FUNC(row,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(move_row,2,_SC("xi"),SQFalse),
 	_DECL_FUNC(top_row,-1,_SC("xi"),SQFalse),
 	_DECL_FUNC(global_style,1,_SC("x"),SQFalse),
 	_DECL_FUNC(row_style,1,_SC("x"),SQFalse),
@@ -2200,6 +2253,7 @@ static SQRegFunction flv_list_obj_funcs[]={
 	_DECL_FUNC(add_callback_when,2,_SC("xi"),SQFalse),
 	_DECL_FUNC(clear_callback_when,2,_SC("xi"),SQFalse),
 	_DECL_FUNC(get_style,-3,_SC("xxii"),SQFalse),
+	_DECL_FUNC(hscrollbar_value,-2,_SC("xi"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -2208,10 +2262,12 @@ FLTK_CONSTRUCTOR(Flv_Table);
 #define SETUP_FLV_TABLE(v) SETUP_FL_KLASS(v, Flv_Table)
 #define FLV_TABLE_GETSET_INT0(funcNAME, typeNAME) FUNC_GETSET_INT(_Flv_Table_, SETUP_FLV_TABLE, self->, funcNAME, typeNAME)
 #define FLV_TABLE_GETSET_INT(funcNAME) FLV_TABLE_GETSET_INT0(funcNAME, int)
+#define FLV_TABLE_GET_BOOL_SET_INT_ONE_CALL(funcNAME) FUNC_GET_BOOL_SET_INT_ONE_CALL(_Flv_Table_, SETUP_FLV_TABLE, self->, funcNAME, int)
 
 FLV_TABLE_GETSET_INT(cols);
 FLV_TABLE_GETSET_INT(col);
-FLV_TABLE_GETSET_INT(top_row);
+FLV_TABLE_GETSET_INT(row);
+//FLV_TABLE_GETSET_INT(top_row);
 
 static SQRESULT _Flv_Table_col_style(HSQUIRRELVM v){
     SETUP_FLV_TABLE(v);
@@ -2226,7 +2282,8 @@ static SQRegFunction flv_table_obj_funcs[]={
 	_DECL_FUNC(cols,-1,_SC("xi"),SQFalse),
 	_DECL_FUNC(col,-1,_SC("xi"),SQFalse),
 	_DECL_FUNC(col_style,1,_SC("x"),SQFalse),
-	_DECL_FUNC(top_row,-1,_SC("xi"),SQFalse),
+	_DECL_FUNC(row,-1,_SC("xi"),SQFalse),
+	//_DECL_FUNC(top_row,-1,_SC("xi"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -3129,8 +3186,8 @@ static SQRegFunction fl_help_view_obj_funcs[]={
 //#define SETUP_FL_WINDOW(v) SETUP_FL_KLASS(v, Fl_Window)
 #define SETUP_FL_WINDOW(v) \
 	MyFl_Window *self = NULL; \
-	{ if(SQ_FAILED(sq_getinstanceup(v,1,(SQUserPointer*)&self,(void*)FLTK_TAG(Fl_Window)))) \
-		return SQ_ERROR; }
+	{ if(SQ_FAILED(get_fltk_klass_instance(v,1,(SQUserPointer*)&self,(void*)FLTK_TAG(Fl_Window)))) \
+		return SQ_ERROR;}
 
 
 static Fl_Preferences *_appPreferences = 0;
@@ -3785,6 +3842,114 @@ static SQRESULT _fl_focus(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT _fl_preferences_getUserdataPath(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    if(_appPreferences)
+    {
+        char path[FL_PATH_MAX];
+        if(_appPreferences->getUserdataPath( path, FL_PATH_MAX))
+        {
+            sq_pushstring(v, path, -1);
+            return 1;
+        }
+    }
+    sq_pushnull(v);
+    return 1;
+}
+
+static SQRESULT _fl_preferences_get(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    if(_appPreferences)
+    {
+        SQ_GET_STRING(v, 2, key);
+        switch(sq_gettype(v, 3))
+        {
+        case OT_STRING:
+            {
+                char *result;
+                SQ_GET_STRING(v, 3, default_value);
+                _appPreferences->get( (const char*)key, result, (const char*)default_value );
+                sq_pushstring(v, result, -1);
+            }
+            break;
+
+        case OT_INTEGER:
+            {
+                int result;
+                SQ_GET_INTEGER(v, 3, default_value);
+                _appPreferences->get( (const char*)key, result, (int)default_value );
+                sq_pushinteger(v, result);
+            }
+            break;
+
+        case OT_FLOAT:
+            {
+                SQFloat result;
+                SQ_GET_FLOAT(v, 3, default_value);
+                _appPreferences->get( (const char*)key, result, default_value );
+                sq_pushfloat(v, result);
+            }
+            break;
+
+        default:
+            sq_pushnull(v);
+        }
+    }
+    else sq_pushnull(v);
+    return 1;
+}
+
+static SQRESULT _fl_preferences_set(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    if(_appPreferences)
+    {
+        SQ_GET_STRING(v, 2, key);
+        switch(sq_gettype(v, 3))
+        {
+        case OT_STRING:
+            {
+                SQ_GET_STRING(v, 3, value);
+                sq_pushinteger(v, _appPreferences->set( key, value ));
+            }
+            break;
+
+        case OT_INTEGER:
+            {
+                SQ_GET_INTEGER(v, 3, value);
+                sq_pushinteger(v, _appPreferences->set( key, (int)value ));
+            }
+            break;
+
+        case OT_FLOAT:
+            {
+                SQ_GET_FLOAT(v, 3, value);
+                sq_pushinteger(v, _appPreferences->set( key, (double)value ));
+            }
+            break;
+
+        default:
+            sq_pushnull(v);
+        }
+        _appPreferences->flush();
+    }
+    else sq_pushnull(v);
+    return 1;
+}
+
+static SQRESULT _fl_preferences_flush(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    if(_appPreferences)
+    {
+        _appPreferences->flush();
+    }
+    return 0;
+}
+
+
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_fl_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_obj_funcs[]={
 	_DECL_FUNC(check,1,_SC("y"),SQTrue),
@@ -3837,6 +4002,12 @@ static SQRegFunction fl_obj_funcs[]={
 	_DECL_FUNC(remove_idle,-3,_SC("yic."),SQTrue),
 	_DECL_FUNC(add_focus_changing_handler,2,_SC("yc"),SQTrue),
 	_DECL_FUNC(focus,1,_SC("y"),SQTrue),
+
+	_DECL_FUNC(preferences_getUserdataPath,1,_SC("y"),SQTrue),
+	_DECL_FUNC(preferences_get,3,_SC("yss"),SQTrue),
+	_DECL_FUNC(preferences_set,3,_SC("ys s|f|i"),SQTrue),
+	_DECL_FUNC(preferences_flush,1,_SC("y"),SQTrue),
+
 	{0,0}
 };
 #undef _DECL_FUNC
