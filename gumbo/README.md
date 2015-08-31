@@ -46,27 +46,21 @@ Installation
 To build and install the library, issue the standard UNIX incantation from
 the root of the distribution:
 
-```bash
-$ ./autogen.sh
-$ ./configure
-$ make
-$ sudo make install
-```
+    $ ./autogen.sh
+    $ ./configure
+    $ make
+    $ sudo make install
 
 Gumbo comes with full pkg-config support, so you can use the pkg-config to
 print the flags needed to link your program against it:
 
-```bash
-$ pkg-config --cflags gumbo         # print compiler flags
-$ pkg-config --libs gumbo           # print linker flags
-$ pkg-config --cflags --libs gumbo  # print both
-```
+    $ pkg-config --cflags gumbo         # print compiler flags
+    $ pkg-config --libs gumbo           # print linker flags
+    $ pkg-config --cflags --libs gumbo  # print both
 
 For example:
 
-```bash
-$ gcc my_program.c `pkg-config --cflags --libs gumbo`
-```
+    $ gcc my_program.c `pkg-config --cflags --libs gumbo`
 
 See the pkg-config man page for more info.
 
@@ -79,22 +73,18 @@ unzipped.  The googletest maintainers recommend against using
 `make install`; instead, symlink the root googletest directory to 'gtest'
 inside gumbo's root directory, and then `make check`:
 
-```bash
-$ unzip gtest-1.6.0.zip
-$ cd gumbo-*
-$ ln -s ../gtest-1.6.0 gtest
-$ make check
-```
+    $ unzip gtest-1.6.0.zip
+    $ cd gumbo-*
+    $ ln -s ../gtest-1.6.0 gtest
+    $ make check
 
 Gumbo's `make check` has code to automatically configure & build gtest and
 then link in the library.
 
 Debian and Fedora users can install libgtest with:
 
-```bash
-$ apt-get install libgtest-dev  # Debian/Ubuntu
-$ yum install gtest-devel       # CentOS/Fedora
-```
+    $ apt-get install libgtest-dev  # Debian/Ubuntu
+    $ yum install gtest-devel       # CentOS/Fedora
 
 Note for Ubuntu users: libgtest-dev package only install source files.
 You have to make libraries yourself using cmake:

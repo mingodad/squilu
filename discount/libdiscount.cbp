@@ -62,6 +62,7 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option='-DVERSION=\\&quot;2.1.2\\&quot;' />
 			<Add directory="G:/c/discount-2.1.2/" />
 		</Compiler>
 		<Unit filename="Csio.c">
