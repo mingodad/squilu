@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "sqstdblobimpl.h"
+SQ_OPT_STRING_STRLEN();
 
 #include "dynamic_library.h"
 
@@ -632,13 +633,15 @@ static SQRESULT sq_mysql_constructor(HSQUIRRELVM v)
     SQ_GET_STRING(v, 4, password);
     SQ_GET_STRING(v, 5, sourcename);
     SQ_OPT_INTEGER(v, 6, port, 3306);
+    SQ_OPT_STRING(v, 7, sockname, NULL);
+    SQ_OPT_INTEGER(v, 8, optflags, 0);
     MYSQL *self=0;
 
     if(load_libmysqlclient())
     {
         self = dlmysql_init(NULL);
 		if (!self) return sq_throwerror(v, _SC("error connecting: Out of memory."));
-		if (!dlmysql_real_connect(self, host, username, password, sourcename, port, NULL, 0))
+		if (!dlmysql_real_connect(self, host, username, password, sourcename, port, sockname, optflags))
 		{
 			SQRESULT res = sq_throwerror(v, _SC("error connecting to database. MySQL: %s"), dlmysql_error(self));
 			dlmysql_close (self); /* Close conn if connect failed */
@@ -790,7 +793,7 @@ static SQRESULT sq_mysql_escape_string(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_mysql_INSTANCE();
 	SQ_GET_STRING(v, 2, str);
-	SQInteger to_size = (str_size+1) * sizeof(SQChar);
+	SQInteger to_size = (str_size*2+1) * sizeof(SQChar);
 	SQChar *to = sq_getscratchpad(v, to_size);
 	if(to) {
 		SQInteger new_size = (SQInteger)dlmysql_real_escape_string(self, to, str, str_size);
@@ -803,7 +806,7 @@ static SQRESULT sq_mysql_escape_string(HSQUIRRELVM v){
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_mysql_##name,nparams,tycheck}
 static SQRegFunction sq_mysql_methods[] =
 {
-	_DECL_FUNC(constructor,  -5, _SC("xssssi")),
+	_DECL_FUNC(constructor,  -5, _SC("xssssisi")),
 	_DECL_FUNC(close,  1, _SC("x")),
 	_DECL_FUNC(ping,  1, _SC("x")),
 	_DECL_FUNC(exec_dml,  2, _SC("xs")),
