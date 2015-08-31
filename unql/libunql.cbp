@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="libunql" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="unql" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Debug/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="unql" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-DTHREADSAFE=1" />
+			<Add option="-DSQLITE_DEFAULT_FILE_FORMAT=4" />
+			<Add option="-DSQLITE_DEFAULT_AUTOVACUUM=1" />
+			<Add option="-DSQLITE_DEFAULT_FOREIGN_KEYS=1" />
+			<Add option="-DSQLITE_ENABLE_COLUMN_METADATA=1" />
+			<Add option="-DSQLITE_ENABLE_EXTENSION_FUNCTIONS=1" />
+			<Add option="-DSQLITE_ENABLE_FTS4=1" />
+			<Add option="-DSQLITE_ENABLE_FTS3_PARENTHESIS=1" />
+			<Add option="-DSQLITE_ENABLE_UNLOCK_NOTIFY=1" />
+			<Add option="-DSQLITE_ENABLE_RTREE=1" />
+			<Add option="-DSQLITE_ENABLE_STAT4=1" />
+			<Add option="-DSQLITE_HAS_CODEC=1" />
+			<Add option="-DSQLITE_OMIT_TCL_VARIABLE=1" />
+			<Add option="-DSQLITE_USE_URI=1" />
+			<Add option="-DSQLITE_SOUNDEX=1" />
+			<Add directory="src" />
+			<Add directory="/home/mingo/dev/dadbiz++/third-party/unql/" />
+		</Compiler>
+		<Unit filename="src/complete.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/conn.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/context.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/datasrc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/delete.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/expr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/func.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/json.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/memory.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/parse.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/parse.h" />
+		<Unit filename="src/pragma.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/query.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/stmt.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/string.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/tokenize.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/trace.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/update.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/xjd1.h" />
+		<Unit filename="src/xjd1Int.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
