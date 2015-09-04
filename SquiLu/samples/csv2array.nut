@@ -13,13 +13,13 @@ function fromCSV (s){
 //print(f, f.replace("\"\"", "\""));
       t.push(f.replace("\"\"", "\""));
        local nextc = s.find(",", i);
-       if(!nextc) nextc=slen-1;
+       if(nextc < 0) nextc=slen-1;
       fieldstart = nextc + 1;
     }  
     else                // unquoted; find next comma
     {
       local nexti = s.find(",", fieldstart);
-      if(!nexti) nexti = slen-1;
+      if(nexti < 0) nexti = slen-1;
 //print("nn", fieldstart, nexti, s.slice(fieldstart, nexti))
       t.push(s.slice(fieldstart, nexti));
       fieldstart = nexti + 1;
