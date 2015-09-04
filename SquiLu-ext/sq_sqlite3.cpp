@@ -319,6 +319,7 @@ static SQRESULT sq_sqlite3_stmt_finalize(HSQUIRRELVM v)
     SQ_FUNC_VARS_NO_TOP(v);
     GET_sqlite3_stmt_INSTANCE();
     sq_setinstanceup(v, 1, 0); //next calls will fail with "statement is closed"
+    //printf("sq_sqlite3_stmt_finalize: %p : %s\n", self, sqlite3_sql(self));
     sq_pushinteger(v, sqlite3_finalize(self));
     return 1;
 }
@@ -1374,20 +1375,22 @@ static SQRESULT sqlite3_exec_fmt(HSQUIRRELVM v, e_type_result type_result, int n
 static SQRESULT sq_sqlite3_close_release(HSQUIRRELVM v, sq_sqlite3_sdb *sdb)
 {
     SQRESULT rc = SQ_ERROR;
-    if(sdb)
+    //printf("sq_sqlite3_close_release:%p\n", sdb);
+    if(sdb && sdb->db)
     {
         sqlite3 *db = sdb->db;
+        /*
         sqlite3_stmt* statement = NULL;
         int count = 0;
-        while ((statement = sqlite3_next_stmt(db, statement)))
+        while ((statement = sqlite3_next_stmt(db, NULL)))
         {
-        	//do no close statements because garbage collector will do it
-        	//on MacOSX we get segfaults finalizing statements here
-            printf("sq_sqlite3_close_release:stmt:%s\n", sqlite3_sql(statement));
+            printf("sq_sqlite3_close_release:stmt: %p : %s\n", statement, sqlite3_sql(statement));
             sqlite3_finalize(statement);
+            statement = c;
             count++;
         }
         if (count) return sq_throwerror(v, _SC("closing database with %d statements not closed."), count);
+        */
 
         if(sqlite3_close_v2(db) == SQLITE_OK)
         {
