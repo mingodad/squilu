@@ -56,6 +56,7 @@ typedef INT64 int64_t;
 #include <inttypes.h>
 #else
 #include <stdint.h>
+#include <endian.h>
 #endif /* Not Solaris */
 
 #endif /* Not Win32 */

@@ -171,6 +171,12 @@
 		<Unit filename="sha256.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="sha384.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sha512.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="ssl.h" />
 		<Unit filename="tls1.c">
 			<Option compilerVar="CC" />
