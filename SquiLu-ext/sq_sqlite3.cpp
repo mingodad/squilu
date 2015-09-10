@@ -456,6 +456,14 @@ static SQRESULT sq_sqlite3_stmt_bind_parameter_index(HSQUIRRELVM v)
     return 1;
 }
 
+static SQRESULT sq_sqlite3_stmt_bind_parameter_count(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_stmt_INSTANCE();
+    sq_pushinteger(v, sqlite3_bind_parameter_count(self));
+    return 1;
+}
+
 static SQRESULT sq_sqlite3_stmt_reset(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
@@ -1288,6 +1296,7 @@ static SQRegFunction sq_sqlite3_stmt_methods[] =
     _DECL_FUNC(bind_values,  -2, _SC("x s|n|b|o"), SQFalse),
     _DECL_FUNC(bind_names,  2, _SC("x t|a"), SQFalse),
     _DECL_FUNC(bind_parameter_index,  2, _SC("xs"), SQFalse),
+    _DECL_FUNC(bind_parameter_count,  1, _SC("x"), SQFalse),
     _DECL_FUNC(step,  1, _SC("x"), SQFalse),
     _DECL_FUNC(reset,  1, _SC("x"), SQFalse),
     _DECL_FUNC(next_row,  1, _SC("x"), SQFalse),
