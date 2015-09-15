@@ -113,7 +113,7 @@ extern "C" {
 */
 #define SQLITE_VERSION        "3.8.12"
 #define SQLITE_VERSION_NUMBER 3008012
-#define SQLITE_SOURCE_ID      "2015-09-10 04:17:06 da8a288f8ef4be34281519b4b4db9b857b9d168b"
+#define SQLITE_SOURCE_ID      "2015-09-14 19:51:05 c1f76686cee3918b1be785a4071d68cb3afda0ef"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -124,7 +124,7 @@ extern "C" {
 ** but are associated with the library instead of the header file.  ^(Cautious
 ** programmers might include assert() statements in their application to
 ** verify that values returned by these interfaces match the macros in
-** the header, and thus insure that the application is
+** the header, and thus ensure that the application is
 ** compiled with matching library and header files.
 **
 ** <blockquote><pre>
@@ -384,7 +384,7 @@ typedef int (*sqlite3_callback)(void*,int,char**, char**);
 ** Restrictions:
 **
 ** <ul>
-** <li> The application must insure that the 1st parameter to sqlite3_exec()
+** <li> The application must ensure that the 1st parameter to sqlite3_exec()
 **      is a valid and open [database connection].
 ** <li> The application must not close the [database connection] specified by
 **      the 1st parameter to sqlite3_exec() while sqlite3_exec() is running.
@@ -1379,9 +1379,11 @@ SQLITE_API int SQLITE_STDCALL sqlite3_os_end(void);
 ** applications and so this routine is usually not necessary.  It is
 ** provided to support rare applications with unusual needs.
 **
-** The sqlite3_config() interface is not threadsafe.  The application
-** must insure that no other SQLite interfaces are invoked by other
-** threads while sqlite3_config() is running.  Furthermore, sqlite3_config()
+** <b>The sqlite3_config() interface is not threadsafe. The application
+** must ensure that no other SQLite interfaces are invoked by other
+** threads while sqlite3_config() is running.</b>
+**
+** The sqlite3_config() interface
 ** may only be invoked prior to library initialization using
 ** [sqlite3_initialize()] or after shutdown by [sqlite3_shutdown()].
 ** ^If sqlite3_config() is called after [sqlite3_initialize()] and before
@@ -4390,6 +4392,22 @@ SQLITE_API int SQLITE_STDCALL sqlite3_value_type(sqlite3_value*);
 SQLITE_API int SQLITE_STDCALL sqlite3_value_numeric_type(sqlite3_value*);
 
 /*
+** CAPI3REF: Obtaining SQL Values
+** METHOD: sqlite3_value
+**
+** The sqlite3_value_subtype(V) function returns the subtype for
+** an [application-defined SQL function] argument V.  The subtype
+** information can be used to pass a limited amount of context from
+** one SQL function to another.  Use the [sqlite3_result_subtype()]
+** routine to set the subtype for the return value of an SQL function.
+**
+** SQLite makes no use of subtype itself.  It merely passes the subtype
+** from the result of one [application-defined SQL function] into the
+** input of another.
+*/
+SQLITE_API unsigned int SQLITE_STDCALL sqlite3_value_subtype(sqlite3_value*);
+
+/*
 ** CAPI3REF: Copy And Free SQL Values
 ** METHOD: sqlite3_value
 **
@@ -4688,6 +4706,21 @@ SQLITE_API void SQLITE_STDCALL sqlite3_result_text16be(sqlite3_context*, const v
 SQLITE_API void SQLITE_STDCALL sqlite3_result_value(sqlite3_context*, sqlite3_value*);
 SQLITE_API void SQLITE_STDCALL sqlite3_result_zeroblob(sqlite3_context*, int n);
 SQLITE_API int SQLITE_STDCALL sqlite3_result_zeroblob64(sqlite3_context*, sqlite3_uint64 n);
+
+
+/*
+** CAPI3REF: Setting The Subtype Of An SQL Function
+** METHOD: sqlite3_context
+**
+** The sqlite3_result_subtype(C,T) function causes the subtype of
+** the result from the [application-defined SQL function] with 
+** [sqlite3_context] C to be the value T.  Only the lower 8 bits 
+** of the subtype T are preserved in current versions of SQLite;
+** higher order bits are discarded.
+** The number of subtype bytes preserved by SQLite might increase
+** in future releases of SQLite.
+*/
+SQLITE_API void SQLITE_STDCALL sqlite3_result_subtype(sqlite3_context*,unsigned int);
 
 /*
 ** CAPI3REF: Define New Collating Sequences
@@ -6131,6 +6164,9 @@ SQLITE_API int SQLITE_STDCALL sqlite3_vfs_unregister(sqlite3_vfs*);
 ** <li>  SQLITE_MUTEX_STATIC_APP1
 ** <li>  SQLITE_MUTEX_STATIC_APP2
 ** <li>  SQLITE_MUTEX_STATIC_APP3
+** <li>  SQLITE_MUTEX_STATIC_VFS1
+** <li>  SQLITE_MUTEX_STATIC_VFS2
+** <li>  SQLITE_MUTEX_STATIC_VFS3
 ** </ul>
 **
 ** ^The first two constants (SQLITE_MUTEX_FAST and SQLITE_MUTEX_RECURSIVE)
