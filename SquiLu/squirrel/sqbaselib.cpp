@@ -1314,10 +1314,10 @@ static SQRESULT string_gmatch(HSQUIRRELVM v)
         }
         return sq_throwerror(v,_SC("invalid type for parameter 3 function expected"));
     }
-    _rc_ = str_match(&ms, src, src_size, pattern, pattern_size,
-            0, 0, 0, 0);
+    _rc_ = str_match(&ms, src, src_size, pattern, pattern_size, 0, 0, 0, 0);
     if(ms.error) return sq_throwerror(v, ms.error);
-    if(ms.level){
+    if(_rc_ < 0) sq_pushnull(v);
+    else if(ms.level){
         if(ms.level == 1) sq_pushstring(v, ms.capture[0].init, ms.capture[0].len);
         else {
             sq_newarray(v, ms.level);
@@ -1328,8 +1328,7 @@ static SQRESULT string_gmatch(HSQUIRRELVM v)
             }
         }
     } else {
-        if(ms.end_pos > ms.start_pos) sq_pushstring(v, src + ms.start_pos, ms.end_pos-ms.start_pos+1);
-        else sq_pushnull(v);
+        sq_pushstring(v, src + ms.start_pos, ms.end_pos-ms.start_pos+1);
     }
     return 1;
 }
