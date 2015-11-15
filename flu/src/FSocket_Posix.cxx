@@ -4,7 +4,7 @@
 #define mutex system_mutex
 #endif
 
-#if defined(__FreeBSD__) || defined(__linux__) || defined(__CYGWIN__)
+#if defined(__FreeBSD__) || defined(__linux__) || defined(__CYGWIN__) || defined(__APPLE__)
 #include <sys/ioctl.h>
 #else
 #include <stropts.h>
