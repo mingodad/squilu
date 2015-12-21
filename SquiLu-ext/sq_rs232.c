@@ -63,7 +63,7 @@ static SQRESULT get_rs232_instance(HSQUIRRELVM v, SQInteger idx, struct rs232_po
 
 static SQRESULT sq_rs232_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v) {
     struct rs232_port_t *self = (struct rs232_port_t *)p;
-    if(self) return rs232_close(self);
+    if(self) rs232_end(self);
     return 0;
 }
 
