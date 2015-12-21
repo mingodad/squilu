@@ -30,7 +30,7 @@
 #include <time.h>
 
 #define RS232_STRLEN 512
-#define RS232_STRLEN_DEVICE 30
+#define RS232_STRLEN_DEVICE 256
 
 #ifdef __linux__
 #define RS232_PORT_POSIX "/dev/ttyS0"
@@ -40,10 +40,12 @@
 
 #define RS232_PORT_WIN32 "COM1"
 
-#if defined(WIN32) || defined(UNDER_CE)
+#if defined(WIN32) || defined(UNDER_CE) || defined(_MSC_VER)
  #include "librs232/rs232_windows.h"
- #pragma warning(disable:4996)
- #define snprintf _snprintf
+ #ifdef _MSC_VER
+  #pragma warning(disable:4996)
+  #define snprintf _snprintf
+ #endif
 #else
  #include "librs232/rs232_posix.h"
 #endif
@@ -163,6 +165,11 @@ enum rs232_error_e {
 	RS232_ERR_TIMEOUT,
 	RS232_ERR_IOCTL,
 	RS232_ERR_PORT_CLOSED,
+	RS232_ERR_BREAK,
+	RS232_ERR_FRAME,
+	RS232_ERR_PARITY,
+	RS232_ERR_RXOVERFLOW,
+	RS232_ERR_OVERRUN,
 	RS232_ERR_MAX
 };
 
@@ -203,8 +210,8 @@ RS232_LIB unsigned int rs232_read_timeout(struct rs232_port_t *p, unsigned char 
 RS232_LIB unsigned int rs232_read_timeout_forced(struct rs232_port_t *p, unsigned char *buf, unsigned int buf_len, unsigned int *read_len, unsigned int timeout);
 RS232_LIB unsigned int rs232_write(struct rs232_port_t *p, const unsigned char *buf, unsigned int buf_len, unsigned int *write_len);
 RS232_LIB unsigned int rs232_write_timeout(struct rs232_port_t *p, const unsigned char *buf, unsigned int buf_len, unsigned int *write_len, unsigned int timeout);
-RS232_LIB unsigned int rs232_in_qeue(struct rs232_port_t *p, unsigned int *in_bytes);
-RS232_LIB void rs232_in_qeue_clear(struct rs232_port_t *p);
+RS232_LIB unsigned int rs232_in_queue(struct rs232_port_t *p, unsigned int *in_bytes);
+RS232_LIB void rs232_in_queue_clear(struct rs232_port_t *p);
 RS232_LIB const char * rs232_to_string(struct rs232_port_t *p);
 RS232_LIB const char * rs232_strerror(unsigned int error);
 RS232_LIB const char * rs232_strbaud(unsigned int baud);
