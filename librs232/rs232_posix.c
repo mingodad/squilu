@@ -55,7 +55,7 @@ rs232_init(void)
 
 	memset(p->pt, 0, sizeof(struct rs232_posix_t));
 	memset(p->dev, 0, RS232_STRLEN_DEVICE+1);
-	strncpy(p->dev, RS232_PORT_POSIX, RS232_STRLEN_DEVICE);
+	strncpyz(p->dev, RS232_PORT_POSIX, RS232_STRLEN_DEVICE);
 
 	p->baud = RS232_BAUD_115200;
 	p->data = RS232_DATA_8;
@@ -481,7 +481,7 @@ void
 rs232_set_device(struct rs232_port_t *p, const char *device)
 {
 	DBG("p=%p old=%s new=%s\n", (void *)p, p->dev, device);
-	strncpy(p->dev, device, RS232_STRLEN_DEVICE);
+	strncpyz(p->dev, device, RS232_STRLEN_DEVICE);
 	return;
 }
 

@@ -9,10 +9,10 @@
  * copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following
  * conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -47,6 +47,9 @@
 #else
  #include "librs232/rs232_posix.h"
 #endif
+
+/*Ensure destination string is zero terminated*/
+#define strncpyz(dest, src, size) strncpy(dest, src, size); dest[size-1]='\0'
 
 #ifdef RS232_DEBUG
 const char* rs232_hex_dump(const void *data, unsigned int len);
