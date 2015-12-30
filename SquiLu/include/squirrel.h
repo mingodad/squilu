@@ -468,6 +468,7 @@ SQUIRREL_API void sq_pushregistrytable(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sq_getonregistrytable(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sq_setonregistrytable(HSQUIRRELVM v);
 
+#define SQ_EXTENSIONS_KEY _SC("sq__Extensions")
 typedef struct {
     const char* module_name;
     SQFUNCTION module_load_func;

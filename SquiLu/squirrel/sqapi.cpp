@@ -680,12 +680,11 @@ SQRESULT sq_setonregistrytable(HSQUIRRELVM v)
 int sq_preload_modules(HSQUIRRELVM v, sq_modules_preload_st *modules){
     int result = 0;
     int saved_top = sq_gettop(v);
-    #define EXTENSIONS_KEY _SC("__Extensions")
-    sq_pushliteral(v, EXTENSIONS_KEY);
+    sq_pushliteral(v, SQ_EXTENSIONS_KEY);
     if(sq_getonregistrytable(v) != SQ_OK){
         //create a table for Extensions
         sq_newtable(v);
-        sq_pushstring(v, EXTENSIONS_KEY, -1);
+        sq_pushstring(v, SQ_EXTENSIONS_KEY, -1);
         sq_push(v, -2);
         sq_setonregistrytable(v);
     }
