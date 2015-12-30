@@ -2262,6 +2262,25 @@ static SQRESULT sq_sqlite3_context_result_text(HSQUIRRELVM v)
     return 0;
 }
 
+static SQRESULT sq_sqlite3_context_result_subtype(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_context_INSTANCE();
+    SQ_GET_INTEGER(v, 2, subtype);
+    sqlite3_result_subtype(self->ctx, subtype);
+    return 0;
+}
+/* no way to recover parameter value after function call
+static SQRESULT sq_sqlite3_context_value_subtype(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_context_INSTANCE();
+    SQ_GET_INTEGER(v, 2, param_idx);
+    sq_pushinteger(v, sqlite3_value_subtype(self->ctx, subtype));
+    return 1;
+}
+*/
+
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_sqlite3_context_##name,nparams,tycheck}
 static SQRegFunction sq_sqlite3_context_methods[] =
 {
@@ -2276,6 +2295,8 @@ static SQRegFunction sq_sqlite3_context_methods[] =
     _DECL_FUNC(result_text,  2, _SC("xs")),
     _DECL_FUNC(result_blob,  2, _SC("xs")),
     _DECL_FUNC(result_error,  2, _SC("xs")),
+    _DECL_FUNC(result_subtype,  2, _SC("xi")),
+    //_DECL_FUNC(value_subtype,  2, _SC("xi")),
     _DECL_FUNC(_tostring,  -1, _SC("x")),
     {0,0}
 };
