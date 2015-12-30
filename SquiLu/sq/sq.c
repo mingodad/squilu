@@ -27,6 +27,8 @@
 #define scvprintf vfprintf
 #endif
 
+#define MAXINPUT 1024
+
 int sq_main_argc = 0;
 char** sq_main_argv = 0;
 
@@ -100,7 +102,25 @@ void PrintUsage()
 		_SC("   -c              compiles only\n")
 		_SC("   -d              generates debug infos\n")
 		_SC("   -v              displays version infos\n")
+		_SC("   -p              preload given script file\n")
 		_SC("   -h              prints help\n"));
+}
+
+void loadDefaultScript(HSQUIRRELVM v, const char *script)
+{
+    FILE *fb = fopen(script, "rb");
+    if (!fb) return;
+    fclose(fb);
+
+    SQChar srcBoot[256];
+    scsnprintf(srcBoot, sizeof(srcBoot), _SC("dofile(\"%s\", false);"), script);
+
+    if(SQ_SUCCEEDED(sq_compilebuffer(v,srcBoot, strlen(srcBoot), _SC("defaultScript"), SQTrue, SQTrue))) {
+        int callargs = 1;
+        sq_pushroottable(v);
+        callargs += push_program_args(v, 0, sq_main_argc, sq_main_argv);
+        sq_call(v, callargs,SQFalse, SQTrue);
+    }
 }
 
 #define _INTERACTIVE 0
@@ -115,7 +135,8 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 	static SQChar temp[500];
 	//const SQChar *ret=NULL;
 #endif
-	char * output = NULL;
+	const char * output = NULL;
+	const char * preload = NULL;
 	//int lineinfo=0;
 	*retval = 0;
 	if(argc>1)
@@ -142,6 +163,13 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 					if(arg < argc) {
 						arg++;
 						output = argv[arg];
+					}
+					break;
+				case 'p':
+					if(arg < argc) {
+						arg++;
+						preload = argv[arg];
+                        loadDefaultScript(v, preload);
 					}
 					break;
 				case 'v':
@@ -255,7 +283,6 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 void Interactive(HSQUIRRELVM v)
 {
 
-#define MAXINPUT 1024
 	SQChar buffer[MAXINPUT];
 	SQInteger blocks =0;
 	SQInteger string=0;
@@ -307,7 +334,7 @@ void Interactive(HSQUIRRELVM v)
 		buffer[i] = _SC('\0');
 
 		if(buffer[0]==_SC('=')){
-			scsprintf(sq_getscratchpad(v,MAXINPUT),_SC("return (%s)"),&buffer[1]);
+			scsnprintf(sq_getscratchpad(v,MAXINPUT),MAXINPUT,_SC("return (%s)"),&buffer[1]);
 			memcpy(buffer,sq_getscratchpad(v,-1),(scstrlen(sq_getscratchpad(v,-1))+1)*sizeof(SQChar));
 			retval=1;
 		}
@@ -541,23 +568,6 @@ SQRESULT sqext_register_DNS_SD(HSQUIRRELVM v);
 SQRESULT sqext_register_ffi(HSQUIRRELVM v);
 SQRESULT sqext_register_xjd1(HSQUIRRELVM v);
 
-void loadDefaultScript(HSQUIRRELVM v)
-{
-    #define SQDEFAULT_SCRIPTNAME "squilu.nut"
-    FILE *fb = fopen(SQDEFAULT_SCRIPTNAME, "rb");
-    if (!fb) return;
-    fclose(fb);
-
-    SQChar *srcBoot = _SC("dofile(\"" SQDEFAULT_SCRIPTNAME "\", false);");
-
-    if(SQ_SUCCEEDED(sq_compilebuffer(v,srcBoot, strlen(srcBoot), _SC("defaultScript"), SQTrue, SQTrue))) {
-        int callargs = 1;
-        sq_pushroottable(v);
-        callargs += push_program_args(v, 0, sq_main_argc, sq_main_argv);
-        sq_call(v, callargs,SQFalse, SQTrue);
-    }
-}
-
 int main(int argc, char* argv[])
 {
     sq_main_argc = argc;
@@ -642,7 +652,6 @@ int main(int argc, char* argv[])
 	//aux library
 	//sets error handlers
 	sqstd_seterrorhandlers(v);
-	loadDefaultScript(v);
 
     //frozen script executed ?
     if(LoadFrozenScript(v, argv[0], 0) == _DONE) return 0;
