@@ -163,20 +163,20 @@ static SQRESULT sq_rs232_write(HSQUIRRELVM v){
 	return 1;
 }
 
-static SQRESULT sq_rs232_in_qeue(HSQUIRRELVM v){
+static SQRESULT sq_rs232_in_queue(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
 	GET_sq_rs232_INSTANCE(v, 1);
 	unsigned int in_bytes;
-	int rc = rs232_in_qeue(self, &in_bytes);
+	int rc = rs232_in_queue(self, &in_bytes);
     if(rc > RS232_ERR_NOERROR) return sq_throwerror(v, rs232_strerror(rc));
 	sq_pushinteger(v, in_bytes);
 	return 1;
 }
 
-static SQRESULT sq_rs232_in_qeue_clear(HSQUIRRELVM v){
+static SQRESULT sq_rs232_in_queue_clear(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
 	GET_sq_rs232_INSTANCE(v, 1);
-	rs232_in_qeue_clear(self);
+	rs232_in_queue_clear(self);
 	return 0;
 }
 
@@ -262,8 +262,8 @@ static SQRegFunction rs232_methods[] =
     _DECL_FUNC(read,-2,_SC("xiib")),
     _DECL_FUNC(write,-2,_SC("xsi")),
     _DECL_FUNC(flush,1,_SC("x")),
-    _DECL_FUNC(in_qeue,1,_SC("x")),
-    _DECL_FUNC(in_qeue_clear,1,_SC("x")),
+    _DECL_FUNC(in_queue,1,_SC("x")),
+    _DECL_FUNC(in_queue_clear,1,_SC("x")),
     _DECL_FUNC(device,1,_SC("x")),
     _DECL_FUNC(fd,1,_SC("x")),
     _DECL_FUNC(strerror,2,_SC(".i")),
