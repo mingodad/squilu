@@ -515,6 +515,42 @@ SQInteger _g_io_dofile(HSQUIRRELVM v)
 	return SQ_ERROR; //propagates the error
 }
 
+SQInteger _g_io_readfile(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 2, filename);
+    SQFile fs;
+    if(fs.Open(filename, "rb"))
+    {
+        SQInteger size,res;
+        SQChar *data;
+        size = fs.Len();
+        data = sq_getscratchpad(v,size);
+        res = fs.Read(data,size);
+        if(res <= 0)
+            return sq_throwerror(v,_SC("no data left to read"));
+        sq_pushstring(v,data,res);
+        return 1;
+    }
+	return sq_throwerror(v,_SC("could not open file %s"), filename);
+}
+
+SQInteger _g_io_writefile(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 2, filename);
+    SQ_GET_STRING(v, 3, data);
+    SQFile fs;
+    if(fs.Open(filename, "wb"))
+    {
+        SQInteger res = fs.Write(data, data_size);
+        if(res != data_size)
+            return sq_throwerror(v,_SC("could not write to file"));
+        return 0;
+    }
+	return sq_throwerror(v,_SC("could not open file %s"), filename);
+}
+
 #define _DECL_GLOBALIO_FUNC(name,nparams,typecheck) {_SC(#name),_g_io_##name,nparams,typecheck}
 static SQRegFunction iolib_funcs[]={
 	_DECL_GLOBALIO_FUNC(loadfile,-2,_SC(".sbb")),
@@ -523,6 +559,8 @@ static SQRegFunction iolib_funcs[]={
 	_DECL_GLOBALIO_FUNC(dostring,-2,_SC(".sb")),
 	_DECL_GLOBALIO_FUNC(loadstring,2,_SC(".s")),
 	_DECL_GLOBALIO_FUNC(dumpclosure,3,_SC(".sc")),
+	_DECL_GLOBALIO_FUNC(readfile,2,_SC(".s")),
+	_DECL_GLOBALIO_FUNC(writefile,3,_SC(".ss")),
 	{0,0}
 };
 
