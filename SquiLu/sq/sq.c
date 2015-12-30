@@ -541,6 +541,23 @@ SQRESULT sqext_register_DNS_SD(HSQUIRRELVM v);
 SQRESULT sqext_register_ffi(HSQUIRRELVM v);
 SQRESULT sqext_register_xjd1(HSQUIRRELVM v);
 
+void loadDefaultScript(HSQUIRRELVM v)
+{
+    #define SQDEFAULT_SCRIPTNAME "squilu.nut"
+    FILE *fb = fopen(SQDEFAULT_SCRIPTNAME, "rb");
+    if (!fb) return;
+    fclose(fb);
+
+    SQChar *srcBoot = _SC("dofile(\"" SQDEFAULT_SCRIPTNAME "\", false);");
+
+    if(SQ_SUCCEEDED(sq_compilebuffer(v,srcBoot, strlen(srcBoot), _SC("defaultScript"), SQTrue, SQTrue))) {
+        int callargs = 1;
+        sq_pushroottable(v);
+        callargs += push_program_args(v, 0, sq_main_argc, sq_main_argv);
+        sq_call(v, callargs,SQFalse, SQTrue);
+    }
+}
+
 int main(int argc, char* argv[])
 {
     sq_main_argc = argc;
@@ -625,6 +642,7 @@ int main(int argc, char* argv[])
 	//aux library
 	//sets error handlers
 	sqstd_seterrorhandlers(v);
+	loadDefaultScript(v);
 
     //frozen script executed ?
     if(LoadFrozenScript(v, argv[0], 0) == _DONE) return 0;
