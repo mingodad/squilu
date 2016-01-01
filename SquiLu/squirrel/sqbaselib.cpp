@@ -1522,14 +1522,10 @@ static SQRESULT string_find_delimiter(HSQUIRRELVM v) {
 
     for(; init < src_size; ++init) {
         if(src[init] == delimiter){
-             if(src[init-1] == escape_char)
-             {
-                 const char *p = (src+ (init-1));
-                 int i = 0;
-                 for(; *p-- == escape_char; ++i);
-                 if(!(i % 2)) break; //non escaped escaped_char
-             }
-             else break;
+            int i = 1;
+            if(src[init-i] != escape_char) break;
+            while(src[init- ++i] == escape_char);
+            if(((i-1) % 2)) break; //non escaped escaped_char
         }
     }
     if(src[init] != delimiter) init = -1;
