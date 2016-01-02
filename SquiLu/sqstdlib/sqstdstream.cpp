@@ -35,7 +35,7 @@ SQInteger _stream_read_line(HSQUIRRELVM v) {
                 goto done;
             }
         }
-        if(read_size >= size) ++m; //eof reached read_size < size ?
+        if(read_size == size) ++m; //eof reached read_size < size ?
     }
 done:
     read_size += (m*size);
