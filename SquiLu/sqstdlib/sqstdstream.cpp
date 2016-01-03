@@ -35,7 +35,7 @@ SQInteger _stream_read_line(HSQUIRRELVM v) {
                 goto done;
             }
         }
-        if(read_size == size) ++m; //eof reached read_size < size ?
+        if(read_size == size) ++m; //end of file read_size < size ?
     }
 done:
     read_size += (m*size);
@@ -74,18 +74,16 @@ SQInteger _stream_read(HSQUIRRELVM v)
 SQInteger _stream_readblob(HSQUIRRELVM v)
 {
 	SETUP_STREAM(v);
-	SQUserPointer data,blobp;
+	SQUserPointer blobp;
 	SQInteger size,res;
 	sq_getinteger(v,2,&size);
 	if(size > self->Len()) {
 		size = self->Len();
 	}
-	data = sq_getscratchpad(v,size);
-	res = self->Read(data,size);
+	blobp = sqstd_createblob(v,size);
+	res = self->Read(blobp,size);
 	if(res <= 0)
 		return sq_throwerror(v,_SC("no data left to read"));
-	blobp = sqstd_createblob(v,res);
-	memcpy(blobp,data,res);
 	return 1;
 }
 
