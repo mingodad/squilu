@@ -388,33 +388,33 @@ static SQRESULT base_str_from_chars (HSQUIRRELVM v) {
 }
 
 /////////////////////////////////////////////////////////////////
-//TABLE DEFAULT DELEGATE
+//TABLE BASE FUNCTIONS
 
-static SQRESULT table_rawdelete(HSQUIRRELVM v)
+static SQRESULT bf_table_rawdelete(HSQUIRRELVM v)
 {
-	if(SQ_FAILED(sq_rawdeleteslot(v,1,SQTrue)))
+	if(SQ_FAILED(sq_rawdeleteslot(v,2,SQTrue)))
 		return SQ_ERROR;
 	return 1;
 }
 
 
-static SQRESULT container_rawexists(HSQUIRRELVM v)
+static SQRESULT bf_table_rawexists(HSQUIRRELVM v)
 {
 	sq_pushbool(v, sq_rawexists(v,-2));
 	return 1;
 }
 
-static SQRESULT container_rawset(HSQUIRRELVM v)
+static SQRESULT bf_table_rawset(HSQUIRRELVM v)
 {
 	return sq_rawset(v,-3);
 }
 
-static SQRESULT container_rawget(HSQUIRRELVM v)
+static SQRESULT bf_table_rawget(HSQUIRRELVM v)
 {
     switch(sq_gettop(v)){
-        case 2: return SQ_SUCCEEDED(sq_rawget(v,-2))?1:SQ_ERROR;break;
-        case 3: {
-            sq_push(v, 2); //copy key to top
+        case 3: return SQ_SUCCEEDED(sq_rawget(v,-2))?1:SQ_ERROR;break;
+        case 4: {
+            sq_push(v, 3); //copy key to top
             sq_rawget(v,-4); //if it fail pop the key and default value is on top
             return 1;
         }
@@ -423,14 +423,14 @@ static SQRESULT container_rawget(HSQUIRRELVM v)
     return sq_throwerror(v, _SC("invalid number of parameters"));
 }
 
-static SQRESULT obj_clear(HSQUIRRELVM v)
+static SQRESULT bf_table_clear(HSQUIRRELVM v)
 {
 	return sq_clear(v,-1);
 }
 
-static SQRESULT default_delegate_len(HSQUIRRELVM v)
+static SQRESULT bf_table_len(HSQUIRRELVM v)
 {
-	v->Push(SQInteger(sq_getsize(v,1)));
+	v->Push(SQInteger(sq_getsize(v,2)));
 	return 1;
 }
 
@@ -470,13 +470,12 @@ static SQRegFunction base_funcs[]={
 	{_SC("check_delayed_release_hooks"),base_check_delayed_release_hooks,-1, _SC(".b")},
 	{_SC("call_delayed_release_hooks"),base_call_delayed_release_hooks,1, NULL},
 #endif
-	{_SC("str_from_chars"),base_str_from_chars,-2, _SC(".i")},
-	{_SC("table_rawget"),container_rawget,-3, _SC(".t.")},
-	{_SC("table_rawset"),container_rawset,4, _SC(".t..")},
-	{_SC("table_rawdelete"),table_rawdelete,3, _SC(".t.")},
-	{_SC("table_rawin"),container_rawexists,3, _SC(".t.")},
-	{_SC("table_len"),default_delegate_len,2, _SC(".t")},
-	{_SC("table_clear"),obj_clear,2, _SC(".t")},
+	{_SC("table_rawget"),bf_table_rawget,-3, _SC(".t.")},
+	{_SC("table_rawset"),bf_table_rawset,4, _SC(".t..")},
+	{_SC("table_rawdelete"),bf_table_rawdelete,3, _SC(".t.")},
+	{_SC("table_rawin"),bf_table_rawexists,3, _SC(".t.")},
+	{_SC("table_len"),bf_table_len,2, _SC(".t")},
+	{_SC("table_clear"),bf_table_clear,2, _SC(".t")},
 	{0,0}
 };
 
@@ -509,6 +508,12 @@ void sq_base_register(HSQUIRRELVM v)
 	sq_pushinteger(v,sizeof(SQFloat));
 	sq_newslot(v,-3, SQFalse);
 	sq_pop(v,1);
+}
+
+static SQRESULT default_delegate_len(HSQUIRRELVM v)
+{
+	v->Push(SQInteger(sq_getsize(v,1)));
+	return 1;
 }
 
 static SQRESULT default_delegate_tofloat(HSQUIRRELVM v)
@@ -581,6 +586,12 @@ static SQRESULT obj_delegate_weakref(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT obj_clear(HSQUIRRELVM v)
+{
+	return sq_clear(v,-1);
+}
+
+
 static SQRESULT number_delegate_tochar(HSQUIRRELVM v)
 {
 	SQObject &o=stack_get(v,1);
@@ -593,6 +604,39 @@ static SQRESULT number_delegate_tochar(HSQUIRRELVM v)
 
 /////////////////////////////////////////////////////////////////
 //TABLE DEFAULT DELEGATE
+
+static SQRESULT table_rawdelete(HSQUIRRELVM v)
+{
+	if(SQ_FAILED(sq_rawdeleteslot(v,1,SQTrue)))
+		return SQ_ERROR;
+	return 1;
+}
+
+
+static SQRESULT container_rawexists(HSQUIRRELVM v)
+{
+	sq_pushbool(v, sq_rawexists(v,-2));
+	return 1;
+}
+
+static SQRESULT container_rawset(HSQUIRRELVM v)
+{
+	return sq_rawset(v,-3);
+}
+
+static SQRESULT container_rawget(HSQUIRRELVM v)
+{
+    switch(sq_gettop(v)){
+        case 2: return SQ_SUCCEEDED(sq_rawget(v,-2))?1:SQ_ERROR;break;
+        case 3: {
+            sq_push(v, 2); //copy key to top
+            sq_rawget(v,-4); //if it fail pop the key and default value is on top
+            return 1;
+        }
+        break;
+    }
+    return sq_throwerror(v, _SC("invalid number of parameters"));
+}
 
 static SQRESULT container_get(HSQUIRRELVM v)
 {
