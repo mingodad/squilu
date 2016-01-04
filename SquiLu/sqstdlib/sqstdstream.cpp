@@ -23,7 +23,10 @@ SQInteger _stream_read_line(HSQUIRRELVM v) {
     SQChar c = _SC('\0'), nl = _SC('\n');
     int m = 0, len = sizeof(SQChar);
     SQInteger start_pos = self->Tell();
-    SQInteger read_size = 0, size = 2048;
+    SQInteger read_size = 0, size;
+    //optional expected line size
+    if(sq_gettop(v) > 1) sq_getinteger(v,2,&size);
+    else size = 2048;
     SQChar *buf = sq_getscratchpad(v, size);
     while(!self->EOS() && c != nl){
         read_size = self->Read(buf, size);
@@ -344,7 +347,7 @@ SQInteger _stream_eos(HSQUIRRELVM v)
  }
 
 static SQRegFunction _stream_methods[] = {
-	_DECL_STREAM_FUNC(read_line,1,_SC("x")),
+	_DECL_STREAM_FUNC(read_line,-1,_SC("xi")),
 	_DECL_STREAM_FUNC(read,2,_SC("xn")),
 	_DECL_STREAM_FUNC(readblob,2,_SC("xn")),
 	_DECL_STREAM_FUNC(readn,2,_SC("xn")),
