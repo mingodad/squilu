@@ -56,6 +56,8 @@ SQTable * SQLexer::GetKeywords()
 	ADD_KEYWORD(function, TK_FUNCTION);
 	ADD_KEYWORD(local, TK_LOCAL);
 	ADD_KEYWORD(var, TK_LOCAL);
+	ADD_KEYWORD(auto, TK_LOCAL);
+	ADD_KEYWORD(let, TK_LOCAL);
 
 	ADD_KEYWORD(char_t, TK_LOCAL_CHAR_T);
 	ADD_KEYWORD(wchar_t, TK_LOCAL_WCHAR_T);

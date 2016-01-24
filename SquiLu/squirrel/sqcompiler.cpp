@@ -73,6 +73,35 @@ struct SQScope {
 					if(__nbreaks__>0)ResolveBreaks(_fs,__nbreaks__); \
 					_fs->_breaktargets.pop_back();_fs->_continuetargets.pop_back();}
 
+#define CASE_TK_LOCAL_CHAR_TYPES \
+		case TK_LOCAL_CHAR_T: \
+		case TK_LOCAL_WCHAR_T
+
+#define CASE_TK_LOCAL_INT_TYPES \
+		case TK_LOCAL_INT8_T: \
+		case TK_LOCAL_INT16_T: \
+		case TK_LOCAL_INT32_T: \
+		case TK_LOCAL_INT64_T: \
+		case TK_LOCAL_INT_T: \
+		case TK_LOCAL_UINT8_T: \
+		case TK_LOCAL_UINT16_T: \
+		case TK_LOCAL_UINT32_T: \
+		case TK_LOCAL_UINT64_T: \
+		case TK_LOCAL_UINT_T
+
+#define CASE_TK_LOCAL_FLOAT_TYPES \
+		case TK_LOCAL_FLOAT_T: \
+		case TK_LOCAL_DOUBLE_T: \
+		case TK_LOCAL_LONG_DOUBLE_T
+
+#define CASE_TK_LOCAL_TYPES \
+		CASE_TK_LOCAL_CHAR_TYPES: \
+		CASE_TK_LOCAL_FLOAT_TYPES: \
+		CASE_TK_LOCAL_INT_TYPES: \
+		case TK_LOCAL_BOOL_T: \
+		case TK_LOCAL_TABLE_T: \
+		case TK_LOCAL_ARRAY_T
+
 class SQCompiler
 {
 public:
@@ -285,6 +314,18 @@ public:
         ErrorIfNotToken(tok);
 		return GetTokenObject(tok);
 	}
+	SQObject ExpectTypeToken()
+	{
+	    switch(_token)
+	    {
+        CASE_TK_LOCAL_TYPES:
+        case TK_IDENTIFIER:
+            break;
+        default:
+            ErrorIfNotToken(TK_IDENTIFIER);
+	    }
+		return GetTokenObject(TK_IDENTIFIER);
+	}
 	bool IsEndOfStatement() { return ((_lex._prevtoken == _SC('\n')) || (_token == SQUIRREL_EOB) || (_token == _SC('}')) || (_token == _SC(';'))); }
 	void OptionalSemicolon()
 	{
@@ -356,24 +397,7 @@ public:
 		case TK_FOR:		ForStatement();			break;
 		case TK_FOREACH:	ForEachStatement();		break;
 		case TK_SWITCH:	SwitchStatement();		break;
-		case TK_LOCAL_CHAR_T:
-		case TK_LOCAL_WCHAR_T:
-		case TK_LOCAL_BOOL_T:
-		case TK_LOCAL_TABLE_T:
-		case TK_LOCAL_ARRAY_T:
-		case TK_LOCAL_INT8_T:
-		case TK_LOCAL_INT16_T:
-		case TK_LOCAL_INT32_T:
-		case TK_LOCAL_INT64_T:
-		case TK_LOCAL_INT_T:
-		case TK_LOCAL_UINT8_T:
-		case TK_LOCAL_UINT16_T:
-		case TK_LOCAL_UINT32_T:
-		case TK_LOCAL_UINT64_T:
-		case TK_LOCAL_UINT_T:
-		case TK_LOCAL_FLOAT_T:
-		case TK_LOCAL_DOUBLE_T:
-		case TK_LOCAL_LONG_DOUBLE_T:
+		CASE_TK_LOCAL_TYPES:
 		//case TK_CONST:
 		case TK_LOCAL:		LocalDeclStatement();	break;
 		case TK_RETURN:
@@ -841,6 +865,7 @@ public:
 						case EXPR: Error(_SC("can't '++' or '--' an expression")); break;
 						case OBJECT:
 						case BASE:
+							if(_es.donot_get == true)  { Error(_SC("can't '++' or '--' an expression")); break; } //mmh dor this make sense?
 							Emit2ArgsOP(_OP_PINC, diff);
 							break;
 						case LOCAL: {
@@ -963,6 +988,7 @@ public:
 					switch(ctype) {
 						case OT_INTEGER: EmitLoadConstInt(_integer(constval),_es.epos); break;
 						case OT_FLOAT: EmitLoadConstFloat(_float(constval),_es.epos); break;
+						case OT_BOOL: _fs->AddInstruction(_OP_LOADBOOL, _es.epos, _integer(constval)); break;
 						default: _fs->AddInstruction(_OP_LOAD,_es.epos,_fs->GetConstant(constval)); break;
 					}
 					_es.etype = EXPR;
@@ -1069,7 +1095,7 @@ public:
 		if(target < 0) {
 			target = _fs->PushTarget();
 		}
-		if((value & (~((SQInteger)0xFFFFFFFF))) == 0) { //does it fit in 32 bits?
+		if(value <= INT_MAX && value > INT_MIN) { //does it fit in 32 bits?
 			_fs->AddInstruction(_OP_LOADINT, target,value);
 		}
 		else {
@@ -1181,7 +1207,7 @@ public:
 					if(isClass){
 						//class field with type annotation
 						Lex();
-						type_name = Expect(TK_IDENTIFIER);
+						type_name = ExpectTypeToken();
 						_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(obj));
 						_fs->AddInstruction(_OP_LOADNULLS, _fs->PushTarget(), 1);
 						break;
@@ -1293,23 +1319,12 @@ public:
                         declType = _VAR_ARRAY;
                         break;
 
-                    case TK_LOCAL_INT8_T:
-                    case TK_LOCAL_INT16_T:
-                    case TK_LOCAL_INT32_T:
-                    case TK_LOCAL_INT64_T:
-                    case TK_LOCAL_INT_T:
-                    case TK_LOCAL_UINT8_T:
-                    case TK_LOCAL_UINT16_T:
-                    case TK_LOCAL_UINT32_T:
-                    case TK_LOCAL_UINT64_T:
-                    case TK_LOCAL_UINT_T:
+                    CASE_TK_LOCAL_INT_TYPES:
                         //default value 0
                         _fs->AddInstruction(_OP_LOADINT, dest,0);
                         declType = _VAR_INTEGER;
                         break;
-                    case TK_LOCAL_FLOAT_T:
-                    case TK_LOCAL_DOUBLE_T:
-                    case TK_LOCAL_LONG_DOUBLE_T:
+                    CASE_TK_LOCAL_FLOAT_TYPES:
                         //default value 0.0
                         //_OP_LOADFLOAT is only valid when SQFloat size == SQInt32 size
                         _fs->AddInstruction(_OP_LOADINT, dest,0);
@@ -1327,6 +1342,28 @@ public:
                           | (is_reference_declaration ? _VAR_REFERENCE : 0));
 			if(_token == _SC(',')) Lex(); else break;
 		} while(1);
+	}
+	void IfBlock()
+	{
+		if (_token == _SC('{'))
+		{
+			BEGIN_SCOPE();
+			Lex();
+			Statements();
+			Expect(_SC('}'));
+			if (true) {
+				END_SCOPE();
+			}
+			else {
+				END_SCOPE_NO_CLOSE();
+			}
+		}
+		else {
+			//BEGIN_SCOPE();
+			Statement();
+			if (_lex._prevtoken != _SC('}') && _lex._prevtoken != _SC(';')) OptionalSemicolon();
+			//END_SCOPE();
+		}
 	}
 	void IfStatement()
 	{
@@ -1407,24 +1444,7 @@ if(color == "yellow"){
 		BEGIN_SCOPE();
 		Expect(_SC('('));
 		switch(_token){
-            case TK_LOCAL_CHAR_T:
-            case TK_LOCAL_WCHAR_T:
-            case TK_LOCAL_BOOL_T:
-            case TK_LOCAL_TABLE_T:
-            case TK_LOCAL_ARRAY_T:
-            case TK_LOCAL_INT8_T:
-            case TK_LOCAL_INT16_T:
-            case TK_LOCAL_INT32_T:
-            case TK_LOCAL_INT64_T:
-            case TK_LOCAL_INT_T:
-            case TK_LOCAL_UINT8_T:
-            case TK_LOCAL_UINT16_T:
-            case TK_LOCAL_UINT32_T:
-            case TK_LOCAL_UINT64_T:
-            case TK_LOCAL_UINT_T:
-            case TK_LOCAL_FLOAT_T:
-            case TK_LOCAL_DOUBLE_T:
-            case TK_LOCAL_LONG_DOUBLE_T:
+		    CASE_TK_LOCAL_TYPES:
             case TK_LOCAL:
                 LocalDeclStatement();
                 break;
@@ -1872,7 +1892,7 @@ error:
 			else if(_token == _SC(':')){
 				//param type specifier like typescript
 				Lex();
-				type_name = Expect(TK_IDENTIFIER);
+				type_name = ExpectTypeToken();
 				//printf("%d %s\n", __LINE__, _stringval(type_name));
 			}
 			else {
@@ -1886,7 +1906,7 @@ error:
 		if(_token == _SC(':')){
 			//return type specifier like typescript
 			Lex();
-			type_name = Expect(TK_IDENTIFIER);
+			type_name = ExpectTypeToken();
 			//printf("%d %s\n", __LINE__, _stringval(type_name));
 		}
 
