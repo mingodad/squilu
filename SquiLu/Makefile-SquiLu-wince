@@ -1,0 +1,57 @@
+
+#INC =  -Iinclude -Isqstdlib -I../myaxtls -I../discount -I/usr/include/postgresql -I/usr/lib/jvm/default-java/include -I/usr/lib/llvm-3.1/include -I../SquiLu-ext/threadObject -I..
+INC =  -Iinclude -Isqstdlib -I../myaxtls -I../discount -I..
+#CFLAGS =  -Wall -fno-strict-aliasing -DSQ_JIT_LLVM44=1 -D_DEBUG_DUMP33=1 -DWITH_DAD_EXTRAS=1 -DSQ_SUBLATIN=1 -DNEED_SUBLATIN_C2=1 -DSQUSEDOUBLE=1 -DSQUSEDECIMAL642=1 -DNO_EXCEPTION_KEY_NOT_FOUND0=1 -D_SQ642=1 -DNO_GARBAGE_COLLECTOR00=1 -DSQLITE_DEFAULT_FILE_FORMAT=4 -DSQLITE_DEFAULT_AUTOVACUUM=1 -DSQLITE_DEFAULT_FOREIGN_KEYS=1 -DSQLITE_ENABLE_COLUMN_METADATA=1 -DSQLITE_ENABLE_EXTENSION_FUNCTIONS=1 -DSQLITE_ENABLE_FTS3=1 -DSQLITE_ENABLE_FTS3_PARENTHESIS=1 -DSQLITE_ENABLE_UNLOCK_NOTIFY=1 -DSQLITE_ENABLE_RTREE=1 -DSQLITE_ENABLE_STAT3=1 -DSQLITE_HAS_CODEC=1 -DSQLITE_OMIT_TCL_VARIABLE=1 -DSQLITE_USE_URI=1 -DSQLITE_SOUNDEX=1 -DNO_POPEN=1 -DNO_SSL_DL=1 -DHAVE_STDINT=1 -DUSE_AXTLS=1 -DUSE_AXTLS_ON_MEMORY=1 -D_FILE_OFFSET_BITS=64 -DSSL_STATIC_LIBRARY=1 -DPDF_USING_ZLIB=1 -DRS232_STATIC=1
+CFLAGS = $(INC) -O3 -Wall -fno-strict-aliasing -DNDEBUG -DWITH_DAD_EXTRAS=1 -DSQ_SUBLATIN=1 \
+	-DSQUSEDOUBLE=1  -D_SQ642=1 \
+	-DSQLITE_DEFAULT_FILE_FORMAT=4 -DSQLITE_DEFAULT_AUTOVACUUM=1 \
+	-DSQLITE_DEFAULT_FOREIGN_KEYS=1 -DSQLITE_ENABLE_COLUMN_METADATA=1 \
+	-DSQLITE_ENABLE_EXTENSION_FUNCTIONS=1 -DSQLITE_ENABLE_FTS3=1 \
+	-DSQLITE_ENABLE_FTS3_PARENTHESIS=1 -DSQLITE_ENABLE_UNLOCK_NOTIFY=1 \
+	-DSQLITE_ENABLE_RTREE=1 -DSQLITE_ENABLE_STAT3=1 -DSQLITE_HAS_CODEC=1 \
+	-DSQLITE_OMIT_TCL_VARIABLE=1 -DSQLITE_USE_URI=1 -DSQLITE_SOUNDEX=1 \
+	-DNO_POPEN=1 -DNO_SSL_DL=1 -DHAVE_STDINT=1 -DUSE_AXTLS=1 \
+	-DUSE_AXTLS_ON_MEMORY=1 -D_FILE_OFFSET_BITS=64 \
+	-DSSL_STATIC_LIBRARY=1 -DPDF_USING_ZLIB=1 -DRS232_STATIC=1 \
+	-DSQLITE_OS_WINCE=1
+
+RESINC = 
+LIBDIR =  -Llib -L../myaxtls -L../mpdecimal -L../discount
+LIB =  -lm
+LDFLAGS =  -lpthread -lrt -ldl -laxtls -lmpdecimal -ldiscount -lz
+CC = gcc
+CXX = g++
+
+SOURCES=  sq/sq.c  sqstdlib/sqstdaux.cpp  sqstdlib/sqstdblob.cpp  sqstdlib/sqstdio.cpp  \
+	sqstdlib/sqstdmath.cpp  sqstdlib/sqstdrex.cpp  sqstdlib/sqstdstream.cpp  \
+	sqstdlib/sqstdstring.cpp  sqstdlib/sqstdsystem.cpp  \
+	../SquiLu-ext/dynamic_library.cpp  ../SquiLu-ext/fpdf.cpp  ../SquiLu-ext/lua_socket.cpp  \
+	../SquiLu-ext/mongoose.c  ../SquiLu-ext/pdf-font.cpp  ../SquiLu-ext/sq_axtls.c  \
+	../SquiLu-ext/sq_base64.cpp  ../SquiLu-ext/sq_decimal.cpp  \
+	../SquiLu-ext/sq_fpdf.cpp  ../SquiLu-ext/sq_fs.c  \
+	../SquiLu-ext/sqlite3.c  ../SquiLu-ext/sq_markdown.cpp  ../SquiLu-ext/sq_mix.cpp  \
+	../SquiLu-ext/sq_mongoose.cpp  ../SquiLu-ext/sqratimport.cpp  \
+	../SquiLu-ext/sq_rs232.c  ../SquiLu-ext/sq_slave_vm.cpp  \
+	../SquiLu-ext/sq_socket.cpp  ../SquiLu-ext/sq_sqlite3.cpp  \
+	../SquiLu-ext/sq_tinyxml2.cpp  ../SquiLu-ext/sq_zlib.cpp  \
+	../SquiLu-ext/tinyxml2.cpp  \
+	squirrel/lua-regex.c  squirrel/sqdebug.cpp  squirrel/sqapi.cpp  \
+	squirrel/sqbaselib.cpp  squirrel/sqclass.cpp  squirrel/sqcompiler.cpp  \
+	squirrel/sqfuncstate.cpp  squirrel/sqlexer.cpp  squirrel/sqmem.cpp  \
+	squirrel/sqobject.cpp  squirrel/sqstate.cpp  squirrel/sqtable.cpp  \
+	squirrel/sqvm.cpp  squirrel/sublatin.c
+	
+#SOURCES += ../SquiLu-ext/sq_fltk.cpp  ../SquiLu-ext/sq_parsecsv.cpp \
+#	../SquiLu-ext/sq_postgresql.cpp ../SquiLu-ext/sq_zmq3.cpp  
+
+OBJECTS = $(SOURCES:.c=.o)
+
+%.o: %.c
+	$(CC) -c -o $@ $< $(CFLAGS)
+	
+%.o: %.cpp
+	$(CXX) -c -o $@ $< $(CFLAGS)
+	
+squilu: $(OBJECTS)
+	$(CXX) $(CFLAGS) -o $@ $(OBJECTS) $(LIBDIR) $(LDFLAGS)
+

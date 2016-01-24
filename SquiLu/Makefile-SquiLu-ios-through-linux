@@ -1,0 +1,286 @@
+MYSDKPREFIX=$(HOME)/local/theos/sdks/iPhoneOS5.1.sdk/usr
+
+INC = -Iinclude -Isqstdlib -I../SquiLu-ext -I../myaxtls -I../mpdecimal-ios -I../discount -I../gumbo -I.. -I../minizip -I../unql/src -I$(MYSDKPREFIX)/include -I$(MYSDKPREFIX)/include/c++/4.2.1 
+
+CFLAGS = $(INC) -O3 -Wall -fno-strict-aliasing  \
+    -D_DEBUG_DUMP33=1 \
+    -D_FILE_OFFSET_BITS=64 \
+    -DHAS_UNIX_DOMAIN_SOCKETS=1 \
+    -DHAVE_STDINT=1 \
+    -DNDEBUG=1 \
+    -DNEED_SUBLATIN_C2=1 \
+    -DNO_EXCEPTION_KEY_NOT_FOUND0=1 \
+    -DNO_GARBAGE_COLLECTOR00=1 \
+    -DNO_POPEN=1 \
+    -DNO_SSL_DL=1 \
+    -DONLY_ASCII=1 \
+    -DPDF_USING_ZLIB=1 \
+    -DPROFILE_SQVM0=1 \
+    -DRS232_STATIC=1 \
+    -D_SQ64x=1 \
+    -DSQ_JIT_LLVM44=1 \
+    -DSQLITE_DEFAULT_AUTOVACUUM=1 \
+    -DSQLITE_DEFAULT_FILE_FORMAT=4 \
+    -DSQLITE_DEFAULT_FOREIGN_KEYS=1 \
+    -DSQLITE_ENABLE_COLUMN_METADATA=1 \
+    -DSQLITE_ENABLE_EXTENSION_FUNCTIONS=1 \
+    -DSQLITE_ENABLE_FTS3_PARENTHESIS=1 \
+    -DSQLITE_ENABLE_FTS4=1 \
+    -DSQLITE_ENABLE_RTREE=1 \
+    -DSQLITE_ENABLE_STAT4=1 \
+    -DSQLITE_ENABLE_UNLOCK_NOTIFY=1 \
+    -DSQLITE_HAS_CODEC=1 \
+    -DSQLITE_OMIT_TCL_VARIABLE=1 \
+    -DSQLITE_SOUNDEX=1 \
+    -DSQLITE_USE_URI=1 \
+    -DSQ_SUBLATIN=1 \
+    -DSQUSEDECIMAL64x=1 \
+    -DSQUSEDOUBLE=1 \
+    -DSSL_STATIC_LIBRARY=1 \
+    -DTHREADSAFE=1 \
+    -DUSE_AXTLS=1 \
+    -DUSE_AXTLS_ON_MEMORY=1 \
+    -DUSE_OPENSSL2=1 \
+    -DUSE_SIGNAL_HANDLER=1 \
+    -DWITH_DAD_EXTRAS=1 \
+    -DWITH_MPDECIMAL=1 \
+    -DWITH_MYSQL2=1 \
+    -DWITH_POSTGRESQL2=1 \
+    -DWITH_UUID=1 \
+    -DSQLITE_ENABLE_JSON1=1 \
+    -DSQLITE_OMIT_PREPARED=1 \
+    -DTARGET_IOS=1
+
+RESINC = 
+LIBDIR = -L$(MYSDKPREFIX)/lib -L$(MYSDKPREFIX)/lib/system -Llib
+LIB =  -lm
+LDFLAGS =  -lpthread -ldl -lz
+
+CC = ios-clang
+CXX = ios-clang++ -std=c++11
+CFLAGS += -objc-arc
+CFLAGS += -fblocks
+CFLAGS += -g0 -O3 -mios-version-min=5.0.0  -stdlib=libc++ -stdlib=libstdc++
+
+CPPFLAGS += -objc-arc
+CPPFLAGS += -fblocks
+CPPFLAGS += -g0 -O3
+
+LDFLAGS += -framework Foundation -lstdc++ -lc++
+
+SOURCES= sq/sq.c  \
+    sqstdlib/sqstdaux.cpp  \
+    sqstdlib/sqstdblob.cpp  \
+    sqstdlib/sqstdio.cpp  \
+    sqstdlib/sqstdmath.cpp  \
+    sqstdlib/sqstdrex.cpp  \
+    sqstdlib/sqstdstream.cpp  \
+    sqstdlib/sqstdstring.cpp  \
+    sqstdlib/sqstdsystem.cpp  \
+    ../SquiLu-ext/dynamic_library.cpp  \
+    ../SquiLu-ext/fpdf.cpp  \
+    ../SquiLu-ext/lua_socket.cpp  \
+    ../SquiLu-ext/mongoose.c  \
+    ../SquiLu-ext/pdf-font.cpp  \
+    ../SquiLu-ext/sq_base64.cpp  \
+    ../SquiLu-ext/sq_fpdf.cpp  \
+    ../SquiLu-ext/sq_fs.c  \
+    ../SquiLu-ext/sqlite3.c  \
+    ../SquiLu-ext/sq_mix.cpp \
+    ../SquiLu-ext/sq_mongoose.cpp  \
+    ../SquiLu-ext/sq_mysql.cpp  \
+    ../SquiLu-ext/sq_postgresql.cpp  \
+    ../SquiLu-ext/sqratimport.cpp  \
+    ../SquiLu-ext/sq_rs232.c  \
+    ../SquiLu-ext/sq_slave_vm.cpp  \
+    ../SquiLu-ext/sq_socket.cpp  \
+    ../SquiLu-ext/sq_sqlite3.cpp  \
+    ../SquiLu-ext/sq_tinyxml2.cpp  \
+    ../SquiLu-ext/sq_zlib.cpp  \
+    ../SquiLu-ext/tinyxml2.cpp \
+    squirrel/lua-regex.c  \
+    squirrel/sqapi.cpp  \
+    squirrel/sqbaselib.cpp  \
+    squirrel/sqclass.cpp  \
+    squirrel/sqcompiler.cpp  \
+    squirrel/sqdebug.cpp  \
+    squirrel/sqfuncstate.cpp  \
+    squirrel/sqlexer.cpp  \
+    squirrel/sqmem.cpp  \
+    squirrel/sqobject.cpp  \
+    squirrel/sqstate.cpp  \
+    squirrel/sqtable.cpp  \
+    squirrel/sqvm.cpp  \
+    squirrel/sublatin.c
+
+AXTLS_PATH := ../myaxtls
+AXTLS_SRC_FILES := \
+	../SquiLu-ext/sq_axtls.c  \
+	$(AXTLS_PATH)/aes.c \
+	$(AXTLS_PATH)/asn1.c \
+	$(AXTLS_PATH)/bigint.c \
+	$(AXTLS_PATH)/crypto_misc.c \
+	$(AXTLS_PATH)/gen_cert.c \
+	$(AXTLS_PATH)/hmac.c \
+	$(AXTLS_PATH)/loader.c \
+	$(AXTLS_PATH)/md5.c \
+	$(AXTLS_PATH)/openssl.c \
+	$(AXTLS_PATH)/os_port.c \
+	$(AXTLS_PATH)/p12.c \
+	$(AXTLS_PATH)/rc4.c \
+	$(AXTLS_PATH)/rsa.c \
+	$(AXTLS_PATH)/sha1.c \
+	$(AXTLS_PATH)/sha256.c \
+	$(AXTLS_PATH)/tls1.c \
+	$(AXTLS_PATH)/tls1_clnt.c \
+	$(AXTLS_PATH)/tls1_svr.c \
+	$(AXTLS_PATH)/x509.c
+#	$(AXTLS_PATH)/sha384.c \
+#	$(AXTLS_PATH)/sha512.c \
+
+AXTLS_OPT_DEFINES := \
+	-DCONFIG_SSL_ENABLE_CLIENT2=1 \
+	-DSSL_STATIC_LIBRARY=1 \
+	-DAXTLS_LIBRARY=1 \
+	-DCONFIG_OPENSSL_COMPATIBLE=1 \
+	-DCONFIG_SSL_CTX_MUTEXING=1 \
+	-DCONFIG_SSL_USE_DEFAULT_KEY=1 \
+	-DHAVE_STDINT=1 \
+	-DNO_SSL_DL=1 \
+	-DUSE_AXTLS=1 \
+	-DUSE_AXTLS_ON_MEMORY=1 \
+	-DSSL_STATIC_LIBRARY=1 \
+	-DCONFIG_BIGINT_BARRETT=1
+
+AXTLS_INCLUDE_DIRS := -I$(AXTLS_PATH)
+SOURCES += $(AXTLS_SRC_FILES)
+CFLAGS += $(AXTLS_OPT_DEFINES)
+	
+GUMBO_PATH := ../gumbo
+GUMBO_SRC_FILES := \
+	../SquiLu-ext/sq_gumbo.cpp  \
+	$(GUMBO_PATH)/attribute.c \
+	$(GUMBO_PATH)/char_ref.c \
+	$(GUMBO_PATH)/error.c \
+	$(GUMBO_PATH)/parser.c \
+	$(GUMBO_PATH)/string_buffer.c \
+	$(GUMBO_PATH)/string_piece.c \
+	$(GUMBO_PATH)/tag.c \
+	$(GUMBO_PATH)/tokenizer.c \
+	$(GUMBO_PATH)/utf8.c \
+	$(GUMBO_PATH)/util.c \
+	$(GUMBO_PATH)/vector.c
+
+GUMBO_INCLUDE_DIRS := -I$(GUMBO_PATH)
+SOURCES += $(GUMBO_SRC_FILES)
+
+MINIZIP_PATH := ../minizip
+MINIZIP_SRC_FILES := \
+	$(MINIZIP_PATH)/ioapi.c \
+	$(MINIZIP_PATH)/mztools.c \
+	$(MINIZIP_PATH)/unzip.c \
+	$(MINIZIP_PATH)/zip.c
+#	../SquiLu-ext/sq_miniz.cpp \
+	
+MINIZIP_OPT_DEFINES := \
+	-DNOCRYPT
+
+MINIZIP_INCLUDE_DIRS := -I$(MINIZIP_PATH)
+SOURCES += $(MINIZIP_SRC_FILES)
+CFLAGS += $(MINIZIP_OPT_DEFINES)
+
+MPDECIMAL_PATH := ../mpdecimal-ios
+MPDECIMAL_SRC_FILES := \
+	../SquiLu-ext/sq_decimal.cpp  \
+	$(MPDECIMAL_PATH)/basearith.c \
+	$(MPDECIMAL_PATH)/context.c \
+	$(MPDECIMAL_PATH)/constants.c \
+	$(MPDECIMAL_PATH)/convolute.c \
+	$(MPDECIMAL_PATH)/crt.c \
+	$(MPDECIMAL_PATH)/mpdecimal.c \
+        $(MPDECIMAL_PATH)/mpsignal.c \
+	$(MPDECIMAL_PATH)/difradix2.c \
+	$(MPDECIMAL_PATH)/fnt.c \
+	$(MPDECIMAL_PATH)/fourstep.c \
+	$(MPDECIMAL_PATH)/io.c \
+	$(MPDECIMAL_PATH)/memory.c \
+	$(MPDECIMAL_PATH)/numbertheory.c \
+        $(MPDECIMAL_PATH)/sixstep.c \
+	$(MPDECIMAL_PATH)/transpose.c
+
+MPDECIMAL_OPT_DEFINES := \
+	-DMPD_PREC=9 \
+	-DMPD_DPREC=18 \
+	-DCONFIG_32=1 \
+	-DANSI=1 \
+	-DCOMPILING_FOR_IOS=1
+
+MPDECIMAL_INCLUDE_DIRS := -I$MPDECIMAL_PATH)
+SOURCES += $(MPDECIMAL_SRC_FILES)
+CFLAGS += $(MPDECIMAL_OPT_DEFINES)
+
+
+LIBDISCOUNT_PATH := ../discount
+LIBDISCOUNT_SRC_FILES= \
+	../SquiLu-ext/sq_markdown.cpp  \
+	$(LIBDISCOUNT_PATH)/mkdio.c \
+	$(LIBDISCOUNT_PATH)/markdown.c \
+	$(LIBDISCOUNT_PATH)/dumptree.c \
+	$(LIBDISCOUNT_PATH)/generate.c \
+	$(LIBDISCOUNT_PATH)/resource.c \
+	$(LIBDISCOUNT_PATH)/docheader.c \
+	$(LIBDISCOUNT_PATH)/version.c \
+	$(LIBDISCOUNT_PATH)/toc.c \
+	$(LIBDISCOUNT_PATH)/css.c \
+	$(LIBDISCOUNT_PATH)/xml.c \
+	$(LIBDISCOUNT_PATH)/Csio.c \
+	$(LIBDISCOUNT_PATH)/xmlpage.c \
+	$(LIBDISCOUNT_PATH)/basename.c \
+	$(LIBDISCOUNT_PATH)/emmatch.c \
+	$(LIBDISCOUNT_PATH)/setup.c \
+	$(LIBDISCOUNT_PATH)/tags.c \
+	$(LIBDISCOUNT_PATH)/html5.c \
+	$(LIBDISCOUNT_PATH)/flags.c
+	
+LIBDISCOUNT_INCLUDE_DIRS := -I$(LIBDISCOUNT_PATH)
+SOURCES += $(LIBDISCOUNT_SRC_FILES)
+
+UNQL_PATH := ../unql/src
+UNQL_SRC_FILES = \
+	../SquiLu-ext/sq_unql.cpp  \
+	$(UNQL_PATH)/update.c \
+	$(UNQL_PATH)/trace.c \
+	$(UNQL_PATH)/tokenize.c \
+	$(UNQL_PATH)/string.c \
+	$(UNQL_PATH)/stmt.c \
+	$(UNQL_PATH)/query.c \
+	$(UNQL_PATH)/pragma.c \
+	$(UNQL_PATH)/complete.c \
+	$(UNQL_PATH)/parse.c \
+	$(UNQL_PATH)/memory.c \
+	$(UNQL_PATH)/json.c \
+	$(UNQL_PATH)/func.c \
+	$(UNQL_PATH)/expr.c \
+	$(UNQL_PATH)/delete.c \
+	$(UNQL_PATH)/datasrc.c \
+	$(UNQL_PATH)/context.c \
+	$(UNQL_PATH)/conn.c
+
+UNQL_INCLUDE_DIRS := -I$(UNQL_PATH)
+SOURCES += $(UNQL_SRC_FILES)
+
+#SOURCES += ../SquiLu-ext/sq_fltk.cpp  ../SquiLu-ext/sq_parsecsv.cpp \
+#	../SquiLu-ext/sq_postgresql.cpp ../SquiLu-ext/sq_zmq3.cpp  
+
+#OBJECTS = $(SOURCES:.c=.o)
+
+%.o: %.c
+	$(CC) -c -o $@ $< $(CFLAGS)
+	
+%.o: %.cpp
+	$(CXX) -c -o $@ $< $(CFLAGS)
+	
+squilu-ios: $(OBJECTS)
+	$(CC) $(CFLAGS) -o $@ $(SOURCES) $(LIBDIR) $(LDFLAGS)
+	#$(CXX) $(CFLAGS) -o $@ $(OBJECTS) $(LIBDIR) $(LDFLAGS)
+
