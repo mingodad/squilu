@@ -2937,24 +2937,24 @@ static void handle_directory_request(struct mg_connection *conn,
 }
 
 // Send len bytes from the opened file to the client.
-static void send_file_data(struct mg_connection *conn, FILE *fp, int64_t len) {
+static void send_file_data(struct mg_connection *conn, FILE *fp, size_t len) {
   char buf[MG_BUF_LEN];
-  int to_read, num_read, num_written;
+  size_t to_read, num_read, num_written;
 
   while (len > 0) {
     // Calculate how much to read from the file in the buffer
     to_read = sizeof(buf);
-    if ((int64_t) to_read > len) {
-      to_read = (int) len;
+    if (to_read > len) {
+      to_read = len;
     }
 
     // Read from file, exit the loop on error
-    if ((num_read = fread(buf, 1, (size_t)to_read, fp)) <= 0) {
+    if ((num_read = fread(buf, 1, to_read, fp)) <= 0) {
       break;
     }
 
     // Send read bytes to the client, exit the loop on error
-    if ((num_written = mg_write(conn, buf, (size_t)num_read)) != num_read) {
+    if ((num_written = mg_write(conn, buf, num_read)) != num_read) {
       break;
     }
 
