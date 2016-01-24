@@ -18,11 +18,8 @@ void sq_vm_free(void *p,SQUnsignedInteger size);
 template<typename T> class sqvector
 {
 public:
-	sqvector()
+	sqvector():_vals(NULL),_size(0),_allocated(0)
 	{
-		_vals = NULL;
-		_size = 0;
-		_allocated = 0;
 	}
 	sqvector(const sqvector<T>& v)
 	{
@@ -121,6 +118,18 @@ private:
 	}
 	SQUnsignedInteger _size;
 	SQUnsignedInteger _allocated;
+};
+
+class SQCharBuf : public sqvector<char>
+{
+public:
+    void append(const char *p, size_t count)
+    {
+        size_t old_size = size();
+        resize(old_size + count);
+        memcpy(_vals+old_size, p, count);
+    }
+    const char *data(){return _vals;}
 };
 
 #endif //_SQUTILS_H_

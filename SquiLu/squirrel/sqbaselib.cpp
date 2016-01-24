@@ -237,9 +237,11 @@ static SQRESULT get_slice_params(HSQUIRRELVM v,SQInteger &sidx,SQInteger &eidx,S
 	sidx=0;
 	eidx=0;
 	o=stack_get(v,1);
-	SQObjectPtr &start=stack_get(v,2);
-	if(type(start)!=OT_NULL && sq_isnumeric(start)){
-		sidx=tointeger(start);
+	if(top>1){
+		SQObjectPtr &start=stack_get(v,2);
+		if(type(start)!=OT_NULL && sq_isnumeric(start)){
+			sidx=tointeger(start);
+		}
 	}
 	if(top>2){
 		SQObjectPtr &end=stack_get(v,3);
@@ -574,10 +576,9 @@ static SQRESULT default_delegate_tointeger(HSQUIRRELVM v)
 
 static SQRESULT default_delegate_tostring(HSQUIRRELVM v)
 {
-    if(SQ_SUCCEEDED(sq_tostring(v,1))) {
-        return 1;
-    }
-    return SQ_ERROR;
+	if(SQ_FAILED(sq_tostring(v,1)))
+		return SQ_ERROR;
+	return 1;
 }
 
 static SQRESULT obj_delegate_weakref(HSQUIRRELVM v)
@@ -615,7 +616,11 @@ static SQRESULT table_rawdelete(HSQUIRRELVM v)
 
 static SQRESULT container_rawexists(HSQUIRRELVM v)
 {
-	sq_pushbool(v, sq_rawexists(v,-2));
+	if(SQ_SUCCEEDED(sq_rawget(v,-2))) {
+		sq_pushbool(v,SQTrue);
+		return 1;
+	}
+	sq_pushbool(v,SQFalse);
 	return 1;
 }
 

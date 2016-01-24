@@ -19,13 +19,22 @@ int _wtoi (const wchar_t *);
 #define MAX_WFORMAT_LEN	3
 #define ADDITIONAL_FORMAT_SPACE (100*sizeof(SQChar))
 
+static SQBool isfmtchr(SQChar ch)
+{
+	switch(ch) {
+	case '-': case '+': case ' ': case '#': case '0': return SQTrue;
+	}
+	return SQFalse;
+}
+
 static SQRESULT validate_format(HSQUIRRELVM v, SQChar *fmt, const SQChar *src, SQInteger n,SQInteger &width)
 {
+	SQChar *dummy;
 	SQChar swidth[MAX_WFORMAT_LEN];
 	SQInteger wc = 0;
 	SQInteger start = n;
 	fmt[0] = _SC('%');
-	while (scstrchr(_SC("-+ #0"), src[n])) n++;
+	while (isfmtchr(src[n])) n++;
 	while (scisdigit(src[n])) {
 		swidth[wc] = src[n];
 		n++;
@@ -35,7 +44,7 @@ static SQRESULT validate_format(HSQUIRRELVM v, SQChar *fmt, const SQChar *src, S
 	}
 	swidth[wc] = _SC('\0');
 	if(wc > 0) {
-		width = scatoi(swidth);
+		width = scstrtol(swidth,&dummy,10);
 	}
 	else
 		width = 0;
@@ -52,7 +61,8 @@ static SQRESULT validate_format(HSQUIRRELVM v, SQChar *fmt, const SQChar *src, S
 		}
 		swidth[wc] = _SC('\0');
 		if(wc > 0) {
-			width += scatoi(swidth);
+			width += scstrtol(swidth,&dummy,10);
+
 		}
 	}
 	if (n-start > MAX_FORMAT_LEN )

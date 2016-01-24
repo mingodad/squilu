@@ -275,6 +275,16 @@ void SQFuncState::SetStackSize(SQInteger n)
 	}
 }
 
+bool SQFuncState::IsConstant(const SQObject &name,SQObject &e)
+{
+	SQObjectPtr val;
+	if(_table(_sharedstate->_consts)->Get(name,val)) {
+		e = val;
+		return true;
+	}
+	return false;
+}
+
 bool SQFuncState::IsLocal(SQUnsignedInteger stkpos)
 {
 	if(stkpos>=_vlocals.size())return false;

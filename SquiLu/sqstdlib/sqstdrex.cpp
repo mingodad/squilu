@@ -219,8 +219,6 @@ static SQInteger sqstd_rex_class(SQRex *exp)
 	if(first!=-1){
 		SQInteger c = first;
 		exp->_nodes[chain].next = c;
-		//chain = c;
-		//first = -1;
 	}
 	/* hack? */
 	exp->_nodes[ret].left = exp->_nodes[ret].next;
