@@ -1012,7 +1012,7 @@ static SQRESULT array_slice(HSQUIRRELVM v)
 	if(sidx < 0)sidx = alen + sidx;
 	if(eidx < 0)eidx = alen + eidx;
 	if(eidx < sidx)return sq_throwerror(v,_SC("wrong indexes"));
-	if(eidx > alen)return sq_throwerror(v,_SC("slice out of range"));
+	if(eidx > alen || sidx < 0)return sq_throwerror(v, _SC("slice out of range"));
 	SQArray *arr=SQArray::Create(_ss(v),eidx-sidx);
 	SQObjectPtr t;
 	SQInteger count=0;
@@ -1152,7 +1152,7 @@ static SQRESULT string_slice(HSQUIRRELVM v)
 	if(sidx < 0)sidx = slen + sidx;
 	if(eidx < 0)eidx = slen + eidx;
 	if(eidx < sidx)	return sq_throwerror(v,_SC("wrong indexes"));
-	if(eidx > slen)	return sq_throwerror(v,_SC("slice out of range"));
+	if(eidx > slen || sidx < 0)	return sq_throwerror(v, _SC("slice out of range"));
 	v->Push(SQString::Create(_ss(v),&_stringval(o)[sidx],eidx-sidx));
 	return 1;
 }
@@ -1193,14 +1193,22 @@ static SQRESULT string_find(HSQUIRRELVM v)
 	return sq_throwerror(v,_SC("invalid param"));
 }
 
-#define STRING_TOFUNCZ(func) static SQRESULT string_##func(HSQUIRRELVM v) \
-{ \
-	SQObject str=stack_get(v,1); \
+#define STRING_TOFUNCZ(func) static SQInteger string_##func(HSQUIRRELVM v) \
+{\
+	SQInteger sidx,eidx; \
+	SQObjectPtr str; \
+	if(SQ_FAILED(get_slice_params(v,sidx,eidx,str)))return -1; \
+	SQInteger slen = _string(str)->_len; \
+	if(sidx < 0)sidx = slen + sidx; \
+	if(eidx < 0)eidx = slen + eidx; \
+	if(eidx < sidx)	return sq_throwerror(v,_SC("wrong indexes")); \
+	if(eidx > slen || sidx < 0)	return sq_throwerror(v,_SC("slice out of range")); \
 	SQInteger len=_string(str)->_len; \
-	const SQChar *sThis=_stringval(str); \
-	SQChar *sNew=(_ss(v)->GetScratchPad(rsl(len))); \
-	for(SQInteger i=0;i<len;i++) sNew[i]=func(sThis[i]); \
-	v->Push(SQString::Create(_ss(v),sNew,len)); \
+	const SQChar *sthis=_stringval(str); \
+	SQChar *snew=(_ss(v)->GetScratchPad(sq_rsl(len))); \
+	memcpy(snew,sthis,sq_rsl(len));\
+	for(SQInteger i=sidx;i<eidx;i++) snew[i] = func(sthis[i]); \
+	v->Push(SQString::Create(_ss(v),snew,len)); \
 	return 1; \
 }
 

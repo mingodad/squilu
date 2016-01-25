@@ -168,6 +168,7 @@ typedef wchar_t USQChar;
 #define scisalnum	iswalnum
 #define scprintf	wprintf
 #define MAX_CHAR	0xFFFF
+#define sq_rsl(l) ((l)<<WCHAR_SHIFT_MUL)
 #else
 typedef char SQChar;
 typedef unsigned char USQChar;
@@ -204,6 +205,7 @@ typedef unsigned char USQChar;
 #define scisalnum	isalnum
 #define scprintf	printf
 #define MAX_CHAR	0xFF
+#define sq_rsl(l) (l)
 #endif
 
 #ifdef _SQ64
