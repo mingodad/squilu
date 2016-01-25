@@ -144,15 +144,15 @@ typedef const char * (*mysql_stmt_error_t)(MYSQL_STMT * stmt);
 static mysql_stmt_error_t dlmysql_stmt_error = 0;
 // generated-code:end
 #ifdef WIN32
-#define LIBPQ_NAME "libmysqlclient.dll"
+#define DYNLIB_NAME "libmysqlclient.dll"
 #else
-#define LIBPQ_NAME "libmysqlclient.so"
+#define DYNLIB_NAME "libmysqlclient.so"
 #endif
 
 static bool load_libmysqlclient()
 {
     if(dlmysql_init) return true;
-    if(libmysqlclient.open(LIBPQ_NAME))
+    if(libmysqlclient.open(DYNLIB_NAME))
     {
         //@write_mysql_functions_load();
 // generated-code:begin
