@@ -143,16 +143,13 @@ static mysql_stmt_close_t dlmysql_stmt_close = 0;
 typedef const char * (*mysql_stmt_error_t)(MYSQL_STMT * stmt);
 static mysql_stmt_error_t dlmysql_stmt_error = 0;
 // generated-code:end
-#ifdef WIN32
-#define DYNLIB_NAME "libmysqlclient.dll"
-#else
-#define DYNLIB_NAME "libmysqlclient.so"
-#endif
+
+static const char *dynamicLibName = DYNLIB_FOR_OS(libmysqlclient);
 
 static bool load_libmysqlclient()
 {
     if(dlmysql_init) return true;
-    if(libmysqlclient.open(DYNLIB_NAME))
+    if(libmysqlclient.open(dynamicLibName))
     {
         //@write_mysql_functions_load();
 // generated-code:begin

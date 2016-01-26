@@ -206,16 +206,13 @@ static lo_export_t dllo_export = 0;
 typedef PGconn * (*PQconnectdb_t)(const char *conninfo);
 static PQconnectdb_t dlPQconnectdb = 0;
 // generated-code:end
-#ifdef WIN32
-#define LIBPQ_NAME "libpq.dll"
-#else
-#define LIBPQ_NAME "libpq.so"
-#endif
+
+static const char *dynamicLibName = DYNLIB_FOR_OS(libpq);
 
 static bool load_libpq()
 {
     if(dlPQconnectdb) return true;
-    if(libpq.open(LIBPQ_NAME))
+    if(libpq.open(dynamicLibName))
     {
         //@write_pgsql_functions_load();
 // generated-code:begin

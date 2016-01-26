@@ -113,16 +113,12 @@ typedef CXType (*clang_getResultType_t)(CXType);
 static clang_getResultType_t dlclang_getResultType = 0;
 // generated-code:end
 
-#ifdef WIN32
-#define DYNLIB_NAME "libclang.dll"
-#else
-#define DYNLIB_NAME "libclang.so"
-#endif
+static const char *dynamicLibName = DYNLIB_FOR_OS(libclang);
 
 static bool load_dynamicLib()
 {
     if(dlclang_createIndex) return true;
-    if(dynamicLib.open(DYNLIB_NAME))
+    if(dynamicLib.open(dynamicLibName))
     {
         //@write_dynamic_functions_load();
 // generated-code:begin
