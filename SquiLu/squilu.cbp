@@ -767,6 +767,7 @@
 			<Add option="-DWITH_UUID=1" />
 			<Add option="-DWITH_FFI=1" />
 			<Add option="-DWITH_POSTGRESQL=1" />
+			<Add option="-DWITH_LIBCLANG=1" />
 			<Add directory="include" />
 			<Add directory="sqstdlib" />
 			<Add directory="../myaxtls" />
@@ -781,6 +782,7 @@
 			<Add directory="../gumbo" />
 			<Add directory="../minizip" />
 			<Add directory="../unql/src" />
+			<Add directory="../../../local/clang-3.6/include" />
 		</Compiler>
 		<Linker>
 			<Add library="m" />
@@ -1122,6 +1124,7 @@
 			<Option target="Debug FLTK 64bits asan" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_gumbo.cpp" />
+		<Unit filename="../SquiLu-ext/sq_libclang.cpp" />
 		<Unit filename="../SquiLu-ext/sq_markdown.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
