@@ -337,7 +337,7 @@ public:
 	void MoveIfCurrentTargetIsLocal() {
 		SQInteger trg = _fs->TopTarget();
 		if(_fs->IsLocal(trg)) {
-			trg = _fs->PopTarget(); //no pops the target and move it
+			trg = _fs->PopTarget(); //pops the target and moves it
 			_fs->AddInstruction(_OP_MOVE, _fs->PushTarget(), trg);
 		}
 	}
