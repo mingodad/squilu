@@ -10,6 +10,12 @@
 
 local globals = getroottable();
 
+local function sqliteTrace(udata, sql)
+{
+	if(sql == "-- TRIGGER ") return;
+	debug_print(udata, ":", sql, "\n");
+}
+
 local function getCompaniesUkDBFileName(){
 	if (globals.rawget("jniLog", false)) return APP_CODE_FOLDER + "/companies-uk-RG.db";
 	if (globals.rawget("WIN32", false)) return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-RG.db";
@@ -24,6 +30,7 @@ local companiesUkDB = null;
 local function getCompaniesUkDB(){
 	if(!companiesUkDB) {
 		companiesUkDB = SQLite3(getCompaniesUkDBFileName());
+		if(AT_DEV_DBG) companiesUkDB.trace(sqliteTrace, "SQL", false);
 		//companiesUkDB.exec_dml("PRAGMA cache_size = 4000;");
 	}
 	return companiesUkDB;
@@ -37,7 +44,7 @@ local function getCachedStmt(stmt_key, sql_or_func){
 		local sql;
 		if (type(sql_or_func) == "function") sql = sql_or_func();
 		else sql = sql_or_func;
-		//debug_print("\n", sql);
+		//debug_print("\nsql: ", sql);
 		stmt = getCompaniesUkDB().prepare(sql);
 		__stmtCache.stmt_key <- stmt;
 	}

@@ -179,7 +179,7 @@ function MyNewWin(){
 	tabs.end();
 
 
-          local o = Fl_Pack2(5, 380, 790, 25);
+          local o = Fl_Pack(5, 380, 790, 25);
           o.type(1);
           o.labelsize(16);
           o->spacing(5);

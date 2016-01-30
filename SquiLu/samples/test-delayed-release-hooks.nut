@@ -4,16 +4,17 @@ function doIT(line){
 	print(dad_utils, dad_utils.gc_scope_alert);
 	local gca = dad_utils.gc_scope_alert(@(ud) print(ud), "<<Gone !>> : " + line);
 	print("Done !", line);
-	gca = null;
-	local a = 3;
-	print(a);
+	//gca = null;
+	print(line);
 }
 function doIT2(line){
 	local gca2 = dad_utils.gc_scope_alert(@(ud) print(ud), "<<Gone2 !>> : " + line);
 	print("Done2 !", line);
 	//gca2 = null;
+	print(line);
 }
 doIT(__LINE__);
+//call_delayed_release_hooks();
 print("At line:", __LINE__);
 doIT(__LINE__);
 print("At line:", __LINE__);

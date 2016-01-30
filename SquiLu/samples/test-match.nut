@@ -15,6 +15,10 @@ local line = "HTTP/1.1 301 Moved Permanently";
 rc = line.match("%s*(%S+)%s+(%d+)%s+(.+)");
 print(rc);
 
+line = "3.";
+rc = line.match("(%d+)%.");
+print("3. => (%d+)%.", rc);
+
 i <- 2;
 //print(i/0);
 print(i%0);

@@ -25,10 +25,13 @@ class MyDerivedClass extends MyClass {
 		print("derived destructor", this);
 	}	
 }
-
+{
 local a = MyClass();
-print(a._num);
+print(a._num, type(a));
 //a.destructor();
 local b = MyDerivedClass();
-print(b._num);
+print(b._num, type(b));
 //b.destructor();
+}
+
+print("Done");
