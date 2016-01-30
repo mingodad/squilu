@@ -1,0 +1,1 @@
+clang-3.6-env squilu clang-parse.nut #> clang-parse.log 2>&1

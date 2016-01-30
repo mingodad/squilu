@@ -35,6 +35,7 @@ local dynamic_functions = [
     ["CXString", "clang_getCursorSpelling", "CXCursor"],
     ["CXString", "clang_getTypeSpelling", "CXType CT"],
     ["CXString", "clang_getCursorKindSpelling", "enum CXCursorKind"],
+    ["CXCursor", "clang_getCursorReferenced", "CXCursor"],
     ["const char *", "clang_getCString", "CXString string"],
     ["void", "clang_disposeString", "CXString str"],
     ["CXSourceLocation", "clang_getCursorLocation", "CXCursor"],
@@ -96,6 +97,8 @@ typedef CXString (*clang_getTypeSpelling_t)(CXType CT);
 static clang_getTypeSpelling_t dlclang_getTypeSpelling = 0;
 typedef CXString (*clang_getCursorKindSpelling_t)(enum CXCursorKind);
 static clang_getCursorKindSpelling_t dlclang_getCursorKindSpelling = 0;
+typedef CXCursor (*clang_getCursorReferenced_t)(CXCursor);
+static clang_getCursorReferenced_t dlclang_getCursorReferenced = 0;
 typedef const char * (*clang_getCString_t)(CXString string);
 static clang_getCString_t dlclang_getCString = 0;
 typedef void (*clang_disposeString_t)(CXString str);
@@ -144,6 +147,8 @@ dlclang_getTypeSpelling = (clang_getTypeSpelling_t) dynamicLib.dlsym("clang_getT
 if(!dlclang_getTypeSpelling) return false;
 dlclang_getCursorKindSpelling = (clang_getCursorKindSpelling_t) dynamicLib.dlsym("clang_getCursorKindSpelling");
 if(!dlclang_getCursorKindSpelling) return false;
+dlclang_getCursorReferenced = (clang_getCursorReferenced_t) dynamicLib.dlsym("clang_getCursorReferenced");
+if(!dlclang_getCursorReferenced) return false;
 dlclang_getCString = (clang_getCString_t) dynamicLib.dlsym("clang_getCString");
 if(!dlclang_getCString) return false;
 dlclang_disposeString = (clang_disposeString_t) dynamicLib.dlsym("clang_disposeString");
@@ -172,6 +177,8 @@ struct MyLibClang {
     int depth;
 	const char *file_name;
 	char *function_name;
+	unsigned int prev_line, prev_column;
+	unsigned int line, column;
 	HSQUIRRELVM v;
 	HSQOBJECT visitor_cb;
 	HSQOBJECT visitor_udata;
@@ -259,16 +266,18 @@ functionDeclVisitor(CXCursor cursor, CXCursor parent, CXClientData client_data)
 	enum CXCursorKind kind = dlclang_getCursorKind(cursor);
 	CXType type = dlclang_getCursorType(cursor);
 	CXString type_spelling;
-	CXString type_kind_spelling;
+	//CXString type_kind_spelling;
 	CXString name;
 
 	if (kind == CXCursor_ParmDecl){
 		name = dlclang_getCursorSpelling(cursor);
 		type_spelling = dlclang_getTypeSpelling(type);
 		//db_add_funcparam(cvu->db, cvu->function_name, dlclang_getCString(name), dlclang_getCString(type_spelling), type.kind);
-		call_visitor_cb(cvu, "sssssi",
+		call_visitor_cb(cvu, "ssiisssi",
                         "FuncParam",
                         cvu->file_name,
+                        cvu->line,
+                        cvu->column,
                         cvu->function_name,
                         dlclang_getCString(name),
                         dlclang_getCString(type_spelling),
@@ -294,6 +303,8 @@ cursorVisitor(CXCursor cursor, CXCursor parent, CXClientData client_data)
 	CXSourceLocation location = dlclang_getCursorLocation(cursor);
 	dlclang_getPresumedLocation(location, &filename, &line, &column);
     cvu->file_name = dlclang_getCString(filename);
+    cvu->line = line;
+    cvu->column = column;
 	//sqlite_int64 file_id = db_add_funcfile(cvu->db, dlclang_getCString(filename));
 	//call_visitor_cb(cvu, "ss", "FuncFile", dlclang_getCString(filename));
 	if (kind == CXCursor_FunctionDecl) {
@@ -304,13 +315,15 @@ cursorVisitor(CXCursor cursor, CXCursor parent, CXClientData client_data)
 		CXString rtype_spelling = dlclang_getTypeSpelling(rtype);
 		free(cvu->function_name);
 		cvu->function_name = strdup(dlclang_getCString(name));
+		cvu->prev_line = line;
+		cvu->prev_column = column;
 		//db_add_funcdecl(cvu->db, cvu->function_name, dlclang_getCString(type_spelling),
         //          dlclang_getCString(rtype_spelling), lk, file_id, line, column);
-        call_visitor_cb(cvu, "ssiissi",
+        call_visitor_cb(cvu, "ssiisssi",
                         "FuncDecl",
                         cvu->file_name,
-                        line,
-                        column,
+                        cvu->line,
+                        cvu->column,
                         cvu->function_name,
                         dlclang_getCString(type_spelling),
                         dlclang_getCString(rtype_spelling),
@@ -321,13 +334,26 @@ cursorVisitor(CXCursor cursor, CXCursor parent, CXClientData client_data)
 		//CXString type_spelling = clang_getTypeSpelling(type);
 		//printf("%s\n", type_spelling);
 		//db_add_funccall(cvu->db, cvu->function_name, dlclang_getCString(name), file_id, line, column);
-		call_visitor_cb(cvu, "ssiiss",
+
+		CXCursor to_func_file_cursor = dlclang_getCursorReferenced(cursor);
+        CXString to_func_filename;
+        unsigned int to_func_line, to_func_column;
+
+        CXSourceLocation to_func_location = dlclang_getCursorLocation(to_func_file_cursor);
+        dlclang_getPresumedLocation(to_func_location, &to_func_filename, &to_func_line, &to_func_column);
+
+		call_visitor_cb(cvu, "ssiisiisiis",
                         "CallExpr",
                         cvu->file_name,
                         line,
                         column,
-                        cvu->function_name,
-                        dlclang_getCString(name));
+                        cvu->function_name, //from function
+                        cvu->prev_line,
+                        cvu->prev_column,
+                        dlclang_getCString(to_func_filename),
+                        to_func_line,
+                        to_func_column,
+                        dlclang_getCString(name)); //to function
 
 		ret = CXChildVisit_Continue;
 	}
@@ -349,28 +375,55 @@ static SQRESULT sq_libclang_parseTranslationUnit(HSQUIRRELVM v){
 	sq_getstackobj(v, 2, &self->visitor_cb);
     sq_addref(v, &self->visitor_cb);
 
-	const char *cl_args[] = {"-I."};
+	const char *cl_argsDefault[] = {"-I."};
+	const char **cl_args = cl_argsDefault;
 	int cl_argNum = 1;
+	int rc = 0;
+	const int cl_arg_start = 4;
+	bool has_extra_params = _top_ >= cl_arg_start;
 
-	if(_top_ > 3)
+	if(has_extra_params)
     {
         //create cl_args with extra parameters
+        cl_argNum = _top_ - (cl_arg_start -1);
+        cl_args = (const char **)sq_malloc(sizeof(char*) * cl_argNum);
+        for(int i=cl_arg_start; i <= _top_; ++i)
+        {
+            const SQChar *p;
+            if(sq_gettype(v, i) == OT_STRING)
+            {
+                rc = sq_getstring(v, i, &p);
+            }
+            else
+            {
+                rc = sq_throwerror(v, _SC("not a string parameter at %d"), i);
+                goto cleanup;
+            }
+            cl_args[i-cl_arg_start] = p;
+        }
     }
 
 	CXTranslationUnit TU;
+	CXCursor rootCursor;
 
     TU = dlclang_parseTranslationUnit(self->index, fname,
                     cl_args, cl_argNum, 0, 0, CXTranslationUnit_Incomplete);
 
     if (TU == NULL) {
-        return sq_throwerror(v, _SC("clang_parseTranslationUnit for %s failed\n"), fname);
+        rc = sq_throwerror(v, _SC("clang_parseTranslationUnit for %s failed\n"), fname);
+        goto cleanup;
     }
 
-    CXCursor rootCursor = dlclang_getTranslationUnitCursor(TU);
+    rootCursor = dlclang_getTranslationUnitCursor(TU);
     dlclang_visitChildren(rootCursor, cursorVisitor, self);
     dlclang_disposeTranslationUnit(TU);
 
-	return 0;
+cleanup:
+	if(has_extra_params)
+    {
+        sq_free(cl_args, sizeof(char*) * cl_argNum);
+    }
+	return rc;
 }
 
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_libclang_##name,nparams,tycheck}
