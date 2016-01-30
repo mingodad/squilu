@@ -1405,10 +1405,10 @@ SQRESULT sq_reservestack(HSQUIRRELVM v,SQInteger nsize)
 
 SQRESULT sq_resume(HSQUIRRELVM v,SQBool retval,SQBool raiseerror)
 {
-    SQObjectPtr &obj = v->GetUp(-1);
-	if(type(obj)==OT_GENERATOR){
+	if (type(v->GetUp(-1)) == OT_GENERATOR)
+	{
 		v->PushNull(); //retval
-		if(!v->Execute(v->GetUp(-2),0,v->_top,obj,raiseerror,SQVM::ET_RESUME_GENERATOR))
+		if (!v->Execute(v->GetUp(-2), 0, v->_top, v->GetUp(-1), raiseerror, SQVM::ET_RESUME_GENERATOR))
 		{v->Raise_Error(v->_lasterror); return SQ_ERROR;}
 		if(!retval)
 			v->Pop();
@@ -1919,17 +1919,22 @@ void sq_insert_reg_funcs(HSQUIRRELVM sqvm, SQRegFunction *obj_funcs){
 #define DONE_AND_RETURN(x) {ret_val =x; goto done_and_return;}
 #define CHECK_OK(v) if((ret_val = v) < 0) goto done_and_return;
 
-SQRESULT sq_call_va_vl(HSQUIRRELVM v, SQBool reset_stack, SQInteger idx, const SQChar *func, SQInteger idx_this, const SQChar *sig, va_list vl)
+SQRESULT sq_call_va_vl(HSQUIRRELVM v, SQBool reset_stack, SQInteger idx, const SQChar *func_name, SQInteger idx_this, const SQChar *sig, va_list vl)
 {
     int narg; // nres;  /* number of arguments and results */
     SQRESULT ret_val = 0;
     SQObjectType toptype;
     SQInteger top = sq_gettop(v);
 
-    sq_pushstring(v, func, -1);
-    CHECK_OK(sq_get(v, idx > 0 ? idx : idx-1));
-    toptype = sq_gettype(v, -1);
-    if(!(toptype == OT_CLOSURE || toptype == OT_NATIVECLOSURE)) DONE_AND_RETURN(-100);
+    //if func_name not null assume global function name
+    //else function already on stack
+    if(func_name)
+    {
+        sq_pushstring(v, func_name, -1);
+        CHECK_OK(sq_get(v, idx > 0 ? idx : idx-1));
+        toptype = sq_gettype(v, -1);
+        if(!(toptype == OT_CLOSURE || toptype == OT_NATIVECLOSURE)) DONE_AND_RETURN(-100);
+    }
 
     if(idx_this == 0) sq_pushroottable(v);
     else sq_push(v, idx_this > 0 ? idx_this : idx_this-1);

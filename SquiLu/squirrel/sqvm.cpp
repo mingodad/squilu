@@ -364,9 +364,9 @@ bool SQVM::StringCat(const SQObjectPtr &str,const SQObjectPtr &obj,SQObjectPtr &
 	if(!ToString(str, a)) return false;
 	if(!ToString(obj, b)) return false;
 	SQInteger l = _string(a)->_len , ol = _string(b)->_len;
-	SQChar *s = _sp(rsl(l + ol + 1));
-	memcpy(s, _stringval(a), rsl(l));
-	memcpy(s + l, _stringval(b), rsl(ol));
+	SQChar *s = _sp(sq_rsl(l + ol + 1));
+	memcpy(s, _stringval(a), sq_rsl(l));
+	memcpy(s + l, _stringval(b), sq_rsl(ol));
 	dest = SQString::Create(_ss(this), _spval, l + ol);
 	return true;
 }
@@ -938,7 +938,7 @@ exception_restore:
 						continue;
 					case OT_CLASS:{
 						SQObjectPtr inst;
-						CreateClassInstance(_class(clo),inst,clo);
+						_GUARD(CreateClassInstance(_class(clo),inst,clo));
 						if(sarg0 != -1) {
 							STK(arg0) = inst;
 						}
