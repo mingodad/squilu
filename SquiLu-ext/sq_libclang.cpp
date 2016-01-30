@@ -329,6 +329,8 @@ cursorVisitor(CXCursor cursor, CXCursor parent, CXClientData client_data)
                         dlclang_getCString(rtype_spelling),
                         lk);
 		dlclang_visitChildren(cursor, *functionDeclVisitor, cvu);
+		dlclang_disposeString(type_spelling);
+		dlclang_disposeString(rtype_spelling);
 	} else if (kind == CXCursor_CallExpr) {
 		//CXType type = clang_getCursorType(cursor);
 		//CXString type_spelling = clang_getTypeSpelling(type);
@@ -355,10 +357,12 @@ cursorVisitor(CXCursor cursor, CXCursor parent, CXClientData client_data)
                         to_func_column,
                         dlclang_getCString(name)); //to function
 
+		dlclang_disposeString(to_func_filename);
 		ret = CXChildVisit_Continue;
 	}
 
 	dlclang_disposeString(name);
+	dlclang_disposeString(filename);
 	return ret;
 }
 
