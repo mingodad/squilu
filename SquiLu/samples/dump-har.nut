@@ -13,7 +13,7 @@ function json2var(json) {
 	
 	//debug_print(json, "\n");
 	//convert new data from json to squilu table for merge
-	vm.compilestring(slave_func, "return " + json);
+	vm.compilestring(slave_func, "return " + json, true, true);
 	local tbl = vm.call(true, slave_func);
 	return tbl;
 }
@@ -45,10 +45,10 @@ local folders_made = {};
 function getPath(url)
 {
 	local ary = url.split('/');
-	for(local i = 2, len = ary.len()-1; i < len; ++i)
+	for(local i = 1, len = ary.len()-1; i < len; ++i)
 	{
-		print(i,ary[i]);
-		local folder = ary.slice(2, i+1).join("/");
+		//print(i,ary[i]);
+		local folder = ary.slice(1, i+1).join("/");
 		local cmd = format("mkdir %s", dest_folder + folder);
 		if(!folders_made.rawget(folder, false))
 		{
@@ -57,7 +57,7 @@ function getPath(url)
 			folders_made.rawset(folder, true);
 		}
 	}
-	local path = ary.slice(2).join("/");
+	local path = ary.slice(1).join("/");
 	//print(path);
 	return path;
 }
@@ -75,7 +75,7 @@ function dumpContent(vhar)
 		}
 		if( ventry.response.content.mimeType == "text/html")
 		{
-			if(!path.indexOf(".htm"))
+			if(path.indexOf(".htm") < 0)
 			{
 				path = getPath(url + "/index.html");
 			}

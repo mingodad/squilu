@@ -130,6 +130,8 @@ SQVM::SQVM(SQSharedState *ss)
 	_nnativecalls = 0;
 	_nmetamethodscall = 0;
 	_lasterror.Null();
+	_lasterror_line = 0;
+	_lasterror_column = 0;
 	memset(&_lasterror_stackinfo, 0, sizeof(SQStackInfos));
 	_errorhandler.Null();
 	_atexithandler.Null();

@@ -164,6 +164,7 @@ public:
 	SQOuter	*_openouters;
 	SQObjectPtr _roottable;
 	SQObjectPtr _lasterror;
+	SQInteger _lasterror_line, _lasterror_column;
 	SQStackInfos _lasterror_stackinfo;
 	SQObjectPtr _errorhandler;
 	SQObjectPtr _atexithandler;

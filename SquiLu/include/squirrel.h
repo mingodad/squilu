@@ -521,7 +521,8 @@ SQUIRREL_API SQRESULT sq_throwerror(HSQUIRRELVM v,const SQChar *fmt, ...);
 SQUIRREL_API SQRESULT sq_throwobject(HSQUIRRELVM v);
 SQUIRREL_API void sq_reseterror(HSQUIRRELVM v);
 SQUIRREL_API void sq_getlasterror(HSQUIRRELVM v);
-const SQChar *sq_getlasterror_str(HSQUIRRELVM v);
+SQUIRREL_API const SQChar *sq_getlasterror_str(HSQUIRRELVM v);
+SQUIRREL_API void sq_getlasterror_line_col(HSQUIRRELVM v, SQInteger *line, SQInteger *column);
 
 /*raw object handling*/
 SQUIRREL_API SQRESULT sq_getstackobj(HSQUIRRELVM v,SQInteger idx,HSQOBJECT *po);

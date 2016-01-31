@@ -458,6 +458,7 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 					case _SC('\\'): APPEND_CHAR(_SC('\\')); NEXT(); break;
 					case _SC('"'): APPEND_CHAR(_SC('"')); NEXT(); break;
 					case _SC('\''): APPEND_CHAR(_SC('\'')); NEXT(); break;
+					case _SC('u'): NEXT(); break; //unicode escape leave as is
 					default:
 						Error(_SC("unrecognised escaper char"));
 					break;

@@ -133,20 +133,24 @@ static SQRESULT sq_slave_vm_constructor (HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     SQ_OPT_INTEGER(v, 2, stack_size, 1024);
+    SQ_OPT_BOOL(v, 3, with_libraries, false);
     HSQUIRRELVM self = sq_open(stack_size);
 
     /* Initialize environment */
     sq_setprintfunc(self,sq_getprintfunc(v),sq_geterrorfunc(v));
 
-    /* load base libraries */
-    sq_pushroottable(self);
+    if(with_libraries)
+    {
+        /* load base libraries */
+        sq_pushroottable(self);
 
-    sqstd_register_bloblib(self);
-    sqstd_register_iolib(self);
-    sqstd_register_systemlib(self);
-    sqstd_register_mathlib(self);
-    sqstd_register_stringlib(self);
-    sq_poptop(self); //remove root table
+        sqstd_register_bloblib(self);
+        sqstd_register_iolib(self);
+        sqstd_register_systemlib(self);
+        sqstd_register_mathlib(self);
+        sqstd_register_stringlib(self);
+        sq_poptop(self); //remove root table
+    }
 
     sq_setinstanceup(v, 1, self);
     sq_setreleasehook(v, 1, sq_slave_vm_release_hook);
@@ -309,6 +313,15 @@ static SQRESULT sq_slave_vm_compilestring(HSQUIRRELVM v)
     {
         result = sq_newslot(self, -3, SQFalse);
     }
+    else
+    {
+        const SQChar *last_error = sq_getlasterror_str(self);
+        if(last_error) {
+            SQInteger line, column;
+            sq_getlasterror_line_col(self, &line, &column);
+            result = sq_throwerror(v, _SC("compilestring %s %d:%d: %s"), func_name, line, column, last_error);
+        }
+    }
     sq_settop(self, top);
     return result;
 }
@@ -323,7 +336,7 @@ extern "C" {
         sq_pushstring(v,sq_slave_vm_TAG, -1);
         sq_newclass(v, SQFalse);
         sq_settypetag(v,-1,(void*)sq_slave_vm_TAG);
-        sq_insertfunc(v, _SC("constructor"), sq_slave_vm_constructor, -1, _SC("xi"), SQFalse);
+        sq_insertfunc(v, _SC("constructor"), sq_slave_vm_constructor, -1, _SC("xib"), SQFalse);
         sq_insertfunc(v, _SC("_tostring"), sq_slave_vm__tostring, 1, _SC("x"), SQFalse);
         sq_insertfunc(v, _SC("close"), sq_slave_vm_close, 1, _SC("x"), SQFalse);
         sq_insertfunc(v, _SC("set"), sq_slave_vm_set, 3, get_set_validation_mask, SQFalse);

@@ -375,6 +375,8 @@ public:
 					_lex._currentline, _lex._currentcolumn);
 			}
 			_vm->_lasterror = SQString::Create(_ss(_vm), _compilererror, -1);
+			_vm->_lasterror_line = _lex._currentline;
+			_vm->_lasterror_column = _lex._currentcolumn;
 			return false;
 		}
 		return true;
