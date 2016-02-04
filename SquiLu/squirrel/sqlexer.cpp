@@ -622,7 +622,8 @@ SQInteger SQLexer::ReadNumber()
 	case TINT:
 	case THEX:
 	case TOCTAL:
-        if(itmp > INT_MAX) Error(_SC("integer overflow"));
+	    //to allow 64 bits integers comment bellow
+        //if(itmp > INT_MAX) Error(_SC("integer overflow %ulld %d"));
         _nvalue = (SQInteger) itmp;
 		return TK_INTEGER;
 	}

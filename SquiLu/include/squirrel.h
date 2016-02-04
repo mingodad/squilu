@@ -156,7 +156,7 @@ typedef wchar_t USQChar;
 #else
 #define scstrtol	wcstol
 #endif
-#define scatoi		_wtoi
+//#define scatoi		_wtoi
 #define scstrtoul	wcstoul
 #define scstrstr	wcsstr
 #define scstrpbrk	wcspbrk
@@ -189,7 +189,7 @@ typedef unsigned char USQChar;
 #else
 #define scstrtol	strtol
 #endif
-#define scatoi		atoi
+//#define scatoi		atoi
 #define scstrtoul	strtoul
 #define scvfprintf	vfprintf
 #define scvsprintf	vsprintf

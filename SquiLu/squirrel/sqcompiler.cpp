@@ -1097,7 +1097,9 @@ public:
 		if(target < 0) {
 			target = _fs->PushTarget();
 		}
-		if(value <= INT_MAX && value > INT_MIN) { //does it fit in 32 bits?
+		//with the line bellow we get wrong result for -1
+		//if(value <= INT_MAX && value > INT_MIN) { //does it fit in 32 bits?
+		if((value & (~((SQInteger)0xFFFFFFFF))) == 0) { //does it fit in 32 bits?
 			_fs->AddInstruction(_OP_LOADINT, target,value);
 		}
 		else {

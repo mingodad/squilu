@@ -35,7 +35,7 @@ bool str2num(const SQChar *s,SQObjectPtr &res, SQInteger base=10)
 		res = r;
 	}
 	else{
-		SQInteger r = SQInteger(scstrtol(s,&end, base));
+		SQInteger r = SQInteger(scstrtol(s,&end,(int)base));
 		if(s == end) return false;
 		res = r;
 	}

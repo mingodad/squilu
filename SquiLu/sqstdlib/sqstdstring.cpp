@@ -62,7 +62,6 @@ static SQRESULT validate_format(HSQUIRRELVM v, SQChar *fmt, const SQChar *src, S
 		swidth[wc] = _SC('\0');
 		if(wc > 0) {
 			width += scstrtol(swidth,&dummy,10);
-
 		}
 	}
 	if (n-start > MAX_FORMAT_LEN )

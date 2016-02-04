@@ -1392,6 +1392,12 @@ const SQChar *sq_getlasterror_str(HSQUIRRELVM v)
 	return _stringval(v->_lasterror);
 }
 
+void sq_getlasterror_line_col(HSQUIRRELVM v, SQInteger *line, SQInteger *column)
+{
+    *line = v->_lasterror_line;
+    *column = v->_lasterror_column;
+}
+
 SQRESULT sq_reservestack(HSQUIRRELVM v,SQInteger nsize)
 {
 	if (((SQUnsignedInteger)v->_top + nsize) > v->_stack.size()) {
@@ -1405,10 +1411,11 @@ SQRESULT sq_reservestack(HSQUIRRELVM v,SQInteger nsize)
 
 SQRESULT sq_resume(HSQUIRRELVM v,SQBool retval,SQBool raiseerror)
 {
-	if (type(v->GetUp(-1)) == OT_GENERATOR)
+    SQObjectPtr &obj = v->GetUp(-1);
+	if(type(obj)==OT_GENERATOR)
 	{
 		v->PushNull(); //retval
-		if (!v->Execute(v->GetUp(-2), 0, v->_top, v->GetUp(-1), raiseerror, SQVM::ET_RESUME_GENERATOR))
+		if (!v->Execute(v->GetUp(-2), 0, v->_top, obj, raiseerror, SQVM::ET_RESUME_GENERATOR))
 		{v->Raise_Error(v->_lasterror); return SQ_ERROR;}
 		if(!retval)
 			v->Pop();
