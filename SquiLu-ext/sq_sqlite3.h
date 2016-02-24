@@ -52,12 +52,6 @@ struct sq_sqlite3_sdb
     HSQOBJECT null_value;
 };
 
-SQ_OPT_STRING_STRLEN();
-
-static const SQChar *SQLite3_TAG = "SQLite3";
-static const SQChar *SQLite3_Stmt_TAG = "SQLite3Stmt";
-
-static const SQChar sqlite3_NULL_Name[] = _SC("sqlite3_NULL");
-static const SQChar nullName[] = _SC("Null");
+extern const SQChar *SQLite3_TAG;
 
 #endif // SQ_SQLITE3_H

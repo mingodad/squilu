@@ -111,9 +111,9 @@ extern "C" {
 ** [sqlite3_libversion_number()], [sqlite3_sourceid()],
 ** [sqlite_version()] and [sqlite_source_id()].
 */
-#define SQLITE_VERSION        "3.11.0"
-#define SQLITE_VERSION_NUMBER 3011000
-#define SQLITE_SOURCE_ID      "2016-01-30 14:53:06 ec653cbcae74ecab4ec9df0548d5836e81dc5d14"
+#define SQLITE_VERSION        "3.12.0"
+#define SQLITE_VERSION_NUMBER 3012000
+#define SQLITE_SOURCE_ID      "2016-02-24 17:18:51 3e9ed1aea43e8ce2eb74bb845ea2c05b5882e36e"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -357,7 +357,7 @@ typedef int (*sqlite3_callback)(void*,int,char**, char**);
 ** from [sqlite3_malloc()] and passed back through the 5th parameter.
 ** To avoid memory leaks, the application should invoke [sqlite3_free()]
 ** on error message strings returned through the 5th parameter of
-** of sqlite3_exec() after the error message string is no longer needed.
+** sqlite3_exec() after the error message string is no longer needed.
 ** ^If the 5th parameter to sqlite3_exec() is not NULL and no errors
 ** occur, then sqlite3_exec() sets the pointer in its 5th parameter to
 ** NULL before returning.
@@ -5734,7 +5734,7 @@ struct sqlite3_index_info {
   /* Inputs */
   int nConstraint;           /* Number of entries in aConstraint */
   struct sqlite3_index_constraint {
-     int iColumn;              /* Column on left-hand side of constraint */
+     int iColumn;              /* Column constrained.  -1 for ROWID */
      unsigned char op;         /* Constraint operator */
      unsigned char usable;     /* True if this constraint is usable */
      int iTermOffset;          /* Used internally - xBestIndex should ignore */
@@ -7526,7 +7526,7 @@ SQLITE_API void SQLITE_CDECL sqlite3_log(int iErrCode, const char *zFormat, ...)
 ** previously registered write-ahead log callback. ^Note that the
 ** [sqlite3_wal_autocheckpoint()] interface and the
 ** [wal_autocheckpoint pragma] both invoke [sqlite3_wal_hook()] and will
-** those overwrite any prior [sqlite3_wal_hook()] settings.
+** overwrite any prior [sqlite3_wal_hook()] settings.
 */
 SQLITE_API void *SQLITE_STDCALL sqlite3_wal_hook(
   sqlite3*, 

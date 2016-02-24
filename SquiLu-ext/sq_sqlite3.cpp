@@ -2,6 +2,15 @@
 
 #include "sq_sqlite3.h"
 
+SQ_OPT_STRING_STRLEN();
+
+const SQChar *SQLite3_TAG = "SQLite3";
+static const SQChar *SQLite3_Stmt_TAG = "SQLite3Stmt";
+
+static const SQChar sqlite3_NULL_Name[] = _SC("sqlite3_NULL");
+static const SQChar nullName[] = _SC("Null");
+
+
 //return error if parameter exists but is not a blob
 //return 1 if the parameter exists and is a blob
 //return 0 if the parameter doesn't exists and creates a new blob
