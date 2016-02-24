@@ -67,7 +67,7 @@ static SQRESULT sq_ssl_read(HSQUIRRELVM v){
     SQ_FUNC_VARS(v);
     GET_ssl_INSTANCE();
     SQ_OPT_INTEGER(v, 2, count, 0);
-	uint8_t *in_data;
+	uint8_t *in_data = NULL;
 	int result = ssl_read(self, &in_data, count);
 	if (result > SSL_OK) sq_pushstring(v, (const SQChar*)in_data, result);
 	else sq_pushinteger(v, result);
