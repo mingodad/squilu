@@ -986,10 +986,10 @@ push_request(HSQUIRRELVM v, const struct mg_request_info *ri)
     sq_poptop(v); //remove data table
 }
 
+#if 0
 static SQRESULT
 sq_mg_pcall_master_plugin(HSQUIRRELVM v)
 {
-#if 0
     SQ_FUNC_VARS_NO_TOP(v);
     GET_MG_CONNECION();
     SQ_GET_STRING(v, 2, func_name);
@@ -1032,8 +1032,8 @@ sq_mg_pcall_master_plugin(HSQUIRRELVM v)
     }
 
     return sq_throwerror(v, error_message);
-#endif
 }
+#endif
 
 static void write_error_message(struct mg_connection *conn,
                         const char * error_msg, SQInteger error_len){
