@@ -56,7 +56,26 @@ typedef INT64 int64_t;
 #include <inttypes.h>
 #else
 #include <stdint.h>
-//#include <endian.h>
+#if defined(TARGET_IOS)
+
+#elif defined(__BSD__)
+    #include <sys/types.h>
+    #include <sys/endian.h>
+#else
+    #include <endian.h>
+    // Android compatibility
+    #ifndef be32toh
+        #define be32toh(val) betoh32(val)
+        #define le32toh(val) letoh32(val)
+    #endif
+
+    #ifndef be64toh
+        #define be64toh(val) betoh64(val)
+    #endif
+    #ifndef le64toh
+        #define le64toh(val) letoh64(val)
+    #endif
+#endif
 #endif /* Not Solaris */
 
 #endif /* Not Win32 */
