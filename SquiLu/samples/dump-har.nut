@@ -100,9 +100,16 @@ function dumpContent(vhar)
 			print(path, content.len());
 			
 			local full_path = dest_folder + path;
-			local fdc = file(full_path, "w");
-			fdc.write(content);
-			fdc.close();
+			try
+			{
+				local fdc = file(full_path, "w");
+				fdc.write(content);
+				fdc.close();
+			}
+			catch(e)
+			{
+				print(e);
+			}
 		}
 	}
 }
