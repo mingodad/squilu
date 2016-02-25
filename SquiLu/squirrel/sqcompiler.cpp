@@ -1897,6 +1897,7 @@ error:
 				//param type specifier like typescript
 				Lex();
 				type_name = ExpectTypeToken();
+				funcstate->AddParameterTypeName(type_name);
 				//printf("%d %s\n", __LINE__, _stringval(type_name));
 			}
 			else {
@@ -1911,6 +1912,7 @@ error:
 			//return type specifier like typescript
 			Lex();
 			type_name = ExpectTypeToken();
+			funcstate->_return_type = type_name;
 			//printf("%d %s\n", __LINE__, _stringval(type_name));
 		}
 

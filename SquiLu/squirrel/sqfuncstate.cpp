@@ -373,6 +373,11 @@ void SQFuncState::AddParameter(const SQObject &name, SQInteger scope, SQInteger 
 	_parameters.push_back(name);
 }
 
+void SQFuncState::AddParameterTypeName(const SQObject &type_name)
+{
+	_vlocals.top()._type_name = type_name;
+}
+
 void SQFuncState::AddLineInfos(SQInteger line,bool lineop,bool force)
 {
 	if(_lastline!=line || force){
@@ -562,6 +567,7 @@ SQFunctionProto *SQFuncState::BuildProto()
 	f->_sourcename = _sourcename;
 	f->_bgenerator = _bgenerator;
 	f->_name = _name;
+	f->_return_type = _return_type;
 
 	while((idx=_table(_literals)->Next(false,refidx,key,val))!=-1) {
 		f->_literals[_integer(val)]=key;
@@ -570,6 +576,7 @@ SQFunctionProto *SQFuncState::BuildProto()
 
 	for(SQUnsignedInteger nf = 0; nf < _functions.size(); nf++) f->_functions[nf] = _functions[nf];
 	for(SQUnsignedInteger np = 0; np < _parameters.size(); np++) f->_parameters[np] = _parameters[np];
+	for(SQUnsignedInteger np = 0; np < _parameters.size(); np++) f->_parameters_type[np] = _vlocals[np]._type_name;
 	for(SQUnsignedInteger no = 0; no < _outervalues.size(); no++) f->_outervalues[no] = _outervalues[no];
 	for(SQUnsignedInteger nl = 0; nl < _localvarinfos.size(); nl++) f->_localvarinfos[nl] = _localvarinfos[nl];
 	for(SQUnsignedInteger ni = 0; ni < _lineinfos.size(); ni++) f->_lineinfos[ni] = _lineinfos[ni];

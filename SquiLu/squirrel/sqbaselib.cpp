@@ -2024,9 +2024,11 @@ static SQRESULT closure_getinfos(HSQUIRRELVM v) {
 		SQFunctionProto *f = _closure(o)->_function;
 		SQInteger nparams = f->_nparameters + (f->_varparams?1:0);
 		SQObjectPtr params = SQArray::Create(_ss(v),nparams);
-    SQObjectPtr defparams = SQArray::Create(_ss(v),f->_ndefaultparams);
+		SQObjectPtr params_type = SQArray::Create(_ss(v),nparams);
+        SQObjectPtr defparams = SQArray::Create(_ss(v),f->_ndefaultparams);
 		for(SQInteger n = 0; n<f->_nparameters; n++) {
 			_array(params)->Set((SQInteger)n,f->_parameters[n]);
+			_array(params_type)->Set((SQInteger)n,f->_parameters_type[n]);
 		}
     for(SQInteger j = 0; j<f->_ndefaultparams; j++) {
 			_array(defparams)->Set((SQInteger)j,_closure(o)->_defaultparams[j]);
@@ -2036,8 +2038,10 @@ static SQRESULT closure_getinfos(HSQUIRRELVM v) {
 		}
 		res->NewSlot(SQString::Create(_ss(v),_SC("native"),-1),false);
 		res->NewSlot(SQString::Create(_ss(v),_SC("name"),-1),f->_name);
+		res->NewSlot(SQString::Create(_ss(v),_SC("return_type"),-1),f->_return_type);
 		res->NewSlot(SQString::Create(_ss(v),_SC("src"),-1),f->_sourcename);
 		res->NewSlot(SQString::Create(_ss(v),_SC("parameters"),-1),params);
+		res->NewSlot(SQString::Create(_ss(v),_SC("parameters_type"),-1),params_type);
 		res->NewSlot(SQString::Create(_ss(v),_SC("varargs"),-1),f->_varparams);
     res->NewSlot(SQString::Create(_ss(v),_SC("defparams"),-1),defparams);
 	}

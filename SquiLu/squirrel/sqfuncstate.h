@@ -30,6 +30,7 @@ struct SQFuncState
 	SQInteger GetNumericConstant(const SQFloat cons);
 	SQInteger PushLocalVariable(const SQObject &name, SQInteger scope, SQInteger type=_VAR_ANY);
 	void AddParameter(const SQObject &name, SQInteger scope, SQInteger type=_VAR_ANY);
+	void AddParameterTypeName(const SQObject &type_name);
 	//void AddOuterValue(const SQObject &name);
 	SQInteger GetLocalVariable(const SQObject &name);
 	void MarkLocalAsOuter(SQInteger pos);
@@ -66,6 +67,7 @@ struct SQFuncState
 	SQObjectPtr _literals;
 	SQObjectPtr _strings;
 	SQObjectPtr _name;
+	SQObjectPtr _return_type;
 	SQObjectPtr _sourcename;
 	SQInteger _nliterals;
 	SQLineInfoVec _lineinfos;
