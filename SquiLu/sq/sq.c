@@ -567,6 +567,7 @@ SQRESULT sqext_register_sys(HSQUIRRELVM v);
 SQRESULT sqext_register_DNS_SD(HSQUIRRELVM v);
 SQRESULT sqext_register_ffi(HSQUIRRELVM v);
 SQRESULT sqext_register_xjd1(HSQUIRRELVM v);
+SQRESULT sqext_register_libclang(HSQUIRRELVM v);
 
 int main(int argc, char* argv[])
 {
@@ -584,6 +585,11 @@ int main(int argc, char* argv[])
 	sq_setprintfunc(v,printfunc,errorfunc);
 
 	sq_pushroottable(v);
+/*
+    sq_pushstring(v, _SC("sq_xinterpreter"), -1);
+    sq_pushstring(v, argv[0], -1);
+    sq_newslot(v,-3,SQFalse);
+*/
 
 	sqstd_register_bloblib(v);
 	sqstd_register_iolib(v);
@@ -595,7 +601,7 @@ int main(int argc, char* argv[])
 #ifndef SQUILU_ALONE
 	sqext_register_gumbo(v);
 	sqext_register_base64(v);
-	sqext_register_Sq_Fpdf(v);
+	//sqext_register_Sq_Fpdf(v);
 	sqext_register_SQLite3(v);
 	sqext_register_xjd1(v);
 	sqext_register_mix(v);
@@ -633,6 +639,9 @@ int main(int argc, char* argv[])
 	//sqext_register_Java(v);
 #endif
 
+#ifdef WITH_LIBCLANG
+	sqext_register_libclang(v);
+#endif
 #ifdef WITH_POSTGRESQL
 	sqext_register_PostgreSQL(v);
 #endif

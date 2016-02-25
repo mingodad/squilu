@@ -726,6 +726,7 @@
 			<Add option="-Wall" />
 			<Add option="-fno-strict-aliasing" />
 			<Add option="-fno-rtti" />
+			<Add option="-fno-exceptions" />
 			<Add option="-DONLY_ASCII=1" />
 			<Add option="-DPROFILE_SQVM0=1" />
 			<Add option="-DSQ_JIT_LLVM44=1" />

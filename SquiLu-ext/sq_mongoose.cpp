@@ -1118,7 +1118,7 @@ static HSQUIRRELVM my_new_squirrel(struct mg_context *ctx) {
 	sqstd_register_stringlib(v);
 	sqstd_register_stringlib(v);
 	sqext_register_base64(v);
-	sqext_register_Sq_Fpdf(v);
+	//sqext_register_Sq_Fpdf(v);
 	sqext_register_SQLite3(v);
 #ifdef WITH_MYSQL
 	sqext_register_MySQL(v);
