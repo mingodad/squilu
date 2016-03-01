@@ -114,6 +114,8 @@ enum SQKeywordsEnum {
     TK_BIT_XOR_EQ,
     TK_BIT_SHIFT_LEFT_EQ,
     TK_BIT_SHIFT_RIGHT_EQ,
+
+    TK_PRAGMA,
     /*
     the next token is only for internal purposes
     like calculate total enum_tokens = TK_LAST_ENUM_TOKEN - TK_FIRST_ENUM_TOKEN -1
@@ -123,5 +125,5 @@ enum SQKeywordsEnum {
 
 typedef void(*CompilerErrorFunc)(void *ud, const SQChar *s);
 bool Compile(SQVM *vm, SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, SQObjectPtr &out,
-             bool raiseerror, bool lineinfo, bool show_warnings);
+             bool raiseerror, bool lineinfo, bool show_warnings, SQInteger max_nested_includes=10);
 #endif //_SQCOMPILER_H_

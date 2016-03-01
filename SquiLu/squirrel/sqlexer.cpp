@@ -191,7 +191,15 @@ SQInteger SQLexer::Lex()
 			NEXT();
 			_currentcolumn=1;
 			continue;
-		case _SC('#'): LexLineComment(); continue;
+		case _SC('#'):
+		    NEXT();
+		    if(CUR_CHAR == '!') //shell shebang
+            {
+                LexLineComment();
+                continue;
+            }
+            RETURN_TOKEN(TK_PRAGMA);
+            continue;
 		case _SC('/'):
 			NEXT();
 			switch(CUR_CHAR){

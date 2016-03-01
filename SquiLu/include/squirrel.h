@@ -191,6 +191,7 @@ typedef unsigned char USQChar;
 #endif
 //#define scatoi		atoi
 #define scstrtoul	strtoul
+#define scfprintf	fprintf
 #define scvfprintf	vfprintf
 #define scvsprintf	vsprintf
 #define scvsnprintf	vsnprintf
