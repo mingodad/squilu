@@ -22,33 +22,19 @@ function generateCppClassWrapper(klass, klass_name="klass")
 		print(rename_code(code));
 	}
 	
-	local get_var_type = function(var_type, to_declare=false)
-	{
-		switch(var_type)
-		{
-			case "int":
-				return to_declare ? "i" : "INTEGER";
-			case "float":
-				return to_declare ? "f" : "FLOAT";
-			case "str":
-				return to_declare ? "s" : "STRING";
-		}
-		return null;
-	}
-
-	local get_var_type_from_name = function(var_name, to_declare=false)
+	local get_var_type = function(var_name, to_declare=false)
 	{
 		if(var_name.startswith("int_"))
 		{
-			return get_var_type("int", to_declare);
+			return to_declare ? "i" : "INTEGER";
 		}
 		if(var_name.startswith("float_"))
 		{
-			return get_var_type("float", to_declare);
+			return to_declare ? "f" : "FLOAT";
 		}
 		if(var_name.startswith("str_"))
 		{
-			return get_var_type("str", to_declare);
+			return to_declare ? "s" : "STRING";
 		}
 		return to_declare ? "." : "STRING";
 	}
@@ -144,8 +130,7 @@ static SQRESULT klass_constructor(HSQUIRRELVM v, KLASS *klass, int free_on_gc)
 				for(local i=1; i < nparams; ++i)
 				{
 					local hasDefParam = ndefparams && (i >= firstDefParam);
-					local vtype = get_var_type(info.parameters_type[i]);
-					if(!vtype) vtype = get_var_type_from_name(info.parameters[i]);
+					local vtype = get_var_type(info.parameters[i]);
 					if(hasDefParam) print(format("\tSQ_OPT_%s(v, %d, %s, %q);", vtype, i+1, info.parameters[i], info.defparams[i - firstDefParam].tostring()));
 					else print(format("\tSQ_GET_%s(v, %d, %s);", vtype, i+1, info.parameters[i]));
 				}
@@ -162,14 +147,10 @@ static SQRESULT klass_constructor(HSQUIRRELVM v, KLASS *klass, int free_on_gc)
 					}
 				}
 			}
-			local return_type = info.return_type;
-			if(return_type)
-			{
-				print("\n\tsq_push" + return_type + "(v, " return_type + ");");
-			}
+			//local return_type = 
 			local attr = klass.getattributes(info.name);
 			if(attr && attr.rawin("cfunc")) print("//", attr.rawget("cfunc"));
-			print("\n\treturn " + (return_type ? 1 : 0) + ";\n}\n");
+			print("\n\treturn 0;\n}\n");
 		}
 	}
 	
@@ -192,9 +173,7 @@ static SQRegFunction klass_obj_funcs[]={
 			
 			for(local i=1; i < nparams; ++i)
 			{
-				local vtype = get_var_type(info.parameters_type[i], true)
-				if(!vtype) vtype = get_var_type_from_name(info.parameters[i], true)
-				stdout.write(vtype);
+				stdout.write(get_var_type(info.parameters[i], true));
 			}
 			stdout.write("\")),\n");
 		}
