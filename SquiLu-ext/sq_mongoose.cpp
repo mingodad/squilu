@@ -629,6 +629,7 @@ fetchoptions(HSQUIRRELVM v, int idx, const char **options)
         { "global_passwords_file", NULL },
         { "index_files", "index.html,index.htm,index.cgi" },
         { "enable_keep_alive", "no" },
+        { "enable_tcp_nodelay", "no" },
         { "access_control_list", NULL },
         { "max_request_size", "16384" },
         { "extra_mime_types", NULL },
@@ -636,6 +637,7 @@ fetchoptions(HSQUIRRELVM v, int idx, const char **options)
         { "document_root",  "." },
         { "ssl_certificate", NULL },
         { "num_threads", "10" },
+        { "request_timeout_ms", "30000" },
         { "run_as_user", NULL },
         { NULL, NULL }
     };
@@ -1118,7 +1120,7 @@ static HSQUIRRELVM my_new_squirrel(struct mg_context *ctx) {
 	sqstd_register_stringlib(v);
 	sqstd_register_stringlib(v);
 	sqext_register_base64(v);
-	//sqext_register_Sq_Fpdf(v);
+	sqext_register_Sq_Fpdf(v);
 	sqext_register_SQLite3(v);
 #ifdef WITH_MYSQL
 	sqext_register_MySQL(v);

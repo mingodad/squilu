@@ -75,6 +75,7 @@
 #else // _WIN32_WCE
 #include <winsock2.h>
 #include <ws2tcpip.h>
+typedef const char *SOCK_OPT_TYPE;
 #ifdef __GNUC__
 #include <malloc.h>
 #endif
@@ -194,16 +195,6 @@ typedef struct DIR {
   struct dirent  result;
 } DIR;
 
-#ifndef HAS_POLL
-struct pollfd {
-  int fd;
-  short events;
-  short revents;
-};
-#define POLLIN 1
-#endif
-
-
 // Mark required libraries
 #ifdef _MSC_VER
 #pragma comment(lib, "Ws2_32.lib")
@@ -219,6 +210,8 @@ struct pollfd {
 #include <stdint.h>
 #include <inttypes.h>
 #include <netdb.h>
+#include <netinet/tcp.h>
+typedef const void *SOCK_OPT_TYPE;
 
 #include <pwd.h>
 #include <unistd.h>
@@ -256,6 +249,10 @@ typedef int SOCKET;
 #define WINCDECL
 
 #endif // End of Windows and UNIX specific includes
+
+#ifndef SOCKET_TIMEOUT_QUANTUM
+#define SOCKET_TIMEOUT_QUANTUM (10000)
+#endif
 
 #ifndef INT64_MAX
 #define INT64_MAX  9223372036854775807
@@ -535,7 +532,7 @@ enum {
   MAX_REQUEST_SIZE,
   EXTRA_MIME_TYPES, LISTENING_PORTS, DOCUMENT_ROOT, SSL_CERTIFICATE,
   NUM_THREADS, RUN_AS_USER, REWRITE, HIDE_FILES, REQUEST_TIMEOUT,
-  MAX_THREADS, NUM_OPTIONS
+  MAX_THREADS, ENABLE_TCP_NODELAY, NUM_OPTIONS
 };
 
 static const char *config_options[] = {
@@ -566,6 +563,7 @@ static const char *config_options[] = {
   "x", "hide_files_patterns", NULL,
   "to", "request_timeout_ms", "30000",
   "MT", "max_threads", NULL,
+  "nd", "enable_tcp_nodelay", "no",
   NULL
 };
 #define ENTRIES_PER_CONFIG_OPTION 3
@@ -4346,8 +4344,7 @@ static int set_ports_option(struct mg_context *ctx) {
 #if !defined(_WIN32)
                // On Windows, SO_REUSEADDR is recommended only for
                // broadcast UDP sockets
-setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &on,
-sizeof(on)) != 0 ||
+        setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) != 0 ||
 #endif // !_WIN32
 // Set TCP keep-alive. This is needed because if HTTP-level
 // keep-alive is enabled, and client resets the connection,
@@ -4356,10 +4353,9 @@ sizeof(on)) != 0 ||
 // handshake will figure out that the client is down and
 // will close the server end.
 // Thanks to Igor Klopov who suggested the patch.
-               setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (void *) &on,
-sizeof(on)) != 0 ||
-               bind(sock, &so.lsa.sa, sizeof(so.lsa)) != 0 ||
-               listen(sock, SOMAXCONN) != 0) {
+       setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE, (void *) &on, sizeof(on)) != 0 ||
+       bind(sock, &so.lsa.sa, sizeof(so.lsa)) != 0 ||
+       listen(sock, SOMAXCONN) != 0) {
       closesocket(sock);
       cry(fc(ctx), "%s: cannot bind to %.*s: %s", __func__,
           (int) vec.len, vec.ptr, strerror(ERRNO));
@@ -4696,6 +4692,47 @@ static void reset_per_request_attributes(struct mg_connection *conn) {
   conn->must_close = 0;
 }
 
+static int
+set_sock_timeout(SOCKET sock, int milliseconds)
+{
+	int r1, r2;
+
+#ifdef _WIN32
+	/* Windows specific */
+
+	DWORD tv = (DWORD)milliseconds;
+
+#else
+	/* Linux, ... (not Windows) */
+
+	struct timeval tv;
+
+/* TCP_USER_TIMEOUT/RFC5482 (http://tools.ietf.org/html/rfc5482):
+ * max. time waiting for the acknowledged of TCP data before the connection
+ * will be forcefully closed and ETIMEDOUT is returned to the application.
+ * If this option is not set, the default timeout of 20-30 minutes is used.
+*/
+/* #define TCP_USER_TIMEOUT (18) */
+
+#if defined(TCP_USER_TIMEOUT)
+	unsigned int uto = (unsigned int)milliseconds;
+	setsockopt(sock, 6, TCP_USER_TIMEOUT, (const void *)&uto, sizeof(uto));
+#endif
+
+	memset(&tv, 0, sizeof(tv));
+	tv.tv_sec = milliseconds / 1000;
+	tv.tv_usec = (milliseconds * 1000) % 1000000;
+
+#endif /* _WIN32 */
+
+	r1 = setsockopt(
+	    sock, SOL_SOCKET, SO_RCVTIMEO, (SOCK_OPT_TYPE)&tv, sizeof(tv));
+	r2 = setsockopt(
+	    sock, SOL_SOCKET, SO_SNDTIMEO, (SOCK_OPT_TYPE)&tv, sizeof(tv));
+
+	return r1 || r2;
+}
+
 static void close_socket_gracefully(struct mg_connection *conn) {
   char buf[MG_BUF_LEN];
   struct linger linger;
@@ -4932,12 +4969,13 @@ static int is_valid_uri(const char *uri) {
 
 static void process_new_connection(struct mg_connection *conn) {
   struct mg_request_info *ri = &conn->request_info;
-  int keep_alive_enabled, buffered_len;
+  int keep_alive_enabled, keep_alive, buffered_len;
   const char *cl;
 
   keep_alive_enabled = !strcmp(conn->ctx->config[ENABLE_KEEP_ALIVE], "yes");
 
   do {
+    keep_alive = 0;
     reset_per_request_attributes(conn);
     conn->request_len = read_request(NULL, conn, conn->buf, conn->buf_size,
                                      &conn->data_len);
@@ -4984,11 +5022,21 @@ static void process_new_connection(struct mg_connection *conn) {
 		call_user(conn, MG_REQUEST_COMPLETE);
       }
       log_access(conn);
+
+        /* NOTE(lsm): order is important here. should_keep_alive() call
+         * is
+         * using parsed request, which will be invalid after memmove's
+         * below.
+         * Therefore, memorize should_keep_alive() result now for later
+         * use
+         * in loop exit condition. */
+        keep_alive = should_keep_alive(conn);
+
       discard_current_request_from_buffer(conn);
     }
     // conn->peer is not NULL only for SSL-ed proxy connections
   } while (conn->ctx->stop_flag == 0 &&
-           (conn->peer || (keep_alive_enabled && should_keep_alive(conn))));
+           (conn->peer || (keep_alive_enabled && keep_alive)));
 }
 
 // Worker threads take accepted socket from the queue
@@ -5120,6 +5168,8 @@ static void accept_new_connection(const struct socket *listener,
   char src_addr[20];
   socklen_t len;
   int allowed;
+  int on = 1;
+  int timeout;
 
   len = sizeof(accepted.rsa);
   accepted.lsa = listener->lsa;
@@ -5133,6 +5183,62 @@ static void accept_new_connection(const struct socket *listener,
       accepted.is_proxy = listener->is_proxy;
       //ctx->connection_count++;
       //accepted.connection_count = ctx->connection_count;
+
+        /* Set TCP keep-alive. This is needed because if HTTP-level
+         * keep-alive
+         * is enabled, and client resets the connection, server won't get
+         * TCP FIN or RST and will keep the connection open forever. With
+         * TCP
+         * keep-alive, next keep-alive handshake will figure out that the
+         * client is down and will close the server end.
+         * Thanks to Igor Klopov who suggested the patch. */
+        if (setsockopt(accepted.sock,
+                       SOL_SOCKET,
+                       SO_KEEPALIVE,
+                       (SOCK_OPT_TYPE)&on,
+                       sizeof(on)) != 0) {
+            cry(fc(ctx),
+                   "%s: setsockopt(SOL_SOCKET SO_KEEPALIVE) failed: %s",
+                   __func__,
+                   strerror(ERRNO));
+        }
+
+
+        /* Disable TCP Nagle's algorithm.  Normally TCP packets are coalesced
+         * to effectively fill up the underlying IP packet payload and reduce
+         * the overhead of sending lots of small buffers. However this hurts
+         * the server's throughput (ie. operations per second) when HTTP 1.1
+         * persistent connections are used and the responses are relatively
+         * small (eg. less than 1400 bytes).
+         */
+        if (ctx && mg_strcasecmp(ctx->config[ENABLE_TCP_NODELAY], "yes") == 0) {
+            if (setsockopt(accepted.sock,
+                           IPPROTO_TCP,
+                           TCP_NODELAY,
+                           (SOCK_OPT_TYPE)&on,
+                           sizeof(on)) != 0) {
+                cry(fc(ctx),
+                       "%s: setsockopt(IPPROTO_TCP TCP_NODELAY) failed: %s",
+                       __func__,
+                       strerror(ERRNO));
+            }
+        }
+
+		if (ctx && ctx->config[REQUEST_TIMEOUT]) {
+			timeout = atoi(ctx->config[REQUEST_TIMEOUT]);
+		} else {
+			timeout = -1;
+		}
+
+		/* Set socket timeout to the given value, but not more than a
+		 * a certain limit (SOCKET_TIMEOUT_QUANTUM, default 10 seconds),
+		 * so the server can exit after that time if requested. */
+		if ((timeout > 0) && (timeout < SOCKET_TIMEOUT_QUANTUM)) {
+			set_sock_timeout(accepted.sock, timeout);
+		} else {
+			set_sock_timeout(accepted.sock, SOCKET_TIMEOUT_QUANTUM);
+		}
+
       produce_socket(ctx, &accepted);
     } else {
       sockaddr_to_string(src_addr, sizeof(src_addr), &accepted.rsa);
