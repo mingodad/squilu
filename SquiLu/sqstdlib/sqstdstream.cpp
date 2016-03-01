@@ -189,6 +189,15 @@ SQInteger _stream_write(HSQUIRRELVM v)
 	return 1;
 }
 
+SQInteger _stream_write_non_null(HSQUIRRELVM v)
+{
+    if(sq_gettype(v, 2) != OT_NULL)
+    {
+        return _stream_write(v);
+    }
+	return 0;
+}
+
 SQInteger _stream_write_fmt(HSQUIRRELVM v)
 {
 	const SQChar *str;
@@ -355,6 +364,7 @@ static SQRegFunction _stream_methods[] = {
 	_DECL_STREAM_FUNC(write,-2,_SC("x.")),
 	_DECL_STREAM_FUNC(writeblob,-2,_SC("xx")),
 	_DECL_STREAM_FUNC(writen,3,_SC("xnn")),
+	_DECL_STREAM_FUNC(write_non_null,2,_SC("x.")),
 	_DECL_STREAM_FUNC(seek,-2,_SC("xnn")),
 	_DECL_STREAM_FUNC(tell,1,_SC("x")),
 	_DECL_STREAM_FUNC(len,1,_SC("x")),
