@@ -13,6 +13,7 @@ struct SQLexer
 	SQLexer();
 	~SQLexer();
 	void Init(SQSharedState *ss,SQLEXREADFUNC rg,SQUserPointer up,CompilerErrorFunc efunc,void *ed);
+	void ResetReader(SQLEXREADFUNC rg, SQUserPointer up, SQInteger line);
 	SQTable * GetKeywords();
 	void Error(const SQChar *err, ...);
 	SQInteger Lex();

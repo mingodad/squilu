@@ -38,7 +38,7 @@ struct SQScope {
 					 ++_scope.nested; \
 					 _scope.outers = _fs->_outers; \
 					 _scope.stacksize = _fs->GetStackSize();\
-					 _scope_consts->push_back(SQTable::Create(_ss(_vm),0));
+					 _scope_consts.push_back(SQTable::Create(_ss(_vm),0));
 
 #define RESOLVE_OUTERS() if(_fs->GetStackSize() != _scope.stacksize) { \
 							if(_fs->CountOuters(_scope.stacksize)) { \
@@ -50,7 +50,7 @@ struct SQScope {
 							_fs->SetStackSize(_scope.stacksize); \
 						} \
 						_scope = __oldscope__; \
-						_scope_consts->pop_back();\
+						_scope_consts.pop_back();\
 					}
 
 #define END_SCOPE() {	SQInteger oldouters = _fs->_outers;\
@@ -114,11 +114,9 @@ static SQInteger compilerReadFunc(SQUserPointer fp)
 
 class SQCompiler
 {
-private:
-
-    void initCompiler(SQVM *v, SQLEXREADFUNC rg, SQUserPointer up, const SQChar* sourcename,
-            bool raiseerror, bool lineinfo, bool show_warnings,
-            SQInteger nest_compiling_count, SQObjectPtr *use_this_globals, SQInteger max_nested_includes)
+public:
+	SQCompiler(SQVM *v, SQLEXREADFUNC rg, SQUserPointer up, const SQChar* sourcename,
+            bool raiseerror, bool lineinfo, bool show_warnings, SQInteger max_nested_includes)
 	{
 		_vm=v;
 		_lex.Init(_ss(v), rg, up,ThrowError,this);
@@ -129,44 +127,13 @@ private:
 		_scope.stacksize = 0;
 		_scope.nested = 0;
 		_compilererror = NULL;
-
-		//indirections to allow recursive compilation using the same vm and SQFunctionstate
-		_nested_compile_count = nest_compiling_count;
-		_max_nested_includes = max_nested_includes;
-		if(use_this_globals)
-        {
-            assert(_nested_compile_count != 0);
-            _globals = *use_this_globals;
-        }
-        else
-        {
-            assert(_nested_compile_count == 0);
-            _globals = SQTable::Create(_ss(_vm),0);
-            _scope_consts = new SQObjectPtrVec();
-        }
-	}
-
-    SQCompiler(SQVM *v, SQLEXREADFUNC rg, SQUserPointer up, const SQChar* sourcename,
-            bool raiseerror, bool lineinfo, bool show_warnings,
-            SQInteger nest_compiling_count, SQObjectPtr *use_this_globals, SQInteger max_nested_includes)
-	{
-	    initCompiler(v, rg, up, sourcename, raiseerror, lineinfo, show_warnings,
-                  nest_compiling_count, use_this_globals, max_nested_includes);
-	}
-
-public:
-	SQCompiler(SQVM *v, SQLEXREADFUNC rg, SQUserPointer up, const SQChar* sourcename,
-            bool raiseerror, bool lineinfo, bool show_warnings, SQInteger max_nested_includes)
-	{
-	    initCompiler(v, rg, up, sourcename, raiseerror, lineinfo, show_warnings, 0, NULL, max_nested_includes);
+        _globals = SQTable::Create(_ss(_vm),0);
+        _max_nested_includes = max_nested_includes;
+        _nested_includes_count = 0;
 	}
 	~SQCompiler(){
-	    if(_nested_compile_count == 0)
-        {
-            _table(_globals)->Finalize();
-            _globals.Null();
-            delete _scope_consts;
-        }
+        _table(_globals)->Finalize();
+        _globals.Null();
 	}
 
 	static void ThrowError(void *ud, const SQChar *s) {
@@ -230,7 +197,7 @@ public:
 	bool IsConstant(const SQObject &name,SQObject &e){
         SQObjectPtr val;
 	    for(int i=_scope.nested-1; i >= 0; --i){
-	        if(_table((*_scope_consts)[i])->Get(name,val)) {
+	        if(_table(_scope_consts[i])->Get(name,val)) {
 	            e = val;
 	            return true;
 	        }
@@ -278,7 +245,7 @@ public:
 	void CheckConstsExists(const SQObjectPtr &key){
 	    int found = -1;
 	    for(int i=_scope.nested-1; i >= 0; --i){
-	        if(_table((*_scope_consts)[i])->Exists(key)) {
+	        if(_table(_scope_consts[i])->Exists(key)) {
 	            found = i+1;
 	            break;
 	        }
@@ -293,17 +260,20 @@ public:
 
 	bool ConstsGet(const SQObjectPtr &key,SQObjectPtr &val){
 	    for(int i=_scope.nested-1; i >= 0; --i){
-	        if(_table((*_scope_consts)[i])->Get(key,val)) return true;
+	        if(_table(_scope_consts[i])->Get(key,val)) return true;
 	    }
 	    return _table(_ss(_vm)->_consts)->Get(key,val);
 	}
 
 	bool ConstsNewSlot(const SQObjectPtr &key, const SQObjectPtr &val){
-	    if(_scope.nested) return _table((*_scope_consts)[_scope.nested-1])->NewSlot(key,val);
+	    if(_scope.nested) return _table(_scope_consts[_scope.nested-1])->NewSlot(key,val);
 	    return _table(_ss(_vm)->_consts)->NewSlot(key,val);
 	}
 
-	void Lex(){	_token = _lex.Lex();}
+	void Lex()
+	{
+	    _token = _lex.Lex();
+    }
 	SQObjectPtr GetTokenObject(SQInteger tok)
 	{
 		SQObjectPtr ret;
@@ -389,8 +359,6 @@ public:
 		}
 	}
 
-private:
-
     void Pragma()
     {
         int line = _lex._currentline;
@@ -399,7 +367,7 @@ private:
         SQObject id = Expect(TK_IDENTIFIER);
         if(scstrcmp(_stringval(id), _SC("include")) == 0)
         {
-            SQInteger nested_count = _nested_compile_count + 1;
+            SQInteger nested_count = _nested_includes_count + 1;
             if((_max_nested_includes <= 0) || (nested_count > _max_nested_includes))
             {
                 Error(_SC("Error: too many nested includes %d %s\n"), nested_count, _stringval(id));
@@ -412,21 +380,46 @@ private:
             FILE *fp = fopen(_stringval(id), "r");
             if(fp != NULL)
             {
-                SQCompiler p(_vm, compilerReadFunc, fp, _stringval(id), _raiseerror, _lineinfo, _show_warnings,
-                             nested_count, &_globals, _max_nested_includes);
+                //increment nested count
+                ++_nested_includes_count;
+                //save current source file and lex state
+                SQUserPointer saved_up = _lex._up; //current userpointer
+                SQLEXREADFUNC saved_readf = _lex._readf; //current readfunction
+                SQInteger saved_line = _lex._currentline;
+                SQInteger saved_column = _lex._currentcolumn;
+                SQInteger saved_curdata = _lex._currdata;
+                SQInteger saved_prevtoken = _lex._prevtoken;
+                SQInteger saved_token = _token;
+                SQObjectPtr saved_source_name = _sourcename;
 
-                SQObjectPtr out, saved_source_name = _fs->_sourcename;
+                //set new source file
                 _fs->_sourcename = id;
+                _sourcename = id;
+                _lex.ResetReader(compilerReadFunc, fp, 1);
 
-                SQInteger rc = p.CompileWithFuncstate(out, _fs, &_scope, _scope_consts);
-
-                _fs->_sourcename = saved_source_name;
-                fclose(fp);
-
-                if(!rc)
-                {
-                    Error(_SC("Error: compiling include file %s\n"), _stringval(id));
+                //compile the include file
+                Lex();
+                while(_token > 0){
+                    Statement();
+                    if(_lex._prevtoken != _SC('}') && _lex._prevtoken != _SC(';')) OptionalSemicolon();
                 }
+
+                //close file
+                fclose(fp);
+                //restore saved source file and lex state
+                _fs->_sourcename = saved_source_name;
+                _sourcename = saved_source_name;
+                _token = saved_token;
+                _lex._currdata = saved_curdata;
+                _lex._prevtoken = saved_prevtoken;
+                _lex._currentcolumn = saved_column;
+                _lex._currentline = saved_line;
+                _lex._readf = saved_readf;
+                _lex._up = saved_up;
+
+                --_nested_includes_count;
+                //done let's continue working
+
             }
             else
             {
@@ -440,14 +433,18 @@ private:
         }
     }
 
-	bool CompileWithFuncstate(SQObjectPtr &o, SQFuncState *with_fs, SQScope *with_scope, SQObjectPtrVec *scv)
+	bool Compile(SQObjectPtr &o)
 	{
 		_debugline = 1;
 		_debugop = 0;
 
-		_fs = with_fs;
-		if(with_scope)_scope = *with_scope;
-		if(scv) _scope_consts = scv;
+		SQFuncState funcstate(_ss(_vm), NULL,ThrowError,this);
+		funcstate._name = SQString::Create(_ss(_vm), _SC("main"));
+		_fs = &funcstate;
+		_fs->AddParameter(_fs->CreateString(_SC("this")), _scope.nested+1);
+		_fs->AddParameter(_fs->CreateString(_SC("vargv")), _scope.nested+1);
+		_fs->_varparams = true;
+		_fs->_sourcename = _sourcename;
 
 		SQInteger stacksize = _fs->GetStackSize();
 		if(setjmp(_errorjmp) == 0) {
@@ -456,17 +453,14 @@ private:
 				Statement();
 				if(_lex._prevtoken != _SC('}') && _lex._prevtoken != _SC(';')) OptionalSemicolon();
 			}
-			if(!scv)
-            {
-                _fs->SetStackSize(stacksize);
-                _fs->AddLineInfos(_lex._currentline, _lineinfo, true);
-                _fs->AddInstruction(_OP_RETURN, 0xFF);
-                _fs->SetStackSize(0);
-                o =_fs->BuildProto();
+            _fs->SetStackSize(stacksize);
+            _fs->AddLineInfos(_lex._currentline, _lineinfo, true);
+            _fs->AddInstruction(_OP_RETURN, 0xFF);
+            _fs->SetStackSize(0);
+            o =_fs->BuildProto();
 #ifdef _DEBUG_DUMP
-                _fs->Dump(_funcproto(o));
+            _fs->Dump(_funcproto(o));
 #endif
-            }
 		}
 		else {
 			if(_raiseerror && _ss(_vm)->_compilererrorhandler) {
@@ -479,20 +473,6 @@ private:
 			return false;
 		}
 		return true;
-	}
-
-public:
-
-	bool Compile(SQObjectPtr &o)
-	{
-		SQFuncState funcstate(_ss(_vm), NULL,ThrowError,this);
-		funcstate._name = SQString::Create(_ss(_vm), _SC("main"));
-		_fs = &funcstate;
-		_fs->AddParameter(_fs->CreateString(_SC("this")), _scope.nested+1);
-		_fs->AddParameter(_fs->CreateString(_SC("vargv")), _scope.nested+1);
-		_fs->_varparams = true;
-		_fs->_sourcename = _sourcename;
-		return CompileWithFuncstate(o, _fs, NULL, NULL);
 	}
 	void Statements()
 	{
@@ -2089,10 +2069,10 @@ private:
 	SQChar *_compilererror;
 	jmp_buf _errorjmp;
 	SQVM *_vm;
-	SQObjectPtrVec *_scope_consts;
+	SQObjectPtrVec _scope_consts;
 	SQObjectPtr _globals;
 	SQChar error_buf[MAX_COMPILER_ERROR_LEN];
-	SQInteger _nested_compile_count, _max_nested_includes;
+	SQInteger _max_nested_includes, _nested_includes_count;
 };
 
 bool Compile(SQVM *vm,SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, SQObjectPtr &out,

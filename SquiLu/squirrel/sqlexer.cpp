@@ -32,9 +32,14 @@ void SQLexer::Init(SQSharedState *ss, SQLEXREADFUNC rg, SQUserPointer up,Compile
 	_sharedstate = ss;
 	if(_keywords) _keywords->Release();
     _keywords = GetKeywords();
+	ResetReader(rg, up, 1);
+}
+
+void SQLexer::ResetReader(SQLEXREADFUNC rg, SQUserPointer up, SQInteger line)
+{
 	_readf = rg;
 	_up = up;
-	_lasttokenline = _currentline = 1;
+	_lasttokenline = _currentline = line;
 	_currentcolumn = 0;
 	_prevtoken = -1;
 	_reached_eof = SQFalse;
@@ -567,7 +572,7 @@ SQInteger SQLexer::ReadNumber()
 #define TSCIENTIFIC 4
 #define TOCTAL 5
 	SQInteger type = TINT, firstchar = CUR_CHAR;
-	SQUnsignedInteger itmp;
+	SQUnsignedInteger itmp=0;
 	SQChar *sTemp;
 	INIT_TEMP_STRING();
 	NEXT();
