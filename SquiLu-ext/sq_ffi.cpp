@@ -28,14 +28,26 @@ typedef void*(*cPtrFuncVarArg)(...);
 #endif
 
 static const SQChar *FFI_LIB_TAG = _SC("FFI_LIB");
-//static const SQChar *FFI_LIB_FUN_TAG = _SC("FFI_LIB_FUNC");
-//static const SQChar *FFI_LIB_VAR_TAG = _SC("FFI_LIB_VAR");
+static const SQChar *FFI_LIB_LIB_TAG = _SC("FFI_LIB_LIB");
+static const SQChar *FFI_LIB_FUNC_TAG = _SC("FFI_LIB_FUNC");
+static const SQChar *FFI_LIB_VAR_TAG = _SC("FFI_LIB_VAR");
 
 //Code adapted from https://github.com/pfalcon/squirrel-modules
 
-static HSQOBJECT lib_method_table;
-static HSQOBJECT func_method_table;
-static HSQOBJECT var_method_table;
+/** Stores a delegate table on registry by key */
+static inline void sq_create_delegate_table(HSQUIRRELVM vm, SQRegFunction *methods, const SQChar *key)
+{
+    sq_pushstring(vm, key, -1);
+    sq_newtable(vm);
+    sq_insert_reg_funcs(vm, methods);
+    sq_setonregistrytable(vm);
+}
+
+static inline void sq_push_delegate_table(HSQUIRRELVM vm, const SQChar *key)
+{
+    sq_pushstring(vm, key, -1);
+    sq_getonregistrytable(vm);
+}
 
 static SQInteger sq_ffi_load(HSQUIRRELVM v)
 {
@@ -47,7 +59,7 @@ static SQInteger sq_ffi_load(HSQUIRRELVM v)
     sq_pushuserpointer(v, mod);
     void **p = (void**)sq_newuserdata(v, sizeof(mod));
     *p = mod;
-    sq_pushobject(v, lib_method_table);
+    sq_push_delegate_table(v, FFI_LIB_LIB_TAG);
     sq_setdelegate(v, -2);
     return 1;
 }
@@ -148,7 +160,7 @@ static SQInteger sq_lib_bind_func(HSQUIRRELVM v)
 
     int size = sizeof(FFIFunc) + sizeof(ffi_type*) * nparam;
     FFIFunc *ffibuf = (FFIFunc*)sq_newuserdata(v, size);
-    sq_pushobject(v, func_method_table);
+    sq_push_delegate_table(v, FFI_LIB_FUNC_TAG);
     sq_setdelegate(v, -2);
 
 //    printf("Allocated %d bytes at %p\n", size, ffibuf);
@@ -189,7 +201,7 @@ static SQInteger sq_lib_bind_var(HSQUIRRELVM v)
         return sq_throwerror(v, "Cannot find symbol");
 
     FFIVar *ffibuf = (FFIVar*)sq_newuserdata(v, sizeof(FFIVar));
-    sq_pushobject(v, var_method_table);
+    sq_push_delegate_table(v, FFI_LIB_VAR_TAG);
     sq_setdelegate(v, -2);
 
     ffibuf->var = sym;
@@ -393,9 +405,9 @@ SQRESULT sqext_register_ffi(HSQUIRRELVM v)
     sq_newslot(v,-3,SQTrue); //add ffi table to the root table
 
 
-    sq_create_delegate_table(v, sq_lib_methods, &lib_method_table);
-    sq_create_delegate_table(v, sq_func_methods, &func_method_table);
-    sq_create_delegate_table(v, sq_var_methods, &var_method_table);
+    sq_create_delegate_table(v, sq_lib_methods, FFI_LIB_LIB_TAG);
+    sq_create_delegate_table(v, sq_func_methods, FFI_LIB_FUNC_TAG);
+    sq_create_delegate_table(v, sq_var_methods, FFI_LIB_VAR_TAG);
 
     sq_settop(v, saved_top);
 
