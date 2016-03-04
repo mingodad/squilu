@@ -207,7 +207,7 @@ class Lexer {
         else
         {
             // Look it up in the table of operators
-            var op = this.optable.get(c.tochar(), false);
+            var op = table_rawget(this.optable, c.tochar(), false);
             if (op)
             {
                 return {name: op, value: c, pos: this.pos++, line: this.line};

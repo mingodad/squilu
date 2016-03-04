@@ -54,7 +54,7 @@ local base_vec={
 		::print("val = "+val+"\n")
 		if(key==100)
 		{
-			return test_field=val;
+			return (test_field=val);
 		}
 	}
 	test_field="nothing"
@@ -62,7 +62,7 @@ local base_vec={
 
 function vector(_x,_y,_z)
 {
-	return {x=_x,y=_y,z=_z }.setdelegate(base_vec); 
+	return table_setdelegate({x=_x,y=_y,z=_z }, base_vec); 
 }
 ////////////////////////////////////////////////////////////
 

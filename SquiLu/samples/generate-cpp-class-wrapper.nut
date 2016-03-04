@@ -149,7 +149,7 @@ static SQRESULT klass_constructor(HSQUIRRELVM v, KLASS *klass, int free_on_gc)
 			}
 			//local return_type = 
 			local attr = klass.getattributes(info.name);
-			if(attr && attr.rawin("cfunc")) print("//", attr.rawget("cfunc"));
+			if(attr && table_rawin(attr, "cfunc")) print("//", table_rawget(attr, "cfunc"));
 			print("\n\treturn 0;\n}\n");
 		}
 	}

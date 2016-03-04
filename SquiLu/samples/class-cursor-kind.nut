@@ -4,7 +4,7 @@ class CursorKind
     A CursorKind describes the kind of entity that a cursor points to.
     */
 
-    # The required BaseEnumeration declarations.
+    // The required BaseEnumeration declarations.
     _kinds = [];
     _name_map = null;
     

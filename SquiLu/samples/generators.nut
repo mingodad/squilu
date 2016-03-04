@@ -31,7 +31,7 @@ function fiboz(n)
 	{
 		local res=prev+curr;
 		prev=curr;
-		yield curr=res;
+		yield (curr=res);
 	}
 	return prev+curr;
 }

@@ -10,7 +10,7 @@ local input = [==[
 local document = gumbo.parse(input);
 foreach(k,v in document) print(k,v);
 //local root = assert(document.root)
-print(document.root.len());
+print(table_len(document.root));
 local root = document.root
 local head = root.children[0];
 local body = root.children[1];
@@ -42,4 +42,4 @@ foreach(k,v in head.children) print(k,v);
 foreach(k,v in head) print(k,v);
 body = root.children[1];
 foreach(k,v in body) print(k,v);
-foreach(k,v in body.children) print(k,v, v ? v.rawget("tag", "?") : "??");
+foreach(k,v in body.children) print(k,v, v ? table_rawget(v, "tag", "?") : "??");

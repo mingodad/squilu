@@ -15,7 +15,7 @@ function PEntity::PrintPos()
 	::print("x="+pos.x+" y="+pos.y+" z="+pos.z+"\n");	
 }
 
-function PEntity::new(name,pos)
+function PEntity::create(name,pos)
 {
 	local newentity=clone ::PEntity;
 	if(name)
@@ -34,15 +34,15 @@ PPlayer <- {
 	type="player"
 }
 
-function PPlayer::new(name,pos)
+function PPlayer::create(name,pos)
 {
     local p = clone ::PPlayer;
-	local newplayer = ::PEntity.new(name,pos);
-	newplayer.setdelegate(p);
+	local newplayer = ::PEntity.create(name,pos);
+	table_setdelegate(newplayer, p);
 	return newplayer;
 }
 
-local player=PPlayer.new("godzilla",{x=10,y=20,z=30});
+local player=PPlayer.create("godzilla",{x=10,y=20,z=30});
 
 ::print("PLAYER NAME"+player.name+"\n");
 ::print("ENTITY TYPE"+typeof player+"\n");

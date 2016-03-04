@@ -21,7 +21,7 @@ print("assignment done",  k_member);
 function showbug(){
 	local k_member = 0;
 	local function bug(v){
-print("bug len", len());
+print("bug len", table_len(getroottable()));
 print("bug", v)
 		k_member = v;
 print("assignment done",  k_member);

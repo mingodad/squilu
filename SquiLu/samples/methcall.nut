@@ -63,6 +63,6 @@ function main() {
 	print(ntoggle.value() ? "true\n" : "false\n");
 	
 }
-local start=clock();
+local start= os.clock();
 main();
-print("TIME="+(clock()-start)+"\n");
+print("TIME="+(os.clock()-start)+"\n");

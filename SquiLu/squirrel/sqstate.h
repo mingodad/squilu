@@ -96,6 +96,8 @@ public:
     void AddDelayedReleaseHook(SQRELEASEHOOK hook, SQUserPointer ptr, SQInteger size);
     void CallDelayedReleaseHooks(SQVM *vm, int count=0);
 	SQObjectPtr _root_vm;
+	SQObjectPtr _table_default_delegate_squirrel;
+	static SQRegFunction _table_default_delegate_squirrel_funcz[];
 	SQObjectPtr _table_default_delegate;
 	static SQRegFunction _table_default_delegate_funcz[];
 	SQObjectPtr _array_default_delegate;

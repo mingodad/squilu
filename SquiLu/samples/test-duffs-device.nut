@@ -1,6 +1,6 @@
 local tbl = {len2 = function() {return "dad";}, }
 
-print(tbl.size(), tbl.len(), tbl.len2());
+print(table_size(tbl), table_len(tbl), tbl.len2());
 
 local s = "dad";
 

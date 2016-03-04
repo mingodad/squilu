@@ -4,7 +4,7 @@ class HashTable
     A CursorKind describes the kind of entity that a cursor points to.
     */
 
-    # The required BaseEnumeration declarations.
+    // The required BaseEnumeration declarations.
     _ht = null;
     
     constructor(int_size = 0)

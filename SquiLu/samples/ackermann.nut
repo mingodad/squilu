@@ -12,8 +12,9 @@ function Ack(M, N) {
 
 local n;
 
-if(vargv.len()!=0) {
-   n = vargv[0].tointeger();
+if(vargv.len() > 1) {
+   n = vargv[1];
+   n = vargv[1].tointeger();
   if(n < 1) n = 1;
 } else {   
   n = 1;

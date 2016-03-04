@@ -29,8 +29,8 @@ function localF2(){
 
 
 //print(fryday);
-localF();
 print(E.b);
+localF();
 
 /*
 //local 

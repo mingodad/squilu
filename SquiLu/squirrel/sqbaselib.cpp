@@ -362,6 +362,17 @@ static SQRESULT base_type(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT base_try_tostring(HSQUIRRELVM v)
+{
+    SQRESULT rc = SQ_SUCCEEDED(sq_tostring(v,2))?1:SQ_ERROR;
+    if( (rc == SQ_ERROR) && (sq_gettop(v) > 2) )
+    {
+        sq_push(v, 3); //copy default to top
+        return 1;
+    }
+	return rc;
+}
+
 static SQRESULT base_callee(HSQUIRRELVM v)
 {
 	if(v->_callsstacksize > 1)
@@ -406,9 +417,28 @@ static SQRESULT bf_table_rawexists(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT bf_table_set(HSQUIRRELVM v)
+{
+	return sq_set(v,-3);
+}
+
 static SQRESULT bf_table_rawset(HSQUIRRELVM v)
 {
 	return sq_rawset(v,-3);
+}
+
+static SQRESULT bf_table_get(HSQUIRRELVM v)
+{
+    switch(sq_gettop(v)){
+        case 3: return SQ_SUCCEEDED(sq_get(v,-2))?1:SQ_ERROR;break;
+        case 4: {
+            sq_push(v, 3); //copy key to top
+            sq_get(v,-4); //if it fail pop the key and default value is on top
+            return 1;
+        }
+        break;
+    }
+    return sq_throwerror(v, _SC("invalid number of parameters"));
 }
 
 static SQRESULT bf_table_rawget(HSQUIRRELVM v)
@@ -433,6 +463,54 @@ static SQRESULT bf_table_clear(HSQUIRRELVM v)
 static SQRESULT bf_table_len(HSQUIRRELVM v)
 {
 	v->Push(SQInteger(sq_getsize(v,2)));
+	return 1;
+}
+
+static SQRESULT bf_table_weakref(HSQUIRRELVM v)
+{
+	sq_weakref(v,2);
+	return 1;
+}
+
+static SQRESULT bf_table_tostring(HSQUIRRELVM v)
+{
+	if(SQ_FAILED(sq_tostring(v,2)))
+		return SQ_ERROR;
+	return 1;
+}
+
+static SQRESULT bf_table_setdelegate(HSQUIRRELVM v)
+{
+	if(SQ_FAILED(sq_setdelegate(v,-2)))
+		return SQ_ERROR;
+	sq_push(v,-1); // -1 because sq_setdelegate pops 1
+	return 1;
+}
+
+static SQRESULT bf_table_getdelegate(HSQUIRRELVM v)
+{
+	return SQ_SUCCEEDED(sq_getdelegate(v,2))?1:SQ_ERROR;
+}
+
+static SQRESULT bf_table_getdelegate_squirrel(HSQUIRRELVM v)
+{
+    SQSharedState *ss = _ss(v);
+    v->Push(ss->_table_default_delegate_squirrel);
+	return 1;
+}
+
+static SQRESULT bf_table_create(HSQUIRRELVM v)
+{
+    if(sq_gettop(v) > 1)
+    {
+        SQInteger capacity;
+        sq_getinteger(v, 2, &capacity);
+        sq_newtableex(v, capacity);
+    }
+    else
+    {
+        sq_newtable(v);
+    }
 	return 1;
 }
 
@@ -472,12 +550,23 @@ static SQRegFunction base_funcs[]={
 	{_SC("check_delayed_release_hooks"),base_check_delayed_release_hooks,-1, _SC(".b")},
 	{_SC("call_delayed_release_hooks"),base_call_delayed_release_hooks,1, NULL},
 #endif
+	{_SC("try_tostring"),base_try_tostring,-2, _SC("..s")},
+	{_SC("table_create"),bf_table_create,-1, _SC(".i")},
+	{_SC("table_new"),bf_table_create,-1, _SC(".i")},
+	{_SC("table_len"),bf_table_len,2, _SC(".t")},
+	{_SC("table_size"),bf_table_len,2, _SC(".t")},
+	{_SC("table_get"),bf_table_get,-3, _SC(".t.")},
 	{_SC("table_rawget"),bf_table_rawget,-3, _SC(".t.")},
+	{_SC("table_set"),bf_table_set,4, _SC(".t..")},
 	{_SC("table_rawset"),bf_table_rawset,4, _SC(".t..")},
 	{_SC("table_rawdelete"),bf_table_rawdelete,3, _SC(".t.")},
 	{_SC("table_rawin"),bf_table_rawexists,3, _SC(".t.")},
-	{_SC("table_len"),bf_table_len,2, _SC(".t")},
+	{_SC("table_weakref"),bf_table_weakref,2, _SC(".t")},
+	{_SC("table_tostring"),bf_table_tostring,2, _SC(".t")},
 	{_SC("table_clear"),bf_table_clear,2, _SC(".t")},
+	{_SC("table_setdelegate"),bf_table_setdelegate,3, _SC(".t t|o")},
+	{_SC("table_getdelegate"),bf_table_getdelegate,2, _SC(".t")},
+	{_SC("table_getdelegate_squirrel"),bf_table_getdelegate_squirrel,1, _SC(".")},
 	{0,0}
 };
 
@@ -670,7 +759,7 @@ static SQRESULT table_getdelegate(HSQUIRRELVM v)
 	return SQ_SUCCEEDED(sq_getdelegate(v,-1))?1:SQ_ERROR;
 }
 
-SQRegFunction SQSharedState::_table_default_delegate_funcz[]={
+SQRegFunction SQSharedState::_table_default_delegate_squirrel_funcz[]={
 	{_SC("len"),default_delegate_len,1, _SC("t")},
 	{_SC("size"),default_delegate_len,1, _SC("t")},
 	{_SC("get"),container_get,-2, _SC("t")},
@@ -683,6 +772,10 @@ SQRegFunction SQSharedState::_table_default_delegate_funcz[]={
 	{_SC("clear"),obj_clear,1, _SC(".")},
 	{_SC("setdelegate"),table_setdelegate,2, _SC(".t|o")},
 	{_SC("getdelegate"),table_getdelegate,1, _SC(".")},
+	{0,0}
+};
+
+SQRegFunction SQSharedState::_table_default_delegate_funcz[]={
 	{0,0}
 };
 
@@ -2357,4 +2450,5 @@ SQRegFunction SQSharedState::_weakref_default_delegate_funcz[] = {
 	{_SC("getdelegate"),weakref_getdelegate,1, _SC(".")},
 	{0,0}
 };
+
 

@@ -50,11 +50,11 @@ function getPath(url)
 		//print(i,ary[i]);
 		local folder = ary.slice(1, i+1).join("/");
 		local cmd = format("mkdir %s", dest_folder + folder);
-		if(!folders_made.rawget(folder, false))
+		if(!table_rawget(folders_made, folder, false))
 		{
 			print(cmd);
 			os.system(cmd);
-			folders_made.rawset(folder, true);
+			table_rawset(folders_made, folder, true);
 		}
 	}
 	local path = ary.slice(1).join("/");
@@ -88,11 +88,11 @@ function dumpContent(vhar)
 			path = path.slice(0, idx);
 		}
 		
-		local content = ventry.response.content.rawget("text", false);
+		local content = table_rawget(ventry.response.content, "text", false);
 		
 		if(content)
 		{
-			if(ventry.response.content.rawget("encoding", "") == "base64")
+			if(table_rawget(ventry.response.content, "encoding", "") == "base64")
 			{
 				content = base64.decode(content);
 			}
