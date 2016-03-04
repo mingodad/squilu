@@ -35,7 +35,7 @@ static SQRESULT sqlite3_NULL_tostring(HSQUIRRELVM v)
 }
 SQRegFunction sqlite3_NULL_methods[]=
 {
-    {_SC("_tostring"),sqlite3_NULL_tostring,1, _SC(".")},
+    {_SC("_tostring"),sqlite3_NULL_tostring,1, _SC("u")},
     {0,0}
 };
 
@@ -2733,6 +2733,7 @@ extern "C" {
         sq_pushregistrytable(v);
         sq_pushstring(v, sqlite3_NULL_Name,-1);
         sq_newuserdata(v, sizeof(void*));
+        sq_settypetag(v, -1, (SQUserPointer)sqlite3_NULL_Name);
         sq_resetobject(&sqlite3_NULL);
         sq_getstackobj(v, -1, &sqlite3_NULL);
         sq_newtable(v);
@@ -2742,7 +2743,7 @@ extern "C" {
 
         sq_pushstring(v,_SC("sqite3_context"),-1);
         sq_newclass(v,SQFalse);
-        sq_settypetag(v,-1,(void*)sq_sqlite3_context_TAG);
+        sq_settypetag(v,-1,(SQUserPointer)sq_sqlite3_context_TAG);
         sq_insert_reg_funcs(v, sq_sqlite3_context_methods);
         sq_newslot(v,-3,SQTrue);
 
@@ -2750,7 +2751,7 @@ extern "C" {
 
         sq_pushstring(v,SQLite3_TAG,-1);
         sq_newclass(v,SQFalse);
-        sq_settypetag(v,-1,(void*)SQLite3_TAG);
+        sq_settypetag(v,-1,(SQUserPointer)SQLite3_TAG);
         sq_insert_reg_funcs(v, sq_sqlite3_methods);
 
         INT_CONST(v,SQLITE_OPEN_CREATE);
@@ -2840,7 +2841,7 @@ extern "C" {
 
         sq_pushstring(v, SQLite3_Stmt_TAG,-1);
         sq_newclass(v,SQFalse);
-        sq_settypetag(v,-1,(void*)SQLite3_Stmt_TAG);
+        sq_settypetag(v,-1,(SQUserPointer)SQLite3_Stmt_TAG);
         sq_insert_reg_funcs(v, sq_sqlite3_stmt_methods);
 
         INT_CONST(v,SQLITE_INTEGER);
