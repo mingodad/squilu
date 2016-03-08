@@ -259,7 +259,7 @@ void sq_pushfstring(HSQUIRRELVM v,const SQChar *fmt, ...)
         SQChar str[1024];
         va_list vl;
         va_start(vl, fmt);
-        SQInteger len = scvsnprintf(str, sizeof(str), fmt, vl);
+        SQInteger len = scvsprintf(str, sizeof(str), fmt, vl);
         va_end(vl);
         v->Push(SQObjectPtr(SQString::Create(_ss(v), str, len)));
     }
@@ -1349,7 +1349,7 @@ SQRESULT sq_throwerror(HSQUIRRELVM v,const SQChar *fmt, ...)
     SQChar err[256];
     va_list vl;
     va_start(vl, fmt);
-    scvsnprintf(err, sizeof(err), fmt, vl);
+    scvsprintf(err, sizeof(err), fmt, vl);
     va_end(vl);
 	v->_lasterror=SQString::Create(_ss(v),err);
 	return SQ_ERROR;
@@ -1411,11 +1411,10 @@ SQRESULT sq_reservestack(HSQUIRRELVM v,SQInteger nsize)
 
 SQRESULT sq_resume(HSQUIRRELVM v,SQBool retval,SQBool raiseerror)
 {
-    SQObjectPtr &obj = v->GetUp(-1);
-	if(type(obj)==OT_GENERATOR)
+	if (type(v->GetUp(-1)) == OT_GENERATOR)
 	{
 		v->PushNull(); //retval
-		if (!v->Execute(v->GetUp(-2), 0, v->_top, obj, raiseerror, SQVM::ET_RESUME_GENERATOR))
+		if (!v->Execute(v->GetUp(-2), 0, v->_top, v->GetUp(-1), raiseerror, SQVM::ET_RESUME_GENERATOR))
 		{v->Raise_Error(v->_lasterror); return SQ_ERROR;}
 		if(!retval)
 			v->Pop();
