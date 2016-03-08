@@ -116,7 +116,7 @@ static SQRESULT _file__typeof(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQRESULT _file_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT _file_releasehook(SQUserPointer p, SQInteger /*size*/, HSQUIRRELVM /*v*/)
 {
 	SQFile *self = (SQFile*)p;
 	self->~SQFile();
@@ -169,7 +169,7 @@ static SQRegFunction _file_methods[] = {
 	_DECL_FILE_FUNC(constructor,3,_SC("x")),
 	_DECL_FILE_FUNC(_typeof,1,_SC("x")),
 	_DECL_FILE_FUNC(close,1,_SC("x")),
-	{0,0,0,0},
+	{NULL,(SQFUNCTION)0,0,NULL}
 };
 
 
@@ -561,7 +561,7 @@ static SQRegFunction iolib_funcs[]={
 	_DECL_GLOBALIO_FUNC(dumpclosure,3,_SC(".sc")),
 	_DECL_GLOBALIO_FUNC(readfile,2,_SC(".s")),
 	_DECL_GLOBALIO_FUNC(writefile,3,_SC(".ss")),
-	{0,0}
+	{NULL,(SQFUNCTION)0,0,NULL}
 };
 
 SQRESULT sqstd_register_iolib(HSQUIRRELVM v)

@@ -58,6 +58,7 @@ void printfunc(HSQUIRRELVM v,const SQChar *s,...)
 	va_start(vl, s);
 	scvprintf(stdout, s, vl);
 	va_end(vl);
+	(void)v; /* UNUSED */
 }
 
 void errorfunc(HSQUIRRELVM v,const SQChar *s,...)
@@ -66,6 +67,7 @@ void errorfunc(HSQUIRRELVM v,const SQChar *s,...)
 	va_start(vl, s);
 	scvprintf(stderr, s, vl);
 	va_end(vl);
+	(void)v; /* UNUSED */
 }
 
 void PrintVersionInfos()
@@ -113,7 +115,7 @@ void loadDefaultScript(HSQUIRRELVM v, const char *script)
     fclose(fb);
 
     SQChar srcBoot[256];
-    scsnprintf(srcBoot, sizeof(srcBoot), _SC("dofile(\"%s\", false);"), script);
+    scsprintf(srcBoot, sizeof(srcBoot), _SC("dofile(\"%s\", false);"), script);
 
     if(SQ_SUCCEEDED(sq_compilebuffer(v,srcBoot, strlen(srcBoot), _SC("defaultScript"), SQTrue, SQTrue))) {
         int callargs = 1;
@@ -133,11 +135,9 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 	int compiles_as_source_only = 0;
 #ifdef SQUNICODE
 	static SQChar temp[500];
-	//const SQChar *ret=NULL;
 #endif
 	const char * output = NULL;
 	const char * preload = NULL;
-	//int lineinfo=0;
 	*retval = 0;
 	if(argc>1)
 	{
@@ -334,7 +334,7 @@ void Interactive(HSQUIRRELVM v)
 		buffer[i] = _SC('\0');
 
 		if(buffer[0]==_SC('=')){
-			scsnprintf(sq_getscratchpad(v,MAXINPUT),MAXINPUT,_SC("return (%s)"),&buffer[1]);
+			scsprintf(sq_getscratchpad(v,MAXINPUT),MAXINPUT,_SC("return (%s)"),&buffer[1]);
 			memcpy(buffer,sq_getscratchpad(v,-1),(scstrlen(sq_getscratchpad(v,-1))+1)*sizeof(SQChar));
 			retval=1;
 		}
@@ -465,7 +465,6 @@ static char *chngChar (char *str, char oldChar, char newChar) {
 static SQInteger LoadFrozenScript(HSQUIRRELVM v, const SQChar* filename, int only_check)
 {
 #ifndef SQUILU_ALONE
-    SQInteger retval;
     // lots of debugging to make sure that everything is ok
     //printf("%s\n", filename);
     FILE *f = fopen(filename, "rb");
@@ -515,7 +514,7 @@ static SQInteger LoadFrozenScript(HSQUIRRELVM v, const SQChar* filename, int onl
 
     fclose(f);
     SQChar srcBoot[256];
-    SQInteger scr_len = scsnprintf(srcBoot, sizeof(srcBoot),
+    SQInteger scr_len = scsprintf(srcBoot, sizeof(srcBoot),
             _SC("local __fd=file(\"%s\", \"rb\");__fd.seek(%d, 'b');local __zsrc=__fd.read(%d);__fd.close();__zsrc=compilestring(zlib.inflate(__zsrc),\"zsrc\",false);__zsrc.acall2(this, vargv);"),
             filename, (int)(fileSize-END_TAG_LEN - script_len), (int)script_len);
 
@@ -601,7 +600,7 @@ int main(int argc, char* argv[])
 #ifndef SQUILU_ALONE
 	sqext_register_gumbo(v);
 	sqext_register_base64(v);
-	//sqext_register_Sq_Fpdf(v);
+	sqext_register_Sq_Fpdf(v);
 	sqext_register_SQLite3(v);
 	sqext_register_xjd1(v);
 	sqext_register_mix(v);
@@ -630,7 +629,7 @@ int main(int argc, char* argv[])
 
 	sqext_register_sq_slave_vm(v);
 	//sqext_register_ThreadObjects(v);
-	//sqext_register_dad_utils(v);
+	sqext_register_dad_utils(v);
 	//sqext_register_sys(v);
 
 #ifdef WITH_FULL_DAD_EXTRAS

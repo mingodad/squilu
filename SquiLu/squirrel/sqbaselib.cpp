@@ -42,7 +42,7 @@ bool str2num(const SQChar *s,SQObjectPtr &res, SQInteger base=10)
 	return true;
 }
 
-static SQRESULT base_dummy(HSQUIRRELVM v)
+static SQRESULT base_dummy(HSQUIRRELVM /*v*/)
 {
 	return 0;
 }
@@ -391,10 +391,10 @@ static SQRESULT base_str_from_chars (HSQUIRRELVM v) {
   SQChar *data = sq_getscratchpad(v, n);
   for (i=2; i<=n; ++i) {
     SQ_GET_INTEGER(v, i, c);
-    if(uchar(c) != c){
+    if(SQUChar(c) != c){
         return sq_throwerror(v, _SC("invalid value for parameter %d"), i);
     }
-    data[i-2] = uchar(c);
+    data[i-2] = SQUChar(c);
   }
   sq_pushstring(v, data, n-1);
   return 1;
@@ -567,7 +567,7 @@ static SQRegFunction base_funcs[]={
 	{_SC("table_setdelegate"),bf_table_setdelegate,3, _SC(".t t|o")},
 	{_SC("table_getdelegate"),bf_table_getdelegate,2, _SC(".t")},
 	{_SC("table_getdelegate_squirrel"),bf_table_getdelegate_squirrel,1, _SC(".")},
-	{0,0}
+	{NULL,(SQFUNCTION)0,0,NULL}
 };
 
 void sq_base_register(HSQUIRRELVM v)
@@ -772,11 +772,11 @@ SQRegFunction SQSharedState::_table_default_delegate_squirrel_funcz[]={
 	{_SC("clear"),obj_clear,1, _SC(".")},
 	{_SC("setdelegate"),table_setdelegate,2, _SC(".t|o")},
 	{_SC("getdelegate"),table_getdelegate,1, _SC(".")},
-	{0,0}
+	{NULL,(SQFUNCTION)0,0,NULL}
 };
 
 SQRegFunction SQSharedState::_table_default_delegate_funcz[]={
-	{0,0}
+	{NULL,(SQFUNCTION)0,0,NULL}
 };
 
 //ARRAY DEFAULT DELEGATE///////////////////////////////////////
@@ -1066,7 +1066,7 @@ bool _hsort_sift_down(HSQUIRRELVM v,SQArray *arr, SQInteger root, SQInteger bott
 	return true;
 }
 
-bool _hsort(HSQUIRRELVM v,SQObjectPtr &arr, SQInteger l, SQInteger r,SQInteger func)
+bool _hsort(HSQUIRRELVM v,SQObjectPtr &arr, SQInteger /*l*/, SQInteger /*r*/,SQInteger func)
 {
 	SQArray *a = _array(arr);
 	SQInteger i;
@@ -1232,7 +1232,7 @@ SQRegFunction SQSharedState::_array_default_delegate_funcz[]={
 	{_SC("get"),container_rawget, -2, _SC("ai.")},
 	{_SC("set"),array_set, 3, _SC("ai.")},
 	{_SC("isempty"),array_empty, 1, _SC("a")},
-	{0,0}
+	{NULL,(SQFUNCTION)0,0,NULL}
 };
 
 //STRING DEFAULT DELEGATE//////////////////////////
@@ -2035,7 +2035,7 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("sl_like_cmp"),string_sl_like_cmp, -2, _SC("ssi")},
 	{_SC("sl_like_cmp_noaccents"),string_sl_like_cmp_noaccents, -2, _SC("ssi")},
 #endif
-	{0,0}
+	{NULL,(SQFUNCTION)0,0,NULL}
 };
 
 //NUMBER DEFAULT DELEGATE//////////////////////////
@@ -2051,7 +2051,7 @@ SQRegFunction SQSharedState::_number_default_delegate_funcz[]={
 	{_SC("tochar"),number_delegate_tochar,1, _SC("n|b")},
 	{_SC("weakref"),obj_delegate_weakref,1, NULL },
 	{_SC("getdelegate"),number_getdelegate,1, _SC(".")},
-	{0,0}
+	{NULL,(SQFUNCTION)0,0,NULL}
 };
 
 //CLOSURE DEFAULT DELEGATE//////////////////////////
@@ -2177,7 +2177,7 @@ SQRegFunction SQSharedState::_closure_default_delegate_funcz[]={
 	{_SC("getenv"),closure_getenv,1, _SC("c")},
 	{_SC("getinfos"),closure_getinfos,1, _SC("c")},
 	{_SC("getdelegate"),closure_getdelegate,1, _SC(".")},
-	{0,0}
+	{NULL,(SQFUNCTION)0,0,NULL}
 };
 
 //GENERATOR DEFAULT DELEGATE
@@ -2203,7 +2203,7 @@ SQRegFunction SQSharedState::_generator_default_delegate_funcz[]={
 	{_SC("weakref"),obj_delegate_weakref,1, NULL },
 	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
 	{_SC("getdelegate"),generator_getdelegate,1, _SC(".")},
-	{0,0}
+	{NULL,(SQFUNCTION)0,0,NULL}
 };
 
 //THREAD DEFAULT DELEGATE
@@ -2329,7 +2329,7 @@ SQRegFunction SQSharedState::_thread_default_delegate_funcz[] = {
 	{_SC("getstackinfos"),thread_getstackinfos,2, _SC("vn")},
 	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
 	{_SC("getdelegate"),thread_getdelegate,1, _SC(".")},
-	{0,0},
+	{NULL,(SQFUNCTION)0,0,NULL},
 };
 
 static SQRESULT class_getattributes(HSQUIRRELVM v)
@@ -2403,7 +2403,7 @@ SQRegFunction SQSharedState::_class_default_delegate_funcz[] = {
 	{_SC("newmember"),class_newmember,-3, _SC("y")},
 	{_SC("rawnewmember"),class_rawnewmember,-3, _SC("y")},
 	{_SC("getdelegate"),class_getdelegate,1, _SC(".")},
-	{0,0}
+	{NULL,(SQFUNCTION)0,0,NULL}
 };
 
 
@@ -2428,7 +2428,7 @@ SQRegFunction SQSharedState::_instance_default_delegate_funcz[] = {
 	{_SC("weakref"),obj_delegate_weakref,1, NULL },
 	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
 	{_SC("getdelegate"),instance_getdelegate,1, _SC(".")},
-	{0,0}
+	{NULL,(SQFUNCTION)0,0,NULL}
 };
 
 static SQRESULT weakref_ref(HSQUIRRELVM v)
@@ -2448,7 +2448,7 @@ SQRegFunction SQSharedState::_weakref_default_delegate_funcz[] = {
 	{_SC("weakref"),obj_delegate_weakref,1, NULL },
 	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
 	{_SC("getdelegate"),weakref_getdelegate,1, _SC(".")},
-	{0,0}
+	{NULL,(SQFUNCTION)0,0,NULL}
 };
 
 

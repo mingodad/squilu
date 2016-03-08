@@ -197,7 +197,7 @@ static SQRESULT math_number_format(HSQUIRRELVM v) {
 	}
 
     int idec = dec; //on 64 bits there is a warning here about SQInteger/int
-	tmplen = scsnprintf(tmpbuf, sizeof(tmpbuf), _SC("%.*f"), idec, d);
+	tmplen = scsprintf(tmpbuf, sizeof(tmpbuf), _SC("%.*f"), idec, d);
 
 	resbuf[0] = _SC('\0');
 
@@ -328,7 +328,7 @@ static SQRegFunction mathlib_funcs[] = {
 	_DECL_FUNC(number_format_set_dec_point,2,_SC(".s")),
 	_DECL_FUNC(number_format_get_thousand_sep,1,_SC(".")),
 	_DECL_FUNC(number_format_set_thousand_sep,2,_SC(".s")),
-	{0,0},
+	{NULL,(SQFUNCTION)0,0,NULL}
 };
 #undef _DECL_FUNC
 

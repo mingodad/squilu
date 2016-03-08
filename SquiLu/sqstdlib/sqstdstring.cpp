@@ -99,9 +99,9 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
 			if(n < 0) return -1;
 			SQInteger addlen = 0;
 			SQInteger valtype = 0;
-			const SQChar *ts;
-			SQInteger ti;
-			SQFloat tf;
+			const SQChar *ts = NULL;
+			SQInteger ti = 0;
+			SQFloat tf = 0.0;
 			SQInteger fc = format[n];
 			switch(fc) {
             case _SC('q'):
@@ -121,9 +121,9 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
                         else if (*ts2 == _SC('"') || *ts2 == _SC('\\') || *ts2 == _SC('\n')  || *ts2 == _SC('\t')) {
                           ++addlen;
                         }
-                        else if (*ts2 == _SC('\0') || iscntrl(uchar(*ts2))) {
+                        else if (*ts2 == _SC('\0') || sciscntrl(SQUChar(*ts2))) {
                           SQChar buff[10];
-                          addlen += scsprintf(buff, _SC("\\x%x"), (int)uchar(*ts2))-1; //-1 because we already added the original char to the sum
+                          addlen += scsprintf(buff, sizeof(buff), _SC("\\x%x"), (int)SQUChar(*ts2))-1; //-1 because we already added the original char to the sum
                         }
                         ++ts2;
                       }
@@ -152,10 +152,10 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
                             *ts2++ = _SC('\\');
                             *ts2++ = _SC('t');
                         }
-                        else if (*ts == _SC('\0') || iscntrl(uchar(*ts))) {
+                        else if (*ts == _SC('\0') || sciscntrl(SQUChar(*ts))) {
                           SQChar buff[10];
                           int iw;
-                          iw = scsprintf(buff, _SC("\\x%x"), (int)uchar(*ts));
+                          iw = scsprintf(buff, sizeof(buff), _SC("\\x%x"), (int)SQUChar(*ts));
                           for(int i=0; i< iw; ++i) *ts2++ = buff[i];
                         }
                         else
@@ -207,9 +207,9 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
 			allocated += addlen + sizeof(SQChar);
 			dest = sq_getscratchpad(v,allocated);
 			switch(valtype) {
-			case _SC('s'): i += scsprintf(&dest[i],fmt,ts); break;
-			case _SC('i'): i += scsprintf(&dest[i],fmt,ti); break;
-			case _SC('f'): i += scsprintf(&dest[i],fmt,tf); break;
+            case 's': i += scsprintf(&dest[i],allocated,fmt,ts); break;
+            case 'i': i += scsprintf(&dest[i],allocated,fmt,ti); break;
+            case 'f': i += scsprintf(&dest[i],allocated,fmt,tf); break;
 			};
 			nparam ++;
 		}
@@ -245,11 +245,81 @@ static SQRESULT _string_printf(HSQUIRRELVM v)
 	return 0;
 }
 
+static SQInteger _string_escape(HSQUIRRELVM v)
+{
+    const SQChar *str;
+    SQChar *dest,*resstr;
+    SQInteger size;
+    sq_getstring(v,2,&str);
+    size = sq_getsize(v,2);
+    if(size == 0) {
+        sq_push(v,2);
+        return 1;
+    }
+#ifdef SQUNICODE
+#if WCHAR_SIZE == 2
+    const SQChar *escpat = _SC("\\x%04x");
+    const SQInteger maxescsize = 6;
+#else //WCHAR_SIZE == 4
+    const SQChar *escpat = _SC("\\x%08x");
+    const SQInteger maxescsize = 10;
+#endif
+#else
+    const SQChar *escpat = _SC("\\x%02x");
+    const SQInteger maxescsize = 4;
+#endif
+    SQInteger destcharsize = (size * maxescsize); //assumes every char could be escaped
+    resstr = dest = (SQChar *)sq_getscratchpad(v,destcharsize * sizeof(SQChar));
+    SQChar c;
+    SQChar escch;
+    SQInteger escaped = 0;
+    for(int n = 0; n < size; n++){
+        c = *str++;
+        escch = 0;
+        if(scisprint(c) || c == 0) {
+            switch(c) {
+            case '\a': escch = 'a'; break;
+            case '\b': escch = 'b'; break;
+            case '\t': escch = 't'; break;
+            case '\n': escch = 'n'; break;
+            case '\v': escch = 'v'; break;
+            case '\f': escch = 'f'; break;
+            case '\r': escch = 'r'; break;
+            case '\\': escch = '\\'; break;
+            case '\"': escch = '\"'; break;
+            case '\'': escch = '\''; break;
+            case 0: escch = '0'; break;
+            }
+            if(escch) {
+                *dest++ = '\\';
+                *dest++ = escch;
+                escaped++;
+            }
+            else {
+                *dest++ = c;
+            }
+        }
+        else {
+
+            dest += scsprintf(dest, destcharsize, escpat, c);
+            escaped++;
+        }
+    }
+
+    if(escaped) {
+        sq_pushstring(v,resstr,dest - resstr);
+    }
+    else {
+        sq_push(v,2); //nothing escaped
+    }
+    return 1;
+}
+
 #define SETUP_REX(v) \
 	SQRex *self = NULL; \
 	sq_getinstanceup(v,1,(SQUserPointer *)&self,0);
 
-static SQRESULT _rexobj_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT _rexobj_releasehook(SQUserPointer p, SQInteger /*size*/, HSQUIRRELVM /*v*/)
 {
 	SQRex *self = ((SQRex *)p);
 	sqstd_rex_free(self);
@@ -494,7 +564,7 @@ static SQRegFunction rexobj_funcs[]={
 	_DECL_REX_FUNC(getxcapture,4,_SC("xsna")),
 	_DECL_REX_FUNC(subexpcount,1,_SC("x")),
 	_DECL_REX_FUNC(_typeof,1,_SC("x")),
-	{0,0}
+	{NULL,(SQFUNCTION)0,0,NULL}
 };
 #undef _DECL_REX_FUNC
 
@@ -502,7 +572,8 @@ static SQRegFunction rexobj_funcs[]={
 static SQRegFunction stringlib_funcs[]={
 	_DECL_FUNC(printf,-2,_SC(".s")),
 	_DECL_FUNC(format,-2,_SC(".s")),
-	{0,0}
+    _DECL_FUNC(escape,2,_SC(".s")),
+	{NULL,(SQFUNCTION)0,0,NULL}
 };
 #undef _DECL_FUNC
 

@@ -630,7 +630,7 @@ static SQRegFunction systemlib_funcs[]={
 	_DECL_FUNC(signal_str2int,2,_SC(".s")),
 	_DECL_FUNC(signal_int2str,2,_SC(".i")),
 #endif
-	{0,0}
+	{NULL,(SQFUNCTION)0,0,NULL}
 };
 #undef _DECL_FUNC
 

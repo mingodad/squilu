@@ -328,13 +328,13 @@ bool SQVM::ToString(const SQObjectPtr &o,SQObjectPtr &res)
 		res = o;
 		return true;
 	case OT_FLOAT:
-		scsprintf(_sp(rsl(NUMBER_MAX_CHAR+1)),_SC("%g"),_float(o));
-		break;
-	case OT_INTEGER:
-		scsprintf(_sp(rsl(NUMBER_MAX_CHAR+1)),_PRINT_INT_FMT,_integer(o));
-		break;
-	case OT_BOOL:
-		scsprintf(_sp(rsl(6)),_integer(o)?_SC("true"):_SC("false"));
+        scsprintf(_sp(sq_rsl(NUMBER_MAX_CHAR+1)),sq_rsl(NUMBER_MAX_CHAR),_SC("%g"),_float(o));
+        break;
+    case OT_INTEGER:
+        scsprintf(_sp(sq_rsl(NUMBER_MAX_CHAR+1)),sq_rsl(NUMBER_MAX_CHAR),_PRINT_INT_FMT,_integer(o));
+        break;
+    case OT_BOOL:
+        scsprintf(_sp(sq_rsl(6)),sq_rsl(6),_integer(o)?_SC("true"):_SC("false"));
 		break;
 	case OT_TABLE:
 	case OT_USERDATA:
@@ -353,7 +353,8 @@ bool SQVM::ToString(const SQObjectPtr &o,SQObjectPtr &res)
 			}
 		}
 	default:
-		scsprintf(_sp(rsl(sizeof(void*)+20)),_SC("(%s : 0x%p)"),GetTypeName(o),(void*)_rawval(o));
+	    SQInteger size = (sizeof(void*)*2)+NUMBER_MAX_CHAR;
+        scsprintf(_sp(sq_rsl(size)),sq_rsl(size),_SC("(%s : 0x%p)"),GetTypeName(o),(void*)_rawval(o));
 	}
 	res = SQString::Create(_ss(this),_spval);
 	return true;
@@ -554,7 +555,7 @@ SQRESULT SQVM::Suspend()
 
 #define _FINISH(howmuchtojump) {jump = howmuchtojump; return true; }
 bool SQVM::FOREACH_OP(SQObjectPtr &o1,SQObjectPtr &o2,SQObjectPtr
-&o3,SQObjectPtr &o4,SQInteger arg_2,int exitpos,int &jump)
+&o3,SQObjectPtr &o4,SQInteger /*arg_2*/,int exitpos,int &jump)
 {
 	SQInteger nrefidx;
 	switch(type(o1)) {
@@ -1783,7 +1784,7 @@ SQInteger prevstackbase = _stackbase;
 	return true;
 }
 
-bool SQVM::CallMetaMethod(SQObjectPtr &closure,SQMetaMethod mm,SQInteger nparams,SQObjectPtr &outres)
+bool SQVM::CallMetaMethod(SQObjectPtr &closure,SQMetaMethod /*mm*/,SQInteger nparams,SQObjectPtr &outres)
 {
 	//SQObjectPtr closure;
 

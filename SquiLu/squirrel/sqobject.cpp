@@ -290,7 +290,7 @@ bool SafeWriteFmt(HSQUIRRELVM v,SQWRITEFUNC write,SQUserPointer up, const SQChar
         SQChar str[8192];
         va_list vl;
         va_start(vl, fmt);
-        SQInteger len = scvsnprintf(str, sizeof(str), fmt, vl);
+        SQInteger len = scvsprintf(str, sizeof(str), fmt, vl);
         va_end(vl);
         return SafeWrite(v, write, up, str, len);
     }
@@ -353,10 +353,10 @@ bool WriteObjectAsCode(HSQUIRRELVM v,SQUserPointer up,SQWRITEFUNC write,SQObject
         }
 		break;
 	case OT_INTEGER:
-        sz = scsnprintf(buf, sizeof(buf), _PRINT_INT_FMT, _integer(o));
+        sz = scsprintf(buf, sizeof(buf), _PRINT_INT_FMT, _integer(o));
 		_CHECK_IO(SafeWrite(v,write,up,buf,sz));break;
 	case OT_FLOAT:
-        sz = scsnprintf(buf, sizeof(buf), "%f", _float(o));
+        sz = scsprintf(buf, sizeof(buf), "%f", _float(o));
 		_CHECK_IO(SafeWrite(v,write,up,buf,sz));break;
 	case OT_NULL:{
             const SQChar str[] = _SC("null");

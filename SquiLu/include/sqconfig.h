@@ -10,9 +10,9 @@ typedef long long SQInteger;
 typedef unsigned long long SQUnsignedInteger;
 typedef unsigned long long SQHash; /*should be the same size of a pointer*/
 #endif
-typedef int SQInt32; 
+typedef int SQInt32;
 typedef unsigned int SQUnsignedInteger32;
-#else 
+#else
 typedef int SQInteger;
 typedef int SQInt32; /*must be 32 bits(also on 64bits processors)*/
 typedef unsigned int SQUnsignedInteger32; /*must be 32 bits(also on 64bits processors)*/
@@ -57,27 +57,31 @@ typedef SQInteger SQRESULT;
 
 
 typedef wchar_t SQChar;
+typedef unsigned wchar_t SQUChar;
 
 
-#define	scstrcmp	wcscmp
-#ifdef _MSC_VER
-#define scsprintf	_snwprintf
+#define scstrcmp    wcscmp
+#ifdef _WIN32
+#define scsprintf   _snwprintf
 #define scvfprintf	_vfwprintf
 #else
-#define scsprintf	snwprintf
+#define scsprintf   swprintf
 #define scvfprintf	vfwprintf
 #endif
-#define scstrlen	wcslen
-#define scstrtod	wcstod
+#define scstrlen    wcslen
+#define scstrtod    wcstod
 #ifdef _SQ64
-#define scstrtol	wcstoll
+#define scstrtol    wcstoll
 #else
-#define scstrtol	wcstol
+#define scstrtol    wcstol
 #endif
-#define scstrtoul	wcstoul
-#define scvsprintf	vswprintf
-#define scstrstr	wcsstr
-#define scprintf	wprintf
+#define scstrtoul   wcstoul
+#define scvsprintf  vswprintf
+#define scstrstr    wcsstr
+#define scstrchr wcschr
+#define scstrpbrk	wcspbrk
+#define scstrtok	wcstrtok
+#define scprintf    wprintf
 
 #ifdef _WIN32
 #define WCHAR_SIZE 2
@@ -92,50 +96,54 @@ typedef wchar_t SQChar;
 #define _SC(a) L##a
 
 
-#define scisspace	iswspace
-#define scisdigit	iswdigit
-#define scisprint	iswprint
-#define scisxdigit	iswxdigit
-#define scisalpha	iswalpha
-#define sciscntrl	iswcntrl
-#define scisalnum	iswalnum
+#define scisspace   iswspace
+#define scisdigit   iswdigit
+#define scisprint   iswprint
+#define scisxdigit  iswxdigit
+#define scisalpha   iswalpha
+#define sciscntrl   iswcntrl
+#define scisalnum   iswalnum
 
 
 #define sq_rsl(l) ((l)<<WCHAR_SHIFT_MUL)
 
 #else
 typedef char SQChar;
+typedef unsigned char SQUChar;
 #define _SC(a) a
-#define	scstrcmp	strcmp
+#define scstrcmp    strcmp
 #ifdef _MSC_VER
-#define scsprintf	_snprintf
+#define scsprintf   _snprintf
 #define scvfprintf	_vfprintf
 #else
-#define scsprintf	snprintf
+#define scsprintf   snprintf
 #define scvfprintf	vfprintf
 #endif
-#define scstrlen	strlen
-#define scstrtod	strtod
+#define scstrlen    strlen
+#define scstrtod    strtod
 #ifdef _SQ64
 #ifdef _MSC_VER
-#define scstrtol	_strtoi64
+#define scstrtol    _strtoi64
 #else
-#define scstrtol	strtoll
+#define scstrtol    strtoll
 #endif
 #else
-#define scstrtol	strtol
+#define scstrtol    strtol
 #endif
-#define scstrtoul	strtoul
-#define scvsprintf	vsnprintf
-#define scstrstr	strstr
-#define scisspace	isspace
-#define scisdigit	isdigit
-#define scisprint	isprint
-#define scisxdigit	isxdigit
-#define sciscntrl	iscntrl
-#define scisalpha	isalpha
-#define scisalnum	isalnum
-#define scprintf	printf
+#define scstrtoul   strtoul
+#define scvsprintf  vsnprintf
+#define scstrstr    strstr
+#define scstrpbrk	strpbrk
+#define scstrchr	strchr
+#define scstrtok	strtok
+#define scisspace   isspace
+#define scisdigit   isdigit
+#define scisprint   isprint
+#define scisxdigit  isxdigit
+#define sciscntrl   iscntrl
+#define scisalpha   isalpha
+#define scisalnum   isalnum
+#define scprintf    printf
 #define MAX_CHAR 0xFF
 
 #define sq_rsl(l) (l)
