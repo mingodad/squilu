@@ -17,15 +17,6 @@
 #include <sqstdstring.h>
 #include <sqstdaux.h>
 
-#ifdef SQUNICODE
-#define scfprintf fwprintf
-#define scfopen	_wfopen
-#define scvprintf vfwprintf
-#else
-#define scfprintf fprintf
-#define scfopen	fopen
-#define scvprintf vfprintf
-#endif
 
 #define MAXINPUT 1024
 
@@ -110,7 +101,7 @@ void PrintUsage()
 
 void loadDefaultScript(HSQUIRRELVM v, const char *script)
 {
-    FILE *fb = fopen(script, "rb");
+    FILE *fb = scfopen(script, "rb");
     if (!fb) return;
     fclose(fb);
 
@@ -371,7 +362,7 @@ static SQInteger LoadFrozenScript0(HSQUIRRELVM v, const SQChar* filename, int on
     SQInteger retval;
     // lots of debugging to make sure that everything is ok
     //printf("%s\n", filename);
-    FILE *f = fopen(filename, "rb");
+    FILE *f = scfopen(filename, "rb");
 
     if (!f) return -1;
 
@@ -467,7 +458,7 @@ static SQInteger LoadFrozenScript(HSQUIRRELVM v, const SQChar* filename, int onl
 #ifndef SQUILU_ALONE
     // lots of debugging to make sure that everything is ok
     //printf("%s\n", filename);
-    FILE *f = fopen(filename, "rb");
+    FILE *f = scfopen(filename, "rb");
 
     if (!f) return -1;
 

@@ -942,44 +942,8 @@
 			<Option target="Debug 64bits static Library" />
 			<Option target="Temp Code FLTK 64bits" />
 		</Unit>
-		<Unit filename="../SquiLu-ext/fpdf.cpp">
-			<Option target="Debug" />
-			<Option target="Release" />
-			<Option target="Release clang" />
-			<Option target="Release win32" />
-			<Option target="Release FLTK" />
-			<Option target="Debug FLTK" />
-			<Option target="Release FLTK win32" />
-			<Option target="Release FLTK win32 no console" />
-			<Option target="Release wince" />
-			<Option target="Release 64bits" />
-			<Option target="Release FLTK 64bits" />
-			<Option target="Debug 64bits" />
-			<Option target="Release FLTK 64bits Lib" />
-			<Option target="Release FLTK 64bits Computed Gotos" />
-			<Option target="Release 64bits static Library" />
-			<Option target="Debug FLTK 64bits" />
-			<Option target="Debug FLTK 64bits asan" />
-		</Unit>
-		<Unit filename="../SquiLu-ext/fpdf.h">
-			<Option target="Debug" />
-			<Option target="Release" />
-			<Option target="Release clang" />
-			<Option target="Release win32" />
-			<Option target="Release FLTK" />
-			<Option target="Debug FLTK" />
-			<Option target="Release FLTK win32" />
-			<Option target="Release FLTK win32 no console" />
-			<Option target="Release wince" />
-			<Option target="Release 64bits" />
-			<Option target="Release FLTK 64bits" />
-			<Option target="Debug 64bits" />
-			<Option target="Release FLTK 64bits Lib" />
-			<Option target="Release FLTK 64bits Computed Gotos" />
-			<Option target="Release 64bits static Library" />
-			<Option target="Debug FLTK 64bits" />
-			<Option target="Debug FLTK 64bits asan" />
-		</Unit>
+		<Unit filename="../SquiLu-ext/fpdf.cpp" />
+		<Unit filename="../SquiLu-ext/fpdf.h" />
 		<Unit filename="../SquiLu-ext/lua_socket.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
@@ -1199,25 +1163,7 @@
 			<Option target="Debug 64bits static Library" />
 			<Option target="Temp Code FLTK 64bits" />
 		</Unit>
-		<Unit filename="../SquiLu-ext/sq_fpdf.cpp">
-			<Option target="Debug" />
-			<Option target="Release" />
-			<Option target="Release clang" />
-			<Option target="Release win32" />
-			<Option target="Release FLTK" />
-			<Option target="Debug FLTK" />
-			<Option target="Release FLTK win32" />
-			<Option target="Release FLTK win32 no console" />
-			<Option target="Release wince" />
-			<Option target="Release 64bits" />
-			<Option target="Release FLTK 64bits" />
-			<Option target="Debug 64bits" />
-			<Option target="Release FLTK 64bits Lib" />
-			<Option target="Release FLTK 64bits Computed Gotos" />
-			<Option target="Release 64bits static Library" />
-			<Option target="Debug FLTK 64bits" />
-			<Option target="Debug FLTK 64bits asan" />
-		</Unit>
+		<Unit filename="../SquiLu-ext/sq_fpdf.cpp" />
 		<Unit filename="../SquiLu-ext/sq_fs.c">
 			<Option compilerVar="CC" />
 			<Option target="Debug" />

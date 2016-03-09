@@ -955,9 +955,9 @@ static SQRESULT sq_pgsql_version(HSQUIRRELVM v){
 static int
  inv_read =  0x40000,
  inv_write = 0x20000,
- invalidoid = 0,
+ //invalidoid = 0,
  inv_seek_set = 0,
- inv_seek_curr = 1,
+ //inv_seek_curr = 1,
  inv_seek_end = 2;
 
 static SQRESULT sq_pgsql_get_blob_field(HSQUIRRELVM v){

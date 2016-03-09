@@ -221,7 +221,7 @@ static SQRESULT sq_libclang_releasehook(SQUserPointer p, SQInteger size, HSQUIRR
 
 static SQRESULT sq_libclang_constructor(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS_NO_TOP(v);
+    //SQ_FUNC_VARS_NO_TOP(v);
     if(!load_dynamicLib()) return sq_throwerror(v, _SC("Failed to load libclang !"));
 
     MyLibClang *self = (MyLibClang *)sq_malloc(sizeof(MyLibClang));
@@ -253,7 +253,7 @@ static void call_visitor_cb(MyLibClang *self, const SQChar *sig, ...)
     //sq_pushobject(v, self->busy_udata);
     va_list vl;
     va_start(vl, sig);
-    SQRESULT rc = sq_call_va_vl(v, SQFalse, -1, NULL, 0, sig, vl);
+    /*SQRESULT rc =*/ sq_call_va_vl(v, SQFalse, -1, NULL, 0, sig, vl);
     va_end(vl);
 
     sq_settop(v, top);

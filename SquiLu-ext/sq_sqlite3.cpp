@@ -1261,7 +1261,7 @@ static SQRESULT sq_sqlite3_stmt_asSleArray(HSQUIRRELVM v)
 
 static SQRESULT sq_sqlite3_stmt_all_blobs_size(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS(v);
+    SQ_FUNC_VARS_NO_TOP(v);
     GET_sqlite3_stmt_INSTANCE();
     int total_size = 0, col_count = sqlite3_column_count(self);
     for(int i=0; i < col_count; ++i)

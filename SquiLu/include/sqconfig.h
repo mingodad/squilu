@@ -64,9 +64,15 @@ typedef unsigned wchar_t SQUChar;
 #ifdef _WIN32
 #define scsprintf   _snwprintf
 #define scvfprintf	_vfwprintf
+#define scfprintf fwprintf
+#define scvprintf vfwprintf
+#define scfopen	_wfopen
 #else
 #define scsprintf   swprintf
 #define scvfprintf	vfwprintf
+#define scfprintf fwprintf
+#define scvprintf vfwprintf
+#define scfopen	wfopen
 #endif
 #define scstrlen    wcslen
 #define scstrtod    wcstod
@@ -115,9 +121,15 @@ typedef unsigned char SQUChar;
 #ifdef _MSC_VER
 #define scsprintf   _snprintf
 #define scvfprintf	_vfprintf
+#define scfprintf fprintf
+#define scvprintf vfprintf
+#define scfopen	fopen
 #else
 #define scsprintf   snprintf
 #define scvfprintf	vfprintf
+#define scfprintf fprintf
+#define scvprintf vfprintf
+#define scfopen	fopen
 #endif
 #define scstrlen    strlen
 #define scstrtod    strtod
