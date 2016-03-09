@@ -156,7 +156,6 @@ SQVM::SQVM(SQSharedState *ss)
 
 void SQVM::Finalize()
 {
-	if(!_alloccallsstacksize) return; //to prevent multiple calls
     CallAtExitHandler();
     _sharedstate->CallDelayedReleaseHooks(this);
 	if(_openouters) CloseOuters(&_stack._vals[0]);
@@ -181,7 +180,6 @@ void SQVM::Finalize()
     SQ_OP_CODE_LIST()
 #undef ENUM_OP
 #endif
-	_alloccallsstacksize = 0; //to prevent multiple calls
 }
 
 SQVM::~SQVM()
