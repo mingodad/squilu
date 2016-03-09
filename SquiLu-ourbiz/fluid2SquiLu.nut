@@ -158,7 +158,7 @@ function ParseItem(pos, parent){
 	rc = GetItem(pos, "string", item);
 	key = rc[0]; pos = rc[1]; 
 	item.key <- key;
-	local modes = Grammar.get(key, false);
+	local modes = table_get(Grammar, key, false);
 	if (!modes && key.match("Fl_")) modes = Grammar.Fl_;
 	assert(modes);
 	foreach(mode in modes){
@@ -188,7 +188,7 @@ function ParseAttributes(pos, endpos){
 	while (pos < endpos){
 		rc = GetItem(pos, "string");
 		key = rc[0]; pos = rc[1]; 
-		local type = Grammar.attr.get(key, false);
+		local type = table_get(Grammar.attr, key, false);
 		if (type){
 			rc = GetItem(pos, type);
 			item = rc[0]; pos = rc[1]; 
@@ -245,10 +245,10 @@ Write.Atributes <- function(t, ind, name){
 	//if (klass.match("Fl_Button") t.attr.when = 12;
 	
 	foreach( k,v in t.attr) {
-		if (Grammar.methods.get(k, false) && v){
+		if (table_get(Grammar.methods, k, false) && v){
 			Output(ind, "%s.%s(", lname, k);
 			if (type(v) == "integer") Output(0, "%d", v);
-			else if (Grammar.konst.get(v, false)) Output(0, "%d", Grammar.konst[v]);
+			else if (table_get(Grammar.konst, v, false)) Output(0, "%d", Grammar.konst[v]);
 			else if (v.match("^[A-Z_]+$") ) Output(0, "FL_%s", v);
 			else Output(0, "%s(%q)", configuration.textfilter, v);
 			Output(0, ");\n");
@@ -257,8 +257,8 @@ Write.Atributes <- function(t, ind, name){
 }
 
 Write.widget <- function(t, ind){
-	local fgroup = Grammar.groups.get(t.key, false);
-	if (Grammar.composed.get(t.key, false) && t.attr.rawget("type", false)){
+	local fgroup = table_get(Grammar.groups, t.key, false);
+	if (table_get(Grammar.composed, t.key, false) && t.attr.rawget("type", false)){
 		t.key = t.key.slice(0,3) + t.attr.type + t.key.slice(2);
 		t.attr.type = null;
 	}

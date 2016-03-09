@@ -6,7 +6,7 @@
  
 local globals = getroottable();
 
-if(!globals.rawget("HTTPConn", false)) dofile("ourbiz-client.nut");
+if(!table_rawget(globals, "HTTPConn", false)) dofile("ourbiz-client.nut");
 
 enum edbAction {e_none, e_insert, e_update, e_delete};
 

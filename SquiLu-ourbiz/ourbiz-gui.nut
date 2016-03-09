@@ -580,7 +580,6 @@ class BarChartGroup extends Fl_Group {
       o.labeltype(FL_NO_LABEL);
       o.labelsize(16);
       o.color(7);
-      #include "Fl_Bar_Chart.h"
       Fl_Group.current().resizable(o);
     }
     end();
@@ -5897,7 +5896,6 @@ class EditOrderWindow extends Edit_Base_Window {
               o.textsize(16);
               o.align(5);
               o.labelsize(16);
-              #include <FL/Fl_Text_Editor.H>
               add_input_field_to_map("orders", "notes", db_orders_notes);
               Fl_Group.current().resizable(o);
             }
@@ -5988,7 +5986,6 @@ class EditOrderWindow extends Edit_Base_Window {
               o.textsize(16);
               o.align(5);
               o.labelsize(16);
-              #include <FL/Fl_Text_Editor.H>
             }
             {
               local o = Fl_Check_Button(200, 330, 125, 25, _tr("Wrap lines"));
@@ -6005,7 +6002,6 @@ class EditOrderWindow extends Edit_Base_Window {
               o.textsize(16);
               o.align(5);
               o.labelsize(16);
-              #include <FL/Fl_Text_Editor.H>
               Fl_Group.current().resizable(o);
             }
             {

@@ -1537,12 +1537,12 @@ local DB_Entities = class extends DB_Manager {
 		else if (qs_tbl.rawget("past_products", false)) return entity_past_products_get_sql(qs_tbl.past_products.tointeger());
 		else if ( (entity_id = qs_tbl.rawget("history", 0)) ){
 			local htype = qs_tbl.rawget("htype", 0);
-			local query_limit = qs_tbl.get(C_query_limit, 50).tointeger();
+			local query_limit = table_get(qs_tbl, C_query_limit, 50).tointeger();
 			return entity_sales_history_sql(htype, query_limit, entity_id.tointeger());
 		}
 		else if ( (entity_id = qs_tbl.rawget("statistics", 0)) ){
-			local periode_count = qs_tbl.get(C_periode_count, 12).tointeger();
-			local periode_type = getStatisticsPeriodeType(qs_tbl.get(C_periode_type, C_months));
+			local periode_count = table_get(qs_tbl, C_periode_count, 12).tointeger();
+			local periode_type = getStatisticsPeriodeType(table_get(qs_tbl, C_periode_type, C_months));
 			local sab = qs_tbl.rawget("sab", "S");
 			return entity_bar_chart_statistics_sql(entity_id.tointeger(), sab, periode_count, periode_type);
 		}
@@ -1575,7 +1575,7 @@ order by name
 	}
 
 	function sql_get_one(tbl_qs){
-		local id = tbl_qs.get(table_name, 0).tointeger();
+		local id = table_get(tbl_qs, table_name, 0).tointeger();
 		if(tbl_qs.rawget("for_order", false))
 		{
 			return entity_for_order_get_one(id);
@@ -1650,7 +1650,7 @@ where l.lang=? and tk.skey=? and tv.lang_id=l.id and tv.key_id=tk.id]==]);
 	function _tr(str)
 	{
 /*
-		local tr_str = _tr_map.get(str, null);
+		local tr_str = table_get(_tr_map, str, null);
 		if(tr_str) return tr_str;
 
 		_tr_stmt.reset();
@@ -1718,12 +1718,12 @@ local CalcOrderLine = class
 			C_line_subtotal, C_sales_tax1_pct, C_sales_tax1_amt,
 			C_sales_tax2_pct, C_sales_tax2_amt, C_line_total
 			];
-		use_sales_tax2 = map.get(C_use_sales_tax2, false) == "1";
-		tax_exempt = map.get(C_tax_exempt, false) == "1";
-		price_decimals = map.get(C_price_decimals, 2).tointeger();
+		use_sales_tax2 = table_get(map, C_use_sales_tax2, false) == "1";
+		tax_exempt = table_get(map, C_tax_exempt, false) == "1";
+		price_decimals = table_get(map, C_price_decimals, 2).tointeger();
 
 		foreach(field in fields){
-			this[field] = mytofloat(map.get(field, 0.0));
+			this[field] = mytofloat(table_get(map, field, 0.0));
 		}
 
 		calc();
@@ -2161,7 +2161,7 @@ local DB_Orders = class extends DB_Manager {
 			return orders_sales_history_sql(htype, query_limit, qs_tbl.history);
 		}
 		else if (qs_tbl.rawget("statistics", false)){
-			local periode_count = qs_tbl.get(C_periode_count, 12).tointeger();
+			local periode_count = table_get(qs_tbl, C_periode_count, 12).tointeger();
 			local periode_type = getStatisticsPeriodeType(qs_tbl.rawget("periode_type", "months"));
 			local sab = qs_tbl.rawget("sab", "S");
 			return sql_bar_chart_statistics(sab, periode_count, periode_type);
@@ -2173,13 +2173,13 @@ local DB_Orders = class extends DB_Manager {
 	function calc_order_line_from_map(tbl_qs, rec_map)
 	{
 		_calc_line.reset();
-		local product_id = tbl_qs.get(C_product_id, 0).tointeger();
+		local product_id = table_get(tbl_qs, C_product_id, 0).tointeger();
 		local order_id = tbl_qs.rawget("__id__", 0).tointeger();
 		if(product_id  && order_id)
 		{
 			local db = getOurbizDB();
 			local stmt;
-			local str =  tbl_qs.get(C_trigger, false);
+			local str =  table_get(tbl_qs, C_trigger, false);
 			//printf("%s\n", str.c_str());
 			if(str == C_quantity)
 			{
@@ -2191,7 +2191,7 @@ and ot.id = o.order_type_id]==], order_id));
 				if(stmt.next_row()){
 					str = stmt.col(0);
 					if(str != "B"){
-						local quanity = rec_map.get(C_quantity, 0);
+						local quanity = table_get(rec_map, C_quantity, 0);
 						if(quantity > 0)
 						{
 							out_buf.clear();
@@ -2263,7 +2263,7 @@ where o.id = %d and p.id = %d]==], order_id, product_id));
 	}
 	
 	function sql_get_one(tbl_qs) {
-		local id = tbl_qs.get(table_name, 0).tointeger();
+		local id = table_get(tbl_qs, table_name, 0).tointeger();
 		if(tbl_qs.rawget("line", false))
 		{
 			orders_lines_get_one(id);

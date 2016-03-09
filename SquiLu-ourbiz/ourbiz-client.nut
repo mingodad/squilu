@@ -168,7 +168,7 @@ class HTTPConnAuthBase extends HTTPConnBase
                 if(body && bodysize) send( body, bodysize );
                 while( outstanding() )
                 {
-                    if(globals.rawget("Fl", false)) Fl.check();//check_idle();
+                    if(table_rawget(globals, "Fl", false)) Fl.check();//check_idle();
                     pump();
 		    //os.sleep(10);
                 }
@@ -243,7 +243,7 @@ class HTTPConnBin extends HTTPConnAuthBase
 
 enum conn_type_e {e_conn_none, e_conn_http, e_conn_dbfile};
 
-constants.rawdelete("TimePeriode");
+table_rawdelete(constants, "TimePeriode");
 enum TimePeriode {is_years = 1, is_months = 2, is_weeks = 3, is_days = 4};
 
 function getStatisticsPeriodeType(speriode){
@@ -372,7 +372,7 @@ class AppServer
 
     function get_binary_data_from_url(get_url, rec, content_type, throwNotFound=true)
     {
-        rec.clear();
+        table_clear(rec);
 
         if(get_conn_type() == conn_type_e.e_conn_http)
         {
@@ -391,7 +391,7 @@ class AppServer
 
     function get_binary_data(rec, binary_type, table, aid, extra_url=0, throwNotFound=true)
     {
-        rec.clear();
+        table_clear(rec);
         if(get_conn_type() == conn_type_e.e_conn_http)
         {
             local url = format("/DB/GetBin?%s=%d", table, aid);
@@ -516,7 +516,7 @@ class AppServer
             {
                 throw(my_result.tostring());
             }
-            rec.clear();
+            table_clear(rec);
             //parse_jsonObject2map(rec, my_result.c_str());
             sle2map(my_result, rec);
         }
@@ -547,7 +547,7 @@ class AppServer
 
     function get_record(rec, table, qs, aid, extra_url=0)
     {
-        rec.clear();
+        table_clear(rec);
         //parse_jsonObject2map(rec, get_str_record(table, qs, aid, extra_url).c_str());
         local str_sls = get_str_record(table, qs, aid, extra_url);
         sle2map(str_sls, rec);
@@ -555,7 +555,7 @@ class AppServer
 
     function get_record_and_array(rec, data, table, qs, aid, extra_url=0)
     {
-        rec.clear();
+        table_clear(rec);
         data.clear();
         local jres = get_str_record(table, qs, aid, extra_url);
         //parse_jsonRecordAndArray(rec, data, jres.c_str());

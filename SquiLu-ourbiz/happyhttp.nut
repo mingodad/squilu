@@ -330,7 +330,7 @@ class HappyHttpResponse {
 	// retrieve a header (returns null if not present)
 	function getheader( name ){
 		local lname = name.tolower();
-		return m_Headers.get(lname, null);
+		return table_get(m_Headers, lname, null);
 	}
 	
 	function completed() { return m_State == Response_state.COMPLETE; }

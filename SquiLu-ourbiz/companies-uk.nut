@@ -38,7 +38,7 @@ local function getCompaniesUkDB(){
 
 local __stmtCache = {};
 local function getCachedStmt(stmt_key, sql_or_func){
-	local stmt = __stmtCache.get(stmt_key, false);
+	local stmt = table_get(__stmtCache, stmt_key, false);
 	if (!stmt){
 		//local db =checkCompaniesUkDB()
 		local sql;
@@ -617,7 +617,7 @@ local my_uri_handlers = {
 			"search_around_post_code", "search_sic_code", "sic_street", "page"];
 		if (isPost) {
 			local post_fields =  get_post_fields(request);
-			foreach(k in filed_names) data[k] <- post_fields.get(k, null);
+			foreach(k in filed_names) data[k] <- table_get(post_fields, k, null);
 		}
 		else if (query_string) {
 			foreach(k in filed_names) data[k] <-request.get_var(query_string, k);

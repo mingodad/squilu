@@ -496,7 +496,7 @@ class EvaLayoutManager
 	
 	function indxComponent (compName)
 	{
-		return componentArrayIdx.rawget(compName, -1);
+		return table_rawget(componentArrayIdx, compName, -1);
 	};
 }
 

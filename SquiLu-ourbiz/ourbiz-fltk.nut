@@ -2,12 +2,13 @@
  * Copyright (C) 2013 by Domingo Alvarez Duarte <mingodad@gmail.com>
  *
  * Licensed under GPLv3, see http://www.gnu.org/licenses/gpl.html.
- */
+*/
 
 /*
 Check if we are on windows os.
 */
-local WIN32 = os.getenv("WINDIR") != null
+
+local WIN32 = os.getenv("WINDIR") != null;
 socket.open();
 
 local app_cmd_parameters = {}
@@ -26,10 +27,12 @@ Command line parameters.
 -user	user to authenticate
 -password	password to authenticate
 */
-local appServer_host = app_cmd_parameters.get("-host", "localhost");
-local appServer_port = app_cmd_parameters.get("-port", 8855).tointeger() ;
-local appServer_user = app_cmd_parameters.get("-user", "mingote");
-local appServer_password = app_cmd_parameters.get("-password", "tr14pink");
+local appServer_host = table_get(app_cmd_parameters, "-host", "localhost");
+local appServer_port = table_get(app_cmd_parameters, "-port", 8855).tointeger() ;
+//local appServer_host = table_get(app_cmd_parameters, "-host", "ourbiz.dadbiz.es");
+//local appServer_port = table_get(app_cmd_parameters, "-port", 80).tointeger() ;
+local appServer_user = table_get(app_cmd_parameters, "-user", "mingote");
+local appServer_password = table_get(app_cmd_parameters, "-password", "tr14pink");
 
 dofile("ourbiz-client.nut");
 dofile("db-updater.nut");
@@ -395,7 +398,7 @@ class Base_Window extends Fl_Window {
 	}
 
 	function add_input_field_to_map(tbl, fldname, fld){
-		local tbl_map = _db_map.get(tbl, false);
+		local tbl_map = table_get(_db_map, tbl, false);
 		if(!tbl_map){
 			tbl_map = {};
 			_db_map[tbl] <- tbl_map;
@@ -403,7 +406,7 @@ class Base_Window extends Fl_Window {
 		tbl_map[fldname] <- fld.weakref();
 	}
 
-	function get_input_fields(dbname){ return _db_map.get(dbname, null);}
+	function get_input_fields(dbname){ return table_get(_db_map, dbname, null);}
 
 	function setup_grid(grid, pcall_this){
 		grid->callback_when(FLVEcb_ROW_CHANGED | FLVEcb_CLICKED | FLVEcb_ROW_HEADER_CLICKED);
@@ -413,7 +416,7 @@ class Base_Window extends Fl_Window {
 	function grid_cb(sender : Fl_Widget, udata : any){}
 
 	function getChildWindow(winName, WindowClass){
-		local win = _child_windows.get(winName, false);
+		local win = table_get(_child_windows, winName, false);
 		if(!win){
 			win = new WindowClass();
 			//win.label(winName);
@@ -573,11 +576,11 @@ class Widget_Fill_By_Map {
 	}
 
 	function getValue(fld_name){
-		return _map.get(fld_name, "");
+		return table_get(_map, fld_name, "");
 	}
 
 	function getValueInteger(fld_name){
-		local value = _map.get(fld_name, "");
+		local value = table_get(_map, fld_name, "");
 		return value.len() ? value.tointeger() : 0;
 	}
 
@@ -776,7 +779,7 @@ class Edit_Base_Window extends Base_Window {
 		fill_edit_form(dbUpdater()->edit_id == 0);
 	}
 	function fill_edit_form(asBlank=false){
-		if(asBlank) _record.clear();
+		if(asBlank) table_clear(_record);
 		local  wfq = Widget_Fill_By_Map(_record);
 		local input_fld_map = get_input_fields(dbUpdater()->get_fields_map_name());
 		wfq.set_widget_value_by_map(input_fld_map);
@@ -2439,7 +2442,7 @@ class MyEditProductWindow extends EditProductWindow {
 	{
 		base.do_edit_delayed(udata);
 		delayed_focus(db_products_sell_description);
-		local image_id = _record.get("image_id", false);
+		local image_id = table_get(_record, "image_id", false);
 		if(image_id && image_id.len()) button_show_db_image(btnImage, image_id.tointeger(), null, false, false);
 		else {
 			btnImage->hide();
@@ -2815,7 +2818,7 @@ class MyEditOrderWindow extends EditOrderWindow {
 	function do_edit_by_grid(line_id : integer, sender : Fl_Widget){
 		//print(pid, sender);
 		if(line_id) 	appServer.get_record(_line_record, "orders", 0, line_id, "&line_calculated=1");
-		else _line_record.clear();
+		else table_clear(_line_record);
 		fill_edit_lines_form(line_id == 0, line_id != 0, false);
 		_line_edit_id = line_id;
 		if(_line_record == 0) {
