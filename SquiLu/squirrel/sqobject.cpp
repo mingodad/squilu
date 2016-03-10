@@ -533,6 +533,33 @@ bool SQFunctionProto::Save(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 	return true;
 }
 
+static const SQChar *get_bitwise_op(int it){
+#define SCASE(x) case x: return _SC(#x); break;
+    switch(it){
+        SCASE(BW_AND)
+        SCASE(BW_OR)
+        SCASE(BW_XOR)
+        SCASE(BW_SHIFTL)
+        SCASE(BW_SHIFTR)
+        SCASE(BW_USHIFTR)
+        default: return _SC("?");
+    }
+#undef SCASE
+}
+
+static const SQChar *get_cmp_op(int it){
+#define SCASE(x) case x: return _SC(#x); break;
+    switch(it){
+        SCASE(CMP_G)
+        SCASE(CMP_GE)
+        SCASE(CMP_L)
+        SCASE(CMP_LE)
+        SCASE(CMP_3W)
+        default: return _SC("?");
+    }
+#undef SCASE
+}
+
 static const SQChar *get_array_append_type(int it){
 #define SCASE(x) case x: return _SC(#x); break;
     switch(it){
@@ -683,6 +710,10 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
                     SafeWriteFmt(v,write,up,"\t/* stk_at_arg0[%d] = stk_at_arg1[%d].get(stk_at_arg2(%d)) */",
                                  inst._arg0, inst._arg1, inst._arg2);
             break;
+            case _OP_SET:
+                    SafeWriteFmt(v,write,up,"\t/* stk_at_arg1[%d].set(stk_at_arg2(%d), stk_at_arg3(%d)) */",
+                                 inst._arg1, inst._arg2, inst._arg3);
+            break;
             case _OP_PREPCALLK:
             case _OP_PREPCALL:
                     SafeWriteFmt(v,write,up,"\t/* closure_at_stk[%d], stk[%d].get(%s[%d]) -> stk[%d] */",
@@ -717,9 +748,23 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
                         SafeWriteFmt(v,write,up,"\t\t/* stk_at_arg0[%d] = IsFalse(stk_at_arg1[%d]) */",
                                      inst._arg0, inst._arg1);
             break;
+            case _OP_AND:
+            case _OP_OR:
+                        SafeWriteFmt(v,write,up,"\t\t/* %s(stk_at_arg2[%d]) {stk_at_arg0[%d] = stk[%d]; goto[%d]} */",
+                                     _OP_OR ? "IsTrue" : "IsFalse",
+                                     inst._arg2, inst._arg0, inst._arg2, i + inst._arg1 + 1);
+            break;
             case _OP_JZ:
                         SafeWriteFmt(v,write,up,"\t\t/* IsFalse(STK(%d) (ci->_ip+=(%d) -> goto[%d]) */",
                                      inst._arg0, inst._arg1, i + inst._arg1 + 1);
+            break;
+            case _OP_JCMP:
+                        SafeWriteFmt(v,write,up,"\t\t/* IsFalse(STK(%d) %s STK(%d)) (ci->_ip+=(%d) -> goto[%d]) */",
+                                     inst._arg2, get_cmp_op(inst._arg3), inst._arg0, inst._arg1, i + inst._arg1 + 1);
+            break;
+            case _OP_JMP:
+                        SafeWriteFmt(v,write,up,"\t\t/* (ci->_ip+=(%d)) -> goto[%d] */",
+                                     inst._arg1, i + inst._arg1 + 1);
             break;
             case _OP_RETURN:
                         SafeWriteFmt(v,write,up,"\t/* _arg0(%d) != 255 ? stk[%d] : null */",
@@ -763,6 +808,10 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
             case _OP_MOD:
                         SafeWriteFmt(v,write,up,"\t\t/* stk[%d] = stk[%d] %s stk[%d] */",
                                      inst._arg0, inst._arg1, get_arith_op(inst.op), inst._arg2);
+            break;
+            case _OP_BITW:
+                        SafeWriteFmt(v,write,up,"\t\t/* stk[%d] = stk[%d] %s stk[%d] */",
+                                     inst._arg0, inst._arg1, get_bitwise_op(inst._arg3), inst._arg2);
             break;
             //default:
         }
