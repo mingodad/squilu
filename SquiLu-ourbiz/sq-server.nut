@@ -43,7 +43,10 @@ local mongoose_start_params = {
 	error_log_file = "sq-mongoose.log",
 	listening_ports = "8080",
 	document_root = "./s",
-	//num_threads = 5,
+	//num_threads = 50,
+	enable_keep_alive = "yes",
+	enable_tcp_nodelay = "yes",
+	request_timeout_ms = "30000",
 
 	//cgi_extensions = "lua",
 	//cgi_interpreter = "/usr/bin/lua",
