@@ -2901,6 +2901,15 @@ static SQRESULT _Fl_Text_Buffer_loadfile(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT _Fl_Text_Buffer_savefile(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SETUP_FL_TEXT_BUFFER(v);
+    SQ_GET_STRING(v, 2, file_name);
+    sq_pushinteger(v, self->savefile(file_name));
+	return 1;
+}
+
 static SQRESULT _Fl_Text_Buffer_input_file_was_transcoded(HSQUIRRELVM v)
 {
     SETUP_FL_TEXT_BUFFER(v);
@@ -2949,6 +2958,7 @@ static SQRegFunction fl_text_buffer_obj_funcs[]={
 	_DECL_FUNC(append,2,_SC("xs"),SQFalse),
 	_DECL_FUNC(length,-1,_SC("xii"),SQFalse),
 	_DECL_FUNC(loadfile,-2,_SC("xsi"),SQFalse),
+	_DECL_FUNC(savefile,2,_SC("xs"),SQFalse),
 	_DECL_FUNC(input_file_was_transcoded,1,_SC("x"),SQFalse),
 	_DECL_FUNC(search_forward,-3,_SC("xisi"),SQFalse),
 	_DECL_FUNC(select, 3,_SC("xii"),SQFalse),
