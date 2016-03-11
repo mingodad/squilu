@@ -4,124 +4,122 @@
 
 struct SQVM;
 
+#define SQ_KEYWORDS_LIST() \
+    ENUM_TK(IDENTIFIER)\
+    ENUM_TK(STRING_LITERAL)\
+    ENUM_TK(INTEGER)\
+    ENUM_TK(FLOAT)\
+    ENUM_TK(BASE)\
+    ENUM_TK(DELETE)\
+    ENUM_TK(EQ)\
+    ENUM_TK(EQ_IDENTITY)\
+    ENUM_TK(NE)\
+    ENUM_TK(NE_IDENTITY)\
+    ENUM_TK(LE)\
+    ENUM_TK(GE)\
+    ENUM_TK(SWITCH)\
+    ENUM_TK(ARROW)\
+    ENUM_TK(AND)\
+    ENUM_TK(OR)\
+    ENUM_TK(IF)\
+    ENUM_TK(ELSE)\
+    ENUM_TK(WHILE)\
+    ENUM_TK(BREAK)\
+    ENUM_TK(FOR)\
+    ENUM_TK(DO)\
+    ENUM_TK(NULL)\
+    ENUM_TK(FOREACH)\
+    ENUM_TK(IN)\
+    ENUM_TK(NEWSLOT)\
+    ENUM_TK(MODULO)\
+    ENUM_TK(LOCAL)\
+    ENUM_TK(CLONE)\
+    ENUM_TK(FUNCTION)\
+    ENUM_TK(RETURN)\
+    ENUM_TK(TYPEOF)\
+    ENUM_TK(UMINUS)\
+    ENUM_TK(PLUSEQ)\
+    ENUM_TK(MINUSEQ)\
+    ENUM_TK(CONTINUE)\
+    ENUM_TK(YIELD)\
+    ENUM_TK(TRY)\
+    ENUM_TK(CATCH)\
+    ENUM_TK(THROW)\
+    ENUM_TK(SHIFTL)\
+    ENUM_TK(SHIFTR)\
+    ENUM_TK(RESUME)\
+    ENUM_TK(DOUBLE_COLON)\
+    ENUM_TK(CASE)\
+    ENUM_TK(DEFAULT)\
+    ENUM_TK(THIS)\
+    ENUM_TK(PLUSPLUS)\
+    ENUM_TK(MINUSMINUS)\
+    ENUM_TK(3WAYSCMP)\
+    ENUM_TK(USHIFTR)\
+    ENUM_TK(CLASS)\
+    ENUM_TK(EXTENDS)\
+    ENUM_TK(CONSTRUCTOR)\
+    ENUM_TK(DESTRUCTOR)\
+    ENUM_TK(INSTANCEOF)\
+    ENUM_TK(VARPARAMS)\
+    ENUM_TK(TRUE)\
+    ENUM_TK(FALSE)\
+    ENUM_TK(MULEQ)\
+    ENUM_TK(DIVEQ)\
+    ENUM_TK(MODEQ)\
+    ENUM_TK(ATTR_OPEN)\
+    ENUM_TK(ATTR_CLOSE)\
+    ENUM_TK(STATIC)\
+    ENUM_TK(ENUM)\
+    ENUM_TK(CONST)\
+    ENUM_TK(__LINE__)\
+    ENUM_TK(__FUNCTION__)\
+    ENUM_TK(__FILE__)\
+    ENUM_TK(PRIVATE)\
+    ENUM_TK(PUBLIC)\
+    ENUM_TK(IGNORE)\
+    ENUM_TK(LOCAL_CHAR_T)\
+    ENUM_TK(LOCAL_WCHAR_T)\
+    ENUM_TK(LOCAL_BOOL_T)\
+    ENUM_TK(LOCAL_TABLE_T)\
+    ENUM_TK(LOCAL_ARRAY_T)\
+    ENUM_TK(LOCAL_INT8_T)\
+    ENUM_TK(LOCAL_INT16_T)\
+    ENUM_TK(LOCAL_INT32_T)\
+    ENUM_TK(LOCAL_INT64_T)\
+    ENUM_TK(LOCAL_INT_T)\
+    ENUM_TK(LOCAL_UINT8_T)\
+    ENUM_TK(LOCAL_UINT16_T)\
+    ENUM_TK(LOCAL_UINT32_T)\
+    ENUM_TK(LOCAL_UINT64_T)\
+    ENUM_TK(LOCAL_UINT_T)\
+    ENUM_TK(LOCAL_FLOAT_T)\
+    ENUM_TK(LOCAL_DOUBLE_T)\
+    ENUM_TK(LOCAL_LONG_DOUBLE_T)\
+    ENUM_TK(BIT_AND_EQ)\
+    ENUM_TK(BIT_OR_EQ)\
+    ENUM_TK(BIT_XOR_EQ)\
+    ENUM_TK(BIT_SHIFT_LEFT_EQ)\
+    ENUM_TK(BIT_SHIFT_RIGHT_EQ)\
+    ENUM_TK(PRAGMA)
+    //ENUM_TK(VARGC)
+    //ENUM_TK(VARGV)
+
+#define ENUM_TK(tk) TK_##tk,
 enum SQKeywordsEnum {
     TK_FIRST_ENUM_TOKEN = 258,
     /*
     the above token is only for internal purposes
     like calculate total enum_tokens = TK_LAST_ENUM_TOKEN - TK_FIRST_ENUM_TOKEN -1
     */
-    TK_IDENTIFIER,
-    TK_STRING_LITERAL,
-    TK_INTEGER,
-    TK_FLOAT,
-    TK_BASE,
-    TK_DELETE,
-    TK_EQ,
-    TK_EQ_IDENTITY,
-    TK_NE,
-    TK_NE_IDENTITY,
-    TK_LE,
-    TK_GE,
-    TK_SWITCH,
-    TK_ARROW,
-    TK_AND,
-    TK_OR,
-    TK_IF,
-    TK_ELSE,
-    TK_WHILE,
-    TK_BREAK,
-    TK_FOR,
-    TK_DO,
-    TK_NULL,
-    TK_FOREACH,
-    TK_IN,
-    TK_NEWSLOT,
-    TK_MODULO,
-    TK_LOCAL,
-    TK_CLONE,
-    TK_FUNCTION,
-    TK_RETURN,
-    TK_TYPEOF,
-    TK_UMINUS,
-    TK_PLUSEQ,
-    TK_MINUSEQ,
-    TK_CONTINUE,
-    TK_YIELD,
-    TK_TRY,
-    TK_CATCH,
-    TK_THROW,
-    TK_SHIFTL,
-    TK_SHIFTR,
-    TK_RESUME,
-    TK_DOUBLE_COLON,
-    TK_CASE,
-    TK_DEFAULT,
-    TK_THIS,
-    TK_PLUSPLUS,
-    TK_MINUSMINUS,
-    TK_3WAYSCMP,
-    TK_USHIFTR,
-    TK_CLASS,
-    TK_EXTENDS,
-    TK_CONSTRUCTOR,
-    TK_DESTRUCTOR,
-    TK_INSTANCEOF,
-    TK_VARPARAMS,
-    //TK_VARGC,
-    //TK_VARGV,
-    TK_TRUE,
-    TK_FALSE,
-    TK_MULEQ,
-    TK_DIVEQ,
-    TK_MODEQ,
-    TK_ATTR_OPEN,
-    TK_ATTR_CLOSE,
-    TK_STATIC,
-    TK_ENUM,
-    TK_CONST,
-    TK___LINE__,
-    TK___FUNCTION__,
-    TK___FILE__,
-    TK_PRIVATE,
-    TK_PUBLIC,
-
-    TK_IGNORE,
-
-    TK_LOCAL_CHAR_T,
-    TK_LOCAL_WCHAR_T,
-    TK_LOCAL_BOOL_T,
-
-    TK_LOCAL_TABLE_T,
-    TK_LOCAL_ARRAY_T,
-
-    TK_LOCAL_INT8_T,
-    TK_LOCAL_INT16_T,
-    TK_LOCAL_INT32_T,
-    TK_LOCAL_INT64_T,
-    TK_LOCAL_INT_T,
-    TK_LOCAL_UINT8_T,
-    TK_LOCAL_UINT16_T,
-    TK_LOCAL_UINT32_T,
-    TK_LOCAL_UINT64_T,
-    TK_LOCAL_UINT_T,
-
-    TK_LOCAL_FLOAT_T,
-    TK_LOCAL_DOUBLE_T,
-    TK_LOCAL_LONG_DOUBLE_T,
-
-    TK_BIT_AND_EQ,
-    TK_BIT_OR_EQ,
-    TK_BIT_XOR_EQ,
-    TK_BIT_SHIFT_LEFT_EQ,
-    TK_BIT_SHIFT_RIGHT_EQ,
-
-    TK_PRAGMA,
+    SQ_KEYWORDS_LIST()
     /*
     the next token is only for internal purposes
     like calculate total enum_tokens = TK_LAST_ENUM_TOKEN - TK_FIRST_ENUM_TOKEN -1
     */
     TK_LAST_ENUM_TOKEN
 };
+#undef ENUM_TK
 
 typedef void(*CompilerErrorFunc)(void *ud, const SQChar *s);
 bool Compile(SQVM *vm, SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, SQObjectPtr &out,

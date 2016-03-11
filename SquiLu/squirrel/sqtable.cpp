@@ -182,7 +182,7 @@ bool SQTable::NewSlot(const SQObjectPtr &key,const SQObjectPtr &val)
 
 SQInteger SQTable::Next(bool getweakrefs,const SQObjectPtr &refpos, SQObjectPtr &outkey, SQObjectPtr &outval)
 {
-	SQInteger idx = (SQInteger)TranslateIndex(refpos);
+	SQInteger idx = (SQInteger)SQTranslateIndex(refpos);
 	while (idx < _numofnodes) {
 		if(type(_nodes[idx].key) != OT_NULL) {
 			//first found

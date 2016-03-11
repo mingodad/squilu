@@ -11,21 +11,22 @@ typedef	unsigned char LexChar;
 struct SQLexer
 {
 	SQLexer();
-	~SQLexer();
-	void Init(SQSharedState *ss,SQLEXREADFUNC rg,SQUserPointer up,CompilerErrorFunc efunc,void *ed);
-	void ResetReader(SQLEXREADFUNC rg, SQUserPointer up, SQInteger line);
+	virtual ~SQLexer();
+	SQInteger Init(SQSharedState *ss,SQLEXREADFUNC rg,SQUserPointer up,CompilerErrorFunc efunc,void *ed);
+	SQInteger ResetReader(SQLEXREADFUNC rg, SQUserPointer up, SQInteger line);
 	SQTable * GetKeywords();
-	void Error(const SQChar *err, ...);
+	SQInteger Error(const SQChar *err, ...);
 	SQInteger Lex();
 	const SQChar *Tok2Str(SQInteger tok);
+	const SQChar *GetTokenName(int tk_code);
 private:
 	SQInteger GetIDType(const SQChar *s,SQInteger len);
 	SQInteger ReadString(SQInteger ndelim,bool verbatim);
 	SQInteger ReadNumber();
-	void LexBlockComment();
-	void LexLineComment();
+	SQInteger LexBlockComment();
+	SQInteger LexLineComment();
 	SQInteger ReadID();
-	void Next();
+	SQInteger Next();
 #ifdef SQUNICODE
 #if WCHAR_SIZE == 2
     SQInteger AddUTF16(SQUnsignedInteger ch);
@@ -52,6 +53,7 @@ public:
 	sqvector<SQChar> _longstr;
 	CompilerErrorFunc _errfunc;
 	void *_errtarget;
+	SQChar _lasterror[256];
 };
 
 #endif

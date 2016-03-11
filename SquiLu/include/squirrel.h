@@ -571,6 +571,15 @@ SQUIRREL_API void sq_getlaststackinfo(HSQUIRRELVM v);
 SQUIRREL_API void sq_insert_reg_funcs(HSQUIRRELVM sqvm, SQRegFunction *obj_funcs);
 SQUIRREL_API SQRESULT sq_getstr_and_size(HSQUIRRELVM v,SQInteger idx,const SQChar **c, SQInteger *size);
 
+struct SQStrBufState{
+	const SQChar *buf;
+	SQInteger ptr;
+	SQInteger size;
+};
+
+SQInteger sq_strbuf_lexfeed(SQUserPointer file);
+SQRESULT sqext_register_SQLexer (HSQUIRRELVM v);
+
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif

@@ -589,6 +589,7 @@ int main(int argc, char* argv[])
 
 #ifdef WITH_DAD_EXTRAS
 #ifndef SQUILU_ALONE
+    sqext_register_SQLexer(v);
 	sqext_register_gumbo(v);
 	sqext_register_base64(v);
 	sqext_register_Sq_Fpdf(v);

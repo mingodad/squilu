@@ -1820,15 +1820,9 @@ SQRESULT sq_next(HSQUIRRELVM v,SQInteger idx)
 	return SQ_ERROR;
 }
 
-struct BufState{
-	const SQChar *buf;
-	SQInteger ptr;
-	SQInteger size;
-};
-
-SQInteger buf_lexfeed(SQUserPointer file)
+SQInteger sq_strbuf_lexfeed(SQUserPointer file)
 {
-	BufState *buf=(BufState*)file;
+	SQStrBufState *buf=(SQStrBufState*)file;
 	if(buf->size<(buf->ptr+1))
 		return 0;
 	return buf->buf[buf->ptr++];
@@ -1836,11 +1830,11 @@ SQInteger buf_lexfeed(SQUserPointer file)
 
 SQRESULT sq_compilebuffer(HSQUIRRELVM v,const SQChar *s,SQInteger size,const SQChar *sourcename,
                           SQBool raiseerror, SQBool show_warnings) {
-	BufState buf;
+	SQStrBufState buf;
 	buf.buf = s;
 	buf.size = size;
 	buf.ptr = 0;
-	return sq_compile(v, buf_lexfeed, &buf, sourcename, raiseerror, show_warnings);
+	return sq_compile(v, sq_strbuf_lexfeed, &buf, sourcename, raiseerror, show_warnings);
 }
 
 void sq_move(HSQUIRRELVM dest,HSQUIRRELVM src,SQInteger idx)

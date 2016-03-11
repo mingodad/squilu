@@ -59,7 +59,7 @@ void SQString::Release()
 
 SQInteger SQString::Next(const SQObjectPtr &refpos, SQObjectPtr &outkey, SQObjectPtr &outval)
 {
-	SQInteger idx = (SQInteger)TranslateIndex(refpos);
+	SQInteger idx = (SQInteger)SQTranslateIndex(refpos);
 	while(idx < _len){
 		outkey = (SQInteger)idx;
 		outval = (SQInteger)((SQUnsignedInteger)_val[idx]);
@@ -70,7 +70,7 @@ SQInteger SQString::Next(const SQObjectPtr &refpos, SQObjectPtr &outkey, SQObjec
 	return -1;
 }
 
-SQUnsignedInteger TranslateIndex(const SQObjectPtr &idx)
+SQUnsignedInteger SQTranslateIndex(const SQObjectPtr &idx)
 {
 	switch(type(idx)){
 		case OT_NULL:
@@ -275,7 +275,7 @@ SQClosure::~SQClosure()
 }
 
 #define _CHECK_IO(exp)  { if(!exp)return false; }
-bool SafeWrite(HSQUIRRELVM v,SQWRITEFUNC write,SQUserPointer up,SQUserPointer dest,SQInteger size)
+static bool SafeWrite(HSQUIRRELVM v,SQWRITEFUNC write,SQUserPointer up,SQUserPointer dest,SQInteger size)
 {
 	if(write(up,dest,size) != size) {
 		v->Raise_Error(_SC("io error (write function failure)"));
@@ -284,7 +284,7 @@ bool SafeWrite(HSQUIRRELVM v,SQWRITEFUNC write,SQUserPointer up,SQUserPointer de
 	return true;
 }
 
-bool SafeWriteFmt(HSQUIRRELVM v,SQWRITEFUNC write,SQUserPointer up, const SQChar *fmt, ...)
+static bool SafeWriteFmt(HSQUIRRELVM v,SQWRITEFUNC write,SQUserPointer up, const SQChar *fmt, ...)
 {
     if(fmt){
         SQChar str[8192];
@@ -297,7 +297,7 @@ bool SafeWriteFmt(HSQUIRRELVM v,SQWRITEFUNC write,SQUserPointer up, const SQChar
 	return false;
 }
 
-bool SafeRead(HSQUIRRELVM v,SQWRITEFUNC read,SQUserPointer up,SQUserPointer dest,SQInteger size)
+static bool SafeRead(HSQUIRRELVM v,SQWRITEFUNC read,SQUserPointer up,SQUserPointer dest,SQInteger size)
 {
 	if(size && read(up,dest,size) != size) {
 		v->Raise_Error(_SC("io error, read function failure, the origin stream could be corrupted/trucated"));
@@ -306,12 +306,12 @@ bool SafeRead(HSQUIRRELVM v,SQWRITEFUNC read,SQUserPointer up,SQUserPointer dest
 	return true;
 }
 
-bool WriteTag(HSQUIRRELVM v,SQWRITEFUNC write,SQUserPointer up,SQUnsignedInteger32 tag)
+static bool WriteTag(HSQUIRRELVM v,SQWRITEFUNC write,SQUserPointer up,SQUnsignedInteger32 tag)
 {
 	return SafeWrite(v,write,up,&tag,sizeof(tag));
 }
 
-bool CheckTag(HSQUIRRELVM v,SQWRITEFUNC read,SQUserPointer up,SQUnsignedInteger32 tag)
+static bool CheckTag(HSQUIRRELVM v,SQWRITEFUNC read,SQUserPointer up,SQUnsignedInteger32 tag)
 {
 	SQUnsignedInteger32 t;
 	_CHECK_IO(SafeRead(v,read,up,&t,sizeof(t)));
@@ -322,7 +322,7 @@ bool CheckTag(HSQUIRRELVM v,SQWRITEFUNC read,SQUserPointer up,SQUnsignedInteger3
 	return true;
 }
 
-bool WriteObjectAsCode(HSQUIRRELVM v,SQUserPointer up,SQWRITEFUNC write,SQObjectPtr &o, bool withQuotes=true)
+static bool WriteObjectAsCode(HSQUIRRELVM v,SQUserPointer up,SQWRITEFUNC write,SQObjectPtr &o, bool withQuotes=true)
 {
 	SQChar buf[32];
 	SQInteger sz;
@@ -370,7 +370,7 @@ bool WriteObjectAsCode(HSQUIRRELVM v,SQUserPointer up,SQWRITEFUNC write,SQObject
 	return true;
 }
 
-bool WriteObject(HSQUIRRELVM v,SQUserPointer up,SQWRITEFUNC write,SQObjectPtr &o)
+static bool WriteObject(HSQUIRRELVM v,SQUserPointer up,SQWRITEFUNC write,SQObjectPtr &o)
 {
 	SQUnsignedInteger32 _type = (SQUnsignedInteger32)type(o);
 	_CHECK_IO(SafeWrite(v,write,up,&_type,sizeof(_type)));
@@ -393,7 +393,7 @@ bool WriteObject(HSQUIRRELVM v,SQUserPointer up,SQWRITEFUNC write,SQObjectPtr &o
 	return true;
 }
 
-bool ReadObject(HSQUIRRELVM v,SQUserPointer up,SQREADFUNC read,SQObjectPtr &o)
+static bool ReadObject(HSQUIRRELVM v,SQUserPointer up,SQREADFUNC read,SQObjectPtr &o)
 {
 	SQUnsignedInteger32 _type;
 	_CHECK_IO(SafeRead(v,read,up,&_type,sizeof(_type)));
@@ -533,7 +533,7 @@ bool SQFunctionProto::Save(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 	return true;
 }
 
-static const SQChar *get_bitwise_op(int it){
+const SQChar *SQGetBitwiseOpName(int it){
 #define SCASE(x) case x: return _SC(#x); break;
     switch(it){
         SCASE(BW_AND)
@@ -547,7 +547,7 @@ static const SQChar *get_bitwise_op(int it){
 #undef SCASE
 }
 
-static const SQChar *get_cmp_op(int it){
+const SQChar *SQGetCmpOpName(int it){
 #define SCASE(x) case x: return _SC(#x); break;
     switch(it){
         SCASE(CMP_G)
@@ -560,7 +560,7 @@ static const SQChar *get_cmp_op(int it){
 #undef SCASE
 }
 
-static const SQChar *get_array_append_type(int it){
+const SQChar *SQGetArrayAppendTypeName(int it){
 #define SCASE(x) case x: return _SC(#x); break;
     switch(it){
         SCASE(AAT_STACK)
@@ -573,7 +573,7 @@ static const SQChar *get_array_append_type(int it){
 #undef SCASE
 }
 
-static const SQChar *get_new_object_type(int it){
+const SQChar *SQGetNewObjTypeName(int it){
 #define SCASE(x) case x: return _SC(#x); break;
     switch(it){
         SCASE(NOT_TABLE)
@@ -584,7 +584,7 @@ static const SQChar *get_new_object_type(int it){
 #undef SCASE
 }
 
-static const SQChar *get_arith_op(int it){
+const SQChar *SQGetArithOpName(int it){
 #define SCASE(x, z) case x: return _SC(#z); break;
     switch(it){
         SCASE(_OP_ADD, +)
@@ -597,7 +597,7 @@ static const SQChar *get_arith_op(int it){
 #undef SCASE
 }
 
-static const SQChar *getOpName(int op_code) {
+const SQChar *SQGetOpName(int op_code) {
 	const SQChar *str_op;
 
     switch(op_code){
@@ -665,7 +665,7 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 	SafeWriteFmt(v,write,up,"\tlineinfos = [\n\t\t//[op, line],\n");
 	for(i=0;i<nlineinfos;i++){
 	    SQLineInfo &li=_lineinfos[i];
-		SafeWriteFmt(v,write,up,"\t\t/*%d*/ [%d, %d], /*%s*/\n", i, li._op, li._line, getOpName(li._op));
+		SafeWriteFmt(v,write,up,"\t\t/*%d*/ [%d, %d], /*%s*/\n", i, li._op, li._line, SQGetOpName(li._op));
 	}
     SafeWriteFmt(v,write,up,"\t],\n");
 
@@ -680,7 +680,7 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 	const SQChar *str_op;
 	for(i=0;i<ninstructions;i++){
 	    SQInstruction &inst = _instructions[i];
-        str_op = getOpName(inst.op);
+        str_op = SQGetOpName(inst.op);
 		SafeWriteFmt(v,write,up,"\t\t/*%d*/ [\"%s\", %d, %d, %d, %d, %d],", i, str_op, inst.op, inst._arg0, inst._arg1, inst._arg2, inst._arg3);
 
         switch(inst.op){
@@ -760,7 +760,7 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
             break;
             case _OP_JCMP:
                         SafeWriteFmt(v,write,up,"\t\t/* IsFalse(STK(%d) %s STK(%d)) (ci->_ip+=(%d) -> goto[%d]) */",
-                                     inst._arg2, get_cmp_op(inst._arg3), inst._arg0, inst._arg1, i + inst._arg1 + 1);
+                                     inst._arg2, SQGetCmpOpName(inst._arg3), inst._arg0, inst._arg1, i + inst._arg1 + 1);
             break;
             case _OP_JMP:
                         SafeWriteFmt(v,write,up,"\t\t/* (ci->_ip+=(%d)) -> goto[%d] */",
@@ -772,11 +772,11 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
             break;
             case _OP_NEWOBJ:
                         SafeWriteFmt(v,write,up,"\t/* stk[%d], len(%d), %s(%d) */",
-                                     inst._arg0, inst._arg1, get_new_object_type(inst._arg3), inst._arg3);
+                                     inst._arg0, inst._arg1, SQGetNewObjTypeName(inst._arg3), inst._arg3);
             break;
             case _OP_APPENDARRAY:
                         SafeWriteFmt(v,write,up,"\t/* array_at_stk(%d), %s(%d), type(%d) */",
-                                     inst._arg0, get_array_append_type(inst._arg2), inst._arg1, inst._arg2);
+                                     inst._arg0, SQGetArrayAppendTypeName(inst._arg2), inst._arg1, inst._arg2);
             break;
             case _OP_NEWSLOT:
             case _OP_NEWSLOTA:
@@ -807,7 +807,7 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
             case _OP_MUL:
             case _OP_MOD:
                         SafeWriteFmt(v,write,up,"\t\t/* stk[%d] = stk[%d] %s stk[%d] */",
-                                     inst._arg0, inst._arg1, get_arith_op(inst.op), inst._arg2);
+                                     inst._arg0, inst._arg1, SQGetArithOpName(inst.op), inst._arg2);
             break;
             case _OP_INCL:
                         SafeWriteFmt(v,write,up,"\t\t/* stk[%d] = stk[%d] + sarg3(%d) */",
@@ -819,7 +819,7 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
             break;
             case _OP_BITW:
                         SafeWriteFmt(v,write,up,"\t\t/* stk[%d] = stk[%d] %s stk[%d] */",
-                                     inst._arg0, inst._arg1, get_bitwise_op(inst._arg3), inst._arg2);
+                                     inst._arg0, inst._arg1, SQGetBitwiseOpName(inst._arg3), inst._arg2);
             break;
             //default:
         }

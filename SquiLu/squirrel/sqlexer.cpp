@@ -13,7 +13,7 @@
 #define CUR_CHAR (_currdata)
 #define RETURN_TOKEN(t) { _prevtoken = _curtoken; _curtoken = t; return t;}
 #define IS_EOB() (CUR_CHAR <= SQUIRREL_EOB)
-#define NEXT() {Next();_currentcolumn++;}
+#define NEXT() {SQInteger rc = Next(); if(rc < 0) return rc; _currentcolumn++;}
 #define INIT_TEMP_STRING() { _longstr.resize(0);}
 #define APPEND_CHAR(c) { _longstr.push_back(c);}
 #define TERMINATE_BUFFER() {_longstr.push_back(_SC('\0'));}
@@ -25,17 +25,19 @@ SQLexer::~SQLexer()
 	_keywords->Release();
 }
 
-void SQLexer::Init(SQSharedState *ss, SQLEXREADFUNC rg, SQUserPointer up,CompilerErrorFunc efunc,void *ed)
+SQInteger SQLexer::Init(SQSharedState *ss, SQLEXREADFUNC rg, SQUserPointer up,CompilerErrorFunc efunc,void *ed)
 {
+    _lasterror[0] = '\0';
+    _svalue = nullptr;
 	_errfunc = efunc;
 	_errtarget = ed;
 	_sharedstate = ss;
 	if(_keywords) _keywords->Release();
     _keywords = GetKeywords();
-	ResetReader(rg, up, 1);
+	return ResetReader(rg, up, 1);
 }
 
-void SQLexer::ResetReader(SQLEXREADFUNC rg, SQUserPointer up, SQInteger line)
+SQInteger SQLexer::ResetReader(SQLEXREADFUNC rg, SQUserPointer up, SQInteger line)
 {
 	_readf = rg;
 	_up = up;
@@ -43,7 +45,7 @@ void SQLexer::ResetReader(SQLEXREADFUNC rg, SQUserPointer up, SQInteger line)
 	_currentcolumn = 0;
 	_prevtoken = -1;
 	_reached_eof = SQFalse;
-	Next();
+	return Next();
 }
 
 SQTable * SQLexer::GetKeywords()
@@ -123,26 +125,27 @@ SQTable * SQLexer::GetKeywords()
 	return tbl;
 }
 
-void SQLexer::Error(const SQChar *fmt, ...)
+SQInteger SQLexer::Error(const SQChar *fmt, ...)
 {
-    static SQChar temp[256];
     va_list vl;
     va_start(vl, fmt);
-    scvsprintf(temp, sizeof(temp), fmt, vl);
+    scvsprintf(_lasterror, sizeof(_lasterror), fmt, vl);
     va_end(vl);
-	_errfunc(_errtarget,temp);
+	if(_errfunc) _errfunc(_errtarget,_lasterror);
+	return -1;
 }
 
-void SQLexer::Next()
+SQInteger SQLexer::Next()
 {
 	SQInteger t = _readf(_up);
-	if(t > MAX_CHAR) Error(_SC("Invalid character"));
+	if(t > MAX_CHAR) return Error(_SC("Invalid character"));
 	if(t != 0) {
 		_currdata = (LexChar)t;
-		return;
+		return 0;
 	}
 	_currdata = SQUIRREL_EOB;
 	_reached_eof = SQTrue;
+	return 0;
 }
 
 const SQChar *SQLexer::Tok2Str(SQInteger tok)
@@ -157,7 +160,21 @@ const SQChar *SQLexer::Tok2Str(SQInteger tok)
 	return NULL;
 }
 
-void SQLexer::LexBlockComment()
+const SQChar *SQLexer::GetTokenName(int tk_code) {
+	const SQChar *str_tk;
+
+    switch(tk_code){
+#define ENUM_TK(a) case TK_##a: str_tk = _SC("TK_" #a); break;
+        SQ_KEYWORDS_LIST()
+#undef ENUM_TK
+        default:
+            str_tk = _SC("???");
+    }
+    return str_tk;
+}
+
+
+SQInteger SQLexer::LexBlockComment()
 {
 /*
     if(CUR_CHAR == _SC('*'))
@@ -173,14 +190,16 @@ void SQLexer::LexBlockComment()
 		switch(CUR_CHAR) {
 			case _SC('*'): { NEXT(); if(CUR_CHAR == _SC('/')) { done = true; NEXT(); }}; continue;
 			case _SC('\n'): _currentline++; NEXT(); continue;
-			case SQUIRREL_EOB: Error(_SC("missing \"*/\" in comment"));
+			case SQUIRREL_EOB: return Error(_SC("missing \"*/\" in comment"));
 			default: NEXT();
 		}
 	}
+	return 0;
 }
-void SQLexer::LexLineComment()
+SQInteger SQLexer::LexLineComment()
 {
 	do { NEXT(); } while (CUR_CHAR != _SC('\n') && (!IS_EOB()));
+	return 0;
 }
 
 SQInteger SQLexer::Lex()
@@ -200,7 +219,7 @@ SQInteger SQLexer::Lex()
 		    NEXT();
 		    if(CUR_CHAR == '!') //shell shebang
             {
-                LexLineComment();
+                if(LexLineComment()) return -1;
                 continue;
             }
             RETURN_TOKEN(TK_PRAGMA);
@@ -210,10 +229,10 @@ SQInteger SQLexer::Lex()
 			switch(CUR_CHAR){
 			case _SC('*'):
 				NEXT();
-				LexBlockComment();
+				if(LexBlockComment()) return -1;
 				continue;
 			case _SC('/'):
-				LexLineComment();
+				if(LexLineComment()) return -1;
 				continue;
 			case _SC('='):
 				NEXT();
@@ -279,7 +298,7 @@ SQInteger SQLexer::Lex()
 			if((stype=ReadString('"',true))!=-1) {
 				RETURN_TOKEN(stype);
 			}
-			Error(_SC("error parsing the string"));
+			return Error(_SC("error parsing the string"));
 					   }
 		case _SC('"'):
 		case _SC('\''): {
@@ -287,7 +306,7 @@ SQInteger SQLexer::Lex()
 			if((stype=ReadString(CUR_CHAR,false))!=-1){
 				RETURN_TOKEN(stype);
 			}
-			Error(_SC("error parsing the string"));
+			return Error(_SC("error parsing the string"));
 			}
 		case _SC('{'): case _SC('}'): case _SC('('): case _SC(')'): case _SC('['): case _SC(']'):
 		case _SC(';'): case _SC(','): case _SC('?'): case _SC('~'):
@@ -300,7 +319,7 @@ SQInteger SQLexer::Lex()
                     if((stype=ReadString(ret,true))!=-1){
                         RETURN_TOKEN(stype);
                     }
-                    Error(_SC("error parsing the string"));
+                    return Error(_SC("error parsing the string"));
                 }
                 else RETURN_TOKEN(ret);
             }
@@ -308,7 +327,7 @@ SQInteger SQLexer::Lex()
 			NEXT();
 			if (CUR_CHAR != _SC('.')){ RETURN_TOKEN('.') }
 			NEXT();
-			if (CUR_CHAR != _SC('.')){ Error(_SC("invalid token '..'")); }
+			if (CUR_CHAR != _SC('.')){ return Error(_SC("invalid token '..'")); }
 			NEXT();
 			RETURN_TOKEN(TK_VARPARAMS);
 		case _SC('^'):
@@ -353,15 +372,17 @@ SQInteger SQLexer::Lex()
 		default:{
 				if (scisdigit(CUR_CHAR)) {
 					SQInteger ret = ReadNumber();
+					if(ret < 0) return -1;
 					RETURN_TOKEN(ret);
 				}
 				else if (scisalpha(CUR_CHAR) || CUR_CHAR == _SC('_')) {
 					SQInteger t = ReadID();
+					if(t < 0) return -1;
 					RETURN_TOKEN(t);
 				}
 				else {
 					SQInteger c = CUR_CHAR;
-					if (sciscntrl((int)c)) Error(_SC("unexpected character(control)"));
+					if (sciscntrl((int)c)) return Error(_SC("unexpected character(control)"));
 					NEXT();
 					RETURN_TOKEN(c);
 				}
@@ -430,7 +451,7 @@ SQInteger SQLexer::AddUTF8(SQUnsignedInteger ch)
 SQInteger SQLexer::ProcessStringHexEscape(SQChar *dest, SQInteger maxdigits)
 {
     NEXT();
-    if (!isxdigit(CUR_CHAR)) Error(_SC("hexadecimal number expected"));
+    if (!isxdigit(CUR_CHAR)) return Error(_SC("hexadecimal number expected"));
     SQInteger n = 0;
     while (isxdigit(CUR_CHAR) && n < maxdigits) {
         dest[n] = CUR_CHAR;
@@ -466,8 +487,7 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 	    }
 	    if(CUR_CHAR != cdelim1){
 	        //it's not a lua literal delimiter
-	        Error(_SC("expect '%c' on literal delimiter"), cdelim1);
-	        return -1;
+	        return Error(_SC("expect '%c' on literal delimiter"), cdelim1);
 	    }
 	    ndelim = cdelim2;
 	}
@@ -482,8 +502,7 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
             ++_currentline;
             if(IS_EOB())
             {
-                Error(_SC("unfinished string"));
-                return -1;
+                return Error(_SC("unfinished string"));
             }
         }
 	}
@@ -492,10 +511,9 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
             SQInteger x = CUR_CHAR;
 			switch(x) {
 			case SQUIRREL_EOB:
-				Error(_SC("unfinished string"));
-				return -1;
+				return Error(_SC("unfinished string"));
 			case _SC('\n'):
-				if(!verbatim) Error(_SC("newline in a constant"));
+				if(!verbatim) return Error(_SC("newline in a constant"));
 				APPEND_CHAR(CUR_CHAR); NEXT();
 				_currentline++;
 				break;
@@ -509,7 +527,7 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
                     case _SC('x'):  {
                         const SQInteger maxdigits = sizeof(SQChar) * 2;
                         SQChar temp[maxdigits + 1];
-                        ProcessStringHexEscape(temp, maxdigits);
+                        if(ProcessStringHexEscape(temp, maxdigits) < 0) return -1;
                         SQChar *stemp;
                         APPEND_CHAR((SQChar)scstrtoul(temp, &stemp, 16));
                     }
@@ -518,7 +536,7 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
                     case _SC('u'):  {
                         const SQInteger maxdigits = x == 'u' ? 4 : 8;
                         SQChar temp[8 + 1];
-                        ProcessStringHexEscape(temp, maxdigits);
+                        if(ProcessStringHexEscape(temp, maxdigits) < 0) return -1;
                         SQChar *stemp;
 #ifdef SQUNICODE
 #if WCHAR_SIZE == 2
@@ -543,7 +561,7 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 					case _SC('"'): APPEND_CHAR(_SC('"')); NEXT(); break;
 					case _SC('\''): APPEND_CHAR(_SC('\'')); NEXT(); break;
 					default:
-						Error(_SC("unrecognised escaper char"));
+						return Error(_SC("unrecognised escaper char"));
 					break;
 					}
 				}
@@ -565,8 +583,8 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
                         --end_equals;
                         NEXT();
                     }
-                    if(end_equals) Error(_SC("expect same number of '=' on literal delimiter"));
-                    if(CUR_CHAR != cdelim2) Error(_SC("expect '%c' to close literal delimiter"), cdelim2);
+                    if(end_equals) return Error(_SC("expect same number of '=' on literal delimiter"));
+                    if(CUR_CHAR != cdelim2) return Error(_SC("expect '%c' to close literal delimiter"), cdelim2);
                     NEXT();
                     break;
                 }
@@ -589,8 +607,8 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 	TERMINATE_BUFFER();
 	SQInteger len = _longstr.size()-1;
 	if(ndelim == _SC('\'')) {
-		if(len == 0) Error(_SC("empty constant"));
-		if(len > 1) Error(_SC("constant too long"));
+		if(len == 0) return Error(_SC("empty constant"));
+		if(len > 1) return Error(_SC("constant too long"));
 		_nvalue = _longstr[0];
 		return TK_INTEGER;
 	}
@@ -653,7 +671,7 @@ SQInteger SQLexer::ReadNumber()
 				APPEND_CHAR(CUR_CHAR);
 				NEXT();
 			}
-			if(scisdigit(CUR_CHAR)) Error(_SC("invalid octal number"));
+			if(scisdigit(CUR_CHAR)) return Error(_SC("invalid octal number"));
 		}
 		else {
 			NEXT();
@@ -662,7 +680,7 @@ SQInteger SQLexer::ReadNumber()
 				APPEND_CHAR(CUR_CHAR);
 				NEXT();
 			}
-			if(_longstr.size() > MAX_HEX_DIGITS) Error(_SC("too many digits for an Hex number"));
+			if(_longstr.size() > MAX_HEX_DIGITS) return Error(_SC("too many digits for an Hex number"));
 		}
 	}
 	else {
@@ -670,7 +688,7 @@ SQInteger SQLexer::ReadNumber()
 		while (CUR_CHAR == _SC('.') || scisdigit(CUR_CHAR) || isexponent(CUR_CHAR)) {
             if(CUR_CHAR == _SC('.') || isexponent(CUR_CHAR)) type = TFLOAT;
 			if(isexponent(CUR_CHAR)) {
-				if(type != TFLOAT) Error(_SC("invalid numeric format"));
+				if(type != TFLOAT) return Error(_SC("invalid numeric format"));
 				type = TSCIENTIFIC;
 				APPEND_CHAR(CUR_CHAR);
 				NEXT();
@@ -678,7 +696,7 @@ SQInteger SQLexer::ReadNumber()
 					APPEND_CHAR(CUR_CHAR);
 					NEXT();
 				}
-				if(!scisdigit(CUR_CHAR)) Error(_SC("exponent expected"));
+				if(!scisdigit(CUR_CHAR)) return Error(_SC("exponent expected"));
 			}
 
 			APPEND_CHAR(CUR_CHAR);
@@ -706,7 +724,7 @@ SQInteger SQLexer::ReadNumber()
 	case THEX:
 	case TOCTAL:
 	    //to allow 64 bits integers comment bellow
-        //if(itmp > INT_MAX) Error(_SC("integer overflow %ulld %d"));
+        //if(itmp > INT_MAX) return Error(_SC("integer overflow %ulld %d"));
         _nvalue = (SQInteger) itmp;
 		return TK_INTEGER;
 	}
