@@ -809,6 +809,14 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
                         SafeWriteFmt(v,write,up,"\t\t/* stk[%d] = stk[%d] %s stk[%d] */",
                                      inst._arg0, inst._arg1, get_arith_op(inst.op), inst._arg2);
             break;
+            case _OP_INCL:
+                        SafeWriteFmt(v,write,up,"\t\t/* stk[%d] = stk[%d] + sarg3(%d) */",
+                                     inst._arg1, inst._arg1, ((char)inst._arg3));
+            break;
+            case _OP_PINCL:
+                        SafeWriteFmt(v,write,up,"\t\t/* target = stk(%d); stk[%d] = stk[%d] + sarg3(%d) */",
+                                     inst._arg1, inst._arg1, inst._arg1, ((char)inst._arg3));
+            break;
             case _OP_BITW:
                         SafeWriteFmt(v,write,up,"\t\t/* stk[%d] = stk[%d] %s stk[%d] */",
                                      inst._arg0, inst._arg1, get_bitwise_op(inst._arg3), inst._arg2);
