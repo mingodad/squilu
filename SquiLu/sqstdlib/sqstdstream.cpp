@@ -20,38 +20,47 @@ static const SQChar SQSTD_STREAM_TYPE_TAG[] = _SC("std_stream");
 
 SQInteger _stream_read_line(HSQUIRRELVM v) {
 	SETUP_STREAM(v);
-    SQChar c = _SC('\0'), nl = _SC('\n');
-    int m = 0, len = sizeof(SQChar);
-    SQInteger start_pos = self->Tell();
-    SQInteger read_size = 0, size;
+    const SQChar nl = _SC('\n');
+    const SQChar rc = _SC('\r');
+    SQInteger size, read_size;
+    bool new_line_found = false;
     //optional expected line size
     if(sq_gettop(v) > 1) sq_getinteger(v,2,&size);
     else size = 2048;
-    SQChar *buf = sq_getscratchpad(v, size);
-    while(!self->EOS() && c != nl){
-        read_size = self->Read(buf, size);
-        if(read_size == 0) break;
-        for(int i=0; i<read_size; ++i){
-            if(buf[i] == nl){
-                read_size = i+1;
-                c = nl;
-                goto done;
+    SQBlob line_buf(0, size);
+    while(!self->EOS()){
+        char *buf = (SQChar*)line_buf.GetBuf();
+        read_size = self->Gets(buf + line_buf.Len(), size);
+        if(!read_size) //end of file
+        {
+            break;
+        }
+        if(buf[read_size-1] == nl) //complete line found
+        {
+            //remove '\r' and/or '\n'
+            if( (read_size > 1) && (buf[read_size-2] == rc))
+            {
+                read_size -= 2;
             }
+            else
+            {
+                read_size -= 1;
+            }
+            line_buf.SetLen(read_size);
+            new_line_found = true;
+            break;
         }
-        if(read_size == size) ++m; //end of file read_size < size ?
+        line_buf.SetLen(read_size);
+        line_buf.GrowBufOf(size);
     }
-done:
-    read_size += (m*size);
-    if(read_size > 0) {
-        if(read_size > size){
-            buf = sq_getscratchpad(v, read_size);
-            self->Seek(start_pos, SQ_SEEK_SET);
-            self->Read(buf, read_size);
-        }
-        else self->Seek(start_pos + read_size, SQ_SEEK_SET);
-        sq_pushstring(v, buf, c == _SC('\n') ? read_size-len : read_size);
+    if(line_buf.Len() > 0) {
+        sq_pushstring(v, (const SQChar*)line_buf.GetBuf(), line_buf.Len());
     }
-    else sq_pushnull(v);
+    else if(new_line_found) //empty line
+    {
+        sq_pushstring(v, "", 0);
+    }
+    else sq_pushnull(v); //end of file
     return 1;
 }
 
@@ -71,6 +80,25 @@ SQInteger _stream_read(HSQUIRRELVM v)
 	if(res <= 0)
 		return sq_throwerror(v,_SC("no data left to read"));
 	sq_pushstring(v,data,res);
+	return 1;
+}
+
+SQInteger _stream_gets(HSQUIRRELVM v)
+{
+	SETUP_STREAM(v);
+	SQChar *data;
+	SQInteger size, read_size;
+	sq_getinteger(v,2,&size);
+	/* DAD come back here
+	if(self->GetHandle() != stdin && size > self->Len()) {
+		size = self->Len();
+	}
+	*/
+	data = sq_getscratchpad(v,size);
+	read_size = self->Gets(data,size);
+	if(!read_size)
+		return sq_throwerror(v,_SC("no data left to read"));
+	sq_pushstring(v,data,read_size);
 	return 1;
 }
 
@@ -358,6 +386,7 @@ SQInteger _stream_eos(HSQUIRRELVM v)
 static SQRegFunction _stream_methods[] = {
 	_DECL_STREAM_FUNC(read_line,-1,_SC("xi")),
 	_DECL_STREAM_FUNC(read,2,_SC("xn")),
+	_DECL_STREAM_FUNC(gets,2,_SC("xn")),
 	_DECL_STREAM_FUNC(readblob,2,_SC("xn")),
 	_DECL_STREAM_FUNC(readn,2,_SC("xn")),
 	_DECL_STREAM_FUNC(write_str,-2,_SC("xsii")),

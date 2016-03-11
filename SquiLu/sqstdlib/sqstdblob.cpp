@@ -57,6 +57,23 @@ SQInteger SQBlob::Read(void *buffer,SQInteger size) {
     _ptr += n;
     return n;
 }
+SQInteger SQBlob::Gets(char *buffer,SQInteger size) {
+    SQInteger n = size;
+    if(!CanAdvance(size)) {
+        if((_size - _ptr) > 0)
+            n = _size - _ptr;
+        else return 0;
+    }
+    SQInteger i=0;
+    for(; i < n; ++i)
+    {
+        char c = _buf[_ptr+i];
+        buffer[i] = c;
+        if(c == '\n') break;
+    }
+    _ptr += i;
+    return i;
+}
 bool SQBlob::Resize(SQInteger n) {
     if(!_owns) return false;
     if(n != _allocated) {

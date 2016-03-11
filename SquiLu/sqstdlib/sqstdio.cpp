@@ -1,6 +1,7 @@
 /* see copyright notice in squirrel.h */
 #include <new>
 #include <stdio.h>
+#include <string.h>
 #include <squirrel.h>
 #include <sqstdio.h>
 #include "sqstdstream.h"
@@ -17,6 +18,11 @@ SQFILE sqstd_fopen(const SQChar *filename ,const SQChar *mode)
 SQInteger sqstd_fread(void* buffer, SQInteger size, SQInteger count, SQFILE file)
 {
 	return (SQInteger)fread(buffer,size,count,(FILE *)file);
+}
+
+SQChar *sqstd_fgets(SQChar* buffer, SQInteger count, SQFILE file)
+{
+	return (SQChar*)fgets(buffer,count,(FILE *)file);
 }
 
 SQInteger sqstd_fwrite(const SQUserPointer buffer, SQInteger size, SQInteger count, SQFILE file)
@@ -78,6 +84,10 @@ struct SQFile : public SQStream {
 	}
 	SQInteger Read(void *buffer,SQInteger size) {
 		return sqstd_fread(buffer,1,size,_handle);
+	}
+	SQInteger Gets(char *buffer,SQInteger size) {
+	    SQChar *res = sqstd_fgets(buffer,size,_handle);
+		return res ? scstrlen(res) : 0;
 	}
 	SQInteger Write(const void *buffer,SQInteger size) {
 		return sqstd_fwrite((const SQUserPointer)buffer,1,size,_handle);

@@ -13,6 +13,7 @@ struct SQBlob : public SQStream
 	SQInteger WriteZstr(const char *zStr);
 	SQInteger WriteChar(const char c);
 	SQInteger Read(void *buffer,SQInteger size);
+	SQInteger Gets(char *buffer,SQInteger size);
 	bool Resize(SQInteger n);
 	bool GrowBufOf(SQInteger n);
 	bool CanAdvance(SQInteger n) {
