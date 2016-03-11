@@ -377,7 +377,7 @@ public:
             //Warning(_SC("%s:%d:%d warning pragma include %s\n"),
             //        _stringval(_sourcename), line, column, _stringval(id));
 
-            FILE *fp = fopen(_stringval(id), "r");
+            FILE *fp = scfopen(_stringval(id), "r");
             if(fp != NULL)
             {
                 //increment nested count
