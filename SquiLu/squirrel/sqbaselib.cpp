@@ -550,6 +550,7 @@ static SQRegFunction base_funcs[]={
 	{_SC("check_delayed_release_hooks"),base_check_delayed_release_hooks,-1, _SC(".b")},
 	{_SC("call_delayed_release_hooks"),base_call_delayed_release_hooks,1, NULL},
 #endif
+	{_SC("str_from_chars"),base_str_from_chars,-1, _SC(".i")},
 	{_SC("try_tostring"),base_try_tostring,-2, _SC("..s")},
 	{_SC("table_create"),bf_table_create,-1, _SC(".i")},
 	{_SC("table_new"),bf_table_create,-1, _SC(".i")},
