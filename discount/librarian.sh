@@ -7,13 +7,13 @@ LIBRARY=$1; shift
 VERSION=$1; shift
 
 case "$ACTION" in
-make)   /mingw/bin/ar crv $LIBRARY.a "$@"
-	/mingw/bin/ranlib $LIBRARY.a
+make)   /usr/bin/ar crv $LIBRARY.a "$@"
+	/usr/bin/ranlib $LIBRARY.a
 	rm -f $LIBRARY
-	/bin/ln $LIBRARY.a $LIBRARY
+	/bin/ln -s $LIBRARY.a $LIBRARY
 	;;
 files)  echo "${LIBRARY}.a"
 	;;
-install)/bin/install -m 644 ${LIBRARY}.a $1
+install)/usr/bin/install -m 644 ${LIBRARY}.a $1
 	;;
 esac

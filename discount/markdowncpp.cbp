@@ -23,11 +23,9 @@
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-DTEST_MARKDOWN_LIBRARY=1" />
-					<Add directory="../discount-2.1.2" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add directory="../discount-2.1.2" />
 				</Linker>
 			</Target>
 		</Build>
@@ -36,7 +34,8 @@
 			<Add option="-fexceptions" />
 		</Compiler>
 		<Linker>
-			<Add library="discount" />
+			<Add library="libdiscount.a" />
+			<Add directory="../discount" />
 		</Linker>
 		<Unit filename="markdowncxx.cpp" />
 		<Unit filename="markdowncxx.h" />

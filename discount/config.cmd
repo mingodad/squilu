@@ -1,2 +1,2 @@
 #! /bin/sh
-CC='gcc'  ./configure.sh 
+  ./configure.sh 

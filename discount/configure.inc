@@ -169,7 +169,7 @@ AC_CHECK_HEADERS () {
     for hdr in $*; do
 	echo "#include <$hdr>" >> ngc$$.c
     done
-    echo "main() { }" >> ngc$$.c
+    echo "int main() { }" >> ngc$$.c
 
     LOGN "looking for header $hdr"
 
@@ -193,8 +193,8 @@ AC_CHECK_FUNCS () {
     B=`echo "$1" | sed -e 's/(.*)//'`
 
     case "$B" in
-    "$1") F="$1()" ;;
-    *)    F="$1" ;;
+    "$1") F="$1()"; need_proto=1 ;;
+    *)    F="$1"  ; unset need_proto ;;
     esac
 
     shift
@@ -205,8 +205,12 @@ AC_CHECK_FUNCS () {
 	shift
     done
 
+    if [ "$need_proto" ]; then
+	echo "void $F;" >> ngc$$.c
+    fi
+
     cat >> ngc$$.c << EOF
-main()
+int main()
 {
 
     $F;
@@ -247,7 +251,7 @@ AC_CHECK_STRUCT () {
     done
 
     cat >> ngc$$.c << EOF
-main()
+int main()
 {
     struct $struct foo;
 }
@@ -282,7 +286,7 @@ AC_CHECK_TYPE () {
     done
 
     cat >> ngc$$.c << EOF
-main()
+int main()
 {
     $type foo;
 }
@@ -319,7 +323,7 @@ AC_CHECK_FIELD () {
     done
 
     cat >> ngc$$.c << EOF
-main()
+int main()
 {
     struct $struct foo;
 
@@ -348,7 +352,7 @@ AC_PROG_CC () {
 
     cat > ngc$$.c << \EOF
 #include <stdio.h>
-main()
+int main()
 {
     puts("hello, sailor");
 }
@@ -356,7 +360,7 @@ EOF
 
     TLOGN "checking the C compiler"
 
-    unset AC_CFLAGS AC_LDFLAGS
+    unset AC_CFLAGS AC_LDFLAGS __MACOS_DSYM
 
     if [ "$CC" ] ; then
 	AC_CC="$CC"
@@ -377,19 +381,19 @@ EOF
     fi
     echo "checking out the C compiler"
 
-    unset __MACOS_DSYM
     $AC_CC -o ngc$$ ngc$$.c
     status=$?
-    test -d ngc$$.dSYM && __MACOS_DSYM=1
 
     TLOGN " ($AC_CC)"
 
     if [ $status -eq 0 ]; then
 	if $AC_CC -x c /dev/null -dM -E 2>&1 | grep '__clang__' >/dev/null; then
 	    TLOG " yuck, you're using clang"
+	    IS_CLANG=T
 	    IS_BROKEN_CC=T
 	elif $AC_CC -v 2>&1 | grep 'gcc version' >/dev/null; then
 	    TLOG " oh ick, it looks like gcc"
+	    IS_GCC=T
 	    IS_BROKEN_CC=T
 	else
 	    TLOG " ok"
@@ -421,11 +425,15 @@ EOF
 	else
 	    AC_LDFLAGS=${CFLAGS:-"-g"}
 	fi
+	
+	# macos-specific(?) test for .dSYM resource directories
+	$AC_CC $AC_CFLAGS $AC_LDFLAGS -o ngc$$ ngc$$.c
+	ls -dl ngc$$*
+	test -d ngc$$.dSYM && __MACOS_DSYM=1
+	
     else
 	AC_FAIL " does not compile code properly"
     fi
-
-    AC_SUB 'CC' "$AC_CC"
 
     __remove ngc$$ ngc$$.c ngc$$.o
 
@@ -505,7 +513,7 @@ AC_INIT () {
     __config_files="config.cmd config.sub config.h config.mak config.log"
     rm -f $__config_files
     __cwd=`pwd`
-    exec 5>&1 1>$__cwd/config.log 2>&1
+    exec 5>&1 1>"$__cwd"/config.log 2>&1
     AC_CONFIGURE_FOR=__AC_`echo $1 | sed -e 's/\..$//' | $AC_UPPERCASE  | tr ' ' '_'`_D
 
     # check to see whether to use echo -n or echo ...\c
@@ -528,7 +536,7 @@ AC_INIT () {
 
     LOG "Configuring for [$1]"
 
-    cat > $__cwd/config.h << EOF
+    cat > "$__cwd"/config.h << EOF
 /*
  * configuration for $1${2:+" ($2)"}, generated `date`
  * by ${LOGNAME:-`whoami`}@`hostname`
@@ -864,6 +872,18 @@ AC_C_INLINE() {
 # AC_SCALAR_TYPES checks to see if the compiler can generate 2 and 4 byte ints.
 #
 AC_SCALAR_TYPES () {
+
+    rc=1
+    LOGN "defining WORD & DWORD scalar types"
+    
+    if AC_QUIET AC_CHECK_HEADERS WinDef.h; then
+	# windows machine; BYTE, WORD, DWORD already
+	# defined
+	echo "#include <WinDef.h>" >> "$__cwd"/config.h
+	TLOG " (defined in WinDef.h)"
+	return 0
+    fi
+	
     cat > ngc$$.c << EOF
 #include <stdio.h>
 #include <string.h>
@@ -904,22 +924,20 @@ char **argv;
     exit(0);
 }
 EOF
-    rc=1
-    LOGN "defining WORD & DWORD scalar types"
     if $AC_CC ngc$$.c -o ngc$$; then
 	while [ "$1" ]; do
 	    case "$1" in
-	    sub)if ./ngc$$ sub >> $__cwd/config.sub; then
+	    sub)if ./ngc$$ sub >> "$__cwd"/config.sub; then
 		    rc=0
 		fi;;
-	    *)  if ./ngc$$ >> $__cwd/config.h; then
+	    *)  if ./ngc$$ >> "$__cwd"/config.h; then
 		    rc=0
 		fi ;;
 	    esac
 	    shift
 	done
 	if [ "$rc" != 0 ]; then
-	    if ./ngc$$ >> $__cwd/config.h; then
+	    if ./ngc$$ >> "$__cwd"/config.h; then
 		rc=1
 	    fi
 	fi
@@ -929,6 +947,7 @@ EOF
     0) TLOG "" ;;
     *) AC_FAIL " ** FAILED **" ;;
     esac
+    return $rc
 }
 
 
@@ -936,10 +955,19 @@ EOF
 # AC_OUTPUT generates makefiles from makefile.in's
 #
 AC_OUTPUT () {
-    cd $__cwd
+    
+    cd "$__cwd"
     AC_SUB 'LIBS'    "$AC_LIBS"
     AC_SUB 'CONFIGURE_FILES' "$__config_files"
-    AC_SUB 'GENERATED_FILES' "$*"
+    
+    if test "$__MACOS_DSYM"; then
+	# deal with extra OSX droppings, if they exist
+	AC_SUB 'GENERATED_FILES' "-r *.dSYM $*"
+    else
+	AC_SUB 'GENERATED_FILES' "$*"
+    fi
+    
+    AC_SUB 'CC'      "$AC_CC"
     AC_SUB 'CFLAGS'  "$AC_CFLAGS"
     AC_SUB 'LDFLAGS' "$AC_LDFLAGS"
     AC_SUB 'srcdir'  "$AC_SRCDIR"
@@ -965,7 +993,7 @@ AC_OUTPUT () {
 	AC_PROG ar
 	AC_PROG ranlib
 	AC_SUB LD_LIBRARY_PATH HERE
-	AC
+
 	__config_files="$__config_files librarian.sh"
 	cat > librarian.sh << EOF
 #! /bin/sh
@@ -1008,10 +1036,10 @@ EOF
 
 	__d=$AC_SRCDIR
 	for makefile in $*;do
-	    if test -r $__d/${makefile}.in; then
+	    if test -r "$__d/${makefile}.in"; then
 		LOG "generating $makefile"
 		./config.md `__ac_dirname ./$makefile` 2>/dev/null
-		$AC_SED_PROG -f config.sub < $__d/${makefile}.in > $makefile
+		$AC_SED_PROG -f config.sub < "$__d/${makefile}.in" > $makefile
 		__config_files="$__config_files $makefile"
 	    else
 		LOG "WARNING: ${makefile}.in does not exist!"
@@ -1038,7 +1066,7 @@ AC_CHECK_FLOCK() {
 #include <sys/types.h>
 #include <fcntl.h>
 
-main()
+int main()
 {
     int x = open("$$.c", O_RDWR, 0666);
     int y = open("$$.c", O_RDWR, 0666);
@@ -1091,7 +1119,7 @@ AC_CHECK_RESOLVER () {
 #include <arpa/nameser.h>
 #include <resolv.h>
 
-main()
+int main()
 {
     char bfr[256];
 
@@ -1103,14 +1131,15 @@ EOF
     if $AC_CC -o ngc$$ ngc$$.c; then
 	TLOG " (found)"
     elif $AC_CC -o ngc$$ ngc$$.c -lresolv; then
-	TLOG " (found, needs -lresolv)"
+	TLOG " (yes, needs -lresolv)"
 	AC_LIBS="$AC_LIBS -lresolv"
     elif $AC_CC -DBIND_8_COMPAT -o ngc$$ ngc$$.c; then
-	TLOG " (found, needs BIND_8_COMPAT)"
+	TLOG " (fyes, needs BIND_8_COMPAT)"
 	AC_DEFINE BIND_8_COMPAT 1
     elif $AC_CC -DBIND_8_COMPAT -o ngc$$ ngc$$.c -lresolv; then
-	TLOG " (found, needs BIND_8_COMPAT & -lresolv)"
+	TLOG " (yes, needs BIND_8_COMPAT & -lresolv)"
 	AC_DEFINE BIND_8_COMPAT 1
+	AC_LIBS="$AC_LIBS -lresolv"
     else
 	TLOG " (not found)"
 	__ACR_rc=1
@@ -1134,7 +1163,7 @@ AC_CHECK_ALLOCA () {
 #else
 # include <stdlib.h>
 #endif
-main()
+int main()
 {
 	alloca(10);
 }
@@ -1168,10 +1197,15 @@ AC_CHECK_BASENAME() {
     cat > ngc$$.c << EOF
 #include <string.h>
 
-main()
+extern char *basename(char*);
+
+int main()
 {
     char *a = basename("/a/test");
     char *b = basename("/a/nother");
+
+    if ( a == 0 || b == 0 || a == b )
+	return 0;
 
     return (strcmp(a,b) != 0) ? 0 : 1;
 
@@ -1214,28 +1248,58 @@ AC_COMPILER_PIC () {
     return $__rc
 }
 
-#
-# AC_CC_SHLIBS checks if the C compiler can produce shared libraries
-# and if it can writes a librarian that handles those libraries for us.
-#
-AC_CC_SHLIBS () {
-    AC_PROG_CC || AC_FAIL "Need a C compiler to build shared libraries"
-    AC_PROG_LN_S || AC_FAIL "Need to be able to make symbolic links for shared libraries"
-    AC_PROG_INSTALL || AC_FAIL "Need an install program to install shared libraries"
-    LOGN "checking whether the C compiler can build shared libraries "
 
-    echo "int some_variable = 0;" > ngc$$.c 
+# generate a macosX librarian
+#
+__AC_MACOS_LIBRARIAN() {
+    AC_SUB LD_LIBRARY_PATH DYLD_LIBRARY_PATH
+    __config_files="$__config_files librarian.sh"
+    cat > librarian.sh << EOF
+#! /bin/sh
+#
+#  Build MacOS shared libraries, hiding (some) ickiness from the makefile
 
-    if $AC_CC $AC_PICFLAG -shared -o ngc$$.so ngc$$.c; then
-	AC_SUB LD_LIBRARY_PATH LD_LIBRARY_PATH
-	# -Wl option probably works, but be paranoid anyway
-	_VFLAGS="$AC_PICFLAG -shared -Wl,-soname,ngc$$.so.1"
-	if $AC_CC $_VFLAGS -o ngc$$.so ngc$$.c; then
-	    USE_SONAME=T
+ACTION=\$1; shift
+LIBRARY=\$1; shift
+	
+eval \`awk -F. '{ printf "MAJOR=%d\n", \$1;
+		  printf "VERSION=%d.%d.%d\n", \$1, \$2, \$3; }' \$1\`
+shift
+
+LIBNAME=\$LIBRARY.dylib
+FULLNAME=\$LIBNAME
+
+case "\$ACTION" in
+make)   FLAGS="$AC_CFLAGS -dynamiclib"
+	VFLAGS="-current_version \$VERSION -compatibility_version \$MAJOR"
+
+	rm -f \$LIBRARY
+	if $AC_CC \$FLAGS \$VFLAGS -o \$FULLNAME "\$@"; then
+	    $PROG_LN_S \$FULLNAME \$LIBRARY
 	fi
-	LDCONFIG=`AC_PATH=/sbin:/usr/sbin:/usr/local/sbin acLookFor ldconfig`
-	__config_files="$__config_files librarian.sh"
-	cat > librarian.sh << EOF
+	;;
+files)  echo "\$FULLNAME"
+	;;
+install)$PROG_INSTALL -c \$FULLNAME "\$1"
+	;;
+esac
+EOF
+    chmod +x librarian.sh
+}
+
+
+# Generate an ELF librarian (for Linux, freebsd)
+#
+__AC_ELF_LIBRARIAN() {
+    AC_SUB LD_LIBRARY_PATH LD_LIBRARY_PATH
+    # -Wl option probably works, but be paranoid anyway
+    _VFLAGS="$AC_PICFLAG -shared -Wl,-soname,ngc$$.so.1"
+    if $AC_CC $_VFLAGS -o ngc$$.so ngc$$.c; then
+	USE_SONAME=T
+    fi
+    LDCONFIG=`AC_PATH=/sbin:/usr/sbin:/usr/local/sbin acLookFor ldconfig`
+    __config_files="$__config_files librarian.sh"
+    cat > librarian.sh << EOF
 #! /bin/sh
 #
 #  Build ELF shared libraries, hiding (some) ickiness from the makefile
@@ -1267,49 +1331,42 @@ files)  echo "\$FULLNAME" "\$LIBNAME" "\$LIBNAME.\$MAJOR"
 install)$PROG_INSTALL -c \$FULLNAME "\$1"
 	$PROG_LN_S -f \$FULLNAME \$1/\$LIBNAME.\$MAJOR
 	$PROG_LN_S -f \$FULLNAME \$1/\$LIBNAME
-	test "$LDCONFIG" && $LDCONFIG "\$1"
+EOF
+    test "$LDCONFIG" && echo '	'$LDCONFIG '"$1"' >> librarian.sh
+    cat >> librarian.sh << EOF
 	;;
 esac
 EOF
-	chmod +x librarian.sh
-        LOG "(yes; -shared)"
-	__rc=0
-    elif $AC_CC $AC_PICFLAG  -dynamiclib -o ngc$$.so ngc$$.c; then
-	# macosx
-	AC_SUB LD_LIBRARY_PATH DYLD_LIBRARY_PATH
-	__config_files="$__config_files librarian.sh"
-	cat > librarian.sh << EOF
-#! /bin/sh
+    chmod +x librarian.sh
+}
+
+
 #
-#  Build MacOS shared libraries, hiding (some) ickiness from the makefile
+# AC_CC_SHLIBS checks if the C compiler can produce shared libraries
+# and if it can writes a librarian that handles those libraries for us.
+#
+AC_CC_SHLIBS () {
+    AC_PROG_CC || AC_FAIL "Need a C compiler to build shared libraries"
+    AC_PROG_LN_S || AC_FAIL "Need to be able to make symbolic links for shared libraries"
+    AC_PROG_INSTALL || AC_FAIL "Need an install program to install shared libraries"
+    LOGN "checking whether the C compiler can build shared libraries "
 
-ACTION=\$1; shift
-LIBRARY=\$1; shift
-	
-eval \`awk -F. '{ printf "MAJOR=%d\n", \$1;
-		  printf "VERSION=%d.%d.%d\n", \$1, \$2, \$3; }' \$1\`
-shift
+    echo "int some_variable = 0;" > ngc$$.c 
 
-LIBNAME=\$LIBRARY.dylib
-FULLNAME=\$LIBNAME
+    if uname -a | grep Darwin >/dev/null; then
+	# Claims to be macos?
+	if $AC_CC $AC_PICFLAG  -dynamiclib -o ngc$$.so ngc$$.c; then
+	    __AC_MACOS_LIBRARIAN
 
-case "\$ACTION" in
-make)   FLAGS="$AC_CFLAGS -dynamiclib"
-	VFLAGS="-current_version \$VERSION -compatibility_version \$MAJOR"
-
-	rm -f \$LIBRARY
-	if $AC_CC \$FLAGS \$VFLAGS -o \$FULLNAME "\$@"; then
-	    $PROG_LN_S \$FULLNAME \$LIBRARY
+	    LOG "(yes; macos dylib)"
+	    __rc=0
+	else
+	    LOG "(no)"
+	    __rc=1
 	fi
-	;;
-files)  echo "\$FULLNAME"
-	;;
-install)$PROG_INSTALL -c \$FULLNAME "\$1"
-	;;
-esac
-EOF
-	chmod +x librarian.sh
-        LOG "(yes; macos dylib)"
+    elif $AC_CC $AC_PICFLAG -shared -o ngc$$.so ngc$$.c; then
+	__AC_ELF_LIBRARIAN
+        LOG "(yes; -shared)"
 	__rc=0
     else
         LOG "(no)"
@@ -1383,15 +1440,15 @@ AC_PROG_INSTALL () {
     fi
 
     __config_files="$__config_files config.md"
-    AC_SUB 'INSTALL_DIR' "$__cwd/config.md"
-    echo "#! /bin/sh"                                   > $__cwd/config.md
-    echo "# script generated" `date` "by configure.sh" >> $__cwd/config.md
-    echo                                               >> $__cwd/config.md
+    AC_SUB 'INSTALL_DIR' "./config.md"
+    echo "#! /bin/sh"                                   > ""$__cwd"/config.md"
+    echo "# script generated" `date` "by configure.sh" >> ""$__cwd"/config.md"
+    echo                                               >> ""$__cwd"/config.md"
     if [ "$__mkdir" ]; then
-	echo "test -d \"\$1\" || $__mkdir \"\$1\""     >> $__cwd/config.md
-	echo "exit $?"                                 >> $__cwd/config.md
+	echo "test -d \"\$1\" || $__mkdir \"\$1\""     >> ""$__cwd"/config.md"
+	echo "exit $?"                                 >> ""$__cwd"/config.md"
     else
-	cat - >> $__cwd/config.md << \EOD
+	cat - >> ""$__cwd"/config.md" << \EOD
 pieces=`IFS=/; for x in $1; do echo $x; done`
 dir=
 for x in $pieces; do
@@ -1402,7 +1459,7 @@ done
 exit 0
 EOD
     fi
-    chmod +x $__cwd/config.md
+    chmod +x "$__cwd"/config.md
 }
 
 #
@@ -1474,26 +1531,28 @@ AC_FAIL() {
 #
 # AC_SUB writes a substitution into config.sub
 AC_SUB() {
-    (   _subst=`echo $2 | sed -e 's/;/\\;/g'`
-	echo "s;@$1@;$_subst;g" ) >> $__cwd/config.sub
+    (   _target="$1"
+	shift
+	_subst=`echo "$*" | sed -e 's/;/\\;/g'`
+	echo "s;@$_target@;$_subst;g" ) >> "$__cwd"/config.sub
 }
 
 #
 # AC_MAK writes a define into config.mak
 AC_MAK() {
-    echo "HAVE_$1 = 1" >> $__cwd/config.mak
+    echo "HAVE_$1 = 1" >> "$__cwd"/config.mak
 }
 
 #
 # AC_DEFINE adds a #define to config.h
 AC_DEFINE() {
-    echo "#define $1 ${2:-1}" >> $__cwd/config.h
+    echo "#define $1 ${2:-1}" >> "$__cwd"/config.h
 }
 
 #
 # AC_INCLUDE adds a #include to config.h
 AC_INCLUDE() {
-    echo "#include \"$1\"" >> $__cwd/config.h
+    echo "#include \"$1\"" >> "$__cwd"/config.h
 }
 
 #

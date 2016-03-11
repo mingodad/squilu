@@ -1,13 +1,12 @@
-s;@CPP@;/mingw/bin/cpp;g
+s;@CPP@;/lib/cpp;g
 s;@CPPFLAGS@;;g
-s;@INSTALL@;/bin/install;g
-s;@INSTALL_PROGRAM@;/bin/install -s -m 755;g
-s;@INSTALL_DATA@;/bin/install -m 444;g
-s;@INSTALL_DIR@;/g/c/discount-2.1.2/config.md;g
-s;@CC@;gcc;g
-s;@AR@;/mingw/bin/ar;g
-s;@RANLIB@;/mingw/bin/ranlib;g
-s:@DWORD@:unsigned long:g
+s;@INSTALL@;/usr/bin/install;g
+s;@INSTALL_PROGRAM@;/usr/bin/install -s -m 755;g
+s;@INSTALL_DATA@;/usr/bin/install -m 444;g
+s;@INSTALL_DIR@;./config.md;g
+s;@AR@;/usr/bin/ar;g
+s;@RANLIB@;/usr/bin/ranlib;g
+s:@DWORD@:unsigned int:g
 s:@WORD@:unsigned short:g
 s:@BYTE@:unsigned char:g
 s;@THEME@;;g
@@ -16,20 +15,20 @@ s;@AMALLOC@;;g
 s;@LIBS@;;g
 s;@CONFIGURE_FILES@;config.cmd config.sub config.h config.mak config.log config.md;g
 s;@GENERATED_FILES@;Makefile version.c mkdio.h;g
+s;@CC@;cc -Wno-return-type -Wno-implicit-int;g
 s;@CFLAGS@;-g;g
 s;@LDFLAGS@;-g;g
-s;@srcdir@;/g/c/discount-2.1.2;g
+s;@srcdir@;/home/mingo/dev/SquiLu/discount;g
 s;@prefix@;/usr/local;g
 s;@exedir@;/usr/local/bin;g
 s;@sbindir@;/usr/local/sbin;g
 s;@libdir@;/usr/local/lib;g
 s;@libexec@;/usr/local/lib;g
 s;@confdir@;/etc;g
-s;@mandir@;/usr/local/share/man;g
-s;@FIND@;/bin/find;g
-s;@LN_S@;;g
-s;@LN@;/bin/ln;g
-s;@AR@;/mingw/bin/ar;g
-s;@RANLIB@;/mingw/bin/ranlib;g
+s;@mandir@;/usr/local/man;g
+s;@FIND@;/usr/bin/find;g
+s;@LN_S@;/bin/ln -s;g
+s;@AR@;/usr/bin/ar;g
+s;@RANLIB@;/usr/bin/ranlib;g
 s;@LD_LIBRARY_PATH@;HERE;g
 s;@SED@;/bin/sed;g

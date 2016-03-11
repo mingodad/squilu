@@ -35,7 +35,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-g" />
-			<Add directory="../discount-2.1.2" />
+			<Add directory="../discount" />
 		</Compiler>
 		<Linker>
 			<Add library="discount" />

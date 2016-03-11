@@ -89,6 +89,9 @@
 		<Unit filename="generate.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="github_flavoured.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="html5.c">
 			<Option compilerVar="CC" />
 		</Unit>
