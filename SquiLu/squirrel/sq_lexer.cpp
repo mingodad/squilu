@@ -16,15 +16,9 @@ static const SQChar SQ_LIBNAME[] = _SC("SQLexer");
 SQ_OPT_STRING_STRLEN();
 
 
-struct MyLexer : public SQLexer
-{
-    MyLexer():SQLexer(){}
-
-};
-
 struct sq_lexer_st
 {
-    MyLexer *lex;
+    SQLexer *lex;
     HSQOBJECT source;
     SQStrBufState buf;
 };
@@ -40,7 +34,8 @@ static SQRESULT SQLexer_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELV
 	if(self && self->lex)
     {
         sq_release(v, &self->source);
-        delete self->lex;
+        self->lex->~SQLexer();
+        sq_free(self->lex, sizeof(SQLexer));
         self->lex = nullptr;
         sq_free(self, sizeof(sq_lexer_st));
     }
@@ -55,7 +50,8 @@ static SQRESULT sq_SQLexer_constructor(HSQUIRRELVM v){
     sq_resetobject(&self->source);
     SQRESULT rc = sq_getstackobj(v, 2, &self->source);
     if(rc == SQ_OK) sq_addref(v, &self->source);
-    self->lex = new MyLexer();
+    self->lex = (SQLexer*)sq_malloc(sizeof(SQLexer));
+    new (self->lex) SQLexer();
     self->buf.buf = src;
     self->buf.ptr = 0;
     self->buf.size = src_size;
