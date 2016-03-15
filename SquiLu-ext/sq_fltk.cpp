@@ -2890,6 +2890,8 @@ static SQRESULT _Fl_Text_Buffer_constructor(HSQUIRRELVM v)
 #define SETUP_FL_TEXT_BUFFER(v) SETUP_FL_KLASS(v, Fl_Text_Buffer)
 FUNC_GETSET_STR(_Fl_Text_Buffer_, SETUP_FL_TEXT_BUFFER, self->, text);
 FUNC_INT_CALL(_Fl_Text_Buffer_, SETUP_FL_TEXT_BUFFER, length);
+FUNC_GET_BOOL(_Fl_Text_Buffer_, SETUP_FL_TEXT_BUFFER, selected);
+FUNC_VOID_CALL(_Fl_Text_Buffer_, SETUP_FL_TEXT_BUFFER, self->, unselect);
 
 static SQRESULT _Fl_Text_Buffer_loadfile(HSQUIRRELVM v)
 {
@@ -2942,6 +2944,19 @@ static SQRESULT _Fl_Text_Buffer_select(HSQUIRRELVM v)
     return 0;
 }
 
+static SQRESULT _Fl_Text_Buffer_selection_text(HSQUIRRELVM v)
+{
+    SETUP_FL_TEXT_BUFFER(v);
+    char *txt = self->selection_text();
+    if(txt)
+    {
+        sq_pushstring(v, txt, -1);
+        free(txt);
+    }
+    else sq_pushnull(v);
+	return 1;
+}
+
 static SQRESULT _Fl_Text_Buffer_append(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
@@ -2962,6 +2977,9 @@ static SQRegFunction fl_text_buffer_obj_funcs[]={
 	_DECL_FUNC(input_file_was_transcoded,1,_SC("x"),SQFalse),
 	_DECL_FUNC(search_forward,-3,_SC("xisi"),SQFalse),
 	_DECL_FUNC(select, 3,_SC("xii"),SQFalse),
+	_DECL_FUNC(selected, 1,_SC("x"),SQFalse),
+	_DECL_FUNC(unselect, 1,_SC("x"),SQFalse),
+	_DECL_FUNC(selection_text, 1,_SC("x"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
