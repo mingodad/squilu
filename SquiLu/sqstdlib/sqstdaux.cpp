@@ -17,10 +17,10 @@ void sqstd_printcallstack(HSQUIRRELVM v)
 		SQInteger max_str_size = 10 * 1024; //to not print long strings in stack trace
 		sq_pushliteral(v, _SC("__max_print_stack_str_size")); //can be overwritten at runtime
 		if(sq_getonroottable(v) == SQ_OK)
-        {
-            sq_getinteger(v, -1, &max_str_size);
-            sq_poptop(v); //remove the result
-        }
+		{
+		    sq_getinteger(v, -1, &max_str_size);
+		    sq_poptop(v); //remove the result
+		}
 		pf(v,_SC("\nCALLSTACK\n"));
 		while(SQ_SUCCEEDED(sq_stackinfos(v,level,&si)))
 		{
@@ -57,7 +57,14 @@ void sqstd_printcallstack(HSQUIRRELVM v)
 					break;
 				case OT_STRING:
 					sq_getstring(v,-1,&s);
-					pf(v,_SC("[%s] (%d max dump) \"%.*s\"\n"), name, max_str_size, max_str_size, s);
+					if(sq_getsize(v, -1) > max_str_size)
+					{
+						pf(v,_SC("[%s] (%d max dump) \"%.*s\"\n"), name, max_str_size, max_str_size, s);
+					}
+					else
+					{
+						pf(v,_SC("[%s] \"%s\"\n"), name, s);
+					}
 					break;
 				case OT_TABLE:
 					pf(v,_SC("[%s] TABLE\n"),name);
