@@ -36,7 +36,7 @@ static SQRESULT SQLexer_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELV
         sq_release(v, &self->source);
         self->lex->~SQLexer();
         sq_free(self->lex, sizeof(SQLexer));
-        self->lex = nullptr;
+        self->lex = NULL;
         sq_free(self, sizeof(sq_lexer_st));
     }
 	return 0;
@@ -55,7 +55,7 @@ static SQRESULT sq_SQLexer_constructor(HSQUIRRELVM v){
     self->buf.buf = src;
     self->buf.ptr = 0;
     self->buf.size = src_size;
-    self->lex->Init(v->_sharedstate, sq_strbuf_lexfeed, &self->buf, nullptr, nullptr);
+    self->lex->Init(v->_sharedstate, sq_strbuf_lexfeed, &self->buf, NULL, NULL);
 
     sq_setinstanceup(v, 1, self);
     sq_setreleasehook(v,1, SQLexer_release_hook);

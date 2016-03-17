@@ -28,7 +28,7 @@ SQLexer::~SQLexer()
 SQInteger SQLexer::Init(SQSharedState *ss, SQLEXREADFUNC rg, SQUserPointer up,CompilerErrorFunc efunc,void *ed)
 {
     _lasterror[0] = '\0';
-    _svalue = nullptr;
+    _svalue = NULL;
 	_errfunc = efunc;
 	_errtarget = ed;
 	_sharedstate = ss;
