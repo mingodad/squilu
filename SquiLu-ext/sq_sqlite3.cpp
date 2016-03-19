@@ -71,9 +71,11 @@ static SQRESULT get_sqlite3_stmt_instance(HSQUIRRELVM v, SQInteger idx, sqlite3_
 #define GET_sqlite3_INSTANCE() GET_sqlite3_INSTANCE_AT(1)
 
 //#define GET_sqlite3_INSTANCE() SQ_GET_INSTANCE(v, 1, sqlite3, SQLite3_TAG)
-#define GET_sqlite3_stmt_INSTANCE()  \
-	sqlite3_stmt *self=NULL; \
-	if((_rc_ = get_sqlite3_stmt_instance(v,1,&self)) < 0) return _rc_;
+#define GET_sqlite3_stmt_INSTANCE_AT(idx, var_name)  \
+	sqlite3_stmt *var_name=NULL; \
+	if((_rc_ = get_sqlite3_stmt_instance(v,idx,&var_name)) < 0) return _rc_;
+#define GET_sqlite3_stmt_INSTANCE() GET_sqlite3_stmt_INSTANCE_AT(1, self)
+
 
 enum e_type_result {tr_first_row_first_col, tr_first_row, tr_all_rows, tr_ddml};
 
@@ -230,6 +232,13 @@ static SQRESULT sqlite3_stmt_bind_value(HSQUIRRELVM v, sqlite3_stmt *stmt, int n
         _rc_ = sqlite3_bind_text(stmt, npar, param_string, param_string_size, SQLITE_TRANSIENT);
     }
     break;
+    case OT_USERDATA:
+        {
+            SQUserPointer ttag = 0;
+            if((sq_gettypetag(v, argn, &ttag) != SQ_OK) || (ttag != sqlite3_NULL_Name))
+                return sq_throwerror(v, "Invalid bind parameter %d", npar);
+        }
+        //fallthrough
     case OT_NULL:
         _rc_ = sqlite3_bind_null(stmt, npar);
         break;
@@ -363,6 +372,25 @@ static SQRESULT sq_sqlite3_stmt_bind(HSQUIRRELVM v)
     GET_sqlite3_stmt_INSTANCE();
     SQ_GET_INTEGER(v, 2, npar);
     return sqlite3_stmt_bind_value(v, self, npar, 3);
+}
+
+/**
+The number/order of fields should be the same to use this function
+it'll save temporary data convertion.
+*/
+static SQRESULT sq_sqlite3_stmt_bind_stmt(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_stmt_INSTANCE();
+    GET_sqlite3_stmt_INSTANCE_AT(2, stmt_src);
+
+    int bind_count = sqlite3_bind_parameter_count(self);
+    for(int i=0; i < bind_count; ++i)
+    {
+        sqlite3_bind_value(self, i+1, sqlite3_column_value(stmt_src, i));
+    }
+
+    return 0;
 }
 
 static SQRESULT sq_sqlite3_stmt_bind_empty_null(HSQUIRRELVM v)
@@ -1297,12 +1325,13 @@ static SQRegFunction sq_sqlite3_stmt_methods[] =
     _DECL_FUNC(stmt_ptr,  1, _SC("x"), SQFalse),
     _DECL_FUNC(get_db,  1, _SC("x"), SQFalse),
     _DECL_FUNC(finalize,  1, _SC("x"), SQFalse),
-    _DECL_FUNC(prepare,  -2, _SC("xs s|n|b|o"), SQFalse),
+    _DECL_FUNC(prepare,  -2, _SC("xs s|n|b|o|u"), SQFalse),
     _DECL_FUNC(get_sql,  1, _SC("x"), SQFalse),
-    _DECL_FUNC(bind,  3, _SC("xi s|n|b|o"), SQFalse),
-    _DECL_FUNC(bind_empty_null,  3, _SC("xi s|n|b|o"), SQFalse),
-    _DECL_FUNC(bind_blob,  3, _SC("xis"), SQFalse),
-    _DECL_FUNC(bind_values,  -2, _SC("x s|n|b|o"), SQFalse),
+    _DECL_FUNC(bind,  3, _SC("xi s|n|b|o|u"), SQFalse),
+    _DECL_FUNC(bind_stmt,  2, _SC("xx"), SQFalse),
+    _DECL_FUNC(bind_empty_null,  3, _SC("xi s|n|b|o|u"), SQFalse),
+    _DECL_FUNC(bind_blob,  3, _SC("xis|u"), SQFalse),
+    _DECL_FUNC(bind_values,  -2, _SC("x s|n|b|o|u"), SQFalse),
     _DECL_FUNC(bind_names,  2, _SC("x t|a"), SQFalse),
     _DECL_FUNC(bind_parameter_index,  2, _SC("xs"), SQFalse),
     _DECL_FUNC(bind_parameter_count,  1, _SC("x"), SQFalse),
@@ -1635,6 +1664,30 @@ static SQRESULT sq_sqlite3_sleep(HSQUIRRELVM v)
 static SQRESULT sq_sqlite3_version(HSQUIRRELVM v)
 {
     sq_pushstring(v, sqlite3_libversion(), -1);
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_threadsafe(HSQUIRRELVM v)
+{
+    sq_pushinteger(v, sqlite3_threadsafe());
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_config_single_thread(HSQUIRRELVM v)
+{
+    sq_pushinteger(v, sqlite3_config(SQLITE_CONFIG_SINGLETHREAD));
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_config_multi_thread(HSQUIRRELVM v)
+{
+    sq_pushinteger(v, sqlite3_config(SQLITE_CONFIG_MULTITHREAD));
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_config_serialized(HSQUIRRELVM v)
+{
+    sq_pushinteger(v, sqlite3_config(SQLITE_CONFIG_SERIALIZED));
     return 1;
 }
 
@@ -2662,7 +2715,11 @@ static SQRegFunction sq_sqlite3_methods[] =
     _DECL_FUNC(db_ptr,  1, _SC("x")),
 
     _DECL_FUNC(IsAutoCommitOn,  1, _SC("x")),
-    _DECL_FUNC(version,  1, _SC("x")),
+    _DECL_FUNC(version,  1, _SC("x|y")),
+    _DECL_FUNC(threadsafe,  1, _SC("x|y")),
+    _DECL_FUNC(config_single_thread,  1, _SC("y")),
+    _DECL_FUNC(config_multi_thread,  1, _SC("y")),
+    _DECL_FUNC(config_serialized,  1, _SC("y")),
     _DECL_FUNC(errcode,  1, _SC("x")),
     _DECL_FUNC(errmsg,  1, _SC("x")),
     _DECL_FUNC(sleep,  1, _SC("x")),
