@@ -49,7 +49,7 @@ CFLAGS = $(INC) -O3 -Wall -fno-strict-aliasing  \
     -DWITH_UUID=1 \
     -DSQLITE_ENABLE_JSON1=1 \
     -DSQLITE_OMIT_PREPARED=1 \
-    -DTARGET_IOS=1
+    -DTARGET_IOS=1 -DWITHOUTH_SHA512=1
 
 RESINC = 
 LIBDIR = -L$(MYSDKPREFIX)/lib -L$(MYSDKPREFIX)/lib/system -Llib
@@ -98,6 +98,7 @@ SOURCES= sq/sq.c  \
     ../SquiLu-ext/sq_tinyxml2.cpp  \
     ../SquiLu-ext/sq_zlib.cpp  \
     ../SquiLu-ext/tinyxml2.cpp \
+    ../SquiLu-ext/dad_utils.cpp \
     squirrel/lua-regex.c  \
     squirrel/sqapi.cpp  \
     squirrel/sqbaselib.cpp  \
@@ -106,6 +107,7 @@ SOURCES= sq/sq.c  \
     squirrel/sqdebug.cpp  \
     squirrel/sqfuncstate.cpp  \
     squirrel/sqlexer.cpp  \
+    squirrel/sq_lexer.cpp  \
     squirrel/sqmem.cpp  \
     squirrel/sqobject.cpp  \
     squirrel/sqstate.cpp  \
@@ -135,8 +137,8 @@ AXTLS_SRC_FILES := \
 	$(AXTLS_PATH)/tls1_clnt.c \
 	$(AXTLS_PATH)/tls1_svr.c \
 	$(AXTLS_PATH)/x509.c
-#	$(AXTLS_PATH)/sha384.c \
-#	$(AXTLS_PATH)/sha512.c \
+#	$(AXTLS_PATH)/sha384.c
+#	$(AXTLS_PATH)/sha512.c
 
 AXTLS_OPT_DEFINES := \
 	-DCONFIG_SSL_ENABLE_CLIENT2=1 \
@@ -278,7 +280,7 @@ SOURCES += $(UNQL_SRC_FILES)
 	$(CC) -c -o $@ $< $(CFLAGS)
 	
 %.o: %.cpp
-	$(CXX) -c -o $@ $< $(CFLAGS)
+	$(CXX) -c -o $@ $< $(CPPFLAGS)
 	
 squilu-ios: $(OBJECTS)
 	$(CC) $(CFLAGS) -o $@ $(SOURCES) $(LIBDIR) $(LDFLAGS)

@@ -156,6 +156,7 @@ int x509_new(const uint8_t *cert, int *len, X509_CTX **ctx)
         }
             break;
 
+#ifndef WITHOUTH_SHA512
         case SIG_TYPE_SHA384:
         {
             SHA384_CTX sha384_ctx;
@@ -177,6 +178,7 @@ int x509_new(const uint8_t *cert, int *len, X509_CTX **ctx)
             x509_ctx->digest = bi_import(bi_ctx, sha512_dgst, SHA512_SIZE);
         }
             break;
+#endif
     }
 
     if (cert[offset] == ASN1_V3_DATA)

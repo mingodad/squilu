@@ -52,7 +52,8 @@ CFLAGS = $(INC) -O3 -Wall -fno-strict-aliasing  \
     -DWITH_MPDECIMAL=1 \
     -DWITH_MYSQL2=1 \
     -DWITH_POSTGRESQL2=1 \
-    -DWITH_UUID=1
+    -DWITH_UUID=1 \
+    -DSC_USE_MKSTEMP=1
 
 RESINC = 
 #LIBDIR =  -Llib -L../myaxtls -L../mpdecimal -L../discount

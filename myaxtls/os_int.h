@@ -57,7 +57,7 @@ typedef INT64 int64_t;
 #else
 #include <stdint.h>
 #if defined(TARGET_IOS)
-
+	#define be64toh(val) OSSwapBigToHostConstInt64(val)
 #elif defined(__BSD__)
     #include <sys/types.h>
     #include <sys/endian.h>
