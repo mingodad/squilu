@@ -274,6 +274,7 @@
 //        The default is to allow one certificate + 1 certificate in the chain
 //        (which may be the certificate authority certificate).
 //
+#define CONFIG_SSL_CTX_MUTEXING 1
 //config CONFIG_SSL_CTX_MUTEXING
 //    bool "Enable SSL_CTX mutexing"
 //    default n

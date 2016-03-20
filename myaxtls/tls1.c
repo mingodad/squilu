@@ -400,7 +400,7 @@ error:
  */
 int add_cert_auth(SSL_CTX *ssl_ctx, const uint8_t *buf, int len)
 {
-    int ret = SSL_OK; /* ignore errors for now */
+    int ret = X509_OK; /* ignore errors for now */
     int i = 0;
     CA_CERT_CTX *ca_cert_ctx;
 
@@ -422,9 +422,9 @@ int add_cert_auth(SSL_CTX *ssl_ctx, const uint8_t *buf, int len)
                     "compile-time configuration required\n",
                     CONFIG_X509_MAX_CA_CERTS);
 #endif
+            ret = X509_MAX_CERTS;
             break;
         }
-
 
         /* ignore the return code */
         if (x509_new(buf, &offset, &ca_cert_ctx->cert[i]) == X509_OK)
@@ -1083,12 +1083,13 @@ int send_packet(SSL *ssl, uint8_t protocol, const uint8_t *in, int length)
         /* add the explicit IV for TLS1.1 */
         if (ssl->version >= SSL_PROTOCOL_VERSION1_1 &&
                         ssl->cipher_info->iv_size)
-
         {
             uint8_t iv_size = ssl->cipher_info->iv_size;
             uint8_t *t_buf = alloca(msg_length + iv_size);
             memcpy(t_buf + iv_size, ssl->bm_data, msg_length);
-            get_random(iv_size, t_buf);
+            if (get_random(iv_size, t_buf) < 0)
+                return SSL_NOT_OK;
+
             msg_length += iv_size;
             memcpy(ssl->bm_data, t_buf, msg_length);
         }
@@ -1143,7 +1144,7 @@ static int set_key_block(SSL *ssl, int is_write)
             ssl->dc->master_secret, ssl->dc->key_block,
             ciph_info->key_block_size);
 #if 0
-        print_blob("keyblock", ssl->key_block, ciph_info->key_block_size);
+        print_blob("keyblock", ssl->dc->key_block, ciph_info->key_block_size);
 #endif
     }
 
@@ -1173,7 +1174,7 @@ static int set_key_block(SSL *ssl, int is_write)
         memcpy(client_iv, q, ciph_info->iv_size);
         q += ciph_info->iv_size;
         memcpy(server_iv, q, ciph_info->iv_size);
-        //q += ciph_info->iv_size;
+        q += ciph_info->iv_size;
     }
 #endif
 
@@ -1375,8 +1376,7 @@ int basic_read(SSL *ssl, uint8_t **in_data, int in_num)
             break;
 
         case PT_APP_PROTOCOL_DATA:
-            ret = read_len;
-            if (in_data)
+            if (in_data && ssl->hs_status == SSL_OK)
             {
                 *in_data = buf;   /* point to the work buffer */
                 (*in_data)[read_len] = 0;  /* null terminate just in case */
@@ -1387,7 +1387,10 @@ int basic_read(SSL *ssl, uint8_t **in_data, int in_num)
                     ssl->read_data_in_buffer_bytes = read_len - in_num;
                     memcpy(ssl->bm_read_data, buf+in_num, ssl->read_data_in_buffer_bytes);
                 }
+	            ret = read_len;
             }
+            else
+                ret = SSL_ERROR_INVALID_PROT_MSG;
             break;
 
         case PT_ALERT_PROTOCOL:
