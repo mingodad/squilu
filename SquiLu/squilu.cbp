@@ -466,7 +466,7 @@
 					<Add library="pthread" />
 					<Add library="rt" />
 					<Add library="dl" />
-					<Add library="axtls" />
+					<Add library="axtls-dbg" />
 					<Add library="mpdecimal" />
 					<Add library="discount" />
 					<Add library="fltk_z" />
@@ -526,8 +526,8 @@
 				</Linker>
 			</Target>
 			<Target title="Release FLTK 64bits Computed Gotos">
-				<Option output="bin/squilu" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Release/" />
+				<Option output="bin/squilu-cg" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release-cg/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -651,7 +651,7 @@
 					<Add library="discount" />
 					<Add library="X11" />
 					<Add library="fontconfig" />
-					<Add library="axtls" />
+					<Add library="axtls-dbg" />
 					<Add library="Xcursor" />
 					<Add library="Xfixes" />
 					<Add directory="../../zeromq-3.2.2" />
@@ -708,7 +708,7 @@
 					<Add library="discount" />
 					<Add library="X11" />
 					<Add library="fontconfig" />
-					<Add library="axtls" />
+					<Add library="axtls-dbg" />
 					<Add library="Xcursor" />
 					<Add library="Xfixes" />
 					<Add directory="../../zeromq-3.2.2" />
@@ -739,7 +739,7 @@
 					<Add library="pthread" />
 					<Add library="rt" />
 					<Add library="dl" />
-					<Add library="axtls" />
+					<Add library="axtls-dbg" />
 					<Add library="mpdecimal" />
 					<Add library="discount" />
 					<Add library="fltk_z" />
@@ -862,7 +862,8 @@
 			<Add option="-std=c++11" />
 			<Add option="-Wall" />
 			<Add option="-fno-strict-aliasing" />
-			<Add option="-DSC_USE_MKSTEMP=1" />
+			<Add option="-DSQ_USE_MKSTEMP=1" />
+			<Add option="-DSQ_USE_LOCALTIME_R=1" />
 			<Add option="-DONLY_ASCII=1" />
 			<Add option="-DPROFILE_SQVM0=1" />
 			<Add option="-DSQ_JIT_LLVM44=1" />

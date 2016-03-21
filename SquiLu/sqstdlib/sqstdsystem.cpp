@@ -233,12 +233,21 @@ static SQRESULT _system_date(HSQUIRRELVM v)
 	time_t t = (time_t)arg_time;
 
     struct tm *stm;
+#ifdef SQ_USE_LOCALTIME_R
+    struct tm ltm_r;
+#endif // SQ_USE_LOCALTIME_R
     if (*arg_format == _SC('!')) {  /* UTC? */
         stm = gmtime(&t);
         arg_format++;  /* skip `!' */
     }
     else
+    {
+#ifdef SQ_USE_LOCALTIME_R
+        stm = localtime_r(&t, &ltm_r);
+#else
         stm = localtime(&t);
+#endif // SQ_USE_LOCALTIME_R
+    }
     if (stm == NULL)  /* invalid date? */
         sq_pushnull(v);
     else if (scstrcmp(arg_format, _SC("*t")) == 0) {
@@ -292,7 +301,7 @@ static SQRESULT _system_exit (HSQUIRRELVM v) {
   exit(status);
 }
 
-#if defined(SC_USE_MKSTEMP)
+#if defined(SQ_USE_MKSTEMP)
 #include <unistd.h>
 #define SQ_TMPNAMBUFSIZE	32
 #define sq_tmpnam(b,e)	{ \
