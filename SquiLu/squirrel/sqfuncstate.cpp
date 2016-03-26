@@ -378,6 +378,11 @@ void SQFuncState::AddParameterTypeName(const SQObject &type_name)
 	_vlocals.top()._type_name = type_name;
 }
 
+void SQFuncState::AddParameterTypeName(const SQChar *type_name)
+{
+	if(type_name) AddParameterTypeName(CreateString(type_name, scstrlen(type_name)));
+}
+
 void SQFuncState::AddLineInfos(SQInteger line,bool lineop,bool force)
 {
 	if(_lastline!=line || force){

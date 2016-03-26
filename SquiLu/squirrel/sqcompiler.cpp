@@ -485,6 +485,7 @@ public:
 	void Statement(bool closeframe = true)
 	{
 		_fs->AddLineInfos(_lex._currentline, _lineinfo);
+    start_again:
 		switch(_token){
 		case _SC(';'):	Lex();					break;
 		case TK_IF:		IfStatement();			break;
@@ -493,6 +494,14 @@ public:
 		case TK_FOR:		ForStatement();			break;
 		case TK_FOREACH:	ForEachStatement();		break;
 		case TK_SWITCH:	SwitchStatement();		break;
+		case TK_STATIC:
+            if(_scope.nested)
+            {
+                Warning(_SC("%s:%d:%d warning static cualifier is ignored\n"),
+                                          _stringval(_sourcename), _lex._currentline, _lex._currentcolumn);
+            }
+            Lex(); //ignore it only to allow run some C/C++ code
+            goto start_again;
 		CASE_TK_LOCAL_TYPES:
 		//case TK_CONST:
 		case TK_LOCAL:		LocalDeclStatement();	break;
@@ -1254,15 +1263,30 @@ public:
 		 SQInteger closure = _fs->PopTarget();
          _fs->AddInstruction(_OP_CALL, _fs->PushTarget(), closure, stackbase, nargs);
 	}
+	void CheckClassMemberExists(SQObjectPtr &member_names, SQObject &name)
+	{
+        if(_table(member_names)->Exists(name))
+        {
+            Error(_SC("class already has a member named: %s"), _stringval(name));
+        }
+        SQObjectPtr oname = name, otrue = true;
+        _table(member_names)->NewSlot(oname, otrue);
+	}
 	void ParseTableOrClass(SQInteger separator,SQInteger terminator)
 	{
-		SQInteger tpos = _fs->GetCurrentPos(),nkeys = 0;
-		SQObject type_name;
+	    SQObjectPtr member_names;
+		SQInteger saved_tok, tpos = _fs->GetCurrentPos(),nkeys = 0;
+		SQObject type_name, obj_id;
 		bool isClass = separator == ';'; //hack recognizes a table/class from the separator
+		if(isClass)
+        {
+            member_names = SQTable::Create(_ss(_vm),0);
+        }
 		while(_token != terminator) {
 			bool hasattrs = false;
 			bool isstatic = false;
-			bool isprivate = false;
+			//bool isprivate = false;
+			const SQChar *membertypename = 0;
 			//check if is an attribute
 			if(isClass) {
 				if(_token == TK_ATTR_OPEN) {
@@ -1278,52 +1302,87 @@ public:
 					Lex();
 				}
 				else if(_token == TK_PRIVATE) {
-					isprivate = true;
+					//isprivate = true;
 					Lex();
 				}
 			}
+member_has_type:
 			switch(_token) {
 			case TK_FUNCTION:
 			case TK_CONSTRUCTOR:
 			case TK_DESTRUCTOR:{
-				SQInteger tk = _token;
+				saved_tok = _token;
 				Lex();
-				SQObject id = tk == TK_FUNCTION ? Expect(TK_IDENTIFIER) :
-					_fs->CreateString(tk == TK_CONSTRUCTOR ? _SC("constructor") : _SC("destructor"));
+				obj_id = saved_tok == TK_FUNCTION ? Expect(TK_IDENTIFIER) :
+					_fs->CreateString(saved_tok == TK_CONSTRUCTOR ? _SC("constructor") : _SC("destructor"));
+                CheckClassMemberExists(member_names, obj_id);
 				Expect(_SC('('));
-				_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(id));
-				CreateFunction(id);
+function_params_decl:
+				_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(obj_id));
+				CreateFunction(obj_id);
 				_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
-								}
-								break;
+                }
+                break;
 			case _SC('['):
 				Lex(); CommaExpr(); Expect(_SC(']'));
 				Expect(_SC('=')); Expression();
 				break;
 
 			case TK_STRING_LITERAL: //JSON
+			    if(isClass)
+                {
+                    Error(_SC("unexpected string literal in class declaration"));
+                }
 			case TK_IDENTIFIER: {//JSON
-				SQObjectPtr obj = GetTokenObject(_token);
+				obj_id = GetTokenObject(_token);
 				SQInteger next_token = _SC('=');
+				if(isClass)
+                {
+                    CheckClassMemberExists(member_names, obj_id);
+                    bool addClassMember = false;
+                    switch(_token)
+                    {
+                        case _SC('('): //C/C++ style function declaration
+                            Lex();
+                            goto function_params_decl;
+                            break;
+                        case _SC(':'): //typescript field with type annotation
+                            if(membertypename)
+                            {
+                                Error(_SC("member type already declared before %s"), _stringval(obj_id));
+                            }
+                            Lex();
+                            type_name = ExpectTypeToken();
+                            addClassMember = true;
+                            break;
+                        case _SC(';'): //member variable declaration without explicit initialization
+                            Lex();
+                            addClassMember = true;
+                            break;
+                    }
+                    if(addClassMember)
+                    {
+                        _fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(obj_id));
+                        _fs->AddInstruction(_OP_LOADNULLS, _fs->PushTarget(), 1);
+                        break;
+                    }
+				}
 				if(_token == _SC(':')){
-					if(isClass){
-						//class field with type annotation
-						Lex();
-						type_name = ExpectTypeToken();
-						_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(obj));
-						_fs->AddInstruction(_OP_LOADNULLS, _fs->PushTarget(), 1);
-						break;
-					}
-					else
-					{
-						next_token = _token;
-					}
+					next_token = _token;
 				}
 				Expect(next_token);
-				_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(obj));
+				_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(obj_id));
 				Expression();
 				break;
 			}
+            CASE_TK_LOCAL_TYPES: //class member variables;
+                if(isClass)
+                {
+                    membertypename = _lex.GetTokenName(_token);
+                    Lex();
+                    goto member_has_type;
+                }
+                //else fallthrough
 			default :
 				ErrorIfNotToken(TK_IDENTIFIER);
 			}
@@ -1360,6 +1419,7 @@ public:
 			varname = Expect(TK_IDENTIFIER);
 			CheckLocalNameScope(varname, _scope.nested);
 			Expect(_SC('('));
+function_params_decl:
 #if 1 //doing this way works but prevents garbage collection when doing multiple reloads on the same vm
 			//the following is an attempt to allow local declared functions be called recursivelly
 			SQInteger old_pos = _fs->GetCurrentPos(); //save current instructions position
@@ -1389,7 +1449,12 @@ public:
 		    }
 			varname = Expect(TK_IDENTIFIER);
 			CheckLocalNameScope(varname, _scope.nested);
-			if(_token == _SC('=')) {
+			if(_token == _SC('(')) {
+                //C/C++ style function declaration
+                Lex();
+                goto function_params_decl;
+			}
+			else if(_token == _SC('=')) {
 				Lex(); Expression();
 				SQInteger src = _fs->PopTarget();
 				SQInteger dest = _fs->PushTarget();
@@ -1898,8 +1963,22 @@ error:
 	{
 		SQInteger base = -1;
 		SQInteger attrs = -1;
-		if(_token == TK_EXTENDS) {
-			Lex(); Expression();
+		bool hasInheritance = false;
+		switch(_token)
+		{
+        case _SC(':'): //C++ style class derivation
+        case TK_EXTENDS: //squirrel style class derivation
+            Lex();
+            hasInheritance = true;
+            switch(_token)
+            {
+            case TK_PRIVATE:
+            case TK_PUBLIC:
+            Lex(); //ignore, accepted only to compile a subset of C++
+            }
+		}
+		if(hasInheritance) {
+			Expression();
 			base = _fs->TopTarget();
 		}
 		if(_token == TK_ATTR_OPEN) {
@@ -1966,8 +2045,10 @@ error:
 		funcstate->_sourcename = _sourcename;
 		SQInteger defparams = 0;
 		SQInteger is_reference = 0;
+		const SQChar *param_type_name = 0;
 		while(_token!=_SC(')')) {
 			is_reference = 0; //reset is_reference
+			param_type_name = 0; //rest for each parameter
 			if(_token == TK_VARPARAMS) {
 				if(defparams > 0) Error(_SC("function with default parameters cannot have variable number of parameters"));
 				funcstate->AddParameter(_fs->CreateString(_SC("vargv")), _scope.nested+1);
@@ -1981,8 +2062,18 @@ error:
 					is_reference = 1;
 					Lex();
 				}
+				switch(_token)
+				{
+				    CASE_TK_LOCAL_TYPES: //accept C/C++ type parameter declarations
+				        param_type_name = _lex.GetTokenName(_token);
+				        Lex();
+				}
 				paramname = Expect(TK_IDENTIFIER);
 				funcstate->AddParameter(paramname, _scope.nested+1, is_reference ? _VAR_REFERENCE : _VAR_ANY);
+				if(param_type_name)
+                {
+                    funcstate->AddParameterTypeName(param_type_name);
+                }
 				if(_token == _SC('=')) {
 					if(is_reference) Error(_SC("parameter passed by reference can't have default value"));
 					Lex();
@@ -1992,18 +2083,22 @@ error:
 					funcstate->AddDefaultParam(_fs->TopTarget()+stack_offset);
 					defparams++;
 				}
-			else if(_token == _SC(':')){
-				//param type specifier like typescript
-				Lex();
-				type_name = ExpectTypeToken();
-				funcstate->AddParameterTypeName(type_name);
-				//printf("%d %s\n", __LINE__, _stringval(type_name));
-			}
-			else {
-				if(defparams > 0) Error(_SC("expected '='"));
-			}
-			if(_token == _SC(',')) Lex();
-				else if(_token != _SC(')')) Error(_SC("expected ')' or ','"));
+                else if(_token == _SC(':')){
+                    //param type specifier like typescript
+                    if(param_type_name)
+                    {
+                        Error(_SC("parameter type already declared before %s"), _string(paramname));
+                    }
+                    Lex();
+                    type_name = ExpectTypeToken();
+                    funcstate->AddParameterTypeName(type_name);
+                    //printf("%d %s\n", __LINE__, _stringval(type_name));
+                }
+                else {
+                    if(defparams > 0) Error(_SC("expected '='"));
+                }
+                if(_token == _SC(',')) Lex();
+                    else if(_token != _SC(')')) Error(_SC("expected ')' or ','"));
 			}
 		}
 		Expect(_SC(')'));
