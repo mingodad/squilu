@@ -61,6 +61,10 @@ typedef INT64 int64_t;
 #elif defined(__BSD__)
     #include <sys/types.h>
     #include <sys/endian.h>
+#elif defined(__APPLE__)
+    #include <sys/types.h>
+    #include <sys/_endian.h>
+    #define be64toh(val) ntohll(val)
 #else
     #include <endian.h>
     // Android compatibility
