@@ -28,7 +28,7 @@ static const SQChar SSL_Tag[]   = _SC("sq_axtls_ssl");
 #define GET_ssl_INSTANCE() SQ_GET_INSTANCE(v, 1, SSL, SSL_Tag) \
     if(self == NULL) return sq_throwerror(v, _SC("ssl object already closed"));
 
-static SQRESULT ssl_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT ssl_release_hook(SQUserPointer p, SQInteger size, void *ep)
 {
     SSL *self = (SSL*)p;
     if(self) ssl_free(self);
@@ -240,7 +240,7 @@ static SQRESULT sq_axtls_get_error(HSQUIRRELVM v){
 	return 1;
 }
 
-static SQRESULT ssl_ctx_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT ssl_ctx_release_hook(SQUserPointer p, SQInteger size, void *ep)
 {
     SSL_CTX *self = (SSL_CTX*)p;
     if(self) ssl_ctx_free(self);
