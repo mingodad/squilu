@@ -89,10 +89,6 @@ hello|
 </tbody>
 </table>'
 
-  a  |  b
-----:|:-----
-hello|sailor
-
 try 'two-column table with alignment' \
     '
   a  |  b
@@ -101,14 +97,14 @@ hello|sailor' \
     '<table>
 <thead>
 <tr>
-<th align="right">a  </th>
-<th align="left">  b</th>
+<th style="text-align:right;">a  </th>
+<th style="text-align:left;">  b</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td align="right">hello</td>
-<td align="left">sailor</td>
+<td style="text-align:right;">hello</td>
+<td style="text-align:left;">sailor</td>
 </tr>
 </tbody>
 </table>'
@@ -253,6 +249,28 @@ try "table with flanking |'s" \
 </tr>
 </tbody>
 </table>'
+
+try "table with leading |'s and alignment" \
+'|AA|BB|CC
+|:-|::|-:
+|aa|bb|cc' \
+'<table>
+<thead>
+<tr>
+<th style="text-align:left;">AA</th>
+<th style="text-align:center;">BB</th>
+<th style="text-align:right;">CC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">aa</td>
+<td style="text-align:center;">bb</td>
+<td style="text-align:right;">cc</td>
+</tr>
+</tbody>
+</table>'
+
 
 summary $0
 exit $rc

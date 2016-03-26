@@ -38,11 +38,6 @@ can [see the source for it by adding '.text' to the URL][src].
 
 * * *
 
-Header 1            {#header1}
-========
-
-## Header 2 ##      {#header2}
-
 <h2 id="overview">Overview</h2>
 
 <h3 id="philosophy">Philosophy</h3>
