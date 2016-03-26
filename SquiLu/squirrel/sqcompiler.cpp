@@ -129,6 +129,7 @@ public:
 		_scope.nested = 0;
 		_compilererror = NULL;
         _globals = SQTable::Create(_ss(_vm),0);
+        _type_names = SQTable::Create(_ss(_vm),0);
         _max_nested_includes = max_nested_includes;
         _nested_includes_count = 0;
 	}
@@ -159,6 +160,15 @@ public:
 		va_start(vl, s);
 		scvfprintf(stderr, s, vl);
 		va_end(vl);
+	}
+
+	bool CheckTypeName(const SQObject &name, bool addIfNotExists=false){
+	    bool found = _table(_type_names)->Exists(name);
+	    if(addIfNotExists && !found) {
+	        SQObjectPtr oname = name, otrue = true;
+	        _table(_type_names)->NewSlot(oname, otrue);
+	    }
+	    return found;
 	}
 
 	void CheckGlobalName(const SQObject &name, bool addIfNotExists=false, bool checkLocals=true){
@@ -484,6 +494,7 @@ public:
 	}
 	void Statement(bool closeframe = true)
 	{
+	    SQObject id;
 		_fs->AddLineInfos(_lex._currentline, _lineinfo);
     start_again:
 		switch(_token){
@@ -586,7 +597,7 @@ public:
 		case TK_CONST:
 			{
 			Lex();
-			SQObject id = Expect(TK_IDENTIFIER);
+			id = Expect(TK_IDENTIFIER);
 			Expect('=');
 			SQObjectPtr strongid = id;
 			CheckLocalNameScope(id, _scope.nested);
@@ -600,6 +611,14 @@ public:
 		case TK_PRAGMA:
 		    Pragma();
 		    break;
+
+        case TK_IDENTIFIER:
+            id = _fs->CreateString(_lex._svalue);
+            if(CheckTypeName(id)) //C/C++ type declaration;
+            {
+                LocalDeclStatement();
+                break;
+            }
 
 		default:
 			CommaExpr();
@@ -1783,6 +1802,7 @@ if(color == "yellow"){
 		if(_token == TK_IDENTIFIER) {
 		    SQObjectPtr str = SQString::Create(_ss(_vm), _lex._svalue);
 		    CheckGlobalName(str, true);
+            CheckTypeName(str, true); //to allow C/C++ style instance declarations
 		}
 		es = _es;
 		_es.donot_get = true;
@@ -2171,6 +2191,7 @@ private:
 	SQVM *_vm;
 	SQObjectPtrVec _scope_consts;
 	SQObjectPtr _globals;
+	SQObjectPtr _type_names; //to allow C/C++ style instance declarations
 	SQChar error_buf[MAX_COMPILER_ERROR_LEN];
 	SQInteger _max_nested_includes, _nested_includes_count;
 };

@@ -25,6 +25,17 @@ struct Person //struct is handled internally as a class
 	int32_t weight;
 };
 
+Person person;
+
+Person checkCredit(int64_t id)
+{
+	Person p = Person();
+	p.name = "Bert";
+	return p;
+}
+
+print(checkCredit(12).name);
+
 class BaseVector {
 	constructor(...)
 	{
@@ -75,7 +86,7 @@ local v2 = v0 + v1;
 v2.Print();
 print(v2.isEmpty());
 
-local v4 = Vector4();
+Vector4 v4 = Vector4();
 print(v4.isFull());
 
 FakeNamespace <- {
