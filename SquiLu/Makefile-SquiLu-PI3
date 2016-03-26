@@ -29,6 +29,7 @@ CFLAGS = $(INC) -O3 -Wall -fno-strict-aliasing  \
     -DSQLITE_ENABLE_EXTENSION_FUNCTIONS=1 \
     -DSQLITE_ENABLE_FTS3_PARENTHESIS=1 \
     -DSQLITE_ENABLE_FTS4=1 \
+    -DSQLITE_ENABLE_FTS5=1 \
     -DSQLITE_ENABLE_RTREE=1 \
     -DSQLITE_ENABLE_STAT4=1 \
     -DSQLITE_ENABLE_UNLOCK_NOTIFY=1 \
@@ -53,7 +54,8 @@ CFLAGS = $(INC) -O3 -Wall -fno-strict-aliasing  \
     -DWITH_MYSQL2=1 \
     -DWITH_POSTGRESQL2=1 \
     -DWITH_UUID=1 \
-    -DSC_USE_MKSTEMP=1
+    -DSQ_USE_MKSTEMP=1 \
+    -DSQ_USE_LOCALTIME_R=1
 
 RESINC = 
 #LIBDIR =  -Llib -L../myaxtls -L../mpdecimal -L../discount
@@ -134,6 +136,6 @@ OBJECTS_PROG = $(OBJECTS_PROG_C:.cpp=.o)
 %.o: %.cpp
 	$(CXX) -c -o $@ $< $(CFLAGS)
 	
-squilu: $(OBJECTS)
+squilu: $(OBJECTS_PROG) 
 	$(CXX) $(CFLAGS) -o $@ $(OBJECTS_PROG) $(LIBDIR) $(LDFLAGS)
 	$(AR) rcs libsquilu.a $(OBJECTS)
