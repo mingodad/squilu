@@ -232,7 +232,11 @@ typedef struct SQVM* HSQUIRRELVM;
 typedef SQObject HSQOBJECT;
 typedef SQMemberHandle HSQMEMBERHANDLE;
 typedef SQRESULT (*SQFUNCTION)(HSQUIRRELVM);
+#ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
 typedef SQRESULT (*SQRELEASEHOOK)(SQUserPointer ptr, SQInteger size, HSQUIRRELVM v);
+#else
+typedef SQRESULT (*SQRELEASEHOOK)(SQUserPointer ptr, SQInteger size, void *ep);
+#endif // SQ_WITH_DELAYED_RELEASE_HOOKS
 typedef void (*SQCOMPILERERROR)(HSQUIRRELVM,const SQChar * /*desc*/,const SQChar * /*source*/,SQInteger /*line*/,SQInteger /*column*/);
 typedef void (*SQPRINTFUNCTION)(HSQUIRRELVM,const SQChar * ,...);
 typedef void (*SQDEBUGHOOK)(HSQUIRRELVM /*v*/, SQInteger /*type*/, const SQChar * /*sourcename*/, SQInteger /*line*/, const SQChar * /*funcname*/);

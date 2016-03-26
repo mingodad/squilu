@@ -45,7 +45,7 @@ static SQRESULT get_sqlite3_instance(HSQUIRRELVM v, SQInteger idx, sq_sqlite3_sd
 	if((_rc_ = get_xjd1_stmt_instance(v,1,&self)) < 0) return _rc_;
 
 
-static SQRESULT sq_xjd1_stmt_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT sq_xjd1_stmt_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
     xjd1_stmt *stmt = ((xjd1_stmt *)p);
     if(stmt) xjd1_stmt_delete(stmt);
@@ -132,19 +132,23 @@ static SQRESULT sq_xjd1_close_release(HSQUIRRELVM v, xjd1 *db)
     SQRESULT rc = SQ_ERROR;
     if(db)
     {
-        if(xjd1_close(db) == XJD1_OK)
+        int close_rc = xjd1_close(db) == XJD1_OK;
+        if(!v || (v && close_rc))
         {
             rc = SQ_OK;
         }
-        else return sq_throwerror(v, xjd1_errmsg(db));
+        else
+        {
+            if(v) return sq_throwerror(v, xjd1_errmsg(db));
+        }
     }
     return rc;
 }
 
-static SQRESULT sq_xjd1_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT sq_xjd1_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
     xjd1 *db = ((xjd1 *)p);
-    sq_xjd1_close_release(v, db);
+    sq_xjd1_close_release(0, db);
     return 0;
 }
 

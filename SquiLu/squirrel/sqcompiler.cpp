@@ -100,7 +100,8 @@ struct SQScope {
 		CASE_TK_LOCAL_INT_TYPES: \
 		case TK_LOCAL_BOOL_T: \
 		case TK_LOCAL_TABLE_T: \
-		case TK_LOCAL_ARRAY_T
+		case TK_LOCAL_ARRAY_T: \
+		case TK_LOCAL_VOIDPTR_T
 
 static SQInteger compilerReadFunc(SQUserPointer fp)
 {
@@ -545,6 +546,7 @@ public:
 			FunctionStatement();
 			break;
 		case TK_CLASS:
+		case TK_STRUCT:
 			ClassStatement();
 			break;
 		case TK_ENUM:
@@ -1146,6 +1148,7 @@ public:
 			break;
 		case TK_FUNCTION: FunctionExp(_token);break;
 		case _SC('@'): FunctionExp(_token,true);break;
+		case TK_STRUCT:
 		case TK_CLASS: Lex(); ClassExp();break;
 		case _SC('-'):
 			Lex();
@@ -1817,6 +1820,7 @@ if(color == "yellow"){
 		return tk_type;
 error:
         Error(_SC("constant or scalar expected : integer, float or string"));
+        return 0;
 	}
 	void EnumStatement()
 	{

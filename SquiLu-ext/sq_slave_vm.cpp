@@ -119,7 +119,7 @@ static SQRESULT sq_slave_vm__tostring (HSQUIRRELVM v)
     return 1;
 }
 
-static SQRESULT sq_slave_vm_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT sq_slave_vm_release_hook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
     HSQUIRRELVM self = (HSQUIRRELVM)p;
     if(self) sq_close(self);

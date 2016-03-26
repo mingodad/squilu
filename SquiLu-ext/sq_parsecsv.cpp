@@ -97,7 +97,7 @@ std::vector<std::string> CsvGetLine(std::istream& is,
 
 static const SQChar sq_parse_csv_TAG[] = _SC("ParseCSV");
 
-static SQRESULT sq_parse_csv_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v) {
+static SQRESULT sq_parse_csv_release_hook(SQUserPointer p, SQInteger size, void */*ep*/) {
     std::ifstream *self = (std::ifstream *)p;
     if(self) delete self;
     return 0;

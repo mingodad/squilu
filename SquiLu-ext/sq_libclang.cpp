@@ -203,7 +203,7 @@ static void release_visitor_cb(MyLibClang *self)
     sq_resetobject(&self->visitor_cb);
 }
 
-static SQRESULT sq_libclang_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT sq_libclang_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	MyLibClang *self = ((MyLibClang *)p);
 	if (self)

@@ -280,7 +280,7 @@ static SQRESULT sq_sqlite3_stmt_prepare_aux(HSQUIRRELVM v, sqlite3 *db, sqlite3_
     return SQ_OK;
 }
 
-static SQRESULT sq_sqlite3_stmt_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT sq_sqlite3_stmt_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
     sqlite3_stmt *stmt = ((sqlite3_stmt *)p);
     if(stmt) sqlite3_finalize(stmt);
@@ -1439,7 +1439,8 @@ static SQRESULT sq_sqlite3_close_release(HSQUIRRELVM v, sq_sqlite3_sdb *sdb)
         if (count) return sq_throwerror(v, _SC("closing database with %d statements not closed."), count);
         */
 
-        if(sqlite3_close_v2(db) == SQLITE_OK)
+        int close_rc = sqlite3_close_v2(db) == SQLITE_OK;
+        if(!v || (v && close_rc))
         {
             rc = SQ_OK;
 
@@ -1479,15 +1480,18 @@ static SQRESULT sq_sqlite3_close_release(HSQUIRRELVM v, sq_sqlite3_sdb *sdb)
 
             sq_free(sdb, sizeof(sq_sqlite3_sdb));
         }
-        else return sq_throwerror(v, sqlite3_errmsg(db));
+        else
+        {
+            if(v) return sq_throwerror(v, sqlite3_errmsg(db));
+        }
     }
     return rc;
 }
 
-static SQRESULT sq_sqlite3_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT sq_sqlite3_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
     sq_sqlite3_sdb *sdb = ((sq_sqlite3_sdb *)p);
-    sq_sqlite3_close_release(v, sdb);
+    sq_sqlite3_close_release(0, sdb);
     return 0;
 }
 
@@ -2186,7 +2190,7 @@ typedef struct
 
 static const SQChar sq_sqlite3_context_TAG[]  = _SC(":sqlite3:ctx");
 
-static SQRESULT sq_sqlite3_context_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT sq_sqlite3_context_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
     sq_sqlite3_context_st *ctx = ((sq_sqlite3_context_st *)p);
     /* 'free' all references */

@@ -130,7 +130,7 @@ CREATE_TAG(Flu_Combo_Box);
 CREATE_TAG(Flu_Combo_List);
 CREATE_TAG(Flu_Combo_Tree);
 
-static SQRESULT _fl_widget_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT _fl_widget_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	Fl_Widget *self = ((Fl_Widget *)p);
     //printf("Releasing %p %p %s\n", self, (self ? self->parent() : NULL),(self && ((void*)self->label()) ? self->label() : "l?"));
@@ -2677,7 +2677,7 @@ static SQRegFunction fl_hold_browser_obj_funcs[]={
 #undef _DECL_FUNC
 
 
-static SQRESULT _Fl_Image_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT _Fl_Image_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	Fl_Image *self = ((Fl_Image *)p);
 	delete self;
@@ -2868,7 +2868,7 @@ static SQRegFunction fl_png_image_obj_funcs[]={
 };
 #undef _DECL_FUNC
 
-static SQRESULT _Fl_Text_Buffer_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT _Fl_Text_Buffer_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	Fl_Text_Buffer *self = ((Fl_Text_Buffer *)p);
 	delete self;
@@ -3485,7 +3485,7 @@ static SQRegFunction fl_paged_device_obj_funcs[]={
 
 #define SETUP_FL_PDF_FILE_DEVICE(v) SETUP_FL_KLASS(v, Fl_Pdf_File_Device)
 
-static SQRESULT _Fl_Pdf_File_Device_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT _Fl_Pdf_File_Device_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	Fl_Pdf_File_Device *self = ((Fl_Pdf_File_Device *)p);
 	delete self;
@@ -3570,7 +3570,7 @@ static SQRegFunction fl_postscript_file_device_obj_funcs[]={
 #undef _DECL_FUNC
 
 
-static SQRESULT _Fl_File_Chooser_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT _Fl_File_Chooser_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	Fl_File_Chooser *self = ((Fl_File_Chooser *)p);
 	delete self;
@@ -3599,7 +3599,7 @@ static SQRegFunction fl_file_chooser_obj_funcs[]={
 };
 #undef _DECL_FUNC
 
-static SQRESULT _Fl_Native_File_Chooser_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT _Fl_Native_File_Chooser_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	Fl_Native_File_Chooser *self = ((Fl_Native_File_Chooser *)p);
 	delete self;
@@ -3858,6 +3858,18 @@ static SQRESULT _fl_get_font_name(HSQUIRRELVM v)
     return 1;
 }
 
+static SQRESULT _fl_wait(HSQUIRRELVM v)
+{
+    if(sq_gettop(v) > 1)
+    {
+        SQFloat delay;
+        sq_getfloat(v, 2, &delay);
+        sq_pushinteger(v, Fl::wait(delay));
+    }
+    else sq_pushinteger(v, Fl::wait());
+    return 1;
+}
+
 static SQRESULT _fl_focus(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
@@ -3982,6 +3994,7 @@ static SQRESULT _fl_preferences_flush(HSQUIRRELVM v)
 static SQRegFunction fl_obj_funcs[]={
 	_DECL_FUNC(check,1,_SC("y"),SQTrue),
 	_DECL_FUNC(run,1,_SC("y"),SQTrue),
+	_DECL_FUNC(wait,-1,_SC("yf"),SQTrue),
 	_DECL_FUNC(event,1,_SC("y"),SQTrue),
 	_DECL_FUNC(event_alt,1,_SC("y"),SQTrue),
 	_DECL_FUNC(event_button,1,_SC("y"),SQTrue),
@@ -4382,7 +4395,7 @@ static SQRESULT _fl_globals_fl_preferences(HSQUIRRELVM v)
 
 static int fl_cursor_wait_count = 0;
 static const SQChar fl_cursor_wait_TAG[] = _SC("fl_cursor_wait");
-static SQRESULT fl_cursor_wait_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT fl_cursor_wait_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	if (--fl_cursor_wait_count == 0) fl_cursor(FL_CURSOR_DEFAULT);
 	return 0;

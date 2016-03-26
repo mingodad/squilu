@@ -25,7 +25,7 @@ struct SQUserData : SQDelegable
 #endif
 	void Release() {
 		if (_hook) {
-#ifndef NO_GARBAGE_COLLECTOR
+#if !defined(NO_GARBAGE_COLLECTOR) && defined(SQ_WITH_DELAYED_RELEASE_HOOKS)
 		    _sharedstate->AddDelayedReleaseHook(_hook, (SQUserPointer)sq_aligning(this + 1), _size);
 #else
 		    _hook((SQUserPointer)sq_aligning(this + 1),_size, 0);

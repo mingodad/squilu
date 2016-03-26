@@ -19,7 +19,7 @@ static const SQChar sq_minizip_unzip_TAG[] = _SC("sq_minizip_unzip_tag");
     if(!Var) return sq_throwerror(v, _SC("miniz_ziparchive already destroyed"));
 #define GET_minizip_unzip_INSTANCE() GET_minizip_unzip_INSTANCE_VAR_AT(1, self)
 
-static SQRESULT sq_minizip_unzip_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT sq_minizip_unzip_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	unzFile self = ((unzFile)p);
 	if(self) {

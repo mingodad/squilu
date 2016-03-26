@@ -340,7 +340,7 @@ static SQRESULT get_pgsql_result_instance(HSQUIRRELVM v, SQInteger idx, PGresult
 
 #define GET_pgsql_result_INSTANCE() GET_pgsql_result_INSTANCE_AT(1)
 
-static SQRESULT sq_pgsql_result_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT sq_pgsql_result_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	PGresult *self = ((PGresult *)p);
 	if (self) dlPQclear(self);
@@ -516,7 +516,7 @@ static SQRESULT get_pgsql_statement_instance(HSQUIRRELVM v, SQInteger idx, PgSql
 
 #define GET_pgsql_statement_INSTANCE() GET_pgsql_statement_INSTANCE_AT(1)
 
-static SQRESULT sq_pgsql_statement_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT sq_pgsql_statement_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	PgSqlStatement *self = ((PgSqlStatement *)p);
 	if (self){
@@ -779,7 +779,7 @@ static SQRegFunction sq_pgsql_statement_methods[] =
 };
 #undef _DECL_FUNC
 
-static SQRESULT sq_pgsql_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT sq_pgsql_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	PGconn *self = ((PGconn *)p);
 	if (self) dlPQfinish(self);

@@ -305,7 +305,7 @@ static SQRESULT _system_exit (HSQUIRRELVM v) {
 #include <unistd.h>
 #define SQ_TMPNAMBUFSIZE	32
 #define sq_tmpnam(b,e)	{ \
-	strcpy(b, "/tmp/lua_XXXXXX"); \
+	strcpy(b, "/tmp/sq_XXXXXX"); \
 	e = mkstemp(b); \
 	if (e != -1) close(e); \
 	e = (e == -1); }

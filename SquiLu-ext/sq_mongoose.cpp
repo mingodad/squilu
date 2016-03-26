@@ -83,7 +83,7 @@ static const SQChar sq_http_request_TAG[] = "HttpRequest";
     struct mg_connection *conn; \
     if((_rc_ = sq_getinstanceup(v,1,(SQUserPointer*)&conn,(void*)sq_http_request_TAG)) < 0) return _rc_;
 
-static SQRESULT sq_http_request_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT sq_http_request_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	return 1;
 }
@@ -164,7 +164,7 @@ sq_http_request_read(HSQUIRRELVM v)
         blob = new SQBlob(0, rlen);
     }
 
-    if (rlen > n) rlen = n;  /* cannot read more than asked */
+    if (((ssize_t)rlen) > n) rlen = n;  /* cannot read more than asked */
     char *p = sq_getscratchpad(v,rlen);
     do {
         //there is a bug in axtls that can return a number bigger than the actual bytes transfered
@@ -670,7 +670,7 @@ static void sq_mongoose_release_references(SQ_Mg_Context *self){
     SQ_MG_Callback_free(self->user_callback_exit);
 }
 
-static SQRESULT sq_mongoose_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT sq_mongoose_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
     SQ_Mg_Context *self = (SQ_Mg_Context *)p;
     if(self){

@@ -16,7 +16,7 @@ static const SQChar sq_context_static[] = _SC("context");
 #define GET_Decimal_INSTANCE2(v, idx) SQ_GET_INSTANCE_VAR(v, idx, mpd_t, dec2, sq_decimal_TAG)
 
 
-static SQRESULT sq_DecimalCtx_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v) {
+static SQRESULT sq_DecimalCtx_release_hook(SQUserPointer p, SQInteger size, void */*ep*/) {
     mpd_context_t *ctx = (mpd_context_t *)p;
     if(ctx) sq_free(ctx, sizeof(mpd_context_t));
     return 0;
@@ -232,7 +232,7 @@ static SQRESULT sq_Decimal_set_from(HSQUIRRELVM v, SQInteger idx, mpd_context_t 
     return SQ_OK;
 }
 
-static SQRESULT sq_Decimal_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v) {
+static SQRESULT sq_Decimal_release_hook(SQUserPointer p, SQInteger size, void */*ep*/) {
     mpd_t *dec = (mpd_t *)p;
     if(dec) mpd_del(dec);
     return 0;

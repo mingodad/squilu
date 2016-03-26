@@ -21,6 +21,7 @@ struct sq_lexer_st
     SQLexer *lex;
     HSQOBJECT source;
     SQStrBufState buf;
+    HSQUIRRELVM vm;
 };
 
 static const SQChar SQLEXER_Tag[]   = _SC("sq_SQLexer_ctx");
@@ -28,12 +29,12 @@ static const SQChar SQLEXER_Tag[]   = _SC("sq_SQLexer_ctx");
 	if(self == NULL) return sq_throwerror(v, _SC("SQLexer object already closed"));
 
 
-static SQRESULT SQLexer_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT SQLexer_release_hook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	sq_lexer_st *self = (sq_lexer_st*)p;
 	if(self && self->lex)
     {
-        sq_release(v, &self->source);
+        sq_release(self->vm, &self->source);
         self->lex->~SQLexer();
         sq_free(self->lex, sizeof(SQLexer));
         self->lex = NULL;
@@ -55,6 +56,7 @@ static SQRESULT sq_SQLexer_constructor(HSQUIRRELVM v){
     self->buf.buf = src;
     self->buf.ptr = 0;
     self->buf.size = src_size;
+    self->vm = v;
     self->lex->Init(v->_sharedstate, sq_strbuf_lexfeed, &self->buf, NULL, NULL);
 
     sq_setinstanceup(v, 1, self);

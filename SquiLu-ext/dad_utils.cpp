@@ -117,6 +117,7 @@ static SQRESULT sq_osGridToLatLong(HSQUIRRELVM v)
     return 1;
 }
 
+#ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
 typedef struct {
     HSQOBJECT func_to_call;
     HSQOBJECT param;
@@ -166,6 +167,14 @@ static SQRESULT gc_scope_alert_constructor(HSQUIRRELVM v)
     return 1;
 }
 
+#define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  gc_scope_alert_##name,nparams,tycheck}
+static SQRegFunction gc_scope_alert_methods[] =
+{
+	_DECL_FUNC(constructor,  -2, _SC("xc.")),
+	{0,0}
+};
+#endif // SQ_WITH_DELAYED_RELEASE_HOOKS
+
 static SQRESULT spectralnorm_A(HSQUIRRELVM v)
 {
 	SQ_FUNC_VARS_NO_TOP();
@@ -175,13 +184,6 @@ static SQRESULT spectralnorm_A(HSQUIRRELVM v)
 	sq_pushfloat(v, 1.0/(ij * (ij+1)/2.0+i));
     return 1;
 }
-
-#define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  gc_scope_alert_##name,nparams,tycheck}
-static SQRegFunction gc_scope_alert_methods[] =
-{
-	_DECL_FUNC(constructor,  -2, _SC("xc.")),
-	{0,0}
-};
 
 
 #ifdef __cplusplus
@@ -198,13 +200,13 @@ extern "C" {
 
     	sq_insertfunc(v, _SC("spectralnorm_A"), spectralnorm_A, 3, _SC(".ii"), true);
 
-
+#ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
         sq_pushstring(v,gc_scope_alert_TAG,-1);
         sq_newclass(v,SQFalse);
         sq_settypetag(v,-1,(void*)gc_scope_alert_TAG);
         sq_insert_reg_funcs(v, gc_scope_alert_methods);
         sq_rawset(v,-3);
-
+#endif // SQ_WITH_DELAYED_RELEASE_HOOKS
         sq_rawset(v,-3);//insert dad_utils
         return 1;
     }

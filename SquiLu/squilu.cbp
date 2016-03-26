@@ -882,6 +882,7 @@
 			<Add option="-DSQLITE_ENABLE_COLUMN_METADATA=1" />
 			<Add option="-DSQLITE_ENABLE_EXTENSION_FUNCTIONS=1" />
 			<Add option="-DSQLITE_ENABLE_FTS4=1" />
+			<Add option="-DSQLITE_ENABLE_FTS5=1" />
 			<Add option="-DSQLITE_ENABLE_FTS3_PARENTHESIS=1" />
 			<Add option="-DSQLITE_ENABLE_UNLOCK_NOTIFY=1" />
 			<Add option="-DSQLITE_ENABLE_RTREE=1" />

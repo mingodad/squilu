@@ -88,6 +88,7 @@ SQTable * SQLexer::GetKeywords()
 	ADD_KEYWORD(float_t, TK_LOCAL_FLOAT_T);
 	ADD_KEYWORD(double_t, TK_LOCAL_DOUBLE_T);
 	ADD_KEYWORD(long_double_t, TK_LOCAL_LONG_DOUBLE_T);
+	ADD_KEYWORD(void_ptr_t, TK_LOCAL_VOIDPTR_T);
 
 	ADD_KEYWORD(for, TK_FOR);
 	ADD_KEYWORD(foreach, TK_FOREACH);
@@ -106,6 +107,7 @@ SQTable * SQLexer::GetKeywords()
 	ADD_KEYWORD(default, TK_DEFAULT);
 	ADD_KEYWORD(this, TK_THIS);
 	ADD_KEYWORD(class,TK_CLASS);
+	ADD_KEYWORD(struct,TK_STRUCT);
 	ADD_KEYWORD(extends,TK_EXTENDS);
 	ADD_KEYWORD(constructor,TK_CONSTRUCTOR);
 	ADD_KEYWORD(destructor,TK_DESTRUCTOR);

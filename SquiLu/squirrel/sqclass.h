@@ -176,7 +176,7 @@ public:
 	void Release() {
 		_uiRef++;
 		if (_hook) {
-#ifndef NO_GARBAGE_COLLECTOR
+#if !defined(NO_GARBAGE_COLLECTOR) && defined(SQ_WITH_DELAYED_RELEASE_HOOKS)
 		    _sharedstate->AddDelayedReleaseHook(_hook, _userpointer, 0);
 #else
 		    _hook(_userpointer,0, 0);

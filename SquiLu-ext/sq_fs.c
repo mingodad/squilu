@@ -458,7 +458,7 @@ static void _dir_close_dir(dir_data *dir)
     dir->closed = 1;
 }
 
-static SQRESULT _dir_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT _dir_releasehook(SQUserPointer p, SQInteger size, void *ep)
 {
 	dir_data *dir = ((dir_data *)p);
 	_dir_close_dir(dir);

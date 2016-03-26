@@ -25,7 +25,9 @@ SQSharedState::SQSharedState()
 	_errorfunc = NULL;
 	_debuginfo = false;
 	_notifyallexceptions = false;
+#ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
 	_already_in_CallDelayedReleaseHooks = false;
+#endif // SQ_WITH_DELAYED_RELEASE_HOOKS
 #ifdef SQ_JIT_LLVM
 	//llvm::StructType::create(
 #endif
@@ -233,6 +235,7 @@ SQInteger SQSharedState::GetMetaMethodIdxByName(const SQObjectPtr &name)
 	return -1;
 }
 
+#ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
 void SQSharedState::AddDelayedReleaseHook(SQRELEASEHOOK hook, SQUserPointer ptr, SQInteger size)
 {
     SQDelayedReleseHook dh;
@@ -260,6 +263,7 @@ void SQSharedState::CallDelayedReleaseHooks(SQVM *vm, int count)
         _already_in_CallDelayedReleaseHooks = false;
     }
 }
+#endif // SQ_WITH_DELAYED_RELEASE_HOOKS
 
 #ifndef NO_GARBAGE_COLLECTOR
 

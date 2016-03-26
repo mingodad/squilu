@@ -1430,8 +1430,10 @@ SQRESULT sq_call(HSQUIRRELVM v,SQInteger params,SQBool retval,SQBool raiseerror)
 
 		if(!v->_suspended) {
 			v->Pop(params);//pop closure and args
+#ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
 			//collect garbage right after function call if any
 			_ss(v)->CallDelayedReleaseHooks(v);
+#endif // SQ_WITH_DELAYED_RELEASE_HOOKS
 		}
 		if(retval){
 			v->Push(res); return SQ_OK;
@@ -1551,8 +1553,10 @@ SQRESULT sq_resurrectunreachable(HSQUIRRELVM v)
 
 SQInteger sq_collectgarbage(HSQUIRRELVM v)
 {
-#ifndef NO_GARBAGE_COLLECTOR
+#ifdef NO_GARBAGE_COLLECTOR
+#ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
     _ss(v)->CallDelayedReleaseHooks(v);
+#endif // SQ_WITH_DELAYED_RELEASE_HOOKS
 	return _ss(v)->CollectGarbage(v);
 #else
 	return -1;

@@ -456,7 +456,7 @@ static SQRegFunction XMLElement_methods[] =
 #undef _DECL_FUNC
 
 
-static SQRESULT sq_XMLDocument_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v) {
+static SQRESULT sq_XMLDocument_release_hook(SQUserPointer p, SQInteger size, void */*ep*/) {
     tinyxml2::XMLDocument *doc = (tinyxml2::XMLDocument *)p;
     if(doc) delete doc;
     return 0;
@@ -673,7 +673,7 @@ static SQRegFunction XMLDocument_methods[] =
 };
 #undef _DECL_FUNC
 
-static SQRESULT sq_XMLPrinter_release_hook(SQUserPointer p, SQInteger size, HSQUIRRELVM v) {
+static SQRESULT sq_XMLPrinter_release_hook(SQUserPointer p, SQInteger size, void */*ep*/) {
     tinyxml2::XMLPrinter *printer = (tinyxml2::XMLPrinter *)p;
     if(printer) delete printer;
     return 0;

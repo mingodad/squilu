@@ -93,8 +93,10 @@ public:
 #ifndef NO_GARBAGE_COLLECTOR
 	SQCollectable *_gc_chain;
 #endif
+#ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
     void AddDelayedReleaseHook(SQRELEASEHOOK hook, SQUserPointer ptr, SQInteger size);
     void CallDelayedReleaseHooks(SQVM *vm, int count=0);
+#endif // SQ_WITH_DELAYED_RELEASE_HOOKS
 	SQObjectPtr _root_vm;
 	SQObjectPtr _table_default_delegate_squirrel;
 	static SQRegFunction _table_default_delegate_squirrel_funcz[];
@@ -125,8 +127,10 @@ public:
 	bool _debuginfo;
 	bool _notifyallexceptions;
 private:
+#ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
     bool _already_in_CallDelayedReleaseHooks;
     sqvector<SQDelayedReleseHook> _delayed_release_hook;
+#endif // SQ_WITH_DELAYED_RELEASE_HOOKS
 	SQChar *_scratchpad;
 	SQInteger _scratchpadsize;
 };

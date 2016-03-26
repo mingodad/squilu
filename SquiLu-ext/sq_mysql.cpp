@@ -251,7 +251,7 @@ static SQRESULT get_mysql_result_instance(HSQUIRRELVM v, SQInteger idx, MYSQL_RE
 
 #define GET_mysql_result_INSTANCE() GET_mysql_result_INSTANCE_AT(1)
 
-static SQRESULT sq_mysql_result_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT sq_mysql_result_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	MYSQL_RES *self = ((MYSQL_RES *)p);
 	if (self) dlmysql_free_result(self);
@@ -456,7 +456,7 @@ static SQRESULT get_mysql_statement_instance(HSQUIRRELVM v, SQInteger idx, MYSQL
 
 #define GET_mysql_statement_INSTANCE() GET_mysql_statement_INSTANCE_AT(1)
 
-static SQRESULT sq_mysql_statement_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT sq_mysql_statement_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	MYSQL_STMT *self = ((MYSQL_STMT *)p);
 	if (self) dlmysql_stmt_close(self);
@@ -615,7 +615,7 @@ static SQRegFunction sq_mysql_statement_methods[] =
 };
 #undef _DECL_FUNC
 
-static SQRESULT sq_mysql_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT sq_mysql_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	MYSQL *self = ((MYSQL *)p);
 	if (self) dlmysql_close(self);

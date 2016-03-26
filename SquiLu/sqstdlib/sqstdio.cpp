@@ -122,7 +122,7 @@ static SQRESULT _file__typeof(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQRESULT _file_releasehook(SQUserPointer p, SQInteger /*size*/, HSQUIRRELVM /*v*/)
+static SQRESULT _file_releasehook(SQUserPointer p, SQInteger /*size*/, void */*ep*/)
 {
 	SQFile *self = (SQFile*)p;
 	self->~SQFile();

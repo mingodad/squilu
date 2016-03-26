@@ -952,7 +952,7 @@ static SQRESULT tcp_meth_dirty(HSQUIRRELVM v)
 /*-------------------------------------------------------------------------*\
 * Creates a master tcp object
 \*-------------------------------------------------------------------------*/
-static SQRESULT tcp_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT tcp_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	p_tcp tcp = (p_tcp)p;
 	if(tcp) {
@@ -1386,7 +1386,7 @@ static SQRESULT udp_meth_setsockname(HSQUIRRELVM v) {
 /*-------------------------------------------------------------------------*\
 * Creates a master udp object
 \*-------------------------------------------------------------------------*/
-static SQRESULT udp_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT udp_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	p_udp udp = (p_udp)p;
 	if(udp) {
@@ -1472,7 +1472,7 @@ static const SQChar SQ_unix_TAG[] = _SC("sq_unix_socket");
 /*-------------------------------------------------------------------------*\
 * Creates a master unix object
 \*-------------------------------------------------------------------------*/
-static SQRESULT unix_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT unix_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	p_unix unix_sock = (p_unix)p;
 	if(unix_sock) {

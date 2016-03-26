@@ -237,7 +237,7 @@ static SQInteger sq_func__call(HSQUIRRELVM v)
     int top = sq_gettop(v);
 //    printf("ffibuf %p top %d\n", ffibuf, top);
 
-    if (ffibuf->cif.nargs != (top - EXTRA_PARAMS))
+    if (ffibuf->cif.nargs != ((unsigned)(top - EXTRA_PARAMS)))
         return sq_throwerror(v, "Wrong number of args");
 
     SQInteger values[top - EXTRA_PARAMS];

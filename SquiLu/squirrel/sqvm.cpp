@@ -157,7 +157,9 @@ SQVM::SQVM(SQSharedState *ss)
 void SQVM::Finalize()
 {
     CallAtExitHandler();
+#ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
     _sharedstate->CallDelayedReleaseHooks(this);
+#endif
 	if(_openouters) CloseOuters(&_stack._vals[0]);
 	_roottable.Null();
 	_lasterror.Null();
@@ -921,9 +923,9 @@ exception_restore:
 					case OT_NATIVECLOSURE: {
 						bool suspend;
 						_GUARD(CallNative(_nativeclosure(clo), arg3, _stackbase+arg2, clo,suspend));
-
+#ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
 						if(_check_delayed_relase_hooks) _sharedstate->CallDelayedReleaseHooks(this);
-
+#endif
 						if(suspend){
 							_suspended = SQTrue;
 							_suspended_target = sarg0;
@@ -1884,7 +1886,9 @@ void SQVM::LeaveFrame() {
 	ci = (css) ? &_callsstack[css-1] : NULL;
 
 	if(_openouters) CloseOuters(&(_stack._vals[last_stackbase]));
+#ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
 	if(_check_delayed_relase_hooks) _sharedstate->CallDelayedReleaseHooks(this);
+#endif
 }
 #endif
 
