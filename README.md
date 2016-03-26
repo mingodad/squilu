@@ -33,6 +33,7 @@ Also you'll find several changes and additions to the original Squirrel 3.0.4:
   * A XML module based on [https://github.com/leethomason/tinyxml2 tinyxml2].
   * A simple zlib module based on [http://www.zlib.net/ zlib].
   * A rs232 port of [https://github.com/ynezz/librs232 librs232].
+  * A bigger subset of C/C++ language syntax (variable/functions/class/struct declarations)
 
 Changes to the Squirrel syntax:
 

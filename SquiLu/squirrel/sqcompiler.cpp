@@ -74,6 +74,7 @@ struct SQScope {
 					_fs->_breaktargets.pop_back();_fs->_continuetargets.pop_back();}
 
 #define CASE_TK_LOCAL_CHAR_TYPES \
+		case TK_LOCAL_STRING_T: \
 		case TK_LOCAL_CHAR_T: \
 		case TK_LOCAL_WCHAR_T
 
@@ -101,6 +102,7 @@ struct SQScope {
 		case TK_LOCAL_BOOL_T: \
 		case TK_LOCAL_TABLE_T: \
 		case TK_LOCAL_ARRAY_T: \
+		case TK_LOCAL_VOID_T: \
 		case TK_LOCAL_VOIDPTR_T
 
 static SQInteger compilerReadFunc(SQUserPointer fp)
@@ -1485,8 +1487,7 @@ function_params_decl:
 			else{
 			    SQInteger dest = _fs->PushTarget();
 			    switch(declType){
-                    case TK_LOCAL_CHAR_T:
-                    case TK_LOCAL_WCHAR_T:
+                    CASE_TK_LOCAL_CHAR_TYPES:
                         _fs->AddInstruction(_OP_LOADNULLS, dest,1);
                         declType = _VAR_STRING;
                         break;

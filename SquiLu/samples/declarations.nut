@@ -10,6 +10,13 @@ int32_t doIt(int32_t a, char_t b) //C/C++ style declarations
 
 doIt(3, "dad");
 
+void_t sleepOnly(uint16_t sec)
+{
+	print("sleeping", sec);
+}
+
+sleepOnly(12);
+
 class K
 {
 	v1 = 0;
@@ -21,7 +28,7 @@ class K
 struct Person //struct is handled internally as a class
 {
 	int32_t age; //C/C++ style declarations
-	char_t name;
+	string_t name;
 	int32_t weight;
 };
 
