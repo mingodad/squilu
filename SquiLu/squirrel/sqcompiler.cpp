@@ -191,6 +191,14 @@ public:
 	    return found;
 	}
 
+	bool TypesGet(const SQObjectPtr &key,SQObjectPtr &val){
+	    return _table(_type_names)->Get(key,val);
+	}
+
+	bool TypesNewSlot(const SQObjectPtr &key, const SQObjectPtr &val){
+	    return _table(_type_names)->NewSlot(key,val);
+	}
+
 	int CheckExternName(const SQObject &name, bool addIfNotExists=false){
 	    SQObjectPtr orefcount;
 	    int found = _table(_extern_names)->Get(name, orefcount);
@@ -358,6 +366,8 @@ public:
 		case TK_FLOAT:
 			ret = SQObjectPtr(_lex._fvalue);
 			break;
+        default:
+            ret = _fs->CreateString(_lex.GetTokenName(_token));
 		}
 		Lex();
 		return ret;
@@ -562,23 +572,10 @@ public:
 		case TK_FOR:		ForStatement();			break;
 		case TK_FOREACH:	ForEachStatement();		break;
 		case TK_SWITCH:	SwitchStatement();		break;
-		case TK_VOLATILE:
-		    Lex();
-            goto start_again;
-		case TK_STATIC:
-            if(_scope.nested)
-            {
-                Warning(_SC("%s:%d:%d warning static cualifier is ignored\n"),
-                                          _stringval(_sourcename), _lex._currentline, _lex._currentcolumn);
-            }
-            Lex(); //ignore it only to allow run some C/C++ code
-            goto start_again;
 
-        case TK_EXTERN: ExternDeclStatement();	break;
-
-		CASE_TK_LOCAL_TYPES:
+        case TK_LOCAL:
 		//case TK_CONST:
-		case TK_LOCAL:		LocalDeclStatement();	break;
+		CASE_TK_LOCAL_TYPES: LocalDeclStatement();	break;
 		case TK_RETURN:
 		case TK_YIELD: {
 			SQOpcode op;
@@ -670,6 +667,44 @@ public:
 			ConstsNewSlot(strongid,SQObjectPtr(val));
 			}
 			break;
+
+		case TK_VOLATILE:
+		    Lex();
+            goto start_again;
+		case TK_STATIC:
+            if(_scope.nested)
+            {
+                Warning(_SC("%s:%d:%d warning static cualifier is ignored\n"),
+                                          _stringval(_sourcename), _lex._currentline, _lex._currentcolumn);
+            }
+            Lex(); //ignore it only to allow run some C/C++ code
+            goto start_again;
+
+        case TK_EXTERN: ExternDeclStatement();	break;
+
+        case TK_TYPEDEF:
+			{
+			Lex();
+			SQObject type_val = ExpectTypeToken();
+			id = ExpectTypeToken();
+			SQObjectPtr strongid = id;
+			CheckLocalNameScope(id, _scope.nested);
+			Expect(_SC(';'));
+			TypesNewSlot(strongid,SQObjectPtr(type_val));
+			}
+			break;
+        case TK_USING:
+			{
+			Lex();
+			id = Expect(TK_IDENTIFIER);
+			Expect('=');
+			SQObjectPtr strongid = id;
+			CheckLocalNameScope(id, _scope.nested);
+			SQObject type_val = ExpectTypeToken();
+			Expect(_SC(';'));
+			TypesNewSlot(strongid,SQObjectPtr(type_val));
+			}
+        break;
 
 		case TK_PRAGMA:
 		    Pragma();
@@ -1559,10 +1594,6 @@ function_params_decl:
 		}
 
 		do {
-            if(is_void_declaration)
-            {
-                Error(_SC("void type is invalid here"));
-            }
 		    if(_token == _SC('&')){
 		        is_reference_declaration = true;
 		        Lex();
@@ -1574,6 +1605,10 @@ function_params_decl:
                 Lex();
                 goto function_params_decl;
 			}
+            if(is_void_declaration)
+            {
+                Error(_SC("void type is invalid here"));
+            }
 			else if(_token == _SC('=')) {
                 if(_is_parsing_extern)
                 {
