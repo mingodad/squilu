@@ -41,6 +41,7 @@ struct SQVM;
     ENUM_TK(FLOAT)\
     ENUM_TK(FOR)\
     ENUM_TK(FOREACH)\
+    ENUM_TK(FRIEND)\
     ENUM_TK(__FUNCTION__)\
     ENUM_TK(FUNCTION)\
     ENUM_TK(GE)\
@@ -84,6 +85,7 @@ struct SQVM;
     ENUM_TK(NE)\
     ENUM_TK(NE_IDENTITY)\
     ENUM_TK(NEWSLOT)\
+    ENUM_TK(NOEXCEPT)\
     ENUM_TK(NULL)\
     ENUM_TK(OR)\
     ENUM_TK(PLUSEQ)\

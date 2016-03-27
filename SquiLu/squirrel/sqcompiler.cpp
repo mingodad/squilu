@@ -668,6 +668,7 @@ public:
 			}
 			break;
 
+		case TK_FRIEND:
 		case TK_VOLATILE:
 		    Lex();
             goto start_again;
@@ -1962,6 +1963,10 @@ if(color == "yellow"){
 			Error(_SC("invalid class name"));
 		}
 		else if(_es.etype == OBJECT || _es.etype == BASE) {
+            if(_token == _SC(';')) //class forward declaration
+            {
+
+            }
 			ClassExp();
 			EmitDerefOp(_OP_NEWSLOT);
 			_fs->PopTarget();
@@ -2296,6 +2301,7 @@ error:
             break;
 
             case TK_CONST:
+            case TK_NOEXCEPT:
             case TK_VOLATILE:
                 Lex(); //accept and ignore
             break;
