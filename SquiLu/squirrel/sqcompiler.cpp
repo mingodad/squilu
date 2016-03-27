@@ -826,7 +826,8 @@ public:
 			case TK_NEWSLOT:
 				if(ds == OBJECT || ds == BASE) {
 					EmitDerefOp(_OP_NEWSLOT);
-                    if((_es.epos == -1) && (es.etype == EXPR_STATEMENT)) AddGlobalName(id);
+                    if((_es.epos == -1) && (es.etype == EXPR_STATEMENT)
+                       && (type(id) == OT_STRING) ) AddGlobalName(id);
 				}
 				else //if _derefstate != DEREF_NO_DEREF && DEREF_FIELD so is the index of a local
 					Error(_SC("can't 'create' a local slot"));
