@@ -14,6 +14,15 @@
 #include "sqvm.h"
 #include "sqtable.h"
 
+enum class eFunctionType
+{
+    global = 1,
+    local,
+    lambda,
+    member,
+    anonymous
+};
+
 #define EXPR   1
 #define OBJECT 2
 #define BASE   3
@@ -106,9 +115,11 @@ struct SQScope {
 		CASE_TK_NUMBER_TYPES: \
 		case TK_LOCAL_BOOL_T: \
 		case TK_LOCAL_TABLE_T: \
+		case TK_LOCAL_ANY_T: \
 		case TK_LOCAL_ARRAY_T: \
-		case TK_LOCAL_VOID_T: \
-		case TK_LOCAL_VOIDPTR_T
+		case TK_VOID: \
+		case TK_LOCAL_VOIDPTR_T: \
+		case TK_LOCAL_WEAKREF_T
 
 static SQInteger compilerReadFunc(SQUserPointer fp)
 {
@@ -551,6 +562,9 @@ public:
 		case TK_FOR:		ForStatement();			break;
 		case TK_FOREACH:	ForEachStatement();		break;
 		case TK_SWITCH:	SwitchStatement();		break;
+		case TK_VOLATILE:
+		    Lex();
+            goto start_again;
 		case TK_STATIC:
             if(_scope.nested)
             {
@@ -1361,6 +1375,7 @@ public:
 		while(_token != terminator) {
 			bool hasattrs = false;
 			bool isstatic = false;
+			//bool isvirtual = false;
 			//bool isprivate = false;
 			const SQChar *membertypename = 0;
 			//check if is an attribute
@@ -1372,6 +1387,10 @@ public:
 				}
 				if(_token == TK_STATIC) {
 					isstatic = true;
+					Lex();
+				}
+				if(_token == TK_VIRTUAL) {
+					//isvirtual = true;
 					Lex();
 				}
 				else if(_token == TK_PUBLIC) {
@@ -1395,7 +1414,7 @@ member_has_type:
 				Expect(_SC('('));
 function_params_decl:
 				_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(obj_id));
-				CreateFunction(obj_id);
+				CreateFunction(obj_id, eFunctionType::member);
 				_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
                 }
                 break;
@@ -1501,6 +1520,7 @@ function_params_decl:
 	void LocalDeclStatement()
 	{
 		SQObject varname;
+		bool is_void_declaration = _token == TK_VOID;
 		bool is_const_declaration = _token == TK_CONST;
 		bool is_reference_declaration = false;
 		SQInteger declType = _token;
@@ -1516,7 +1536,7 @@ function_params_decl:
 			SQInteger old_pos = _fs->GetCurrentPos(); //save current instructions position
 			_fs->PushLocalVariable(varname, _scope.nested, _VAR_CLOSURE); //add function name to find it as outer var if needed
 			//-1 to compensate default parameters when relocating
-			CreateFunction(varname,false, -1);
+			CreateFunction(varname, eFunctionType::local, -1);
 			if(_is_parsing_extern) {
                 Expect(_SC(';'));
                 CheckExternName(varname, true);
@@ -1530,7 +1550,7 @@ function_params_decl:
 			}
 			_fs->PopTarget();
 #else
-			CreateFunction(varname,false);
+			CreateFunction(varname,eFunctionType::local);
 			_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
 			_fs->PopTarget();
 			_fs->PushLocalVariable(varname, _scope.nested, _VAR_CLOSURE);
@@ -1539,6 +1559,10 @@ function_params_decl:
 		}
 
 		do {
+            if(is_void_declaration)
+            {
+                Error(_SC("void type is invalid here"));
+            }
 		    if(_token == _SC('&')){
 		        is_reference_declaration = true;
 		        Lex();
@@ -1881,7 +1905,7 @@ if(color == "yellow"){
 			if(_token == TK_DOUBLE_COLON) Emit2ArgsOP(_OP_GET);
 		}
 		Expect(_SC('('));
-		CreateFunction(id);
+		CreateFunction(id, eFunctionType::global);
 		_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
 		EmitDerefOp(_OP_NEWSLOT);
 		_fs->PopTarget();
@@ -2067,7 +2091,7 @@ error:
 	{
 		Lex(); Expect(_SC('('));
 		SQObjectPtr dummy;
-		CreateFunction(dummy,lambda);
+		CreateFunction(dummy, lambda ? eFunctionType::lambda : eFunctionType::anonymous);
 		_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, ftype == TK_FUNCTION?0:1);
 	}
 	void ClassExp()
@@ -2147,7 +2171,7 @@ error:
 		}
 		_es = es;
 	}
-	void CreateFunction(SQObject &name,bool lambda = false, int stack_offset=0)
+	void CreateFunction(SQObject &name, eFunctionType ftype, int stack_offset=0)
 	{
 		SQFuncState *funcstate = _fs->PushChildState(_ss(_vm));
 		funcstate->_name = name;
@@ -2157,9 +2181,20 @@ error:
 		SQInteger defparams = 0;
 		SQInteger is_reference = 0;
 		const SQChar *param_type_name = 0;
+		bool isVoid = false;
 		while(_token!=_SC(')')) {
+            if(isVoid)
+            {
+                Error(_SC("void type is invalid here"));
+            }
 			is_reference = 0; //reset is_reference
 			param_type_name = 0; //rest for each parameter
+			if(_token == TK_VOID)
+            {
+                isVoid = true;
+                Lex();
+                continue;
+            }
 			if(_token == TK_VARPARAMS) {
 				if(defparams > 0) Error(_SC("function with default parameters cannot have variable number of parameters"));
 				funcstate->AddParameter(_fs->CreateString(_SC("vargv")), _scope.nested+1);
@@ -2213,12 +2248,31 @@ error:
 			}
 		}
 		Expect(_SC(')'));
-		if(_token == _SC(':')){
-			//return type specifier like typescript
-			Lex();
-			type_name = ExpectTypeToken();
-			funcstate->_return_type = type_name;
-			//printf("%d %s\n", __LINE__, _stringval(type_name));
+		switch(_token)
+		{
+		    case _SC(':'):{
+                //return type specifier like typescript
+                Lex();
+                type_name = ExpectTypeToken();
+                funcstate->_return_type = type_name;
+                //printf("%d %s\n", __LINE__, _stringval(type_name));
+            }
+            break;
+
+            case TK_CONST:
+            case TK_VOLATILE:
+                Lex(); //accept and ignore
+            break;
+
+            case TK_IDENTIFIER:
+                if(ftype == eFunctionType::member)
+                {
+                    if(  (scstrcmp(_lex._svalue, _SC("final")) == 0) ||
+                         (scstrcmp(_lex._svalue, _SC("override")) == 0))
+                          {
+                              Lex(); //accept but ignore then
+                          }
+                }
 		}
 
 		for(SQInteger n = 0; n < defparams; n++) {
@@ -2232,7 +2286,7 @@ error:
 
 		SQFuncState *currchunk = _fs;
 		_fs = funcstate;
-		if(lambda) {
+		if(ftype == eFunctionType::lambda) {
 			Expression();
 			_fs->AddInstruction(_OP_RETURN, 1, _fs->PopTarget());}
 		else {

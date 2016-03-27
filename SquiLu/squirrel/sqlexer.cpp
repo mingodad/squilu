@@ -51,6 +51,7 @@ SQInteger SQLexer::ResetReader(SQLEXREADFUNC rg, SQUserPointer up, SQInteger lin
 SQTable * SQLexer::GetKeywords()
 {
 	SQTable *tbl = SQTable::Create(_sharedstate, (TK_LAST_ENUM_TOKEN - TK_FIRST_ENUM_TOKEN - 1) /*26*/);
+	ADD_KEYWORD(any_t, TK_LOCAL_ANY_T);
 	ADD_KEYWORD(array_t, TK_LOCAL_ARRAY_T);
 	ADD_KEYWORD(auto, TK_LOCAL);
 	ADD_KEYWORD(base, TK_BASE);
@@ -116,9 +117,12 @@ SQTable * SQLexer::GetKeywords()
 	ADD_KEYWORD(uint8_t, TK_LOCAL_UINT8_T);
 	ADD_KEYWORD(uint_t, TK_LOCAL_UINT_T);
 	ADD_KEYWORD(var, TK_LOCAL);
+	ADD_KEYWORD(virtual, TK_VIRTUAL);
 	ADD_KEYWORD(void_ptr_t, TK_LOCAL_VOIDPTR_T);
-	ADD_KEYWORD(void_t, TK_LOCAL_VOID_T);
+	ADD_KEYWORD(void, TK_VOID);
+	ADD_KEYWORD(volatile, TK_VOLATILE);
 	ADD_KEYWORD(wchar_t, TK_LOCAL_WCHAR_T);
+	ADD_KEYWORD(weakref_t, TK_LOCAL_WEAKREF_T);
 	ADD_KEYWORD(while, TK_WHILE);
 	ADD_KEYWORD(yield, TK_YIELD);
 
