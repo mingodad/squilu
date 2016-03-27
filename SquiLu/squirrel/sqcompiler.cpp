@@ -19,9 +19,10 @@
 #define BASE   3
 #define LOCAL  4
 #define OUTER  5
+#define EXPR_STATEMENT  6 //we start from statement state
 
 struct SQExpState {
-  SQInteger  etype;       /* expr. type; one of EXPR, OBJECT, BASE, OUTER or LOCAL */
+  SQInteger  etype;       /* expr. type; one of EXPR, OBJECT, BASE, OUTER, LOCAL or EXPR_STATEMENT */
   SQInteger  epos;        /* expr. location on stack; -1 for OBJECT and BASE */
   bool       donot_get;   /* signal not to deref the next value */
 };
@@ -95,10 +96,14 @@ struct SQScope {
 		case TK_LOCAL_DOUBLE_T: \
 		case TK_LOCAL_LONG_DOUBLE_T
 
-#define CASE_TK_LOCAL_TYPES \
-		CASE_TK_LOCAL_CHAR_TYPES: \
+#define CASE_TK_NUMBER_TYPES \
 		CASE_TK_LOCAL_FLOAT_TYPES: \
 		CASE_TK_LOCAL_INT_TYPES: \
+		case TK_LOCAL_NUMBER_T
+
+#define CASE_TK_LOCAL_TYPES \
+		CASE_TK_LOCAL_CHAR_TYPES: \
+		CASE_TK_NUMBER_TYPES: \
 		case TK_LOCAL_BOOL_T: \
 		case TK_LOCAL_TABLE_T: \
 		case TK_LOCAL_ARRAY_T: \
@@ -132,8 +137,10 @@ public:
 		_compilererror = NULL;
         _globals = SQTable::Create(_ss(_vm),0);
         _type_names = SQTable::Create(_ss(_vm),0);
+        _extern_names = SQTable::Create(_ss(_vm),0);
         _max_nested_includes = max_nested_includes;
         _nested_includes_count = 0;
+        _is_parsing_extern = false;
 	}
 	~SQCompiler(){
         _table(_globals)->Finalize();
@@ -173,16 +180,52 @@ public:
 	    return found;
 	}
 
+	int CheckExternName(const SQObject &name, bool addIfNotExists=false){
+	    SQObjectPtr orefcount;
+	    int found = _table(_extern_names)->Get(name, orefcount);
+	    if(addIfNotExists && !found) {
+	        SQObjectPtr oname = name;
+	        _integer(orefcount) = 1; //1 means only declared, 2 declared and assigned
+	        _table(_extern_names)->NewSlot(oname, orefcount);
+	        _table(_globals)->NewSlot(oname, orefcount);
+	    }
+	    return found ? _integer(orefcount) : 0;
+	}
+	int ExternNameSetRefCount(const SQObject &name)
+	{
+	    int ref_count = CheckExternName(name);
+	    if(ref_count == 1)
+        {
+            SQObjectPtr orefcount;
+            _integer(orefcount) = ref_count = 2;
+            _table(_extern_names)->Set(name, orefcount);
+        }
+        return ref_count;
+	}
+
+	void AddGlobalName(const SQObject &name)
+	{
+        SQObjectPtr oname = name, otrue = true;
+        _table(_globals)->NewSlot(oname, otrue);
+	}
+
 	void CheckGlobalName(const SQObject &name, bool addIfNotExists=false, bool checkLocals=true){
-	    if(_table(_globals)->Exists(name)){
-            if(checkLocals) Error(_SC("global '%s' already declared"), _stringval(name));
-            else Warning(_SC("%s:%d:%d warning global '%s' already declared will be shadowed\n"),
-                        _stringval(_sourcename), _lex._currentline, _lex._currentcolumn, _stringval(name));
+	    const SQChar *found = NULL;
+	    if(CheckExternName(name)){
+            found = _SC("extern");
+	    }
+	    else if(_table(_globals)->Exists(name)){
+            found = _SC("global");
+	    }
+	    if(found) {
+            if(checkLocals) Error(_SC("%s '%s' already declared"), found, _stringval(name));
+            else Warning(_SC("%s:%d:%d warning %s '%s' already declared will be shadowed\n"),
+                        _stringval(_sourcename), _lex._currentline, _lex._currentcolumn,
+                         found, _stringval(name));
 	    }
 	    else if(checkLocals) CheckLocalNameScope(name, -1, false);
 	    if(addIfNotExists) {
-	        SQObjectPtr oname = name, otrue = true;
-	        _table(_globals)->NewSlot(oname, otrue);
+            AddGlobalName(name);
 	    }
 	}
 
@@ -496,6 +539,7 @@ public:
 	}
 	void Statement(bool closeframe = true)
 	{
+	    _es.etype = EXPR_STATEMENT;
 	    SQObject id;
 		_fs->AddLineInfos(_lex._currentline, _lineinfo);
     start_again:
@@ -515,6 +559,9 @@ public:
             }
             Lex(); //ignore it only to allow run some C/C++ code
             goto start_again;
+
+        case TK_EXTERN: ExternDeclStatement();	break;
+
 		CASE_TK_LOCAL_TYPES:
 		//case TK_CONST:
 		case TK_LOCAL:		LocalDeclStatement();	break;
@@ -704,6 +751,11 @@ public:
 		_es.etype     = EXPR;
 		_es.epos      = -1;
 		_es.donot_get = false;
+		SQObject id;
+		if((_token == TK_IDENTIFIER) && (es.etype == EXPR_STATEMENT))
+        {
+            id = _fs->CreateString(_lex._svalue);
+        }
 		LogicalOrExp();
 		switch(_token)  {
 		case _SC('='):
@@ -723,8 +775,10 @@ public:
 
 			switch(op){
 			case TK_NEWSLOT:
-				if(ds == OBJECT || ds == BASE)
+				if(ds == OBJECT || ds == BASE) {
 					EmitDerefOp(_OP_NEWSLOT);
+                    if((_es.epos == -1) && (es.etype == EXPR_STATEMENT)) AddGlobalName(id);
+				}
 				else //if _derefstate != DEREF_NO_DEREF && DEREF_FIELD so is the index of a local
 					Error(_SC("can't 'create' a local slot"));
 				break;
@@ -741,7 +795,7 @@ public:
 					break;
 				case OBJECT:
 				case BASE:
-					EmitDerefOp(_OP_SET);
+                    EmitDerefOp(_OP_SET);
 					break;
 				case OUTER:
 					{
@@ -1437,6 +1491,13 @@ function_params_decl:
 			_fs->SetIntructionParam(tpos, 1, nkeys);
 		Lex();
 	}
+	void ExternDeclStatement()
+	{
+	    _is_parsing_extern = true;
+	    Lex();
+	    LocalDeclStatement();
+	    _is_parsing_extern = false;
+	}
 	void LocalDeclStatement()
 	{
 		SQObject varname;
@@ -1456,6 +1517,11 @@ function_params_decl:
 			_fs->PushLocalVariable(varname, _scope.nested, _VAR_CLOSURE); //add function name to find it as outer var if needed
 			//-1 to compensate default parameters when relocating
 			CreateFunction(varname,false, -1);
+			if(_is_parsing_extern) {
+                Expect(_SC(';'));
+                CheckExternName(varname, true);
+                return;
+			}
 			_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
 			//rellocate any stack operation (default parameters & _OP_Closure)
 			for(int i=old_pos+1, curr_pos = _fs->GetCurrentPos(); i <= curr_pos; ++i){
@@ -1485,6 +1551,10 @@ function_params_decl:
                 goto function_params_decl;
 			}
 			else if(_token == _SC('=')) {
+                if(_is_parsing_extern)
+                {
+                    Error(_SC("can not make assignment in external declarations"));
+                }
 				Lex(); Expression();
 				SQInteger src = _fs->PopTarget();
 				SQInteger dest = _fs->PushTarget();
@@ -1493,50 +1563,61 @@ function_params_decl:
 			}
 			else if(is_const_declaration || is_reference_declaration)
                 Error(_SC("const/reference '%s' need an initializer"), _stringval(varname));
-			else{
-			    SQInteger dest = _fs->PushTarget();
-			    switch(declType){
-                    CASE_TK_LOCAL_CHAR_TYPES:
-                        _fs->AddInstruction(_OP_LOADNULLS, dest,1);
-                        declType = _VAR_STRING;
-                        break;
+			else {
+                if(!_is_parsing_extern) {
+                    SQInteger dest = _fs->PushTarget();
+                    switch(declType){
+                        CASE_TK_LOCAL_CHAR_TYPES:
+                            _fs->AddInstruction(_OP_LOADNULLS, dest,1);
+                            declType = _VAR_STRING;
+                            break;
 
-                    case TK_LOCAL_BOOL_T:
-                        //default value false
-                        _fs->AddInstruction(_OP_LOADBOOL, dest,0);
-                        declType = _VAR_BOOL;
-                        break;
+                        case TK_LOCAL_BOOL_T:
+                            //default value false
+                            _fs->AddInstruction(_OP_LOADBOOL, dest,0);
+                            declType = _VAR_BOOL;
+                            break;
 
-                    case TK_LOCAL_TABLE_T:
-                        _fs->AddInstruction(_OP_LOADNULLS, dest,1);
-                        declType = _VAR_TABLE;
-                        break;
-                    case TK_LOCAL_ARRAY_T:
-                        _fs->AddInstruction(_OP_LOADNULLS, dest,1);
-                        declType = _VAR_ARRAY;
-                        break;
+                        case TK_LOCAL_TABLE_T:
+                            _fs->AddInstruction(_OP_LOADNULLS, dest,1);
+                            declType = _VAR_TABLE;
+                            break;
+                        case TK_LOCAL_ARRAY_T:
+                            _fs->AddInstruction(_OP_LOADNULLS, dest,1);
+                            declType = _VAR_ARRAY;
+                            break;
 
-                    CASE_TK_LOCAL_INT_TYPES:
-                        //default value 0
-                        _fs->AddInstruction(_OP_LOADINT, dest,0);
-                        declType = _VAR_INTEGER;
-                        break;
-                    CASE_TK_LOCAL_FLOAT_TYPES:
-                        //default value 0.0
-                        //_OP_LOADFLOAT is only valid when SQFloat size == SQInt32 size
-                        _fs->AddInstruction(_OP_LOADINT, dest,0);
-                        declType = _VAR_FLOAT;
-                        break;
-                    //case TK_LOCAL:
-                    default:
-                        //default value null
-                        _fs->AddInstruction(_OP_LOADNULLS, dest,1);
-                        declType = _VAR_ANY;
-			    }
+                        CASE_TK_LOCAL_INT_TYPES:
+                            //default value 0
+                            _fs->AddInstruction(_OP_LOADINT, dest,0);
+                            declType = _VAR_INTEGER;
+                            break;
+                        CASE_TK_LOCAL_FLOAT_TYPES:
+                        case TK_LOCAL_NUMBER_T: //start numbers as floats
+                            //default value 0.0
+                            //_OP_LOADFLOAT is only valid when SQFloat size == SQInt32 size
+                            _fs->AddInstruction(_OP_LOADINT, dest,0);
+                            declType = _VAR_FLOAT;
+                            break;
+                        //case TK_LOCAL:
+                        default:
+                            //default value null
+                            _fs->AddInstruction(_OP_LOADNULLS, dest,1);
+                            declType = _VAR_ANY;
+                    }
+                }
 			}
-			_fs->PopTarget();
-			_fs->PushLocalVariable(varname, _scope.nested, (is_const_declaration ? _VAR_CONST : declType)
-                          | (is_reference_declaration ? _VAR_REFERENCE : 0));
+			if(_is_parsing_extern) {
+                if(CheckExternName(varname, true))
+                {
+                    Error(_SC("extern %s already declared"), varname);
+                }
+			}
+			else {
+                _fs->PopTarget();
+                _fs->PushLocalVariable(varname, _scope.nested, (is_const_declaration ? _VAR_CONST : declType)
+                              | (is_reference_declaration ? _VAR_REFERENCE : 0));
+			}
 			if(_token == _SC(',')) Lex(); else break;
 		} while(1);
 	}
@@ -2144,6 +2225,11 @@ error:
 			_fs->PopTarget();
 		}
 
+        if(_is_parsing_extern) {
+            _fs->PopChildState();
+            return;
+        }
+
 		SQFuncState *currchunk = _fs;
 		_fs = funcstate;
 		if(lambda) {
@@ -2192,6 +2278,7 @@ private:
 	bool _lineinfo;
 	bool _raiseerror;
 	bool _show_warnings;
+	bool _is_parsing_extern;
 	SQInteger _debugline;
 	SQInteger _debugop;
 	SQExpState   _es;
@@ -2202,6 +2289,7 @@ private:
 	SQObjectPtrVec _scope_consts;
 	SQObjectPtr _globals;
 	SQObjectPtr _type_names; //to allow C/C++ style instance declarations
+	SQObjectPtr _extern_names; //to allow C/C++ style extern declarations
 	SQChar error_buf[MAX_COMPILER_ERROR_LEN];
 	SQInteger _max_nested_includes, _nested_includes_count;
 };
