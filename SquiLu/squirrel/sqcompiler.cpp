@@ -1303,6 +1303,7 @@ public:
         {
             member_names = SQTable::Create(_ss(_vm),0);
         }
+        int addClassMember = 0;
 		while(_token != terminator) {
 			bool hasattrs = false;
 			bool isstatic = false;
@@ -1360,7 +1361,7 @@ function_params_decl:
 				if(isClass)
                 {
                     CheckClassMemberExists(member_names, obj_id);
-                    bool addClassMember = false;
+                    addClassMember = 0;
                     switch(_token)
                     {
                         case _SC('('): //C/C++ style function declaration
@@ -1374,11 +1375,13 @@ function_params_decl:
                             }
                             Lex();
                             type_name = ExpectTypeToken();
-                            addClassMember = true;
+                            addClassMember = 1;
                             break;
+                        case _SC(','):
+                            ++addClassMember;
                         case _SC(';'): //member variable declaration without explicit initialization
                             Lex();
-                            addClassMember = true;
+                            ++addClassMember;
                             break;
                     }
                     if(addClassMember)
@@ -1397,6 +1400,7 @@ function_params_decl:
 				break;
 			}
             CASE_TK_LOCAL_TYPES: //class member variables;
+            case TK_LOCAL:
                 if(isClass)
                 {
                     membertypename = _lex.GetTokenName(_token);
@@ -1419,6 +1423,11 @@ function_params_decl:
 			SQInteger table = _fs->TopTarget(); //<<BECAUSE OF THIS NO COMMON EMIT FUNC IS POSSIBLE
 			if(isClass) {
 				_fs->AddInstruction(_OP_NEWSLOTA, flags, table, key, val); //this for classes only as it invokes _newmember
+                if(addClassMember > 1)
+                {
+                    addClassMember = 0;
+                    goto member_has_type;
+                }
 			}
 			else {
 				_fs->AddInstruction(_OP_NEWSLOT, 0xFF, table, key, val);
