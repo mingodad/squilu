@@ -558,6 +558,7 @@ SQRESULT sqext_register_DNS_SD(HSQUIRRELVM v);
 SQRESULT sqext_register_ffi(HSQUIRRELVM v);
 SQRESULT sqext_register_xjd1(HSQUIRRELVM v);
 SQRESULT sqext_register_libclang(HSQUIRRELVM v);
+SQRESULT sqext_register_EasyCurl (HSQUIRRELVM v);
 
 int main(int argc, char* argv[])
 {
@@ -623,6 +624,10 @@ int main(int argc, char* argv[])
 	//sqext_register_ThreadObjects(v);
 	sqext_register_dad_utils(v);
 	//sqext_register_sys(v);
+
+#ifdef SQ_USE_EASYCURL
+    sqext_register_EasyCurl(v);
+#endif // SQ_USE_EASYCURL
 
 #ifdef WITH_FULL_DAD_EXTRAS
 	sqext_register_csv_parser(v);
