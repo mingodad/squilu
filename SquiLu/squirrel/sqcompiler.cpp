@@ -98,7 +98,9 @@ struct SQScope {
 		case TK_LOCAL_UINT16_T: \
 		case TK_LOCAL_UINT32_T: \
 		case TK_LOCAL_UINT64_T: \
-		case TK_LOCAL_UINT_T
+		case TK_LOCAL_UINT_T: \
+		case TK_LOCAL_SIZE_T: \
+		case TK_LOCAL_SSIZE_T
 
 #define CASE_TK_LOCAL_FLOAT_TYPES \
 		case TK_LOCAL_FLOAT_T: \
