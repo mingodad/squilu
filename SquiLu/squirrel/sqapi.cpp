@@ -683,8 +683,13 @@ SQRESULT sq_delete_on_registry_table(HSQUIRRELVM v, SQUserPointer uptr)
 	if(type(key) == OT_NULL) {
 		return sq_throwerror(v, _SC("null key"));
 	}
-    _table(_ss(v)->_registry)->Remove(key);
-    return SQ_OK;
+	SQTable *registry = _table(_ss(v)->_registry);
+    if(registry) //when closing the vm releasehooks are called with NULL registry
+    {
+        registry->Remove(key);
+        return SQ_OK;
+    }
+    return SQ_ERROR;
 }
 
 int sq_preload_modules(HSQUIRRELVM v, sq_modules_preload_st *modules){
