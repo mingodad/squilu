@@ -380,6 +380,7 @@ SQUIRREL_API SQRESULT sq_setonroottable(HSQUIRRELVM v);
 SQUIRREL_API void sq_pushregistrytable(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sq_getonregistrytable(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sq_setonregistrytable(HSQUIRRELVM v);
+SQUIRREL_API SQRESULT sq_delete_on_registry_table(HSQUIRRELVM v, SQUserPointer uptr);
 
 #define SQ_EXTENSIONS_KEY _SC("sq__Extensions")
 typedef struct {

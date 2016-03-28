@@ -1445,15 +1445,8 @@ static SQRESULT sq_sqlite3_close_release(HSQUIRRELVM v, sq_sqlite3_sdb *sdb)
         {
             rc = SQ_OK;
 
-            //we do not need remove the weak reference
-            //it's done automatically
-            /*
             //remove waekref from registrytable
-            sq_pushregistrytable(sdb->v); //here we enter a loop that call us again
-            sq_pushuserpointer(sdb->v, db);
-            sq_deleteslot(sdb->v, -2, SQFalse);
-            sq_poptop(sdb->v);
-            */
+            sq_delete_on_registry_table(sdb->v, db);
 
             if(sdb->func)
             {

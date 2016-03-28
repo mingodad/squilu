@@ -677,6 +677,16 @@ SQRESULT sq_setonregistrytable(HSQUIRRELVM v)
     return SQ_OK;
 }
 
+SQRESULT sq_delete_on_registry_table(HSQUIRRELVM v, SQUserPointer uptr)
+{
+    SQObjectPtr key = uptr;
+	if(type(key) == OT_NULL) {
+		return sq_throwerror(v, _SC("null key"));
+	}
+    _table(_ss(v)->_registry)->Remove(key);
+    return SQ_OK;
+}
+
 int sq_preload_modules(HSQUIRRELVM v, sq_modules_preload_st *modules){
     int result = 0;
     int saved_top = sq_gettop(v);
