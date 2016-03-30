@@ -627,7 +627,7 @@ bool SQVM::FOREACH_OP(SQObjectPtr &o1,SQObjectPtr &o2,SQObjectPtr
 bool SQVM::CLOSURE_OP(SQObjectPtr &target, SQFunctionProto *func)
 {
 	SQInteger nouters;
-	SQClosure *closure = SQClosure::Create(_ss(this), func);
+	SQClosure *closure = SQClosure::Create(_ss(this), func,_table(_roottable)->GetWeakRef(OT_TABLE));
 	if((nouters = func->_noutervalues)) {
 		for(SQInteger i = 0; i<nouters; i++) {
 			SQOuterVar &v = func->_outervalues[i];

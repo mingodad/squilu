@@ -60,11 +60,13 @@ private:
 
 struct SQObjectPtr;
 
+#ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
 struct SQDelayedReleseHook {
     SQRELEASEHOOK hook;
     SQUserPointer ptr;
     SQInteger size;
 };
+#endif // SQ_WITH_DELAYED_RELEASE_HOOKS
 
 struct SQSharedState
 {

@@ -171,11 +171,11 @@ static SQRESULT _file_close(HSQUIRRELVM v)
 
 //bindings
 #define _DECL_FILE_FUNC(name,nparams,typecheck) {_SC(#name),_file_##name,nparams,typecheck}
-static SQRegFunction _file_methods[] = {
-	_DECL_FILE_FUNC(constructor,3,_SC("x")),
-	_DECL_FILE_FUNC(_typeof,1,_SC("x")),
-	_DECL_FILE_FUNC(close,1,_SC("x")),
-	{NULL,(SQFUNCTION)0,0,NULL}
+static const SQRegFunction _file_methods[] = {
+    _DECL_FILE_FUNC(constructor,3,_SC("x")),
+    _DECL_FILE_FUNC(_typeof,1,_SC("x")),
+    _DECL_FILE_FUNC(close,1,_SC("x")),
+    {NULL,(SQFUNCTION)0,0,NULL}
 };
 
 
@@ -218,10 +218,10 @@ SQRESULT sqstd_getfile(HSQUIRRELVM v, SQInteger idx, SQFILE *file)
 
 #define IO_BUFFER_SIZE 2048
 struct IOBuffer {
-	unsigned char buffer[IO_BUFFER_SIZE];
-	int size;
-	int ptr;
-	SQFILE file;
+    unsigned char buffer[IO_BUFFER_SIZE];
+    SQInteger size;
+    SQInteger ptr;
+    SQFILE file;
 };
 
 SQInteger _read_byte(IOBuffer *iobuffer)
@@ -246,21 +246,21 @@ SQInteger _read_byte(IOBuffer *iobuffer)
 
 SQInteger _read_two_bytes(IOBuffer *iobuffer)
 {
-	if(iobuffer->ptr < iobuffer->size) {
-		if(iobuffer->size < 2) return 0;
-		SQInteger ret = *((wchar_t*)&iobuffer->buffer[iobuffer->ptr]);
-		iobuffer->ptr += 2;
-		return ret;
-	}
-	else {
-		if( (iobuffer->size = sqstd_fread(iobuffer->buffer,1,IO_BUFFER_SIZE,iobuffer->file )) > 0 )
-		{
-			if(iobuffer->size < 2) return 0;
-			SQInteger ret = *((wchar_t*)&iobuffer->buffer[0]);
-			iobuffer->ptr = 2;
-			return ret;
-		}
-	}
+    if(iobuffer->ptr < iobuffer->size) {
+        if(iobuffer->size < 2) return 0;
+        SQInteger ret = *((const wchar_t*)&iobuffer->buffer[iobuffer->ptr]);
+        iobuffer->ptr += 2;
+        return ret;
+    }
+    else {
+        if( (iobuffer->size = sqstd_fread(iobuffer->buffer,1,IO_BUFFER_SIZE,iobuffer->file )) > 0 )
+        {
+            if(iobuffer->size < 2) return 0;
+            SQInteger ret = *((const wchar_t*)&iobuffer->buffer[0]);
+            iobuffer->ptr = 2;
+            return ret;
+        }
+    }
 
 	return 0;
 }
@@ -280,35 +280,35 @@ static SQInteger _io_file_lexfeed_UTF8(SQUserPointer iobuf)
 	if((inchar = (unsigned char)_read_byte(iobuf)) == 0) \
 		return 0;
 
-	static const SQInteger utf8_lengths[16] =
-	{
-		1,1,1,1,1,1,1,1,        /* 0000 to 0111 : 1 byte (plain ASCII) */
-		0,0,0,0,                /* 1000 to 1011 : not valid */
-		2,2,                    /* 1100, 1101 : 2 bytes */
-		3,                      /* 1110 : 3 bytes */
-		4                       /* 1111 :4 bytes */
-	};
-	static unsigned char byte_masks[5] = {0,0,0x1f,0x0f,0x07};
-	unsigned char inchar;
-	SQInteger c = 0;
-	READ(iobuffer);
-	c = inchar;
-	//
-	if(c >= 0x80) {
-		SQInteger tmp;
-		SQInteger codelen = utf8_lengths[c>>4];
-		if(codelen == 0)
-			return 0;
-			//"invalid UTF-8 stream";
-		tmp = c&byte_masks[codelen];
-		for(SQInteger n = 0; n < codelen-1; n++) {
-			tmp<<=6;
-			READ(iobuffer);
-			tmp |= inchar & 0x3F;
-		}
-		c = tmp;
-	}
-	return c;
+    static const SQInteger utf8_lengths[16] =
+    {
+        1,1,1,1,1,1,1,1,        /* 0000 to 0111 : 1 byte (plain ASCII) */
+        0,0,0,0,                /* 1000 to 1011 : not valid */
+        2,2,                    /* 1100, 1101 : 2 bytes */
+        3,                      /* 1110 : 3 bytes */
+        4                       /* 1111 :4 bytes */
+    };
+    static const unsigned char byte_masks[5] = {0,0,0x1f,0x0f,0x07};
+    unsigned char inchar;
+    SQInteger c = 0;
+    READ(iobuffer);
+    c = inchar;
+    //
+    if(c >= 0x80) {
+        SQInteger tmp;
+        SQInteger codelen = utf8_lengths[c>>4];
+        if(codelen == 0)
+            return 0;
+            //"invalid UTF-8 stream";
+        tmp = c&byte_masks[codelen];
+        for(SQInteger n = 0; n < codelen-1; n++) {
+            tmp<<=6;
+            READ(iobuffer);
+            tmp |= inchar & 0x3F;
+        }
+        c = tmp;
+    }
+    return c;
 }
 #endif
 

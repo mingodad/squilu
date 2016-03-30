@@ -808,6 +808,8 @@ public:
         {
             id = _fs->CreateString(_lex._svalue);
         }
+        else id = {};
+
 		LogicalOrExp();
 		switch(_token)  {
 		case _SC('='):
