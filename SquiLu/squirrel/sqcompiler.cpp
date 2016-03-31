@@ -446,6 +446,7 @@ public:
         SQObject id = Expect(TK_IDENTIFIER);
         if(scstrcmp(_stringval(id), _SC("include")) == 0)
         {
+#if SQ_ENABLE_INCLUDES
             SQInteger nested_count = _nested_includes_count + 1;
             if((_max_nested_includes <= 0) || (nested_count > _max_nested_includes))
             {
@@ -504,6 +505,9 @@ public:
             {
                 Error(_SC("Error: opening include file %s\n"), _stringval(id));
             }
+#else
+                Error(_SC("Error: includes are not enabled\n"));
+#endif
         }
         else
         {
