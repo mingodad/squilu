@@ -165,7 +165,7 @@ public:
 		c->Error(s);
 	}
 
-	void Error(const SQChar *s, ...)
+	void Error(const SQChar *s, ...) //__attribute__((format(printf, 2, 3)))
 	{
 		va_list vl;
 		va_start(vl, s);
@@ -175,7 +175,7 @@ public:
 		longjmp(_errorjmp,1);
 	}
 
-	void Warning(const SQChar *s, ...)
+	void Warning(const SQChar *s, ...) //__attribute__((format(printf, 2, 3)))
 	{
 	    if(!_show_warnings) return;
 		va_list vl;
@@ -660,6 +660,11 @@ public:
 			{
 			Lex();
 			id = Expect(TK_IDENTIFIER);
+			if(_token == _SC(':')) {
+                //type specifier like typescript
+                Lex();
+                ExpectTypeToken(); //ignore for now
+			}
 			Expect('=');
 			SQObjectPtr strongid = id;
 			CheckLocalNameScope(id, _scope.nested);
@@ -683,6 +688,7 @@ public:
             Lex(); //ignore it only to allow run some C/C++ code
             goto start_again;
 
+        case TK_DECLARE: //parse as extern
         case TK_EXTERN: ExternDeclStatement();	break;
 
         case TK_TYPEDEF:
@@ -711,6 +717,11 @@ public:
 
 		case TK_PRAGMA:
 		    Pragma();
+		    break;
+
+		case TK_UNSAFE:
+		    Lex(); //ignore for now
+		    goto start_again;
 		    break;
 
         case TK_IDENTIFIER:
@@ -1148,6 +1159,13 @@ public:
 				Lex();
 				FunctionCallArgs();
 				break;
+
+            case TK_AS:
+            {
+                Lex();
+                ExpectTypeToken(); //ignore for now
+            }
+
 			default: return;
 			}
 		}
@@ -1579,9 +1597,13 @@ function_params_decl:
 			//-1 to compensate default parameters when relocating
 			CreateFunction(varname, eFunctionType::local, -1);
 			if(_is_parsing_extern) {
-                Expect(_SC(';'));
-                CheckExternName(varname, true);
-                return;
+                if(_token == _SC(';')) //to parse thinscript
+                {
+                    //Expect(_SC(';'));
+                    CheckExternName(varname, true);
+                    return;
+                }
+                else _is_parsing_extern = false;
 			}
 			_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
 			//rellocate any stack operation (default parameters & _OP_Closure)
@@ -1610,6 +1632,11 @@ function_params_decl:
                 //C/C++ style function declaration
                 Lex();
                 goto function_params_decl;
+			}
+			else if(_token == _SC(':')) {
+                //type specifier like typescript
+                Lex();
+                ExpectTypeToken(); //ignore for now
 			}
             if(is_void_declaration)
             {
@@ -2326,8 +2353,12 @@ error:
 		}
 
         if(_is_parsing_extern) {
-            _fs->PopChildState();
-            return;
+            if(_token == _SC(';')) //to parse thinscript
+            {
+                _fs->PopChildState();
+                return;
+            }
+            else _is_parsing_extern = false;
         }
 
 		SQFuncState *currchunk = _fs;

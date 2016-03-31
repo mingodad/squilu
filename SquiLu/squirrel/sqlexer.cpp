@@ -25,8 +25,10 @@ SQLexer::~SQLexer()
 	_keywords->Release();
 }
 
-SQInteger SQLexer::Init(SQSharedState *ss, SQLEXREADFUNC rg, SQUserPointer up,CompilerErrorFunc efunc,void *ed)
+SQInteger SQLexer::Init(SQSharedState *ss, SQLEXREADFUNC rg,
+                        SQUserPointer up,CompilerErrorFunc efunc,void *ed, SQBool want_comments)
 {
+    _want_comments = want_comments;
     _lasterror[0] = '\0';
     _svalue = NULL;
 	_errfunc = efunc;
@@ -53,6 +55,7 @@ SQTable * SQLexer::GetKeywords()
 	SQTable *tbl = SQTable::Create(_sharedstate, (TK_LAST_ENUM_TOKEN - TK_FIRST_ENUM_TOKEN - 1) /*26*/);
 	ADD_KEYWORD(any_t, TK_LOCAL_ANY_T);
 	ADD_KEYWORD(array_t, TK_LOCAL_ARRAY_T);
+	ADD_KEYWORD(as, TK_AS);
 	ADD_KEYWORD(auto, TK_LOCAL);
 	ADD_KEYWORD(base, TK_BASE);
 	ADD_KEYWORD(bool_t, TK_LOCAL_BOOL_T);
@@ -65,6 +68,7 @@ SQTable * SQLexer::GetKeywords()
 	ADD_KEYWORD(constructor,TK_CONSTRUCTOR);
 	ADD_KEYWORD(const,TK_CONST);
 	ADD_KEYWORD(continue, TK_CONTINUE);
+	ADD_KEYWORD(declare, TK_DECLARE);
 	ADD_KEYWORD(default, TK_DEFAULT);
 	ADD_KEYWORD(delete, TK_DELETE);
 	ADD_KEYWORD(destructor,TK_DESTRUCTOR);
@@ -121,6 +125,7 @@ SQTable * SQLexer::GetKeywords()
 	ADD_KEYWORD(uint64_t, TK_LOCAL_UINT64_T);
 	ADD_KEYWORD(uint8_t, TK_LOCAL_UINT8_T);
 	ADD_KEYWORD(uint_t, TK_LOCAL_UINT_T);
+	ADD_KEYWORD(unsafe, TK_UNSAFE);
 	ADD_KEYWORD(using, TK_USING);
 	ADD_KEYWORD(var, TK_LOCAL);
 	ADD_KEYWORD(virtual, TK_VIRTUAL);
@@ -178,7 +183,7 @@ const SQChar *SQLexer::GetTokenName(int tk_code) {
         SQ_KEYWORDS_LIST()
 #undef ENUM_TK
         default:
-            str_tk = _SC("???");
+            str_tk = _SC("()");
     }
     return str_tk;
 }
@@ -196,19 +201,35 @@ SQInteger SQLexer::LexBlockComment()
     }
 */
 	bool done = false;
+	if(_want_comments) INIT_TEMP_STRING();
+	NEXT(); //remove the comment token '*'
 	while(!done) {
 		switch(CUR_CHAR) {
-			case _SC('*'): { NEXT(); if(CUR_CHAR == _SC('/')) { done = true; NEXT(); }}; continue;
-			case _SC('\n'): _currentline++; NEXT(); continue;
+			case _SC('*'): { NEXT(); if(CUR_CHAR == _SC('/')) { done = true; NEXT(); continue;}}; break;
+			case _SC('\n'): _currentline++; break;
 			case SQUIRREL_EOB: return Error(_SC("missing \"*/\" in comment"));
-			default: NEXT();
 		}
+		if(_want_comments) APPEND_CHAR(CUR_CHAR);
+		NEXT();
 	}
+    if(_want_comments)
+    {
+        TERMINATE_BUFFER();
+        if(_longstr.size() > 0) _longstr.pop_back(); //remove the last '*'
+        _svalue = &_longstr[0];
+    }
 	return 0;
 }
 SQInteger SQLexer::LexLineComment()
 {
-	do { NEXT(); } while (CUR_CHAR != _SC('\n') && (!IS_EOB()));
+    if(_want_comments) INIT_TEMP_STRING();
+    NEXT(); //remove the comment token
+	while (CUR_CHAR != _SC('\n') && (!IS_EOB())) {if(_want_comments) APPEND_CHAR(CUR_CHAR); NEXT();}
+    if(_want_comments)
+    {
+        TERMINATE_BUFFER();
+        _svalue = &_longstr[0];
+    }
 	return 0;
 }
 
@@ -230,6 +251,7 @@ SQInteger SQLexer::Lex()
 		    if(CUR_CHAR == '!') //shell shebang
             {
                 if(LexLineComment()) return -1;
+                if(_want_comments) RETURN_TOKEN(TK_COMMENT_LINE)
                 continue;
             }
             RETURN_TOKEN(TK_PRAGMA);
@@ -238,11 +260,12 @@ SQInteger SQLexer::Lex()
 			NEXT();
 			switch(CUR_CHAR){
 			case _SC('*'):
-				NEXT();
 				if(LexBlockComment()) return -1;
+                if(_want_comments) RETURN_TOKEN(TK_COMMENT_BLOCK)
 				continue;
 			case _SC('/'):
 				if(LexLineComment()) return -1;
+                if(_want_comments) RETURN_TOKEN(TK_COMMENT_LINE)
 				continue;
 			case _SC('='):
 				NEXT();

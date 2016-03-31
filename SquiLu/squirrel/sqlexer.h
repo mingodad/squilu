@@ -12,7 +12,8 @@ struct SQLexer
 {
 	SQLexer();
 	virtual ~SQLexer();
-	SQInteger Init(SQSharedState *ss,SQLEXREADFUNC rg,SQUserPointer up,CompilerErrorFunc efunc,void *ed);
+	SQInteger Init(SQSharedState *ss,SQLEXREADFUNC rg,SQUserPointer up,
+                CompilerErrorFunc efunc,void *ed, SQBool want_comments=SQFalse);
 	SQInteger ResetReader(SQLEXREADFUNC rg, SQUserPointer up, SQInteger line);
 	SQTable * GetKeywords();
 	SQInteger Error(const SQChar *err, ...);
@@ -54,6 +55,7 @@ public:
 	CompilerErrorFunc _errfunc;
 	void *_errtarget;
 	SQChar _lasterror[256];
+	SQBool _want_comments;
 };
 
 #endif
