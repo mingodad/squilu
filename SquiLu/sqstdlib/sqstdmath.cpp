@@ -19,6 +19,13 @@
 	return 1; \
 }
 
+#define BOOL_SINGLE_ARG_FUNC(_funcname) static SQRESULT math_##_funcname(HSQUIRRELVM v){ \
+	SQFloat f; \
+	sq_getfloat(v,2,&f); \
+	sq_pushbool(v,(SQBool)_funcname(f)); \
+	return 1; \
+}
+
 static SQRESULT math_srand(HSQUIRRELVM v)
 {
 	SQInteger i;
@@ -76,6 +83,9 @@ TWO_ARGS_FUNC(pow)
 SINGLE_ARG_FUNC(floor)
 SINGLE_ARG_FUNC(ceil)
 SINGLE_ARG_FUNC(exp)
+
+BOOL_SINGLE_ARG_FUNC(isnan);
+BOOL_SINGLE_ARG_FUNC(isfinite);
 
 //DAD start
 #include <string.h>
@@ -321,6 +331,8 @@ static SQRegFunction mathlib_funcs[] = {
 	_DECL_FUNC(random,-1,_SC(".ii")),
 	_DECL_FUNC(fabs,2,_SC(".n")),
 	_DECL_FUNC(abs,2,_SC(".n")),
+	_DECL_FUNC(isnan,2,_SC(".n")),
+	_DECL_FUNC(isfinite,2,_SC(".n")),
 	_DECL_FUNC(roundf,-2,_SC(".ni")),
 	_DECL_FUNC(broundf,-2,_SC(".ni")),
 	_DECL_FUNC(number_format,-2,_SC(".niss")),
