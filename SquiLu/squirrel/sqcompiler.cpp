@@ -14,13 +14,13 @@
 #include "sqvm.h"
 #include "sqtable.h"
 
-enum class eFunctionType
+enum
 {
-    global = 1,
-    local,
-    lambda,
-    member,
-    anonymous
+    eFunctionType_global = 1,
+    eFunctionType_local,
+    eFunctionType_lambda,
+    eFunctionType_member,
+    eFunctionType_anonymous
 };
 
 #define EXPR   1
@@ -823,7 +823,7 @@ public:
         {
             id = _fs->CreateString(_lex._svalue);
         }
-        else id = {};
+        //else id = {}; //old compilers do not allow this
 
 		LogicalOrExp();
 		switch(_token)  {
@@ -1477,7 +1477,7 @@ member_has_type:
 				Expect(_SC('('));
 function_params_decl:
 				_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(obj_id));
-				CreateFunction(obj_id, eFunctionType::member);
+				CreateFunction(obj_id, eFunctionType_member);
 				_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
                 }
                 break;
@@ -1599,7 +1599,7 @@ function_params_decl:
 			SQInteger old_pos = _fs->GetCurrentPos(); //save current instructions position
 			_fs->PushLocalVariable(varname, _scope.nested, _VAR_CLOSURE); //add function name to find it as outer var if needed
 			//-1 to compensate default parameters when relocating
-			CreateFunction(varname, eFunctionType::local, -1);
+			CreateFunction(varname, eFunctionType_local, -1);
 			if(_is_parsing_extern) {
                 if(_token == _SC(';')) //to parse thinscript
                 {
@@ -1977,7 +1977,7 @@ if(color == "yellow"){
 			if(_token == TK_DOUBLE_COLON) Emit2ArgsOP(_OP_GET);
 		}
 		Expect(_SC('('));
-		CreateFunction(id, eFunctionType::global);
+		CreateFunction(id, eFunctionType_global);
 		_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
 		EmitDerefOp(_OP_NEWSLOT);
 		_fs->PopTarget();
@@ -2167,7 +2167,7 @@ error:
 	{
 		Lex(); Expect(_SC('('));
 		SQObjectPtr dummy;
-		CreateFunction(dummy, lambda ? eFunctionType::lambda : eFunctionType::anonymous);
+		CreateFunction(dummy, lambda ? eFunctionType_lambda : eFunctionType_anonymous);
 		_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, ftype == TK_FUNCTION?0:1);
 	}
 	void ClassExp()
@@ -2247,7 +2247,7 @@ error:
 		}
 		_es = es;
 	}
-	void CreateFunction(SQObject &name, eFunctionType ftype, int stack_offset=0)
+	void CreateFunction(SQObject &name, int ftype, int stack_offset=0)
 	{
 		SQFuncState *funcstate = _fs->PushChildState(_ss(_vm));
 		funcstate->_name = name;
@@ -2342,7 +2342,7 @@ error:
             break;
 
             case TK_IDENTIFIER:
-                if(ftype == eFunctionType::member)
+                if(ftype == eFunctionType_member)
                 {
                     if(  (scstrcmp(_lex._svalue, _SC("final")) == 0) ||
                          (scstrcmp(_lex._svalue, _SC("override")) == 0))
@@ -2367,7 +2367,7 @@ error:
 
 		SQFuncState *currchunk = _fs;
 		_fs = funcstate;
-		if(ftype == eFunctionType::lambda) {
+		if(ftype == eFunctionType_lambda) {
 			Expression();
 			_fs->AddInstruction(_OP_RETURN, 1, _fs->PopTarget());}
 		else {
