@@ -182,8 +182,11 @@ SQSharedState::~SQSharedState()
 		_systemstrings->back().Null();
 		_systemstrings->pop_back();
 	}
-	_thread(_root_vm)->Finalize();
-	_root_vm.Null();
+	if(type(_root_vm) != OT_NULL)
+    {
+        _thread(_root_vm)->Finalize();
+        _root_vm.Null();
+    }
 	_table_default_delegate.Null();
 	_array_default_delegate.Null();
 	_string_default_delegate.Null();

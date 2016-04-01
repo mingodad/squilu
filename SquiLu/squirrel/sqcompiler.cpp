@@ -184,6 +184,10 @@ public:
 		va_end(vl);
 	}
 
+	bool CheckNameIsType(const SQObject &name){
+	    return _table(_type_names)->Exists(name);
+	}
+
 	bool CheckTypeName(const SQObject &name, bool addIfNotExists=false){
 	    bool found = _table(_type_names)->Exists(name);
 	    if(addIfNotExists && !found) {
@@ -679,6 +683,8 @@ public:
 			}
 			break;
 
+		case TK_INLINE: //accept and ignore
+		case TK_CONSTEXPR: //accept and ignore
 		case TK_FRIEND:
 		case TK_VOLATILE:
 		    Lex();
@@ -1310,7 +1316,7 @@ public:
 		case TK_FUNCTION: FunctionExp(_token);break;
 		case _SC('@'): FunctionExp(_token,true);break;
 		case TK_STRUCT:
-		case TK_CLASS: Lex(); ClassExp();break;
+		case TK_CLASS: Lex(); ClassExp(NULL);break;
 		case _SC('-'):
 			Lex();
 			switch(_token) {
@@ -1415,16 +1421,25 @@ public:
 		 SQInteger closure = _fs->PopTarget();
          _fs->AddInstruction(_OP_CALL, _fs->PushTarget(), closure, stackbase, nargs);
 	}
-	void CheckClassMemberExists(SQObjectPtr &member_names, SQObject &name)
+	void AddClassMemberExists(SQObjectPtr &member_names, SQObject &name)
+	{
+        SQObjectPtr oname = name, otrue = true;
+        _table(member_names)->NewSlot(oname, otrue);
+	}
+	void CheckClassMemberExists(SQObjectPtr &member_names, SQObject &name, bool addIfNotExists=true)
 	{
         if(_table(member_names)->Exists(name))
         {
             Error(_SC("class already has a member named: %s"), _stringval(name));
         }
-        SQObjectPtr oname = name, otrue = true;
-        _table(member_names)->NewSlot(oname, otrue);
+        if(addIfNotExists) AddClassMemberExists(member_names, name);
 	}
-	void ParseTableOrClass(SQInteger separator,SQInteger terminator)
+	void CheckClassMemberExists(SQObjectPtr &member_names, const SQChar *name)
+	{
+	    SQObject oname = _fs->CreateString(name);
+	    CheckClassMemberExists(member_names, oname);
+	}
+	void ParseTableOrClass(SQInteger separator,SQInteger terminator, SQObjectPtr *class_name=NULL)
 	{
 	    SQObjectPtr member_names;
 		SQInteger saved_tok, tpos = _fs->GetCurrentPos(),nkeys = 0;
@@ -1438,6 +1453,7 @@ public:
 		while(_token != terminator) {
 			bool hasattrs = false;
 			bool isstatic = false;
+			bool cppDestructor = false;
 			//bool isvirtual = false;
 			//bool isprivate = false;
 			const SQChar *membertypename = 0;
@@ -1496,12 +1512,23 @@ function_params_decl:
 				SQInteger next_token = _SC('=');
 				if(isClass)
                 {
-                    CheckClassMemberExists(member_names, obj_id);
+                    CheckClassMemberExists(member_names, obj_id, false);
                     addClassMember = 0;
                     switch(_token)
                     {
                         case _SC('('): //C/C++ style function declaration
                             Lex();
+                            if(class_name)
+                            {
+                                //printf("ClassMember %d : %s : %s\n", (int)cppDestructor, _stringval(*class_name), _stringval(obj_id));
+                                if(memcmp(_stringval(*class_name), _stringval(obj_id), _string(*class_name)->_len) == 0)
+                                {
+                                    //C++ style constructor/destructor declaration
+                                    obj_id = _fs->CreateString(cppDestructor ? _SC("destructor") : _SC("constructor"));
+                                    cppDestructor = false;
+                                }
+                            }
+                            AddClassMemberExists(member_names, obj_id);
                             goto function_params_decl;
                             break;
                         case _SC(':'): //typescript field with type annotation
@@ -1519,9 +1546,17 @@ function_params_decl:
                             Lex();
                             ++addClassMember;
                             break;
+                        case TK_IDENTIFIER: //if 2 identifier found the first should be a type
+                            if(CheckNameIsType(obj_id)) //Struct/Class/Typedef names
+                            {
+                                membertypename = _stringval(obj_id);
+                                goto member_has_type;
+                            }
+
                     }
                     if(addClassMember)
                     {
+                        AddClassMemberExists(member_names, obj_id);
                         _fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(obj_id));
                         _fs->AddInstruction(_OP_LOADNULLS, _fs->PushTarget(), 1);
                         break;
@@ -1542,6 +1577,20 @@ function_params_decl:
                     membertypename = _lex.GetTokenName(_token);
                     Lex();
                     goto member_has_type;
+                }
+            case _SC('~'): //C++ style destructor declaration
+                if(isClass)
+                {
+                    cppDestructor = true;
+                    Lex();
+                    goto member_has_type;
+                    continue;
+                }
+            case TK_CONSTEXPR:
+                if(isClass)
+                {
+                    Lex();
+                    continue;
                 }
                 //else fallthrough
 			default :
@@ -1985,24 +2034,25 @@ if(color == "yellow"){
 	void ClassStatement()
 	{
 		SQExpState es;
+		SQObjectPtr class_name;
 		Lex();
 		if(_token == TK_IDENTIFIER) {
-		    SQObjectPtr str = SQString::Create(_ss(_vm), _lex._svalue);
-		    CheckGlobalName(str, true);
-            CheckTypeName(str, true); //to allow C/C++ style instance declarations
+		    class_name = SQString::Create(_ss(_vm), _lex._svalue);
+		    CheckGlobalName(class_name, true);
+            CheckTypeName(class_name, true); //to allow C/C++ style instance declarations
 		}
 		es = _es;
 		_es.donot_get = true;
 		PrefixedExpr();
+        if(_token == _SC(';')) //class forward declaration
+        {
+            //return;
+        }
 		if(_es.etype == EXPR) {
 			Error(_SC("invalid class name"));
 		}
 		else if(_es.etype == OBJECT || _es.etype == BASE) {
-            if(_token == _SC(';')) //class forward declaration
-            {
-
-            }
-			ClassExp();
+			ClassExp(&class_name);
 			EmitDerefOp(_OP_NEWSLOT);
 			_fs->PopTarget();
 		}
@@ -2170,7 +2220,7 @@ error:
 		CreateFunction(dummy, lambda ? eFunctionType_lambda : eFunctionType_anonymous);
 		_fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, ftype == TK_FUNCTION?0:1);
 	}
-	void ClassExp()
+	void ClassExp(SQObjectPtr *class_name)
 	{
 		SQInteger base = -1;
 		SQInteger attrs = -1;
@@ -2202,7 +2252,7 @@ error:
 		if(attrs != -1) _fs->PopTarget();
 		if(base != -1) _fs->PopTarget();
 		_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(), base, attrs,NOT_CLASS);
-		ParseTableOrClass(_SC(';'),_SC('}'));
+		ParseTableOrClass(_SC(';'),_SC('}'), class_name);
 	}
 	void DeleteExpr()
 	{
@@ -2280,15 +2330,16 @@ error:
 				break;
 			}
 			else {
+				if(_token == TK_CONST) Lex(); //C/C++ const parameters
+				switch(_token)
+				{
+                CASE_TK_LOCAL_TYPES: //accept C/C++ type parameter declarations
+				        param_type_name = _lex.GetTokenName(_token);
+				        Lex();
+				}
 				if(_token == _SC('&')){
 					is_reference = 1;
 					Lex();
-				}
-				switch(_token)
-				{
-				    CASE_TK_LOCAL_TYPES: //accept C/C++ type parameter declarations
-				        param_type_name = _lex.GetTokenName(_token);
-				        Lex();
 				}
 				paramname = Expect(TK_IDENTIFIER);
 				funcstate->AddParameter(paramname, _scope.nested+1, is_reference ? _VAR_REFERENCE : _VAR_ANY);
