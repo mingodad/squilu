@@ -43,6 +43,7 @@ public:
 	SQInteger _prevtoken;
 	SQInteger _currentline;
 	SQInteger _lasttokenline;
+	SQInteger _lasttokencolumn;
 	SQInteger _currentcolumn;
 	const SQChar *_svalue;
 	SQInteger _nvalue;

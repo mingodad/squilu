@@ -44,6 +44,7 @@ SQInteger SQLexer::ResetReader(SQLEXREADFUNC rg, SQUserPointer up, SQInteger lin
 	_readf = rg;
 	_up = up;
 	_lasttokenline = _currentline = line;
+	_lasttokencolumn = 0;
 	_currentcolumn = 0;
 	_prevtoken = -1;
 	_reached_eof = SQFalse;
@@ -236,6 +237,7 @@ SQInteger SQLexer::LexLineComment()
 SQInteger SQLexer::Lex()
 {
 	_lasttokenline = _currentline;
+	_lasttokencolumn = _currentcolumn;
 	while(CUR_CHAR != SQUIRREL_EOB) {
 		switch(CUR_CHAR){
 		case _SC('\t'): case _SC('\r'): case _SC(' '): NEXT(); continue;

@@ -173,6 +173,14 @@ static SQRESULT sq_SQLexer_lasttokenline(HSQUIRRELVM v){
 	return 1;
 }
 
+static SQRESULT sq_SQLexer_lasttokencolumn(HSQUIRRELVM v){
+	SQ_FUNC_VARS_NO_TOP(v);
+	GET_SQLexer_INSTANCE();
+
+    sq_pushinteger(v, self->lex->_lasttokencolumn);
+	return 1;
+}
+
 static SQRESULT sq_SQLexer_currentline(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_SQLexer_INSTANCE();
@@ -229,6 +237,7 @@ static SQRegFunction SQLexer_obj_funcs[]={
 	_DECL_SQLEXER_FUNC(currentcolumn, 1, _SC(".")),
 	_DECL_SQLEXER_FUNC(prevtoken, 1, _SC(".")),
 	_DECL_SQLEXER_FUNC(lasttokenline, 1, _SC(".")),
+	_DECL_SQLEXER_FUNC(lasttokencolumn, 1, _SC(".")),
 	_DECL_SQLEXER_FUNC(first_enum_token, 1, _SC(".")),
 	_DECL_SQLEXER_FUNC(last_enum_token, 1, _SC(".")),
 	_DECL_SQLEXER_FUNC(lex, 1, _SC(".")),
