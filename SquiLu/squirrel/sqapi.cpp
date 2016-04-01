@@ -148,7 +148,7 @@ SQRESULT sq_compile(HSQUIRRELVM v,SQLEXREADFUNC read,SQUserPointer p,const SQCha
                     ,SQBool raiseerror, SQBool show_warnings)
 {
 	SQObjectPtr o;
-#ifndef NO_COMPILER
+#ifndef SQ_NO_COMPILER
 	if(Compile(v, read, p, sourcename, o, raiseerror?true:false, _ss(v)->_debuginfo, show_warnings)) {
 		v->Push(SQClosure::Create(_ss(v), _funcproto(o), _table(v->_roottable)->GetWeakRef(OT_TABLE)));
 		return SQ_OK;
