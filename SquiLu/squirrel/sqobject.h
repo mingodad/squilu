@@ -171,7 +171,7 @@ struct SQObjectPtr;
 	{ \
 		SQ_OBJECT_RAWINIT() \
 		_type=type; \
-		_unVal.sym = x; \
+		_unVal.p##sym = x; \
 		assert(_unVal.pTable); \
 		_unVal.pRefCounted->_uiRef++; \
 	} \
@@ -182,18 +182,23 @@ struct SQObjectPtr;
 		if(isRefCounted) old_unVal = _unVal;\
 		_type = type; \
 		SQ_REFOBJECT_INIT() \
-		_unVal.sym = x; \
+		_unVal.p##sym = x; \
 		_unVal.pRefCounted->_uiRef++; \
 		if(isRefCounted) __ReleaseRefCounted(old_unVal); \
 		return *this; \
+	} \
+	inline _class *to##sym()\
+	{ \
+        assert(_type == type); \
+        return _unVal.p##sym;\
 	}
 
-#define _SCALAR_TYPE_DECL(type,_class,sym) \
+#define _SCALAR_TYPE_DECL(type,_class,prefix,sym) \
 	SQObjectPtr(_class x) \
 	{ \
 		SQ_OBJECT_RAWINIT() \
 		_type=type; \
-		_unVal.sym = x; \
+		_unVal.prefix##sym = x; \
 	} \
 	inline SQObjectPtr& operator=(_class x) \
 	{  \
@@ -202,8 +207,13 @@ struct SQObjectPtr;
 			_type = type; \
 			SQ_OBJECT_RAWINIT() \
 		}\
-		_unVal.sym = x; \
+		_unVal.prefix##sym = x; \
 		return *this; \
+	} \
+	inline _class to##sym()\
+	{ \
+        assert(_type == type); \
+        return _unVal.prefix##sym;\
 	}
 struct SQObjectPtr : public SQObject
 {
@@ -225,23 +235,23 @@ struct SQObjectPtr : public SQObject
 		_unVal = o._unVal;
 		__AddRef(_type,_unVal);
 	}
-	_REF_TYPE_DECL(OT_TABLE,SQTable,pTable)
-	_REF_TYPE_DECL(OT_CLASS,SQClass,pClass)
-	_REF_TYPE_DECL(OT_INSTANCE,SQInstance,pInstance)
-	_REF_TYPE_DECL(OT_ARRAY,SQArray,pArray)
-	_REF_TYPE_DECL(OT_CLOSURE,SQClosure,pClosure)
-	_REF_TYPE_DECL(OT_NATIVECLOSURE,SQNativeClosure,pNativeClosure)
-	_REF_TYPE_DECL(OT_OUTER,SQOuter,pOuter)
-	_REF_TYPE_DECL(OT_GENERATOR,SQGenerator,pGenerator)
-	_REF_TYPE_DECL(OT_STRING,SQString,pString)
-	_REF_TYPE_DECL(OT_USERDATA,SQUserData,pUserData)
-	_REF_TYPE_DECL(OT_WEAKREF,SQWeakRef,pWeakRef)
-	_REF_TYPE_DECL(OT_THREAD,SQVM,pThread)
-	_REF_TYPE_DECL(OT_FUNCPROTO,SQFunctionProto,pFunctionProto)
+	_REF_TYPE_DECL(OT_TABLE,SQTable,Table)
+	_REF_TYPE_DECL(OT_CLASS,SQClass,Class)
+	_REF_TYPE_DECL(OT_INSTANCE,SQInstance,Instance)
+	_REF_TYPE_DECL(OT_ARRAY,SQArray,Array)
+	_REF_TYPE_DECL(OT_CLOSURE,SQClosure,Closure)
+	_REF_TYPE_DECL(OT_NATIVECLOSURE,SQNativeClosure,NativeClosure)
+	_REF_TYPE_DECL(OT_OUTER,SQOuter,Outer)
+	_REF_TYPE_DECL(OT_GENERATOR,SQGenerator,Generator)
+	_REF_TYPE_DECL(OT_STRING,SQString,String)
+	_REF_TYPE_DECL(OT_USERDATA,SQUserData,UserData)
+	_REF_TYPE_DECL(OT_WEAKREF,SQWeakRef,WeakRef)
+	_REF_TYPE_DECL(OT_THREAD,SQVM,Thread)
+	_REF_TYPE_DECL(OT_FUNCPROTO,SQFunctionProto,FunctionProto)
 
-	_SCALAR_TYPE_DECL(OT_INTEGER,SQInteger,nInteger)
-	_SCALAR_TYPE_DECL(OT_FLOAT,SQFloat,fFloat)
-	_SCALAR_TYPE_DECL(OT_USERPOINTER,SQUserPointer,pUserPointer)
+	_SCALAR_TYPE_DECL(OT_INTEGER,SQInteger,n, Integer)
+	_SCALAR_TYPE_DECL(OT_FLOAT,SQFloat,f, Float)
+	_SCALAR_TYPE_DECL(OT_USERPOINTER,SQUserPointer,p, UserPointer)
 
 	SQObjectPtr(bool bBool)
 	{

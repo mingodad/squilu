@@ -32,6 +32,11 @@ public:
 		}
 		else return false;
 	}
+	SQObjectPtr operator[](SQInteger nidx) {
+        SQObjectPtr val;
+        Get(nidx, val);
+        return val;
+    }
 	bool Exists(const SQInteger nidx)
 	{
 		return (nidx>=0 && nidx<(SQInteger)_values.size());
