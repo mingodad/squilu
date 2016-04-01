@@ -43,25 +43,54 @@ static SQRESULT SQLexer_release_hook(SQUserPointer p, SQInteger size, void */*ep
 	return 0;
 }
 
-static SQRESULT sq_SQLexer_constructor(HSQUIRRELVM v){
-	SQ_FUNC_VARS_NO_TOP(v);
+static SQRESULT sq_SQLexer_reset_src(HSQUIRRELVM v, sq_lexer_st *self){
+    SQ_FUNC_VARS_NO_TOP(v);
 	SQ_GET_STRING(v, 2, src);
 
-	sq_lexer_st *self = (sq_lexer_st*)sq_malloc(sizeof(sq_lexer_st));//sq_newuserdata(v, sizeof(sq_lexer_st));
+    sq_release(v, &self->source);
     sq_resetobject(&self->source);
     SQRESULT rc = sq_getstackobj(v, 2, &self->source);
-    if(rc == SQ_OK) sq_addref(v, &self->source);
+    if(rc == SQ_OK)
+    {
+        sq_addref(v, &self->source);
+        self->buf.buf = src;
+        self->buf.ptr = 0;
+        self->buf.size = src_size;
+    }
+	return 1;
+}
+
+static SQRESULT sq_SQLexer_constructor(HSQUIRRELVM v){
+
+	sq_lexer_st *self = (sq_lexer_st*)sq_malloc(sizeof(sq_lexer_st));//sq_newuserdata(v, sizeof(sq_lexer_st));
+	memset(self, 0, sizeof(*self));
+
+    sq_SQLexer_reset_src(v, self);
     self->lex = (SQLexer*)sq_malloc(sizeof(SQLexer));
     new (self->lex) SQLexer();
-    self->buf.buf = src;
-    self->buf.ptr = 0;
-    self->buf.size = src_size;
     self->vm = v;
-    self->lex->Init(v->_sharedstate, sq_strbuf_lexfeed, &self->buf, NULL, NULL);
+
+    SQBool want_comments = SQFalse;
+    if(sq_gettop(v) > 2)
+    {
+        //we want comments returned by the lexer
+        sq_getbool(v, 3, &want_comments);
+    }
+
+    self->lex->Init(v->_sharedstate, sq_strbuf_lexfeed, &self->buf, NULL, NULL, want_comments);
 
     sq_setinstanceup(v, 1, self);
     sq_setreleasehook(v,1, SQLexer_release_hook);
 
+	return 1;
+}
+
+static SQRESULT sq_SQLexer_reset(HSQUIRRELVM v){
+	SQ_FUNC_VARS_NO_TOP(v);
+	GET_SQLexer_INSTANCE();
+
+	sq_SQLexer_reset_src(v, self);
+    self->lex->ResetReader(sq_strbuf_lexfeed, &self->buf, 1);
 	return 1;
 }
 
@@ -187,7 +216,8 @@ static SQRESULT sq_SQLexer_last_enum_token(HSQUIRRELVM v){
 #define _DECL_SQLEXER_FUNC(name,nparams,pmask) {_SC(#name),sq_SQLexer_##name,nparams,pmask}
 static SQRegFunction SQLexer_obj_funcs[]={
 
-	_DECL_SQLEXER_FUNC(constructor, 2, _SC("..")),
+	_DECL_SQLEXER_FUNC(constructor, -2, _SC(".sb")),
+	_DECL_SQLEXER_FUNC(reset, 2, _SC(".s")),
 	_DECL_SQLEXER_FUNC(tok2str, 2, _SC(".i")),
 	_DECL_SQLEXER_FUNC(token_name, 2, _SC(".i")),
 	_DECL_SQLEXER_FUNC(lasterror, 1, _SC(".")),
