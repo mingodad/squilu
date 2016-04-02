@@ -140,8 +140,11 @@ SQVM::SQVM(SQSharedState *ss)
 	_debughook_closure.Null();
 	_openouters = NULL;
 	ci = NULL;
+    _releasehook = NULL;
 	INIT_CHAIN();ADD_TO_CHAIN(&_ss(this)->_gc_chain,this);
+#ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
 	_check_delayed_relase_hooks = true;
+#endif
 #ifdef PROFILE_SQVM
 	printf("SQVM::SQVM : %p\n", this);
 	_op_profile_timer.start();
@@ -159,6 +162,8 @@ void SQVM::Finalize()
     CallAtExitHandler();
 #ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
     _sharedstate->CallDelayedReleaseHooks(this);
+#else
+    if(_releasehook) { _releasehook(_foreignptr,0,0); _releasehook = NULL; }
 #endif
 	if(_openouters) CloseOuters(&_stack._vals[0]);
 	_roottable.Null();
@@ -536,12 +541,12 @@ bool SQVM::DerefInc(SQInteger op,SQObjectPtr &target, SQObjectPtr &self, SQObjec
 }
 
 #define arg0 (_i_._arg0)
-#define sarg0 ((SQInteger)*((signed char *)&_i_._arg0))
+#define sarg0 ((SQInteger)*((const signed char *)&_i_._arg0))
 #define arg1 (_i_._arg1)
-#define sarg1 (*((SQInt32 *)&_i_._arg1))
+#define sarg1 (*((const SQInt32 *)&_i_._arg1))
 #define arg2 (_i_._arg2)
 #define arg3 (_i_._arg3)
-#define sarg3 ((SQInteger)*((signed char *)&_i_._arg3))
+#define sarg3 ((SQInteger)*((const signed char *)&_i_._arg3))
 
 SQRESULT SQVM::Suspend()
 {
@@ -555,7 +560,7 @@ SQRESULT SQVM::Suspend()
 
 #define _FINISH(howmuchtojump) {jump = howmuchtojump; return true; }
 bool SQVM::FOREACH_OP(SQObjectPtr &o1,SQObjectPtr &o2,SQObjectPtr
-&o3,SQObjectPtr &o4,SQInteger /*arg_2*/,int exitpos,int &jump)
+&o3,SQObjectPtr &o4,SQInteger SQ_UNUSED_ARG(arg_2),int exitpos,int &jump)
 {
 	SQInteger nrefidx;
 	switch(type(o1)) {

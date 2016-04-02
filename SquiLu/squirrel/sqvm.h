@@ -188,12 +188,15 @@ public:
 	SQSharedState *_sharedstate;
 	SQInteger _nnativecalls;
 	SQInteger _nmetamethodscall;
+    SQRELEASEHOOK _releasehook;
 	//suspend infos
 	SQBool _suspended;
 	SQBool _suspended_root;
-	SQBool _check_delayed_relase_hooks;
 	SQInteger _suspended_target;
 	SQInteger _suspended_traps;
+#ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
+	SQBool _check_delayed_relase_hooks;
+#endif
 #ifdef PROFILE_SQVM
 	OpProfileVec _op_profile;
 	HighResolutionTimer _op_profile_timer;

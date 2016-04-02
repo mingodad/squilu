@@ -309,6 +309,10 @@ struct SQObjectPtr : public SQObject
 			_unVal.raw = (SQRawObjectVal)NULL;
 		}
 	}
+	inline bool isNull()
+	{
+		return _type == OT_NULL;
+	}
 	private:
 		SQObjectPtr(const SQChar *){} //safety
 };

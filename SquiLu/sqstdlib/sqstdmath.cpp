@@ -311,7 +311,7 @@ static SQRESULT math_number_format(HSQUIRRELVM v) {
 //DAD end
 
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),math_##name,nparams,tycheck}
-static SQRegFunction mathlib_funcs[] = {
+static const SQRegFunction mathlib_funcs[] = {
 	_DECL_FUNC(sqrt,2,_SC(".n")),
 	_DECL_FUNC(sin,2,_SC(".n")),
 	_DECL_FUNC(cos,2,_SC(".n")),

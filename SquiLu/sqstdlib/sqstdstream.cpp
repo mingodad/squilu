@@ -383,6 +383,8 @@ SQInteger _stream_eos(HSQUIRRELVM v)
 	 return sq_throwerror(v,_SC("this object cannot be cloned"));
  }
 
+#define _DECL_STREAM_FUNC2(name,name2, nparams,typecheck) {_SC(#name2),_stream_##name,nparams,typecheck}
+
 static SQRegFunction _stream_methods[] = {
 	_DECL_STREAM_FUNC(read_line,-1,_SC("xi")),
 	_DECL_STREAM_FUNC(read,2,_SC("xn")),
@@ -397,6 +399,8 @@ static SQRegFunction _stream_methods[] = {
 	_DECL_STREAM_FUNC(seek,-2,_SC("xnn")),
 	_DECL_STREAM_FUNC(tell,1,_SC("x")),
 	_DECL_STREAM_FUNC(len,1,_SC("x")),
+	_DECL_STREAM_FUNC2(len,size,1,_SC("x")),
+	_DECL_STREAM_FUNC2(len,length,1,_SC("x")),
 	_DECL_STREAM_FUNC(eos,1,_SC("x")),
 	_DECL_STREAM_FUNC(flush,1,_SC("x")),
 	_DECL_STREAM_FUNC(_cloned,0,NULL),

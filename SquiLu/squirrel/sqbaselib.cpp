@@ -43,7 +43,7 @@ bool str2num(const SQChar *s,SQObjectPtr &res, SQInteger base=10)
 	return true;
 }
 
-static SQRESULT base_dummy(HSQUIRRELVM /*v*/)
+static SQRESULT base_dummy(HSQUIRRELVM SQ_UNUSED_ARG(v))
 {
 	return 0;
 }

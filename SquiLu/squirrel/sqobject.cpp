@@ -84,15 +84,15 @@ SQUnsignedInteger SQTranslateIndex(const SQObjectPtr &idx)
 
 SQWeakRef *SQRefCounted::GetWeakRef(SQObjectType type)
 {
-	if(!_weakref) {
-		sq_new(_weakref,SQWeakRef);
-#if defined(SQUSEDOUBLE) && !defined(_SQ64) || !defined(SQUSEDOUBLE) && defined(_SQ64)
-		_weakref->_obj._unVal.raw = 0; //without this on 32bits using double the comparison operator do not work
+    if(!_weakref) {
+        sq_new(_weakref,SQWeakRef);
+#if defined(SQUSEDOUBLE) && !defined(_SQ64)
+        _weakref->_obj._unVal.raw = 0; //clean the whole union on 32 bits with double
 #endif
-		_weakref->_obj._type = type;
-		_weakref->_obj._unVal.pRefCounted = this;
-	}
-	return _weakref;
+        _weakref->_obj._type = type;
+        _weakref->_obj._unVal.pRefCounted = this;
+    }
+    return _weakref;
 }
 
 SQRefCounted::~SQRefCounted()
@@ -269,9 +269,10 @@ SQInteger SQFunctionProto::GetLine(SQInstruction *curr)
 
 SQClosure::~SQClosure()
 {
-	__ObjRelease(_env);
-	__ObjRelease(_base);
-	REMOVE_FROM_CHAIN(&_ss(this)->_gc_chain,this);
+    __ObjRelease(_root);
+    __ObjRelease(_env);
+    __ObjRelease(_base);
+    REMOVE_FROM_CHAIN(&_ss(this)->_gc_chain,this);
 }
 
 #define _CHECK_IO(exp)  { if(!exp)return false; }

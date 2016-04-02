@@ -25,6 +25,8 @@ SQSharedState::SQSharedState()
 	_errorfunc = NULL;
 	_debuginfo = false;
 	_notifyallexceptions = false;
+    _foreignptr = NULL;
+    _releasehook = NULL;
 #ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
 	_already_in_CallDelayedReleaseHooks = false;
 #endif // SQ_WITH_DELAYED_RELEASE_HOOKS
@@ -85,7 +87,7 @@ bool CompileTypemask(SQIntVec &res,const SQChar *typemask)
 	return true;
 }
 
-SQTable *CreateDefaultDelegate(SQSharedState *ss,SQRegFunction *funcz)
+SQTable *CreateDefaultDelegate(SQSharedState *ss,const SQRegFunction *funcz)
 {
 	SQInteger i=0;
 	SQTable *t=SQTable::Create(ss,0);
@@ -170,6 +172,7 @@ void SQSharedState::Init()
 
 SQSharedState::~SQSharedState()
 {
+    if(_releasehook) { _releasehook(_foreignptr,0,0); _releasehook = NULL; }
 	_constructoridx.Null();
 	_destructoridx.Null();
 	_table(_registry)->Finalize();
@@ -288,8 +291,7 @@ void SQSharedState::MarkObject(SQObjectPtr &o,SQCollectable **chain)
 	}
 }
 
-
-void SQSharedState::RunMark(SQVM */*vm*/,SQCollectable **tchain)
+void SQSharedState::RunMark(SQVM SQ_UNUSED_ARG(*vm),SQCollectable **tchain)
 {
 	SQVM *vms = _thread(_root_vm);
 

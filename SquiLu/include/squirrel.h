@@ -30,7 +30,7 @@ extern "C" {
 #include <stdarg.h>
 
 #ifndef SQUIRREL_API
-#define SQUIRREL_API extern
+#define SQUIRREL_API extern //__attribute__ ((visibility ("default")))
 #endif
 
 #if (defined(_WIN64) || defined(_LP64))
@@ -122,10 +122,10 @@ struct SQOuter;
 
 #include "sqconfig.h"
 
-#define SQUIRREL_VERSION	_SC("SquiLu based on Squirrel 3.0.4 stable and Lua 5.1.5")
-#define SQUIRREL_COPYRIGHT	_SC("Copyright (C) 2003-2012 Alberto Demichelis, Domingo Alvarez Duarte")
+#define SQUIRREL_VERSION	_SC("SquiLu based on Squirrel 3.1 stable and Lua 5.1.5")
+#define SQUIRREL_COPYRIGHT	_SC("Copyright (C) 2003-2016 Alberto Demichelis, Domingo Alvarez Duarte")
 #define SQUIRREL_AUTHOR		_SC("Alberto Demichelis, Domingo Alvarez Duarte")
-#define SQUIRREL_VERSION_NUMBER	304
+#define SQUIRREL_VERSION_NUMBER	310
 
 #define SQ_VMSTATE_IDLE			0
 #define SQ_VMSTATE_RUNNING		1
@@ -274,6 +274,12 @@ SQUIRREL_API SQRESULT sq_getatexithandler(HSQUIRRELVM v);
 SQUIRREL_API void sq_close(HSQUIRRELVM v);
 SQUIRREL_API void sq_setforeignptr(HSQUIRRELVM v,SQUserPointer p);
 SQUIRREL_API SQUserPointer sq_getforeignptr(HSQUIRRELVM v);
+SQUIRREL_API void sq_setsharedforeignptr(HSQUIRRELVM v,SQUserPointer p);
+SQUIRREL_API SQUserPointer sq_getsharedforeignptr(HSQUIRRELVM v);
+SQUIRREL_API void sq_setvmreleasehook(HSQUIRRELVM v,SQRELEASEHOOK hook);
+SQUIRREL_API SQRELEASEHOOK sq_getvmreleasehook(HSQUIRRELVM v);
+SQUIRREL_API void sq_setsharedreleasehook(HSQUIRRELVM v,SQRELEASEHOOK hook);
+SQUIRREL_API SQRELEASEHOOK sq_getsharedreleasehook(HSQUIRRELVM v);
 SQUIRREL_API void sq_setprintfunc(HSQUIRRELVM v, SQPRINTFUNCTION printfunc,SQPRINTFUNCTION errfunc);
 SQUIRREL_API SQPRINTFUNCTION sq_getprintfunc(HSQUIRRELVM v);
 SQUIRREL_API SQPRINTFUNCTION sq_geterrorfunc(HSQUIRRELVM v);
@@ -315,6 +321,8 @@ SQUIRREL_API SQRESULT sq_setparamscheck(HSQUIRRELVM v,SQInteger nparamscheck,con
 SQUIRREL_API SQRESULT sq_setfenv(HSQUIRRELVM v,SQInteger idx, SQBool cloning);
 SQUIRREL_API SQRESULT sq_getfenv(HSQUIRRELVM v,SQInteger idx, SQBool roottable_when_null);
 SQUIRREL_API SQRESULT sq_bindenv(HSQUIRRELVM v,SQInteger idx);
+SQUIRREL_API SQRESULT sq_setclosureroot(HSQUIRRELVM v,SQInteger idx);
+SQUIRREL_API SQRESULT sq_getclosureroot(HSQUIRRELVM v,SQInteger idx);
 SQUIRREL_API void sq_pushstring(HSQUIRRELVM v,const SQChar *s,SQInteger len);
 SQUIRREL_API void sq_pushfstring(HSQUIRRELVM v,const SQChar *fmt, ...);
 SQUIRREL_API void sq_pushfloat(HSQUIRRELVM v,SQFloat f);
@@ -322,6 +330,7 @@ SQUIRREL_API void sq_pushinteger(HSQUIRRELVM v,SQInteger n);
 SQUIRREL_API void sq_pushbool(HSQUIRRELVM v,SQBool b);
 SQUIRREL_API void sq_pushuserpointer(HSQUIRRELVM v,SQUserPointer p);
 SQUIRREL_API void sq_pushnull(HSQUIRRELVM v);
+SQUIRREL_API void sq_pushthread(HSQUIRRELVM v, HSQUIRRELVM thread);
 SQUIRREL_API SQRESULT sq_checkoption (HSQUIRRELVM v, SQInteger narg, const SQChar *def,
                                  const SQChar *const lst[]);
 SQUIRREL_API SQObjectType sq_gettype(HSQUIRRELVM v,SQInteger idx);
@@ -346,6 +355,7 @@ SQUIRREL_API SQRESULT sq_getuserdata(HSQUIRRELVM v,SQInteger idx,SQUserPointer *
 SQUIRREL_API SQRESULT sq_settypetag(HSQUIRRELVM v,SQInteger idx,SQUserPointer typetag);
 SQUIRREL_API SQRESULT sq_gettypetag(HSQUIRRELVM v,SQInteger idx,SQUserPointer *typetag);
 SQUIRREL_API void sq_setreleasehook(HSQUIRRELVM v,SQInteger idx,SQRELEASEHOOK hook);
+SQUIRREL_API SQRELEASEHOOK sq_getreleasehook(HSQUIRRELVM v,SQInteger idx);
 SQUIRREL_API SQChar *sq_getscratchpad(HSQUIRRELVM v,SQInteger minsize);
 SQUIRREL_API SQRESULT sq_getfunctioninfo(HSQUIRRELVM v,SQInteger level,SQFunctionInfo *fi);
 SQUIRREL_API SQRESULT sq_getclosureinfo(HSQUIRRELVM v,SQInteger idx,SQUnsignedInteger *nparams,SQUnsignedInteger *nfreevars);
@@ -373,14 +383,6 @@ SQUIRREL_API void sq_insert_reg_funcs(HSQUIRRELVM sqvm, SQRegFunction *obj_funcs
 SQUIRREL_API const SQChar *sq_optstring(HSQUIRRELVM sqvm, SQInteger idx, const SQChar *dflt, SQInteger *size);
 SQUIRREL_API SQRESULT sq_optinteger(HSQUIRRELVM sqvm, SQInteger idx, SQInteger *value, SQInteger default_value);
 
-/*object manipulation*/
-SQUIRREL_API void sq_pushroottable(HSQUIRRELVM v);
-SQUIRREL_API SQRESULT sq_getonroottable(HSQUIRRELVM v);
-SQUIRREL_API SQRESULT sq_setonroottable(HSQUIRRELVM v);
-SQUIRREL_API void sq_pushregistrytable(HSQUIRRELVM v);
-SQUIRREL_API SQRESULT sq_getonregistrytable(HSQUIRRELVM v);
-SQUIRREL_API SQRESULT sq_setonregistrytable(HSQUIRRELVM v);
-SQUIRREL_API SQRESULT sq_delete_on_registry_table(HSQUIRRELVM v, SQUserPointer uptr);
 
 #define SQ_EXTENSIONS_KEY _SC("sq__Extensions")
 typedef struct {
@@ -389,6 +391,14 @@ typedef struct {
 } sq_modules_preload_st;
 int sq_preload_modules(HSQUIRRELVM v, sq_modules_preload_st *modules);
 
+/*object manipulation*/
+SQUIRREL_API void sq_pushroottable(HSQUIRRELVM v);
+SQUIRREL_API SQRESULT sq_getonroottable(HSQUIRRELVM v);
+SQUIRREL_API SQRESULT sq_setonroottable(HSQUIRRELVM v);
+SQUIRREL_API void sq_pushregistrytable(HSQUIRRELVM v);
+SQUIRREL_API SQRESULT sq_getonregistrytable(HSQUIRRELVM v);
+SQUIRREL_API SQRESULT sq_setonregistrytable(HSQUIRRELVM v);
+SQUIRREL_API SQRESULT sq_delete_on_registry_table(HSQUIRRELVM v, SQUserPointer uptr);
 SQUIRREL_API void sq_pushconsttable(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sq_setroottable(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sq_setconsttable(HSQUIRRELVM v);
@@ -449,6 +459,8 @@ SQUIRREL_API SQInteger sq_objtointeger(const HSQOBJECT *o);
 SQUIRREL_API SQFloat sq_objtofloat(const HSQOBJECT *o);
 SQUIRREL_API SQUserPointer sq_objtouserpointer(const HSQOBJECT *o);
 SQUIRREL_API SQRESULT sq_getobjtypetag(const HSQOBJECT *o,SQUserPointer * typetag);
+SQUIRREL_API SQUnsignedInteger sq_getvmrefcount(HSQUIRRELVM v, const HSQOBJECT *po);
+
 
 /*GC*/
 SQUIRREL_API SQInteger sq_collectgarbage(HSQUIRRELVM v);
@@ -502,6 +514,12 @@ SQUIRREL_API void sq_getlaststackinfo(HSQUIRRELVM v);
 #define SQ_FAILED(res) (res<0)
 #define SQ_SUCCEEDED(res) (res>=0)
 #define SQ_RETURN_IF_ERROR(res) if(SQ_FAILED(res)) return res
+
+#ifdef __GNUC__
+# define SQ_UNUSED_ARG(x) __attribute__((unused)) x
+#else
+# define SQ_UNUSED_ARG(x) x
+#endif
 
 /*DAD*/
 #define SQ_FUNC_VARS(v) \

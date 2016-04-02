@@ -558,7 +558,7 @@ SQInteger _g_io_writefile(HSQUIRRELVM v)
 }
 
 #define _DECL_GLOBALIO_FUNC(name,nparams,typecheck) {_SC(#name),_g_io_##name,nparams,typecheck}
-static SQRegFunction iolib_funcs[]={
+static const SQRegFunction iolib_funcs[]={
 	_DECL_GLOBALIO_FUNC(loadfile,-2,_SC(".sbb")),
 	_DECL_GLOBALIO_FUNC(dofile,-2,_SC(".sbb")),
 	_DECL_GLOBALIO_FUNC(writeclosuretofile,3,_SC(".sc")),
