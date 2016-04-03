@@ -497,11 +497,15 @@ struct SQLexerNut
 
     SQInteger Error(const SQChar_ptr_t err, ...)
     {
+	_lasterror = err;
+	if(0)
+	{
 	throw err;
         va_list vl;
         va_start(vl, fmt);
         scvsprintf(_lasterror, sizeof(_lasterror), fmt, vl);
         va_end(vl);
+	}
         if(_errfunc) _errfunc(_errtarget,_lasterror);
         return -1;
     }
@@ -518,17 +522,17 @@ struct SQLexerNut
             case '\t':
             case '\r':
             case ' ':
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
                 continue;
             case '\n':
                 _currentline++;
                 _prevtoken=_curtoken;
                 _curtoken='\n';
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
                 _currentcolumn=1;
                 continue;
             case '#':
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
                 if(CUR_CHAR == '!') //shell shebang
                 {
                     if(LexLineComment()) return -1;
@@ -538,7 +542,7 @@ struct SQLexerNut
                 return RETURN_TOKEN(TK_PRAGMA);
                 continue;
             case '/':
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
                 switch(CUR_CHAR)
                 {
                 case '*':
@@ -550,28 +554,28 @@ struct SQLexerNut
                     if(_want_comments) return RETURN_TOKEN(TK_COMMENT_LINE)
                         continue;
                 case '=':
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     return RETURN_TOKEN(TK_DIVEQ);
                     continue;
                 case '>':
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     return RETURN_TOKEN(TK_ATTR_CLOSE);
                     continue;
                 default:
                     return RETURN_TOKEN('/');
                 }
             case '=':
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
                 if (CUR_CHAR != '=')
                 {
                     return RETURN_TOKEN('=')
                 }
                 else
                 {
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     if (CUR_CHAR == '=')
                     {
-                        /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                        if(Next()) return -1;
                         return RETURN_TOKEN(TK_EQ_IDENTITY)
                     }
                     else
@@ -580,45 +584,45 @@ struct SQLexerNut
                     }
                 }
             case '<':
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
                 switch(CUR_CHAR)
                 {
                 case '=':
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     if(CUR_CHAR == '>')
                     {
-                        /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                        if(Next()) return -1;
                         return RETURN_TOKEN(TK_3WAYSCMP);
                     }
                     return RETURN_TOKEN(TK_LE)
                     break;
                 case '-':
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     return RETURN_TOKEN(TK_NEWSLOT);
                     break;
                 case '<':
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     return RETURN_TOKEN(TK_SHIFTL);
                     break;
                 case '/':
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     return RETURN_TOKEN(TK_ATTR_OPEN);
                     break;
                 }
                 return RETURN_TOKEN('<');
             case '>':
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
                 if (CUR_CHAR == '=')
                 {
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     return RETURN_TOKEN(TK_GE);
                 }
                 else if(CUR_CHAR == '>')
                 {
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     if(CUR_CHAR == '>')
                     {
-                        /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                        if(Next()) return -1;
                         return RETURN_TOKEN(TK_USHIFTR);
                     }
                     return RETURN_TOKEN(TK_SHIFTR);
@@ -628,17 +632,17 @@ struct SQLexerNut
                     return RETURN_TOKEN('>')
                 }
             case '!':
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
                 if (CUR_CHAR != '=')
                 {
                     return RETURN_TOKEN('!')
                 }
                 else
                 {
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     if (CUR_CHAR == '=')
                     {
-                        /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                        if(Next()) return -1;
                         return RETURN_TOKEN(TK_NE_IDENTITY)
                     }
                     else
@@ -649,7 +653,7 @@ struct SQLexerNut
             case '@':
             {
                 SQInteger stype;
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
                 if(CUR_CHAR != '"')
                 {
                     return RETURN_TOKEN('@');
@@ -682,7 +686,7 @@ struct SQLexerNut
             case '~':
             {
                 SQInteger ret = CUR_CHAR;
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
                 if((ret == '[' || ret == '{' || ret == '(') && CUR_CHAR == '=')
                 {
                     //lets try lua literal delimiters
@@ -696,101 +700,101 @@ struct SQLexerNut
                 else return RETURN_TOKEN(ret);
             }
             case '.':
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
                 if (CUR_CHAR != '.')
                 {
                     return RETURN_TOKEN('.')
                 }
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
                 if (CUR_CHAR != '.')
                 {
                     return Error("invalid token '..'");
                 }
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
                 return RETURN_TOKEN(TK_VARPARAMS);
             case '^':
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
-                //if (CUR_CHAR == '='){ /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;}; return RETURN_TOKEN(TK_BIT_XOR_EQ);}
+                if(Next()) return -1;
+                //if (CUR_CHAR == '='){ if(Next()) return -1; return RETURN_TOKEN(TK_BIT_XOR_EQ);}
                 return RETURN_TOKEN('^');
             case '&':
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
-                //if (CUR_CHAR == '='){ /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;}; return RETURN_TOKEN(TK_BIT_AND_EQ);}
+                if(Next()) return -1;
+                //if (CUR_CHAR == '='){ if(Next()) return -1; return RETURN_TOKEN(TK_BIT_AND_EQ);}
                 if (CUR_CHAR != '&')
                 {
                     return RETURN_TOKEN('&')
                 }
                 else
                 {
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     return RETURN_TOKEN(TK_AND);
                 }
             case '|':
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
-                //if (CUR_CHAR == '='){ /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;}; return RETURN_TOKEN(TK_BIT_OR_EQ);}
+                if(Next()) return -1;
+                //if (CUR_CHAR == '='){ if(Next()) return -1; return RETURN_TOKEN(TK_BIT_OR_EQ);}
                 if (CUR_CHAR != '|')
                 {
                     return RETURN_TOKEN('|')
                 }
                 else
                 {
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     return RETURN_TOKEN(TK_OR);
                 }
             case ':':
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
                 if (CUR_CHAR != ':')
                 {
                     return RETURN_TOKEN(':')
                 }
                 else
                 {
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     return RETURN_TOKEN(TK_DOUBLE_COLON);
                 }
             case '*':
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
                 if (CUR_CHAR == '=')
                 {
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     return RETURN_TOKEN(TK_MULEQ);
                 }
                 else return RETURN_TOKEN('*');
             case '%':
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
                 if (CUR_CHAR == '=')
                 {
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     return RETURN_TOKEN(TK_MODEQ);
                 }
                 else return RETURN_TOKEN('%');
             case '-':
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
                 if (CUR_CHAR == '=')
                 {
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     return RETURN_TOKEN(TK_MINUSEQ);
                 }
                 else if  (CUR_CHAR == '-')
                 {
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     return RETURN_TOKEN(TK_MINUSMINUS);
                 }
                 else if  (CUR_CHAR == '>')
                 {
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};    //accept C/C++ like pointers
+                    if(Next()) return -1;    //accept C/C++ like pointers
                     return RETURN_TOKEN('.');
                 }
                 else return RETURN_TOKEN('-');
             case '+':
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
                 if (CUR_CHAR == '=')
                 {
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     return RETURN_TOKEN(TK_PLUSEQ);
                 }
                 else if (CUR_CHAR == '+')
                 {
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     return RETURN_TOKEN(TK_PLUSPLUS);
                 }
                 else return RETURN_TOKEN('+');
@@ -814,7 +818,7 @@ struct SQLexerNut
                 {
                     SQInteger c = CUR_CHAR;
                     if (sciscntrl((int)c)) return Error("unexpected character(control)");
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     return RETURN_TOKEN(c);
                 }
                 return RETURN_TOKEN(0);
@@ -906,7 +910,7 @@ struct SQLexerNut
             while(!IS_EOB() && CUR_CHAR == '=')
             {
                 ++start_equals;
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
             }
             if(CUR_CHAR != cdelim1)
             {
@@ -915,14 +919,14 @@ struct SQLexerNut
             }
             ndelim = cdelim2;
         }
-        /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+        if(Next()) return -1;
         if(IS_EOB()) return -1;
         if(start_equals)
         {
             int cr_nl = CUR_CHAR == '\r';
-            if(cr_nl) /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+            if(cr_nl) if(Next()) return -1;
             cr_nl = CUR_CHAR == '\n';
-            if(cr_nl) /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+            if(cr_nl) if(Next()) return -1;
             if(cr_nl)  //if a new line follows the start of delimiter drop it
             {
                 ++_currentline;
@@ -944,18 +948,18 @@ struct SQLexerNut
                 case '\n':
                     if(!verbatim) return Error("newline in a constant");
                     APPEND_CHAR(CUR_CHAR);
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     _currentline++;
                     break;
                 case '\\':
                     if(verbatim)
                     {
                         APPEND_CHAR('\\');
-                        /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                        if(Next()) return -1;
                     }
                     else
                     {
-                        /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                        if(Next()) return -1;
                         switch(CUR_CHAR)
                         {
                         case 'x':
@@ -989,47 +993,47 @@ struct SQLexerNut
                         break;
                         case 't':
                             APPEND_CHAR('\t');
-                            /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                            if(Next()) return -1;
                             break;
                         case 'a':
                             APPEND_CHAR('\a');
-                            /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                            if(Next()) return -1;
                             break;
                         case 'b':
                             APPEND_CHAR('\b');
-                            /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                            if(Next()) return -1;
                             break;
                         case 'n':
                             APPEND_CHAR('\n');
-                            /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                            if(Next()) return -1;
                             break;
                         case 'r':
                             APPEND_CHAR('\r');
-                            /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                            if(Next()) return -1;
                             break;
                         case 'v':
                             APPEND_CHAR('\v');
-                            /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                            if(Next()) return -1;
                             break;
                         case 'f':
                             APPEND_CHAR('\f');
-                            /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                            if(Next()) return -1;
                             break;
                         case '0':
                             APPEND_CHAR('\0');
-                            /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                            if(Next()) return -1;
                             break;
                         case '\\':
                             APPEND_CHAR('\\');
-                            /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                            if(Next()) return -1;
                             break;
                         case '"':
                             APPEND_CHAR('"');
-                            /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                            if(Next()) return -1;
                             break;
                         case '\'':
                             APPEND_CHAR('\'');
-                            /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                            if(Next()) return -1;
                             break;
                         default:
                             return Error("unrecognised escaper char");
@@ -1039,28 +1043,28 @@ struct SQLexerNut
                     break;
                 default:
                     APPEND_CHAR(CUR_CHAR);
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                 }
             }
-            /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+            if(Next()) return -1;
             if(start_equals)
             {
                 bool lastBraceAdded = false;
                 if(CUR_CHAR == '=')
                 {
                     SQInteger end_equals = start_equals;
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     if(CUR_CHAR == '=' || CUR_CHAR == cdelim2)
                     {
                         --end_equals;
                         while(!IS_EOB() && CUR_CHAR == '=')
                         {
                             --end_equals;
-                            /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                            if(Next()) return -1;
                         }
                         if(end_equals) return Error("expect same number of '=' on literal delimiter");
                         if(CUR_CHAR != cdelim2) return Error("expect '%c' to close literal delimiter", cdelim2);
-                        /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                        if(Next()) return -1;
                         break;
                     }
                     APPEND_CHAR(cdelim2); //the first NEXT() after break the while loop
@@ -1069,12 +1073,12 @@ struct SQLexerNut
                 }
                 if(!lastBraceAdded) APPEND_CHAR(cdelim2); //the first NEXT() after break the while loop
                 APPEND_CHAR(CUR_CHAR);
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
             }
             else if(verbatim && CUR_CHAR == '"')   //double quotation
             {
                 APPEND_CHAR(CUR_CHAR);
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
             }
             else
             {
@@ -1106,7 +1110,7 @@ struct SQLexerNut
         SQUnsignedInteger itmp=0;
         SQChar_ptr_t sTemp;
         INIT_TEMP_STRING();
-        /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+        if(Next()) return -1;
         if(firstchar == '0' && (sctoupper(CUR_CHAR) == 'X' || scisodigit(CUR_CHAR)) )
         {
             if(scisodigit(CUR_CHAR))
@@ -1115,18 +1119,18 @@ struct SQLexerNut
                 while(scisodigit(CUR_CHAR))
                 {
                     APPEND_CHAR(CUR_CHAR);
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                 }
                 if(scisdigit(CUR_CHAR)) return Error("invalid octal number");
             }
             else
             {
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
                 type = THEX;
                 while(scisxdigit(CUR_CHAR))
                 {
                     APPEND_CHAR(CUR_CHAR);
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                 }
                 if(_longstr.size() > MAX_HEX_DIGITS) return Error("too many digits for an Hex number");
             }
@@ -1142,17 +1146,17 @@ struct SQLexerNut
                     if(type != TFLOAT) return Error("invalid numeric format");
                     type = TSCIENTIFIC;
                     APPEND_CHAR(CUR_CHAR);
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     if(CUR_CHAR == '+' || CUR_CHAR == '-')
                     {
                         APPEND_CHAR(CUR_CHAR);
-                        /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                        if(Next()) return -1;
                     }
                     if(!scisdigit(CUR_CHAR)) return Error("exponent expected");
                 }
 
                 APPEND_CHAR(CUR_CHAR);
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
             }
         }
         TERMINATE_BUFFER();
@@ -1198,18 +1202,18 @@ struct SQLexerNut
         */
         bool done = false;
         if(_want_comments) INIT_TEMP_STRING();
-        /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;}; //remove the comment token '*'
+        if(Next()) return -1; //remove the comment token '*'
         while(!done)
         {
             switch(CUR_CHAR)
             {
             case '*':
             {
-                /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                if(Next()) return -1;
                 if(CUR_CHAR == '/')
                 {
                     done = true;
-                    /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+                    if(Next()) return -1;
                     continue;
                 }
             };
@@ -1221,7 +1225,7 @@ struct SQLexerNut
                 return Error("missing \"*/\" in comment");
             }
             if(_want_comments) APPEND_CHAR(CUR_CHAR);
-            /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+            if(Next()) return -1;
         }
         if(_want_comments)
         {
@@ -1235,11 +1239,11 @@ struct SQLexerNut
     SQInteger LexLineComment()
     {
         if(_want_comments) INIT_TEMP_STRING();
-        /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;}; //remove the comment token
+        if(Next()) return -1; //remove the comment token
         while (CUR_CHAR != '\n' && (!IS_EOB()))
         {
             if(_want_comments) APPEND_CHAR(CUR_CHAR);
-            /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+            if(Next()) return -1;
         }
         if(_want_comments)
         {
@@ -1256,7 +1260,7 @@ struct SQLexerNut
         do
         {
             APPEND_CHAR(CUR_CHAR);
-            /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+            if(Next()) return -1;
         }
         while(scisalnum(CUR_CHAR) || CUR_CHAR == '_');
         TERMINATE_BUFFER();	
@@ -1275,6 +1279,7 @@ struct SQLexerNut
         if(t != 0)
         {
             CUR_CHAR = _currdata = /*(LexChar)*/t;
+	    ++_currentcolumn;
             return 0;
         }
         CUR_CHAR = _currdata = SQUIRREL_EOB;
@@ -1324,14 +1329,14 @@ struct SQLexerNut
 
     SQInteger ProcessStringHexEscape(SQChar_ptr_t dest, SQInteger maxdigits)
     {
-        /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+        if(Next()) return -1;
         if (!isxdigit(CUR_CHAR)) return Error("hexadecimal number expected");
         SQInteger n = 0;
         while (isxdigit(CUR_CHAR) && n < maxdigits)
         {
             dest[n] = CUR_CHAR;
             n++;
-            /*NEXT()*/{SQInteger rc = Next();if(rc < 0) return rc;_currentcolumn++;};
+            if(Next()) return -1;
         }
         dest[n] = 0;
         return n;

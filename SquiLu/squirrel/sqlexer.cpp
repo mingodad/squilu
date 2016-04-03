@@ -13,7 +13,8 @@
 #define CUR_CHAR (_currdata)
 #define RETURN_TOKEN(t) { _prevtoken = _curtoken; _curtoken = t; return t;}
 #define IS_EOB() (CUR_CHAR <= SQUIRREL_EOB)
-#define NEXT() {SQInteger rc = Next(); if(rc < 0) return rc; _currentcolumn++;}
+//#define NEXT() {SQInteger rc = Next(); if(rc < 0) return rc; _currentcolumn++;}
+#define NEXT() {if(Next()) return -1;}
 #define INIT_TEMP_STRING() { _longstr.resize(0);}
 #define APPEND_CHAR(c) { _longstr.push_back(c);}
 #define TERMINATE_BUFFER() {_longstr.push_back(_SC('\0'));}
@@ -159,6 +160,7 @@ SQInteger SQLexer::Next()
 	if(t > MAX_CHAR) return Error(_SC("Invalid character"));
 	if(t != 0) {
 		_currdata = (LexChar)t;
+		++_currentcolumn;
 		return 0;
 	}
 	_currdata = SQUIRREL_EOB;
