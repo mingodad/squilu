@@ -419,6 +419,8 @@ public:
 	    switch(_token)
 	    {
         CASE_TK_LOCAL_TYPES:
+            return GetTokenObject(_token);
+            break;
         case TK_IDENTIFIER:
             break;
         default:
@@ -1629,12 +1631,15 @@ function_params_decl:
 	    LocalDeclStatement();
 	    _is_parsing_extern = false;
 	}
+	#define CHECK_REF_DECLARATION(tk) if(tk == _SC('&')){is_reference_declaration = true;Lex();}
 	void LocalDeclStatement()
 	{
 		SQObject varname;
+		//SQChar *param_type_name;
 		bool is_void_declaration = _token == TK_VOID;
 		bool is_const_declaration = _token == TK_CONST;
 		bool is_reference_declaration = false;
+		//bool is_instance_declaration = _token == TK_IDENTIFIER;
 		SQInteger declType = _token;
 		Lex();
 		if( _token == TK_FUNCTION) {
@@ -1675,11 +1680,18 @@ function_params_decl:
 		}
 
 		do {
-		    if(_token == _SC('&')){
-		        is_reference_declaration = true;
-		        Lex();
-		    }
+            //param_type_name = NULL;
+            CHECK_REF_DECLARATION(_token);
 			varname = Expect(TK_IDENTIFIER);
+            if(CheckNameIsType(varname))
+            {
+                //ignore custom types for now
+                //param_type_name = _stringval(varname);
+                declType = _VAR_ANY;
+                CHECK_REF_DECLARATION(_token);
+                varname = Expect(TK_IDENTIFIER);
+            }
+
 			CheckLocalNameScope(varname, _scope.nested);
 			if(_token == _SC('(')) {
                 //C/C++ style function declaration
@@ -1709,6 +1721,7 @@ function_params_decl:
 			else if(is_const_declaration || is_reference_declaration)
                 Error(_SC("const/reference '%s' need an initializer"), _stringval(varname));
 			else {
+//check_param_type:
                 if(!_is_parsing_extern) {
                     SQInteger dest = _fs->PushTarget();
                     switch(declType){
@@ -1867,7 +1880,10 @@ if(color == "yellow"){
 		BEGIN_SCOPE();
 		Expect(_SC('('));
 		switch(_token){
-		    CASE_TK_LOCAL_TYPES:
+            case TK_IDENTIFIER:
+                //ignore custom types for now
+                //fallthrough as local declaration
+            CASE_TK_LOCAL_TYPES:
             case TK_LOCAL:
                 LocalDeclStatement();
                 break;
@@ -2305,7 +2321,7 @@ error:
 		funcstate->AddParameter(_fs->CreateString(_SC("this")), _scope.nested+1);
 		funcstate->_sourcename = _sourcename;
 		SQInteger defparams = 0;
-		SQInteger is_reference = 0;
+		bool is_reference_declaration = 0;
 		const SQChar *param_type_name = 0;
 		bool isVoid = false;
 		while(_token!=_SC(')')) {
@@ -2313,7 +2329,7 @@ error:
             {
                 Error(_SC("void type is invalid here"));
             }
-			is_reference = 0; //reset is_reference
+			is_reference_declaration = 0; //reset is_reference_declaration
 			param_type_name = 0; //rest for each parameter
 			if(_token == TK_VOID)
             {
@@ -2330,25 +2346,29 @@ error:
 				break;
 			}
 			else {
-				if(_token == TK_CONST) Lex(); //C/C++ const parameters
+				if(_token == TK_CONST) Lex(); //C/C++ const cualifiers for now
 				switch(_token)
 				{
                 CASE_TK_LOCAL_TYPES: //accept C/C++ type parameter declarations
 				        param_type_name = _lex.GetTokenName(_token);
 				        Lex();
 				}
-				if(_token == _SC('&')){
-					is_reference = 1;
-					Lex();
-				}
+				CHECK_REF_DECLARATION(_token);
 				paramname = Expect(TK_IDENTIFIER);
-				funcstate->AddParameter(paramname, _scope.nested+1, is_reference ? _VAR_REFERENCE : _VAR_ANY);
+				if(CheckNameIsType(paramname))
+                {
+                    //ignore custom types for now
+                    param_type_name = _stringval(paramname);
+                    CHECK_REF_DECLARATION(_token);
+                    paramname = Expect(TK_IDENTIFIER);
+                }
+				funcstate->AddParameter(paramname, _scope.nested+1, is_reference_declaration ? _VAR_REFERENCE : _VAR_ANY);
 				if(param_type_name)
                 {
                     funcstate->AddParameterTypeName(param_type_name);
                 }
 				if(_token == _SC('=')) {
-					if(is_reference) Error(_SC("parameter passed by reference can't have default value"));
+					if(is_reference_declaration) Error(_SC("parameter passed by reference can't have default value"));
 					Lex();
 					if(_token == _SC('[') || _token == _SC('{')) Error(_SC("default parameter with array/table values not supported"));
 					Expression();
