@@ -106,6 +106,7 @@
 					<Add option="-DCONFIG_64=1" />
 					<Add directory="/usr/include/postgresql" />
 					<Add directory="/usr/include/mysql" />
+					<Add directory="../minizip" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -119,6 +120,8 @@
 					<Add library="mpdecimal" />
 					<Add library="discount" />
 					<Add library="rt" />
+					<Add library="fontconfig" />
+					<Add library="dl" />
 				</Linker>
 			</Target>
 		</Build>
@@ -127,6 +130,8 @@
 			<Add option="-fexceptions" />
 			<Add option="-DWITH_DAD_EXTRAS=1" />
 			<Add option="-DWITH_FLTK=1" />
+			<Add option="-DWITH_MYSQL=1" />
+			<Add option="-DWITH_POSTGRESQL=1" />
 			<Add option="-DSQ_SUBLATIN=1" />
 			<Add option="-DNEED_SUBLATIN_C2=1" />
 			<Add option="-DSQUSEDOUBLE=1" />
@@ -177,6 +182,7 @@
 			<Add library="fltk" />
 			<Add library="m" />
 			<Add library="hpdfs" />
+			<Add library="../minizip/libminizip.a" />
 			<Add directory="../fltk/lib" />
 			<Add directory="../mpdecimal" />
 			<Add directory="../myaxtls" />
@@ -185,11 +191,6 @@
 			<Add directory="../libharu/src" />
 			<Add directory="../discount" />
 		</Linker>
-		<Unit filename="dadbiz.rc">
-			<Option compilerVar="WINDRES" />
-			<Option target="Release win32" />
-		</Unit>
-		<Unit filename="editor.cxx" />
 		<Unit filename="../SquiLu-ext/code_mix_prep.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -228,7 +229,6 @@
 		<Unit filename="../SquiLu-ext/sq_sqlite3.cpp" />
 		<Unit filename="../SquiLu-ext/sq_tinyxml2.cpp" />
 		<Unit filename="../SquiLu-ext/sq_zlib.cpp" />
-		<Unit filename="../SquiLu-ext/sq_zmq3.cpp" />
 		<Unit filename="../SquiLu-ext/sqfs.h" />
 		<Unit filename="../SquiLu-ext/sqlite3.c">
 			<Option compilerVar="CC" />
@@ -285,6 +285,11 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../SquiLu/squirrel/sublatin.h" />
+		<Unit filename="dadbiz.rc">
+			<Option compilerVar="WINDRES" />
+			<Option target="Release win32" />
+		</Unit>
+		<Unit filename="editor.cxx" />
 		<Extensions>
 			<envvars />
 			<code_completion />

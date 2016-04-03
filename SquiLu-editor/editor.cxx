@@ -52,6 +52,7 @@ static HSQUIRRELVM v;
 
 static bool _debug_wait = false;
 static bool _stop_debug = false;
+static int _debug_breakpoint_line = -1;
 static int _debug_pos = 0;
 static void sq_debug_hook(HSQUIRRELVM v, SQInteger type, const SQChar *sourcename, SQInteger line, const SQChar *funcname);
 
@@ -786,6 +787,13 @@ void run_cb(Fl_Widget*, void* ew) {
 
 #define DBG_EDITOR_WINDOW_KEY "DebugEditorWindow"
 
+void breakpoint_cb(Fl_Widget*, void* ew)
+{
+    EditorWindow* w = (EditorWindow*)ew;
+    _debug_breakpoint_line = w->editor->count_lines(0, w->editor->insert_position(), true);
+    printf("Breakpoint at line %d\n", _debug_breakpoint_line);
+}
+
 void debug_cb(Fl_Widget*, void* ew) {
   if(_debug_wait){
       _debug_wait = false;
@@ -850,6 +858,7 @@ Fl_Menu_Item menuitems[] = {
 
   { "Run F5", FL_F+5, (Fl_Callback *)run_cb },
   { "Debug F8", FL_F+8, debug_cb },
+  { "&Breakpoint", FL_COMMAND + FL_SHIFT + 'b', breakpoint_cb },
   { "Stop Debug", 0, stop_debug_cb },
   { 0 }
 };
@@ -931,6 +940,14 @@ char** sq_main_argv = 0;
 
 static void sq_debug_hook(HSQUIRRELVM v, SQInteger ev_type, const SQChar *sourcename, SQInteger line, const SQChar *funcname){
     if(_stop_debug) return;
+    if(_debug_breakpoint_line > 0)
+    {
+        if(ev_type == 'l' && line == _debug_breakpoint_line)
+        {
+            _debug_breakpoint_line = -1; //only once right now
+        }
+        else return;
+    }
     const SQChar *fname = funcname ? funcname : "unknown";
     printf("evt %d %c\n", ev_type, ev_type);
     switch(ev_type){
@@ -1003,7 +1020,7 @@ int main(int argc, char **argv) {
 	sqext_register_sq_slave_vm(v);
 	//sqext_register_ThreadObjects(v);
 
-	sqext_register_sq_zmq3(v);
+	//sqext_register_sq_zmq3(v);
 	//sqext_register_Java(v);
 
 	sqext_register_rs232(v);
