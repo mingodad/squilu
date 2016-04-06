@@ -145,6 +145,8 @@ struct sq_easycurl_st
     HSQOBJECT reader_cb_udata;
     HSQOBJECT writer_cb;
     HSQOBJECT writer_cb_udata;
+    HSQOBJECT slist_array;
+    struct curl_slist *slist; //only one linked list
 };
 
 static const SQChar SQ_LIBNAME[] = _SC("EasyCurl");
@@ -193,6 +195,11 @@ static SQRESULT EasyCurl_release_hook(SQUserPointer p, SQInteger size, void */*e
         sq_release(self->vm, &self->reader_cb_udata);
         sq_release(self->vm, &self->writer_cb);
         sq_release(self->vm, &self->writer_cb_udata);
+        if(self->slist)
+        {
+            sq_release(self->vm, &self->slist_array);
+            dlcurl_slist_free_all(self->slist);
+        }
         sq_free(self, sizeof(*self));
     }
 	return 0;
@@ -209,6 +216,7 @@ static SQRESULT EasyCurl_constructor(HSQUIRRELVM v, int idx, CURL *EasyCurl, int
     sq_resetobject(&self->reader_cb_udata);
     sq_resetobject(&self->writer_cb);
     sq_resetobject(&self->writer_cb_udata);
+    sq_resetobject(&self->slist_array);
     self->vm = v;
     self->curl = EasyCurl;
 
@@ -302,10 +310,14 @@ static SQRESULT sq_EasyCurl_setopt(HSQUIRRELVM v){
         SQ_GET_FLOAT(v, 3, float_value);
         rc = dlcurl_easy_setopt(self->curl, (CURLoption)option, float_value);
         break;
-/*
     case OT_ARRAY:
         {
-        struct curl_slist *optlist = NULL;
+        if(self->slist)
+        {
+            return sq_throwerror(v, _SC("single list already used, only one right now"));
+        }
+        sq_getstackobj(v, 3, &self->slist_array);
+        sq_addref(v, &self->slist_array);
         const SQChar *str;
         SQInteger asize = sq_getsize(v, 3);
         for(int i=0; i<asize; ++i)
@@ -313,14 +325,12 @@ static SQRESULT sq_EasyCurl_setopt(HSQUIRRELVM v){
             sq_pushinteger(v, i);
             sq_get(v, 3);
             sq_getstring(v, -1, &str);
-            optlist = dlcurl_slist_append(optlist, str);
+            self->slist = dlcurl_slist_append(self->slist, str);
             sq_poptop(v);
         }
-        rc = dlcurl_easy_setopt(self->curl, (CURLoption)option, optlist);
-        dlcurl_slist_free_all(optlist);
+        rc = dlcurl_easy_setopt(self->curl, (CURLoption)option, self->slist);
         }
         break;
-*/
     default:
         return sq_throwerror(v, _SC("invalid option value type"));
 	}
@@ -460,13 +470,13 @@ static size_t sq_EasyCurl_reader_writer_callback(char *bufptr, size_t size, size
         break;
     case OT_CLOSURE:
         sq_pushroottable(v);
-        sq_pushinteger(v, size);
-        sq_pushinteger(v, nitems);
-        sq_pushobject(v, rw_cb_udata);
         if(!isReader)
         {
             sq_pushstring(v, (const SQChar*)bufptr, data_size);
         }
+        sq_pushinteger(v, size);
+        sq_pushinteger(v, nitems);
+        sq_pushobject(v, rw_cb_udata);
 
         /* call squilu function */
         if (sq_call(v, isReader ? 4 : 5, SQTrue, SQFalse) == SQ_OK)
@@ -681,6 +691,10 @@ static KeyIntType EasyCurl_constants[] = {
 	MK_CONST(CURLPROTO_FTP),
 	MK_CONST(CURLPROTO_SCP),
 	MK_CONST(CURLOPT_URL),
+	MK_CONST(CURLOPT_POST),
+	MK_CONST(CURLOPT_POSTFIELDS),
+	MK_CONST(CURLOPT_HTTPHEADER),
+	MK_CONST(CURLOPT_POSTFIELDS),
 	MK_CONST(CURLINFO_EFFECTIVE_URL),
 	MK_CONST(CURLOPT_MAIL_FROM),
 	MK_CONST(CURLOPT_MAIL_RCPT),
