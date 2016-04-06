@@ -145,9 +145,10 @@ static SQRESULT sq_XMLNode_NextSibling(HSQUIRRELVM v)
 
 static SQRESULT sq_XMLNode_FirstChildElement(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_FUNC_VARS(v);
     GET_XMLNode_INSTANCE(v, 1);
-    tinyxml2::XMLElement *ptr = node->FirstChildElement();
+    SQ_OPT_STRING(v, 2, name, NULL);
+    tinyxml2::XMLElement *ptr = node->FirstChildElement(name);
     return sq_push_xml_class(v, XML_TAG(XMLElement), ptr);
 }
 
@@ -293,7 +294,7 @@ static SQRegFunction XMLNode_methods[] =
     _DECL_FUNC(LastChild,1,_SC("x")),
     _DECL_FUNC(PreviousSibling,1,_SC("x")),
     _DECL_FUNC(NextSibling,1,_SC("x")),
-    _DECL_FUNC(FirstChildElement,1,_SC("x")),
+    _DECL_FUNC(FirstChildElement,-1,_SC("xs")),
     _DECL_FUNC(LastChildElement,1,_SC("x")),
     _DECL_FUNC(PreviousSiblingElement,1,_SC("x")),
     _DECL_FUNC(NextSiblingElement,1,_SC("x")),
