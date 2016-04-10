@@ -4382,6 +4382,37 @@ static SQRESULT _fl_globals_fl_input(HSQUIRRELVM v)
     return 1;
 }
 
+//const char *fl_password(const char *label, const char *deflt = 0, ...) __fl_attr((__format__ (__printf__, 1, 3)));
+static SQRESULT _fl_globals_fl_password(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SQ_GET_STRING(v, 2, label);
+    SQ_OPT_STRING(v, 3, deflt, NULL);
+    sq_pushstring(v, fl_password(label, deflt), -1);
+    return 1;
+}
+
+//int fl_choice(const char *q,const char *b0,const char *b1,const char *b2,...) __fl_attr((__format__ (__printf__, 1, 5)));
+static SQRESULT _fl_globals_fl_choice(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 2, question);
+    SQ_GET_STRING(v, 3, button0);
+    SQ_GET_STRING(v, 4, button1);
+    SQ_GET_STRING(v, 5, button2);
+    sq_pushinteger(v, fl_choice(question, button0, button1, button2));
+    return 1;
+}
+
+//int fl_ask(const char *,...) __fl_attr((__format__ (__printf__, 1, 2), __deprecated__));
+static SQRESULT _fl_globals_fl_ask(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 2, question);
+    sq_pushinteger(v, fl_ask(question));
+    return 1;
+}
+
 static SQRESULT _fl_globals_fl_preferences(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
@@ -4441,6 +4472,9 @@ static SQRegFunction fl_globals_funcs[]={
 	_DECL_FUNC(fl_dir_chooser,-3,_SC(".ssb"),SQTrue),
 	_DECL_FUNC(fl_file_chooser,-4,_SC(".ss s|o b"),SQTrue),
 	_DECL_FUNC(fl_input,3,_SC(".ss"),SQTrue),
+	_DECL_FUNC(fl_ask,2,_SC(".s"),SQTrue),
+	_DECL_FUNC(fl_password,-2,_SC(".ss"),SQTrue),
+	_DECL_FUNC(fl_choice,5,_SC(".ssss"),SQTrue),
 	_DECL_FUNC(fl_register_images,1,_SC("."),SQTrue),
 	{0,0}
 };
