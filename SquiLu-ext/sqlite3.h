@@ -113,7 +113,7 @@ extern "C" {
 */
 #define SQLITE_VERSION        "3.13.0"
 #define SQLITE_VERSION_NUMBER 3013000
-#define SQLITE_SOURCE_ID      "2016-04-05 23:39:53 da81d7afeb0566a09a505ba5fce901e991e4a029"
+#define SQLITE_SOURCE_ID      "2016-04-09 18:04:28 6c56b3a04778bc62ca50307ad838dd301cd91ac2"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -8118,20 +8118,29 @@ SQLITE_API SQLITE_EXPERIMENTAL int SQLITE_STDCALL sqlite3_snapshot_get(
 ** CAPI3REF: Start a read transaction on an historical snapshot
 ** EXPERIMENTAL
 **
-** ^The [sqlite3_snapshot_open(D,S,P)] interface attempts to move the
-** read transaction that is currently open on schema S of
-** [database connection] D so that it refers to historical [snapshot] P.
+** ^The [sqlite3_snapshot_open(D,S,P)] interface starts a
+** read transaction for schema S of
+** [database connection] D such that the read transaction
+** refers to historical [snapshot] P, rather than the most
+** recent change to the database.
 ** ^The [sqlite3_snapshot_open()] interface returns SQLITE_OK on success
 ** or an appropriate [error code] if it fails.
 **
 ** ^In order to succeed, a call to [sqlite3_snapshot_open(D,S,P)] must be
-** the first operation, apart from other sqlite3_snapshot_open() calls,
-** following the [BEGIN] that starts a new read transaction.
-** ^A [snapshot] will fail to open if it has been overwritten by a 
+** the first operation following the [BEGIN] that takes the schema S
+** out of [autocommit mode].
+** ^In other words, schema S must not currently be in
+** a transaction for [sqlite3_snapshot_open(D,S,P)] to work, but the
+** database connection D must be out of [autocommit mode].
+** ^A [snapshot] will fail to open if it has been overwritten by a
 ** [checkpoint].
-** ^A [snapshot] will fail to open if the database connection D has not
-** previously completed at least one read operation against the database 
-** file.  (Hint: Run "[PRAGMA application_id]" against a newly opened
+** ^(A call to [sqlite3_snapshot_open(D,S,P)] will fail if the
+** database connection D does not know that the database file for
+** schema S is in [WAL mode].  A database connection might not know
+** that the database file is in [WAL mode] if there has been no prior
+** I/O on that database connection, or if the database entered [WAL mode] 
+** after the most recent I/O on the database connection.)^
+** (Hint: Run "[PRAGMA application_id]" against a newly opened
 ** database connection in order to make it ready to use snapshots.)
 **
 ** The [sqlite3_snapshot_open()] interface is only available when the
