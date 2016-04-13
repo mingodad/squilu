@@ -154,7 +154,7 @@ int SSL_read(SSL *ssl, void *buf, int num)
 
     if (ret > SSL_OK)
     {
-        memcpy(buf, read_buf, ret);
+        memcpy(buf, read_buf, ret > num ? num : ret);
     }
 
     return ret;
