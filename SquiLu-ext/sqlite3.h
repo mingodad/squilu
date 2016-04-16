@@ -113,7 +113,7 @@ extern "C" {
 */
 #define SQLITE_VERSION        "3.13.0"
 #define SQLITE_VERSION_NUMBER 3013000
-#define SQLITE_SOURCE_ID      "2016-04-12 11:58:18 07f10deabb0f4207408142541e3913d638dfcdeb"
+#define SQLITE_SOURCE_ID      "2016-04-15 15:03:27 3e217d6265ecd16db783bed7ce1d9d0f9c4828bb"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -8164,6 +8164,33 @@ SQLITE_API SQLITE_EXPERIMENTAL int SQLITE_STDCALL sqlite3_snapshot_open(
 ** SQLITE_ENABLE_SNAPSHOT compile-time option is used.
 */
 SQLITE_API SQLITE_EXPERIMENTAL void SQLITE_STDCALL sqlite3_snapshot_free(sqlite3_snapshot*);
+
+/*
+** CAPI3REF: Compare the ages of two snapshot handles.
+** EXPERIMENTAL
+**
+** The sqlite3_snapshot_cmp(P1, P2) interface is used to compare the ages
+** of two valid snapshot handles. 
+**
+** If the two snapshot handles are not associated with the same database 
+** file, the result of the comparison is undefined. 
+**
+** Additionally, the result of the comparison is only valid if both of the
+** snapshot handles were obtained by calling sqlite3_snapshot_get() since the
+** last time the wal file was deleted. The wal file is deleted when the
+** database is changed back to rollback mode or when the number of database
+** clients drops to zero. If either snapshot handle was obtained before the 
+** wal file was last deleted, the value returned by this function 
+** is undefined.
+**
+** Otherwise, this API returns a negative value if P1 refers to an older
+** snapshot than P2, zero if the two handles refer to the same database
+** snapshot, and a positive value if P1 is a newer snapshot than P2.
+*/
+SQLITE_API SQLITE_EXPERIMENTAL int SQLITE_STDCALL sqlite3_snapshot_cmp(
+  sqlite3_snapshot *p1,
+  sqlite3_snapshot *p2
+);
 
 /*
 ** Undo the hack that converts floating point types to integer for
