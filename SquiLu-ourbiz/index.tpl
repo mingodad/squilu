@@ -112,7 +112,7 @@ local company_ages = [
 ]
 
 function emptyOnNull(key){
-	local str = this.get(key, null);
+	local str = table_get(this, key, null);
 	return str ? str : "";
 }
 
@@ -128,7 +128,7 @@ function getPageLink(page){
 }
 
 ?>
-<? if (this.get("use_vjs", false) && this.get("page_name", null) == "search_results"){ ?>
+<? if (table_get(this, "use_vjs", false) && table_get(this, "page_name", null) == "search_results"){ ?>
     <!--Load the AJAX API-->
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script type="text/javascript">
@@ -378,7 +378,7 @@ function sortTable(id, col, numeric){
 	<button type=reset>Reset</button></td></tr>
 </table>
 </form>
-<? if (this.get("isAndroid", false)){ ?>
+<? if (table_get(this, "isAndroid", false)){ ?>
 <a href="/mk-gpx?sic_term=<?=search_sic_code?>">Generate GPX</a>
 <? } ?>
         <div class="horSeparator"></div>
@@ -386,13 +386,13 @@ function sortTable(id, col, numeric){
     <article class="post">
 <? if (page_name == "search_results"){ ?>
 
-<? if (this.get("sic_street", null)  == "street"){ ?>
+<? if (table_get(this, "sic_street", null)  == "street"){ ?>
 
 <header><h1 id="results">Street Search Results</h1></header>
-<? if (this.get("queryWasInterrupted", false)){ ?>
+<? if (table_get(this, "queryWasInterrupted", false)){ ?>
 <p>Please try again with more specific search terms, it took too long !</p>
 <? } ?>
-<? if (this.get("rows", false) && rows.len() > 0){ ?>
+<? if (table_get(this, "rows", false) && rows.len() > 0){ ?>
 <table class="nj">
 <tr><th>Company</th><th>Street</th><th>Postcode</th></tr>
 <? foreach( k, rec in rows){ ?>
@@ -406,29 +406,29 @@ function sortTable(id, col, numeric){
 <tr><td>
 &nbsp;
 <? if (hasPrevious){ ?>
-<a href="/?search_sic_code=<?=url_encode(this.get("search_sic_code", ""))?>&page=<?=page-1?>">Prev</a>
+<a href="/?search_sic_code=<?=url_encode(table_get(this, "search_sic_code", ""))?>&page=<?=page-1?>">Prev</a>
 <? } ?>
 </td><td>&nbsp;</td><td>
 &nbsp;
 <? if (hasNext){ ?>
-<a href="/?search_sic_code=<?=url_encode(this.get("search_sic_code", ""))?>&page=<?=page+1?>">Next</a>
+<a href="/?search_sic_code=<?=url_encode(table_get(this, "search_sic_code", ""))?>&page=<?=page+1?>">Next</a>
 <? } ?>
 </td></tr>
 <? } ?>
 </table>
 <?
 	}
-} else if (this.get("sicSearchResults", false)) { ?>
+} else if (table_get(this, "sicSearchResults", false)) { ?>
 
 <header><h1 id="results">SIC Code Search Results</h1></header>
-<? if (this.get("queryWasInterrupted", false)){ ?>
+<? if (table_get(this, "queryWasInterrupted", false)){ ?>
 <p>Please try again with more specific search terms, it took too long !</p>
 <? } ?>
-<? if (this.get("rows", false) && rows.len() > 0){ ?>
+<? if (table_get(this, "rows", false) && rows.len() > 0){ ?>
 <table class="nj">
 <tr><th>Code</th><th>Description</th><th>#Companies</th></tr>
 <? foreach( k, rec in rows){ ?>
-<tr><td><a href="#search_form" onclick="setSicCode(<?=rec[1]?>)"><?=rec[1]?></a></td><td><?=rec[2]?></td><td><?=rec.get(3, "")?></td></tr>
+<tr><td><a href="#search_form" onclick="setSicCode(<?=rec[1]?>)"><?=rec[1]?></a></td><td><?=rec[2]?></td><td><?=table_get(rec, 3, "")?></td></tr>
 <? }
 	page = page.tointeger();
 	local hasPrevious = page > 0;
@@ -438,12 +438,12 @@ function sortTable(id, col, numeric){
 <tr><td>
 &nbsp;
 <? if (hasPrevious){ ?>
-<a href="/?search_sic_code=<?=url_encode(this.get("search_sic_code", ""))?>&page=<?=page-1?>">Prev</a>
+<a href="/?search_sic_code=<?=url_encode(table_get(this, "search_sic_code", ""))?>&page=<?=page-1?>">Prev</a>
 <? } ?>
 </td><td>&nbsp;</td><td>
 &nbsp;
 <? if (hasNext){ ?>
-<a href="/?search_sic_code=<?=url_encode(this.get("search_sic_code", ""))?>&page=<?=page+1?>">Next</a>
+<a href="/?search_sic_code=<?=url_encode(table_get(this, "search_sic_code", ""))?>&page=<?=page+1?>">Next</a>
 <? } ?>
 </td></tr>
 <? } ?>
@@ -453,16 +453,16 @@ function sortTable(id, col, numeric){
 } else { ?>
 
 <header><h1 id="results">Companies Search Results</h1></header>
-<? if (this.get("queryWasInterrupted",false)) { ?>
+<? if (table_get(this, "queryWasInterrupted",false)) { ?>
 <p>Please try again with more specific search terms, it took too long !</p>
 <? } ?>
-<? if (this.get("rows", false) && rows.len() > 0){ ?>
+<? if (table_get(this, "rows", false) && rows.len() > 0){ ?>
 <table class="nj dist" id="tblcr">
 <tr><th><a href="" onclick="return sortTable('tblcr', 0)">Number</a></th>
 	<th><a href="" onclick="return sortTable('tblcr', 1)">Name</a></th>
 	<th><a href="" onclick="return sortTable('tblcr', 2, true)">Age (years)</a></th>
 <?
-	local hasDistances = this.get("search_origin_post_code", false) && search_origin_post_code.len() > 0;
+	local hasDistances = table_get(this, "search_origin_post_code", false) && search_origin_post_code.len() > 0;
 	if (hasDistances){
 ?>
 <th><a href="" onclick="return sortTable('tblcr', 3, true)">Dist. Meters</a></th>
@@ -503,7 +503,7 @@ function sortTable(id, col, numeric){
  }
    else if (page_name == "view_company") {
        var pc1, pc2, google_map_url, geo_link;
-       if (company.get("post_code", false) && company.post_code.len() > 0){
+       if (table_get(company, "post_code", false) && company.post_code.len() > 0){
     	company.post_code.gmatch("([^%s]+)%s([^%s]+)", function(m1,m2) {pc1=m1;pc2=m2;});
         if (pc1 && pc2){
           google_map_url = format("https://maps.google.co.uk/maps?key=AIzaSyAF53Wut8B5cvaUDY-pfegBhbftJdRHovM&amp;channel=cs&amp;q=%s+%s&amp;ie=UTF8&amp;hq=&amp;hnear=%s+%s,+United+Kingdom&amp;gl=uk&amp;t=m&amp;z=14&amp;source=embed", pc1, pc2, pc1, pc2);
@@ -541,7 +541,7 @@ function sortTable(id, col, numeric){
 <? } ?>
 </td></tr>
 <tr><td>Previous Names</td><td>
-<? if (this.get("company_old_names", false) && company_old_names.len() > 0){ ?>
+<? if (table_get(this, "company_old_names", false) && company_old_names.len() > 0){ ?>
 <table>
 <tr><th>Date of change</th><th>Previous Name</th></tr>
 <? foreach(k,v in company_old_names){ ?>
@@ -551,7 +551,7 @@ function sortTable(id, col, numeric){
 <? } ?>
 </td></tr>
 </table>
-<? if (this.get("extra_data", false) && extra_data.len() > 0){ ?>
+<? if (table_get(this, "extra_data", false) && extra_data.len() > 0){ ?>
         <table>
           <tr><th>Doc. Type</th><th>Date</th><th>Description</th></tr>
           <? foreach(k,v in extra_data.split('\n')){
@@ -563,7 +563,7 @@ function sortTable(id, col, numeric){
 <? } ?>
 
 <?
-  if (this.get("show_map", false) && pc1 && pc2){
+  if (table_get(this, "show_map", false) && pc1 && pc2){
 ?>
 <br />
 <div style="margin: 0 auto; width: 425px;">

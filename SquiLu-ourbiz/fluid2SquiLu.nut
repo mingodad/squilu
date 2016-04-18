@@ -29,6 +29,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+ ::__max_print_stack_str_size <- 256; //to not print long strings in stack trace
+
 // Configuration variables. Change the fields of the configuration table to 
 // match your preferences. You can also override them on the command line.
 local default_configuration = {
@@ -229,12 +231,12 @@ Write.Function <- function(t, ind){
 	t.varname <- "res";
 	Write.group(t.body, ind+1);
 	local names = [];
-	foreach(i in t.body) names.push(i.rawget("varname", null));
+	foreach(i in t.body) names.push(table_rawget(i, "varname", null));
 	if (names.len() > 0) Output(ind+1, "return %s;\n", names.concat(", "));
 	Output(ind, "}\n\n");
 }
 
-function getClassNameOrKey(t){return  t.attr.rawget("class", false) || t.key;}
+function getClassNameOrKey(t){return  table_rawget(t.attr, "class", false) || t.key;}
 
 Write.Atributes <- function(t, ind, name){
 	local lname;
@@ -258,11 +260,11 @@ Write.Atributes <- function(t, ind, name){
 
 Write.widget <- function(t, ind){
 	local fgroup = table_get(Grammar.groups, t.key, false);
-	if (table_get(Grammar.composed, t.key, false) && t.attr.rawget("type", false)){
+	if (table_get(Grammar.composed, t.key, false) && table_rawget(t.attr, "type", false)){
 		t.key = t.key.slice(0,3) + t.attr.type + t.key.slice(2);
 		t.attr.type = null;
 	}
-	local klass = t.attr.rawget("class", false) || t.key;
+	local klass = table_rawget(t.attr, "class", false) || t.key;
 	local constClearLabel = "_ClearLabel";
 	local isClearLabel = false;
 	if (klass.match(constClearLabel)){ 
@@ -273,8 +275,8 @@ Write.widget <- function(t, ind){
 	local ar = t.attr.xywh;
 	local x = ar[0], y = ar[1], w = ar[2], h = ar[3];
 	local name = configuration.currentvar;
-	t.xoffset <- t.parent.rawget("xoffset", "");
-	t.yoffset <- t.parent.rawget("yoffset", "");
+	t.xoffset <- table_rawget(t.parent, "xoffset", "");
+	t.yoffset <- table_rawget(t.parent, "yoffset", "");
 	local newMethodCallStr, firstParamStr;
 	if (klass.match("^fltk%.")) {
 		newMethodCallStr = "";
@@ -288,7 +290,7 @@ Write.widget <- function(t, ind){
 	//print(t.key, name, klass)
 	Output(ind, "{\n"); 
 	++ind;
-	local dirty_name =  t.attr.rawget("dirty_name", false);
+	local dirty_name =  table_rawget(t.attr, "dirty_name", false);
 	local need_var_assign = true;
 	if(dirty_name && dirty_name[0] == '@'){
 		need_var_assign = false;
@@ -296,14 +298,14 @@ Write.widget <- function(t, ind){
 		Output(ind, "local o = %s;\n", dirty_name);
 		Output(ind, "Fl_Group.current()->add(o);\n", dirty_name);
 		Output(ind, "o->resize(%s%s%d, %s%d, %d, %d);\n",  firstParamStr, t.xoffset, x, t.yoffset, y, w, h);
-		if (! isClearLabel && t.attr.rawget("label", false)) 
+		if (! isClearLabel && table_rawget(t.attr, "label", false)) 
 			Output(ind, "o->lable(%s(%q));\n", configuration.textfilter, t.attr.label);
 	}
 	else
 	{
 		Output(ind, "local %s = %s%s(%s%s%d, %s%d, %d, %d", name, 
 			klass, newMethodCallStr, firstParamStr, t.xoffset, x, t.yoffset, y, w, h);
-		if (! isClearLabel && t.attr.rawget("label", false)) Output(0, ", %s(%q)", configuration.textfilter, t.attr.label);
+		if (! isClearLabel && table_rawget(t.attr, "label", false)) Output(0, ", %s(%q)", configuration.textfilter, t.attr.label);
 		Output(0, ");\n");
 	}	
 
@@ -336,19 +338,19 @@ Write.widget <- function(t, ind){
 	
 	Write.Atributes(t, ind, name);
 
-	local img = t.attr.rawget("image", false);
+	local img = table_rawget(t.attr, "image", false);
 	if (img){
 		local ext = img.match("%.(%a+)$").toupper();
 		Output(ind, "%s.image(Fl_%s_Image(%q));\n", name, Grammar.images[ext], img);
 	}
-	if (t.attr.rawget("modal", false)) Output(ind, "%s.set_modal();\n", name);
-	if (t.attr.rawget("non_modal", false)) Output(ind, "%s.set_non_modal();\n", name);
+	if (table_rawget(t.attr, "modal", false)) Output(ind, "%s.set_modal();\n", name);
+	if (table_rawget(t.attr, "non_modal", false)) Output(ind, "%s.set_non_modal();\n", name);
 	for(local i=0; i <= 3; ++i){
-		local code = t.attr.rawget("code" + i, false);
+		local code = table_rawget(t.attr, "code" + i, false);
 		if (code && code.len()) {
 			if(code[0] == '='){
 				code = code.slice(1);
-				local macro = t.attr.rawget("macro_name", false);
+				local macro = table_rawget(t.attr, "macro_name", false);
 				if(macro){
 					macro = macro.split(' ');
 					code = code.gsub("$%((%d+)%)", function(m){
@@ -365,9 +367,9 @@ Write.widget <- function(t, ind){
 			else Output(ind, "%s\n", code);
 		}
 	}
-	if (t.attr.rawget("noborder", false)) Output(ind, "%s.clear_border();\n", name);
-	if (t.attr.rawget("size_range", false)) Output(ind, "%s.size_range(%s);\n", name, table.concat(t.attr.size_range, ", "));
-	local cb = t.attr.rawget("callback", false);
+	if (table_rawget(t.attr, "noborder", false)) Output(ind, "%s.clear_border();\n", name);
+	if (table_rawget(t.attr, "size_range", false)) Output(ind, "%s.size_range(%s);\n", name, table.concat(t.attr.size_range, ", "));
+	local cb = table_rawget(t.attr, "callback", false);
 	if (cb){
 		if (cb.match("^[%w_]+$")) Output(ind, "%s.callback(%s);\n", name, cb);
 		else
@@ -377,7 +379,7 @@ Write.widget <- function(t, ind){
 			Output(ind, "});\n");
 		}
 	}
-	if (t.rawget("body", false) && t.body.len() > 0) {
+	if (table_rawget(t, "body", false) && t.body.len() > 0) {
 		Output(ind, "{\n");
 		Write.group(t.body, ind+1);
 		Output(ind, "}\n");
@@ -387,18 +389,18 @@ Write.widget <- function(t, ind){
 		if (klass.match("^fltk%.")) Output(ind, "%s.end();\n", name);
 		else Output(ind, "%s.end();\n", name);
 	}
-	if (t.attr.rawget("resizable", false)) { 
+	if (table_rawget(t.attr, "resizable", false)) { 
 		if (t.parent.key != "Function"){
 			Output(ind, "Fl_Group.current().resizable(%s);\n", name);
 			t.parent.resized <- true;
 		}
-		else if (! t.rawget("resized", false) ) Output(ind, "%s.resizable(%s);\n", name, name);
+		else if (! table_rawget(t, "resized", false) ) Output(ind, "%s.resizable(%s);\n", name, name);
 	}
 	Output(ind-1, "}\n"); 
 }
 
 Write.Submenu <- function(t, ind){
-	if (t.parent.rawget("path", false)) t.path <- t.parent.path + "/" + t.attr.label;
+	if (table_rawget(t.parent, "path", false)) t.path <- t.parent.path + "/" + t.attr.label;
 	else t.path <- t.attr.label;
 
 	Output(ind, "//%s %s\n", t.name, t.path);
@@ -407,13 +409,13 @@ Write.Submenu <- function(t, ind){
 }
 
 Write.MenuItem <- function(t, ind){
-	if (t.parent.rawget("path", false)) t.path <- t.parent.path + "/" +  t.attr.rawget("label", "");
+	if (table_rawget(t.parent, "path", false)) t.path <- t.parent.path + "/" +table_rawget(t.attr, "label", "");
 	else t.path <- t.attr.label;
 
 	local w = t;
-	while (!w.rawget("varname", false)) w = w.parent;
+	while (!table_rawget(w, "varname", false)) w = w.parent;
 
-	local cb = t.attr.rawget("callback", false);
+	local cb = table_rawget(t.attr, "callback", false);
 	
 	if (!cb && t.name > ""){
 		//cb = "dispatch_func(" + t.name + "_cb, self)";
@@ -426,7 +428,7 @@ Write.MenuItem <- function(t, ind){
 		Output(ind, "o.add(%s(%q)", configuration.textfilter, t.path);
 	}
 
-	Output(0, ", %s", t.attr.rawget("shortcut", "0").tostring());
+	Output(0, ", %s", table_rawget(t.attr, "shortcut", "0").tostring());
 	if (cb){
 		if (cb.match("^[%w_]+$")) Output(ind, ", %s", cb);
 		else
@@ -438,27 +440,27 @@ Write.MenuItem <- function(t, ind){
 
 		if (t.name > ""){
 			local ind2 = 0;
-			if (t.attr.rawget("deactivate", false)) Output2(ind2, "// deactivated base_class.%s\n", t.name);
+			if (table_rawget(t.attr, "deactivate", false)) Output2(ind2, "// deactivated base_class.%s\n", t.name);
 			Output2(ind2, "function base_class.%s_cb(sender);\n", t.name);
 			Output2(ind2+2, "fl_alert(\"%s en construccion\");\n", t.name);
 			Output2(ind2, "}\n\n", t.name);
 		}
 	}
 	local type = null;
-	if(t.attr.rawget("type", false)) type = Grammar.menu_const[t.attr.type];
-	if (t.attr.rawget("divider", false)){ 
+	if(table_rawget(t.attr, "type", false)) type = Grammar.menu_const[t.attr.type];
+	if (table_rawget(t.attr, "divider", false)){ 
 		if (type) type = type + Grammar.menu_const.divider;
 		else type = Grammar.menu_const.divider;
 	}
-	if (t.attr.rawget("deactivate", false)){ 
+	if (table_rawget(t.attr, "deactivate", false)){ 
 		if (type) type = type + Grammar.menu_const.deactivate;
 		else type = Grammar.menu_const.deactivate ;
 	}
-	if (t.attr.rawget("hide", false)) { 
+	if (table_rawget(t.attr, "hide", false)) { 
 		if (type) type = type + Grammar.menu_const.hide;
 		else type = Grammar.menu_const.hide;
 	}
-	if (t.attr.rawget("value", false)){
+	if (table_rawget(t.attr, "value", false)){
 		if (type) type = type + 4; // FL_MENU_VALUE = 4
 		else type = 4; // FL_MENU_VALUE = 4 
 	}
@@ -471,7 +473,7 @@ Write.MenuItem <- function(t, ind){
 
 Write.group <- function(t, ind){
 	foreach(i in t){
-		if (Write.get(i.key, false))	Write[i.key](i, ind);
+		if (table_get(Write, i.key, false))	Write[i.key](i, ind);
 		else if (i.key.match("^Fl_")) Write.widget(i, ind);
 	}
 }
@@ -498,11 +500,11 @@ Write.decl <- function(t, ind){}
 Write.declblock <- function(t, ind){
 	Output(ind, "%s\n", t.name);
 	Write.group(t.body, ind+1);
-	Output(ind, "%s\n", t.attr.rawget("after", "}"));
+	Output(ind, "%s\n", table_rawget(t.attr, "after", "}"));
 }
 
 Write["class"] <- function(t, ind){
-	Output(ind, "class %s extends %s {\n", t.name, t.rawget("class", "?"));
+	Output(ind, "class %s extends %s {\n", t.name, table_rawget(t, "class", "?"));
 	local vars = [];
 	FindMembers.group(t.body, vars);
 	WriteVariables(ind+1, vars, "class members");
@@ -517,9 +519,9 @@ Write.widget_class <- function(t, ind){
 	local vars = [];
 	local wObj = "";
 	local typeName;
-	//if (t.attr.rawget("class", false) && t.attr["class"].match("^Fl_")) typeName = "fltk." + t.attr["class"];
+	//if (table_rawget(t.attr, "class", false) && t.attr["class"].match("^Fl_")) typeName = "fltk." + t.attr["class"];
 	//else  
-	typeName = t.attr.rawget("class", "Fl_Group");
+	typeName = table_rawget(t.attr, "class", "Fl_Group");
 
 	local widgetType = typeName;
 	Output(ind, "class %s extends %s {\n", t.name, widgetType);
@@ -530,13 +532,13 @@ Write.widget_class <- function(t, ind){
 	
 	local ar = t.attr.xywh;
 	local x = ar[0], y = ar[1], w = ar[2], h = ar[3];
-	local wlabel = t.attr.rawget("label", false);
+	local wlabel = table_rawget(t.attr, "label", false);
 
 	local strCreateWidget = format("constructor(px=%d, py=%d, pw=%d, ph=%d, pl=%s){\n",
 		x, y, w, h, wlabel ? format( "%s(%q)", configuration.textfilter, wlabel): "null");
 	Output(ind+1, strCreateWidget);
 	Output(ind+2, "base.constructor(px, py, pw, ph, pl);\n");
-	if (! (t.attr.rawget("class", "")).match("_Window$") ) {
+	if (! (table_rawget(t.attr, "class", "")).match("_Window$") ) {
 		t.xoffset <- "_x + ";
 		t.yoffset <- "_y + ";
 		Output(ind+2, "local _x = %d, _y = %d;\n", x, y);
@@ -554,7 +556,7 @@ Write.widget_class <- function(t, ind){
 
 FindMembers.group <- function(t, list){
 	foreach(i in t){
-		if (FindMembers.get(i.key, false)) FindMembers[i.key](i, list);
+		if (table_get(FindMembers, i.key, false)) FindMembers[i.key](i, list);
 		else if (i.key.match("^Fl_")) FindMembers.widget(i, list);
 		else if (i.key == "Submenu") FindMembers.submenu(i, list);
 		else if (i.key == "MenuItem") FindMembers.menuitem(i, list);
@@ -562,14 +564,14 @@ FindMembers.group <- function(t, list){
 }
 
 function GetAccessMode(t, mode){
-	foreach(i in ["private", "protected", "public"]) if (t.attr.get(i, false)) mode = i;
+	foreach(i in ["private", "protected", "public"]) if (table_get(t.attr, i, false)) mode = i;
 	return mode;
 }
 
 FindMembers.Function <- function(t, list){
 	if (t.name == "") t.name = "make_window()";
 	local name = t.name.match("[%w_]+");
-	if (t.parent.rawget("name",  "") == name) { // constructor
+	if (table_rawget(t.parent, "name",  "") == name) { // constructor
 		t.name = "__constructor()";
 		t.parent.constructor <- t.name;
 	}
@@ -578,7 +580,7 @@ FindMembers.Function <- function(t, list){
 }
 
 FindMembers["class"] <- function(t, list){
-	list.push([ t.name, "public", t.attr.rawget("class", "null") ]);
+	list.push([ t.name, "public", table_rawget(t.attr, "class", "null") ]);
 }
 
 FindMembers.widget_class <- FindMembers["class"];
@@ -590,7 +592,7 @@ FindMembers.widget <- function(t, list){
 	else if (t.name.match("^[%w_]+$")){
 		list.push([ t.name, GetAccessMode(t, "public") , getClassNameOrKey(t)]);
 	}
-	if (t.rawget("body", false)) FindMembers.group(t.body, list);
+	if (table_rawget(t, "body", false)) FindMembers.group(t.body, list);
 }
 
 FindMembers.decl <- function(t, list){
@@ -605,7 +607,7 @@ FindMembers.submenu <- function(t, list){
 				//print("body", k2, v2);
 				if(type(v2) == "table"){
 					//foreach(k3,v3 in v2) print("menuitem", k3,v3);
-					if(v2.rawget("name", false)) list.push([ v2.name, GetAccessMode(t, "public"), getClassNameOrKey(t)]);
+					if(table_rawget(v2, "name", false)) list.push([ v2.name, GetAccessMode(t, "public"), getClassNameOrKey(t)]);
 				}
 			}
 		}
@@ -621,7 +623,7 @@ function WriteVariables(ind, vars, type){
 	local defined = {};
 	Output(ind, "// Declaration of %s\n", type);
 	foreach(i in vars) {
-		if (defined.get(i[0], false)) {}
+		if (table_get(defined, i[0], false)) {}
 		else if (i[1] == "public") {
 			local type_name = i.get(2, false);
 			if(type_name) Output(ind, "%s : %s;\n", i[0], type_name);
@@ -707,7 +709,7 @@ function Fluid2SquiLu(infile, outfile, config){
 		fd.close();
 	}
 	if (outdata2.len() > 0){
-		local fd = file("extra-generated-code.lua", "wt");
+		local fd = file("extra-generated-code.nut", "wt");
 		fd.write(outdata2);
 		fd.close();
 	}
@@ -735,7 +737,7 @@ function mydebughook(event_type,sourcefile,line,funcname)
 			else print(k,v);
 		}
 */
-		local pos = getstackinfos(2).locals.rawget("pos", false);
+		local pos = table_rawget(getstackinfos(2).locals, "pos", false);
 		if(isDebugging || pos == 8926) {
 			foreach(k,v in getstackinfos(2)) {
 				if(type(v) == "table") {

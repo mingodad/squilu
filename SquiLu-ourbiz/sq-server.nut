@@ -5,7 +5,7 @@
  */
  
 local globals = getroottable();
-if(!globals.rawget("APP_CODE_FOLDER", false)) ::APP_CODE_FOLDER <- ".";
+if(!table_rawget(globals, "APP_CODE_FOLDER", false)) ::APP_CODE_FOLDER <- ".";
 
 WIN32 <- os.getenv("WINDIR") != null;
 
@@ -23,20 +23,31 @@ function getUserCallbackSetup(fn){
 	local code = fd.read(fd.len());
 	fd.close();
 	local extra_code = format("APP_CODE_FOLDER <- \"%s\";\n", APP_CODE_FOLDER);
+	
+	local checkGlobal = function(gv)
+	{
+		if (table_rawin(globals, gv)){
+			extra_code += format(gv + " <- \"%s\";\n", table_rawget(globals, gv));
+		} else extra_code += gv + " <- false;\n";
+	}
 
-	if (globals.rawget("VIEW_MD5_PASSWORD", false)){
-		extra_code += format("VIEW_MD5_PASSWORD <- \"%s\";\n", VIEW_MD5_PASSWORD);
-	} else extra_code += "VIEW_MD5_PASSWORD <- false;\n";
+	checkGlobal("GLOBAL_PASSWORD_DOMAIN");
+	checkGlobal("GLOBAL_MD5_PASSWORD");
+	checkGlobal("VIEW_MD5_PASSWORD");
+	checkGlobal("EDIT_MD5_PASSWORD");
+	checkGlobal("EDIT_MD5_PASSWORD");
 
-	if (globals.rawget("EDIT_MD5_PASSWORD", false)){
-		extra_code += format("EDIT_MD5_PASSWORD <- \"%s\";\n", EDIT_MD5_PASSWORD);
-	} else extra_code += "EDIT_MD5_PASSWORD <- false;\n";
+	if (table_rawget(globals, "AT_DEV_DBG", false)){
+		extra_code += "AT_DEV_DBG <- true;\n";
+	} else extra_code += "AT_DEV_DBG <- false;\n";
+	
+	code = extra_code + "\n" + code;
+	if(table_rawin(globals, "addExtraCodeToUserCallbackSetup"))
+	{
+		code = addExtraCodeToUserCallbackSetup() + code;
+	}
 
-	if (globals.rawget("AT_DEV_DBG", false)){
-		extra_code += "AT_DEV_DBG <- true;\n"
-	} else extra_code += "AT_DEV_DBG <- false;\n"
-
-	return compilestring(format("%s\n%s", extra_code, code));
+	return compilestring( code );
 }
 
 local mongoose_start_params = {
@@ -44,9 +55,9 @@ local mongoose_start_params = {
 	listening_ports = "8080",
 	document_root = "./s",
 	//num_threads = 50,
-	enable_keep_alive = "yes",
-	enable_tcp_nodelay = "yes",
-	request_timeout_ms = "30000",
+	//enable_keep_alive = "yes",
+	//enable_tcp_nodelay = "yes",
+	//request_timeout_ms = "30000",
 
 	//cgi_extensions = "lua",
 	//cgi_interpreter = "/usr/bin/lua",
@@ -69,17 +80,39 @@ local mongoose_start_params = {
 	user_callback = function(event, request){
 		//debug_print("\nevent :\n", event);
 		if(event == "MG_NEW_REQUEST"){
+			if(GLOBAL_MD5_PASSWORD)
+			{
+				if(request.info.uri == "/SQ/logout")
+				{
+					request.close_session();
+					request.print(format("HTTP/1.1 302 Found\r\nLocation: http%s://%s\r\n\r\n", 
+						request.info.is_ssl ? "s" : "", request.info.http_headers.Host));
+					return true;
+				}
+/*
+				if(!request.check_password(GLOBAL_MD5_PASSWORD)) {
+					request.send_authorization_request(GLOBAL_PASSWORD_DOMAIN);
+					return true;
+				}*/
+			}
 			//debug_print("\n", request.get_option("num_threads"), request.get_conn_buf());
-			if(AT_DEV_DBG || !this.get("handle_request", false)) {
+			if(AT_DEV_DBG || !table_get(this, "handle_request", false)) {
+				 //when developing we reload everything on each request
 				dofile(APP_CODE_FOLDER + "/sq-server-plugin.nut");
 			}
+			local result;
 			try {
 				//debug_print("\nHttp :\n", request.info.uri);
-				return handle_request(request);
+				result = handle_request(request);
 			}
 			catch(exep){
-				return send_http_error_500(request, exep);
+				result = send_http_error_500(request, exep);
 			}
+			if(AT_DEV_DBG && table_get(this, "onDevCleanup", false)) {
+				 //when developing if we need to cleanup something here is the place
+				onDevCleanup();
+			}
+			return result;
 		}
 		else if(event == "MG_EVENT_LOG"){
 			//debug_print("\n", request.info.log_message);

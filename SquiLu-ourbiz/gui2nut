@@ -1,2 +1,3 @@
 #!/bin/sh
-squilu fluid2SquiLu.nut ourbiz-gui.fl ourbiz-gui.nut
+base=${1:-"ourbiz"}
+squilu fluid2SquiLu.nut ${base}-gui.fl ${base}-gui.nut

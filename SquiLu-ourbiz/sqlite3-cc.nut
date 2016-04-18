@@ -5,6 +5,8 @@
  * Licensed under GPLv3, see http://www.gnu.org/licenses/gpl.html.
  */
  
+dofile("sqlite-utils.nut");
+ 
 function _tr(str) {return str;}
 
 class Fl_Multiline_Output extends Fl_Output {
@@ -280,7 +282,7 @@ class Fl_Data_Table extends Flv_Data_Table {
 	function clear_selection(){
 	}
 	function get_col_name(idx){
-		return _cols_info[idx].colname;
+		return _cols_info.len() ? _cols_info[idx].colname : idx.tostring();
 	}
 	function get_row(arow=null){
 		if(arow == null) arow = row();
@@ -323,172 +325,16 @@ class Fl_Data_Table extends Flv_Data_Table {
 
 dofile("sqlite3-cc-gui.nut", false, false);
 
-function create_stmt_bind(db, sql, bind_values=null)
-{
-	local result = false;
-	local stmt = db.prepare(sql);
-	if(bind_values)
-	{
-		foreach(k,v in bind_values)
-		{
-			stmt.bind(k+1, v);
-		}
-	}
-	return stmt;
-}
-
-function exec_get_all(db, sql, bind_values=null)
-{
-	local stmt = create_stmt_bind(db, sql, bind_values);
-	local result = stmt.asArrayOfTables();
-	stmt.finalize();
-	return result;
-}
-
-function exec_get_one(db, sql, bind_values=null)
-{
-	local result = null;
-	local stmt = create_stmt_bind(db, sql, bind_values);
-	if(stmt.next_row())
-	{
-		result = stmt.col(0);
-	}
-	stmt.finalize();
-	return result;
-}
-
-function exec_dml(db, sql, bind_values=null)
-{
-	local stmt = create_stmt_bind(db, sql, bind_values);
-	local result = stmt.step() == stmt.SQLITE_DONE;
-	stmt.finalize();
-	return result;
-}
-
-local function sanitizeDBName(dbname)
-{
-	return dbname.gsub("([^_%-a-zA-Z0-9])","");
-}
-
-local function escapeRE(str)
-{
-	return str.gsub("(%-)", "%%%1");
-}
-
-function getReferencesOnDBSchema(db, name)
-{
-	local reference_name = escapeRE(sanitizeDBName(name));
-	local prefix_suffix_re = "[%s%(%),%.<>!=%-%+%*/\"']";
-	local reference_name_re = prefix_suffix_re + "(" + reference_name + ")" + prefix_suffix_re;
-	local reference_re = "()" + reference_name + "()";
-	//print(reference_re);
-
-	local checkValidRefenceName = function(whole_str, start_idx, end_idx)
-	{
-		//!!!this assume that the name searched is not at the begning or end of whole_str
-		local context = whole_str.slice( (start_idx ? start_idx-1 : start_idx) , 
-								(end_idx < whole_str.len() ? end_idx+1 : end_idx) );
-		if(context.match(reference_name_re))
-		{
-			if( (context[0] == '\'') && (context[context.len()-1] != '\'') ) return false;
-			else if( (context[0] == '"') && (context[context.len()-1] != '"') ) return false;
-			return true;
-		}
-		return false;
-	}
-
-	local result = blob(0, 8192);
-	local stmt = db.prepare("SELECT type, name, sql FROM sqlite_master;");
-	while(stmt.next_row())
-	{
-		local sql = stmt.col(2);
-		if((::type(sql) == "string"))
-		{
-			sql = sql.tolower();
-			sql.gmatch(reference_re, function(start_idx, end_idx){
-					//print(start_idx, end_idx, sql.slice(start_idx, end_idx));
-					if(checkValidRefenceName(sql, start_idx, end_idx))
-					{
-						//print("idx", start_idx, end_idx, sql.slice(start_idx, end_idx));
-						//print(sql);
-						result.write("-------------\n");
-						result.write(stmt.col(0), "\t", stmt.col(1), "\n");
-						result.write(stmt.col(2), "\n");
-						return false; //one match is enough
-					}
-					return true;
-				});
-		}
-	}
-	stmt.finalize();
-
-	return result.tostring();
-}
-
-local function searchOnAllTables(db, search_str, search_limit)
-{
-	local embedded_limit = search_str.match("^(%d+):");
-	if(embedded_limit)
-	{
-		search_limit = embedded_limit.tointeger();
-		search_str = search_str.match("^%d+:(.+)");
-	}
-	local the_search_str;
-	if( search_str.match("^_re_:") )
-	{
-		the_search_str = search_str.match("^_re_:(.+)");
-	}
-	else the_search_str = escapeRE(search_str);
-	the_search_str = the_search_str.tolower();
-	local search_count = 0;
-	local result = blob(0, 8192);
-	local stmt = db.prepare("SELECT name FROM sqlite_master WHERE type='table';");
-	while(stmt.next_row())
-	{
-		local tbl_name = stmt.col(0);
-		local tbl_stmt = db.prepare("SELECT * FROM \"" + tbl_name + "\"");
-		local col_count = tbl_stmt.col_count();
-		local text_cols = [];
-		for(local i=0; i < col_count; ++i)
-		{
-			local dtype = tbl_stmt.col_declared_type(i).tolower();
-			if( (dtype.indexOf("varchar") >= 0) || (dtype.indexOf("text") >= 0) ) text_cols.push(i);
-		}
-		if(text_cols.len())
-		{
-			local text_cols_len = text_cols.len();
-			local tbl_done = false;
-			while(tbl_stmt.next_row() && !tbl_done)
-			{
-				for(local i=0; i < text_cols_len; ++i)
-				{
-					local col_idx = text_cols[i];
-					local str = tbl_stmt.col(col_idx);
-					if((::type(str) == "string"))
-					{
-						if(str.tolower().match(the_search_str))
-						{
-							result.write(tbl_name, ":", tbl_stmt.col_name(col_idx), "\n");
-							++search_count;
-							tbl_done = true;
-							break;
-						}
-					}
-				}
-			}
-		}
-		tbl_stmt.finalize();
-		
-		if(search_count >= search_limit) break;
-	}
-	stmt.finalize();
-
-	return result.tostring();
-}
-
 local function multiply3(ctx,a,b,c){
 	//print(ctx.user_data());
 	ctx.result_double(a*b*c);
+}
+
+local function sqlite3_progress_handler(window)
+{
+	//print("sqlite3_progress_handler");
+	Fl.check();
+	return window.ref()._stop_processing_query ? 1 : 0;
 }
 
 class Sqlite3CC extends Sqlite3cc_Window {
@@ -501,6 +347,11 @@ class Sqlite3CC extends Sqlite3cc_Window {
 	db = null;
 	attached_databases = null;
 	squilu_edit_window = null;
+	_busy_working = null;
+	_stop_processing_query = null;
+	//_history_db_name = null;
+	//_history_db = null;
+	_hide_system_tables = false;
   
 	constructor(){
 		base.constructor();
@@ -510,11 +361,27 @@ class Sqlite3CC extends Sqlite3cc_Window {
 		tabView.callback(tabView_cb);
 		grid_tables._call_this = this.weakref();
 		grid_data._call_this = this.weakref();
+		grid_fields._call_this = this.weakref();
+		gridIndexes._call_this = this.weakref();
+		gridTriggers._call_this = this.weakref();
 		local last_db_file_name = Fl.preferences_get("last_db_file_name", "");
 		openDB(last_db_file_name);
 		iTablesFilter.callback(doDataSearch_cb);
+		chkSytemTables.callback(showHideSystemTables_cb);
 	}
 	
+	function setBusyWorking(turnOn)
+	{
+		if(turnOn && _busy_working)
+		{
+			_stop_processing_query = true;
+			return false;
+		}
+		_busy_working = turnOn;
+		_stop_processing_query = false;
+		return true;
+	}
+
 	function doDataSearch_cb(sender : Fl_Widget, udata : any)
 	{
 		this = sender->window();
@@ -522,27 +389,58 @@ class Sqlite3CC extends Sqlite3cc_Window {
 		grid_tables->set_data(filtered_data);
 	}
 	
+	function filterSystemTables()
+	{
+		local the_data = _my_tables_data;
+		local filtered_data = [];
+		foreach(rec in the_data)
+		{
+			local tbl_name = rec[1];
+			if(_hide_system_tables && tbl_name.len() && tbl_name.startswith("__")) continue;
+			filtered_data.push(rec);
+		}
+		return filtered_data
+	}
+	
+	function showHideSystemTables()
+	{
+		_hide_system_tables = chkSytemTables->value();
+		local filtered_data = filterSystemTables();
+		grid_tables->set_data(filtered_data);
+	}
+	
+	function showHideSystemTables_cb(sender : Fl_Widget, udata : any)
+	{
+		this = sender->window();
+		showHideSystemTables();
+	}
+	
 	function doFilterMyData(value, prev_filtered_data)
 	{
 		local the_data = prev_filtered_data;
 		local value_len = value.len();
 		//print(__LINE__, _my_tables_data.len(), the_data.len(), value.len(), value);
-		if(value_len == 0) return _my_tables_data;
+		if(value_len == 0) return _hide_system_tables ? filterSystemTables() : _my_tables_data;
 		
 		if(value_len == 1 || the_data.len() == 0)
 		{
 			//we start from scratch
-			the_data = _my_tables_data;
+			return _hide_system_tables ? filterSystemTables() : _my_tables_data;
 		}
 		local filtered_data = [];
 		foreach(rec in the_data)
 		{
+			if(_hide_system_tables)
+			{
+				local tbl_name = rec[1];
+				if(tbl_name.len() && tbl_name.startswith("__")) continue;
+			}
 			foreach(field in rec)
 			{
 				if(field)
 				{
 					local fs = field.tostring();
-					if(fs.len() && fs.tostring().indexOf(value) >= 0)
+					if(fs.len() && fs.indexOf(value) >= 0)
 					{
 						filtered_data.push(rec);
 						break;
@@ -553,62 +451,25 @@ class Sqlite3CC extends Sqlite3cc_Window {
 		return filtered_data;
 	}
 	
-	function getSchemaVersion()
+	function getGridTableAttachedDB()
 	{
-		return db.exec_get_one("PRAGMA schema_version");
+		return (grid_tables.cols() > 3) ? (grid_tables.get_value(grid_tables.row(), 3) + ".") : "";
 	}
 	
 	function checkSchemaVersion()
 	{
-		if(_the_schema_version != getSchemaVersion())
+		if(_the_schema_version != SQLiteUtils.getSchemaVersion(db, getGridTableAttachedDB()))
 		{
 			local tables_idx = grid_tables->row();
-			get_tables();
+			get_tables(false);
 			local v = iTablesFilter->value();
 			if(v.len())
 			{
 				doDataSearch_cb(iTablesFilter, null);
 			}
+			else showHideSystemTables();
 			grid_tables->row(tables_idx < grid_tables->rows() ? tables_idx : grid_tables->rows()-1);
 		}
-	}
-
-	function getSchemaSqlFor(tbl)
-	{
-		local str = format("SELECT sql FROM sqlite_master WHERE (type='table' OR type='view') AND tbl_name='%s'", tbl);
-		return str;
-	}
-	function getSchemaFor(tbl)
-	{
-		local str = db.exec_get_one(getSchemaSqlFor(tbl));
-		return str;
-	}
-	
-	function getIndexesSqlFor(tbl)
-	{
-		local str = format("SELECT name, sql FROM sqlite_master WHERE type='index' AND tbl_name='%s' ORDER BY name;", tbl);
-		return str;
-	}
-	
-	function getTriggersSqlFor(tbl)
-	{
-		local str = format("SELECT name, sql FROM sqlite_master WHERE type='trigger' AND tbl_name='%s' ORDER BY name;", tbl);
-		return str;
-	}
-	
-	function getFieldsFor(tbl)
-	{
-		local stmt = db.prepare("select * from \"" + tbl + "\"");
-		local fields = stmt.colsAsArray();
-		stmt.finalize();
-		return fields;
-	}
-
-	function getFieldsAsCSVFor(tbl)
-	{
-		local fields = getFieldsFor(tbl);
-		local str_fields =  "\"" + fields.concat("\", \"") + "\"";
-		return str_fields;
 	}
 	
 	function showExecutionTime(start_time)
@@ -622,15 +483,26 @@ class Sqlite3CC extends Sqlite3cc_Window {
 	{
 		if(sender == grid_tables){
 			local tbl = grid_tables.get_value(grid_tables.row(), 1);
-			refreshTabView(tbl); 
+			refreshTabView(tbl, getGridTableAttachedDB()); 
 		}
+	}
+	
+	function showRecord(the_grid)
+	{
+		local row = the_grid.get_row();
+		local record = blob(0, 8000);
+		foreach(idx, val in row)
+			record.write((idx ? "\n" : ""), "----", idx, ":", 
+				grid_data.get_col_name(idx),"\n", val);
+		edit_record.value(record.tostring());
+		tabView->value(groupRecord);
 	}
 	
 	function row_selected(sender, ev){
 		if(sender == grid_tables){
 			if(ev == Fl_Data_Table_Events.e_update){
 				local tbl = grid_tables.get_value(grid_tables.row(), 1);
-				local sql = "select * from \"" + tbl + "\"";
+				local sql = format("select * from %s\"%s\"", getGridTableAttachedDB(), tbl);
 				local limit = iMaxRows.value();
 				if(limit && limit.len()) sql += " limit " + limit;
 				local start_time = os.clock();
@@ -639,43 +511,47 @@ class Sqlite3CC extends Sqlite3cc_Window {
 				tabView->value(groupData);
 			}
 		}
-		else if(sender == grid_data){
-			if(ev == Fl_Data_Table_Events.e_update){
-				local row = grid_data.get_row();
-				local record = blob(0, 8192);
-				foreach(idx, val in row)
-					record.write((idx ? "\n" : ""), "----", idx, ":", 
-						grid_data.get_col_name(idx),"\n", val);
-				edit_record.value(record.tostring());
-				tabView->value(groupRecord);
-			}
+		else if(
+			(sender == grid_fields) || 
+			(sender == grid_data) || 
+			(sender == gridIndexes) || 
+			(sender == gridTriggers)
+			){
+				if(ev == Fl_Data_Table_Events.e_update){
+					showRecord(sender);
+				}
 		}
 	}
   
 	function btnExecute_cb(sender, udata){
 		this = sender->window();
-		local sql = edit_queries->value();
-		if(sql && sql.len()) {
+		if(!setBusyWorking(true)) return;
+		local sql;
+		if(edit_queries->buffer()->selected()) sql = edit_queries->buffer()->selection_text();
+		else sql = edit_queries->value();
+		
+		local action = option_query.text();
+		if( (sql && sql.len()) || (action == "sql update metadata")) {
 			local start_time;
-			local action = option_query.text();
 			local foreign_keys_saved = null;
+			local cursor_wait = fl_cursor_wait();
 			switch(action)
 			{
 				case "references":
-					local references = getReferencesOnDBSchema(db, sql);
+					local references = SQLiteUtils.getReferencesOnDBSchema(db, sql, getGridTableAttachedDB());
 					edit_references->value(references);
 					tabView->value(groupReferences);
 				break;
 
 				case "search all tables":
-					local references = searchOnAllTables(db, sql, iMaxRows->value().tointeger());
+					local references = SQLiteUtils.searchOnAllTables(db, sql, iMaxRows->value().tointeger(), getGridTableAttachedDB());
 					edit_references->value(references);
 					tabView->value(groupReferences);
 				break;
 
 				case "schema update":
 				case "schema update norefs":
-					foreign_keys_saved = db.exec_get_one("PRAGMA foreign_keys");
+					foreign_keys_saved = db.exec_get_one(format("PRAGMA %sforeign_keys", getGridTableAttachedDB()));
 				case "insert":
 				case "update":
 				case "delete":
@@ -694,11 +570,12 @@ class Sqlite3CC extends Sqlite3cc_Window {
 
 						switch(action)
 						{
+							case "sqlite_master update":
+								_the_schema_version = 0;
 							case "create index":
 							case "create trigger":
 							case "schema update":
 							case "schema update norefs":
-							case "sqlite_master update":
 							case "drop table":
 								checkSchemaVersion();
 							break;
@@ -706,8 +583,8 @@ class Sqlite3CC extends Sqlite3cc_Window {
 					}
 					catch(e)
 					{
-						if(!db.IsAutoCommitOn() || (action == "schema update")) db.exec_dml("ROLLBACK;");
-						if(foreign_keys_saved != null) db.exec_dml("PRAGMA foreign_keys=" + foreign_keys_saved);
+						if(!db.IsAutoCommitOn() || action.startswith("schema update")) db.exec_dml("ROLLBACK;");
+						if(foreign_keys_saved != null) db.exec_dml(format("PRAGMA %sforeign_keys=" + foreign_keys_saved, getGridTableAttachedDB()));
 						fl_alert(e);
 					}
 				break;
@@ -715,11 +592,46 @@ class Sqlite3CC extends Sqlite3cc_Window {
 				case "dump table":
 				break;
 
+				case "sql update metadata":
+					start_time = os.clock();
+					SQLiteUtils.doUpdateMetadata(db);
+					showExecutionTime(start_time);
+					checkSchemaVersion();
+				break;
+
+				case "sql macros base":
+					local sql_pp = new SqlPreprocessor();
+					local new_sql = sql_pp.getPreprocessorQuery(db, sql, "base");
+					if(new_sql) edit_queries->value(new_sql);
+				break;
+				case "sql macros sql":
+					local sql_pp = new SqlPreprocessor();
+					local new_sql = sql_pp.getPreprocessorQuery(db, sql, "sql");
+					if(new_sql) edit_queries->value(new_sql);
+				break;
+				case "sql macros insert":
+					local sql_pp = new SqlPreprocessor();
+					sql_pp.insertPreprocessorQuery(db, sql);
+				break;
+				case "sql macros update":
+					local sql_pp = new SqlPreprocessor();
+					sql_pp.updatePreprocessorQuery(db, sql);
+				break;
+				case "sql macros":
+					local sql_pp = new SqlPreprocessor();
+					local new_sql = sql_pp.getPreprocessorQuery(db, sql);
+					if(new_sql)
+					{
+						sql = sql_pp.preprocessSqlQueryParams(new_sql, {});
+						edit_queries->value(sql);
+					}
+					else break;
+
 				default:
 					try
 					{
 						start_time = os.clock();
-						get_records_by_sql(grid_data, sql, true);
+						get_records_by_sql(grid_data, sql, true, false);
 						showExecutionTime(start_time);
 						tabView->value(groupData);
 						checkSchemaVersion();
@@ -731,233 +643,41 @@ class Sqlite3CC extends Sqlite3cc_Window {
 					}
 			}
 		}
-	}
-	
-	function getIndexesAndTriggersFor(tbl, result)
-	{
-		local stmt = db.prepare(getIndexesSqlFor(tbl));
-		while(stmt.next_row())
-		{
-			local str = stmt.col(1);
-			if(::type(str) == "string") result.write("\n\n", str, ";");
-		}
-		stmt.finalize();
-
-		stmt = db.prepare(getTriggersSqlFor(tbl));
-		while(stmt.next_row())
-		{
-			local str = stmt.col(1);
-			if(::type(str) == "string") result.write("\n\n", str, ";");
-		}
-		stmt.finalize();
+		setBusyWorking(false);
 	}
   
 	function btnCreateQuery_cb(sender, udata){
 		this = sender->window();
 		if(db){
 			local tbl = grid_tables.get_value(grid_tables.row(), 1);
-			local sql = option_query.text();
-			local fields = getFieldsFor(tbl);
-			local fields_csv = "\"" + fields.concat("\", \"") + "\"";
-			
-			local genSchemaUpgrade = function(with_references)
-			{
-				local new_suffix = "___new";
-				local old_suffix = "";
-				local result = blob(0, 8192);
-				result.write("PRAGMA foreign_keys=OFF;\n\nBEGIN;\n\n");
-				local str_schema = getSchemaFor(tbl);
-				str_schema = str_schema.gsub("(" + escapeRE(tbl) + ")", "%1" + new_suffix, 1);
-				str_schema = str_schema.gsub("\n%s+", "\n\t");
-				result.write(str_schema, ";");
-				fields_csv = fields_csv.gsub(", ", ",\n\t");
-				result.write(format("\n\nINSERT INTO %s%s(\n\t%s\n\t)\nSELECT\n\t%s\nFROM \"%s%s\";", tbl, new_suffix, fields_csv, fields_csv, tbl, old_suffix));
-				result.write("\n\nDROP TABLE \"", tbl, old_suffix, "\";");
-				result.write("\n\nALTER TABLE \"", tbl, new_suffix, "\" RENAME TO \"", tbl, old_suffix, "\";");
-				
-				getIndexesAndTriggersFor(tbl, result);
-				
-				if(with_references)
-				{
-					result.write("\n\nDROP VIEW \"view_name\";\n\n");
-					result.write(getReferencesOnDBSchema(db, tbl));
-					result.write("\n\nCREATE VIEW  \"view_name\"  AS \"db_table_name\";");
-				}
-				result.write("\n\nPRAGMA foreign_key_check;\n\nCOMMIT;\n\nPRAGMA foreign_keys=ON;");
-				return result.tostring();
-			};
-			
-			if(sql == "select")
-			{
-				local alias_letter = 'a';
-				local myjoins = "";
-				local fields_last_idx = fields.len()-1;
-
-				local stmt = db.prepare(format("PRAGMA foreign_key_list(\"%s\")", tbl));
-				local last_fk_id = -1;
-				while(stmt.next_row())
-				{
-					local fk_id = stmt.col(0);
-					local ftable = stmt.col(2);
-					local ffrom = stmt.col(3);
-					local fto = stmt.col(4);
-					local field_idx = fields.find(ffrom);
-					local is_new_join = last_fk_id != fk_id;
-					if(is_new_join) ++alias_letter;
-					if(field_idx)
-					{
-						fields[field_idx] += format("\"%s --%c.\"%s", (fields_last_idx == field_idx ? "" : ","), alias_letter, fto);
-					}
-					if(is_new_join)
-					{
-						myjoins += format("\n--LEFT JOIN \"%s\" AS %c ON a.\"%s\" = %c.\"%s\"", ftable, alias_letter, ffrom, alias_letter, fto);
-					}
-					else
-					{
-						myjoins += format(" AND a.\"%s\" = %c.\"%s\"", ffrom, alias_letter, fto);
-					}
-					last_fk_id = fk_id;
-				}
-				stmt.finalize();
-
-				fields_csv = "a.\"" + fields.concat("\",\n\ta.\"") + "\"";
-				sql = format("--CREATE VIEW \"%s_list_view\" AS\nSELECT\n\t%s\nFROM \"%s\" AS a\nLIMIT %d", 
-					tbl, fields_csv, tbl, iMaxRows->value().tointeger());
-				sql += myjoins;
-			}
-			else if(sql == "insert") sql = format("INSERT INTO \"%s\"(%s)\nVALUES(%s)", tbl, fields_csv, fields_csv);
-			else if(sql == "update") {
-				fields_csv = "\"" + fields.concat("\"=?, \"") + "\"";
-				sql = format("UPDATE \"%s\" SET %s=?\nWHERE \"id\"=?", tbl, fields_csv);
-			}
-			else if(sql == "delete") sql = format("DELETE FROM \"%s\" WHERE \"id\"=?", tbl);
-			else if(sql == "create index") sql = format("CREATE INDEX \"%s_idx\" ON \"%s\"(\"field\" COLLATE NOCASE)", tbl, tbl);
-			else if(sql == "create trigger") sql = format("CREATE TRIGGER \"%s_trigger\"\nBEFORE/AFTER/INSTEAD OF INSERT, UPDATE, DELETE OF col_name ON \"%s\"\nFOR EACH ROW WHEN expr\nBEGIN\nEND;", tbl, tbl);
-			else if(sql == "drop table")
-			{
-				local table_type = db.exec_get_one("SELECT \"type\" FROM sqlite_master WHERE name='" + tbl + "'");
-				sql = format("DROP %s \"%s\"", table_type, tbl);
-			}
-			else if(sql == "dump table")
-			{
-				local result = blob(0, 8192);
-				local str_schema = getSchemaFor(tbl);
-				str_schema = str_schema.gsub("\n%s+", "\n\t");
-				result.write("BEGIN;\n\n", str_schema, ";");
-				getIndexesAndTriggersFor(tbl, result);
-				fields_csv = fields_csv.gsub(", ", ",\n\t");
-				result.write(format("\n\nINSERT INTO \"%s\" (\n\t%s\n\t) VALUES", tbl, fields_csv));
-
-				local result_size = result.len();
-				local stmt = db.prepare(format("SELECT * FROM \"%s\"", tbl));
-				local col_count = stmt.col_count();
-				
-				local SQLITE_INTEGER = stmt.SQLITE_INTEGER;
-				local SQLITE_FLOAT = stmt.SQLITE_FLOAT;
-				local SQLITE_NULL = stmt.SQLITE_NULL;
-				local SQLITE_TEXT = stmt.SQLITE_TEXT;
-				local SQLITE_BLOB = stmt.SQLITE_BLOB;
-				
-				while(stmt.next_row())
-				{
-					result.write("\n(");
-					for(local i=0; i < col_count; ++i)
-					{
-						local value = stmt.col(i);
-						if(i) result.write(",");
-						
-						local ctype = stmt.col_type(i);
-
-						if(ctype == SQLITE_INTEGER  || ctype == SQLITE_FLOAT)
-							result.write(value.tostring());
-							
-						else if(ctype == SQLITE_NULL) result.write("NULL");
-						else if(ctype == SQLITE_TEXT) result.write("'", value.gsub("'", "''") ,"'");
-						else if(ctype == SQLITE_BLOB) result.write(format("%q", value));
-						else result.write("??");
-					}
-					result.write("),");
-				}
-				stmt.finalize();
-				
-				if(result_size < result.len())
-				{
-					result.resize(result.len()-1); //delete last comma
-					result.write(";");
-				}
-				
-				result.write("\n\nCOMMIT;");
-				sql = result.tostring();
-			}
-			else if(sql == "references") sql = tbl;
-			else if(sql == "schema update") {
-				sql = genSchemaUpgrade(true);
-			}
-			else if(sql == "schema update norefs") {
-				sql = genSchemaUpgrade(false);
-			}
-			else if(sql == "sqlite_master update") {
-				local result = blob(0, 8192);
-				local schema_version = getSchemaVersion();
-				result.write("BEGIN;\n--PRAGMA schema_version; --> ", schema_version.tostring(), "\n\n");
-				result.write("PRAGMA writable_schema=ON;\n\n");
-				local str_schema = getSchemaFor(tbl);
-				str_schema = str_schema.gsub("\n%s+", "\n\t");
-				str_schema = str_schema.gsub("'", "''");
-				
-				result.write("UPDATE sqlite_master\nSET sql='", str_schema, "'\nWHERE type='table' AND name='", tbl, "';\n\n"); 
-				
-				local stmt = db.prepare(getIndexesSqlFor(tbl));
-				while(stmt.next_row())
-				{
-					local str = stmt.col(1);
-					if(::type(str) == "string") result.write("\n\n", str, ";");
-				}
-				stmt.finalize();
-
-				stmt = db.prepare(getTriggersSqlFor(tbl));
-				while(stmt.next_row())
-				{
-					local str = stmt.col(1);
-					if(::type(str) == "string") result.write("\n\n", str, ";");
-				}
-				stmt.finalize();
-				
-				result.write("\n\nDROP VIEW \"view_name\";\n\n");
-				result.write(getReferencesOnDBSchema(db, tbl));
-				result.write("\n\nCREATE VIEW  \"view_name\"  AS \"db_table_name\";");
-				result.write("\n\nPRAGMA schema_version=", (schema_version.tointeger() + 1).tostring(), 
-					";\n\nPRAGMA writable_schema=OFF;\n\nPRAGMA integrit_check;\n\nCOMMIT;");
-				sql = result.tostring();
-			}
-			else return;
-			edit_queries->value(sql);
+			local sql = SQLiteUtils.createQuery(db, tbl, option_query.text(), iMaxRows.value().tointeger(), getGridTableAttachedDB());
+			if(sql) edit_queries->value(sql);
 		}
 	}
 	
-	function refreshTabView(tbl)
+	function refreshTabView(tbl, attached_db)
 	{
 		local tab = tabView->value();
 		local sql = false;
 		local the_grid = false;
 		if(tab == viewFields)
 		{
-			sql = format("PRAGMA table_info(\"%s\");", tbl);
+			sql = SQLiteUtils.getTableInfoSqlFor(tbl, attached_db);
 			the_grid = grid_fields;
 		}
 		if(tab == viewIndexes)
 		{
-			sql = getIndexesSqlFor(tbl);
+			sql = SQLiteUtils.getIndexesSqlFor(tbl, attached_db);
 			the_grid = gridIndexes;
 		}
 		else if(tab == viewTriggers)
 		{
-			sql = getTriggersSqlFor(tbl);
+			sql = SQLiteUtils.getTriggersSqlFor(tbl, attached_db);
 			the_grid = gridTriggers;
 		}
 		else if(tab == groupSchema)
 		{
-			local str = getSchemaFor(tbl);
+			local str = SQLiteUtils.getSchemaFor(db, tbl, attached_db);
 			edit_schema->value(str);
 		}
 
@@ -973,7 +693,7 @@ class Sqlite3CC extends Sqlite3cc_Window {
 		local tbl = grid_tables.get_value(grid_tables.row(), 1);
 		if(tbl)
 		{
-			refreshTabView(tbl);
+			refreshTabView(tbl, getGridTableAttachedDB());
 		}
 	}
   
@@ -1001,18 +721,30 @@ class Sqlite3CC extends Sqlite3cc_Window {
 		return result;
 	}
 
-	function get_records_by_sql(grid, sql , named=false){
+	function get_records_by_sql(grid, sql , named=false, withBusyWorking=true){
+		if(withBusyWorking && !setBusyWorking(true)) return;
 		local cursor_wait = fl_cursor_wait();
 		local stmt = db.prepare(sql);
 		local rec_list = stmt.asArrayOfArrays(SQLite3Stmt.WITH_COL_NAMES | 
 			SQLite3Stmt.AS_STRING_ALWAYS | SQLite3Stmt.NULL_AS_EMPTY_STR);
 		grid.set_new_data(rec_list);
+		if(withBusyWorking) setBusyWorking(false);
 	}
 
-	function get_tables(){
-		local sql = "SELECT rowid AS 'rowid|ID|0', name AS 'name|Name|-1', type as 'type|Type|4' FROM sqlite_master WHERE (type='table' OR type='view') ORDER BY name";
-		get_records_by_sql(grid_tables, sql, true);
-		_the_schema_version = getSchemaVersion();
+	function get_tables(withBusyWorking=true){
+		local with_attached = table_len(attached_databases) > 0;
+		local sql_template = "SELECT rowid AS 'rowid|ID|0', name AS 'name|Name|-1', type as 'type|Type|4'";
+		if(with_attached) sql_template += ", '%s' AS 'db|DB|4'";
+		sql_template += " FROM %s.sqlite_master WHERE (type='table' OR type='view')";
+		local main_prefix = "main";
+		local sql = format(sql_template, main_prefix, main_prefix);
+		foreach(k,v in attached_databases)
+		{
+			sql += "\nUNION ALL\n" + format(sql_template, k, k);
+		}
+		sql += "\nORDER BY " + (with_attached ? "4,2" : "2");
+		get_records_by_sql(grid_tables, sql, true, withBusyWorking);
+		_the_schema_version = SQLiteUtils.getSchemaVersion(db, getGridTableAttachedDB());
 		_my_tables_data = grid_tables->_data;
 	}
 	
@@ -1025,11 +757,14 @@ class Sqlite3CC extends Sqlite3cc_Window {
 			set_label_dbf(the_db_file_name);
 			// SQLITE_OPEN_READWRITE | SQLITE_OPEN_SHAREDCACHE | SQLITE_OPEN_SUBLATIN_NA_LIKE
 			db = SQLite3(the_db_file_name);
+			db.progress_handler(1000, sqlite3_progress_handler, this.weakref());
 			//db.exec_dml("PRAGMA mmap_size=268435456;");
 			//db.trace(function(udata, sql){print(udata, ":", sql);}, "SQL");
 			//db.create_function("multiply3",3, multiply3); //SQLITE_DETERMINISTIC
 			get_tables();
 			Fl.preferences_set("last_db_file_name", the_db_file_name);
+			//_history_db_name = Fl.preferences_getUserdataPath() + "/sqlite3_cc_history.db";
+			//_history_db = SQLite3(_history_db_name);
 		}
 	}
 
@@ -1055,7 +790,7 @@ class Sqlite3CC extends Sqlite3cc_Window {
 			if (dbf){
 				//print(dbf)
 				local dbname = fl_input(_tr("Attach database with name ?"), "adb");
-				if (dbname && !attached_databases.get(dbname, false)){
+				if (dbname && !table_get(attached_databases, dbname, false)){
 					attached_databases[dbname] <- true;
 					local sql = format("ATTACH DATABASE '%s' as %s;", dbf, dbname);
 					db.exec_dml(sql);
@@ -1070,6 +805,39 @@ class Sqlite3CC extends Sqlite3cc_Window {
 				set_label_dbf(null);
 				grid_tables.clear_data_rows();
 				attached_databases = {};
+			}
+		}
+		else if(choice == menu_file_open_csv) {
+			local csvf = fl_file_chooser(_tr("Select a CSV file"), "*.csv", path);
+			local sep = fl_input("CSV Separator", ",");
+			local hasHeaders = fl_ask("The CSV first line is header ?");
+			if(sep)
+			{
+				local cursor_wait = fl_cursor_wait();
+				local max_rows = iMaxRows.value().tointeger();
+				local fd = file(csvf, "r");
+				local line;
+				local rec_list = [];
+				local isFirstLine = true;
+				while( (line = fd.read_line()) )
+				{
+					local record = line.split_csv(sep[0]);
+					if(isFirstLine)
+					{
+						if(!hasHeaders)
+						{
+							local col_count = record.len();
+							local header = array(col_count);
+							for(local i=0; i < col_count; ++i) header[i] = "col" + i;
+							rec_list.append(header);
+						}
+						isFirstLine = false;
+					}
+					rec_list.append(record);
+				}
+				fd.close();
+				grid_data.set_new_data(rec_list);
+				tabView->value(groupData);
 			}
 		}
 		else if(choice == menu_file_execute) {

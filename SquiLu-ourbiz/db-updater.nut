@@ -140,7 +140,7 @@ class DBTableUpdateBase {
 		httpRequest.send_my_request("POST", url, body_str, body_str.len(),
 					 useMultiPart ? boundary + 2 : 0, //+2 to discount "--"
 					 useSLE);
-		//local check_idle = globals.rawget("Fl", false);
+		//local check_idle = table_rawget(globals, "Fl", false);
 		while( httpRequest.outstanding() )
 		{
 			httpRequest.pump();
@@ -155,7 +155,7 @@ class DBTableUpdateBase {
 			version = 0;
 			local rec = {};
 			appServer.asle2map(my_result, rec);
-			local new_id = rec.rawget("id", 0).tointeger();
+			local new_id = table_rawget(rec, "id", 0).tointeger();
 			if(new_id == 0) throw("Could not update this record !");
 			edit_id = new_id;
 		}
@@ -165,7 +165,7 @@ class DBTableUpdateBase {
 		{
 			local rec = {};
 			appServer.sle2map(my_result, rec);
-			local changes = rec.rawget("changes", 0).tointeger();
+			local changes = table_rawget(rec, "changes", 0).tointeger();
 			if(changes == 0) {
 				if(dbAction == edbAction.e_update) throw("Could not update this record !");
 				else throw("Could not delete this record !");

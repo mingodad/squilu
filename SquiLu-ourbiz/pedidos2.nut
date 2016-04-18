@@ -286,7 +286,7 @@ class Base_Window extends Fl_Window {
 		_db_map = {};
 	}
 	function add_input_field_to_map(tbl, fldname, fld){
-		local tbl_map = _db_map.get(tbl, false);
+		local tbl_map = table_get(_db_map, tbl, false);
 		if(!tbl_map){
 			tbl_map = {};
 			_db_map[tbl] <- tbl_map;

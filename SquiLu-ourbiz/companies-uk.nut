@@ -17,8 +17,8 @@ local function sqliteTrace(udata, sql)
 }
 
 local function getCompaniesUkDBFileName(){
-	if (globals.rawget("jniLog", false)) return APP_CODE_FOLDER + "/companies-uk-RG.db";
-	if (globals.rawget("WIN32", false)) return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-RG.db";
+	if (table_rawget(globals, "jniLog", false)) return APP_CODE_FOLDER + "/companies-uk-RG.db";
+	if (table_rawget(globals, "WIN32", false)) return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-RG.db";
 	//return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-RG.db";
 	//return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-RG-2014-07.db";
 	//return APP_CODE_FOLDER + "/../../companies-uk/companies-uk-2013-10.db";
@@ -567,11 +567,11 @@ local function getExtraCompanyDataOnNet(cnum){
 	
 	local data = json2var(page);
 	local tdata = [];
-	local results = data.rawget("results", []);
+	local results = table_rawget(data, "results", []);
 	for(var i=0, len=results.len(); i < len; ++i)
 	{
 		local rec = results[i];
-		local line = rec.rawget("type", "") + "|" + rec.rawget("date", "") + "|" + rec.rawget("description", "");
+		local line = table_rawget(rec, "type", "") + "|" + table_rawget(rec, "date", "") + "|" + table_rawget(rec, "description", "");
 		line = line.gsub("\n", "\\n");
 		tdata.push( line );
 	}
@@ -623,7 +623,7 @@ local my_uri_handlers = {
 			foreach(k in filed_names) data[k] <-request.get_var(query_string, k);
 		}
 		else foreach(k in filed_names) data[k] <- null;
-		if(!data.rawget("page", null))  data.page <- 0;
+		if(!table_rawget(data, "page", null))  data.page <- 0;
 		else data.page = data.page.tointeger();
 
 		local errcode;

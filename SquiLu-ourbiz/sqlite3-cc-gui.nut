@@ -7,6 +7,7 @@ class Sqlite3cc_Window extends Fl_Double_Window {
   menu_file_reopen : Submenu;
   menu_file_attach : Submenu;
   menu_file_close : Submenu;
+  menu_file_open_csv : Submenu;
   menu_file_execute : Submenu;
   menu_file_exit : Submenu;
   menu_settings_encoding : Submenu;
@@ -17,6 +18,7 @@ class Sqlite3cc_Window extends Fl_Double_Window {
   group_db_tables : Fl_Group;
   grid_tables : Fl_Data_Table;
   iTablesFilter : Fl_Input;
+  chkSytemTables : Fl_Check_Button;
   group_sql : Fl_Group;
   group_buttons : Fl_Group;
   iMaxRows : Fl_Input;
@@ -34,6 +36,12 @@ class Sqlite3cc_Window extends Fl_Double_Window {
   menu_sql_create_trigger : MenuItem;
   menu_sql_references : MenuItem;
   menu_sql_search_all_tables : MenuItem;
+  menu_sql_macros : MenuItem;
+  menu_sql_macros_base : MenuItem;
+  menu_sql_macros_sql : MenuItem;
+  menu_sql_macros_insert : MenuItem;
+  menu_sql_macros_update : MenuItem;
+  menu_sql_update_metadata : MenuItem;
   btnCreateQuery : Fl_Button;
   btnExecute : Fl_Button;
   btnLoad : Fl_Button;
@@ -86,6 +94,7 @@ class Sqlite3cc_Window extends Fl_Double_Window {
         menu_file_reopen = o.add(_tr("File/Reopen DB"), 0);
         menu_file_attach = o.add(_tr("File/Attach DB"), 0);
         menu_file_close = o.add(_tr("File/Close DB"), 0, null, null, 128);
+        menu_file_open_csv = o.add(_tr("File/Open CSV"), 0, null, null, 128);
         menu_file_execute = o.add(_tr("File/Execute"), 0, null, null, 128);
         menu_file_exit = o.add(_tr("File/Exit"), 0);
         //menu_settings Settings
@@ -118,10 +127,23 @@ class Sqlite3cc_Window extends Fl_Double_Window {
               Fl_Group.current().resizable(o);
             }
             {
-              local o = Fl_Input(5, 280, 160, 25, _tr("Filter:"));
-              iTablesFilter = o;
-              o.labeltype(FL_NO_LABEL);
-              o.when(1);
+              local o = Fl_Group(5, 280, 160, 25);
+              {
+                {
+                  local o = Fl_Input(5, 280, 140, 25, _tr("Filter:"));
+                  iTablesFilter = o;
+                  o.labeltype(FL_NO_LABEL);
+                  o.when(1);
+                  Fl_Group.current().resizable(o);
+                }
+                {
+                  local o = Fl_Check_Button(147, 281, 18, 24, _tr("System tables"));
+                  chkSytemTables = o;
+                  o.labeltype(FL_NO_LABEL);
+                  o.down_box(FL_DOWN_BOX);
+                }
+              }
+              o.end();
             }
           }
           o.end();
@@ -169,6 +191,12 @@ class Sqlite3cc_Window extends Fl_Double_Window {
                         menu_sql_create_trigger = o.add(_tr("create trigger"), 0);
                         menu_sql_references = o.add(_tr("references"), 0);
                         menu_sql_search_all_tables = o.add(_tr("search all tables"), 0);
+                        menu_sql_macros = o.add(_tr("sql macros"), 0);
+                        menu_sql_macros_base = o.add(_tr("sql macros base"), 0);
+                        menu_sql_macros_sql = o.add(_tr("sql macros sql"), 0);
+                        menu_sql_macros_insert = o.add(_tr("sql macros insert"), 0);
+                        menu_sql_macros_update = o.add(_tr("sql macros update"), 0);
+                        menu_sql_update_metadata = o.add(_tr("sql update metadata"), 0);
                       }
                     }
                     {

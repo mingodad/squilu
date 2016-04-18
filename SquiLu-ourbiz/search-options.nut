@@ -92,18 +92,18 @@ class OurBizSearchOptions
 
     function getOptionsFromMap(map)
     {
-        search_str = map.rawget("search_str", "");
-        select_fields = map.rawget("select_fields", "");
-        search_on = map.rawget("search_on", "1");
+        search_str = table_rawget(map, "search_str", "");
+        select_fields = table_rawget(map, "select_fields", "");
+        search_on = table_rawget(map, "search_on", "1");
 
 	foreach(k,v in this){
 		local ktype = type(v);
 		if(ktype == "integer") {
-			local value = map.get(k, null);
+			local value = table_get(map, k, null);
 			if(value != null) this[k] = value.tointeger();
 		}
 		else if(ktype == "bool"){
-			this[k] = map.get(k, null) != null;
+			this[k] = table_get(map, k, null) != null;
 		}
 	}
     }

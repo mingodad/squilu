@@ -38,6 +38,11 @@ widget_class Sqlite3cc_Window {
         label {Close DB}
         xywh {0 0 30 20} shortcut 0x40077 labelsize 16 divider
       }
+      MenuItem menu_file_open_csv {
+        label {Open CSV}
+        dirty_name menu_file_open_csv
+        xywh {0 0 36 21} divider
+      }
       MenuItem menu_file_execute {
         label Execute
         xywh {0 0 30 20} shortcut 0x40065 labelsize 16 divider
@@ -104,10 +109,19 @@ widget_class Sqlite3cc_Window {
         xywh {5 25 160 255} labelsize 16 textsize 16 resizable
         class Fl_Data_Table
       }
-      Fl_Input iTablesFilter {
-        label {Filter:}
-        dirty_name iTablesFilter
-        xywh {5 280 160 25} labeltype NO_LABEL when 1
+      Fl_Group {} {open
+        xywh {5 280 160 25}
+      } {
+        Fl_Input iTablesFilter {
+          label {Filter:}
+          dirty_name iTablesFilter
+          xywh {5 280 140 25} labeltype NO_LABEL when 1 resizable
+        }
+        Fl_Check_Button chkSytemTables {
+          label {System tables}
+          dirty_name chkSytemTables
+          xywh {147 281 18 24} down_box DOWN_BOX labeltype NO_LABEL
+        }
       }
     }
     Fl_Group {} {open
@@ -120,7 +134,7 @@ widget_class Sqlite3cc_Window {
           xywh {165 25 615 35} box DOWN_FRAME labelsize 16
         } {
           Fl_Input iMaxRows {
-            label {Max Rows}
+            label {Max Rows} selected
             xywh {265 30 49 25} type Int labelsize 16 textsize 16
             code0 {o->value("50");}
           }
@@ -155,7 +169,7 @@ widget_class Sqlite3cc_Window {
             }
             MenuItem menu_sql_schema_update_norefs {
               label {schema update norefs}
-              dirty_name menu_sql_schema_update_norefs selected
+              dirty_name menu_sql_schema_update_norefs
               xywh {10 10 36 21}
             }
             MenuItem menu_sql_sqlite_master_update {
@@ -191,6 +205,36 @@ widget_class Sqlite3cc_Window {
             MenuItem menu_sql_search_all_tables {
               label {search all tables}
               dirty_name menu_sql_search_all_tables
+              xywh {0 0 36 21}
+            }
+            MenuItem menu_sql_macros {
+              label {sql macros}
+              dirty_name menu_sql_macros
+              xywh {10 10 36 21}
+            }
+            MenuItem menu_sql_macros_base {
+              label {sql macros base}
+              dirty_name menu_sql_macros_base
+              xywh {0 0 36 21}
+            }
+            MenuItem menu_sql_macros_sql {
+              label {sql macros sql}
+              dirty_name menu_sql_macros_sql
+              xywh {0 0 36 21}
+            }
+            MenuItem menu_sql_macros_insert {
+              label {sql macros insert}
+              dirty_name menu_sql_macros_insert
+              xywh {0 0 36 21}
+            }
+            MenuItem menu_sql_macros_update {
+              label {sql macros update}
+              dirty_name menu_sql_macros_update
+              xywh {0 0 36 21}
+            }
+            MenuItem menu_sql_update_metadata {
+              label {sql update metadata}
+              dirty_name menu_sql_update_metadata
               xywh {0 0 36 21}
             }
           }

@@ -5,8 +5,17 @@
  */
  
 local globals = getroottable();
-if(!globals.rawget("APP_CODE_FOLDER", false)) ::APP_CODE_FOLDER <- ".";
+if(!table_rawget(globals, "APP_CODE_FOLDER", false)) ::APP_CODE_FOLDER <- ".";
 WIN32 <- os.getenv("WINDIR") != null;
+
+function debugLog(msg)
+{
+	local fd = file(APP_CODE_FOLDER + "/debug.log", "a");
+	fd.write(msg);
+	fd.write("\n");
+	fd.close();
+}
+//debugLog("starting sq-server_plugin.nut");
 
 math.srand(os.time());
 
@@ -15,6 +24,111 @@ math.srand(os.time());
 //local APP_CODE_FOLDER = sqfs.currentdir();
 //local EDIT_MD5_PASSWORD = md5("edit_user:r.dadbiz.es:okdoedit");
 //local VIEW_MD5_PASSWORD = md5("view_user:r.dadbiz.es:okdoview");
+
+local _sq_profile_calls_at, _sq_profile_calls, _sq_profile_total, _sq_profile_this,
+	_sq_profile_start_time, _sq_profile_end_time;
+
+local function profileReset()
+{
+	_sq_profile_calls_at = {};
+	_sq_profile_calls = {};
+	_sq_profile_total = {};
+	_sq_profile_this = {};
+	_sq_profile_start_time = 0;
+	_sq_profile_end_time = 0;
+}
+
+profileReset();
+
+local function profileDebughook(event_type,sourcefile,line,funcname)
+{
+	//local fname = format("%s:%d", funcname ? funcname : "unknown", line);
+	local fname = funcname ? funcname : "unknown";
+	local srcfile=sourcefile ? sourcefile : "unknown";
+	local fname_at = format("%s:%d:%s", fname, line, srcfile);
+	//local fname_at = fname + ":" + line + ":" + srcfile;
+	switch (event_type) {
+		//case 'l': //called every line(that contains some code)
+			//::print("LINE line [" + line + "] func [" + fname + "]");
+			//::print("file [" + srcfile + "]\n");
+		//break;
+		case 'c': //called when a function has been called
+			//::print("LINE line [" + line + "] func [" + fname + "]");
+			//::print("file [" + srcfile + "]\n");
+			table_rawset(_sq_profile_calls_at, fname_at, table_rawget(_sq_profile_calls_at, fname_at, 0) + 1);
+			table_rawset(_sq_profile_thisfname, os.clock());
+		break;
+		case 'r': //called when a function returns
+			//::print("LINE line [" + line + "] func [" + fname + "]");
+			//::print("file [" + srcfile + "]\n");
+			local time = os.clock() - table_rawget(_sq_profile_this, fname, 0);
+			table_rawset(_sq_profile_total, fname, table_rawget(_sq_profile_total, fname, 0) + time);
+			table_rawset(_sq_profile_calls, fname, table_rawget(_sq_profile_calls, fname, 0) + 1);
+		break;
+	}
+}
+
+local function profileStart()
+{
+	profileReset();
+	_sq_profile_start_time = os.clock();
+	setdebughook(profileDebughook);
+}
+
+local function profileEnd()
+{
+	setdebughook(null);
+	_sq_profile_end_time = os.clock();
+}
+
+local function profileDump()
+{
+	// print the results
+	local total_time = _sq_profile_end_time - _sq_profile_start_time;
+	print(format("Profile info: %.3f seconds", total_time));
+	local info_ary = [];
+	foreach( fname, time in _sq_profile_total )
+	{
+		if(fname == "profileStart" || fname == "profileEnd") continue;
+		local relative_time = time / (total_time / 100.0);
+		local rt_int = relative_time.tointeger();
+		local rt_frac = ((relative_time - rt_int) * 100).tointeger();
+		info_ary.append(format("%02d.%02d %% in %.3f seconds after %d calls to %s", rt_int, rt_frac, time, table_rawget(_sq_profile_calls, fname, 0), fname));
+	}
+	info_ary.sort(@(a,b) a<b ? 1 : (a>b ? -1 : 0));
+	foreach(line in info_ary)
+	{
+		print(line);
+	}
+	info_ary.clear();
+	foreach( fname, count in _sq_profile_calls_at )
+	{
+		if(fname.startswith("profileStart") || fname.startswith("profileEnd")) continue;
+		info_ary.append(format("%6d\tcalls to %s", count, fname));
+	}
+	info_ary.sort(@(a,b) a<b ? 1 : (a>b ? -1 : 0));
+	foreach(line in info_ary)
+	{
+		print(line);
+	}	
+}
+
+local _sq_time_start = 0;
+
+local function sqStartTimer()
+{
+	_sq_time_start = os.clock();
+}
+
+local function sqGetElapsedTimer()
+{
+	return os.clock() - _sq_time_start;
+}
+
+local function sqPrintElapsedTimer()
+{
+	print(format("Elapsed time %.3f seconds", sqGetElapsedTimer()));
+}
 
 class MySMTP  {
 	boundary = null;
@@ -188,11 +302,11 @@ function IntToDottedIP( intip )
 	return octet.concat(".");
 }
 
-if(!globals.rawget("gmFile", false)) ::gmFile <- blob();
-if(!globals.rawget("__tplCache", false)) ::__tplCache <- {};
+if(!table_rawget(globals, "gmFile", false)) ::gmFile <- blob();
+if(!table_rawget(globals, "__tplCache", false)) ::__tplCache <- {};
 
 function getTemplate(fname, nocache){
-	local mixBase = ::__tplCache.rawget(fname, false);
+	local mixBase = ::table_rawget(__tplCache, fname, false);
 	if (!mixBase || nocache){
 		local rfn = format("%s/%s", APP_CODE_FOLDER, fname);
 		//debug_print("\n", rfn);
@@ -207,9 +321,9 @@ function getTemplate(fname, nocache){
 }
 
 /*
-if(!globals.rawget("__stmtCache", false)) ::__stmtCache <- {};
+if(!table_rawget(globals, "__stmtCache", false)) ::__stmtCache <- {};
 function getCachedStmt(db, stmt_key, sql_or_func){
-	local stmt = ::__stmtCache.rawget(stmt_key, false);
+	local stmt = ::table_rawget(__stmtCache, stmt_key, false);
 	if (!stmt){
 		//local db =checkCompaniesUkDB()
 		local sql;
@@ -237,24 +351,34 @@ function unescapeHtml ( str ){
 				if (m == "&lt;") return "<";
 				else if (m == "&gt;") return ">";
 				else if (m == "&amp;") return "&";
-				return m;
+				else if (m == "&quot;") return "\"";
+				else if (m == "&#x27;") return "'";
+				else if (m == "&#x2F;") return "/";
+				return "??";
 			});
 	}
 }
 
 function escapeHtml ( str ){
 	if (str){
-		return str.gsub("([<>&])", function(m){
+		return str.gsub("([<>&'\"/])", function(m){
 				if (m == "<") return "&lt;";
 				else if (m == ">") return "&gt;";
 				else if (m == "&") return "&amp;";
-				return m;
+				else if (m == "\"") return "&quot;";
+				else if (m == "'") return "&#x27;";
+				else if (m ==  "/") return "&#x2F;";
+				return "??";
 			});
 	}
 }
 
+
 function var2json(v){
 	switch(type(v)){
+		case "string":
+			return format("%q", v);
+			break;
 		case "table":
 			local result = [];
 			foreach(k2, v2 in v) {
@@ -285,7 +409,9 @@ function var2json(v){
 			break;
 
 		default:
-			return "\"" + v.tostring().replace("\"", "\\\"").replace("\n", "\\n") + "\"";
+			//return "\"" + v.tostring().replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t").replace("\b", "\\b").replace("\f", "\\f") + "\"";
+			//debug_print("\n", __LINE__, ":", type(v));
+			return format("%q", try_tostring(v));
 	}
 	return "";
 }
@@ -300,6 +426,60 @@ function json2var(json) {
 	local tbl = vm.call(true, slave_func);
 	return tbl;
 }
+
+function time_stamp(){
+	return os.date("!%Y-%m-%d %H:%M:%S");
+}
+
+class ObjecIdMaker
+{
+	_machine_id = null;
+	_pid = null;
+	_index = null;
+
+	constructor()
+	{
+		_machine_id =  (math.random() * 0xFFFFFF).tointeger();
+		_index = (math.random() * 0xFFFFFF).tointeger();
+		_pid = (math.random() * 100000).tointeger() % 0xFFFF;
+	}
+
+	function next(tm=null) {
+		_index = (_index+1) % 0xFFFFFF;
+		return format("%.8x%.6x%.4x%.6x",
+			(tm == null) ? os.time() : tm, _machine_id, _pid, _index);
+	}
+
+	function createFromTime(tm=null) {	
+		return format("%.8x0000000000000000", (tm == null) ? os.time() : tm);
+	}
+
+	function getTime(objectId) {
+		local p1 = objectId.slice(0, 8);
+		return p1.tointeger(16);
+	}
+
+	function getDate(objectId) {
+		local p1 = objectId.slice(0, 8);
+		return os.date("!%Y-%m-%dT%H:%M:%S.000Z", p1.tointeger(16));
+	}
+
+	
+	function getParts(oid) {
+		local tm = oid.slice(0, 8).tointeger(16);
+		local m_id = oid.slice(8, 14).tointeger(16);
+		local p_id = oid.slice(14, 18).tointeger(16);
+		local idx_id = oid.slice(18, 24).tointeger(16);
+		return [tm, m_id, p_id, idx_id];
+	}
+
+	function createFromParts(oid) {
+		return format("%.8x%.6x%.4x%.6x",
+			oid[0], oid[1], oid[2], oid[3]);
+	}
+}
+
+ObjectId <- ObjecIdMaker();
 
 function doSaveTableArrayToFD(ta, fd){
 	local function dumpValue(val){
@@ -363,6 +543,10 @@ function fillTemplate(template, data, nocache){
 	mixFunc.call(data);
 }
 
+function getFfileName(full_path) {
+	return full_path.match("([^/]+)$");
+}
+
 //
 // Post
 //
@@ -375,8 +559,8 @@ function split_filename(path){
   return result;
 }
 
-function insert_field (dest, key, value){
-  local fld = dest.rawget(key, null);
+function form_url_insert_field (dest, key, value){
+  local fld = table_rawget(dest, key, null);
   if (!fld) dest[key] <- value;
   else
   {
@@ -395,7 +579,7 @@ function multipart_data_get_field_names(headers, name_value){
 	return true;
   });
   name_value.push(attrs.name);
-  name_value.push(attrs.rawget("filename", false) ? split_filename(attrs.filename) : null);
+  name_value.push(table_rawget(attrs, "filename", false) ? split_filename(attrs.filename) : null);
 }
 
 function multipart_data_break_headers(header_data){
@@ -474,8 +658,9 @@ function parse_multipart_data(input, input_type, tab=null){
 	input.find_lua(state.boundary, function(start, end){state.pos <- end+1;return false;}, 0, true);
 	while(true){
 		local name_value = multipart_data_parse_field(input, state);
+		//debug_print("\nparse_multipart_data: ", name_value);
 		if(!name_value) break;
-		insert_field(tab, name_value[0], name_value[1]);
+		form_url_insert_field(tab, name_value[0], name_value[1]);
 	}
 	return tab;
 }
@@ -486,7 +671,7 @@ function parse_qs(qs, tab=null){
 		//debug_print(qs)
 		qs.gmatch("([^&=]+)=([^&=]*)&?", function(key,val){
 			//debug_print(key, "->", val)
-			insert_field(tab, url_decode(key), url_decode(val));
+			form_url_insert_field(tab, url_decode(key), url_decode(val));
 			return true;
 		});
 	}
@@ -546,9 +731,10 @@ function parse_post_data(input_type, data, tab = null){
 	return tab;
 }
 
-function get_post_fields(request, max_len=1024*1000){
+function get_post_fields(request, max_len=1024*1000, post_fields=false){
 	local data_len = (request.get_header("Content-Length") || "0").tointeger();
-	local post_fields = {};
+	if(!post_fields) post_fields = {};
+	//debug_print("\nget_post_fields: ", __LINE__, ":", data_len, ":", max_len);
 	if (data_len > 0 && data_len <= max_len) {
 		local content_type = request.get_header("Content-Type") || "x-www-form-urlencoded";
 		local data = request.read(data_len);
@@ -559,7 +745,7 @@ function get_post_fields(request, max_len=1024*1000){
 		fd.close();
 		debug_print(request.get_header("Content-Type"), "\n");
 */
-		if(content_type == "application/json; charset=UTF-8"){
+		if(content_type.find("application/json") >= 0){
 			return data;
 		}
 		parse_post_data(content_type, data, post_fields);
@@ -571,12 +757,13 @@ local allowedUploadFileExtensions = {
 	[".png"] = "image/png",
 	[".jpg"] = "image/jpeg",
 	[".gif"] = "image/gif",
+	[".svg"] = "image/svg+xml",
 }
 
 function getMimeType(fname){
 	local ext;
 	fname.gmatch("(%.?[^%.\\/]*)$", @(m) ext=m);
-	if( ext ) return allowedUploadFileExtensions.rawget(ext, "unknown");
+	if( ext ) return table_rawget(allowedUploadFileExtensions, ext, "unknown");
 	return "unknown";
 }
 
@@ -616,7 +803,7 @@ local allowedEditFileExtensions = {
 function isExtensionAllowed(fname){
 	local ext;
 	fname.gmatch("(%.?[^%.\\/]*)$", @(m) ext=m);
-	if( ext ) return allowedEditFileExtensions.rawget(ext, false);
+	if( ext ) return table_rawget(allowedEditFileExtensions, ext, false);
 	return false;
 }
 
@@ -629,14 +816,16 @@ function getFilesInPath(path, files=null, prefix=""){
 			if (prefix.len() > 0) pf = prefix + "/" + file;
 			else pf = file;
 
-			local attr = sqfs.attributes (f);
+			try {
+				local attr = sqfs.attributes (f);
 
-			if(attr.mode == "directory") getFilesInPath (f, files, pf);
-			else
-			{
-				if( isExtensionAllowed(pf) ) files.push(pf);
-				//foreach(name, value in attr) print (name, value);
-			}
+				if(attr.mode == "directory") getFilesInPath (f, files, pf);
+				else
+				{
+					if( isExtensionAllowed(pf) ) files.push(pf);
+					//foreach(name, value in attr) print (name, value);
+				}
+			} catch(e) {}
 		}
 	}
 	files.sort();
@@ -690,20 +879,29 @@ function send_http_error_500(request, err_msg){
 }
 
 local uri_handlers = {
+	["/SQ/hello-world"] = function(request){
+		local hello = "Hello World !\n";
+		local resp = format("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8;\r\nContent-Length: %d\r\n\r\n%s", hello.len(), hello)
+		request.print(resp)
+		return true;
+	},
 	["/SQ/testParams"] = function(request){
-		request.print("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\n\r\n")
-		request.print("<html><body><h1>Request Info</h1><ul>")
+		local mFile = gmFile;
+		mFile.clear(); //allways reset global vars
+		mFile.write("HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\n\r\n")
+		mFile.write("<html><body><h1>Request Info</h1><ul>")
 		foreach(k, v in request.info) {
 			if ("table" == type(v) ){
-				request.print(format("<li><b>%s</b>:</li><ul>", k));
+				mFile.write(format("<li><b>%s</b>:</li><ul>", k));
 				foreach( k2, v2 in v){
-					request.print(format("<li><b>%s</b>: %s</li>", k2, v2));
+					mFile.write(format("<li><b>%s</b>: %s</li>", k2, v2));
 				}
-				request.print("</ul>");
+				mFile.write("</ul>");
 			}
-			else request.print(format("<li><b>%s</b>: %s</li>", k, (v == NULL ? "" : v).tostring()));
+			else mFile.write(format("<li><b>%s</b>: %s</li>", k, (v == NULL ? "" : v).tostring()));
 		}
-		request.print("</ul></body></html>");
+		mFile.write("</ul></body></html>");
+		request.write_blob(mFile);
 		return true;
 	},
 	["/SQ/logout"] = function(request){
@@ -716,8 +914,8 @@ local uri_handlers = {
 		//password protected
 		bool_t canEdit = false;
 		//print("EDIT_MD5_PASSWORD=", EDIT_MD5_PASSWORD, "\n")
-		bool_t isViewOnly = globals.rawget("VIEW_MD5_PASSWORD", false) && request.check_password(VIEW_MD5_PASSWORD);
-		if (!isViewOnly) canEdit = globals.rawget("EDIT_MD5_PASSWORD", false) && request.check_password(EDIT_MD5_PASSWORD);
+		bool_t isViewOnly = table_rawget(globals, "VIEW_MD5_PASSWORD", false) && request.check_password(VIEW_MD5_PASSWORD);
+		if (!isViewOnly) canEdit = table_rawget(globals, "EDIT_MD5_PASSWORD", false) && request.check_password(EDIT_MD5_PASSWORD);
 
 		if(!(canEdit || isViewOnly) ) {
 			request.send_authorization_request("r.dadbiz.es");
@@ -733,8 +931,8 @@ local uri_handlers = {
 		bool_t isPost = request.info.request_method == "POST";
 		if (isPost && canEdit) {
 			local post_fields = get_post_fields(request);
-			if (post_fields.rawget("save", false)) {
-				local content = post_fields.rawget("content", null);
+			if (table_rawget(post_fields, "save", false)) {
+				local content = table_rawget(post_fields, "content", null);
 				if (content){
 					data.file_name <- sanitizePath(post_fields.file_name);
 					if (!isExtensionAllowed(data.file_name)) data.file_name = NULL;
@@ -804,16 +1002,27 @@ function apply_uri_filters(request){
 	return false;
 }
 
-if(AT_DEV_DBG || !globals.rawget("MyCompaniesUkLoaded", false)) {
+function sendJson(request, response, extra_headers=""){
+	request.print(format("HTTP/1.1 200 OK\r\nServer: SquiluAppServer\r\nContent-Type: text/json; charset=utf-8\r\nCache-Control: no-cache\r\nContent-Length: %d\r\n%s\r\n%s", response.len(), extra_headers, response));
+	return true;
+}
+
+function sendJs(request, response, extra_headers=""){
+	request.print(format("HTTP/1.1 200 OK\r\nServer: SquiluAppServer\r\nContent-Type: application/x-javascript; charset=utf-8\r\nCache-Control: no-cache\r\nContent-Length: %d\r\n%s\r\n%s", response.len(), extra_headers, response));
+	return true;
+}
+
+
+if(AT_DEV_DBG || !table_rawget(globals, "MyCompaniesUkLoaded", false)) {
 	dofile(APP_CODE_FOLDER + "/companies-uk.nut");
 }
 
-if(AT_DEV_DBG || !globals.rawget("MyOurBizLoaded", false)) {
+if(AT_DEV_DBG || !table_rawget(globals, "MyOurBizLoaded", false)) {
 	dofile(APP_CODE_FOLDER + "/ourbiz.nut");
 }
 
-if(AT_DEV_DBG || !globals.rawget("MyOurShoppingCartLoaded", false)) {
-	dofile(APP_CODE_FOLDER + "/ourbiz-shopping-cart.nut");
+if(AT_DEV_DBG || !table_rawget(globals, "MyOurShoppingCartLoaded", false)) {
+	//dofile(APP_CODE_FOLDER + "/ourbiz-shopping-cart.nut");
 }
 
 local ourbiz_password = md5("mingote:ourbiz.dadbiz.es:tr14pink");
@@ -821,19 +1030,44 @@ function handle_request(request){
 	//static content served by mongoose directly
 	local request_uri = request.info.uri;
 	//debug_print(request.get_option("document_root"), "::", request_uri, "\n")
-	
+	/*
+	local ext = request_uri.match("%.%w+$");
+	switch(ext)
+	{
+		case ".jpg":
+		case ".png":
+		case ".svg":
+		case ".js":
+		case ".css":
+		case ".mp4":
+		case ".webm":
+		case ".ico":
+		case ".php":
+		case ".html":
+			return false;
+
+	}
+	*/
+
 	if(apply_uri_filters(request)) {
 		return true;
 	}
 	
 	if(request_uri.startswith("/DB/")){
 		if(!request.check_password(ourbiz_password)) {
-			request.send_authorization_request("ourbiz.dadbiz.es");
-			return true;
+			//request.send_authorization_request("ourbiz.dadbiz.es");
+			//return true;
 		}
 	}
 	if (request_uri.endswith(".js") || request_uri.endswith(".css") ) return false;
 	if (request_uri == "/index.html" || request_uri == "/" ) return uri_handlers["/search"](request);
-	if( uri_handlers.rawget(request_uri, false) ) return uri_handlers[request_uri](request);
+	if( table_rawget(uri_handlers, request_uri, false) ) return uri_handlers[request_uri](request);
 	return false;
 }
+
+if(table_rawin(globals, "addExtraWebAppCode"))
+{
+	//debugLog("call  addExtraWebAppCode");
+	//addExtraWebAppCode(this);
+}
+//debugLog("end of sq-server_plugin.nut");
