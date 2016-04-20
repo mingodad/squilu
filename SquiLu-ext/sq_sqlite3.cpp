@@ -2263,10 +2263,54 @@ static SQRESULT sq_sqlite3_context_aggregate_count(HSQUIRRELVM v)
     return 1;
 }
 
-#if 0
-void *sqlite3_get_auxdata(sqlite3_context*, int);
-void sqlite3_set_auxdata(sqlite3_context*, int, void*, void (*)(void*));
-#endif
+struct sq_sqlite3_context_aux_data_st
+{
+    HSQUIRRELVM vm;
+    HSQOBJECT data;
+};
+
+static SQRESULT sq_sqlite3_context_get_aux_data(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_context_INSTANCE();
+    SQ_GET_INTEGER(v, 2, argn);
+    sq_sqlite3_context_aux_data_st *data = (sq_sqlite3_context_aux_data_st*)sqlite3_get_auxdata(self->ctx, argn);
+    if(data)
+    {
+        sq_pushobject(v, data->data);
+    }
+    else
+    {
+        sq_pushnull(v);
+    }
+    return 1;
+}
+
+static void sq_sqlite3_context_free_aux_data(void *aux_data)
+{
+    sq_sqlite3_context_aux_data_st *data = (sq_sqlite3_context_aux_data_st*)aux_data;
+    if(data)
+    {
+        sq_release(data->vm, &data->data);
+        sqlite3_free(data);
+    }
+}
+static SQRESULT sq_sqlite3_context_set_aux_data(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_context_INSTANCE();
+    SQ_GET_INTEGER(v, 2, argn);
+    sq_sqlite3_context_aux_data_st *data = (sq_sqlite3_context_aux_data_st*)sqlite3_malloc(sizeof(*data));
+    if(data)
+    {
+        data->vm = v;
+        sq_resetobject(&data->data);
+        sq_getstackobj(v, 3, &data->data);
+        sq_addref(v, &data->data);
+        sqlite3_set_auxdata(self->ctx, argn, data, sq_sqlite3_context_free_aux_data);
+    }
+    return 0;
+}
 
 static SQRESULT sq_sqlite3_context_result_blob(HSQUIRRELVM v)
 {
@@ -2356,6 +2400,8 @@ static SQRegFunction sq_sqlite3_context_methods[] =
     _DECL_FUNC(result_error,  2, _SC("xs")),
     _DECL_FUNC(result_subtype,  2, _SC("xi")),
     //_DECL_FUNC(value_subtype,  2, _SC("xi")),
+    _DECL_FUNC(get_aux_data,  2, _SC("xi")),
+    _DECL_FUNC(set_aux_data,  3, _SC("xi.")),
     _DECL_FUNC(_tostring,  -1, _SC("x")),
     {0,0}
 };
