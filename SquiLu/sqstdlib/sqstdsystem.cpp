@@ -141,15 +141,15 @@ static SQRESULT _system_time(HSQUIRRELVM v) {
     if(rc == SQ_ERROR) return rc;
     else ts.tm_hour = rc;
 
-    rc = get_int_field(v, _SC("day"), -1);
+    rc = get_int_field(v, _SC("day"), 1);
     if(rc == SQ_ERROR) return rc;
     else ts.tm_mday = rc;
 
-    rc = get_int_field(v, _SC("month"), -1);
+    rc = get_int_field(v, _SC("month"), 0);
     if(rc == SQ_ERROR) return rc;
-    else ts.tm_mon = rc - 1;
+    else ts.tm_mon = rc;
 
-    rc = get_int_field(v, _SC("year"), -1);
+    rc = get_int_field(v, _SC("year"), 1900);
     if(rc == SQ_ERROR) return rc;
     else ts.tm_year = rc - 1900;
 
