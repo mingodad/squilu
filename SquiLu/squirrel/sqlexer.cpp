@@ -210,7 +210,13 @@ SQInteger SQLexer::LexBlockComment()
 	NEXT(); //remove the comment token '*'
 	while(!done) {
 		switch(CUR_CHAR) {
-			case _SC('*'): { NEXT(); if(CUR_CHAR == _SC('/')) { done = true; NEXT(); continue;}}; break;
+			case _SC('*'): {
+			    NEXT();
+			    if(CUR_CHAR == _SC('/')) { done = true; NEXT(); continue;}
+			    if(_want_comments) APPEND_CHAR(CUR_CHAR);
+			    continue;
+			    };
+			break;
 			case _SC('\n'): _currentline++; break;
 			case SQUIRREL_EOB: return Error(_SC("missing \"*/\" in comment"));
 		}
