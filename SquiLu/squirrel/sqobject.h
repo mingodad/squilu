@@ -313,6 +313,8 @@ struct SQObjectPtr : public SQObject
 	{
 		return _type == OT_NULL;
 	}
+	SQObjectPtr operator[](SQInteger nidx);
+	SQObjectPtr operator[](const SQChar *key);
 	private:
 		SQObjectPtr(const SQChar *){} //safety
 };

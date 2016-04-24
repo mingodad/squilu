@@ -46,6 +46,23 @@ const SQChar *GetTypeName(const SQObjectPtr &obj1)
 	return IdType2Name(type(obj1));
 }
 
+SQObjectPtr SQObjectPtr::operator[](SQInteger nidx) {
+    SQObjectPtr val;
+    if(type(*this) == OT_ARRAY) _array(*this)->Get(nidx, val);
+    return val;
+}
+
+SQObjectPtr SQObjectPtr::operator[](const SQChar *key) {
+    SQObjectPtr val;
+    switch(type(*this))
+    {
+        case OT_TABLE: _table(*this)->Get(key, val); break;
+        case OT_CLASS: _class(*this)->Get(key, val); break;
+        case OT_INSTANCE: _instance(*this)->Get(key, val); break;
+    }
+    return val;
+}
+
 SQString *SQString::Create(SQSharedState *ss,const SQChar *s,SQInteger len)
 {
 	SQString *str=ADD_STRING(ss,s,len);
