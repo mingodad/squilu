@@ -386,7 +386,6 @@ static SQRESULT base_callee(HSQUIRRELVM v)
 	return sq_throwerror(v,_SC("no closure in the calls stack"));
 }
 
-
 static SQRESULT base_str_from_chars (HSQUIRRELVM v) {
   SQ_FUNC_VARS_NO_TOP(v);
   SQInteger n = sq_gettop(v);  /* number of arguments */
