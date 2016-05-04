@@ -66,8 +66,12 @@ void PrintVersionInfos()
 	scfprintf(stdout,_SC("%s %s (%d bits)\n"),SQUIRREL_VERSION,SQUIRREL_COPYRIGHT,((int)(sizeof(SQInteger)*8)));
 }
 
-SQInteger push_program_args(HSQUIRRELVM v,SQInteger arg, SQInteger argc, char* argv[]){
+SQInteger push_program_args(HSQUIRRELVM v,SQInteger arg, SQInteger argc, char* argv[], int asArray){
     SQInteger i, callargs = 0;
+    if(asArray)
+    {
+        sq_newarray(v, 0);
+    }
     for(i=arg;i<argc;i++)
     {
         const SQChar *a;
@@ -80,6 +84,7 @@ SQInteger push_program_args(HSQUIRRELVM v,SQInteger arg, SQInteger argc, char* a
         a=argv[i];
 #endif
         sq_pushstring(v,a,-1);
+        if(asArray) sq_arrayappend(v, -2);
         callargs++;
         //sq_arrayappend(v,-2);
     }
@@ -111,7 +116,7 @@ void loadDefaultScript(HSQUIRRELVM v, const char *script)
     if(SQ_SUCCEEDED(sq_compilebuffer(v,srcBoot, strlen(srcBoot), _SC("defaultScript"), SQTrue, SQTrue))) {
         int callargs = 1;
         sq_pushroottable(v);
-        callargs += push_program_args(v, 0, sq_main_argc, sq_main_argv);
+        callargs += push_program_args(v, 0, sq_main_argc, sq_main_argv, 0);
         sq_call(v, callargs,SQFalse, SQTrue);
     }
 }
@@ -239,13 +244,33 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 				if(SQ_SUCCEEDED(sqstd_loadfile(v,filename,SQTrue,SQTrue))) {
 					int callargs = 1;
 					sq_pushroottable(v);
-					callargs += push_program_args(v, arg, argc, argv);
+					callargs += push_program_args(v, arg, argc, argv, 0);
 					if(SQ_SUCCEEDED(sq_call(v,callargs,SQTrue,SQTrue))) {
 						SQObjectType type = sq_gettype(v,-1);
 						if(type == OT_INTEGER) {
 							*retval = type;
 							sq_getinteger(v,-1,retval);
 						}
+						//if there is a function called "main" we call it like in C/C++
+						sq_pushliteral(v, _SC("main"));
+						if(sq_getonroottable(v) == SQ_OK)
+                        {
+                            if(sq_gettype(v, -1) == OT_CLOSURE)
+                            {
+                                sq_pushroottable(v);
+                                sq_pushinteger(v, 1);
+                                callargs = push_program_args(v, arg, argc, argv, 1);
+                                sq_pushinteger(v, callargs);
+                                sq_replace(v, -3);
+                                if(SQ_SUCCEEDED(sq_call(v,3,SQTrue,SQTrue))) {
+                                    SQObjectType type = sq_gettype(v,-1);
+                                    if(type == OT_INTEGER) {
+                                        *retval = type;
+                                        sq_getinteger(v,-1,retval);
+                                    }
+                                }
+                            }
+                        }
 						return _DONE;
 					}
 					else{
@@ -427,7 +452,7 @@ static SQInteger LoadFrozenScript0(HSQUIRRELVM v, const SQChar* filename, int on
     if(SQ_SUCCEEDED(sq_compilebuffer(v,script, script_len, _SC("frozenScript"), SQTrue))) {
         int callargs = 1;
         sq_pushroottable(v);
-        callargs += push_program_args(v, 0, sq_main_argc, sq_main_argv);
+        callargs += push_program_args(v, 0, sq_main_argc, sq_main_argv, 0);
         if(SQ_SUCCEEDED(sq_call(v,callargs,SQTrue,SQTrue))) {
             SQObjectType type = sq_gettype(v,-1);
             if(type == OT_INTEGER) {
@@ -514,7 +539,7 @@ static SQInteger LoadFrozenScript(HSQUIRRELVM v, const SQChar* filename, int onl
     if(SQ_SUCCEEDED(sq_compilebuffer(v,srcBoot, scr_len, _SC("bootScript"), SQTrue, SQTrue))) {
         int callargs = 1;
         sq_pushroottable(v);
-        callargs += push_program_args(v, 0, sq_main_argc, sq_main_argv);
+        callargs += push_program_args(v, 0, sq_main_argc, sq_main_argv, 0);
         if(SQ_SUCCEEDED(sq_call(v, callargs,SQFalse, SQTrue))) {
             return _DONE;
         }
