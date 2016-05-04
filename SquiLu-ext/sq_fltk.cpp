@@ -953,6 +953,13 @@ static SQRESULT _Fl_Widget_contains(HSQUIRRELVM v)
     return 1;
 }
 
+static SQRESULT _Fl_Widget_hasInstance(HSQUIRRELVM v)
+{
+    SETUP_FL_WIDGET(v);
+    sq_pushbool(v, self != NULL);
+	return 1;
+}
+
 CHEAP_RTTI_FOR(Fl_Widget);
 
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Widget_##name,nparams,pmask,isStatic}
@@ -971,6 +978,7 @@ static SQRegFunction fl_widget_obj_funcs[]={
 	_DECL_FUNC(changed2,1,_SC("x"), SQFalse),
 	_DECL_FUNC(classId,1,_SC("x"), SQFalse),
 	_DECL_FUNC(classRTTI,1,_SC("x"), SQFalse),
+	_DECL_FUNC(hasInstance,1,_SC("x"), SQFalse),
 	_DECL_FUNC(clear_changed,1,_SC("x"), SQFalse),
 	_DECL_FUNC(clear_changed2,1,_SC("x"), SQFalse),
 	_DECL_FUNC(clear_changed_all,1,_SC("x"), SQFalse),
@@ -1614,6 +1622,16 @@ static SQRESULT _Fl_Group_children(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT _Fl_Group_child(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_GROUP(v);
+    SQ_GET_INTEGER(v,2, idx);
+    Fl_Widget *wdg = self->child(idx);
+    if(!wdg || getInstance_for_Fl_Widget(v, wdg) != SQ_OK) sq_pushnull(v);
+	return 1;
+}
+
 /*
 static SQRESULT _Fl_Group_resize(HSQUIRRELVM v)
 {
@@ -1640,6 +1658,7 @@ static SQRegFunction fl_group_obj_funcs[]={
 	_DECL_FUNC(insert,3,_SC("xx x|i"), SQTrue),
 	_DECL_FUNC(remove,2,_SC("x x|i"), SQTrue),
 	_DECL_FUNC(children,1,_SC("x"), SQTrue),
+	_DECL_FUNC(child,2,_SC("xi"), SQTrue),
 	_DECL_FUNC(current,1,_SC("y"), SQTrue),
 	_DECL_FUNC(clear,1,_SC("x"), SQFalse), //segfaulting right now
 	//_DECL_FUNC(resize,5,_SC("xiiii"), SQFalse),
