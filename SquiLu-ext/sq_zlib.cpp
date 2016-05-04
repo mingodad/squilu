@@ -56,6 +56,16 @@ static SQRESULT sq_minizip_unzip_get_num_files(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT sq_minizip_unzip_locate_file(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    GET_minizip_unzip_INSTANCE();
+    SQ_GET_STRING(v, 2, fname);
+    SQ_OPT_BOOL(v, 3, iCaseSensitivity, false);
+    sq_pushbool(v, unzLocateFile(self, fname, iCaseSensitivity) == UNZ_OK);
+	return 1;
+}
+
 static SQRESULT sq_minizip_unzip_goto_first_file(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
@@ -142,6 +152,7 @@ static SQRegFunction sq_minizip_unzip_methods[] =
 {
 	_DECL_FUNC(constructor,  2, _SC("xs")),
 	_DECL_FUNC(get_num_files,  1, _SC("x")),
+	_DECL_FUNC(locate_file,  -2, _SC("xsb")),
 	_DECL_FUNC(goto_first_file,  1, _SC("x")),
 	_DECL_FUNC(goto_next_file,  1, _SC("x")),
 	_DECL_FUNC(get_file_info,  1, _SC("x")),
@@ -151,6 +162,60 @@ static SQRegFunction sq_minizip_unzip_methods[] =
 };
 #undef _DECL_FUNC
 
+#if 0
+static const SQChar sq_minizip_unzip_TAG[] = _SC("sq_minizip_zip_tag");
+
+#define GET_minizip_zip_INSTANCE_VAR_AT(idx, Var) \
+    SQ_GET_INSTANCE_VAR(v, idx, zipFile, Var, sq_minizip_zip_TAG);\
+    if(!Var) return sq_throwerror(v, _SC("miniz_ziparchive already destroyed"));
+#define GET_minizip_zip_INSTANCE() GET_minizip_zip_INSTANCE_VAR_AT(1, self)
+
+static SQRESULT sq_minizip_zip_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
+{
+	zipFile self = ((zipFile)p);
+	if(self) {
+	    zipClose(self);
+	}
+	return 0;
+}
+
+static SQRESULT sq_minizip_zip_constructor(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 2, zip_fname);
+    SQ_GET_INTEGER(v, 3, append);
+    zipFile zip_archive = zipOpen64(zip_fname, append);
+    if(!zip_archive)
+    {
+        return sq_throwerror(v, _SC("Cannot open %s\n"),zip_fname);
+    }
+    sq_setinstanceup(v, 1, zip_archive);
+    sq_setreleasehook(v,1, sq_minizip_zip_releasehook);
+	return 1;
+}
+
+
+static SQRESULT sq_minizip_zip_destroy(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_minizip_zip_INSTANCE();
+    int rc = sq_minizip_zip_releasehook(self, 0, v);
+    if(rc == 0) sq_setinstanceup(v, 1, 0);
+    sq_pushinteger(v, rc);
+	return 1;
+}
+
+#define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_minizip_zip_##name,nparams,tycheck}
+static SQRegFunction sq_minizip_zip_methods[] =
+{
+	_DECL_FUNC(constructor,  3, _SC("xsi")),
+	_DECL_FUNC(new_file,  3, _SC("xss")),
+	_DECL_FUNC(destroy,  1, _SC("x")),
+	{0,0}
+};
+#undef _DECL_FUNC
+
+#endif
 
 static SQRESULT sq_check_result(HSQUIRRELVM v, int result, const z_stream* stream) {
     /* Both of these are "normal" return codes: */
