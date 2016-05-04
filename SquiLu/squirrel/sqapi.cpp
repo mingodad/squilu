@@ -731,7 +731,7 @@ SQRESULT sq_delete_on_registry_table(HSQUIRRELVM v, SQUserPointer uptr)
     return SQ_ERROR;
 }
 
-int sq_preload_modules(HSQUIRRELVM v, sq_modules_preload_st *modules){
+SQRESULT sq_preload_modules(HSQUIRRELVM v, sq_modules_preload_st *modules){
     int result = 0;
     int saved_top = sq_gettop(v);
     sq_pushliteral(v, SQ_EXTENSIONS_KEY);
