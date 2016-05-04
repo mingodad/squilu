@@ -151,7 +151,7 @@ class CalendarBase {
 					}
 				break;
 				case 3:
-					if (nums[1] > 31){
+					if (nums[0] > 31){
 						//year and month and day
 						setYear(0);
 						setMonth(1);
@@ -220,10 +220,12 @@ class CalendarBase {
 		return (tzh + tzm) * 3600;
 	}
 
+	//month 0 - 11
 	function makemonth(y,m){
 		local month_array = [];
  		local atime = os.time({year=y,month=m,day=1});
 		local adate = os.date("*t", atime);
+		//print("makemonth", y, m, adate.year, adate.month, adate.day);
 		// get back to the nearest monday
 		atime -= _seconds_in_day * adate.wday;
 		adate = os.date("*t", atime);
@@ -232,6 +234,8 @@ class CalendarBase {
 			atime -=  _seconds_in_week;
 			adate = os.date("*t", atime);
 		}
+		local count_weeks = 0;
+		//print("makemonth", adate.year, adate.month, adate.day);
 		do
 		{
 			local week_array = [];
@@ -239,6 +243,7 @@ class CalendarBase {
 			do
 			{
 				// insert the week days
+				//print(adate.day);
 				week_array.push(adate.day);
 				atime += _seconds_in_day;
 				adate = os.date("*t", atime);

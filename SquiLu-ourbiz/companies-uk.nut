@@ -78,6 +78,7 @@ local function getCiaUkSearchList(search_str, search_post_code, search_sic_code,
 		local sic_codes_sql = "";
 		local sic_code = null;
 		local cached_stmt_name = "";
+		local name_sql_base = "";
 		local radius_sql_base = [==[
 %s, post_codes pc, post_codes ref
 where  ref.post_code = :post_code
@@ -88,6 +89,17 @@ and c.post_code = pc.post_code
 %s
 limit :limit offset :offset
 ]==];
+/*
+		base_sql = base_sql.replace(" from ", [==[
+, round(distance(ref.easting, ref.northing, pc.easting, pc.northing)) as distance,
+	ifnull(round(bearing(ref.easting, ref.northing, pc.easting, pc.northing)), 0) as bearing
+from 
+]==]);
+		if(strHasContent(search_str))
+		{
+			name_sql_base = ""
+		}
+*/
 		if (strHasContent(search_sic_code)){
 
 			if (search_sic_code.find_lua("%d+") == 0){

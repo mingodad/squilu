@@ -809,11 +809,12 @@ function isExtensionAllowed(fname){
 
 function getFilesInPath(path, files=null, prefix=""){
 	if(!files) files = [];
+	local prefix_len = prefix.len();
 	foreach( file in sqfs.dir(path) ){
 		if(file != "." && file != ".." ){
 			local f = path + "/" + file;
 			local pf
-			if (prefix.len() > 0) pf = prefix + "/" + file;
+			if (prefix_len > 0) pf = prefix + "/" + file;
 			else pf = file;
 
 			try {

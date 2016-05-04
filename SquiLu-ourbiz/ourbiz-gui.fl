@@ -1,5 +1,5 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0302 
+version 1.0303 
 i18n_type 1 
 i18n_include i18n_function.h 
 i18n_function _tr 
@@ -91,62 +91,63 @@ widget_class CalendarWindow {
     label Calendar
     xywh {5 5 340 25} box ENGRAVED_BOX color 7 labelsize 16
   }
-  Fl_Group {} {open
-    xywh {6 35 340 25} labelsize 16
+  Fl_Browser grid {
+    dirty_name grid
+    xywh {5 35 340 202} labeltype NO_LABEL labelsize 16
+    class Fl_Data_Table
+  }
+  Fl_Group month_buttons {
+    dirty_name month_buttons open
+    xywh {6 241 340 25} labelsize 16
   } {
     Fl_Button btnMonth1 {
       label 1
-      xywh {6 35 25 25}
+      xywh {6 241 25 25}
     }
     Fl_Button btnMonth2 {
       label 2
-      xywh {34 35 25 25}
+      xywh {34 241 25 25}
     }
     Fl_Button btnMonth3 {
       label 3
-      xywh {63 35 25 25}
+      xywh {63 241 25 25}
     }
     Fl_Button btnMonth4 {
       label 4
-      xywh {91 35 25 25}
+      xywh {91 241 25 25}
     }
     Fl_Button btnMonth5 {
       label 5
-      xywh {120 35 25 25}
+      xywh {120 241 25 25}
     }
     Fl_Button btnMonth6 {
       label 6
-      xywh {148 35 25 25}
+      xywh {148 241 25 25}
     }
     Fl_Button btnMonth7 {
       label 7
-      xywh {177 35 25 25}
+      xywh {177 241 25 25}
     }
     Fl_Button btnMonth8 {
       label 8
-      xywh {205 35 25 25}
+      xywh {205 241 25 25}
     }
     Fl_Button btnMonth9 {
       label 9
-      xywh {234 35 25 25}
+      xywh {234 241 25 25}
     }
     Fl_Button btnMonth10 {
       label 10
-      xywh {262 35 25 25}
+      xywh {262 241 25 25}
     }
     Fl_Button btnMonth11 {
       label 11
-      xywh {291 35 25 25}
+      xywh {291 241 25 25}
     }
     Fl_Button btnMonth12 {
       label 12
-      xywh {320 35 25 25}
+      xywh {320 241 25 25}
     }
-  }
-  Fl_Browser grid {
-    dirty_name grid
-    xywh {5 65 340 202} labeltype NO_LABEL labelsize 16
-    class Fl_Data_Table
   }
   Fl_Group {} {open
     xywh {5 275 340 25} labelsize 16
@@ -376,7 +377,6 @@ widget_class BarChartGroup {
   Fl_Box bar_chart {
     dirty_name bar_chart
     xywh {0 30 760 430} color 7 labeltype NO_LABEL labelsize 16 align 5 resizable
-    code0 {\#include "Fl_Bar_Chart.h"}
     class Fl_Bar_Chart
   }
 } 
@@ -2043,8 +2043,8 @@ widget_class PaymentEditWindow {
 
 widget_class GLGroupsListEditWindow {
   label {GL Groups List / Edit}
-  xywh {480 215 500 352} type Double labelsize 16 hide resizable
-  class Edit_Base_Window
+  xywh {480 215 500 350} type Double labelsize 16 hide resizable
+  class List_Edit_Base_Window
 } {
   Fl_Browser grid {
     xywh {5 5 490 200} type Multi labeltype NO_LABEL labelsize 16 textsize 16 resizable
@@ -2179,9 +2179,9 @@ widget_class GLChartEditWindow {
 } 
 
 widget_class GLTransactionEditWindow {
-  label {GL Transaction Edit}
-  xywh {80 133 720 410} type Double labelsize 16 hide resizable
-  class Edit_Base_Window
+  label {GL Transaction Edit} open
+  xywh {80 133 720 410} type Double labelsize 16 resizable
+  class Edit_Base_Window visible
 } {
   Fl_Input db_gl_transactions_description {
     label Description
@@ -2206,88 +2206,88 @@ widget_class GLTransactionEditWindow {
   }
   Fl_Group group_lines {
     dirty_name group_lines open
-    xywh {10 55 705 309} box THIN_UP_BOX color 246 labeltype NO_LABEL labelsize 16
+    xywh {10 55 705 310} box THIN_UP_BOX color 246 labeltype NO_LABEL labelsize 16
   } {
     Fl_Browser grid_lines {
-      dirty_name {@grid_lines}
-      xywh {15 55 695 150} type Hold labeltype NO_LABEL labelsize 16 align 5 textsize 16 resizable
+      dirty_name grid_lines selected
+      xywh {15 60 695 150} type Hold labeltype NO_LABEL labelsize 16 align 5 textsize 16 resizable
       class Fl_Data_Table
     }
     Fl_Group group_edit_line {
-      dirty_name group_edit_line open
-      xywh {15 230 695 130} labeltype NO_LABEL
+      dirty_name group_edit_line open selected
+      xywh {15 235 695 130} labeltype NO_LABEL
     } {
       Fl_Input db_gl_transactions_lines_description {
         label Account
         macro_name {db gl_transactions_lines description}
-        xywh {190 230 480 25} labelsize 16 align 5 textsize 16
+        xywh {190 235 480 25} labelsize 16 align 5 textsize 16
         code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
       }
       Fl_Input db_gl_transactions_lines_group_code {
         label Code
         macro_name {db gl_transactions_lines group_code}
-        xywh {20 230 110 25} labelsize 16 align 5 textsize 16
+        xywh {20 235 110 25} labelsize 16 align 5 textsize 16
         code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
       }
       Fl_Button btnSearchAccount {
         label {@<->}
         dirty_name btnSearchAccount
-        tooltip {Show calendar} xywh {680 230 30 25} labelsize 18 labelcolor 22
+        tooltip {Show calendar} xywh {680 235 30 25} labelsize 18 labelcolor 22
       }
       Fl_Input db_gl_transactions_lines_debit {
         label Debit
         macro_name {db gl_transactions_lines debit}
-        xywh {485 280 110 25} type Float labelsize 16 align 5 textsize 16
+        xywh {485 285 110 25} type Float labelsize 16 align 5 textsize 16
         code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
       }
       Fl_Input db_gl_transactions_lines_credit {
         label Credit
         macro_name {db gl_transactions_lines credit}
-        xywh {600 280 110 25} type Float labelsize 16 align 5 textsize 16
+        xywh {600 285 110 25} type Float labelsize 16 align 5 textsize 16
         code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
       }
       Fl_Button btnSaveLine {
         label {Save Line}
         dirty_name btnSaveLine
-        xywh {365 330 110 25} labelsize 16
+        xywh {365 335 110 25} labelsize 16
       }
       Fl_Button btnBalanceLine {
         label Balance
         dirty_name btnBalanceLine
-        xywh {485 330 110 25} labelsize 16
+        xywh {485 335 110 25} labelsize 16
       }
       Fl_Button btnClearLine {
         label {Clear Line}
         dirty_name btnClearLine
-        xywh {600 330 110 25} labelsize 16
+        xywh {600 335 110 25} labelsize 16
       }
       Fl_Output db_gl_transactions_lines_gl_code {
         label {Grp.}
         macro_name {db gl_transactions_lines gl_code}
-        xywh {140 230 40 25} labelsize 16 align 5 textsize 16
+        xywh {140 235 40 25} labelsize 16 align 5 textsize 16
         code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
       }
       Fl_Input db_gl_transactions_lines_doc {
         label Document
         macro_name {db gl_transactions_lines doc}
-        xywh {20 280 455 25} labelsize 16 align 5 textsize 16
+        xywh {20 285 455 25} labelsize 16 align 5 textsize 16
         code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
       }
       Fl_Input db_gl_transactions_lines_due_date {
         label {Due Date}
         macro_name {db gl_transactions_lines due_date}
-        xywh {20 330 125 25} labelsize 16 align 5 textsize 16
+        xywh {20 335 125 25} labelsize 16 align 5 textsize 16
         code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
       }
       Fl_Button btnDueDateCalendar {
         label {@<->}
         dirty_name btnDueDateCalendar
-        tooltip {Show calendar} xywh {155 330 30 25} labelsize 18 labelcolor 22
+        tooltip {Show calendar} xywh {155 335 30 25} labelsize 18 labelcolor 22
       }
       Fl_Input db_gl_transactions_lines_checked_date {
         label {Checked Date}
         macro_name {db gl_transactions_lines checked_date}
-        xywh {195 330 125 25} labelsize 16 align 5 textsize 16
+        xywh {195 335 125 25} labelsize 16 align 5 textsize 16
         code0 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
       }
     }
@@ -2681,9 +2681,9 @@ widget_class EditEntityWindow {
 } 
 
 widget_class EditProductWindow {
-  label {Edit Products} open
-  xywh {34 28 800 560} type Double resizable
-  class Edit_Base_Window visible
+  label {Edit Products}
+  xywh {34 28 800 560} type Double hide resizable
+  class Edit_Base_Window
 } {
   Fl_Output db_products_id {
     macro_name {db products id}
@@ -2710,7 +2710,7 @@ widget_class EditProductWindow {
     xywh {5 35 790 520} selection_color 4 labelsize 16 labelcolor 7 resizable
   } {
     Fl_Group tabMain {
-      label Main selected
+      label Main
       xywh {5 60 790 495} color 246 labelsize 16 resizable
     } {
       Fl_Input db_products_reference_code {
@@ -3277,7 +3277,7 @@ widget_class EditOrderWindow {
     xywh {5 68 790 487} selection_color 4 labelsize 16 labelcolor 7 resizable
   } {
     Fl_Group tabMain {
-      label Main open
+      label Main
       xywh {5 95 790 460} color 246 labelfont 2 labelsize 16 resizable
     } {
       Fl_Pack pack_line3 {open
@@ -3684,7 +3684,7 @@ widget_class EditOrderWindow {
       }
     }
     Fl_Group tabDelivery {
-      label Delivery
+      label Delivery open
       xywh {5 95 790 460} color 246 labelfont 2 labelsize 16 hide
     } {
       Fl_Input db_orders_entity_address {
@@ -3766,7 +3766,6 @@ widget_class EditOrderWindow {
         macro_name {db orders notes}
         dirty_name db_orders_notes
         xywh {15 395 770 150} labelsize 16 align 5 textsize 16 resizable
-        code0 {\#include <FL/Fl_Text_Editor.H>}
         code1 {=add_input_field_to_map("$(1)", "$(2)", $(name));}
         class Fl_Text_Editor_Buffered
       }
@@ -3785,7 +3784,7 @@ widget_class EditOrderWindow {
     }
     Fl_Group tabOptions {
       label Options
-      dirty_name tabOptions
+      dirty_name tabOptions open
       xywh {5 95 790 460} color 246 labelfont 2 labelsize 16 hide
     } {
       Fl_Check_Button opt_ask_for_printer {
@@ -3832,7 +3831,6 @@ widget_class EditOrderWindow {
         label {Company Info}
         dirty_name opt_print_order_company_info
         xywh {20 350 375 200} labelsize 16 align 5 textsize 16
-        code0 {\#include <FL/Fl_Text_Editor.H>}
         class Fl_Text_Editor_Buffered
       }
       Fl_Check_Button {} {
@@ -3844,7 +3842,6 @@ widget_class EditOrderWindow {
         label {Company Info}
         dirty_name opt_print_order_bottom_info
         xywh {405 350 375 200} labelsize 16 align 5 textsize 16 resizable
-        code0 {\#include <FL/Fl_Text_Editor.H>}
         class Fl_Text_Editor_Buffered
       }
       Fl_Check_Button {} {

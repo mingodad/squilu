@@ -112,6 +112,8 @@ class CalendarWindow extends Base_Window {
   
   // Declaration of class members
   label_month : Fl_Box;
+  grid : Fl_Data_Table;
+  month_buttons : Fl_Group;
   btnMonth1 : Fl_Button;
   btnMonth2 : Fl_Button;
   btnMonth3 : Fl_Button;
@@ -124,7 +126,6 @@ class CalendarWindow extends Base_Window {
   btnMonth10 : Fl_Button;
   btnMonth11 : Fl_Button;
   btnMonth12 : Fl_Button;
-  grid : Fl_Data_Table;
   btnPrevYear : Fl_Repeat_Button;
   btnPrevMonth : Fl_Repeat_Button;
   btnToday : Fl_Button;
@@ -143,65 +144,66 @@ class CalendarWindow extends Base_Window {
       o.color(7);
     }
     {
-      local o = Fl_Group(6, 35, 340, 25);
-      o.labelsize(16);
-      {
-        {
-          local o = Fl_Button(6, 35, 25, 25, _tr("1"));
-          btnMonth1 = o;
-        }
-        {
-          local o = Fl_Button(34, 35, 25, 25, _tr("2"));
-          btnMonth2 = o;
-        }
-        {
-          local o = Fl_Button(63, 35, 25, 25, _tr("3"));
-          btnMonth3 = o;
-        }
-        {
-          local o = Fl_Button(91, 35, 25, 25, _tr("4"));
-          btnMonth4 = o;
-        }
-        {
-          local o = Fl_Button(120, 35, 25, 25, _tr("5"));
-          btnMonth5 = o;
-        }
-        {
-          local o = Fl_Button(148, 35, 25, 25, _tr("6"));
-          btnMonth6 = o;
-        }
-        {
-          local o = Fl_Button(177, 35, 25, 25, _tr("7"));
-          btnMonth7 = o;
-        }
-        {
-          local o = Fl_Button(205, 35, 25, 25, _tr("8"));
-          btnMonth8 = o;
-        }
-        {
-          local o = Fl_Button(234, 35, 25, 25, _tr("9"));
-          btnMonth9 = o;
-        }
-        {
-          local o = Fl_Button(262, 35, 25, 25, _tr("10"));
-          btnMonth10 = o;
-        }
-        {
-          local o = Fl_Button(291, 35, 25, 25, _tr("11"));
-          btnMonth11 = o;
-        }
-        {
-          local o = Fl_Button(320, 35, 25, 25, _tr("12"));
-          btnMonth12 = o;
-        }
-      }
-      o.end();
-    }
-    {
-      local o = Fl_Data_Table(5, 65, 340, 202);
+      local o = Fl_Data_Table(5, 35, 340, 202);
       grid = o;
       o.labeltype(FL_NO_LABEL);
       o.labelsize(16);
+      o.end();
+    }
+    {
+      local o = Fl_Group(6, 241, 340, 25);
+      month_buttons = o;
+      o.labelsize(16);
+      {
+        {
+          local o = Fl_Button(6, 241, 25, 25, _tr("1"));
+          btnMonth1 = o;
+        }
+        {
+          local o = Fl_Button(34, 241, 25, 25, _tr("2"));
+          btnMonth2 = o;
+        }
+        {
+          local o = Fl_Button(63, 241, 25, 25, _tr("3"));
+          btnMonth3 = o;
+        }
+        {
+          local o = Fl_Button(91, 241, 25, 25, _tr("4"));
+          btnMonth4 = o;
+        }
+        {
+          local o = Fl_Button(120, 241, 25, 25, _tr("5"));
+          btnMonth5 = o;
+        }
+        {
+          local o = Fl_Button(148, 241, 25, 25, _tr("6"));
+          btnMonth6 = o;
+        }
+        {
+          local o = Fl_Button(177, 241, 25, 25, _tr("7"));
+          btnMonth7 = o;
+        }
+        {
+          local o = Fl_Button(205, 241, 25, 25, _tr("8"));
+          btnMonth8 = o;
+        }
+        {
+          local o = Fl_Button(234, 241, 25, 25, _tr("9"));
+          btnMonth9 = o;
+        }
+        {
+          local o = Fl_Button(262, 241, 25, 25, _tr("10"));
+          btnMonth10 = o;
+        }
+        {
+          local o = Fl_Button(291, 241, 25, 25, _tr("11"));
+          btnMonth11 = o;
+        }
+        {
+          local o = Fl_Button(320, 241, 25, 25, _tr("12"));
+          btnMonth12 = o;
+        }
+      }
       o.end();
     }
     {
@@ -3392,7 +3394,7 @@ class PaymentEditWindow extends Edit_Base_Window {
   }
 }
 
-class GLGroupsListEditWindow extends Edit_Base_Window {
+class GLGroupsListEditWindow extends List_Edit_Base_Window {
   
   // Declaration of class members
   grid : Fl_Data_Table;
@@ -3405,7 +3407,7 @@ class GLGroupsListEditWindow extends Edit_Base_Window {
   dbAction : Fl_Choice_dbAction;
   btnDbAction : Fl_Button;
   
-  constructor(px=480, py=215, pw=500, ph=352, pl=_tr("GL Groups List / Edit")){
+  constructor(px=480, py=215, pw=500, ph=350, pl=_tr("GL Groups List / Edit")){
     base.constructor(px, py, pw, ph, pl);
     // Create member functions and widgets
     {
@@ -3677,7 +3679,7 @@ class GLTransactionEditWindow extends Edit_Base_Window {
       o.tooltip(_tr("Show calendar"));
     }
     {
-      local o = Fl_Group(10, 55, 705, 309);
+      local o = Fl_Group(10, 55, 705, 310);
       group_lines = o;
       o.box(FL_THIN_UP_BOX);
       o.labelsize(16);
@@ -3685,9 +3687,8 @@ class GLTransactionEditWindow extends Edit_Base_Window {
       o.labeltype(FL_NO_LABEL);
       {
         {
-          local o = grid_lines;
-          Fl_Group.current()->add(o);
-          o->resize(15, 55, 695, 150);
+          local o = Fl_Data_Table(15, 60, 695, 150);
+          grid_lines = o;
           o.textsize(16);
           o.align(5);
           o.labeltype(FL_NO_LABEL);
@@ -3696,12 +3697,12 @@ class GLTransactionEditWindow extends Edit_Base_Window {
           Fl_Group.current().resizable(o);
         }
         {
-          local o = Fl_Group(15, 230, 695, 130);
+          local o = Fl_Group(15, 235, 695, 130);
           group_edit_line = o;
           o.labeltype(FL_NO_LABEL);
           {
             {
-              local o = Fl_Input(190, 230, 480, 25, _tr("Account"));
+              local o = Fl_Input(190, 235, 480, 25, _tr("Account"));
               db_gl_transactions_lines_description = o;
               o.textsize(16);
               o.align(5);
@@ -3709,7 +3710,7 @@ class GLTransactionEditWindow extends Edit_Base_Window {
               add_input_field_to_map("gl_transactions_lines", "description", db_gl_transactions_lines_description);
             }
             {
-              local o = Fl_Input(20, 230, 110, 25, _tr("Code"));
+              local o = Fl_Input(20, 235, 110, 25, _tr("Code"));
               db_gl_transactions_lines_group_code = o;
               o.textsize(16);
               o.align(5);
@@ -3717,14 +3718,14 @@ class GLTransactionEditWindow extends Edit_Base_Window {
               add_input_field_to_map("gl_transactions_lines", "group_code", db_gl_transactions_lines_group_code);
             }
             {
-              local o = Fl_Button(680, 230, 30, 25, _tr("@<->"));
+              local o = Fl_Button(680, 235, 30, 25, _tr("@<->"));
               btnSearchAccount = o;
               o.labelcolor(22);
               o.labelsize(18);
               o.tooltip(_tr("Show calendar"));
             }
             {
-              local o = Fl_Float_Input(485, 280, 110, 25, _tr("Debit"));
+              local o = Fl_Float_Input(485, 285, 110, 25, _tr("Debit"));
               db_gl_transactions_lines_debit = o;
               o.textsize(16);
               o.align(5);
@@ -3732,7 +3733,7 @@ class GLTransactionEditWindow extends Edit_Base_Window {
               add_input_field_to_map("gl_transactions_lines", "debit", db_gl_transactions_lines_debit);
             }
             {
-              local o = Fl_Float_Input(600, 280, 110, 25, _tr("Credit"));
+              local o = Fl_Float_Input(600, 285, 110, 25, _tr("Credit"));
               db_gl_transactions_lines_credit = o;
               o.textsize(16);
               o.align(5);
@@ -3740,22 +3741,22 @@ class GLTransactionEditWindow extends Edit_Base_Window {
               add_input_field_to_map("gl_transactions_lines", "credit", db_gl_transactions_lines_credit);
             }
             {
-              local o = Fl_Button(365, 330, 110, 25, _tr("Save Line"));
+              local o = Fl_Button(365, 335, 110, 25, _tr("Save Line"));
               btnSaveLine = o;
               o.labelsize(16);
             }
             {
-              local o = Fl_Button(485, 330, 110, 25, _tr("Balance"));
+              local o = Fl_Button(485, 335, 110, 25, _tr("Balance"));
               btnBalanceLine = o;
               o.labelsize(16);
             }
             {
-              local o = Fl_Button(600, 330, 110, 25, _tr("Clear Line"));
+              local o = Fl_Button(600, 335, 110, 25, _tr("Clear Line"));
               btnClearLine = o;
               o.labelsize(16);
             }
             {
-              local o = Fl_Output(140, 230, 40, 25, _tr("Grp."));
+              local o = Fl_Output(140, 235, 40, 25, _tr("Grp."));
               db_gl_transactions_lines_gl_code = o;
               o.textsize(16);
               o.align(5);
@@ -3763,7 +3764,7 @@ class GLTransactionEditWindow extends Edit_Base_Window {
               add_input_field_to_map("gl_transactions_lines", "gl_code", db_gl_transactions_lines_gl_code);
             }
             {
-              local o = Fl_Input(20, 280, 455, 25, _tr("Document"));
+              local o = Fl_Input(20, 285, 455, 25, _tr("Document"));
               db_gl_transactions_lines_doc = o;
               o.textsize(16);
               o.align(5);
@@ -3771,7 +3772,7 @@ class GLTransactionEditWindow extends Edit_Base_Window {
               add_input_field_to_map("gl_transactions_lines", "doc", db_gl_transactions_lines_doc);
             }
             {
-              local o = Fl_Input(20, 330, 125, 25, _tr("Due Date"));
+              local o = Fl_Input(20, 335, 125, 25, _tr("Due Date"));
               db_gl_transactions_lines_due_date = o;
               o.textsize(16);
               o.align(5);
@@ -3779,14 +3780,14 @@ class GLTransactionEditWindow extends Edit_Base_Window {
               add_input_field_to_map("gl_transactions_lines", "due_date", db_gl_transactions_lines_due_date);
             }
             {
-              local o = Fl_Button(155, 330, 30, 25, _tr("@<->"));
+              local o = Fl_Button(155, 335, 30, 25, _tr("@<->"));
               btnDueDateCalendar = o;
               o.labelcolor(22);
               o.labelsize(18);
               o.tooltip(_tr("Show calendar"));
             }
             {
-              local o = Fl_Input(195, 330, 125, 25, _tr("Checked Date"));
+              local o = Fl_Input(195, 335, 125, 25, _tr("Checked Date"));
               db_gl_transactions_lines_checked_date = o;
               o.textsize(16);
               o.align(5);
@@ -4438,8 +4439,8 @@ class EditProductWindow extends Edit_Base_Window {
         {
           local o = Fl_Group(5, 60, 790, 495, _tr("Main"));
           tabMain = o;
-          o.labelsize(16);
           o.color(246);
+          o.labelsize(16);
           {
             {
               local o = Fl_Input(115, 70, 165, 25, _tr("Reference"));
@@ -5270,8 +5271,8 @@ class EditOrderWindow extends Edit_Base_Window {
         {
           local o = Fl_Group(5, 95, 790, 460, _tr("Main"));
           tabMain = o;
-          o.labelsize(16);
           o.labelfont(2);
+          o.labelsize(16);
           o.color(246);
           {
             {
@@ -5809,8 +5810,8 @@ class EditOrderWindow extends Edit_Base_Window {
         {
           local o = Fl_Group(5, 95, 790, 460, _tr("Delivery"));
           tabDelivery = o;
-          o.labelfont(2);
           o.labelsize(16);
+          o.labelfont(2);
           o.color(246);
           {
             {

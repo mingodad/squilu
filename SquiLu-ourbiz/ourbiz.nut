@@ -199,9 +199,20 @@ local function getOurbizDBFileName(){
 	//return "file:ourbiz_db?mode=memory&cache=shared";
 }
 
+local function sqliteTrace(udata, sql)
+{
+	if(sql == "-- TRIGGER ") return;
+	debug_print(udata, ":", sql, "\n");
+}
+
 local ourbizDB = null;
 local function getOurbizDB(){
-	if(!ourbizDB) ourbizDB = SQLite3(getOurbizDBFileName());
+	if(!ourbizDB)
+	{
+		
+		ourbizDB = SQLite3(getOurbizDBFileName());
+		if(AT_DEV_DBG) ourbizDB.trace(sqliteTrace, "SQL", false);
+	}
 	return ourbizDB;
 	//return checkCachedDB(APP_CODE_FOLDER + "/ourbiz.db");
 }
@@ -459,7 +470,7 @@ local DB_Manager = class {
 		}
 		local result = stmt.step();
 		stmt.finalize()
-		if (result == SQLite3Stmt.DONE) return db.last_row_id();
+		if (result == SQLite3Stmt.SQLITE_DONE) return db.last_row_id();
 		throw db.errmsg();
 	}
 
@@ -506,7 +517,7 @@ local DB_Manager = class {
 
 		local result = stmt.step();
 		stmt.finalize();
-		if (result == SQLite3Stmt.DONE) return db.changes();
+		if (result == SQLite3Stmt.SQLITE_DONE) return db.changes();
 		throw db.errmsg();
 	}
 
@@ -3018,6 +3029,174 @@ local DB_sales_tax_rates = class extends DB_Manager {
 db_ourbiz_tables.sales_tax_rates <- new DB_sales_tax_rates();
 
 db_ourbiz_tables.warranty_types <- new DB_Manager("warranty_types")
+
+local DB_gl_groups = class extends DB_Manager {
+	constructor(){
+		base.constructor("gl_groups", ["code", "description", "debit_op", "credit_op"]);
+	}
+
+	function sql_list(qs_tbl=null, post_tbl=null) {
+		return "select id, code, description, debit_op, credit_op from gl_groups order by code";
+	}
+
+	function sql_short_list(req) {
+		return "select id, description from gl_groups order by code";
+	}
+}
+
+db_ourbiz_tables.gl_groups <- new DB_gl_groups();
+
+local DB_gl_charts = class extends DB_Manager {
+	constructor(){
+		base.constructor("gl_chart", ["is_active", "group_code", "gl_group_id", "is_header",
+			"budget", "description", "notes"]);
+	}
+
+	function sql_list(qs_tbl, post_tbl){
+		local so = get_search_options(post_tbl);
+		checkQueryStringSAB(qs_tbl, so);
+		local mf = blob();
+		
+		mf.write("select c.id, g.code, c.group_code, c.description, c.is_header ",
+			"from gl_chart as c left join gl_groups as g on c.gl_group_id = g.id ",
+			"where 1=1 ");
+
+		local with_headers, with_accounts, cdate, group_id, active;
+		
+		if( so.with_headers ){
+			if( !(with_accounts = table_rawget(qs_tbl, "with_accounts", 0)) ) mf.write(" and c.is_header = 1 ");
+		}
+		if(so.with_accounts){
+			if(!with_headers) mf.write(" and c.is_header = 0 ");
+		}
+
+		if( so.cdate ) {
+			mf.write(" order by c.id desc ");
+			return mf.tostring();
+		}
+
+		if( so.group_id )
+		{
+			mf.write(" and c.gl_group_id =", so.group_id);
+		}
+
+		if( so.active ) mf.write(" and c.is_active=1 ");
+
+		local search_str = escape_sql_like_search_str(so.search_str);
+		//std::string lo_search_str = self.db:escape_sql_like_search_str(search_str)
+		if(so.account_id)
+		{
+			mf.write(" and c.id", so.account_id);
+		}
+		else if(search_str && search_str.size())
+		{
+			if(so.id) mf.write(" and c.id = ", so.search_str.tointeger().tostring());
+			else
+			{
+				mf.write(" and ");
+				if(so.code) mf.write(" c.group_code ");
+				else if(so.notes) mf.write(" c.notes ");
+				else mf.write(" c.description ");
+				mf.write(" like '", search_str, "' ");
+			}
+		}
+
+		mf.write(" order by c.group_code ");
+
+		if(so.query_limit != 0) mf.write(" limit ", so.query_limit);
+		
+		return mf.tostring();
+	}
+
+	function sql_get_one(tbl_qs) {
+		local id = table_rawget(tbl_qs, table_name, 0).tointeger().tostring();
+		if(table_rawget(tbl_qs, "for_transaction", false)){
+			local sql = [==[
+				select c.id as account_id, c.group_code, c.description, g.code as gl_code, g.debit_op, g.credit_op
+				from gl_chart as c join gl_groups as g on c.gl_group_id = g.id
+				where c.id=? and c.is_active=1]==];
+			return sql;
+		}
+		return base.sql_get_one(tbl_qs);
+	}
+	
+	function sql_short_list(req) {
+		return format("select id, description from gl_chart where is_active=1 order by 2;", table_name);
+	}
+}
+
+db_ourbiz_tables.gl_chart <- new DB_gl_charts();
+
+db_ourbiz_tables.gl_groups <- new DB_gl_groups();
+
+local DB_gl_transactions = class extends DB_Manager {
+	_sql_get_line = null;
+	
+	constructor(){
+		base.constructor("gl_transactions", ["description", "transaction_date"]);
+		_sql_get_line = [==[
+			select tl.*, gc.description, gc.group_code, g.code as gl_code, g.debit_op, g.credit_op,
+				case when amount < 0 then amount * -1 else 0 end as debit,
+				case when amount > 0 then amount else 0 end as credit
+			from gl_transactions_lines as tl join gl_chart as gc
+				on tl.account_id = gc.id
+			join gl_groups as g on gc.gl_group_id = g.id
+		]==];
+	}
+
+	function sql_list(qs_tbl, post_tbl){
+		local so = get_search_options(post_tbl);
+		checkQueryStringSAB(qs_tbl, so);
+		local mf = blob();
+		
+		mf.write([==[
+			select id, transaction_date, description,
+				case when totals.balanced <> 0 then -totals.balanced else totals.amount end
+			from gl_transactions left join (
+				select transaction_id as gl_tr_id,
+					sum(case when amount < 0 then 0 else amount end) as amount,
+					abs(sum(amount)
+				) as balanced
+				from gl_transactions_lines group by transaction_id) as totals on id=gl_tr_id where 1=1
+			]==]);
+
+		local with_headers, with_accounts, cdate, group_id, active;
+		
+		if( so.cdate ) {
+			mf.write(" order by c.id desc ");
+			return mf.tostring();
+		}
+
+		if(so.group_id) so.account_id = so.group_id;
+
+		local search_str = escape_sql_like_search_str(so.search_str);
+		//std::string lo_search_str = self.db:escape_sql_like_search_str(search_str)
+		if(so.account_id)
+		{
+			mf.write(" and id in(select transaction_id from gl_transactions_lines where account_id=", so.account_id);
+			if(so.query_limit != 0) mf.write(" limit ", so.query_limit);
+			mf.write(")");
+		}
+		else if(search_str.size())
+		{
+			if(so.id) mf.write(" and c.id = ", so.search_str.tointeger().tostring());
+			else
+			{
+				mf.write(" and description like '", search_str, "'");
+			}
+		}
+
+		if(so.query_limit != 0) mf.write(" limit ", so.query_limit);
+		
+		return mf.tostring();
+	}
+
+	function sql_short_list(req) {
+		return format("select id, description from gl_chart where is_active=1 order by 2;", table_name);
+	}
+}
+
+db_ourbiz_tables.gl_transactions <- new DB_gl_transactions();
 
 local DB_groups_tree = class extends DB_Manager
 {

@@ -65,11 +65,18 @@ local mongoose_start_params = {
 	ssl_certificate = "axTLS.x509_512.pem",
         //"ssl_certificate", "axTLS.x509_1024.pem",
         ssl_chain_file = "axTLS_x509_512.cer",
-	extra_mime_types = ".xsl=application/xml",
+	extra_mime_types = ".xsl=application/xml,.json=application/json; charset=utf-8",
 	master_plugin = function(){
+		//companies_uk_db_mem_global <- SQLite3("file:companies_uk_db?mode=memory&cache=shared");
+		//companies_uk_db_mem_global.restore("./companies-uk/companies-uk-2014-07.db");
+		//ourbiz_db_mem_global <- SQLite3("file:ourbiz_db?mode=memory&cache=shared");
+		//ourbiz_db_mem_global.restore("/home/mingo/dev/FrontAccountLua/ourbiz.db");
+
 		debug_print("done master_plugin\n");
 	},
 	master_plugin_exit = function(){
+		//companies_uk_db_mem_global.close();
+		//ourbiz_db_mem_global.close();
 		debug_print("done master_plugin_exit\n");
 	},
 	//functions to be used by each independent lua vm

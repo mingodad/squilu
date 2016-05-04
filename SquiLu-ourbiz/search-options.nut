@@ -41,6 +41,8 @@ class OurBizSearchOptions
     with_headers = null;
     with_accounts = null;
     code = null;
+    headers = null;
+    accounts = null;
 
     constructor()
     {

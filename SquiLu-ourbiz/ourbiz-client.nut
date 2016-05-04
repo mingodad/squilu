@@ -372,7 +372,7 @@ class AppServer
 
     function get_binary_data_from_url(get_url, rec, content_type, throwNotFound=true)
     {
-        table_clear(rec);
+        rec.clear();
 
         if(get_conn_type() == conn_type_e.e_conn_http)
         {
@@ -391,7 +391,7 @@ class AppServer
 
     function get_binary_data(rec, binary_type, table, aid, extra_url=0, throwNotFound=true)
     {
-        table_clear(rec);
+        rec.clear();
         if(get_conn_type() == conn_type_e.e_conn_http)
         {
             local url = format("/DB/GetBin?%s=%d", table, aid);

@@ -8,6 +8,8 @@
 Check if we are on windows os.
 */
 
+local table_rawget = table_rawget;
+
 local WIN32 = os.getenv("WINDIR") != null;
 socket.open();
 
@@ -27,8 +29,11 @@ Command line parameters.
 -user	user to authenticate
 -password	password to authenticate
 */
+
 local appServer_host = table_get(app_cmd_parameters, "-host", "localhost");
-local appServer_port = table_get(app_cmd_parameters, "-port", 8855).tointeger() ;
+//local appServer_host = table_get(app_cmd_parameters, "-host", "192.168.1.8");
+//local appServer_port = table_get(app_cmd_parameters, "-port", 8855).tointeger() ;
+local appServer_port = table_get(app_cmd_parameters, "-port", 8084).tointeger() ;
 //local appServer_host = table_get(app_cmd_parameters, "-host", "ourbiz.dadbiz.es");
 //local appServer_port = table_get(app_cmd_parameters, "-port", 80).tointeger() ;
 local appServer_user = table_get(app_cmd_parameters, "-user", "mingote");
@@ -352,6 +357,7 @@ local app_help_window = null;
 
 class Base_Window extends Fl_Window {
 	_child_windows=null;
+	_owner_window=null;
 	_db_map = null;
 	_sab = null;
 
@@ -368,10 +374,26 @@ class Base_Window extends Fl_Window {
 			if(!sender.as_window()) throw(_tr("Only windows can use this callback !"));
 			foreach(k, win in sender->_child_windows)
 			{
-				if(win) win->on_close_delete_cb(win, udata);
+				if(win) 
+				{
+					win->_owner_window = null; //prevents calling us to remove
+					win->on_close_delete_cb(win, udata);
+				}
 			}
 			sender->hide();
 			Fl.delete_widget(sender);
+			if(sender._owner_window)
+			{
+				local winName;
+				foreach(k,v in sender._owner_window._child_windows)
+				{
+					if(v == sender)
+					{
+						winName = k;
+					}
+				}
+				if(winName) table_rawdelete(sender._owner_window._child_windows, winName);
+			}
 		}
 	}
 
@@ -421,6 +443,7 @@ class Base_Window extends Fl_Window {
 			win = new WindowClass();
 			//win.label(winName);
 			_child_windows[winName] <- win; //.weakref();
+			win._owner_window = this.weakref();
 		}
 		return win;
 	}
@@ -700,17 +723,19 @@ class Edit_Base_Window extends Base_Window {
 	}
 
 	function setDbActionControls(choice, btn){
+		//print("setDbActionControls", __LINE__);
+		//fl_alert("setDbActionControls");
 		_choiceDbAction = choice;
 		_choiceDbAction.callback(on_Change_dbAction);
 		_btnDbAction = btn;
 		_btnDbAction.callback(on_btnDbAction);
 	}
-	function fill_choice_by_data (choice, data)
+	function fill_choice_by_data (choice, data, description_idx=1)
 	{
 		for(local i=0, max_count = data.size(); i<max_count; ++i)
 		{
 			local rec = data[i];
-			choice->my_add(rec[0].tointeger(), rec[1]);
+			choice->my_add(rec[0].tointeger(), rec[description_idx]);
 			//choice->add(rec[1]);
 		}
 	}
@@ -726,7 +751,7 @@ class Edit_Base_Window extends Base_Window {
 	function on_btnDbAction(sender : Fl_Widget, udata : any)
 	{
 		this = sender->window();
-
+		//fl_alert("on_btnDbAction");
 		local cursor_wait = fl_cursor_wait();
 		try {
 			switch(_choiceDbAction->action())
@@ -790,7 +815,7 @@ class Edit_Base_Window extends Base_Window {
 		uw.get_widget_value(input_fld_map);
 	}
 	function do_insert(){
-		//fl_alert("do_insert");
+		//fl_alert("do_insert:" + __LINE__);
 		local dbu = dbUpdater();
 		dbu->dbAction = dbu.e_insert;
 		dbu->clear();
@@ -975,6 +1000,11 @@ class Fl_Data_Table extends Flv_Data_Table {
 		}
 	}
 
+	function has_calee_on_select()
+	{
+		return _call_this && (row() >= 0);
+	}
+	
 	function handle(event){
 		switch(event){
 			case FL_RELEASE:{
@@ -1005,8 +1035,11 @@ class Fl_Data_Table extends Flv_Data_Table {
 					case FL_KP_Enter:
 					case FL_Enter:
 					case FL_Key_Space:
-						if(!Fl.event_ctrl()){
-							row_selected(Fl_Data_Table_Events.e_update);
+						if(Fl.event_ctrl()){
+							sender->mark_row(true, true);
+						} else {
+							if(has_calee_on_select()) row_selected(Fl_Data_Table_Events.e_select);
+							else row_selected(Fl_Data_Table.e_update);
 						}
 					break;
 				}
@@ -1148,9 +1181,15 @@ class  List_Edit_Base_Window extends Edit_Base_Window {
 	constructor(px, py, pw, ph, pl){
 		base.constructor(px, py, pw, ph, pl);
 	}
+	function setDbActionControls(choice, btn)
+	{
+		base.setDbActionControls(choice, btn);
+		dbAction->action(DbAction_Enum.e_insert);
+	}
 	function on_btnDbAction(sender : Fl_Widget, udata : any)
 	{
 		this = sender->window();
+		//print("on_btnDbAction", __LINE__);
 		local rc = base.on_btnDbAction(sender, udata);
 		if(!rc) return rc;
 		local saved_row = grid->row();
@@ -1264,6 +1303,7 @@ class MyListSearchWindow extends ListSearchWindow {
 		search_str->value(search_for_str);
 		show();
 		do_search();
+		grid->take_focus();
 	}
 
 	function hasSelectRequestCall(){
@@ -1532,6 +1572,7 @@ class OurDynamicQuery extends DynamicQueryWindow
 
 class OurImages extends ImagesListEditWindow {
 	_search_options = null;
+	_search_by_image_id = 0;
 
 	constructor(){
 		base.constructor();
@@ -1552,10 +1593,12 @@ class OurImages extends ImagesListEditWindow {
 	function do_search(){
 		_search_options.query_limit = query_limit->value();
 		_search_options.search_str = db_images_name->value();
+		_search_options.image_id = _search_by_image_id;
 		local cursor_wait = fl_cursor_wait();
 		grid->clear_data_rows();
 		appServer.images_get_list(grid->_data, _search_options);
 		grid->recalc_data();
+		_search_by_image_id = 0;
 	}
 
 	function do_edit(aid){
@@ -2356,6 +2399,16 @@ class OurProductKit extends ProductKitGroup
 
 	function on_search_product_cb(sender : Fl_Widget, udata : any)
 	{
+		this = sender->window();
+		/*
+		local swin = getEntitiesListSearchWindow();
+		local cb = function(entity_id) {
+				show();
+				validate_enity_id(entity_id);
+			}
+		cb.setenv(this);
+		swin->search_for_me(db_orders_entity_name->value(), cb);
+		*/
 		show_create_owned(_products_list_window);
 		local search_str = db_product_kits_sell_description->value();
 		local doSearchLast = (search_str.len() == 1) && (search_str[0] == ' ');
@@ -2377,6 +2430,9 @@ class MyEditProductWindow extends EditProductWindow {
 	_ourHistory = null;
 	_ourProductKit = null;
 	_ourProductPrices = null;
+	_image_id = 0;
+	_image_changed = false;
+	
 	static _history_options = [
 		"--- Select one",
 		"Sales by date",
@@ -2422,6 +2478,8 @@ class MyEditProductWindow extends EditProductWindow {
 		db_products_sell_price.callback(on_change_prices);
 		db_products_sell_price2.callback(on_change_prices);
 		db_products_price_decimals.callback(on_change_prices);
+		
+		btnImage.callback(on_change_image);
 
 		load_aux_data();
 	}
@@ -2442,8 +2500,8 @@ class MyEditProductWindow extends EditProductWindow {
 	{
 		base.do_edit_delayed(udata);
 		delayed_focus(db_products_sell_description);
-		local image_id = table_get(_record, "image_id", false);
-		if(image_id && image_id.len()) button_show_db_image(btnImage, image_id.tointeger(), null, false, false);
+		_image_id = table_get(_record, "image_id", false);
+		if(_image_id && _image_id.len()) button_show_db_image(btnImage, _image_id.tointeger(), null, false, false);
 		else {
 			btnImage->hide();
 			//btnImage->image(&jpegNophoto);
@@ -2516,6 +2574,31 @@ class MyEditProductWindow extends EditProductWindow {
 			this["db_products_" + k].value(prices_rec[k]);
 		}
 	}
+	
+	function refresh_product_image()
+	{
+		if(_image_id) button_show_db_image(btnImage, _image_id, 0, false, false);
+		else 
+		{
+			btnImage->hide();
+			//btnImage->image(jpegNophoto);
+			btnImage->show();
+		}
+	}
+	
+	function validate_image_id(wdg, aid){
+		_image_id = aid.tointeger();
+		_image_changed = true;
+		refresh_product_image();
+	}
+	function on_change_image(sender, udata)
+	{
+		this = sender->window();
+		local win = showChildWindow("Images List/Edit", OurImages, true);
+		win->_search_by_image_id = _image_id;
+		win->search_for_me( "" , validate_image_id);
+	}
+	
 }
 
 class MyEditProductSalesWindow extends MyEditProductWindow {
@@ -2678,6 +2761,8 @@ class MyCalendarWindow extends CalendarWindow {
 	_last_row = null;
 	_last_col = null;
 	static _week_days_abbr = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+	_dest_widget = null;
+	_header = null;
 
 	constructor(){
 		base.constructor();
@@ -2694,13 +2779,189 @@ class MyCalendarWindow extends CalendarWindow {
 		}
 		grid->set_cols(cols_info, true);
 		makemonth();
+		
+		grid.callback(on_grid_cb);
+		grid.callback_when(FLVEcb_SELECTION_CHANGED | FLVEcb_CLICKED);
+		btnToday.callback(today_cb);
+		btnNextMonth.callback(next_month_cb);
+		btnPrevMonth.callback(prev_month_cb);
+		btnNextYear.callback(next_year_cb);
+		btnPrevYear.callback(prev_year_cb);
+		btnSelect.callback(date_selected_cb);
+		for(int i=0; i < 12; i++)
+		{
+			month_buttons.child(i).callback(goto_month_cb);
+		}		
 	}
-	function makemonth(){
-		local tm = CalendarBase.makemonth(2013, 1);
+	function makemonth(dt=null){
+		if(!dt)
+		{
+			dt = os.date("*t");
+		}
+		local tm = CalendarBase.makemonth(dt.year, dt.month);
 		grid->set_data(tm);
+		_date = dt;
+		refresh();
 	}
-	function cb_gui_destination_zone(sender : Fl_Widget, udata : any){
+	function refresh()
+	{
+		_header = format("%d - %d - %d", _date.year, _date.month+1, _date.day);
+		this.label_month.label(_header);
+		select_curr_day();
+		grid->redraw();
+	}
+
+	function addDays(n)
+	{
+		local jd = CalendarBase.get_julian_day(_date.year, _date.month, _date.day);
+		jd += n;
+		local ut = CalendarBase.julian_to_unix(jd);
+		_date = os.date("*t", ut);
+	}
+
+	function addMonths(n)
+	{
+		local cm = _date.month;
+		cm += n;
+		local years = cm / 12;
+		local month = cm % 12;
+		//print(_date.month, cm, years, month);
+		_date.year += month < 0 ? (years - 1) : years;
+		_date.month = month < 0 ? 11 : month;
+	}
+
+	function set_selected_date()
+	{
+		local gc = grid.col();
+		local gr = grid.row();
+		if((gr != _last_row) || (gc != _last_col))
+		{
+		    local jump = (gr*7+gc) - (_last_row*7+_last_col);
+		    addDays(jump);
+		    _last_col = gc;
+		    _last_row = gr;
+		    refresh();
+		}
+	}
+
+	function select_curr_day()
+	{
+		local day = _date.day;
+		if(day == grid->_data[grid.row()][grid.col()]) return;
+		for(int row=0; row < 6; row++)
+		{
+			local row_data = grid->_data[row];
+			for(int col=0; col < 7; col++)
+			{
+				if (row_data[col] == day)
+				{
+					//prevent days 25..31 of prev month
+					if(row == 0 && day > 7) continue;
+					grid.row(row);
+					grid.col(col);
+					_last_col = col;
+					_last_row = row;
+					return;
+				}
+			}
+		}
+	}
+
+	function on_grid_cb(sender : Fl_Widget, udata : any)
+	{
 		this = sender->window();
+		if(Fl.event_clicks() > 0)
+		{
+			//print("on_grid_cb", __LINE__);
+			Fl.event_clicks(0);
+			//select_curr_date();
+			if(Fl.focus() == grid){
+				btnSelect.do_callback();
+			}
+		}
+		else
+		{
+			//print("on_grid_cb", __LINE__);
+			//prevent changes based on grid position from outside
+			//if(Fl::focus() == &gui_grid)
+			if(Fl.focus() != grid) grid.take_focus();
+			set_selected_date();
+		}
+	}
+
+	function today_cb(sender : Fl_Widget, udata : any)
+	{
+		this = sender->window();
+		makemonth();
+		select_curr_day();
+	}
+	
+	function next_month_cb(sender : Fl_Widget, udata : any)
+	{
+		this = sender->window();
+		addMonths(1);
+		makemonth(_date);
+	}
+
+	function prev_month_cb(sender : Fl_Widget, udata : any)
+	{
+		this = sender->window();
+		addMonths(-1);
+		makemonth(_date);
+	}
+
+	function next_year_cb(sender : Fl_Widget, udata : any)
+	{
+		this = sender->window();
+		++_date.year;
+		makemonth(_date);
+	}
+
+	function prev_year_cb(sender : Fl_Widget, udata : any)
+	{
+		this = sender->window();
+		--_date.year;
+		makemonth(_date);
+	}
+	
+	function goto_month_cb(sender : Fl_Widget, udata : any)
+	{
+		this = sender->window();
+		local month = 0;
+		for(local i=0; i < 12; i++)
+		{
+		    if(sender == month_buttons.child(i))
+		    {
+			month = i;
+			break;
+		    }
+		}
+		_date.month = month;
+		makemonth(_date);
+	}
+
+	function date_selected_cb(sender : Fl_Widget, udata : any)
+	{
+		this = sender->window();
+		local win = grid.window();
+		if(win) win->hide();
+		if(_dest_widget)
+		{
+			local dt = format("%d-%0.2d-%0.2d", _date.year, _date.month+1, _date.day);
+			_dest_widget->value(dt);
+		}
+	}
+	
+	function cb_gui_destination_zone(sender, udata)
+	{
+		this = sender->window();
+	}
+	
+	function show_date_for_me(wdg, fmt)
+	{
+		_dest_widget = wdg.weakref();
+		local dt = CalendarBase.parse_date(_dest_widget->value());
+		makemonth(dt);
 	}
 }
 
@@ -2760,8 +3021,20 @@ class MyEditOrderWindow extends EditOrderWindow {
 
 		btnCalcDelivery.callback(cb_btnCalcDelivery);
 		btnShowCalendar.callback(cb_btnShowCalendar);
+		
 		btnSearchEntity.callback(cb_btnSearchEntity);
+		db_orders_entity_name.callback(cb_btnSearchEntity);
+
 		btnSearchProduct.callback(cb_btnSearchProduct);
+		db_orders_lines_description.callback(cb_btnSearchProduct);
+		
+		db_orders_lines_quantity.callback(on_calc_line_cb);
+		db_orders_lines_weight.callback(on_calc_line_cb);
+		db_orders_lines_price.callback(on_calc_line_cb);
+		db_orders_lines_price_decimals.callback(on_calc_line_cb);
+		db_orders_lines_discount_pct.callback(on_calc_line_cb);
+		db_orders_lines_sales_tax1_pct.callback(on_calc_line_cb);
+		db_orders_lines_sales_tax2_pct.callback(on_calc_line_cb);
 	}
 	function on_first_time_show(){
 		local data = [];
@@ -2864,10 +3137,16 @@ class MyEditOrderWindow extends EditOrderWindow {
 
 	function fill_edit_lines_form(asBlank=false, doFocus=true, doCalc=true){
 		local  wfq = Widget_Fill_By_Map(_line_record);
-		if(asBlank) set_decimal_places(2);
-		else set_decimal_places(_line_record.price_decimals.tointeger());
 		local input_fld_map = get_input_fields("orders_lines");
 		wfq.set_widget_value_by_map(input_fld_map);
+		if(asBlank)
+		{
+			local dp = 2;
+			set_decimal_places(dp);
+			db_orders_lines_price_decimals->value(dp.tostring());
+			db_orders_lines_quantity->value("1");
+		}	
+		else set_decimal_places(_line_record.price_decimals.tointeger());
 
 		if(doFocus) {
 			linesTab->value(group_lines);
@@ -2883,6 +3162,7 @@ class MyEditOrderWindow extends EditOrderWindow {
 	function cb_btnShowCalendar(sender : Fl_Widget, udata : any){
 		this = sender->window();
 		local dc = getChildWindow("Calendar", MyCalendarWindow);
+		dc.show_date_for_me(db_orders_order_date, "YMD");
 		dc.show();
 	}
 
@@ -2899,7 +3179,8 @@ class MyEditOrderWindow extends EditOrderWindow {
 	}
 	function cb_btnSearchEntity(sender : Fl_Widget, udata : any){
 		this = sender->window();
-		if(sender == db_orders_entity_name && db_orders_entity_id->value())
+		local entity_id = db_orders_entity_id->value();
+		if(sender == db_orders_entity_name && (entity_id && entity_id.size()))
 		{
 			//if we have a valid entity id we accept direct changes to entity name
 			linesTab->value(group_lines);
@@ -2926,11 +3207,14 @@ class MyEditOrderWindow extends EditOrderWindow {
 	function validate_product_id(product_id){
 		db_orders_lines_product_id->value(product_id.tostring());
 	}
-	function cb_btnSearchProduct(sender : Fl_Widget, udata : any){
+
+	function cb_btnSearchProduct(sender : Fl_Widget, udata : any)
+	{
 		this = sender->window();
 		if(sender == db_orders_lines_description)
 		{
-			if(db_orders_lines_product_id->value())
+			local product_id = db_orders_lines_product_id->value();
+			if(product_id && product_id.len())
 			{
 				//if we have a valid product id we accept direct changes to product description
 				return;
@@ -2949,6 +3233,61 @@ class MyEditOrderWindow extends EditOrderWindow {
 			}
 		cb.setenv(this);
 		swin->search_for_me(db_orders_lines_description->value(), cb);
+	}
+	
+	function on_calc_line_cb(sender : Fl_Widget, udata : any)
+	{
+		this = sender->window();
+
+		local calc_fields = [
+			"product_id",
+			"quantity",
+			"weight",
+			"price",
+			"first_total",
+			"discount_pct",
+			"discount_amt",
+			"line_subtotal",
+			"sales_tax1_pct",
+			"sales_tax1_amt",
+			"sales_tax2_pct",
+			"line_total",
+			"price_decimals",
+			];
+		local calc_fields_dbnames;
+		if(!calc_fields_dbnames)
+		{
+			calc_fields_dbnames = {};
+		}
+		
+		foreach(str in calc_fields)
+		{
+			local fldn =  table_rawget(calc_fields_dbnames, str, false); 
+			if(!fldn)
+			{
+				fldn = "db_orders_lines_" + str;
+				calc_fields_dbnames[str] <- fldn;
+			}
+			local fld = this[fldn];
+			if(fld == sender) _line_record["trigger"] <- str;
+			_line_record[str] <- fld->value();
+		}
+
+		if(udata == -1)
+		{
+		    _line_record.clear();
+		}
+		else
+		{
+			appServer.do_dbaction(_line_record, "calc_line", "orders", _line_edit_id, 0);
+		}
+
+		foreach(str in calc_fields)
+		{
+			local fldn =  table_rawget(calc_fields_dbnames, str, false); 
+			local fld = this[fldn];
+			fld->value(_line_record[str] || "");
+		}
 	}
 
 	function on_show_chart_cb(sender : Fl_Widget, udata : any){
@@ -3237,6 +3576,9 @@ class PaymentsListSearch extends MyListSearchWindow {
 		btnInsert->hide();
 		if(doInitialSearch) delayed_method_call(this, this.do_search, null);
 	}
+	function fill_search_options(){
+		pack_search_options.add(Fl_Radio_Button());
+	}
 	function get_search_options(){
 		_search_options.search_str = search_str.value();
 		_search_options.entities = _search_by_entities.value() == 1;
@@ -3268,6 +3610,340 @@ class PaymentsBuysListSearch extends PaymentsListSearch {
 	}
 	function get_edit_window(){return getChildWindow("Payment/Buys Edit", MyPaymentsBuysWindow);}
 }
+
+//General Ledger
+class OurGlGroups extends GLGroupsListEditWindow {
+	constructor(){
+		base.constructor();
+		dbUpdater()->table_name = "gl_groups";
+		setup_grid(grid, this);
+		setDbActionControls(dbAction, btnDbAction);
+		local cols_info = [
+			"id|ID|0",
+			"code|Code|8",
+			"description|Description|-1",
+			"debit_op|Dbt|8|C",
+			"credit_op|Cdt|8|C",
+		];
+		grid->set_cols(cols_info);
+		do_search();
+	}
+	function do_search(){
+		local cursor_wait = fl_cursor_wait();
+		grid->clear_data_rows();
+		appServer.gl_groups_get_list(grid->_data);
+		grid->recalc_data();
+	}
+
+	function get_widget_changed(uw)
+	{
+		//if(!uw.validate_regex(db_order_types_with_credit, "[+-]", true))
+		//    throw TWidgetValidateException(db_order_types_with_credit,
+		//				   _tr("Valid options are +- !"));
+		base.get_widget_changed(uw);
+	}
+}
+
+class MyGLChartEditWindow extends GLChartEditWindow {
+
+	constructor(){
+		base.constructor();
+		dbUpdater()->table_name = "gl_chart";
+		db_gl_chart_notes->wrap_mode(1, 0);
+		setDbActionControls(dbAction, btnDbAction);
+	}
+	function on_first_time_show(){
+		local data = [];
+		appServer.gl_groups_get_short_list(data);
+		fill_choice_by_data(db_gl_chart_gl_group_id, data, 2);
+	}
+	
+	function do_edit_delayed(udata)
+	{
+		base.do_edit_delayed(udata);
+		delayed_focus(db_gl_chart_group_code);
+	}
+}
+
+class GlChartOfAccountsListSearch extends MyListSearchWindow {
+	_search_by_description = null;
+	_search_by_notes = null;
+	_search_by_code = null;
+	_search_by_active = null;
+	_search_by_headers = null;
+	_search_by_accounts = null;
+
+	constructor(doInitialSearch=false){
+		base.constructor(doInitialSearch);
+		label(_tr("GL Chart of Accounts List/Search"));
+		local cols_info = [
+			"id|ID|0|R",
+			"group_code|Grp.|3|C",
+			"code|Code|8",
+			"description|Description|-1",
+			"is_header|Hdr.|3|C|B",
+		];
+		grid->set_cols(cols_info);
+		_search_by_description = create_search_by("Description");
+		_search_by_notes = create_search_by("Notes");
+		_search_by_code = create_search_by("Code");
+		_search_by_description->setonly();
+		_search_by_active = create_search_by2("Active");
+		_search_by_headers = create_search_by2("Headers");
+		_search_by_accounts = create_search_by2("Accounts");
+		_search_by_active->value(1);
+		if(doInitialSearch) delayed_method_call(this, this.do_search, null);
+	}
+	function get_search_options(){
+		_search_options.search_str = search_str.value();
+		_search_options.description = _search_by_description.value() == 1;
+		_search_options.notes = _search_by_notes.value() == 1;
+		_search_options.code = _search_by_code.value() == 1;
+		_search_options.active = _search_by_active.value() == 1;
+		_search_options.headers = _search_by_headers.value() == 1;
+		_search_options.accounts = _search_by_accounts.value() == 1;
+		return _search_options;
+	}
+
+	function get_search_data(data, so){
+		appServer.gl_chart_get_list(grid->_data, so);
+	}
+	function get_edit_window(){return getChildWindow("GL Chart of Account Edit", MyGLChartEditWindow);}
+}
+
+class MyGLTransactionEditWindow extends GLTransactionEditWindow {
+	
+	_line_edit_id = 0;
+	_account_id = 0;
+	_lined_edit_credit_op = null;
+	_lined_edit_debit_op = null;
+	_line_record = null;
+	
+	constructor(){
+		base.constructor();
+		dbUpdater()->table_name = "gl_transactions";
+		local cols_info = [
+			"id|ID|0",
+			"code|Code|8",
+			"description|Account|-1",
+			"account_op|Op.|5",
+			"debit|Debit|9|R|D",
+			"credit|Credit|9|R|D",
+		];
+		grid_lines->set_cols(cols_info);
+		setup_grid(grid_lines, this);
+		_line_record = {};
+		_line_edit_id = 0;
+    
+		setDbActionControls(dbAction, btnDbAction);
+
+		_line_edit_id = _account_id = 0;
+		_lined_edit_credit_op = _lined_edit_debit_op = "";
+		
+		db_gl_transactions_transaction_date.callback(on_change_date);
+		btnShowCalendar.callback(calendar_for_transaction_date);
+		db_gl_transactions_lines_due_date.callback(on_change_date);
+		btnDueDateCalendar.callback(calendar_for_due_date);
+
+		db_gl_transactions_lines_debit.callback(on_change_cebit_credit_cb);
+		db_gl_transactions_lines_credit.callback(on_change_cebit_credit_cb);
+
+		db_gl_transactions_lines_group_code.callback(on_search_account_cb);
+		db_gl_transactions_lines_description.callback(on_search_account_cb);
+		
+		btnSearchAccount.callback(on_search_account_cb);
+		btnSaveLine.callback(on_save_line_cb);
+		btnClearLine.callback(on_clear_line_cb);
+		btnBalanceLine.callback(on_balance_line_cb);		
+	}
+	
+	function do_edit(aid)
+	{
+		base.do_edit(aid);
+		/*
+		appServer().get_record(_line_record, "gl_transactions", 0, aid, "&line=1");
+		//dbg_dump_map(_line_record);
+		fill_edit_lines_form(aid == 0, false);
+		_line_edit_id = aid;
+		if(aid) delayed_focus(db_gl_transactions_lines_debit);
+		*/
+	}
+	
+	function do_edit_delayed(udata)
+	{
+		base.do_edit_delayed(udata);
+		delayed_focus(db_gl_transactions_description);
+	}
+	
+	function set_debit_credit_label(debit_op, credit_op){
+		local oneStr = "%s        ";
+		local twoStr = "%s (%s)   ";
+		local ftm_debit = debit_op ? twoStr : oneStr;
+		local ftm_credit = credit_op ? twoStr : oneStr;
+		local buf = format(ftm_debit, _tr("Debit"), debit_op);
+		db_gl_transactions_lines_debit->copy_label(buf);
+		buf = format(ftm_credit, _tr("Credit"), credit_op);
+		db_gl_transactions_lines_credit->copy_label(buf);
+	}
+	
+	function fill_edit_form(asBlank=false){
+		base.fill_edit_form(asBlank);
+		fill_edit_lines_form(true, false); //clear lines entries
+	}
+	
+	function fill_edit_lines_form(asBlank=false, doFocus=true, doCalc=true)
+	{
+		//if(asBlank) set_decimal_places(2);
+		//else set_decimal_places(_line_record.price_decimals.tointeger());
+		local rec = _line_record;
+		if(!rec) rec = {};
+		db_gl_transactions_lines_group_code->value(table_rawget(rec, "group_code", ""));
+		db_gl_transactions_lines_gl_code->value(table_rawget(rec, "gl_code", ""));
+		db_gl_transactions_lines_description->value(table_rawget(rec, "description", ""));
+		set_debit_credit_label(table_rawget(rec, "debit_op", false), table_rawget(rec, "credit_op", false));
+		if(doFocus) {
+			delayed_focus(db_gl_transactions_lines_debit);
+		}
+	}
+
+	function on_change_date(wdg, udata)
+	{
+		local vdate = wdg->value();
+		/*
+		tm tmTime;
+		if(ParseDateString(vdate, &tmTime))
+		{
+		    char buf[64];
+		    strftime(buf, sizeof(buf), "%Y-%m-%d", &tmTime);
+		    db_gl_transactions_transaction_date->value(buf);
+		}
+		else
+		{
+		    fl_alert(_tr("Invalid date !"));
+		    delayed_focus(wdg);
+		}
+		*/
+	}
+
+	function showCalendarFor(wdg)
+	{
+		local dc = getChildWindow("Calendar", MyCalendarWindow);
+		dc.show_date_for_me(wdg, "YMD");
+		dc.show();
+	}
+
+	function calendar_for_transaction_date(sender : Fl_Widget, udata : any)
+	{
+		this = sender->window();
+		showCalendarFor(db_gl_transactions_transaction_date);
+	}
+
+	function calendar_for_due_date(sender : Fl_Widget, udata : any)
+	{
+		this = sender->window();
+		showCalendarFor(db_gl_transactions_lines_due_date);
+	}
+	
+	function on_change_account_code(sender : Fl_Widget, udata : any)
+	{
+		this = sender->window();
+	}
+
+	function validate_account_id(account_id)
+	{
+		appServer.get_record(_line_record, "gl_chart", 0, account_id, "&for_transaction=1");
+		_line_edit_id = account_id;
+		fill_edit_lines_form();
+	}
+
+	function on_search_account_cb(sender : Fl_Widget, udata : any)
+	{
+		this = sender->window();
+		local swin = getChildWindow("Chart of Accounts", GlChartOfAccountsListSearch);
+		local cb = function(account_id) {
+				show();
+				validate_account_id(account_id);
+			}
+		cb.setenv(this);
+		local search_str;
+		if(sender == db_gl_transactions_lines_group_code){
+		    search_str = db_gl_transactions_lines_group_code->value();
+		    //if(search_str.size()) search_str = " " + search_str;
+		    swin->_search_by_code->setonly();
+		}
+		else
+		{
+		    search_str = db_gl_transactions_lines_description->value();
+		    swin->_search_by_description->setonly();
+		}
+		swin->search_for_me(search_str, cb);
+	}
+	
+	function on_change_cebit_credit_cb(sender : Fl_Widget, udata : any)
+	{
+		this = sender->window();
+	}
+	
+	function on_clear_line_cb(sender : Fl_Widget, udata : any)
+	{
+		this = sender->window();
+	}
+	
+	function on_save_line_cb(sender : Fl_Widget, udata : any)
+	{
+		this = sender->window();
+	}
+	
+	function on_balance_line_cb(sender : Fl_Widget, udata : any)
+	{
+		this = sender->window();
+	}
+}
+
+class GlTransactionsListSearch extends MyListSearchWindow {
+	_search_by_description = null;
+	_search_by_date = null;
+
+	constructor(doInitialSearch=false){
+		base.constructor(doInitialSearch);
+		label(_tr("GL Transactions List/Search"));
+		local cols_info = [
+			"id|ID|6",
+			"transaction_date|Date|9",
+			"descriptio|Description|-1",
+			"amount|Amount|12|R|M",
+		];
+		grid->set_cols(cols_info);
+		fill_search_options();
+		if(doInitialSearch) delayed_method_call(this, this.do_search, null);
+	}
+	
+	function fill_search_options()
+	{
+		_search_by_description = create_search_by("Description");
+		_search_by_date = create_search_by("Date");
+		_search_by_description->setonly();
+	}
+	
+	function get_search_options()
+	{
+		_search_options.search_str = search_str.value();
+		_search_options.description = _search_by_description.value() == 1;
+		_search_options.date = _search_by_date.value() == 1;
+		return _search_options;
+	}
+
+	function get_data_group_filter(data)
+	{
+		appServer.gl_chart_get_short_list(data);
+	}
+	
+	function get_search_data(data, so){
+		appServer.gl_transactions_get_list(grid->_data, so);
+	}
+	function get_edit_window(){return getChildWindow("GL Transaction Edit", MyGLTransactionEditWindow);}
+}
+
 
 class MyMainWindow extends MainWindow {
 	constructor() {
@@ -3359,9 +4035,18 @@ class MyMainWindow extends MainWindow {
 		this = sender.window();
 		local win = showSearchChildWindow("Products List/Search", ProductsListSearch);
 	}
-	function cb_btnGLGroups(sender : Fl_Widget, udata : any){print(__LINE__);}
-	function cb_btnGLChart(sender : Fl_Widget, udata : any){print(__LINE__);}
-	function cb_btnGLTransactions(sender : Fl_Widget, udata : any){print(__LINE__);}
+	function cb_btnGLGroups(sender : Fl_Widget, udata : any){
+		this = sender.window();
+		local win = showChildWindow("GL Groups List/Edit", OurGlGroups, true);
+	}
+	function cb_btnGLChart(sender : Fl_Widget, udata : any){
+		this = sender.window();
+		local win = showSearchChildWindow("GL Chart of Accounts List/Edit", GlChartOfAccountsListSearch);
+	}
+	function cb_btnGLTransactions(sender : Fl_Widget, udata : any){
+		this = sender.window();
+		local win = showSearchChildWindow("GL Transactions List/Edit", GlTransactionsListSearch);
+	}
 	function cb_btnOrdersSum(sender : Fl_Widget, udata : any){print(__LINE__);}
 	function cb_btnSalesTaxRates(sender : Fl_Widget, udata : any){
 		this = sender.window();

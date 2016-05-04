@@ -14,7 +14,7 @@ class DBTableUpdateBase {
 	table_name = null;
 	_field_changes = null;
 	edit_id = null;
-	version = null;
+	version = 0;
 	_dbChanges = null;
 	dbAction = null;
 	hasVersion = null;
@@ -98,7 +98,6 @@ class DBTableUpdateBase {
 		local httpRequest = HTTPConn(my_result);
 		local appServer = AppServer.getAppServer();
 		appServer.httpcon_setup(httpRequest);
-
 		local httpBody = blob(0, 8192);
 		local url = "/DB/Action";
 		get_http_params(httpBody);
@@ -154,7 +153,7 @@ class DBTableUpdateBase {
 		{
 			version = 0;
 			local rec = {};
-			appServer.asle2map(my_result, rec);
+			appServer.sle2map(my_result, rec);
 			local new_id = table_rawget(rec, "id", 0).tointeger();
 			if(new_id == 0) throw("Could not update this record !");
 			edit_id = new_id;
@@ -198,7 +197,11 @@ class DBTableUpdateBase {
 		return lastParam;
 	}
 
-	function get_db(){return null;}
+	function get_db()
+	{
+		throw("DBTableUpdateBase:get_db no override for get_db");
+		return null;
+	}
 
 	function bind_field(stmt, pos, field, value){
 		local val = value.tostring();
@@ -229,6 +232,7 @@ class DBTableUpdateBase {
 		    sql += sql2;
 
 		    //printf("%s\n", sql.c_str());
+		    fl_alert(sql);
 
 		    local stmt = db.preapre(sql);
 		    for(local i=0; i<nchanges; ++i)
