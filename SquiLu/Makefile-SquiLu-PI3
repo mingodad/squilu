@@ -55,7 +55,8 @@ CFLAGS = $(INC) -O3 -Wall -fno-strict-aliasing  \
     -DWITH_POSTGRESQL2=1 \
     -DWITH_UUID=1 \
     -DSQ_USE_MKSTEMP=1 \
-    -DSQ_USE_LOCALTIME_R=1
+    -DSQ_USE_LOCALTIME_R=1 \
+    -DSQ_ENABLE_INCLUDES=1
 
 RESINC = 
 #LIBDIR =  -Llib -L../myaxtls -L../mpdecimal -L../discount
