@@ -8,6 +8,64 @@ typedef SQChar LexChar;
 typedef	unsigned char LexChar;
 #endif
 
+struct SQLexerData
+{
+    SQInteger curtoken;
+    SQBool reached_eof;
+    SQInteger prevtoken;
+    SQInteger currentline;
+    SQInteger currentcolumn;
+    SQInteger lasttokenline;
+    SQInteger lasttokencolumn;
+    const SQChar *svalue;
+    sqvector<SQChar> longstr;
+    SQInteger nvalue;
+    SQFloat fvalue;
+    LexChar currdata;
+    SQChar lasterror[256];
+    SQLexerData()
+    {
+        clear();
+    }
+    SQLexerData(SQLexerData *src)
+    {
+        copy(src);
+    }
+    void copy(SQLexerData *src)
+    {
+        curtoken = src->curtoken;
+        reached_eof = src->reached_eof;
+        prevtoken = src->prevtoken;
+        currentline = src->currentline;
+        currentcolumn = src->currentcolumn;
+        lasttokenline = src->lasttokenline;
+        lasttokencolumn = src->lasttokencolumn;
+        longstr.resize(src->longstr.size());
+        memcpy(longstr._vals, src->longstr._vals, src->longstr.size());
+        svalue = &longstr[0];
+        nvalue = src->nvalue;
+        fvalue = src->fvalue;
+        currdata = src->currdata;
+        scstrcpy(lasterror, src->lasterror);
+    }
+    void clear()
+    {
+        curtoken = 0;
+        reached_eof = SQFalse;
+        prevtoken = -1;
+        currentline = 0;
+        currentcolumn = 0;
+        lasttokenline = 0;
+        lasttokencolumn = 0;
+        longstr.resize(0);
+        svalue = NULL;
+        nvalue = 0;
+        fvalue = 0.0;
+        currdata = 0;
+        lasterror[0] = '\0';
+    }
+};
+
 struct SQLexer
 {
 	SQLexer();
@@ -18,6 +76,7 @@ struct SQLexer
 	SQTable * GetKeywords();
 	SQInteger Error(const SQChar *err, ...);
 	SQInteger Lex();
+	SQInteger LookaheadLex();
 	const SQChar *Tok2Str(SQInteger tok);
 	const SQChar *GetTokenName(int tk_code);
 private:
@@ -36,26 +95,15 @@ private:
     SQInteger AddUTF8(SQUnsignedInteger ch);
 #endif
     SQInteger ProcessStringHexEscape(SQChar *dest, SQInteger maxdigits);
-	SQInteger _curtoken;
+    SQLexerData _data, _data_lookahead;
 	SQTable *_keywords;
-	SQBool _reached_eof;
 public:
-	SQInteger _prevtoken;
-	SQInteger _currentline;
-	SQInteger _lasttokenline;
-	SQInteger _lasttokencolumn;
-	SQInteger _currentcolumn;
-	const SQChar *_svalue;
-	SQInteger _nvalue;
-	SQFloat _fvalue;
+    SQLexerData *data;
 	SQLEXREADFUNC _readf;
 	SQUserPointer _up;
-	LexChar _currdata;
 	SQSharedState *_sharedstate;
-	sqvector<SQChar> _longstr;
 	CompilerErrorFunc _errfunc;
 	void *_errtarget;
-	SQChar _lasterror[256];
 	SQBool _want_comments;
 };
 

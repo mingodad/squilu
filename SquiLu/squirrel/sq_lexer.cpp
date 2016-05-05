@@ -98,7 +98,7 @@ static SQRESULT sq_SQLexer_lasterror(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_SQLexer_INSTANCE();
 
-    sq_pushstring(v, self->lex->_lasterror, -1);
+    sq_pushstring(v, self->lex->data->lasterror, -1);
 	return 1;
 }
 
@@ -106,7 +106,7 @@ static SQRESULT sq_SQLexer_longstr(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_SQLexer_INSTANCE();
 
-    sq_pushstring(v, &self->lex->_longstr[0], self->lex->_longstr.size());
+    sq_pushstring(v, &self->lex->data->longstr[0], self->lex->data->longstr.size());
 	return 1;
 }
 
@@ -136,7 +136,7 @@ static SQRESULT sq_SQLexer_svalue(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_SQLexer_INSTANCE();
 
-    if(self->lex->_svalue) sq_pushstring(v, self->lex->_svalue, -1);
+    if(self->lex->data->svalue) sq_pushstring(v, self->lex->data->svalue, -1);
     else sq_pushnull(v);
 	return 1;
 }
@@ -145,7 +145,7 @@ static SQRESULT sq_SQLexer_nvalue(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_SQLexer_INSTANCE();
 
-    sq_pushinteger(v, self->lex->_nvalue);
+    sq_pushinteger(v, self->lex->data->nvalue);
 	return 1;
 }
 
@@ -153,7 +153,7 @@ static SQRESULT sq_SQLexer_fvalue(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_SQLexer_INSTANCE();
 
-    sq_pushfloat(v, self->lex->_fvalue);
+    sq_pushfloat(v, self->lex->data->fvalue);
 	return 1;
 }
 
@@ -161,7 +161,7 @@ static SQRESULT sq_SQLexer_prevtoken(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_SQLexer_INSTANCE();
 
-    sq_pushinteger(v, self->lex->_prevtoken);
+    sq_pushinteger(v, self->lex->data->prevtoken);
 	return 1;
 }
 
@@ -169,7 +169,7 @@ static SQRESULT sq_SQLexer_lasttokenline(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_SQLexer_INSTANCE();
 
-    sq_pushinteger(v, self->lex->_lasttokenline);
+    sq_pushinteger(v, self->lex->data->lasttokenline);
 	return 1;
 }
 
@@ -177,7 +177,7 @@ static SQRESULT sq_SQLexer_lasttokencolumn(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_SQLexer_INSTANCE();
 
-    sq_pushinteger(v, self->lex->_lasttokencolumn);
+    sq_pushinteger(v, self->lex->data->lasttokencolumn);
 	return 1;
 }
 
@@ -185,7 +185,7 @@ static SQRESULT sq_SQLexer_currentline(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_SQLexer_INSTANCE();
 
-    sq_pushinteger(v, self->lex->_currentline);
+    sq_pushinteger(v, self->lex->data->currentline);
 	return 1;
 }
 
@@ -193,7 +193,7 @@ static SQRESULT sq_SQLexer_currentcolumn(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_SQLexer_INSTANCE();
 
-    sq_pushinteger(v, self->lex->_currentcolumn);
+    sq_pushinteger(v, self->lex->data->currentcolumn);
 	return 1;
 }
 
@@ -202,6 +202,14 @@ static SQRESULT sq_SQLexer_lex(HSQUIRRELVM v){
 	GET_SQLexer_INSTANCE();
 
     sq_pushinteger(v, self->lex->Lex());
+	return 1;
+}
+
+static SQRESULT sq_SQLexer_lookaheadlex(HSQUIRRELVM v){
+	SQ_FUNC_VARS_NO_TOP(v);
+	GET_SQLexer_INSTANCE();
+
+    sq_pushinteger(v, self->lex->LookaheadLex());
 	return 1;
 }
 
@@ -241,6 +249,7 @@ static SQRegFunction SQLexer_obj_funcs[]={
 	_DECL_SQLEXER_FUNC(first_enum_token, 1, _SC(".")),
 	_DECL_SQLEXER_FUNC(last_enum_token, 1, _SC(".")),
 	_DECL_SQLEXER_FUNC(lex, 1, _SC(".")),
+	_DECL_SQLEXER_FUNC(lookaheadlex, 1, _SC(".")),
 	{0,0}
 };
 #undef _DECL_SQLEXER_FUNC

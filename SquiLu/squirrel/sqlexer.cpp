@@ -10,14 +10,14 @@
 #include "sqcompiler.h"
 #include "sqlexer.h"
 
-#define CUR_CHAR (_currdata)
-#define RETURN_TOKEN(t) { _prevtoken = _curtoken; _curtoken = t; return t;}
+#define CUR_CHAR (data->currdata)
+#define RETURN_TOKEN(t) { data->prevtoken = data->curtoken; data->curtoken = t; return t;}
 #define IS_EOB() (CUR_CHAR <= SQUIRREL_EOB)
-//#define NEXT() {SQInteger rc = Next(); if(rc < 0) return rc; _currentcolumn++;}
+//#define NEXT() {SQInteger rc = Next(); if(rc < 0) return rc; data->currentcolumn++;}
 #define NEXT() {if(Next()) return -1;}
-#define INIT_TEMP_STRING() { _longstr.resize(0);}
-#define APPEND_CHAR(c) { _longstr.push_back(c);}
-#define TERMINATE_BUFFER() {_longstr.push_back(_SC('\0'));}
+#define INIT_TEMP_STRING() { data->longstr.resize(0);}
+#define APPEND_CHAR(c) { data->longstr.push_back(c);}
+#define TERMINATE_BUFFER() {data->longstr.push_back(_SC('\0'));}
 #define ADD_KEYWORD(key,id) tbl->NewSlot( SQString::Create(_sharedstate, _SC(#key)) ,SQInteger(id))
 
 SQLexer::SQLexer(){_keywords=0;}
@@ -30,8 +30,8 @@ SQInteger SQLexer::Init(SQSharedState *ss, SQLEXREADFUNC rg,
                         SQUserPointer up,CompilerErrorFunc efunc,void *ed, SQBool want_comments)
 {
     _want_comments = want_comments;
-    _lasterror[0] = '\0';
-    _svalue = NULL;
+    data = &_data;
+    _data_lookahead.currentline = -1;
 	_errfunc = efunc;
 	_errtarget = ed;
 	_sharedstate = ss;
@@ -44,11 +44,11 @@ SQInteger SQLexer::ResetReader(SQLEXREADFUNC rg, SQUserPointer up, SQInteger lin
 {
 	_readf = rg;
 	_up = up;
-	_lasttokenline = _currentline = line;
-	_lasttokencolumn = 0;
-	_currentcolumn = 0;
-	_prevtoken = -1;
-	_reached_eof = SQFalse;
+	data->lasttokenline = data->currentline = line;
+	data->lasttokencolumn = 0;
+	data->currentcolumn = 0;
+	data->prevtoken = -1;
+	data->reached_eof = SQFalse;
 	return Next();
 }
 
@@ -148,9 +148,9 @@ SQInteger SQLexer::Error(const SQChar *fmt, ...)
 {
     va_list vl;
     va_start(vl, fmt);
-    scvsprintf(_lasterror, sizeof(_lasterror), fmt, vl);
+    scvsprintf(data->lasterror, sizeof(data->lasterror), fmt, vl);
     va_end(vl);
-	if(_errfunc) _errfunc(_errtarget,_lasterror);
+	if(_errfunc) _errfunc(_errtarget,data->lasterror);
 	return -1;
 }
 
@@ -159,12 +159,12 @@ SQInteger SQLexer::Next()
 	SQInteger t = _readf(_up);
 	if(t > MAX_CHAR) return Error(_SC("Invalid character"));
 	if(t != 0) {
-		_currdata = (LexChar)t;
-		++_currentcolumn;
+		data->currdata = (LexChar)t;
+		++data->currentcolumn;
 		return 0;
 	}
-	_currdata = SQUIRREL_EOB;
-	_reached_eof = SQTrue;
+	data->currdata = SQUIRREL_EOB;
+	data->reached_eof = SQTrue;
 	return 0;
 }
 
@@ -193,7 +193,6 @@ const SQChar *SQLexer::GetTokenName(int tk_code) {
     return str_tk;
 }
 
-
 SQInteger SQLexer::LexBlockComment()
 {
 /*
@@ -201,7 +200,7 @@ SQInteger SQLexer::LexBlockComment()
     {
         NEXT();
         if(CUR_CHAR != _SC('*')){ //document comment
-            printf("Doument comment found at line %d\n", _currentline);
+            printf("Doument comment found at line %d\n", data->currentline);
         }
     }
 */
@@ -217,7 +216,7 @@ SQInteger SQLexer::LexBlockComment()
 			    continue;
 			    };
 			break;
-			case _SC('\n'): _currentline++; break;
+			case _SC('\n'): data->currentline++; break;
 			case SQUIRREL_EOB: return Error(_SC("missing \"*/\" in comment"));
 		}
 		if(_want_comments) APPEND_CHAR(CUR_CHAR);
@@ -226,11 +225,12 @@ SQInteger SQLexer::LexBlockComment()
     if(_want_comments)
     {
         TERMINATE_BUFFER();
-        if(_longstr.size() > 0) _longstr.pop_back(); //remove the last '*'
-        _svalue = &_longstr[0];
+        if(data->longstr.size() > 0) data->longstr.pop_back(); //remove the last '*'
+        data->svalue = &data->longstr[0];
     }
 	return 0;
 }
+
 SQInteger SQLexer::LexLineComment()
 {
     if(_want_comments) INIT_TEMP_STRING();
@@ -239,24 +239,44 @@ SQInteger SQLexer::LexLineComment()
     if(_want_comments)
     {
         TERMINATE_BUFFER();
-        _svalue = &_longstr[0];
+        data->svalue = &data->longstr[0];
     }
 	return 0;
 }
 
+SQInteger SQLexer::LookaheadLex()
+{
+    if(_data_lookahead.currentline >= 0)
+    {
+        return Error(_SC("lex lookahead already done"));
+    }
+    _data_lookahead.copy(&_data);
+    data = &_data_lookahead;
+    Lex();
+    data = &_data;
+    return _data_lookahead.curtoken;
+}
+
 SQInteger SQLexer::Lex()
 {
-	_lasttokenline = _currentline;
-	_lasttokencolumn = _currentcolumn;
+    if(_data_lookahead.currentline >= 0 && data != &_data_lookahead)
+    {
+        //we did a lookahead before, reuse it now
+        _data.copy(&_data_lookahead);
+        _data_lookahead.currentline = -1;
+        return _data.curtoken;
+    }
+	data->lasttokenline = data->currentline;
+	data->lasttokencolumn = data->currentcolumn;
 	while(CUR_CHAR != SQUIRREL_EOB) {
 		switch(CUR_CHAR){
 		case _SC('\t'): case _SC('\r'): case _SC(' '): NEXT(); continue;
 		case _SC('\n'):
-			_currentline++;
-			_prevtoken=_curtoken;
-			_curtoken=_SC('\n');
+			data->currentline++;
+			data->prevtoken=data->curtoken;
+			data->curtoken=_SC('\n');
 			NEXT();
-			_currentcolumn=1;
+			data->currentcolumn=1;
 			continue;
 		case _SC('#'):
 		    NEXT();
@@ -544,7 +564,7 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
         cr_nl = CUR_CHAR == _SC('\n');
         if(cr_nl) NEXT();
         if(cr_nl) {//if a new line follows the start of delimiter drop it
-            ++_currentline;
+            ++data->currentline;
             if(IS_EOB())
             {
                 return Error(_SC("unfinished string"));
@@ -560,7 +580,7 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 			case _SC('\n'):
 				if(!verbatim) return Error(_SC("newline in a constant"));
 				APPEND_CHAR(CUR_CHAR); NEXT();
-				_currentline++;
+				data->currentline++;
 				break;
 			case _SC('\\'):
 				if(verbatim) {
@@ -650,14 +670,14 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 		}
 	}
 	TERMINATE_BUFFER();
-	SQInteger len = _longstr.size()-1;
+	SQInteger len = data->longstr.size()-1;
 	if(ndelim == _SC('\'')) {
 		if(len == 0) return Error(_SC("empty constant"));
 		if(len > 1) return Error(_SC("constant too long"));
-		_nvalue = _longstr[0];
+		data->nvalue = data->longstr[0];
 		return TK_INTEGER;
 	}
-	_svalue = &_longstr[0];
+	data->svalue = &data->longstr[0];
 	return TK_STRING_LITERAL;
 }
 
@@ -725,7 +745,7 @@ SQInteger SQLexer::ReadNumber()
 				APPEND_CHAR(CUR_CHAR);
 				NEXT();
 			}
-			if(_longstr.size() > MAX_HEX_DIGITS) return Error(_SC("too many digits for an Hex number"));
+			if(data->longstr.size() > MAX_HEX_DIGITS) return Error(_SC("too many digits for an Hex number"));
 		}
 	}
 	else {
@@ -752,16 +772,16 @@ SQInteger SQLexer::ReadNumber()
 	switch(type) {
 	case TSCIENTIFIC:
 	case TFLOAT:
-		_fvalue = (SQFloat)scstrtod(&_longstr[0],&sTemp);
+		data->fvalue = (SQFloat)scstrtod(&data->longstr[0],&sTemp);
 		return TK_FLOAT;
 	case TINT:
-		LexInteger(&_longstr[0],&itmp);
+		LexInteger(&data->longstr[0],&itmp);
 		break;
 	case THEX:
-		LexHexadecimal(&_longstr[0],&itmp);
+		LexHexadecimal(&data->longstr[0],&itmp);
 		break;
 	case TOCTAL:
-		LexOctal(&_longstr[0],&itmp);
+		LexOctal(&data->longstr[0],&itmp);
 		break;
 	}
 	switch(type) {
@@ -770,7 +790,7 @@ SQInteger SQLexer::ReadNumber()
 	case TOCTAL:
 	    //to allow 64 bits integers comment bellow
         //if(itmp > INT_MAX) return Error(_SC("integer overflow %ulld %d"));
-        _nvalue = (SQInteger) itmp;
+        data->nvalue = (SQInteger) itmp;
 		return TK_INTEGER;
 	}
 	return 0;
@@ -785,9 +805,9 @@ SQInteger SQLexer::ReadID()
 		NEXT();
 	} while(scisalnum(CUR_CHAR) || CUR_CHAR == _SC('_'));
 	TERMINATE_BUFFER();
-	res = GetIDType(&_longstr[0],_longstr.size() - 1);
+	res = GetIDType(&data->longstr[0],data->longstr.size() - 1);
 	if(res == TK_IDENTIFIER || res == TK_CONSTRUCTOR || res == TK_DESTRUCTOR) {
-		_svalue = &_longstr[0];
+		data->svalue = &data->longstr[0];
 	}
 	return res;
 }

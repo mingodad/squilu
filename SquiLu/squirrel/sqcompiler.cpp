@@ -245,7 +245,7 @@ public:
 	    if(found) {
             if(checkLocals) Error(_SC("%s '%s' already declared"), found, _stringval(name));
             else Warning(_SC("%s:%d:%d warning %s '%s' already declared will be shadowed\n"),
-                        _stringval(_sourcename), _lex._currentline, _lex._currentcolumn,
+                        _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn,
                          found, _stringval(name));
 	    }
 	    else if(checkLocals) CheckLocalNameScope(name, -1, false);
@@ -262,13 +262,13 @@ public:
                 Error(_SC("local '%s' already declared"), _stringval(name));
             else
                 Warning(_SC("%s:%d:%d warning local '%s' already declared will be shadowed\n"),
-                        _stringval(_sourcename), _lex._currentline, _lex._currentcolumn, _stringval(name));
+                        _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn, _stringval(name));
 	    }
 	    else
 	    {
 	        found = _fs->FindOuterVariable(name);
 	        if(found >= 0) Warning(_SC("%s:%d:%d warning outer variable '%s' already declared will be shadowed\n"),
-                        _stringval(_sourcename), _lex._currentline, _lex._currentcolumn, _stringval(name));
+                        _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn, _stringval(name));
 	    }
 	    if(checkGlobals) CheckGlobalName(name, false, false);
 	    SQObjectPtr strongid = name;
@@ -336,7 +336,7 @@ public:
             Error(_SC("constant '%s' already exists\n"), _stringval(key));
         }
         if(found >= 0) Warning(_SC("%s:%d:%d warning an already defined constant '%s' will be shadowed\n"),
-            _stringval(_sourcename), _lex._currentline, _lex._currentcolumn,  _stringval(key));
+            _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn,  _stringval(key));
 	}
 
 	bool ConstsGet(const SQObjectPtr &key,SQObjectPtr &val){
@@ -361,16 +361,16 @@ public:
 		switch(tok)
 		{
 		case TK_IDENTIFIER:
-			ret = _fs->CreateString(_lex._svalue);
+			ret = _fs->CreateString(_lex.data->svalue);
 			break;
 		case TK_STRING_LITERAL:
-			ret = _fs->CreateString(_lex._svalue,_lex._longstr.size()-1);
+			ret = _fs->CreateString(_lex.data->svalue,_lex.data->longstr.size()-1);
 			break;
 		case TK_INTEGER:
-			ret = SQObjectPtr(_lex._nvalue);
+			ret = SQObjectPtr(_lex.data->nvalue);
 			break;
 		case TK_FLOAT:
-			ret = SQObjectPtr(_lex._fvalue);
+			ret = SQObjectPtr(_lex.data->fvalue);
 			break;
         default:
             ret = _fs->CreateString(_lex.GetTokenName(_token));
@@ -428,7 +428,7 @@ public:
 	    }
 		return GetTokenObject(TK_IDENTIFIER);
 	}
-	bool IsEndOfStatement() { return ((_lex._prevtoken == _SC('\n')) || (_token == SQUIRREL_EOB) || (_token == _SC('}')) || (_token == _SC(';'))); }
+	bool IsEndOfStatement() { return ((_lex.data->prevtoken == _SC('\n')) || (_token == SQUIRREL_EOB) || (_token == _SC('}')) || (_token == _SC(';'))); }
 	void OptionalSemicolon()
 	{
 		if(_token == _SC(';')) { Lex(); return; }
@@ -446,8 +446,8 @@ public:
 
     void Pragma()
     {
-        int line = _lex._currentline;
-        //int column = _lex._currentcolumn;
+        int line = _lex.data->currentline;
+        //int column = _lex.data->currentcolumn;
         Lex();
         SQObject id = Expect(TK_IDENTIFIER);
         if(scstrcmp(_stringval(id), _SC("include")) == 0)
@@ -471,10 +471,10 @@ public:
                 //save current source file and lex state
                 SQUserPointer saved_up = _lex._up; //current userpointer
                 SQLEXREADFUNC saved_readf = _lex._readf; //current readfunction
-                SQInteger saved_line = _lex._currentline;
-                SQInteger saved_column = _lex._currentcolumn;
-                SQInteger saved_curdata = _lex._currdata;
-                SQInteger saved_prevtoken = _lex._prevtoken;
+                SQInteger saved_line = _lex.data->currentline;
+                SQInteger saved_column = _lex.data->currentcolumn;
+                SQInteger saved_curdata = _lex.data->currdata;
+                SQInteger saved_prevtoken = _lex.data->prevtoken;
                 SQInteger saved_token = _token;
                 SQObjectPtr saved_source_name = _sourcename;
 
@@ -487,7 +487,7 @@ public:
                 Lex();
                 while(_token > 0){
                     Statement();
-                    if(_lex._prevtoken != _SC('}') && _lex._prevtoken != _SC(';')) OptionalSemicolon();
+                    if(_lex.data->prevtoken != _SC('}') && _lex.data->prevtoken != _SC(';')) OptionalSemicolon();
                 }
 
                 //close file
@@ -496,10 +496,10 @@ public:
                 _fs->_sourcename = saved_source_name;
                 _sourcename = saved_source_name;
                 _token = saved_token;
-                _lex._currdata = saved_curdata;
-                _lex._prevtoken = saved_prevtoken;
-                _lex._currentcolumn = saved_column;
-                _lex._currentline = saved_line;
+                _lex.data->currdata = saved_curdata;
+                _lex.data->prevtoken = saved_prevtoken;
+                _lex.data->currentcolumn = saved_column;
+                _lex.data->currentline = saved_line;
                 _lex._readf = saved_readf;
                 _lex._up = saved_up;
 
@@ -517,7 +517,7 @@ public:
         }
         else
         {
-            _lex._currentline = line;
+            _lex.data->currentline = line;
             Error(_SC("Error: unknown pragma %s\n"), _stringval(id));
         }
     }
@@ -540,10 +540,10 @@ public:
 			Lex();
 			while(_token > 0){
 				Statement();
-				if(_lex._prevtoken != _SC('}') && _lex._prevtoken != _SC(';')) OptionalSemicolon();
+				if(_lex.data->prevtoken != _SC('}') && _lex.data->prevtoken != _SC(';')) OptionalSemicolon();
 			}
             _fs->SetStackSize(stacksize);
-            _fs->AddLineInfos(_lex._currentline, _lineinfo, true);
+            _fs->AddLineInfos(_lex.data->currentline, _lineinfo, true);
             _fs->AddInstruction(_OP_RETURN, 0xFF);
             _fs->SetStackSize(0);
             o =_fs->BuildProto();
@@ -554,11 +554,11 @@ public:
 		else {
 			if(_raiseerror && _ss(_vm)->_compilererrorhandler) {
 				_ss(_vm)->_compilererrorhandler(_vm, _compilererror, type(_sourcename) == OT_STRING?_stringval(_sourcename):_SC("unknown"),
-					_lex._currentline, _lex._currentcolumn);
+					_lex.data->currentline, _lex.data->currentcolumn);
 			}
 			_vm->_lasterror = SQString::Create(_ss(_vm), _compilererror, -1);
-			_vm->_lasterror_line = _lex._currentline;
-			_vm->_lasterror_column = _lex._currentcolumn;
+			_vm->_lasterror_line = _lex.data->currentline;
+			_vm->_lasterror_column = _lex.data->currentcolumn;
 			return false;
 		}
 		return true;
@@ -567,14 +567,14 @@ public:
 	{
 		while(_token != _SC('}') && _token != TK_DEFAULT && _token != TK_CASE) {
 			Statement();
-			if(_lex._prevtoken != _SC('}') && _lex._prevtoken != _SC(';')) OptionalSemicolon();
+			if(_lex.data->prevtoken != _SC('}') && _lex.data->prevtoken != _SC(';')) OptionalSemicolon();
 		}
 	}
 	void Statement(bool closeframe = true)
 	{
 	    _es.etype = EXPR_STATEMENT;
 	    SQObject id;
-		_fs->AddLineInfos(_lex._currentline, _lineinfo);
+		_fs->AddLineInfos(_lex.data->currentline, _lineinfo);
     start_again:
 		switch(_token){
 		case _SC(';'):	Lex();					break;
@@ -695,7 +695,7 @@ public:
             if(_scope.nested)
             {
                 Warning(_SC("%s:%d:%d warning static cualifier is ignored\n"),
-                                          _stringval(_sourcename), _lex._currentline, _lex._currentcolumn);
+                                          _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn);
             }
             Lex(); //ignore it only to allow run some C/C++ code
             goto start_again;
@@ -737,11 +737,14 @@ public:
 		    break;
 
         case TK_IDENTIFIER:
-            id = _fs->CreateString(_lex._svalue);
+            id = _fs->CreateString(_lex.data->svalue);
             if(CheckTypeName(id)) //C/C++ type declaration;
             {
-                LocalDeclStatement();
-                break;
+                if(_lex.LookaheadLex() != _SC('.'))
+                {
+                    LocalDeclStatement();
+                    break;
+                }
             }
 
 		default:
@@ -753,7 +756,7 @@ public:
             if(_token == TK_IDENTIFIER){
                 CommaExpr();
                 if(_token == TK_IDENTIFIER){
-                    Error(_SC(" '=' expected near '%s'"), _lex._svalue);
+                    Error(_SC(" '=' expected near '%s'"), _lex.data->svalue);
                 }
             }
 */
@@ -829,7 +832,7 @@ public:
 		SQObject id;
 		if((_token == TK_IDENTIFIER) && (es.etype == EXPR_STATEMENT))
         {
-            id = _fs->CreateString(_lex._svalue);
+            id = _fs->CreateString(_lex.data->svalue);
         }
         //else id = {}; //old compilers do not allow this
 
@@ -862,7 +865,7 @@ public:
 				break;
 			case _SC('='): //ASSIGN
                 if(warningAssign) Warning(_SC("%s:%d:%d warning making assignment, maybe it's not what you want\n"),
-                                          _stringval(_sourcename), _lex._currentline, _lex._currentcolumn);
+                                          _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn);
 				switch(ds) {
 				case LOCAL:
 					{
@@ -1099,7 +1102,7 @@ public:
 				}
 				break;
 			case _SC('['):
-				if(_lex._prevtoken == _SC('\n')) Error(_SC("cannot brake deref/or comma needed after [exp]=exp slot declaration"));
+				if(_lex.data->prevtoken == _SC('\n')) Error(_SC("cannot brake deref/or comma needed after [exp]=exp slot declaration"));
 				Lex(); Expression(); Expect(_SC(']'));
 				pos = -1;
 				if(_es.etype==BASE) {
@@ -1188,7 +1191,7 @@ public:
 		switch(_token)
 		{
 		case TK_STRING_LITERAL:
-			_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(_fs->CreateString(_lex._svalue,_lex._longstr.size()-1)));
+			_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(_fs->CreateString(_lex.data->svalue,_lex.data->longstr.size()-1)));
 			Lex();
 			break;
 		case TK_BASE:
@@ -1206,7 +1209,7 @@ public:
 				SQObject constant;
 
 				switch(_token) {
-					case TK_IDENTIFIER:  id = _fs->CreateString(_lex._svalue);       break;
+					case TK_IDENTIFIER:  id = _fs->CreateString(_lex.data->svalue);       break;
 					case TK_THIS:        id = _fs->CreateString(_SC("this"), 4);        break;
 					case TK_CONSTRUCTOR: id = _fs->CreateString(_SC("constructor"), 11); break;
 					case TK_DESTRUCTOR: id = _fs->CreateString(_SC("destructor"), 10); break;
@@ -1289,8 +1292,8 @@ public:
 			_fs->AddInstruction(_OP_LOADNULLS, _fs->PushTarget(),1);
 			Lex();
 			break;
-		case TK_INTEGER: EmitLoadConstInt(_lex._nvalue,-1); Lex();	break;
-		case TK_FLOAT: EmitLoadConstFloat(_lex._fvalue,-1); Lex(); break;
+		case TK_INTEGER: EmitLoadConstInt(_lex.data->nvalue,-1); Lex();	break;
+		case TK_FLOAT: EmitLoadConstFloat(_lex.data->fvalue,-1); Lex(); break;
 		case TK_TRUE: case TK_FALSE:
 			_fs->AddInstruction(_OP_LOADBOOL, _fs->PushTarget(),_token == TK_TRUE?1:0);
 			Lex();
@@ -1322,15 +1325,15 @@ public:
 		case _SC('-'):
 			Lex();
 			switch(_token) {
-			case TK_INTEGER: EmitLoadConstInt(-_lex._nvalue,-1); Lex(); break;
-			case TK_FLOAT: EmitLoadConstFloat(-_lex._fvalue,-1); Lex(); break;
+			case TK_INTEGER: EmitLoadConstInt(-_lex.data->nvalue,-1); Lex(); break;
+			case TK_FLOAT: EmitLoadConstFloat(-_lex.data->fvalue,-1); Lex(); break;
 			default: UnaryOP(_OP_NEG);
 			}
 			break;
 		case _SC('!'): Lex(); UnaryOP(_OP_NOT); break;
 		case _SC('~'):
 			Lex();
-			if(_token == TK_INTEGER)  { EmitLoadConstInt(~_lex._nvalue,-1); Lex(); break; }
+			if(_token == TK_INTEGER)  { EmitLoadConstInt(~_lex.data->nvalue,-1); Lex(); break; }
 			UnaryOP(_OP_BWNOT);
 			break;
 		case TK_TYPEOF : Lex() ;UnaryOP(_OP_TYPEOF); break;
@@ -1341,7 +1344,7 @@ public:
 		case TK_DELETE : DeleteExpr(); break;
 		case _SC('('): Lex(); CommaExpr(); Expect(_SC(')'));
 			break;
-		case TK___LINE__: EmitLoadConstInt(_lex._currentline,-1); Lex();	break;
+		case TK___LINE__: EmitLoadConstInt(_lex.data->currentline,-1); Lex();	break;
 		case TK___FILE__:
 			_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(_sourcename));
 			Lex();
@@ -1352,7 +1355,7 @@ public:
 			break;
 		case TK_IGNORE:
             //Warning("Keyword ignored \"%s\" at line %d:%d\n", _lex.Tok2Str(_token),
-            //        _lex._currentline, _lex._currentcolumn);
+            //        _lex.data->currentline, _lex.data->currentcolumn);
             Lex(); Factor();
             break;
 		default: Error(_SC("expression expected"));
@@ -1797,7 +1800,7 @@ function_params_decl:
 		else {
 			//BEGIN_SCOPE();
 			Statement();
-			if (_lex._prevtoken != _SC('}') && _lex._prevtoken != _SC(';')) OptionalSemicolon();
+			if (_lex.data->prevtoken != _SC('}') && _lex.data->prevtoken != _SC(';')) OptionalSemicolon();
 			//END_SCOPE();
 		}
 	}
@@ -1866,7 +1869,7 @@ if(color == "yellow"){
 		Statement();
 		END_SCOPE();
 		//fix proposed by frosch to correct line number info in stack dumps
-		_fs->AddLineInfos(_lex._currentline, _lineinfo, true);
+		_fs->AddLineInfos(_lex.data->currentline, _lineinfo, true);
 		Expect(TK_WHILE);
 		SQInteger continuetrg = _fs->GetCurrentPos();
 		Expect(_SC('(')); CommaExpr(true); Expect(_SC(')'));
@@ -2053,7 +2056,7 @@ if(color == "yellow"){
 		SQObjectPtr class_name;
 		Lex();
 		if(_token == TK_IDENTIFIER) {
-		    class_name = SQString::Create(_ss(_vm), _lex._svalue);
+		    class_name = SQString::Create(_ss(_vm), _lex.data->svalue);
 		    CheckGlobalName(class_name, true);
             CheckTypeName(class_name, true); //to allow C/C++ style instance declarations
 		}
@@ -2084,14 +2087,14 @@ if(color == "yellow"){
 		switch(_token) {
 			case TK_INTEGER:
 				val._type = OT_INTEGER;
-				val._unVal.nInteger = _lex._nvalue;
+				val._unVal.nInteger = _lex.data->nvalue;
 				break;
 			case TK_FLOAT:
 				val._type = OT_FLOAT;
-				val._unVal.fFloat = _lex._fvalue;
+				val._unVal.fFloat = _lex.data->fvalue;
 				break;
 			case TK_STRING_LITERAL:
-				val = _fs->CreateString(_lex._svalue,_lex._longstr.size()-1);
+				val = _fs->CreateString(_lex.data->svalue,_lex.data->longstr.size()-1);
 				break;
 			case TK_TRUE:
 			case TK_FALSE:
@@ -2104,11 +2107,11 @@ if(color == "yellow"){
 				{
 				case TK_INTEGER:
 					val._type = OT_INTEGER;
-					val._unVal.nInteger = -_lex._nvalue;
+					val._unVal.nInteger = -_lex.data->nvalue;
 				break;
 				case TK_FLOAT:
 					val._type = OT_FLOAT;
-					val._unVal.fFloat = -_lex._fvalue;
+					val._unVal.fFloat = -_lex.data->fvalue;
 				break;
 				default:
 					Error(_SC("scalar expected : integer, float"));
@@ -2125,16 +2128,16 @@ if(color == "yellow"){
 	    SQInteger tk_type = _token;
 		switch(_token) {
 			case TK_INTEGER:
-                EmitLoadConstInt(_lex._nvalue,-1);
+                EmitLoadConstInt(_lex.data->nvalue,-1);
 				break;
 			case TK_FLOAT:
-                EmitLoadConstFloat(_lex._fvalue,-1);
+                EmitLoadConstFloat(_lex.data->fvalue,-1);
 				break;
 			case TK_STRING_LITERAL:
-                _fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(_fs->CreateString(_lex._svalue,_lex._longstr.size()-1)));
+                _fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(_fs->CreateString(_lex.data->svalue,_lex.data->longstr.size()-1)));
 				break;
             case TK_IDENTIFIER: {
-                    SQObject id = _fs->CreateString(_lex._svalue);
+                    SQObject id = _fs->CreateString(_lex.data->svalue);
                     Lex();
                     ExpressionConstant(id);
                     return tk_type;
@@ -2146,10 +2149,10 @@ if(color == "yellow"){
 				switch(_token)
 				{
 				case TK_INTEGER:
-                    EmitLoadConstInt(-_lex._nvalue,-1);
+                    EmitLoadConstInt(-_lex.data->nvalue,-1);
 				break;
 				case TK_FLOAT:
-                    EmitLoadConstFloat(-_lex._fvalue,-1);
+                    EmitLoadConstFloat(-_lex.data->fvalue,-1);
 				break;
 				default:
 					Error(_SC("scalar expected : integer, float"));
@@ -2415,8 +2418,8 @@ error:
             case TK_IDENTIFIER:
                 if(ftype == eFunctionType_member)
                 {
-                    if(  (scstrcmp(_lex._svalue, _SC("final")) == 0) ||
-                         (scstrcmp(_lex._svalue, _SC("override")) == 0))
+                    if(  (scstrcmp(_lex.data->svalue, _SC("final")) == 0) ||
+                         (scstrcmp(_lex.data->svalue, _SC("override")) == 0))
                           {
                               Lex(); //accept but ignore then
                           }
@@ -2444,7 +2447,7 @@ error:
 		else {
 			Statement(false);
 		}
-		funcstate->AddLineInfos(_lex._prevtoken == _SC('\n')?_lex._lasttokenline:_lex._currentline, _lineinfo, true);
+		funcstate->AddLineInfos(_lex.data->prevtoken == _SC('\n')?_lex.data->lasttokenline:_lex.data->currentline, _lineinfo, true);
         funcstate->AddInstruction(_OP_RETURN, -1);
 		funcstate->SetStackSize(0);
 
