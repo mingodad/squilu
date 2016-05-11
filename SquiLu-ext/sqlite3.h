@@ -113,7 +113,7 @@ extern "C" {
 */
 #define SQLITE_VERSION        "3.13.0"
 #define SQLITE_VERSION_NUMBER 3013000
-#define SQLITE_SOURCE_ID      "2016-05-04 21:06:21 71af9ac165ac02272f4886f69bd9ab4770fd7bb6"
+#define SQLITE_SOURCE_ID      "2016-05-10 20:16:43 223640243efc52c14bb2bb540833a2a624eaa41a"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -9786,11 +9786,13 @@ struct Fts5PhraseIter {
 **       ... FROM ftstable WHERE ftstable MATCH $p ORDER BY rowid
 **
 **   with $p set to a phrase equivalent to the phrase iPhrase of the
-**   current query is executed. For each row visited, the callback function
-**   passed as the fourth argument is invoked. The context and API objects 
-**   passed to the callback function may be used to access the properties of
-**   each matched row. Invoking Api.xUserData() returns a copy of the pointer
-**   passed as the third argument to pUserData.
+**   current query is executed. Any column filter that applies to
+**   phrase iPhrase of the current query is included in $p. For each 
+**   row visited, the callback function passed as the fourth argument 
+**   is invoked. The context and API objects passed to the callback 
+**   function may be used to access the properties of each matched row.
+**   Invoking Api.xUserData() returns a copy of the pointer passed as 
+**   the third argument to pUserData.
 **
 **   If the callback function returns any value other than SQLITE_OK, the
 **   query is abandoned and the xQueryPhrase function returns immediately.
