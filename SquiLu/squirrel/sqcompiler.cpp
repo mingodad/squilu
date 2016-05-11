@@ -1883,7 +1883,10 @@ if(color == "yellow"){
 		BEGIN_SCOPE();
 		Expect(_SC('('));
 		switch(_token){
-            case TK_IDENTIFIER:
+            case TK_IDENTIFIER:{
+                SQObject id = _fs->CreateString(_lex.data->svalue);
+                if(!CheckTypeName(id)) goto lbl_commaexpr;//not a C/C++ type declaration;
+            }
                 //ignore custom types for now
                 //fallthrough as local declaration
             CASE_TK_LOCAL_TYPES:
@@ -1891,10 +1894,11 @@ if(color == "yellow"){
                 LocalDeclStatement();
                 break;
             default:
+            lbl_commaexpr:
                 if(_token != _SC(';')){
-			CommaExpr();
-			_fs->PopTarget();
-		}
+                    CommaExpr();
+                    _fs->PopTarget();
+                }
 		}
 
 		Expect(_SC(';'));
