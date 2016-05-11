@@ -80,6 +80,7 @@ typedef unsigned wchar_t SQUChar;
 #define scfopen	wfopen
 #endif
 #define scstrlen    wcslen
+#define scstrcpy    wcstrcpy
 #define scstrtod    wcstod
 #ifdef _SQ64
 #define scstrtol    wcstoll
@@ -137,6 +138,7 @@ typedef unsigned char SQUChar;
 #define scfopen	fopen
 #endif
 #define scstrlen    strlen
+#define scstrcpy    strcpy
 #define scstrtod    strtod
 #ifdef _SQ64
 #ifdef _MSC_VER
