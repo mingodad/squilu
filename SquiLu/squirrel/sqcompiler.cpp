@@ -669,7 +669,16 @@ public:
 		case TK_CONST:
 			{
 			Lex();
-			id = Expect(TK_IDENTIFIER);
+			if(_token == TK_IDENTIFIER)
+            {
+                id = _fs->CreateString(_lex.data->svalue);
+                if(CheckTypeName(id)) //C/C++ type declaration;
+                {
+                    goto start_again;
+                }
+                Lex();
+            }
+            else id = Expect(TK_IDENTIFIER);
 			if(_token == _SC(':')) {
                 //type specifier like typescript
                 Lex();
@@ -1482,6 +1491,12 @@ public:
 				}
 				else if(_token == TK_PRIVATE) {
 					//isprivate = true;
+					Lex();
+				}
+				else if(_token == TK_INLINE) {
+					Lex();
+				}
+				else if(_token == TK_CONST) {
 					Lex();
 				}
 			}

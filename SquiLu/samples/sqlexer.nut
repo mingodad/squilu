@@ -1,161 +1,7 @@
 //__max_print_stack_str_size <- 256;
-const TK_FIRST_ENUM_TOKEN = 258;
-const TK_3WAYSCMP = 259;
-const TK_AND = 260;
-const TK_ARROW = 261;
-const TK_AS = 262;
-const TK_ATTR_CLOSE = 263;
-const TK_ATTR_OPEN = 264;
-const TK_BASE = 265;
-const TK_BIT_AND_EQ = 266;
-const TK_BIT_OR_EQ = 267;
-const TK_BIT_SHIFT_LEFT_EQ = 268;
-const TK_BIT_SHIFT_RIGHT_EQ = 269;
-const TK_BIT_XOR_EQ = 270;
-const TK_BREAK = 271;
-const TK_CASE = 272;
-const TK_CATCH = 273;
-const TK_CLASS = 274;
-const TK_CLONE = 275;
-const TK_CONST = 276;
-const TK_COMMENT_BLOCK = 277;
-const TK_COMMENT_LINE = 278;
-const TK_CONSTRUCTOR = 279;
-const TK_CONTINUE = 280;
-const TK_DECLARE = 281;
-const TK_DEFAULT = 282;
-const TK_DELETE = 283;
-const TK_DESTRUCTOR = 284;
-const TK_DIVEQ = 285;
-const TK_DO = 286;
-const TK_DOUBLE_COLON = 287;
-const TK_ELSE = 288;
-const TK_ENUM = 289;
-const TK_EQ = 290;
-const TK_EQ_IDENTITY = 291;
-const TK_EXTENDS = 292;
-const TK_EXTERN = 293;
-const TK_FALSE = 294;
-const TK___FILE__ = 295;
-const TK_FLOAT = 296;
-const TK_FOR = 297;
-const TK_FOREACH = 298;
-const TK_FRIEND = 299;
-const TK___FUNCTION__ = 300;
-const TK_FUNCTION = 301;
-const TK_GE = 302;
-const TK_IDENTIFIER = 303;
-const TK_IF = 304;
-const TK_IGNORE = 305;
-const TK_IN = 306;
-const TK_INSTANCEOF = 307;
-const TK_INTEGER = 308;
-const TK_LE = 309;
-const TK___LINE__ = 310;
-const TK_LOCAL = 311;
-const TK_LOCAL_ANY_T = 312;
-const TK_LOCAL_ARRAY_T = 313;
-const TK_LOCAL_BOOL_T = 314;
-const TK_LOCAL_CHAR_T = 315;
-const TK_LOCAL_DOUBLE_T = 316;
-const TK_LOCAL_FLOAT_T = 317;
-const TK_LOCAL_INT16_T = 318;
-const TK_LOCAL_INT32_T = 319;
-const TK_LOCAL_INT64_T = 320;
-const TK_LOCAL_INT8_T = 321;
-const TK_LOCAL_INT_T = 322;
-const TK_LOCAL_LONG_DOUBLE_T = 323;
-const TK_LOCAL_NUMBER_T = 324;
-const TK_LOCAL_SIZE_T = 325;
-const TK_LOCAL_SSIZE_T = 326;
-const TK_LOCAL_STRING_T = 327;
-const TK_LOCAL_TABLE_T = 328;
-const TK_LOCAL_UINT16_T = 329;
-const TK_LOCAL_UINT32_T = 330;
-const TK_LOCAL_UINT64_T = 331;
-const TK_LOCAL_UINT8_T = 332;
-const TK_LOCAL_UINT_T = 333;
-const TK_LOCAL_VOIDPTR_T = 334;
-const TK_LOCAL_WCHAR_T = 335;
-const TK_LOCAL_WEAKREF_T = 336;
-const TK_MINUSEQ = 337;
-const TK_MINUSMINUS = 338;
-const TK_MODEQ = 339;
-const TK_MODULO = 340;
-const TK_MULEQ = 341;
-const TK_NE = 342;
-const TK_NE_IDENTITY = 343;
-const TK_NEWSLOT = 344;
-const TK_NOEXCEPT = 345;
-const TK_NULL = 346;
-const TK_OR = 347;
-const TK_PLUSEQ = 348;
-const TK_PLUSPLUS = 349;
-const TK_PRAGMA = 350;
-const TK_PRIVATE = 351;
-const TK_PUBLIC = 352;
-const TK_RESUME = 353;
-const TK_RETURN = 354;
-const TK_SHIFTL = 355;
-const TK_SHIFTR = 356;
-const TK_STATIC = 357;
-const TK_STRING_LITERAL = 358;
-const TK_STRUCT = 359;
-const TK_SWITCH = 360;
-const TK_THIS = 361;
-const TK_THROW = 362;
-const TK_TYPEDEF = 363;
-const TK_TRUE = 364;
-const TK_TRY = 365;
-const TK_TYPEOF = 366;
-const TK_UMINUS = 367;
-const TK_UNSAFE = 368;
-const TK_USING = 369;
-const TK_USHIFTR = 370;
-const TK_VARPARAMS = 371;
-const TK_VIRTUAL = 372;
-const TK_VOID = 373;
-const TK_VOLATILE = 374;
-const TK_WHILE = 375;
-const TK_YIELD = 376;
-const TK_INLINE = 377;
-const TK_CONSTEXPR = 378;
-const TK_LAST_ENUM_TOKEN = 379;
 
-//typedefs to allow parse/compile
-typedef char_t SQChar;
-typedef char_ptr_t SQChar_ptr_t;
-typedef class_t SQObject;
-typedef var_t SQObjectPtr;
-typedef bool_t bool;
-typedef bool_t SQBool;
-typedef int_t int;
-typedef int_t SQInteger;
-typedef class_t SQLex;
-typedef enum_t SQOpcode;
-typedef float_t SQFloat;
-typedef void_ptr_t SQObjectPtr_ptr_t;
-typedef class_t SQFuncState;
-typedef void_ptr_t SQFuncState_ptr_t;
-typedef class_t SQVM;
-typedef class_ptr_t SQVM_ptr_t;
-typedef struct_t jmp_buf;
-typedef array_t SQObjectPtrVec;
-typedef void_ptr_t SQUserPointer;
-typedef array_t SQInstructionVec;
-typedef param_t T;
-typedef func_ptr_t SQLEXREADFUNC;
-typedef class_ptr_t SQCompiler_ptr_t;
-typedef void_ptr_t va_list;
-typedef enum_t SQObjectType;
-typedef char_t LexChar;
-typedef class_ptr_t SQSharedState_ptr_t;
-typedef func_ptr_t CompilerErrorFunc;
-typedef table_ptr_t SQTable_ptr_t;
-typedef array_t sqvector_SQChar;
-typedef uint_t SQUnsignedInteger;
-typedef uint_ptr_t SQUnsignedInteger_ptr_t;
-typedef string_ptr_t SQString_ptr_t;
+#include "sq_lexer_tokens.nut"
+#include "sqtypedefs.nut"
 
 const SQFalse = 0;
 const SQTrue = 1;
@@ -319,7 +165,7 @@ struct SQTable
         table_rawset(_tbl, key, val);
         return true;
     }
-    /*inline*/ bool GetStr(const SQChar_ptr_t key,SQInteger keylen,SQObjectPtr /*&*/val)
+    inline bool GetStr(const SQChar_ptr_t key,SQInteger keylen,SQObjectPtr &val)
     {
 	val = table_rawget(_tbl, key, NULL);
 	return val;
@@ -828,7 +674,7 @@ struct SQLexerNut
         return 0;
     }
 
-    /*const*/ SQChar_ptr_t Tok2Str(SQInteger tok)
+    const SQChar_ptr_t Tok2Str(SQInteger tok)
     {
 	foreach(k,v in _keywords->_tbl)
 	{
@@ -848,14 +694,14 @@ struct SQLexerNut
         return NULL;
     }
 
-    /*const*/ SQChar_ptr_t GetTokenName(int tk_code)
+    const SQChar_ptr_t GetTokenName(int tk_code)
     {
 	foreach(k,v in getconsttable())
 	{
 		if(v == tk_code) return k;
 	}
 
-	    /*const*/ SQChar_ptr_t str_tk;
+	    const SQChar_ptr_t str_tk;
 
         switch(tk_code)
         {
@@ -964,7 +810,7 @@ struct SQLexerNut
                         {
                         case 'x':
                         {
-                            /*const*/ SQInteger maxdigits = sizeof(SQChar) * 2;
+                            const SQInteger maxdigits = sizeof(SQChar) * 2;
                             SQChar temp; //[maxdigits + 1];
                             if(ProcessStringHexEscape(temp, maxdigits) < 0) return -1;
                             SQChar_ptr_t stemp;
@@ -974,7 +820,7 @@ struct SQLexerNut
                         case 'U':
                         case 'u':
                         {
-                            /*const*/ SQInteger maxdigits = x == 'u' ? 4 : 8;
+                            const SQInteger maxdigits = x == 'u' ? 4 : 8;
                             SQChar temp; //[8 + 1];
                             if(ProcessStringHexEscape(temp, maxdigits) < 0) return -1;
                             SQChar_ptr_t stemp;
@@ -1351,7 +1197,7 @@ struct SQLexerNut
     SQInteger _lasttokenline;
     SQInteger _lasttokencolumn;
     SQInteger _currentcolumn;
-    /*const*/ SQChar_ptr_t _svalue;
+    const SQChar_ptr_t _svalue;
     SQInteger _nvalue;
     SQFloat _fvalue;
     SQLEXREADFUNC _readf;
