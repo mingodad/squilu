@@ -531,7 +531,7 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 {
 	INIT_TEMP_STRING();
 	SQInteger start_equals = 0;
-	SQChar cdelim1, cdelim2;
+	SQChar cpp_delimin[32], cdelim1, cdelim2, saved_ndelim = ndelim;
 	if(ndelim == _SC('{')){
 	    cdelim1 = _SC('{');
 	    cdelim2 = _SC('}');
@@ -540,11 +540,32 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 	    cdelim1 = _SC('(');
 	    cdelim2 = _SC(')');
 	}
-	else {
+	else if(ndelim == _SC('[')){
 	    cdelim1 = _SC('[');
 	    cdelim2 = _SC(']');
 	}
-	if(CUR_CHAR == _SC('=')){
+	else if(ndelim == _SC('R')){
+	    cdelim1 = _SC('(');
+	    cdelim2 = _SC(')');
+	    ndelim = cdelim2;
+	    if(CUR_CHAR != _SC('"'))
+        {
+            return Error(_SC("expect '\"' on literal delimiter"));
+        }
+        NEXT();
+        size_t i=0;
+        for(;(i < sizeof(cpp_delimin)-1) && (CUR_CHAR != _SC('(')); ++i)
+        {
+            cpp_delimin[i] = CUR_CHAR;
+            NEXT();
+        }
+        cpp_delimin[i] = _SC('\0');
+	}
+	else
+    {
+        cdelim1 = cdelim2 = _SC('\0');
+    }
+	if((cdelim1 == saved_ndelim) && (CUR_CHAR == _SC('='))){
 	    //lua like literal
 	    while(!IS_EOB() && CUR_CHAR == _SC('=')) {
 	        ++start_equals;
@@ -661,7 +682,21 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 		    APPEND_CHAR(CUR_CHAR);
 		    NEXT();
 		}
-		else if(verbatim && CUR_CHAR == '"') { //double quotation
+		else if(saved_ndelim == _SC('R')) {
+            size_t i = 0;
+            for(;(i < sizeof(cpp_delimin)-1) && (CUR_CHAR != _SC('"')) && cpp_delimin[i]; ++i)
+            {
+                if(CUR_CHAR != cpp_delimin[i])
+                {
+                    return Error(_SC("expect \"%s\" to close literal delimiter"), cpp_delimin);
+                }
+                NEXT();
+            }
+            if(CUR_CHAR != _SC('"')) return Error(_SC("expect '\"' to close literal delimiter"));
+            NEXT(); //eat last '"'
+            break;
+		}
+		else if(verbatim && CUR_CHAR == _SC('"')) { //double quotation
 			APPEND_CHAR(CUR_CHAR);
 			NEXT();
 		}
@@ -805,6 +840,11 @@ SQInteger SQLexer::ReadID()
 		NEXT();
 	} while(scisalnum(CUR_CHAR) || CUR_CHAR == _SC('_'));
 	TERMINATE_BUFFER();
+	if((CUR_CHAR == _SC('"')) && (data->longstr[0] == _SC('R')) && (data->longstr.size() == 2))
+    {
+        //C++ multiline string
+        return ReadString(_SC('R'),true);
+    }
 	res = GetIDType(&data->longstr[0],data->longstr.size() - 1);
 	if(res == TK_IDENTIFIER || res == TK_CONSTRUCTOR || res == TK_DESTRUCTOR) {
 		data->svalue = &data->longstr[0];
