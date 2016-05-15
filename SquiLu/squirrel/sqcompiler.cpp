@@ -745,16 +745,34 @@ public:
 		    goto start_again;
 		    break;
 
-        case TK_IDENTIFIER:
+		case TK_GOTO:
+		    Warning(_SC("%s:%d:%d warning goto is only parsed right now\n"),
+                        _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn);
+		    Lex(); //ignore for now
+		    id = Expect(TK_IDENTIFIER);
+		    Expect(_SC(';'));
+		    break;
+
+        case TK_IDENTIFIER:{
+            SQInteger lhtk = _lex.LookaheadLex();
+            if(lhtk == _SC(':'))
+            {
+                Warning(_SC("%s:%d:%d warning labels are only parsed right now\n"),
+                        _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn);
+                LabelDeclStatement();
+                Lex();
+                break;
+            }
             id = _fs->CreateString(_lex.data->svalue);
             if(CheckTypeName(id)) //C/C++ type declaration;
             {
-                if(_lex.LookaheadLex() != _SC('.'))
+                if(lhtk != _SC('.'))
                 {
                     LocalDeclStatement();
                     break;
                 }
             }
+        }
 
 		default:
 			CommaExpr();
@@ -1648,6 +1666,11 @@ function_params_decl:
 	    Lex();
 	    LocalDeclStatement();
 	    _is_parsing_extern = false;
+	}
+	void LabelDeclStatement()
+	{
+	    Lex();
+	    return; //ignore for now
 	}
 	#define CHECK_REF_DECLARATION(tk) if(tk == _SC('&')){is_reference_declaration = true;Lex();}
 	void LocalDeclStatement()

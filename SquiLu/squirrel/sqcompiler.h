@@ -50,6 +50,7 @@ struct SQVM;
     ENUM_TK(__FUNCTION__)\
     ENUM_TK(FUNCTION)\
     ENUM_TK(GE)\
+    ENUM_TK(GOTO)\
     ENUM_TK(IDENTIFIER)\
     ENUM_TK(IF)\
     ENUM_TK(IGNORE)\
