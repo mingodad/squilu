@@ -66,10 +66,12 @@ struct SQLocalVarInfo
 };
 
 struct SQLineInfo { SQInteger _line;SQInteger _op; };
+struct SQGotoLabelsInfo { SQObjectPtr name; SQInteger pos; };
 
 typedef sqvector<SQOuterVar> SQOuterVarVec;
 typedef sqvector<SQLocalVarInfo> SQLocalVarInfoVec;
 typedef sqvector<SQLineInfo> SQLineInfoVec;
+typedef sqvector<SQGotoLabelsInfo> SQGotoLabelsInfoVec;
 
 #define _FUNC_SIZE(ni,nl,nparams,nfuncs,nouters,nlineinf,localinf,defparams) \
         (sizeof(SQFunctionProto) \

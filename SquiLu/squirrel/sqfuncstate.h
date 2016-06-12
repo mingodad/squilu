@@ -52,6 +52,10 @@ struct SQFuncState
 	SQObject CreateString(const SQChar *s,SQInteger len = -1);
 	SQObject CreateTable();
 	bool IsConstant(const SQObject &name,SQObject &e);
+	SQInteger FindGotoTarget(const SQObject &name);
+	bool AddGotoTarget(const SQObject &name);
+	SQGotoLabelsInfoVec _unresolvedgotos;
+	SQGotoLabelsInfoVec _gototargets;
 	SQInteger _returnexp;
 	SQLocalVarInfoVec _vlocals;
 	SQIntVec _targetstack;

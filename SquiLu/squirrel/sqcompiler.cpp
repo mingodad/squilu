@@ -614,6 +614,28 @@ public:
 				_fs->AddInstruction(op, 0xFF,0,_fs->GetStackSize());
 			}
 			break;}
+		case TK_GOTO: {
+		    //error if outside any function
+			if(!_fs->_parent) Error(_SC("'goto' has to be in a function block"));
+		    Warning(_SC("%s:%d:%d warning goto is only parsed right now\n"),
+                        _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn);
+		    Lex(); //ignore for now
+		    id = Expect(TK_IDENTIFIER);
+		    Expect(_SC(';'));
+
+			/*
+			if(_fs->_breaktargets.top() > 0){
+				_fs->AddInstruction(_OP_POPTRAP, _fs->_breaktargets.top(), 0);
+			}
+			*/
+			RESOLVE_OUTERS();
+			_fs->AddInstruction(_OP_JMP, 0, -1234);
+			SQGotoLabelsInfo info;
+			info.name = id;
+			info.pos = _fs->GetCurrentPos();
+			_fs->_unresolvedgotos.push_back(info);
+            }
+			break;
 		case TK_BREAK:
 			if(_fs->_breaktargets.size() <= 0)Error(_SC("'break' has to be in a loop block"));
 			if(_fs->_breaktargets.top() > 0){
@@ -745,14 +767,6 @@ public:
 		    goto start_again;
 		    break;
 
-		case TK_GOTO:
-		    Warning(_SC("%s:%d:%d warning goto is only parsed right now\n"),
-                        _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn);
-		    Lex(); //ignore for now
-		    id = Expect(TK_IDENTIFIER);
-		    Expect(_SC(';'));
-		    break;
-
         case TK_TEMPLATE: {
             Lex(); //ignore for now
             Expect(_SC('<'));
@@ -773,16 +787,18 @@ public:
         }
 
         case TK_IDENTIFIER:{
+            id = _fs->CreateString(_lex.data->svalue);
             SQInteger lhtk = _lex.LookaheadLex();
             if(lhtk == _SC(':'))
             {
+                if(!_fs->_parent) Error(_SC("'label' has to be inside a function block"));
+                if(!_fs->AddGotoTarget(id)) Error(_SC("Label already declared"));
                 Warning(_SC("%s:%d:%d warning labels are only parsed right now\n"),
                         _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn);
-                LabelDeclStatement();
+                Lex(); //eat ':'
                 Lex();
                 break;
             }
-            id = _fs->CreateString(_lex.data->svalue);
             if(CheckTypeName(id)) //C/C++ type declaration;
             {
                 if(lhtk != _SC('.'))
@@ -1686,11 +1702,6 @@ function_params_decl:
 	    LocalDeclStatement();
 	    _is_parsing_extern = false;
 	}
-	void LabelDeclStatement()
-	{
-	    Lex();
-	    return; //ignore for now
-	}
 	#define CHECK_REF_DECLARATION(tk) if(tk == _SC('&')){is_reference_declaration = true;Lex();}
 	void LocalDeclStatement()
 	{
@@ -2510,6 +2521,7 @@ error:
 		}
 		funcstate->AddLineInfos(_lex.data->prevtoken == _SC('\n')?_lex.data->lasttokenline:_lex.data->currentline, _lineinfo, true);
         funcstate->AddInstruction(_OP_RETURN, -1);
+		ResolveGotos(funcstate);
 		funcstate->SetStackSize(0);
 
 		SQFunctionProto *func = funcstate->BuildProto();
@@ -2519,6 +2531,20 @@ error:
 		_fs = currchunk;
 		_fs->_functions.push_back(func);
 		_fs->PopChildState();
+	}
+	void ResolveGotos(SQFuncState *funcstate)
+	{
+		while(funcstate->_unresolvedgotos.size() > 0) {
+			SQGotoLabelsInfo goto_info = funcstate->_unresolvedgotos.back();
+			funcstate->_unresolvedgotos.pop_back();
+			//set the jmp instruction
+			SQInteger target = funcstate->FindGotoTarget(goto_info.name);
+			if(target < 0) Error(_SC("Label not found '%s'"), _stringval(goto_info.name));
+			SQInteger target_pos = funcstate->_gototargets[target].pos;
+			if(target_pos > goto_info.pos) target_pos = target_pos - goto_info.pos;
+			else target_pos = -1 * (goto_info.pos - target_pos);
+			funcstate->SetIntructionParams(goto_info.pos, 0, target_pos, 0);
+		}
 	}
 	void ResolveBreaks(SQFuncState *funcstate, SQInteger ntoresolve)
 	{

@@ -383,6 +383,24 @@ void SQFuncState::AddParameterTypeName(const SQChar *type_name)
 	if(type_name) AddParameterTypeName(CreateString(type_name, scstrlen(type_name)));
 }
 
+SQInteger SQFuncState::FindGotoTarget(const SQObject &name)
+{
+	for(size_t i=0, len=_gototargets.size(); i < len; ++i){
+        if(_string(_gototargets[i].name) == _string(name)) return i;
+	}
+	return -1;
+}
+
+bool SQFuncState::AddGotoTarget(const SQObject &name)
+{
+    if(FindGotoTarget(name) >= 0) return false;
+	SQGotoLabelsInfo info;
+	info.name = name;
+	info.pos = GetCurrentPos();
+	_gototargets.push_back(info);
+	return true;
+}
+
 void SQFuncState::AddLineInfos(SQInteger line,bool lineop,bool force)
 {
 	if(_lastline!=line || force){
