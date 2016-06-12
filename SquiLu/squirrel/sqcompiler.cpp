@@ -753,6 +753,25 @@ public:
 		    Expect(_SC(';'));
 		    break;
 
+        case TK_TEMPLATE: {
+            Lex(); //ignore for now
+            Expect(_SC('<'));
+            int nest_count = 1;
+            while(_token > 0 && nest_count > 0){
+                Lex();
+                switch(_token)
+                {
+                    case _SC('>'):
+                        --nest_count;
+                        break;
+                    case _SC('<'):
+                        nest_count++;
+                }
+            }
+            if(nest_count == 0) Lex(); //last '>' ignore for now
+            break;
+        }
+
         case TK_IDENTIFIER:{
             SQInteger lhtk = _lex.LookaheadLex();
             if(lhtk == _SC(':'))

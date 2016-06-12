@@ -119,6 +119,7 @@ SQTable * SQLexer::GetKeywords()
 	ADD_KEYWORD(struct,TK_STRUCT);
 	ADD_KEYWORD(switch, TK_SWITCH);
 	ADD_KEYWORD(table_t, TK_LOCAL_TABLE_T);
+	ADD_KEYWORD(template, TK_TEMPLATE);
 	ADD_KEYWORD(this, TK_THIS);
 	ADD_KEYWORD(throw, TK_THROW);
 	ADD_KEYWORD(typedef, TK_TYPEDEF);
