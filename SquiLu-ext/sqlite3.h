@@ -111,9 +111,9 @@ extern "C" {
 ** [sqlite3_libversion_number()], [sqlite3_sourceid()],
 ** [sqlite_version()] and [sqlite_source_id()].
 */
-#define SQLITE_VERSION        "3.13.0"
-#define SQLITE_VERSION_NUMBER 3013000
-#define SQLITE_SOURCE_ID      "2016-05-10 20:16:43 223640243efc52c14bb2bb540833a2a624eaa41a"
+#define SQLITE_VERSION        "3.14.0"
+#define SQLITE_VERSION_NUMBER 3014000
+#define SQLITE_SOURCE_ID      "2016-06-06 20:36:26 e404ad705d0e2d96025d05cc88348ffcd0703533"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -266,13 +266,16 @@ typedef sqlite_uint64 sqlite3_uint64;
 */
 #ifdef SQLITE_OMIT_FLOATING_POINT
 # define sqlite_double sqlite3_int64
+# define sqlite_float sqlite3_int
 #else
 # ifdef SQLITE_USE_DECIMAL
 # define sqlite_double  _Decimal64
+# define sqlite_float  _Decimal32
 #define LITDBL(n) n##dd
 #define LONGDOUBLE_TYPE _Decimal128
 # else
 #  define sqlite_double  double
+#  define sqlite_float  float
 #  define LITDBL(n) n
 #  define LONGDOUBLE_TYPE long double
 # endif
@@ -516,6 +519,7 @@ SQLITE_API int SQLITE_STDCALL sqlite3_exec(
 #define SQLITE_NOTICE_RECOVER_ROLLBACK (SQLITE_NOTICE | (2<<8))
 #define SQLITE_WARNING_AUTOINDEX       (SQLITE_WARNING | (1<<8))
 #define SQLITE_AUTH_USER               (SQLITE_AUTH | (1<<8))
+#define SQLITE_OK_LOAD_PERMANENTLY     (SQLITE_OK | (1<<8))
 
 /*
 ** CAPI3REF: Flags For File Open Operations
