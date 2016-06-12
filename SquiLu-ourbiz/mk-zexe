@@ -4,4 +4,4 @@ SRC_SCRIPT=$1
 squilu unify-code.nut ${SRC_SCRIPT}.nut ${SRC_SCRIPT}-unified.nut
 squilu squilufreeze.nut /home/mingo/bin/squilu ${SRC_SCRIPT}-unified.nut ${SRC_SCRIPT}
 chmod +x ${SRC_SCRIPT}
-
+#warning if the file has a bom mark it'll not run
