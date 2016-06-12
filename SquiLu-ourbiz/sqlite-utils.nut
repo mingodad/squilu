@@ -806,6 +806,8 @@ class SqlPreprocessor
 	stmt_get = null;
 	stmt_get_by_name = null;
 	stmt_set = null;
+	stmt_insert_params = null;
+	stmt_clear_params = null;
 	
 	function createSqlPreprocessorMainTable(db)
 	{
@@ -820,7 +822,27 @@ CREATE TABLE IF NOT EXISTS __app_sql (
 	base TEXT COLLATE NOCASE NOT NULL,
 	sql TEXT COLLATE NOCASE,
 	notes TEXT COLLATE NOCASE
-);		
+);
+
+CREATE  VIEW IF NOT EXISTS __app_sql_list_view AS
+SELECT
+	a.id,
+	a._mdate_,
+	a.name
+FROM __app_sql AS a;
+
+CREATE  TABLE IF NOT EXISTS __app_sql_parameters (
+	id INTEGER PRIMARY KEY NOT NULL,
+	_version_ INTEGER NOT NULL DEFAULT 0,
+	_cdate_ DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	_mdate_ DATETIME,
+	app_sql_id integer not null references __app_sql(id),
+	name VARCHAR NOT NULL COLLATE NOCASE,
+	default_value VARCHAR COLLATE NOCASE,
+	field_type VARCHAR COLLATE NOCASE,
+	notes TEXT COLLATE NOCASE,
+	CONSTRAINT app_sql_id_name_unique UNIQUE(app_sql_id, name)
+);
 ]==];
 		db.exec_dml(sql);
 	}
@@ -832,6 +854,8 @@ CREATE TABLE IF NOT EXISTS __app_sql (
 			stmt_get = db.prepare("SELECT base FROM __app_sql WHERE id=?");
 			stmt_get_by_name = db.prepare("SELECT base FROM __app_sql WHERE name=?");
 			stmt_set = db.prepare("UPDATE __app_sql SET sql=? WHERE id=?");
+			stmt_clear_params = db.prepare("DELETE FROM __app_sql_parameters WHERE app_sql_id=?");
+			stmt_insert_params = db.prepare("INSERT INTO __app_sql_parameters(app_sql_id, name, default_value, field_type, notes) VALUES(?,?,?,?,?)");
 		}
 	}
 	
@@ -843,7 +867,49 @@ CREATE TABLE IF NOT EXISTS __app_sql (
 			stmt_get = null;
 			stmt_set.finalize();
 			stmt_get_by_name.finalize();
+			stmt_clear_params.finalize();
+			stmt_insert_params.finalize();
 		}
+	}
+	
+	function saveSqlParameters(sql_id, sql)
+	{
+		stmt_clear_params.bind(1, sql_id);
+		stmt_clear_params.step();
+		stmt_clear_params.reset();
+		local self = this;
+
+		//{$field_name:default_value:field_type:field_notes}
+		sql.gmatch("(%b{})", function(m){
+				if(m[1] == '$')
+				{
+					local field_name, default_value, field_type, field_notes;
+					local ary = m.slice(2,-1).split(':');
+					if(ary.len() > 0)
+					{
+						foreach(idx, val in ary)
+						{
+							val = val.trim();
+							switch(idx)
+							{
+								case 0: field_name = val; break;
+								case 1: default_value = val; break;
+								case 2: field_type = val; break;
+								case 4: field_notes = val; break;							
+							}
+						}
+						local stmt_insert_params = self.stmt_insert_params;
+						stmt_insert_params.bind(1, sql_id);
+						stmt_insert_params.bind(2, field_name);
+						stmt_insert_params.bind_empty_null(3, default_value);
+						stmt_insert_params.bind_empty_null(4, field_type);
+						stmt_insert_params.bind_empty_null(5, field_notes);
+						stmt_insert_params.step();
+						stmt_insert_params.reset();
+					}
+				}
+				return true;
+			});
 	}
 	
 	//the macros for params are {$param_name:param_value}
@@ -857,7 +923,12 @@ CREATE TABLE IF NOT EXISTS __app_sql (
 				{
 					found = true;
 					local ary = m.slice(2,-1).split(':');
-					local val = table_get(params, ary[0], ary[1]);
+					local val = table_get(params, ary[0], null);
+					if(val == null && (ary.len() > 1))
+					{
+						//we'll add the default parameter to params
+						val = params[ary[0]] <- ary[1];
+					}
 					return val;
 				}
 				return m;
@@ -901,6 +972,7 @@ CREATE TABLE IF NOT EXISTS __app_sql (
 			stmt_set.bind(2, id);
 			stmt_set.step();
 			stmt_set.reset();
+			saveSqlParameters(id, sql_seed);
 		}
 		if(need_prepare) doFinalize(db);
 		return sql_seed;
