@@ -97,6 +97,9 @@ SOURCES= sq/sq.c  \
     ../SquiLu-ext/sq_tinyxml2.cpp  \
     ../SquiLu-ext/sq_zlib.cpp  \
     ../SquiLu-ext/tinyxml2.cpp \
+    ../SquiLu-ext/sq_tweetnacl.cpp \
+    ../SquiLu-ext/tweetnacl.c \
+    ../SquiLu-ext/randombytes.c \
     squirrel/lua-regex.c  \
     squirrel/sqapi.cpp  \
     squirrel/sqbaselib.cpp  \
