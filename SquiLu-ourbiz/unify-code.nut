@@ -7,7 +7,7 @@
 local included = {};
 
 function unify_code(fname){
-	if(table_get(included, fname, false)) return "";
+	if(table_rawget(included, fname, false)) return "";
 	else included[fname] <- true;
 	
 	local fd = file(fname, "r");
