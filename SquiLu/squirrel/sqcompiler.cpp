@@ -623,11 +623,8 @@ public:
 		    id = Expect(TK_IDENTIFIER);
 		    Expect(_SC(';'));
 
-			/*
-			if(_fs->_breaktargets.top() > 0){
-				_fs->AddInstruction(_OP_POPTRAP, _fs->_breaktargets.top(), 0);
-			}
-			*/
+            //if(_fs->_traps > 0)
+			//		_fs->AddInstruction(_OP_POPTRAP, _fs->_traps, 0);
 			RESOLVE_OUTERS();
 			_fs->AddInstruction(_OP_JMP, 0, -1234);
 			SQGotoLabelsInfo info;
@@ -2539,11 +2536,9 @@ error:
 			funcstate->_unresolvedgotos.pop_back();
 			//set the jmp instruction
 			SQInteger target = funcstate->FindGotoTarget(goto_info.name);
-			if(target < 0) Error(_SC("Label not found '%s'"), _stringval(goto_info.name));
+			if(target < 0) Error(_SC("Label for goto not found '%s'"), _stringval(goto_info.name));
 			SQInteger target_pos = funcstate->_gototargets[target].pos;
-			if(target_pos > goto_info.pos) target_pos = target_pos - goto_info.pos;
-			else target_pos = -1 * (goto_info.pos - target_pos);
-			funcstate->SetIntructionParams(goto_info.pos, 0, target_pos, 0);
+			funcstate->SetIntructionParams(goto_info.pos, 0, target_pos - goto_info.pos, 0);
 		}
 	}
 	void ResolveBreaks(SQFuncState *funcstate, SQInteger ntoresolve)
