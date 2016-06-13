@@ -625,7 +625,9 @@ public:
 
             //if(_fs->_traps > 0)
 			//		_fs->AddInstruction(_OP_POPTRAP, _fs->_traps, 0);
-			RESOLVE_OUTERS();
+			//RESOLVE_OUTERS();
+			_fs->AddInstruction(_OP_NOP, 0, 0); //for _OP_POPTRAP
+			_fs->AddInstruction(_OP_NOP, 0, 0); //for OUTERS
 			_fs->AddInstruction(_OP_JMP, 0, -1234);
 			SQGotoLabelsInfo info;
 			info.name = id;

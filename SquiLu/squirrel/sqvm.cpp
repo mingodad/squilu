@@ -817,6 +817,7 @@ bool SQVM::Execute(SQObjectPtr &closure, SQInteger nargs, SQInteger stackbase,SQ
 	OPCODE_PTR(CLOSE),
 	OPCODE_PTR(EQI),
 	OPCODE_PTR(NEI),
+	OPCODE_PTR(NOP),
 };
 #endif
 
@@ -1040,6 +1041,7 @@ exception_restore:
 			OPCODE_TARGET(NEI) {
 				TARGET = (!IsEqualIdentity(STK(arg2),COND_LITERAL))?true:false;
 				continue;}
+			OPCODE_TARGET(NOP) {continue;}
 			OPCODE_TARGET(ADD) { _ARITH_(+,TARGET,STK(arg2),STK(arg1)); continue;}
 			OPCODE_TARGET(SUB) { _ARITH_(-,TARGET,STK(arg2),STK(arg1)); continue;}
 			OPCODE_TARGET(MUL) { _ARITH_(*,TARGET,STK(arg2),STK(arg1)); continue;}
