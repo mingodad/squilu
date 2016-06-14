@@ -66,7 +66,7 @@ struct SQLocalVarInfo
 };
 
 struct SQLineInfo { SQInteger _line;SQInteger _op; };
-struct SQGotoLabelsInfo { SQObjectPtr name; SQInt32 pos; SQInt32 line;};
+struct SQGotoLabelsInfo { SQObjectPtr name; SQInt32 pos; SQInt16 line; SQInt16 traps;};
 
 typedef sqvector<SQOuterVar> SQOuterVarVec;
 typedef sqvector<SQLocalVarInfo> SQLocalVarInfoVec;

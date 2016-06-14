@@ -53,7 +53,7 @@ struct SQFuncState
 	SQObject CreateTable();
 	bool IsConstant(const SQObject &name,SQObject &e);
 	SQInteger FindGotoTarget(const SQObject &name);
-	bool AddGotoTarget(const SQObject &name, SQInteger line);
+	bool AddGotoTarget(const SQObject &name, SQInteger line, SQInteger traps);
 	SQGotoLabelsInfoVec _unresolvedgotos;
 	SQGotoLabelsInfoVec _gototargets;
 	SQInteger _returnexp;

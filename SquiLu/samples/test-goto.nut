@@ -35,7 +35,7 @@ start:
 				try
 				{
 				print("x > 10");
-				return "x > 10";
+				//return "x > 10";
 				goto done2;
 				goto done5;
 				goto change;
@@ -48,6 +48,7 @@ start:
 				catch(e)
 				{
 				}
+				goto done4;
 			}
 			catch(e)
 			{
