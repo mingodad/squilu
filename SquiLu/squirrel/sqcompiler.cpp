@@ -39,9 +39,9 @@ struct SQExpState {
 #define MAX_COMPILER_ERROR_LEN 256
 
 struct SQScope {
-	SQInteger outers;
-	SQInteger stacksize;
-	SQInteger nested;
+	SQInt32 stacksize;
+	SQInt16 outers;
+	SQInt16 nested;
 };
 
 #define BEGIN_SCOPE() SQScope __oldscope__ = _scope; \
@@ -61,6 +61,7 @@ struct SQScope {
 						} \
 						_scope = __oldscope__; \
 						_scope_consts.pop_back();\
+						EndScopeCheckGotoLabels(_scope);\
 					}
 
 #define END_SCOPE() {	SQInteger oldouters = _fs->_outers;\
@@ -621,16 +622,18 @@ public:
                         _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn);
 		    Lex(); //ignore for now
 		    id = Expect(TK_IDENTIFIER);
+			SQGotoLabelsInfo info;
+			info.name = id;
+			info.line = _lex.data->currentline; //need to get line number here
 		    Expect(_SC(';'));
 
             //if(_fs->_traps > 0)
 			//		_fs->AddInstruction(_OP_POPTRAP, _fs->_traps, 0);
 			//RESOLVE_OUTERS();
-			_fs->AddInstruction(_OP_NOP, 0, 0); //for _OP_POPTRAP
-			_fs->AddInstruction(_OP_NOP, 0, 0); //for OUTERS
+			_fs->AddInstruction(_OP_NOP, _fs->_traps, 0); //for _OP_POPTRAP
+			_fs->AddInstruction(_OP_NOP, _scope.nested, 0); //for OUTERS
 			_fs->AddInstruction(_OP_JMP, 0, -1234);
-			SQGotoLabelsInfo info;
-			info.name = id;
+			//instruction pos
 			info.pos = _fs->GetCurrentPos();
 			_fs->_unresolvedgotos.push_back(info);
             }
@@ -791,7 +794,7 @@ public:
             if(lhtk == _SC(':'))
             {
                 if(!_fs->_parent) Error(_SC("'label' has to be inside a function block"));
-                if(!_fs->AddGotoTarget(id)) Error(_SC("Label already declared"));
+                if(!_fs->AddGotoTarget(id, _lex.data->currentline)) Error(_SC("Label already declared"));
                 Warning(_SC("%s:%d:%d warning labels are only parsed right now\n"),
                         _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn);
                 Lex(); //eat ':'
@@ -2531,6 +2534,85 @@ error:
 		_fs->_functions.push_back(func);
 		_fs->PopChildState();
 	}
+	bool ResolveGotLabel(SQInteger stack_pos, const SQGotoLabelsInfo &label)
+	{
+	    bool resolved = false;
+		for(int i = _fs->_unresolvedgotos.size()-1; i >= 0; --i) {
+			SQGotoLabelsInfo goto_info = _fs->_unresolvedgotos[i];
+			//printf("ResolveGotLabel : %s : %s\n", _stringval(label.name), _stringval(goto_info.name));
+			if(_string(label.name) == _string(goto_info.name))
+            {
+                if(goto_info.pos < stack_pos)
+                {
+                    _lex.data->currentline = goto_info.line;
+                    Error(_SC("Goto can not jump to nested label '%s'"), _stringval(label.name));
+                }
+                resolved = true;
+                SQInteger target_pos = label.pos;
+                SQInteger jump_pos = target_pos - goto_info.pos;
+                //set the jmp instruction
+/*
+                SQInteger poptraps = 0, istart, iend;
+                if(jump_pos < 0)
+                {
+                    istart = target_pos;
+                    iend = goto_info.pos;
+                }
+                else
+                {
+                    istart = goto_info.pos;
+                    iend = target_pos;
+                }
+                for(SQInteger i=istart; i < iend; ++i)
+                {
+                    SQInstruction &instruction = _fs->GetInstruction(i);
+                    switch(instruction.op)
+                    {
+                        case _OP_PUSHTRAP: ++poptraps;break;
+                        //case _OP_POPTRAP: --poptraps;break;
+                    }
+                }
+                if(poptraps)
+                {
+                    SQInstruction &i_op_poptrap = _fs->GetInstruction(goto_info.pos-2);
+                    //printf("poptraps for %s = %d : %d\n", _stringval(label.name), (int)poptraps, (int)i_op_poptrap._arg0);
+                    i_op_poptrap.op = _OP_POPTRAP;
+                    i_op_poptrap._arg0 = poptraps;
+                }
+*/
+                _fs->SetIntructionParams(goto_info.pos, 0, jump_pos, 0);
+                _fs->_unresolvedgotos.remove(i);
+            }
+		}
+		return resolved;
+	}
+	void EndScopeCheckGotoLabels(const SQScope &scope)
+	{
+	    //do we have declared any new label ?
+        if(_fs->_gototargets.size() && (_fs->_gototargets.top().pos >= scope.stacksize))
+        {
+            //any new label at this point should have a goto call inside/nested this block
+            SQGotoLabelsInfo &label = _fs->_gototargets.top();
+            while(label.pos >= scope.stacksize) {
+                if(!ResolveGotLabel(scope.stacksize, label))
+                {
+                    _lex.data->currentline = label.line;
+                    Error(_SC("Label not resolved at this point '%s'"), _stringval(label.name));
+                }
+                _fs->_gototargets.pop_back();
+                if(_fs->_gototargets.empty())
+                {
+                    break;
+                }
+                label = _fs->_gototargets.top();
+            }
+        }
+	    //do we have declared any new goto ?
+        if(_fs->_unresolvedgotos.size() && (_fs->_unresolvedgotos.top().pos >= scope.stacksize))
+        {
+            //we can resolve gotos upward here
+        }
+	}
 	void ResolveGotos(SQFuncState *funcstate)
 	{
 		while(funcstate->_unresolvedgotos.size() > 0) {
@@ -2538,9 +2620,43 @@ error:
 			funcstate->_unresolvedgotos.pop_back();
 			//set the jmp instruction
 			SQInteger target = funcstate->FindGotoTarget(goto_info.name);
-			if(target < 0) Error(_SC("Label for goto not found '%s'"), _stringval(goto_info.name));
+			if(target < 0)
+            {
+                _lex.data->currentline = goto_info.line;
+                Error(_SC("Label for goto not found '%s'"), _stringval(goto_info.name));
+            }
 			SQInteger target_pos = funcstate->_gototargets[target].pos;
-			funcstate->SetIntructionParams(goto_info.pos, 0, target_pos - goto_info.pos, 0);
+			SQInteger jump_pos = target_pos - goto_info.pos;
+
+/*
+			SQInteger poptraps = 0, istart, iend;
+			if(jump_pos < 0)
+            {
+                istart = target_pos;
+                iend = goto_info.pos;
+            }
+            else
+            {
+                istart = goto_info.pos;
+                iend = target_pos;
+            }
+			for(SQInteger i=istart; i < iend; ++i)
+            {
+                SQInstruction &instruction = _fs->GetInstruction(i);
+                switch(instruction.op)
+                {
+                    case _OP_PUSHTRAP: ++poptraps;break;
+                    case _OP_POPTRAP: --poptraps;break;
+                }
+            }
+            if(poptraps)
+            {
+                SQInstruction &i_op_poptrap = _fs->GetInstruction(goto_info.pos-2);
+                i_op_poptrap.op = _OP_POPTRAP;
+                i_op_poptrap._arg0 = abs(poptraps);
+            }
+*/
+			funcstate->SetIntructionParams(goto_info.pos, 0, jump_pos, 0);
 		}
 	}
 	void ResolveBreaks(SQFuncState *funcstate, SQInteger ntoresolve)

@@ -53,15 +53,13 @@ struct SQFuncState
 	SQObject CreateTable();
 	bool IsConstant(const SQObject &name,SQObject &e);
 	SQInteger FindGotoTarget(const SQObject &name);
-	bool AddGotoTarget(const SQObject &name);
+	bool AddGotoTarget(const SQObject &name, SQInteger line);
 	SQGotoLabelsInfoVec _unresolvedgotos;
 	SQGotoLabelsInfoVec _gototargets;
 	SQInteger _returnexp;
 	SQLocalVarInfoVec _vlocals;
 	SQIntVec _targetstack;
 	SQInteger _stacksize;
-	bool _varparams;
-	bool _bgenerator;
 	SQIntVec _unresolvedbreaks;
 	SQIntVec _unresolvedcontinues;
 	SQObjectPtrVec _functions;
@@ -85,6 +83,8 @@ struct SQFuncState
 	SQInteger _traps; //contains number of nested exception traps
 	SQInteger _outers;
 	bool _optimization;
+	bool _varparams;
+	bool _bgenerator;
 	SQSharedState *_sharedstate;
 	sqvector<SQFuncState*> _childstates;
 	SQInteger GetConstant(const SQObject &cons);

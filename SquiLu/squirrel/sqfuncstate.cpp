@@ -391,12 +391,14 @@ SQInteger SQFuncState::FindGotoTarget(const SQObject &name)
 	return -1;
 }
 
-bool SQFuncState::AddGotoTarget(const SQObject &name)
+bool SQFuncState::AddGotoTarget(const SQObject &name, SQInteger line)
 {
     if(FindGotoTarget(name) >= 0) return false;
 	SQGotoLabelsInfo info;
+	//GetConstant(name);
 	info.name = name;
 	info.pos = GetCurrentPos();
+	info.line = line;
 	_gototargets.push_back(info);
 	return true;
 }
