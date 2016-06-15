@@ -4,6 +4,9 @@ local function test10(x)
 {
 	print("goto start");
 goto start;
+	local zz = 77; //this should be an error
+	x = 99;
+//goto p2;
 change:
 	x = 5;
 	try
@@ -15,7 +18,7 @@ change:
 	}
 //goto dad;
 start:
-	print("start");
+	print("start", zz);
 	if(x > 10)
 	{
 		try

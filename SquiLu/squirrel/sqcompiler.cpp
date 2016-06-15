@@ -61,7 +61,6 @@ struct SQScope {
 						} \
 						_scope = __oldscope__; \
 						_scope_consts.pop_back();\
-						EndScopeCheckGotoLabels(_scope.stacksize);\
 					}
 
 #define END_SCOPE() {	SQInteger oldouters = _fs->_outers;\
@@ -618,18 +617,17 @@ public:
 		case TK_GOTO: {
 		    //error if outside any function
 			if(!_fs->_parent) Error(_SC("'goto' has to be in a function block"));
-		    Warning(_SC("%s:%d:%d warning goto is only parsed right now\n"),
-                        _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn);
 		    Lex(); //ignore for now
 		    id = Expect(TK_IDENTIFIER);
 			SQGotoLabelsInfo info;
 			info.name = id;
 			info.line = _lex.data->currentline; //need to get line number here
 			info.traps = _fs->_traps;
-		    Expect(_SC(';'));
+			info.nested = _scope.nested;
+		    //Expect(_SC(';'));
 
+			if(info.traps) _fs->AddInstruction(_OP_NOP, 0, 0); //for _OP_POPTRAP
 			RESOLVE_OUTERS();
-			_fs->AddInstruction(_OP_NOP, 0, 0); //for _OP_POPTRAP
 			_fs->AddInstruction(_OP_JMP, 0, -1234);
 			//instruction pos
 			info.pos = _fs->GetCurrentPos();
@@ -741,7 +739,7 @@ public:
 			id = ExpectTypeToken();
 			SQObjectPtr strongid = id;
 			CheckLocalNameScope(id, _scope.nested);
-			Expect(_SC(';'));
+			//Expect(_SC(';'));
 			TypesNewSlot(strongid,SQObjectPtr(type_val));
 			}
 			break;
@@ -753,7 +751,7 @@ public:
 			SQObjectPtr strongid = id;
 			CheckLocalNameScope(id, _scope.nested);
 			SQObject type_val = ExpectTypeToken();
-			Expect(_SC(';'));
+			//Expect(_SC(';'));
 			TypesNewSlot(strongid,SQObjectPtr(type_val));
 			}
         break;
@@ -792,9 +790,10 @@ public:
             if(lhtk == _SC(':'))
             {
                 if(!_fs->_parent) Error(_SC("'label' has to be inside a function block"));
-                if(!_fs->AddGotoTarget(id, _lex.data->currentline, _fs->_traps)) Error(_SC("Label already declared"));
-                Warning(_SC("%s:%d:%d warning labels are only parsed right now\n"),
-                        _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn);
+                if(!_fs->AddGotoTarget(id, _lex.data->currentline, _fs->_traps, _scope.nested))
+                {
+                    Error(_SC("Label already declared"));
+                }
                 Lex(); //eat ':'
                 Lex();
                 break;
@@ -2519,7 +2518,7 @@ error:
 		else {
 			Statement(false);
 		}
-		ResolveGotos(0, true);
+		ResolveGotos();
 		funcstate->AddLineInfos(_lex.data->prevtoken == _SC('\n')?_lex.data->lasttokenline:_lex.data->currentline, _lineinfo, true);
         funcstate->AddInstruction(_OP_RETURN, -1);
 		funcstate->SetStackSize(0);
@@ -2539,86 +2538,80 @@ error:
         //set the jmp instruction
 
         SQInteger poptraps = goto_info.traps - label.traps;
-        if(poptraps)
+        SQInt32 ioffset = 1;
+        while(poptraps)
         {
-            SQInstruction &i_op_poptrap = _fs->GetInstruction(goto_info.pos-1);
+            SQInstruction &i_op_poptrap = _fs->GetInstruction(goto_info.pos-ioffset);
+            if(i_op_poptrap.op != _OP_NOP)
+            {
+                if(ioffset < 2)
+                {
+                    ++ioffset;
+                    continue;
+                }
+                Error(_SC("Compiler: This should not happen i_op_poptrap.op != _OP_NOP"));
+            }
             //printf("poptraps for %s = %d : %d\n", _stringval(label.name), (int)poptraps, (int)i_op_poptrap._arg0);
             i_op_poptrap.op = _OP_POPTRAP;
             i_op_poptrap._arg0 = poptraps;
+            break;
         }
 
         _fs->SetIntructionParams(goto_info.pos, 0, jump_pos, 0);
 	}
-	bool ResolveGotLabel(SQInteger stack_pos, const SQGotoLabelsInfo &label)
+	void ResolveGotos()
 	{
-	    bool resolved = false;
-		for(SQInteger i = _fs->_unresolvedgotos.size()-1; i >= 0; --i) {
-			SQGotoLabelsInfo goto_info = _fs->_unresolvedgotos[i];
-			//printf("ResolveGotLabel : %s : %s\n", _stringval(label.name), _stringval(goto_info.name));
-			if(_string(label.name) == _string(goto_info.name))
+	    //first we walk through the labels and when we come back
+	    //nested labels we remove then because we only allow
+	    //goto/joump out of blocks/scopes
+	    SQInt16 last_nested = -1;
+        for(SQUnsignedInteger idxlabel = 0; idxlabel < _fs->_gototargets.size(); ++idxlabel) {
+            SQGotoLabelsInfo &label = _fs->_gototargets[idxlabel];
+            SQUnsignedInteger resolved = 0;
+            for(SQUnsignedInteger idxGoto = 0; idxGoto < _fs->_unresolvedgotos.size(); ++idxGoto) {
+                SQGotoLabelsInfo &goto_info = _fs->_unresolvedgotos[idxGoto];
+                if(_string(label.name) == _string(goto_info.name))
+                {
+                    if(label.nested > goto_info.nested)
+                    {
+                        _lex.data->currentline = goto_info.line;
+                        Error(_SC("Goto can not jump inside nested block/scope '%s'"), _stringval(goto_info.name));
+                    }
+                    AdjustGotoInstruction(goto_info, label);
+                    //we dcrease idxGoto here to compensate the removal inside the for loop
+                    _fs->_unresolvedgotos.remove(idxGoto--);
+                    ++resolved;
+                }
+            }
+            if(!resolved)
             {
-                if(goto_info.pos < stack_pos)
-                {
-                    _lex.data->currentline = goto_info.line;
-                    Error(_SC("Goto can not jump to nested label '%s'"), _stringval(label.name));
-                }
-                resolved = true;
-                AdjustGotoInstruction(goto_info, label);
-                _fs->_unresolvedgotos.remove(i);
+                //if a label isn't resolved we have an unused label
+                _lex.data->currentline = label.line;
+                Error(_SC("Label not resolved at this point '%s'"), _stringval(label.name));
             }
-		}
-		return resolved;
-	}
-	bool ResolveOneGoto(SQGotoLabelsInfo &goto_info)
-	{
-        for(SQInteger i = _fs->_gototargets.size()-1; i >= 0; --i) {
-            SQGotoLabelsInfo &label = _fs->_gototargets[i];
-            if(_string(label.name) == _string(goto_info.name))
+            if(label.nested < last_nested)
             {
-                AdjustGotoInstruction(goto_info, label);
-                return true;
+                //remove any previous nested label to prevent goto/jump inside blocks/scopes
+                SQUnsignedInteger i = idxlabel - 1;
+                for(; i > 0; --i)
+                {
+                    if(_fs->_gototargets[i].nested <= label.nested) break;
+                    _fs->_gototargets.remove(i);
+                    //we decrease the index idxlabel here due to remove before
+                    //the current idxlabel
+                    --idxlabel;
+                }
             }
+            last_nested = label.nested;
         }
-        return false;
-	}
-	void ResolveGotos(SQInteger stack_pos, bool raiseError=false)
-	{
-        if(_fs->_unresolvedgotos.size() && (_fs->_unresolvedgotos.top().pos >= stack_pos))
+
+        if(_fs->_unresolvedgotos.size())
         {
-            //we can resolve gotos upward here
-            for(SQInteger i = _fs->_unresolvedgotos.size()-1; i >= 0; --i) {
-                SQGotoLabelsInfo &goto_info = _fs->_unresolvedgotos[i];
-                if(!ResolveOneGoto(goto_info) && raiseError)
-                {
-                    _lex.data->currentline = goto_info.line;
-                    Error(_SC("Goto can not jump to undeclared label '%s'"), _stringval(goto_info.name));
-                }
-            }
+            //if we still have any unresolved goto it's an error, let's show the first
+            SQGotoLabelsInfo &goto_info = _fs->_unresolvedgotos[0];
+            _lex.data->currentline = goto_info.line;
+            Error(_SC("Goto can not jump to undeclared label '%s'"), _stringval(goto_info.name));
         }
-	}
-	void EndScopeCheckGotoLabels(SQInteger stack_pos)
-	{
-	    //do we have declared any new label ?
-        if(_fs->_gototargets.size() && (_fs->_gototargets.top().pos >= stack_pos))
-        {
-            //any new label at this point should have a goto call inside/nested this block
-            SQGotoLabelsInfo &label = _fs->_gototargets.top();
-            while(label.pos >= stack_pos) {
-                if(!ResolveGotLabel(stack_pos, label))
-                {
-                    _lex.data->currentline = label.line;
-                    Error(_SC("Label not resolved at this point '%s'"), _stringval(label.name));
-                }
-                _fs->_gototargets.pop_back();
-                if(_fs->_gototargets.empty())
-                {
-                    break;
-                }
-                label = _fs->_gototargets.top();
-            }
-        }
-	    //do we have declared any new goto ?
-	    ResolveGotos(stack_pos);
 	}
 	void ResolveBreaks(SQFuncState *funcstate, SQInteger ntoresolve)
 	{
