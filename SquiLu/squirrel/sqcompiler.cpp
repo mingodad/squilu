@@ -765,24 +765,9 @@ public:
 		    goto start_again;
 		    break;
 
-        case TK_TEMPLATE: {
-            Lex(); //ignore for now
-            Expect(_SC('<'));
-            int nest_count = 1;
-            while(_token > 0 && nest_count > 0){
-                Lex();
-                switch(_token)
-                {
-                    case _SC('>'):
-                        --nest_count;
-                        break;
-                    case _SC('<'):
-                        nest_count++;
-                }
-            }
-            if(nest_count == 0) Lex(); //last '>' ignore for now
+        case TK_TEMPLATE:
+            TemplateStatement();
             break;
-        }
 
         case TK_IDENTIFIER:{
             id = _fs->CreateString(_lex.data->svalue);
@@ -1551,6 +1536,9 @@ public:
 				else if(_token == TK_CONST) {
 					Lex();
 				}
+				else if(_token == TK_TEMPLATE) {
+					TemplateStatement();
+				}
 			}
 member_has_type:
 			switch(_token) {
@@ -2098,6 +2086,24 @@ if(color == "yellow"){
 		__nbreaks__ = _fs->_unresolvedbreaks.size() - __nbreaks__;
 		if(__nbreaks__ > 0)ResolveBreaks(_fs, __nbreaks__);
 		_fs->_breaktargets.pop_back();
+	}
+	void TemplateStatement()
+	{
+        Lex(); //ignore for now
+        Expect(_SC('<'));
+        int nest_count = 1;
+        while(_token > 0 && nest_count > 0){
+            Lex();
+            switch(_token)
+            {
+                case _SC('>'):
+                    --nest_count;
+                    break;
+                case _SC('<'):
+                    nest_count++;
+            }
+        }
+        if(nest_count == 0) Lex(); //last '>' ignore for now
 	}
 	void FunctionStatement()
 	{
