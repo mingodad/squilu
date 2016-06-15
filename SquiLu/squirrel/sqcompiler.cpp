@@ -1388,7 +1388,26 @@ public:
 		case TK_MINUSMINUS :
 		case TK_PLUSPLUS :PrefixIncDec(_token); break;
 		case TK_DELETE : DeleteExpr(); break;
-		case _SC('('): Lex(); CommaExpr(); Expect(_SC(')'));
+		case _SC('('):
+            Lex();
+            if(_token == TK_IDENTIFIER)
+            {
+                //check C/C++ cast
+                SQObject id = _fs->CreateString(_lex.data->svalue);
+                if(CheckTypeName(id)) //C/C++ type declaration;
+                {
+                    SQInteger lhtk = _lex.LookaheadLex();
+                    if(lhtk == _SC(')'))
+                    {
+                        Lex(); //eat TK_IDENTIFIER
+                        Lex(); //eat ')'
+                        CommaExpr();
+                        break;
+                    }
+                }
+            }
+            CommaExpr();
+            Expect(_SC(')'));
 			break;
 		case TK___LINE__: EmitLoadConstInt(_lex.data->currentline,-1); Lex();	break;
 		case TK___FILE__:

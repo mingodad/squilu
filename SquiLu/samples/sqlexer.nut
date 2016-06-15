@@ -102,7 +102,7 @@ SQUnsignedInteger LexOctal(const SQChar_ptr_t s, SQInteger sz)
     return res;
 }
 
-
+//template<typename T>
 class SQSharedState
 {
 };
@@ -315,6 +315,7 @@ struct SQLexerNut
         ADD_KEYWORD(tbl, "struct",TK_STRUCT);
         ADD_KEYWORD(tbl, "switch", TK_SWITCH);
         ADD_KEYWORD(tbl, "table_t", TK_LOCAL_TABLE_T);
+        ADD_KEYWORD(tbl, "template", TK_TEMPLATE);
         ADD_KEYWORD(tbl, "this", TK_THIS);
         ADD_KEYWORD(tbl, "throw", TK_THROW);
         ADD_KEYWORD(tbl, "typedef", TK_TYPEDEF);

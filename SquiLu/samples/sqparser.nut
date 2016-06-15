@@ -1,155 +1,10 @@
-const TK_FIRST_ENUM_TOKEN = 258;
-const TK_3WAYSCMP = 259;
-const TK_AND = 260;
-const TK_ARROW = 261;
-const TK_AS = 262;
-const TK_ATTR_CLOSE = 263;
-const TK_ATTR_OPEN = 264;
-const TK_BASE = 265;
-const TK_BIT_AND_EQ = 266;
-const TK_BIT_OR_EQ = 267;
-const TK_BIT_SHIFT_LEFT_EQ = 268;
-const TK_BIT_SHIFT_RIGHT_EQ = 269;
-const TK_BIT_XOR_EQ = 270;
-const TK_BREAK = 271;
-const TK_CASE = 272;
-const TK_CATCH = 273;
-const TK_CLASS = 274;
-const TK_CLONE = 275;
-const TK_CONST = 276;
-const TK_COMMENT_BLOCK = 277;
-const TK_COMMENT_LINE = 278;
-const TK_CONSTRUCTOR = 279;
-const TK_CONTINUE = 280;
-const TK_DECLARE = 281;
-const TK_DEFAULT = 282;
-const TK_DELETE = 283;
-const TK_DESTRUCTOR = 284;
-const TK_DIVEQ = 285;
-const TK_DO = 286;
-const TK_DOUBLE_COLON = 287;
-const TK_ELSE = 288;
-const TK_ENUM = 289;
-const TK_EQ = 290;
-const TK_EQ_IDENTITY = 291;
-const TK_EXTENDS = 292;
-const TK_EXTERN = 293;
-const TK_FALSE = 294;
-const TK___FILE__ = 295;
-const TK_FLOAT = 296;
-const TK_FOR = 297;
-const TK_FOREACH = 298;
-const TK_FRIEND = 299;
-const TK___FUNCTION__ = 300;
-const TK_FUNCTION = 301;
-const TK_GE = 302;
-const TK_IDENTIFIER = 303;
-const TK_IF = 304;
-const TK_IGNORE = 305;
-const TK_IN = 306;
-const TK_INSTANCEOF = 307;
-const TK_INTEGER = 308;
-const TK_LE = 309;
-const TK___LINE__ = 310;
-const TK_LOCAL = 311;
-const TK_LOCAL_ANY_T = 312;
-const TK_LOCAL_ARRAY_T = 313;
-const TK_LOCAL_BOOL_T = 314;
-const TK_LOCAL_CHAR_T = 315;
-const TK_LOCAL_DOUBLE_T = 316;
-const TK_LOCAL_FLOAT_T = 317;
-const TK_LOCAL_INT16_T = 318;
-const TK_LOCAL_INT32_T = 319;
-const TK_LOCAL_INT64_T = 320;
-const TK_LOCAL_INT8_T = 321;
-const TK_LOCAL_INT_T = 322;
-const TK_LOCAL_LONG_DOUBLE_T = 323;
-const TK_LOCAL_NUMBER_T = 324;
-const TK_LOCAL_SIZE_T = 325;
-const TK_LOCAL_SSIZE_T = 326;
-const TK_LOCAL_STRING_T = 327;
-const TK_LOCAL_TABLE_T = 328;
-const TK_LOCAL_UINT16_T = 329;
-const TK_LOCAL_UINT32_T = 330;
-const TK_LOCAL_UINT64_T = 331;
-const TK_LOCAL_UINT8_T = 332;
-const TK_LOCAL_UINT_T = 333;
-const TK_LOCAL_VOIDPTR_T = 334;
-const TK_LOCAL_WCHAR_T = 335;
-const TK_LOCAL_WEAKREF_T = 336;
-const TK_MINUSEQ = 337;
-const TK_MINUSMINUS = 338;
-const TK_MODEQ = 339;
-const TK_MODULO = 340;
-const TK_MULEQ = 341;
-const TK_NE = 342;
-const TK_NE_IDENTITY = 343;
-const TK_NEWSLOT = 344;
-const TK_NOEXCEPT = 345;
-const TK_NULL = 346;
-const TK_OR = 347;
-const TK_PLUSEQ = 348;
-const TK_PLUSPLUS = 349;
-const TK_PRAGMA = 350;
-const TK_PRIVATE = 351;
-const TK_PUBLIC = 352;
-const TK_RESUME = 353;
-const TK_RETURN = 354;
-const TK_SHIFTL = 355;
-const TK_SHIFTR = 356;
-const TK_STATIC = 357;
-const TK_STRING_LITERAL = 358;
-const TK_STRUCT = 359;
-const TK_SWITCH = 360;
-const TK_THIS = 361;
-const TK_THROW = 362;
-const TK_TYPEDEF = 363;
-const TK_TRUE = 364;
-const TK_TRY = 365;
-const TK_TYPEOF = 366;
-const TK_UMINUS = 367;
-const TK_UNSAFE = 368;
-const TK_USING = 369;
-const TK_USHIFTR = 370;
-const TK_VARPARAMS = 371;
-const TK_VIRTUAL = 372;
-const TK_VOID = 373;
-const TK_VOLATILE = 374;
-const TK_WHILE = 375;
-const TK_YIELD = 376;
-const TK_INLINE = 377;
-const TK_CONSTEXPR = 378;
-const TK_LAST_ENUM_TOKEN = 379;
-
-//typedefs to allow parse/compile
-typedef char_ptr_t SQChar_ptr_t;
-typedef class_t SQObject;
-typedef var_t SQObjectPtr;
-typedef bool_t bool;
-typedef int_t int;
-typedef int_t SQInteger;
-typedef class_t SQLex;
-typedef enum_t SQOpcode;
-typedef float_t SQFloat;
-typedef void_ptr_t SQObjectPtr_ptr_t;
-typedef class_t SQFuncState;
-typedef void_ptr_t SQFuncState_ptr_t;
-typedef class_t SQVM;
-typedef class_ptr_t SQVM_ptr_t;
-typedef struct_t jmp_buf;
-typedef array_t SQObjectPtrVec;
-typedef void_ptr_t SQUserPointer;
-typedef array_t SQInstructionVec;
-typedef param_t T;
-typedef func_ptr_t SQLEXREADFUNC;
-typedef class_ptr_t SQCompiler_ptr_t;
-typedef void_ptr_t va_list;
-typedef enum_t SQObjectType;
+#include "sq_lexer_tokens.nut"
+#include "sqtypedefs.nut"
 
 
-//const SQUIRREL_VERSION	= _SC("SquiLu based on Squirrel 3.1 stable and Lua 5.1.5");
-//const SQUIRREL_COPYRIGHT	= _SC("Copyright (C) 2003-2016 Alberto Demichelis, Domingo Alvarez Duarte");
-//const SQUIRREL_AUTHOR	= _SC("Alberto Demichelis, Domingo Alvarez Duarte");
+//const SQUIRREL_VERSION	= "SquiLu based on Squirrel 3.1 stable and Lua 5.1.5");
+//const SQUIRREL_COPYRIGHT	= "Copyright (C) 2003-2016 Alberto Demichelis, Domingo Alvarez Duarte");
+//const SQUIRREL_AUTHOR	= "Alberto Demichelis, Domingo Alvarez Duarte");
 const SQUIRREL_VERSION_NUMBER	= 310;
 
 const SQ_VMSTATE_IDLE			= 0;
@@ -333,6 +188,7 @@ class SQCompiler
 
     void Error(const SQChar_ptr_t s, ...) //__attribute__((format(printf, 2, 3)))
     {
+	throw s;
         va_list vl;
         va_start(vl, s);
         scvsprintf(error_buf, sizeof(error_buf), s, vl);
@@ -410,19 +266,19 @@ class SQCompiler
 
     void CheckGlobalName(const SQObject &name, bool addIfNotExists=false, bool checkLocals=true)
     {
-        /*const*/ SQChar_ptr_t found = NULL;
+        const SQChar_ptr_t found = NULL;
         if(CheckExternName(name))
         {
-            found = _SC("extern");
+            found = "extern";
         }
         else if(_table(_globals)->Exists(name))
         {
-            found = _SC("global");
+            found = "global";
         }
         if(found)
         {
-            if(checkLocals) Error(_SC("%s '%s' already declared"), found, _stringval(name));
-            else Warning(_SC("%s:%d:%d warning %s '%s' already declared will be shadowed\n"),
+            if(checkLocals) Error("%s '%s' already declared", found, _stringval(name));
+            else Warning("%s:%d:%d warning %s '%s' already declared will be shadowed\n",
                              _stringval(_sourcename), _lex._currentline, _lex._currentcolumn,
                              found, _stringval(name));
         }
@@ -440,15 +296,15 @@ class SQCompiler
         {
             SQLocalVarInfo &lvi = _fs->_vlocals[found];
             if(lvi._scope == scope)
-                Error(_SC("local '%s' already declared"), _stringval(name));
+                Error("local '%s' already declared", _stringval(name));
             else
-                Warning(_SC("%s:%d:%d warning local '%s' already declared will be shadowed\n"),
+                Warning("%s:%d:%d warning local '%s' already declared will be shadowed\n",
                         _stringval(_sourcename), _lex._currentline, _lex._currentcolumn, _stringval(name));
         }
         else
         {
             found = _fs->FindOuterVariable(name);
-            if(found >= 0) Warning(_SC("%s:%d:%d warning outer variable '%s' already declared will be shadowed\n"),
+            if(found >= 0) Warning("%s:%d:%d warning outer variable '%s' already declared will be shadowed\n",
                                        _stringval(_sourcename), _lex._currentline, _lex._currentcolumn, _stringval(name));
         }
         if(checkGlobals) CheckGlobalName(name, false, false);
@@ -491,7 +347,7 @@ class SQCompiler
                 if(!_table(constant)->Get(constid, constval))
                 {
                     constval.Null();
-                    Error(_SC("invalid constant [%s.%s]"), _stringval(id), _stringval(constid));
+                    Error("invalid constant [%s.%s]", _stringval(id), _stringval(constid));
                 }
             }
             else
@@ -517,7 +373,7 @@ class SQCompiler
         }
         else
         {
-            Error(_SC("invalid constant [%s]"), _stringval(id));
+            Error("invalid constant [%s]", _stringval(id));
         }
         return epos;
     }
@@ -536,9 +392,9 @@ class SQCompiler
         if(found < 0 && _table(_ss(_vm)->_consts)->Exists(key)) found = 0;
         if(found == _scope.nested)
         {
-            Error(_SC("constant '%s' already exists\n"), _stringval(key));
+            Error("constant '%s' already exists\n", _stringval(key));
         }
-        if(found >= 0) Warning(_SC("%s:%d:%d warning an already defined constant '%s' will be shadowed\n"),
+        if(found >= 0) Warning("%s:%d:%d warning an already defined constant '%s' will be shadowed\n",
                                    _stringval(_sourcename), _lex._currentline, _lex._currentcolumn,  _stringval(key));
     }
 
@@ -596,29 +452,29 @@ class SQCompiler
             }
             else
             {
-                /*const*/ SQChar_ptr_t etypename;
+                const SQChar_ptr_t etypename;
                 if(tok > 255)
                 {
                     switch(tok)
                     {
                     case TK_IDENTIFIER:
-                        etypename = _SC("IDENTIFIER");
+                        etypename = "IDENTIFIER";
                         break;
                     case TK_STRING_LITERAL:
-                        etypename = _SC("STRING_LITERAL");
+                        etypename = "STRING_LITERAL";
                         break;
                     case TK_INTEGER:
-                        etypename = _SC("INTEGER");
+                        etypename = "INTEGER";
                         break;
                     case TK_FLOAT:
-                        etypename = _SC("FLOAT");
+                        etypename = "FLOAT";
                         break;
                     default:
                         etypename = _lex.Tok2Str(tok);
                     }
-                    Error(_SC("expected '%s'"), etypename);
+                    Error("expected '%s'", etypename);
                 }
-                Error(_SC("expected '%c'"), tok);
+                Error("expected '%c'", tok);
             }
         }
     }
@@ -656,7 +512,7 @@ class SQCompiler
         }
         if(!IsEndOfStatement())
         {
-            Error(_SC("end of statement expected (; or lf) found (%d)"), _token);
+            Error("end of statement expected (; or lf) found (%d)", _token);
         }
     }
 
@@ -676,17 +532,17 @@ class SQCompiler
         //int column = _lex._currentcolumn;
         Lex();
         SQObject id = Expect(TK_IDENTIFIER);
-        if(scstrcmp(_stringval(id), _SC("include")) == 0)
+        if(scstrcmp(_stringval(id), "include") == 0)
         {
 //#if SQ_ENABLE_INCLUDES
             SQInteger nested_count = _nested_includes_count + 1;
             if((_max_nested_includes <= 0) || (nested_count > _max_nested_includes))
             {
-                Error(_SC("Error: too many nested includes %d %s\n"), nested_count, _stringval(id));
+                Error("Error: too many nested includes %d %s\n", nested_count, _stringval(id));
             }
 
             id = Expect(TK_STRING_LITERAL);
-            //Warning(_SC("%s:%d:%d warning pragma include %s\n"),
+            //Warning("%s:%d:%d warning pragma include %s\n"),
             //        _stringval(_sourcename), line, column, _stringval(id));
 
             FILE *fp = scfopen(_stringval(id), "r");
@@ -736,16 +592,16 @@ class SQCompiler
             }
             else
             {
-                Error(_SC("Error: opening include file %s\n"), _stringval(id));
+                Error("Error: opening include file %s\n", _stringval(id));
             }
 //#else
-//                Error(_SC("Error: includes are not enabled\n"));
+//                Error("Error: includes are not enabled\n");
 //#endif
         }
         else
         {
             _lex._currentline = line;
-            Error(_SC("Error: unknown pragma %s\n"), _stringval(id));
+            Error("Error: unknown pragma %s\n", _stringval(id));
         }
     }
 
@@ -755,10 +611,10 @@ class SQCompiler
         _debugop = 0;
 
         //SQFuncState funcstate(_ss(_vm), NULL,ThrowError,this);
-        funcstate._name = SQString_Create(_ss(_vm), _SC("main"));
+        funcstate._name = SQString_Create(_ss(_vm), "main");
         _fs = /*&*/funcstate;
-        _fs->AddParameter(_fs->CreateString(_SC("this")), _scope.nested+1);
-        _fs->AddParameter(_fs->CreateString(_SC("vargv")), _scope.nested+1);
+        _fs->AddParameter(_fs->CreateString("this"), _scope.nested+1);
+        _fs->AddParameter(_fs->CreateString("vargv"), _scope.nested+1);
         _fs->_varparams = true;
         _fs->_sourcename = _sourcename;
 
@@ -784,7 +640,7 @@ class SQCompiler
         {
             if(_raiseerror && _ss(_vm)->_compilererrorhandler)
             {
-                _ss(_vm)->_compilererrorhandler(_vm, _compilererror, type(_sourcename) == OT_STRING?_stringval(_sourcename):_SC("unknown"),
+                _ss(_vm)->_compilererrorhandler(_vm, _compilererror, type(_sourcename) == OT_STRING?_stringval(_sourcename):"unknown",
                                                 _lex._currentline, _lex._currentcolumn);
             }
             _vm->_lasterror = SQString_Create(_ss(_vm), _compilererror, -1);
@@ -809,7 +665,7 @@ class SQCompiler
         _es.etype = EXPR_STATEMENT;
         SQObject id;
         _fs->AddLineInfos(_lex._currentline, _lineinfo);
-        //start_again:
+        start_again:
         switch(_token)
         {
         case ';':
@@ -872,7 +728,7 @@ class SQCompiler
             break;
         }
         case TK_BREAK:
-            if(_fs->_breaktargets.size() <= 0)Error(_SC("'break' has to be in a loop block"));
+            if(_fs->_breaktargets.size() <= 0)Error("'break' has to be in a loop block");
             if(_fs->_breaktargets.top() > 0)
             {
                 _fs->AddInstruction(_OP_POPTRAP, _fs->_breaktargets.top(), 0);
@@ -883,7 +739,7 @@ class SQCompiler
             Lex();
             break;
         case TK_CONTINUE:
-            if(_fs->_continuetargets.size() <= 0)Error(_SC("'continue' has to be in a loop block"));
+            if(_fs->_continuetargets.size() <= 0)Error("'continue' has to be in a loop block");
             if(_fs->_continuetargets.top() > 0)
             {
                 _fs->AddInstruction(_OP_POPTRAP, _fs->_continuetargets.top(), 0);
@@ -952,16 +808,16 @@ class SQCompiler
         case TK_CONSTEXPR: //accept and ignore
         case TK_FRIEND:
         case TK_VOLATILE:
-            Lex();
-        //goto start_again;
+		Lex();
+		goto start_again;
         case TK_STATIC:
             if(_scope.nested)
             {
-                Warning(_SC("%s:%d:%d warning static cualifier is ignored\n"),
+                Warning("%s:%d:%d warning static cualifier is ignored\n",
                         _stringval(_sourcename), _lex._currentline, _lex._currentcolumn);
             }
             Lex(); //ignore it only to allow run some C/C++ code
-            //goto start_again;
+            goto start_again;
 
         case TK_DECLARE: //parse as extern
         case TK_EXTERN:
@@ -998,7 +854,7 @@ class SQCompiler
 
         case TK_UNSAFE:
             Lex(); //ignore for now
-            //goto start_again;
+            goto start_again;
             break;
 
         case TK_IDENTIFIER:
@@ -1018,7 +874,7 @@ class SQCompiler
                         if(_token == TK_IDENTIFIER){
                             CommaExpr();
                             if(_token == TK_IDENTIFIER){
-                                Error(_SC(" '=' expected near '%s'"), _lex._svalue);
+                                Error(" '=' expected near '%s'"), _lex._svalue);
                             }
                         }
             */
@@ -1084,14 +940,14 @@ class SQCompiler
 
     void CommaExpr(bool warningAssign=false)
     {
-        //for(Expression(warningAssign); _token == ','; _fs->PopTarget(), Lex(), CommaExpr(warningAssign));
+        for(Expression(warningAssign); _token == ','; _fs->PopTarget(), Lex(), CommaExpr(warningAssign));
     }
 
     void ErrorIfConst()
     {
         SQLocalVarInfo &vsrc = _fs->_vlocals[_fs->TopTarget()];
 //printf("%d %d %d %d %s\n", __LINE__, vsrc._scope, vsrc._type, vsrc._pos, vsrc._name._unVal.pString ? _stringval(vsrc._name) : "?");
-        if(vsrc._type & _VAR_CONST) Error(_SC("can't assign to a const variable"));
+        if(vsrc._type & _VAR_CONST) Error("can't assign to a const variable");
     }
 
     void Expression(bool warningAssign=false)
@@ -1122,8 +978,8 @@ class SQCompiler
             SQInteger ds = _es.etype;
             SQInteger pos = _es.epos;
 
-            if(ds == EXPR) Error(_SC("can't assign expression"));
-            else if(ds == BASE) Error(_SC("'base' cannot be modified"));
+            if(ds == EXPR) Error("can't assign expression");
+            else if(ds == BASE) Error("'base' cannot be modified");
             Lex();
             Expression();
 
@@ -1137,10 +993,10 @@ class SQCompiler
                             && (type(id) == OT_STRING) ) AddGlobalName(id);
                 }
                 else //if _derefstate != DEREF_NO_DEREF && DEREF_FIELD so is the index of a local
-                    Error(_SC("can't 'create' a local slot"));
+                    Error("can't 'create' a local slot");
                 break;
             case '=': //ASSIGN
-                if(warningAssign) Warning(_SC("%s:%d:%d warning making assignment, maybe it's not what you want\n"),
+                if(warningAssign) Warning("%s:%d:%d warning making assignment, maybe it's not what you want\n",
                                               _stringval(_sourcename), _lex._currentline, _lex._currentcolumn);
                 switch(ds)
                 {
@@ -1198,7 +1054,7 @@ class SQCompiler
         _es = es;
     }
 
-    //template<typename T>
+    template<typename T>
     void INVOKE_EXP(T f)
     {
         SQExpState es = _es;
@@ -1208,7 +1064,7 @@ class SQCompiler
         //(this->*f)();
         _es = es;
     }
-    //template<typename T>
+    template<typename T>
     void BIN_EXP(SQOpcode op, T f,SQInteger op3 = 0)
     {
         Lex();
@@ -1481,7 +1337,7 @@ class SQCompiler
                 }
                 break;
             case '[':
-                if(_lex._prevtoken == '\n') Error(_SC("cannot brake deref/or comma needed after [exp]=exp slot declaration"));
+                if(_lex._prevtoken == '\n') Error("cannot brake deref/or comma needed after [exp]=exp slot declaration");
                 Lex();
                 Expression();
                 Expect(']');
@@ -1511,13 +1367,13 @@ class SQCompiler
                 switch(_es.etype)
                 {
                 case EXPR:
-                    Error(_SC("can't '++' or '--' an expression"));
+                    Error("can't '++' or '--' an expression");
                     break;
                 case OBJECT:
                 case BASE:
                     if(_es.donot_get == true)
                     {
-                        Error(_SC("can't '++' or '--' an expression"));    //mmh dor this make sense?
+                        Error("can't '++' or '--' an expression");    //mmh dor this make sense?
                         break;
                     }
                     Emit2ArgsOP(_OP_PINC, diff);
@@ -1591,7 +1447,7 @@ class SQCompiler
         }
         //with the line bellow we get wrong result for -1
         //if(value <= INT_MAX && value > INT_MIN) { //does it fit in 32 bits?
-        if((value & (~(/*(SQInteger)*/0xFFFFFFFF))) == 0)   //does it fit in 32 bits?
+        if((value & (~((SQInteger)0xFFFFFFFF))) == 0)   //does it fit in 32 bits?
         {
             _fs->AddInstruction(_OP_LOADINT, target,value);
         }
@@ -1638,7 +1494,6 @@ class SQCompiler
         case TK_MINUSEQ:
         case TK_PLUSEQ:
             return false;
-            1
         case TK_PLUSPLUS:
         case TK_MINUSMINUS:
             if (!IsEndOfStatement())
@@ -1661,7 +1516,7 @@ class SQCompiler
             if(_token == ',')
             {
                 Lex();
-                if(_token == ')') Error(_SC("expression expected, found ')'"));
+                if(_token == ')') Error("expression expected, found ')'");
             }
         }
         Lex();
@@ -1681,7 +1536,7 @@ class SQCompiler
     {
         if(_table(member_names)->Exists(name))
         {
-            Error(_SC("class already has a member named: %s"), _stringval(name));
+            Error("class already has a member named: %s", _stringval(name));
         }
         if(addIfNotExists) AddClassMemberExists(member_names, name);
     }
@@ -1892,7 +1747,7 @@ class SQCompiler
         }
         else
         {
-            idxname = _fs->CreateString(_SC("@INDEX@"));
+            idxname = _fs->CreateString("@INDEX@");
         }
         Expect(TK_IN);
 
@@ -1909,7 +1764,7 @@ class SQCompiler
         SQInteger valuepos = _fs->PushLocalVariable(valname, _scope.nested);
         _fs->AddInstruction(_OP_LOADNULLS, valuepos,1);
         //push reference index
-        SQInteger itrpos = _fs->PushLocalVariable(_fs->CreateString(_SC("@ITERATOR@")), _scope.nested); //use invalid id to make it inaccessible
+        SQInteger itrpos = _fs->PushLocalVariable(_fs->CreateString("@ITERATOR@"), _scope.nested); //use invalid id to make it inaccessible
         _fs->AddInstruction(_OP_LOADNULLS, itrpos,1);
         SQInteger jmppos = _fs->GetCurrentPos();
         _fs->AddInstruction(_OP_FOREACH, container, 0, indexpos);
@@ -2039,7 +1894,7 @@ class SQCompiler
         }
         if(_es.etype == EXPR)
         {
-            Error(_SC("invalid class name"));
+            Error("invalid class name");
         }
         else if(_es.etype == OBJECT || _es.etype == BASE)
         {
@@ -2049,7 +1904,7 @@ class SQCompiler
         }
         else
         {
-            Error(_SC("cannot create a class in a local with the syntax(class <local>)"));
+            Error("cannot create a class in a local with the syntax(class <local>)");
         }
         _es = es;
     }
@@ -2090,11 +1945,11 @@ class SQCompiler
                 val._unVal.fFloat = -_lex._fvalue;
                 break;
             default:
-                Error(_SC("scalar expected : integer, float"));
+                Error("scalar expected : integer, float");
             }
             break;
         default:
-            Error(_SC("scalar expected : integer, float or string"));
+            Error("scalar expected : integer, float or string");
         }
         Lex();
         return val;
@@ -2134,16 +1989,16 @@ class SQCompiler
                 EmitLoadConstFloat(-_lex._fvalue,-1);
                 break;
             default:
-                Error(_SC("scalar expected : integer, float"));
+                Error("scalar expected : integer, float");
             }
             break;
         default:
-            //goto error;
+            goto error;
         }
         Lex();
         return tk_type;
-//error:
-        Error(_SC("constant or scalar expected : integer, float or string"));
+error:
+        Error("constant or scalar expected : integer, float or string");
         return 0;
     }
 
@@ -2273,14 +2128,14 @@ class SQCompiler
         es = _es;
         _es.donot_get = true;
         PrefixedExpr();
-        if(_es.etype==EXPR) Error(_SC("can't delete an expression"));
+        if(_es.etype==EXPR) Error("can't delete an expression");
         if(_es.etype==OBJECT || _es.etype==BASE)
         {
             Emit2ArgsOP(_OP_DELETE);
         }
         else
         {
-            Error(_SC("cannot delete an (outer) local"));
+            Error("cannot delete an (outer) local");
         }
         _es = es;
     }
@@ -2295,7 +2150,7 @@ class SQCompiler
         PrefixedExpr();
         if(_es.etype==EXPR)
         {
-            Error(_SC("can't '++' or '--' an expression"));
+            Error("can't '++' or '--' an expression");
         }
         else if(_es.etype==OBJECT || _es.etype==BASE)
         {
@@ -2322,17 +2177,17 @@ class SQCompiler
         SQFuncState_ptr_t funcstate = _fs->PushChildState(_ss(_vm));
         funcstate->_name = name;
         SQObject paramname, type_name;
-        funcstate->AddParameter(_fs->CreateString(_SC("this")), _scope.nested+1);
+        funcstate->AddParameter(_fs->CreateString("this"), _scope.nested+1);
         funcstate->_sourcename = _sourcename;
         SQInteger defparams = 0;
         bool is_reference_declaration = 0;
-        /*const*/ SQChar_ptr_t param_type_name = 0;
+        const SQChar_ptr_t param_type_name = 0;
         bool isVoid = false;
         while(_token!=')')
         {
             if(isVoid)
             {
-                Error(_SC("void type is invalid here"));
+                Error("void type is invalid here");
             }
             is_reference_declaration = 0; //reset is_reference_declaration
             param_type_name = 0; //rest for each parameter
@@ -2344,11 +2199,11 @@ class SQCompiler
             }
             if(_token == TK_VARPARAMS)
             {
-                if(defparams > 0) Error(_SC("function with default parameters cannot have variable number of parameters"));
-                funcstate->AddParameter(_fs->CreateString(_SC("vargv")), _scope.nested+1);
+                if(defparams > 0) Error("function with default parameters cannot have variable number of parameters");
+                funcstate->AddParameter(_fs->CreateString("vargv"), _scope.nested+1);
                 funcstate->_varparams = true;
                 Lex();
-                if(_token != ')') Error(_SC("expected ')'"));
+                if(_token != ')') Error("expected ')'");
                 break;
             }
             else
@@ -2376,9 +2231,9 @@ class SQCompiler
                 }
                 if(_token == '=')
                 {
-                    if(is_reference_declaration) Error(_SC("parameter passed by reference can't have default value"));
+                    if(is_reference_declaration) Error("parameter passed by reference can't have default value");
                     Lex();
-                    if(_token == '[' || _token == '{') Error(_SC("default parameter with array/table values not supported"));
+                    if(_token == '[' || _token == '{') Error("default parameter with array/table values not supported");
                     Expression();
                     //stack_offset to compensate for local functions been relocated to allow recursion
                     funcstate->AddDefaultParam(_fs->TopTarget()+stack_offset);
@@ -2389,7 +2244,7 @@ class SQCompiler
                     //param type specifier like typescript
                     if(param_type_name)
                     {
-                        Error(_SC("parameter type already declared before %s"), _string(paramname));
+                        Error("parameter type already declared before %s", _string(paramname));
                     }
                     Lex();
                     type_name = ExpectTypeToken();
@@ -2398,10 +2253,10 @@ class SQCompiler
                 }
                 else
                 {
-                    if(defparams > 0) Error(_SC("expected '='"));
+                    if(defparams > 0) Error("expected '='");
                 }
                 if(_token == ',') Lex();
-                else if(_token != ')') Error(_SC("expected ')' or ','"));
+                else if(_token != ')') Error("expected ')' or ','");
             }
         }
         Expect(')');
@@ -2426,8 +2281,8 @@ class SQCompiler
         case TK_IDENTIFIER:
             if(ftype == eFunctionType_member)
             {
-                if(  (scstrcmp(_lex._svalue, _SC("final")) == 0) ||
-                        (scstrcmp(_lex._svalue, _SC("override")) == 0))
+                if(  (scstrcmp(_lex._svalue, "final") == 0) ||
+                        (scstrcmp(_lex._svalue, "override") == 0))
                 {
                     Lex(); //accept but ignore then
                 }
@@ -2514,4 +2369,11 @@ while(tok > 0)
     }
 
     tok = lex.lex();
+}
+
+bool Compile(SQVM_ptr_t vm,SQLEXREADFUNC rg, SQUserPointer up, const SQChar_ptr_t sourcename, SQObjectPtr /*&*/out,
+             bool raiseerror, bool lineinfo, bool show_warnings, SQInteger max_nested_includes)
+{
+	SQCompiler p(vm, rg, up, sourcename, raiseerror, lineinfo, show_warnings, max_nested_includes);
+	return p.Compile(out);
 }
