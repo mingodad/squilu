@@ -1636,9 +1636,12 @@ function_params_decl:
                     if(addClassMember)
                     {
                         AddClassMemberExists(member_names, obj_id);
-                        _fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(obj_id));
-                        _fs->AddInstruction(_OP_LOADNULLS, _fs->PushTarget(), 1);
-                        break;
+                        if(_token != _SC('='))
+                        {
+                            _fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(obj_id));
+                            _fs->AddInstruction(_OP_LOADNULLS, _fs->PushTarget(), 1);
+                            break;
+                        }
                     }
 				}
 				if(_token == _SC(':')){
@@ -1663,7 +1666,6 @@ function_params_decl:
                     cppDestructor = true;
                     Lex();
                     goto member_has_type;
-                    continue;
                 }
             case TK_CONSTEXPR:
                 if(isClass)
