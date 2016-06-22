@@ -1892,6 +1892,46 @@ static SQRESULT string_count_char(HSQUIRRELVM v)
 	return 1;
 }
 
+#define MMIN(a,b) (((a)<(b))?(a):(b))
+static SQRESULT string_edit_distance (HSQUIRRELVM v) {
+    SQ_FUNC_VARS(v);
+    SQ_GET_STRING(v, 1, s1);
+    SQ_GET_STRING(v, 2, s2);
+    SQ_OPT_INTEGER(v, 3, max_size, 1024);
+
+	SQInteger k, i, j, cost, array_size, *d, result = -1;
+
+	if ( s1_size < max_size && s2_size < max_size )
+    {
+        if( s1_size != 0 && s2_size != 0){
+            array_size = (sizeof(*d))*(++s2_size)*(++s1_size);
+            d=(SQInteger*)sq_getscratchpad(v, array_size);
+            for(k=0;k<s1_size;++k){
+                d[k]=k;
+            }
+            for(k=0;k<s2_size;++k){
+                d[k*s1_size]=k;
+            }
+            for(i=1;i<s1_size;++i){
+                for(j=1;j<s2_size;++j){
+                    if(s1[i-1]==s2[j-1])
+                        cost=0;
+                    else
+                        cost=1;
+                    d[j*s1_size+i]=MMIN(MMIN( d[(j-1)*s1_size+i]+1, d[j*s1_size+i-1]+1 ), d[(j-1)*s1_size+i-1]+cost );
+                }
+            }
+            result=d[s1_size*s2_size-1];
+        }
+        else {
+            result = (s1_size>s2_size)?s1_size:s2_size;
+        }
+	}
+
+	sq_pushinteger(v, result);
+    return 1;
+}
+
 #ifdef SQ_SUBLATIN
 #include "sublatin.h"
 
@@ -2028,6 +2068,7 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("isalpha"),string_isalpha,2, _SC("si")},
 	{_SC("isdigit"),string_isdigit,2, _SC("si")},
 	{_SC("count_char"),string_count_char,2, _SC("si")},
+	{_SC("edit_distance"),string_edit_distance,-2, _SC("ssi")},
 #ifdef SQ_SUBLATIN
 	{_SC("sl_len"),string_sl_len,1, _SC("s")},
 	{_SC("sl_lower"),string_sl_lower,1, _SC("s")},
