@@ -25,6 +25,7 @@ Adapted by Domingo Alvarez Duarte 2012
 http://code.google.com/p/lua-regex-standalone/
 */
 
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -47,7 +48,6 @@ static ptrdiff_t posrelat (ptrdiff_t pos, size_t len) {
   if (pos < 0) pos += (ptrdiff_t)len;
   return (pos >= 0) ? pos : 0;
 }
-
 
 static int check_capture (LuaMatchState *ms, int *l_out) {
   int l;
@@ -366,13 +366,15 @@ static int nospecials (const char *p, size_t l) {
 }
 
 
-static int str_find_aux (LuaMatchState *ms, int find, const char *s, int ls,
-                         const char *p, int lp, int init, int raw_find,
+static ptrdiff_t str_find_aux (LuaMatchState *ms, int find, const char *s, ptrdiff_t ls,
+                         const char *p, ptrdiff_t lp, ptrdiff_t init, int raw_find,
                          luaregex_func_param fp, void *udata) {
-  int result;
+  ptrdiff_t result;
   ms->error = NULL;
   if(ls < 0) ls = strlen(s);
+  assert(ls >= 0);
   if(lp < 0) lp = strlen(p);
+  assert(lp >= 0);
   init = posrelat(init, ls);
   if (init < 0) init = 0;
   else if (init > ls + 1) {  /* start after string's end? */
@@ -430,27 +432,27 @@ eofunc:
 }
 
 
-int str_find (LuaMatchState *ms, const char *s, int ls,
-              const char *p, int lp, int init, int raw_find,
+ptrdiff_t lua_str_find (LuaMatchState *ms, const char *s, ptrdiff_t ls,
+              const char *p, ptrdiff_t lp, ptrdiff_t init, int raw_find,
               luaregex_func_param fp, void *udata) {
   return str_find_aux(ms, 1, s, ls, p, lp, init, raw_find, fp, udata);
 }
 
 
-int str_match (LuaMatchState *ms, const char *s, int ls,
-               const char *p, int lp, int init, int raw_find,
+ptrdiff_t lua_str_match (LuaMatchState *ms, const char *s, ptrdiff_t ls,
+               const char *p, ptrdiff_t lp, ptrdiff_t init, int raw_find,
                luaregex_func_param fp, void *udata) {
   return str_find_aux(ms, 0, s, ls, p, lp, init, raw_find, fp, udata);
 }
 
+#define MIN_ALLOC_SIZE 2048
+#define NEW_SIZE(sz) (((sz/MIN_ALLOC_SIZE)+1)*MIN_ALLOC_SIZE)
 
-#define NEW_SIZE(sz) (((sz/1024)+1)*1024)
-
-int char_buffer_add_char(LuaMatchState *ms, char_buffer_st **b, char c){
-    char_buffer_st *tmp = *b;
+int char_buffer_add_char(LuaMatchState *ms, lua_char_buffer_st **b, char c){
+    lua_char_buffer_st *tmp = *b;
     if(tmp->used+1 >= tmp->size){
-        int new_size = tmp->size+2048;
-        tmp = (char_buffer_st*)realloc(tmp, sizeof(char_buffer_st) + new_size);
+        int new_size = tmp->size+MIN_ALLOC_SIZE;
+        tmp = (lua_char_buffer_st*)realloc(tmp, sizeof(lua_char_buffer_st) + new_size);
         if(!tmp){
             ms->error = "not enough memory when reallocating";
             return 0;
@@ -463,12 +465,13 @@ int char_buffer_add_char(LuaMatchState *ms, char_buffer_st **b, char c){
 }
 
 
-int char_buffer_add_str(LuaMatchState *ms, char_buffer_st **b, const char *str, int len){
-    char_buffer_st *tmp = *b;
+int char_buffer_add_str(LuaMatchState *ms, lua_char_buffer_st **b, const char *str, ptrdiff_t len){
+    lua_char_buffer_st *tmp = *b;
     if(len < 0) len = strlen(str);
+    assert(len >= 0);
     if(tmp->used+len >= tmp->size){
         size_t new_size = tmp->size + NEW_SIZE(len);
-        tmp = (char_buffer_st*)realloc(tmp, sizeof(char_buffer_st) + new_size);
+        tmp = (lua_char_buffer_st*)realloc(tmp, sizeof(lua_char_buffer_st) + new_size);
         if(!tmp){
             ms->error = "not enough memory when reallocating";
             return 0;
@@ -482,7 +485,7 @@ int char_buffer_add_str(LuaMatchState *ms, char_buffer_st **b, const char *str, 
 }
 
 
-static int add_value (LuaMatchState *ms, char_buffer_st **b, const char *s,
+static int add_value (LuaMatchState *ms, lua_char_buffer_st **b, const char *s,
                                        const char *e, const char *news, size_t lnews) {
   size_t i;
   for (i = 0; i < lnews; i++) {
@@ -532,20 +535,23 @@ static int add_value (LuaMatchState *ms, char_buffer_st **b, const char *s,
   return 1;
 }
 
-char_buffer_st *str_gsub (const char *src, int srcl, const char *p, int lp,
-                          const char *tr, int ltr, size_t max_s, const char **error_ptr,
+lua_char_buffer_st *lua_str_gsub (const char *src, ptrdiff_t srcl, const char *p, ptrdiff_t lp,
+                          const char *tr, ptrdiff_t ltr, size_t max_s, const char **error_ptr,
                           luaregex_func_param fp, void *udata) {
   int anchor;
   size_t n;
   LuaMatchState ms;
-  char_buffer_st *b;
+  lua_char_buffer_st *b;
   if(srcl < 0) srcl = strlen(src);
+  assert(srcl >= 0);
   if(lp < 0) lp = strlen(p);
+  assert(lp >= 0);
   if(ltr < 0) ltr = strlen(tr);
+  assert(ltr >= 0);
   if(max_s == 0) max_s = srcl+1;
   anchor = (*p == '^');
   n = NEW_SIZE(srcl);
-  b = (char_buffer_st*)malloc(sizeof(char_buffer_st) + n);
+  b = (lua_char_buffer_st*)malloc(sizeof(lua_char_buffer_st) + n);
   if(!b) return NULL;
   b->size = n;
   b->used = 0;

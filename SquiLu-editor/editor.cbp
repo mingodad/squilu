@@ -128,6 +128,9 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
+			<Add option="-DSQ_USE_MKSTEMP=1" />
+			<Add option="-DSQ_USE_LOCALTIME_R=1" />
+			<Add option="-DONLY_ASCII=1" />
 			<Add option="-DWITH_DAD_EXTRAS=1" />
 			<Add option="-DWITH_FLTK=1" />
 			<Add option="-DWITH_MYSQL=1" />
@@ -172,6 +175,7 @@
 			<Add directory="../discount" />
 			<Add directory="../SquiLu-editor" />
 			<Add directory=".." />
+			<Add directory="../../../local/postgresql-9.5/include" />
 		</Compiler>
 		<Linker>
 			<Add library="fltk_images" />

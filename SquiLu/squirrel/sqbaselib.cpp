@@ -1318,7 +1318,7 @@ STRING_TOFUNCZ(toupper)
 #include "lua-regex.h"
 
 //on 64 bits there is an error SQRESULT/int
-static int process_string_gsub(LuaMatchState *ms, void *udata, char_buffer_st **b) {
+static int process_string_gsub(LuaMatchState *ms, void *udata, lua_char_buffer_st **b) {
     const SQChar *str;
     SQInteger str_size;
     HSQUIRRELVM v = (HSQUIRRELVM)udata;
@@ -1387,7 +1387,7 @@ static SQRESULT string_gsub(HSQUIRRELVM v)
     SQObjectType rtype = sq_gettype(v, 3);
     if(rtype == OT_STRING){
         SQ_GET_STRING(v, 3, replacement);
-        char_buffer_st *buf = str_gsub (src, src_size, pattern, pattern_size,
+        lua_char_buffer_st *buf = lua_str_gsub (src, src_size, pattern, pattern_size,
                               replacement, replacement_size, max_sub, &error_ptr, 0, 0);
         if(buf){
             sq_pushstring(v, buf->buf, buf->used);
@@ -1402,7 +1402,7 @@ static SQRESULT string_gsub(HSQUIRRELVM v)
             case OT_CLOSURE:
             case OT_ARRAY:
             case OT_TABLE:{
-                char_buffer_st *buf = str_gsub (src, src_size, pattern, pattern_size,
+                lua_char_buffer_st *buf = lua_str_gsub (src, src_size, pattern, pattern_size,
                               0, 0, max_sub, &error_ptr, process_string_gsub, v);
                 if(buf){
                     sq_pushstring(v, buf->buf, buf->used);
@@ -1416,7 +1416,7 @@ static SQRESULT string_gsub(HSQUIRRELVM v)
 	return sq_throwerror(v,_SC("invalid type for parameter 3 function/table/array/string expected"));
 }
 
-static SQRESULT process_string_gmatch_find(LuaMatchState *ms, void *udata, char_buffer_st **b, bool isFind) {
+static SQRESULT process_string_gmatch_find(LuaMatchState *ms, void *udata, lua_char_buffer_st **b, bool isFind) {
     HSQUIRRELVM v = (HSQUIRRELVM)udata;
     SQInteger top = sq_gettop(v);
     SQInteger result = 1;
@@ -1454,7 +1454,7 @@ static SQRESULT process_string_gmatch_find(LuaMatchState *ms, void *udata, char_
 }
 
 //on 64 bits there is an error SQRESULT/int
-static int process_string_gmatch(LuaMatchState *ms, void *udata, char_buffer_st **b) {
+static int process_string_gmatch(LuaMatchState *ms, void *udata, lua_char_buffer_st **b) {
     return process_string_gmatch_find(ms, udata, b, false);
 }
 
@@ -1469,7 +1469,7 @@ static SQRESULT string_gmatch(HSQUIRRELVM v)
     if(_top_ > 2){
         SQInteger rtype = sq_gettype(v, 3);
         if(rtype == OT_CLOSURE){
-            _rc_ = str_match(&ms, src, src_size, pattern, pattern_size,
+            _rc_ = lua_str_match(&ms, src, src_size, pattern, pattern_size,
                     0, 0, process_string_gmatch, v);
             if(ms.error) return sq_throwerror(v, ms.error);
             sq_pushinteger(v, _rc_);
@@ -1477,7 +1477,7 @@ static SQRESULT string_gmatch(HSQUIRRELVM v)
         }
         return sq_throwerror(v,_SC("invalid type for parameter 3 function expected"));
     }
-    _rc_ = str_match(&ms, src, src_size, pattern, pattern_size, 0, 0, 0, 0);
+    _rc_ = lua_str_match(&ms, src, src_size, pattern, pattern_size, 0, 0, 0, 0);
     if(ms.error) return sq_throwerror(v, ms.error);
     if(_rc_ < 0) sq_pushnull(v);
     else if(ms.level){
@@ -1496,7 +1496,7 @@ static SQRESULT string_gmatch(HSQUIRRELVM v)
     return 1;
 }
 
-static int process_string_find_lua(LuaMatchState *ms, void *udata, char_buffer_st **b) {
+static int process_string_find_lua(LuaMatchState *ms, void *udata, lua_char_buffer_st **b) {
     return process_string_gmatch_find(ms, udata, b, true);
 }
 
@@ -1513,7 +1513,7 @@ static SQRESULT string_find_lua(HSQUIRRELVM v)
         //only want to know if it exists
         LuaMatchState ms;
         memset(&ms, 0, sizeof(ms));
-        int rc = str_find(&ms, src, src_size, pattern, pattern_size,
+        int rc = lua_str_find(&ms, src, src_size, pattern, pattern_size,
                 start, raw == SQTrue, 0, 0);
         if(ms.error) return sq_throwerror(v, ms.error);
         sq_pushinteger(v, rc);
@@ -1522,7 +1522,7 @@ static SQRESULT string_find_lua(HSQUIRRELVM v)
     if(rtype == OT_CLOSURE){
         LuaMatchState ms;
         memset(&ms, 0, sizeof(ms));
-        int rc = str_find(&ms, src, src_size, pattern, pattern_size,
+        int rc = lua_str_find(&ms, src, src_size, pattern, pattern_size,
                 start, raw == SQTrue, process_string_find_lua, v);
         if(ms.error) return sq_throwerror(v, ms.error);
         sq_pushinteger(v, rc);
@@ -1531,7 +1531,7 @@ static SQRESULT string_find_lua(HSQUIRRELVM v)
     else if(rtype == OT_TABLE || rtype == OT_ARRAY){
         LuaMatchState ms;
         memset(&ms, 0, sizeof(ms));
-        int rc = str_find(&ms, src, src_size, pattern, pattern_size,
+        int rc = lua_str_find(&ms, src, src_size, pattern, pattern_size,
                 start, raw == SQTrue, 0, 0);
         if(ms.error) return sq_throwerror(v, ms.error);
         if(rtype == OT_TABLE){
