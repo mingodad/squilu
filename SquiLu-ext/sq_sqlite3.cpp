@@ -1422,28 +1422,83 @@ static SQRESULT sqlite3_exec_fmt(HSQUIRRELVM v, e_type_result type_result, int n
 }
 
 //lua_regex
-static void sqlite3_lua_find_base( sqlite3_context *context, int argc, sqlite3_value **argv, int isFind ) {
+#define FUNC_IS_REGEXP 1
+#define FUNC_IS_FIND 2
+#define FUNC_IS_FIND_COUNT 3
+#define FUNC_IS_MATCH 4
+
+static void sqlite3_lua_find_base( sqlite3_context *context, int argc, sqlite3_value **argv, int funcType ) {
     assert(argc == 2);
     LuaMatchState ms;
-    const char *pattern = (const char *)sqlite3_value_text(argv[0]);
-    const char *subject = (const char *)sqlite3_value_text(argv[1]);
+    int isRegexp = funcType == FUNC_IS_REGEXP;
+    const char *pattern = (const char *)sqlite3_value_text(argv[isRegexp ? 0 : 1]);
+    const char *subject = (const char *)sqlite3_value_text(argv[isRegexp ? 1 : 0]);
     assert(argc == 2);
-    ptrdiff_t idx = lua_str_find(&ms, subject, strlen(subject), pattern, strlen(pattern), 0, 0, NULL, NULL);
-    if(idx >= 0)
-        sqlite3_result_int(context, isFind ? idx : 1);
-    else
+	if(!subject || !pattern){
+		sqlite3_result_null(context);
+		return;
+	}
+    size_t pattern_len = strlen(pattern);
+    size_t subject_len = strlen(subject);
+
+    switch(funcType)
     {
-        if(ms.error) sqlite3_result_error(context, ms.error, strlen(ms.error));
-        else sqlite3_result_int(context, isFind ? idx : 0);
+    case FUNC_IS_MATCH:
+        {
+            ptrdiff_t rc = lua_str_match(&ms, subject, subject_len, pattern, pattern_len, 0, 0, 0, 0);
+            if(ms.error) sqlite3_result_error(context, ms.error, strlen(ms.error));
+            else if(rc < 0) sqlite3_result_null(context);
+            else if(ms.level){
+                if(ms.level == 1) sqlite3_result_text(context, ms.capture[0].init, ms.capture[0].len, SQLITE_TRANSIENT);
+                else {
+                    sqlite3_result_text(context, ms.capture[0].init, ms.capture[0].len, SQLITE_TRANSIENT);
+                }
+            } else {
+                sqlite3_result_text(context, subject + ms.start_pos, ms.end_pos-ms.start_pos+1, SQLITE_TRANSIENT);
+            }
+        }
+        break;
+    case FUNC_IS_FIND_COUNT:
+        {
+            int count = 0;
+            ms.end_pos = 0;
+            ptrdiff_t idx = -1;
+            while((idx = lua_str_find(&ms, subject, subject_len, pattern, pattern_len, ms.end_pos, 0, 0, 0)) >= 0) ++count;
+            sqlite3_result_int(context, count);
+        }
+        break;
+    case FUNC_IS_FIND:
+    case FUNC_IS_REGEXP:
+        {
+            ptrdiff_t idx = lua_str_find(&ms, subject, subject_len, pattern, pattern_len, 0, 0, NULL, NULL);
+            if(idx >= 0)
+            {
+                sqlite3_result_int(context, funcType == FUNC_IS_FIND ? idx : 1);
+            }
+            else
+            {
+                if(ms.error) sqlite3_result_error(context, ms.error, strlen(ms.error));
+                else sqlite3_result_int(context, funcType == FUNC_IS_FIND ? idx : 0);
+            }
+        }
+        break;
     }
 }
 
-static void sqlite3_lua_find( sqlite3_context *context, int argc, sqlite3_value **argv ) {
-    sqlite3_lua_find_base(context, argc, argv, 1);
+static void sqlite3_lua_regexp( sqlite3_context *context, int argc, sqlite3_value **argv ) {
+    sqlite3_lua_find_base(context, argc, argv, FUNC_IS_REGEXP);
 }
 
-static void sqlite3_lua_regexp( sqlite3_context *context, int argc, sqlite3_value **argv ) {
-    sqlite3_lua_find_base(context, argc, argv, 0);
+static void sqlite3_lua_find( sqlite3_context *context, int argc, sqlite3_value **argv ) {
+    sqlite3_lua_find_base(context, argc, argv, FUNC_IS_FIND);
+}
+
+static void sqlite3_lua_find_count( sqlite3_context *context, int argc, sqlite3_value **argv ) {
+    sqlite3_lua_find_base(context, argc, argv, FUNC_IS_FIND_COUNT);
+}
+
+static void sqlite3_lua_match( sqlite3_context *context, int argc, sqlite3_value **argv ) {
+    sqlite3_lua_find_base(context, argc, argv, FUNC_IS_MATCH);
 }
 
 static void sqlite3_lua_gsub( sqlite3_context *context, int argc, sqlite3_value **argv ) {
@@ -1472,6 +1527,8 @@ static void sqlite3_lua_gsub( sqlite3_context *context, int argc, sqlite3_value 
 int set_sqlite3_lua_regex_func(sqlite3 *db)
 {
     int nErr = sqlite3_create_function(db,  "lua_find", 2, SQLITE_UTF8, 0, sqlite3_lua_find, 0, 0);
+	nErr += sqlite3_create_function(db,  "lua_find_count", 2, SQLITE_UTF8, 0, sqlite3_lua_find_count, 0, 0);
+	nErr += sqlite3_create_function(db,  "lua_match", 2, SQLITE_UTF8, 0, sqlite3_lua_match, 0, 0);
 	nErr += sqlite3_create_function(db,  "lua_gsub", 4, SQLITE_UTF8, 0, sqlite3_lua_gsub, 0, 0);
     nErr += sqlite3_create_function(db,  "lua_regexp", 2, SQLITE_UTF8, 0, sqlite3_lua_regexp, 0, 0);
 	return nErr ? SQLITE_ERROR : SQLITE_OK;
@@ -1556,6 +1613,7 @@ static SQRESULT sq_sqlite3_constructor(HSQUIRRELVM v)
     SQ_FUNC_VARS(v);
     SQ_GET_STRING(v, 2, dbname);
     SQ_OPT_INTEGER(v, 3, flags, SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE | SQLITE_OPEN_SHAREDCACHE | SQLITE_OPEN_SUBLATIN_NA_LIKE);
+    //SQ_OPT_INTEGER(v, 3, flags, SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE | SQLITE_OPEN_SHAREDCACHE);
     sqlite3 *db;
     int rc = sqlite3_open_v2(dbname, &db, flags, 0);
     if(rc != SQLITE_OK) return sq_throwerror(v, "Failed to open database ! %d", rc);
@@ -1960,7 +2018,7 @@ static SQRESULT sq_sqlite3_trace(HSQUIRRELVM v)
         {
             SQBool b;
             sq_getbool(v, 4, &b);
-            sqlite3_trace_v2(self, db_trace_callback, sdb, b == SQTrue);
+            sqlite3_trace_v0(self, db_trace_callback, sdb, b == SQTrue);
         }
         else sqlite3_trace(self, db_trace_callback, sdb);
     }
@@ -2859,7 +2917,6 @@ static SQRegFunction sq_sqlite3_methods[] =
 #undef _DECL_FUNC
 
 #define INT_CONST(v,num) 	sq_pushstring(v,_SC(#num),-1);sq_pushinteger(v,num);sq_newslot(v,-3,SQTrue);
-
 
 
 #ifdef __cplusplus
