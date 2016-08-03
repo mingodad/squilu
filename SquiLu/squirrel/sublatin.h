@@ -21,6 +21,7 @@ extern const unsigned char isUpperMapTable[];
 
 //The functions bellow convert in place, overwiten passed paramters
 int strLenSubSetLatinUtf8( const char *str );
+int nstrLenSubSetLatinUtf8( const char *str, int n );
 int isDeaccentableSubSetLatinUtf8( const char *str );
 char *deAccentSubSetLatinUtf8( char *str );
 char *toLowerDeaccentSubSetLatinUtf8( char *str );

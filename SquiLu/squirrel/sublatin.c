@@ -129,6 +129,21 @@ const unsigned char isUpperMapTable[] = { //0
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
+int nstrLenSubSetLatinUtf8( const char *str, int n )
+{
+	int result = 0;
+	unsigned char *pstr = ( unsigned char * )str;
+
+	while ( *pstr && (--n >= 0) ) {
+		// an error when an utf8 char  is formed by 195#195 ???
+		if ( *pstr != 195 ) ++result;
+
+		++pstr;
+	}
+
+	return result;
+}
+
 int strLenSubSetLatinUtf8( const char *str ) {
 	int result = 0;
 	unsigned char *pstr = ( unsigned char * )str;
