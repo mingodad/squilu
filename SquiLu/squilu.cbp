@@ -1040,7 +1040,7 @@
 				</Linker>
 			</Target>
 			<Target title="Release FLTK 64bits Code Size">
-				<Option output="bin/squilu" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/squilu-small" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -1196,6 +1196,7 @@
 			<Add directory="../minizip" />
 			<Add directory="../unql/src" />
 			<Add directory="../../../local/include" />
+			<Add directory="squirrel" />
 		</Compiler>
 		<Linker>
 			<Add library="m" />

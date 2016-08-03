@@ -1,6 +1,6 @@
 MYSDKPREFIX=$(HOME)/local/theos/sdks/iPhoneOS5.1.sdk/usr
 
-INC = -Iinclude -Isqstdlib -I../SquiLu-ext -I../myaxtls -I../mpdecimal-ios -I../discount -I../gumbo -I.. -I../minizip -I../unql/src -I$(MYSDKPREFIX)/include -I$(MYSDKPREFIX)/include/c++/4.2.1 
+INC = -Iinclude -Isqstdlib  -Isquirrel -I../SquiLu-ext -I../myaxtls -I../mpdecimal-ios -I../discount -I../gumbo -I.. -I../minizip -I../unql/src -I$(MYSDKPREFIX)/include -I$(MYSDKPREFIX)/include/c++/4.2.1 
 
 CFLAGS = $(INC) -O3 -Wall -fno-strict-aliasing  \
     -D_DEBUG_DUMP33=1 \
