@@ -249,6 +249,7 @@ SQInteger SQLexer::LexLineComment()
 
 SQInteger SQLexer::LookaheadLex()
 {
+    if(CUR_CHAR == SQUIRREL_EOB) return 0;
     if(_data_lookahead.currentline >= 0)
     {
         return Error(_SC("lex lookahead already done"));
