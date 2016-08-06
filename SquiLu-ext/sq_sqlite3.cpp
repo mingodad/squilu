@@ -1685,6 +1685,12 @@ static SQRESULT sq_sqlite3_exec(HSQUIRRELVM v)
     return sqlite3_exec_fmt(v, tr_all_rows);
 }
 
+/* int exec_one_dml( const char * szSQL, ... ) */
+static SQRESULT sq_sqlite3_exec_one_dml(HSQUIRRELVM v)
+{
+    return sqlite3_exec_fmt(v, tr_ddml);
+}
+
 /* int exec_dml( const char * szSQL  ) */
 static SQRESULT sq_sqlite3_exec_dml(HSQUIRRELVM v)
 {
@@ -2898,8 +2904,9 @@ static SQRegFunction sq_sqlite3_methods[] =
     _DECL_FUNC(changes,  1, _SC("x")),
     _DECL_FUNC(exec,  -2, _SC("xs")),
     _DECL_FUNC(exec_dml,  2, _SC("xs")),
-    _DECL_FUNC(exec_get_first_row,  2, _SC("xs")),
-    _DECL_FUNC(exec_get_one,  2, _SC("xs")),
+    _DECL_FUNC(exec_one_dml,  -2, _SC("xs")),
+    _DECL_FUNC(exec_get_first_row,  -2, _SC("xs")),
+    _DECL_FUNC(exec_get_one,  -2, _SC("xs")),
     _DECL_FUNC(get_db_name,  1, _SC("x")),
     _DECL_FUNC(last_row_id,  1, _SC("x")),
     _DECL_FUNC(prepare,  2, _SC("xs")),
