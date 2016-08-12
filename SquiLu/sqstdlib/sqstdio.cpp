@@ -521,6 +521,15 @@ SQInteger _g_io_dofile(HSQUIRRELVM v)
 	return SQ_ERROR; //propagates the error
 }
 
+SQInteger _g_io_existsfile(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 2, filename);
+    SQFile fs;
+    sq_pushbool(v, fs.Open(filename, "rb"));
+    return 1;
+}
+
 SQInteger _g_io_readfile(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
@@ -565,6 +574,7 @@ static const SQRegFunction iolib_funcs[]={
 	_DECL_GLOBALIO_FUNC(dostring,-2,_SC(".sb")),
 	_DECL_GLOBALIO_FUNC(loadstring,2,_SC(".s")),
 	_DECL_GLOBALIO_FUNC(dumpclosure,3,_SC(".sc")),
+	_DECL_GLOBALIO_FUNC(existsfile,2,_SC(".s")),
 	_DECL_GLOBALIO_FUNC(readfile,2,_SC(".s")),
 	_DECL_GLOBALIO_FUNC(writefile,3,_SC(".ss")),
 	{NULL,(SQFUNCTION)0,0,NULL}
