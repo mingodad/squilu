@@ -1317,6 +1317,23 @@ STRING_TOFUNCZ(toupper)
 //DAD start
 #include "lua-regex.h"
 
+static SQInteger calc_new_size_by_max_len(SQInteger start_pos, SQInteger max_len, SQInteger curr_size)
+{
+    SQInteger new_size;
+    if(start_pos < 0)
+    {
+        new_size = curr_size + start_pos;
+        start_pos = new_size < 0 ? 0 : new_size;
+    }
+    if(max_len > 0) new_size = start_pos + max_len;
+    else new_size = curr_size + max_len;
+    if( (new_size < curr_size) && (new_size > start_pos) )
+    {
+        return new_size;
+    }
+    return curr_size;
+}
+
 //on 64 bits there is an error SQRESULT/int
 static int process_string_gsub(LuaMatchState *ms, void *udata, lua_char_buffer_st **b) {
     const SQChar *str;
@@ -1458,7 +1475,7 @@ static int process_string_gmatch(LuaMatchState *ms, void *udata, lua_char_buffer
     return process_string_gmatch_find(ms, udata, b, false);
 }
 
-static SQRESULT string_gmatch(HSQUIRRELVM v)
+static SQRESULT string_gmatch_base(HSQUIRRELVM v, int isGmatch)
 {
     SQ_FUNC_VARS(v);
     SQ_GET_STRING(v, 1, src);
@@ -1466,18 +1483,31 @@ static SQRESULT string_gmatch(HSQUIRRELVM v)
     LuaMatchState ms;
     memset(&ms, 0, sizeof(ms));
 
-    if(_top_ > 2){
+    if(isGmatch){
+        SQ_OPT_INTEGER(v, 4, start_pos, 0);
+        SQ_OPT_INTEGER(v, 5, max_len, 0);
         SQInteger rtype = sq_gettype(v, 3);
+        if(max_len)
+        {
+            src_size = calc_new_size_by_max_len(start_pos, max_len, src_size);
+        }
         if(rtype == OT_CLOSURE){
-            _rc_ = lua_str_match(&ms, src, src_size, pattern, pattern_size,
-                    0, 0, process_string_gmatch, v);
+            _rc_ = lua_str_match(&ms, src, max_len ? start_pos + max_len : src_size,
+                    pattern, pattern_size, start_pos, 0, process_string_gmatch, v);
             if(ms.error) return sq_throwerror(v, ms.error);
             sq_pushinteger(v, _rc_);
             return 1;
         }
         return sq_throwerror(v,_SC("invalid type for parameter 3 function expected"));
     }
-    _rc_ = lua_str_match(&ms, src, src_size, pattern, pattern_size, 0, 0, 0, 0);
+    SQ_OPT_INTEGER(v, 3, start_pos, 0);
+    SQ_OPT_INTEGER(v, 4, max_len, 0);
+    if(max_len)
+    {
+        src_size = calc_new_size_by_max_len(start_pos, max_len, src_size);
+    }
+    _rc_ = lua_str_match(&ms, src, max_len ? start_pos + max_len : src_size,
+                        pattern, pattern_size, start_pos, 0, 0, 0);
     if(ms.error) return sq_throwerror(v, ms.error);
     if(_rc_ < 0) sq_pushnull(v);
     else if(ms.level){
@@ -1496,6 +1526,16 @@ static SQRESULT string_gmatch(HSQUIRRELVM v)
     return 1;
 }
 
+static SQRESULT string_gmatch(HSQUIRRELVM v)
+{
+    return string_gmatch_base(v, 1);
+}
+
+static SQRESULT string_match(HSQUIRRELVM v)
+{
+    return string_gmatch_base(v, 0);
+}
+
 static int process_string_find_lua(LuaMatchState *ms, void *udata, lua_char_buffer_st **b) {
     return process_string_gmatch_find(ms, udata, b, true);
 }
@@ -1505,16 +1545,21 @@ static SQRESULT string_find_lua(HSQUIRRELVM v)
     SQ_FUNC_VARS(v);
     SQ_GET_STRING(v, 1, src);
     SQ_GET_STRING(v, 2, pattern);
-    SQ_OPT_INTEGER(v, 4, start, 0);
+    SQ_OPT_INTEGER(v, 4, start_pos, 0);
     SQ_OPT_BOOL(v, 5, raw, SQFalse);
+    SQ_OPT_INTEGER(v, 6, max_len, 0);
     SQInteger rtype = sq_gettype(v, 3);
+    if(max_len)
+    {
+        src_size = calc_new_size_by_max_len(start_pos, max_len, src_size);
+    }
 
     if(_top_ == 2){
         //only want to know if it exists
         LuaMatchState ms;
         memset(&ms, 0, sizeof(ms));
         int rc = lua_str_find(&ms, src, src_size, pattern, pattern_size,
-                start, raw == SQTrue, 0, 0);
+                start_pos, raw == SQTrue, 0, 0);
         if(ms.error) return sq_throwerror(v, ms.error);
         sq_pushinteger(v, rc);
         return 1;
@@ -1523,7 +1568,7 @@ static SQRESULT string_find_lua(HSQUIRRELVM v)
         LuaMatchState ms;
         memset(&ms, 0, sizeof(ms));
         int rc = lua_str_find(&ms, src, src_size, pattern, pattern_size,
-                start, raw == SQTrue, process_string_find_lua, v);
+                start_pos, raw == SQTrue, process_string_find_lua, v);
         if(ms.error) return sq_throwerror(v, ms.error);
         sq_pushinteger(v, rc);
         return 1;
@@ -1532,7 +1577,7 @@ static SQRESULT string_find_lua(HSQUIRRELVM v)
         LuaMatchState ms;
         memset(&ms, 0, sizeof(ms));
         int rc = lua_str_find(&ms, src, src_size, pattern, pattern_size,
-                start, raw == SQTrue, 0, 0);
+                start_pos, raw == SQTrue, 0, 0);
         if(ms.error) return sq_throwerror(v, ms.error);
         if(rtype == OT_TABLE){
             sq_pushstring(v, _SC("start_pos"), -1);
@@ -2042,12 +2087,12 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("replace"),string_replace,-3, _SC("sssi")},
 	{_SC("find"),string_find,-2, _SC("s s n ")},
 	{_SC("indexOf"),string_find,-2, _SC("s s n ")},
-	{_SC("find_lua"),string_find_lua,-2, _SC("ss a|t|c nb")},
+	{_SC("find_lua"),string_find_lua,-2, _SC("ss a|t|c n b n")},
 	{_SC("find_close_quote"),string_find_close_quote,-1, _SC("sni")},
 	{_SC("find_delimiter"),string_find_delimiter,4, _SC("siin")},
 	{_SC("gsub"),string_gsub,-3, _SC("s s s|a|t|c n")},
-	{_SC("gmatch"),string_gmatch, 3, _SC("s s c")},
-	{_SC("match"), string_gmatch, 2, _SC("s s")},
+	{_SC("gmatch"),string_gmatch, -3, _SC("s s c n n")},
+	{_SC("match"), string_match, -2, _SC("s s n n")},
 	{_SC("startswith"),string_startswith, 2, _SC("ss")},
 	{_SC("endswith"),string_endswith, 2, _SC("ss")},
 	{_SC("reverse"),string_reverse, 2, _SC("ss")},
