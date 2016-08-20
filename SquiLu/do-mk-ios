@@ -4,7 +4,7 @@ MYCCTOOLS=$HOME/local/cctools
 export PATH=$MYCCTOOLS/bin:$CLANG_HOME/bin:$PATH
 export LD_LIBRARY_PATH=$CLANG_HOME/lib:$LD_LIBRARY_PATH
 export CFLAGS=-I$CLANG_HOME/include
-export CXXFLAGS="$CFLAGS -std=c++11"
+export CXXFLAGS=$CFLAGS
 export LDLAGS=-L$CLANG_HOME/lib
 export CC=clang
 export CXX=clang++
