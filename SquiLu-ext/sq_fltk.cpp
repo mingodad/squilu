@@ -1294,6 +1294,14 @@ static SQRESULT _Fl_Menu__add(HSQUIRRELVM v)
     return 1;
 }
 
+static SQRESULT _Fl_Menu__clear(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SETUP_FL_MENU_(v);
+    self->clear();
+    return 0;
+}
+
 static SQRESULT _Fl_Menu__text(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
@@ -1346,6 +1354,7 @@ static SQRegFunction fl_menu__obj_funcs[]={
 	_DECL_FUNC(constructor,-5,FLTK_constructor_Mask, SQFalse),
 	_DECL_FUNC(copy,-2,_SC("xa."),SQFalse),
 	_DECL_FUNC(add,-2,_SC("xs s|i|o c|n|o i|o i"),SQFalse),
+	_DECL_FUNC(clear,1,_SC("x"),SQFalse),
 	_DECL_FUNC(value,-1,_SC("xi"),SQFalse),
 	_DECL_FUNC(down_box,-1,_SC("xi"), SQFalse),
 	_DECL_FUNC(text,-1,_SC("xi"), SQFalse),
