@@ -2076,6 +2076,42 @@ static SQRESULT string_sl_like_cmp_noaccents (HSQUIRRELVM v) {
 
 #endif
 
+static int mod_97_10(const char *snum)
+{
+    char s9[12];
+    int result = 0;
+    int step = 9;
+    int n97 = 97;
+    int slen = strlen(snum);
+
+    strncpy(s9, snum, step);
+    int i9 = atoi(s9);
+    result = i9 % n97;
+    slen -= step;
+    snum += step;
+
+    step = 7;
+    while(slen > 0)
+    {
+        //snprintf(s9, sizeof(s9), "%.2d", result);
+        //strncpy(s9+2, snum, 7);
+        snprintf(s9, sizeof(s9), "%.2d%.7s", result, snum);
+        i9 = atoi(s9);
+        result = i9 % n97;
+        slen -= step;
+        snum += step;
+    }
+    return 98 - result;
+}
+
+static SQRESULT string_mod_97_10 (HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, str);
+    sq_pushinteger(v, mod_97_10(str));
+    return 1;
+}
+
+
 SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("len"),default_delegate_len,1, _SC("s")},
 	{_SC("size"),default_delegate_len,1, _SC("s")},
@@ -2114,6 +2150,7 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("isdigit"),string_isdigit,2, _SC("si")},
 	{_SC("count_char"),string_count_char,2, _SC("si")},
 	{_SC("edit_distance"),string_edit_distance,-2, _SC("ssi")},
+	{_SC("mod_97_10"),string_mod_97_10,1, _SC("s")},
 #ifdef SQ_SUBLATIN
 	{_SC("sl_len"),string_sl_len,1, _SC("s")},
 	{_SC("sl_lower"),string_sl_lower,1, _SC("s")},
