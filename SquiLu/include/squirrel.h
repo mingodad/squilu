@@ -306,7 +306,7 @@ typedef struct {
 #define SQ_RETURN_IF_ERROR(res) if(SQ_FAILED(res)) return res
 
 #ifdef __GNUC__
-# define SQ_UNUSED_ARG(x) __attribute__((unused)) x
+# define SQ_UNUSED_ARG(x) x __attribute__((unused))
 #else
 # define SQ_UNUSED_ARG(x) x
 #endif
