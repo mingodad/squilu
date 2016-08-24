@@ -355,7 +355,7 @@ public:
     {
         _token = _lex.Lex();
     }
-	SQObjectPtr GetTokenObject(SQInteger tok)
+	SQObjectPtr GetTokenObject(SQInteger tok, bool doLex=true)
 	{
 		SQObjectPtr ret;
 		switch(tok)
@@ -375,7 +375,7 @@ public:
         default:
             ret = _fs->CreateString(_lex.GetTokenName(_token));
 		}
-		Lex();
+		if(doLex) Lex();
 		return ret;
 	}
 	void ErrorIfNotToken(SQInteger tok){
@@ -409,10 +409,10 @@ public:
 			}
 		}
 	}
-	SQObject Expect(SQInteger tok)
+	SQObject Expect(SQInteger tok, bool doLex=true)
 	{
         ErrorIfNotToken(tok);
-		return GetTokenObject(tok);
+		return GetTokenObject(tok, doLex);
 	}
 	SQObject ExpectTypeToken()
 	{
@@ -459,7 +459,9 @@ public:
                 Error(_SC("Error: too many nested includes %d %s\n"), nested_count, _stringval(id));
             }
 
-            id = Expect(TK_STRING_LITERAL);
+            //do not call Lex() since next token can try search for id defined in the include
+            //and then go global instead of local, we'll call it after including
+            id = Expect(TK_STRING_LITERAL, false);
             //Warning(_SC("%s:%d:%d warning pragma include %s\n"),
             //        _stringval(_sourcename), line, column, _stringval(id));
 
@@ -505,6 +507,9 @@ public:
 
                 --_nested_includes_count;
                 //done let's continue working
+
+                //Now we do the Lex() call skiped before compile the include file
+                Lex();
 
             }
             else
