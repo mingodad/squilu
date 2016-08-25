@@ -1069,6 +1069,7 @@ SQUIRREL_API SQRESULT sqext_register_sq_slave_vm(HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sqext_register_axtls (HSQUIRRELVM v);
 SQUIRREL_API SQRESULT sqext_register_openssl (HSQUIRRELVM v);
 SQRESULT sqext_register_decimal(HSQUIRRELVM v);
+SQRESULT sqext_register_sq_zlib(HSQUIRRELVM v);
 
 #ifdef __cplusplus
 } /*extern "C"*/
@@ -1122,6 +1123,7 @@ static HSQUIRRELVM my_new_squirrel(struct mg_context *ctx) {
 	sqext_register_base64(v);
 	sqext_register_Sq_Fpdf(v);
 	sqext_register_SQLite3(v);
+	sqext_register_sq_zlib(v);
 #ifdef WITH_MYSQL
 	sqext_register_MySQL(v);
 #endif
