@@ -122,7 +122,7 @@ extern "C" {
 */
 #define SQLITE_VERSION        "3.15.0"
 #define SQLITE_VERSION_NUMBER 3015000
-#define SQLITE_SOURCE_ID      "2016-08-19 15:15:55 083f9e6270fa4faa402b91231271da4f3915c79f"
+#define SQLITE_SOURCE_ID      "2016-08-26 12:00:50 7090147903337864d54ecfb2cd84a3f823973167"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -1984,8 +1984,18 @@ struct sqlite3_mem_methods {
 ** be a NULL pointer, in which case the new setting is not reported back.
 ** </dd>
 **
+** <dt>SQLITE_DBCONFIG_MAINDBNAME</dt>
+** <dd> ^This option is used to change the name of the "main" database
+** schema.  ^The sole argument is a pointer to a constant UTF8 string
+** which will become the new schema name in place of "main".  ^SQLite
+** does not make a copy of the new main schema name string, so the application
+** must ensure that the argument passed into this DBCONFIG option is unchanged
+** until after the database connection closes.
+** </dd>
+**
 ** </dl>
 */
+#define SQLITE_DBCONFIG_MAINDBNAME            1000 /* const char* */
 #define SQLITE_DBCONFIG_LOOKASIDE             1001 /* void* int int */
 #define SQLITE_DBCONFIG_ENABLE_FKEY           1002 /* int int* */
 #define SQLITE_DBCONFIG_ENABLE_TRIGGER        1003 /* int int* */
