@@ -418,7 +418,10 @@ static SQRESULT sq_XMLElement_FirstAttribute(HSQUIRRELVM v)
     SQ_FUNC_VARS_NO_TOP(v);
     GET_XMLElement_INSTANCE(v, 1);
     element->FirstAttribute();
-	return 0;
+	const tinyxml2::XMLAttribute *attr = ((const tinyxml2::XMLElement*)element)->FirstAttribute();
+    if(attr) return sq_push_xml_class(v, XML_TAG(XMLAttribute), (void*)attr);
+    sq_pushnull(v);
+	return 1;
 }
 
 static SQRESULT sq_XMLElement_FindAttribute(HSQUIRRELVM v)
