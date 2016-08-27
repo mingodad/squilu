@@ -489,7 +489,7 @@ static SQRESULT sq_XMLDocument_Parse(HSQUIRRELVM v)
     SQ_FUNC_VARS(v);
     GET_XMLDocument_INSTANCE(v, 1);
     SQ_GET_STRING(v, 2, xml);
-    SQ_OPT_INTEGER(v, 3, nBytes, -1);
+    SQ_OPT_INTEGER(v, 3, nBytes, xml_size);
     sq_pushinteger(v, doc->Parse(xml, (size_t)nBytes));
 	return 1;
 }
@@ -829,7 +829,6 @@ SQRESULT sqext_register_tinyxml2(HSQUIRRELVM v)
 	sq_pushstring(v, sq_tinyxml2_TAG, -1);
 	sq_newtable(v);
 
-    CONST_INT(XML_NO_ERROR);
     CONST_INT(XML_SUCCESS);
     CONST_INT(XML_NO_ATTRIBUTE);
     CONST_INT(XML_WRONG_ATTRIBUTE_TYPE);
