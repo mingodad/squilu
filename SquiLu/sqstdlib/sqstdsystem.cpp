@@ -367,13 +367,24 @@ static SQRESULT  _system_sleep(HSQUIRRELVM v)
 #ifndef _WIN32_WCE
 #include <sys/timeb.h>
 
+static int sqftime(struct timeb *tp)
+{
+	struct timespec ts;
+	clock_gettime(CLOCK_REALTIME, &ts);
+	tp->time = ts.tv_sec;
+	tp->millitm = ts.tv_nsec / 1000000;
+	tp->timezone = tp->dstflag = 0;
+	return 0;
+}
+
+
 int GetMilliCount()
 {
   // Something like GetTickCount but portable
   // It rolls over every ~ 12.1 days (0x100000/24/60/60)
   // Use GetMilliSpan to correct for rollover
   timeb tb;
-  ftime( &tb );
+  sqftime( &tb );
   int nCount = tb.millitm + (tb.time & 0xfffff) * 1000;
   return nCount;
 }
