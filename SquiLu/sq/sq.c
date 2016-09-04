@@ -113,7 +113,7 @@ void loadDefaultScript(HSQUIRRELVM v, const char *script)
     SQChar srcBoot[256];
     scsprintf(srcBoot, sizeof(srcBoot), _SC("dofile(\"%s\", false);"), script);
 
-    if(SQ_SUCCEEDED(sq_compilebuffer(v,srcBoot, strlen(srcBoot), _SC("defaultScript"), SQTrue, SQTrue))) {
+    if(SQ_SUCCEEDED(sq_compilebuffer(v,srcBoot, strlen(srcBoot), _SC("defaultScript"), SQTrue, SQTrue, SQ_MAX_INCLUDE_FILES))) {
         int callargs = 1;
         sq_pushroottable(v);
         callargs += push_program_args(v, 0, sq_main_argc, sq_main_argv, 0);
@@ -357,7 +357,7 @@ void Interactive(HSQUIRRELVM v)
 		i=scstrlen(buffer);
 		if(i>0){
 			SQInteger oldtop=sq_gettop(v);
-			if(SQ_SUCCEEDED(sq_compilebuffer(v,buffer,i,_SC("interactive console"),SQTrue, SQTrue))){
+			if(SQ_SUCCEEDED(sq_compilebuffer(v,buffer,i,_SC("interactive console"),SQTrue, SQTrue, SQ_MAX_INCLUDE_FILES))){
 				sq_pushroottable(v);
 				if(SQ_SUCCEEDED(sq_call(v,1,retval,SQTrue)) &&	retval){
 					scprintf(_SC("\n"));
@@ -536,7 +536,7 @@ static SQInteger LoadFrozenScript(HSQUIRRELVM v, const SQChar* filename, int onl
 
     chngChar(srcBoot, '\\', '/');
 
-    if(SQ_SUCCEEDED(sq_compilebuffer(v,srcBoot, scr_len, _SC("bootScript"), SQTrue, SQTrue))) {
+    if(SQ_SUCCEEDED(sq_compilebuffer(v,srcBoot, scr_len, _SC("bootScript"), SQTrue, SQTrue, SQ_MAX_INCLUDE_FILES))) {
         int callargs = 1;
         sq_pushroottable(v);
         callargs += push_program_args(v, 0, sq_main_argc, sq_main_argv, 0);

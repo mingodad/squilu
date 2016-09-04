@@ -323,7 +323,8 @@ static SQRESULT base_compilestring(HSQUIRRELVM v)
     SQ_GET_STRING(v, 2, src);
     SQ_OPT_STRING(v, 3, name, _SC("unnamedbuffer"));
     SQ_OPT_BOOL(v, 4, show_wanings, SQTrue);
-    if(SQ_SUCCEEDED(sq_compilebuffer(v,src,src_size,name,SQFalse, show_wanings)))
+    SQ_OPT_INTEGER(v, 5, max_includes, 0);
+    if(SQ_SUCCEEDED(sq_compilebuffer(v,src,src_size,name,SQFalse, show_wanings, max_includes)))
         return 1;
     else
         return SQ_ERROR;
@@ -538,7 +539,7 @@ static SQRegFunction base_funcs[]={
 	{_SC("error"),base_error,2, NULL},
 	{_SC("get_last_error"),base_get_last_error,1, NULL},
 	{_SC("get_last_stackinfo"),base_get_last_stackinfo,1, NULL},
-	{_SC("compilestring"),base_compilestring,-2, _SC(".ssb")},
+	{_SC("compilestring"),base_compilestring,-2, _SC(".ssbi")},
 	{_SC("newthread"),base_newthread,2, _SC(".c")},
 	{_SC("suspend"),base_suspend,-1, NULL},
 	{_SC("array"),base_array,-2, _SC(".n")},

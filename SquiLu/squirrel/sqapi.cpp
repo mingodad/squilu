@@ -152,11 +152,11 @@ SQInteger sq_getversion()
 }
 
 SQRESULT sq_compile(HSQUIRRELVM v,SQLEXREADFUNC read,SQUserPointer p,const SQChar *sourcename
-                    ,SQBool raiseerror, SQBool show_warnings)
+                    ,SQBool raiseerror, SQBool show_warnings, SQInteger max_nested_includes)
 {
 	SQObjectPtr o;
 #ifndef SQ_NO_COMPILER
-	if(Compile(v, read, p, sourcename, o, raiseerror?true:false, _ss(v)->_debuginfo, show_warnings)) {
+	if(Compile(v, read, p, sourcename, o, raiseerror?true:false, _ss(v)->_debuginfo, show_warnings, max_nested_includes)) {
 		v->Push(SQClosure::Create(_ss(v), _funcproto(o), _table(v->_roottable)->GetWeakRef(OT_TABLE)));
 		return SQ_OK;
 	}
@@ -1931,12 +1931,12 @@ SQInteger sq_strbuf_lexfeed(SQUserPointer file)
 }
 
 SQRESULT sq_compilebuffer(HSQUIRRELVM v,const SQChar *s,SQInteger size,const SQChar *sourcename,
-                          SQBool raiseerror, SQBool show_warnings) {
+                          SQBool raiseerror, SQBool show_warnings, SQInteger max_nested_includes) {
 	SQStrBufState buf;
 	buf.buf = s;
 	buf.size = size;
 	buf.ptr = 0;
-	return sq_compile(v, sq_strbuf_lexfeed, &buf, sourcename, raiseerror, show_warnings);
+	return sq_compile(v, sq_strbuf_lexfeed, &buf, sourcename, raiseerror, show_warnings, max_nested_includes);
 }
 
 void sq_move(HSQUIRRELVM dest,HSQUIRRELVM src,SQInteger idx)

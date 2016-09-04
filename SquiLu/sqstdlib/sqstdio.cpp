@@ -393,7 +393,7 @@ SQRESULT sqstd_loadfile(HSQUIRRELVM v,const SQChar *filename,SQBool printerror,S
 			buffer.size = 0;
 			buffer.file = file;
 
-			if(SQ_SUCCEEDED(sq_compile(v,func,&buffer,filename,printerror,show_warnings))){
+			if(SQ_SUCCEEDED(sq_compile(v,func,&buffer,filename,printerror,show_warnings, SQ_MAX_INCLUDE_FILES))){
 				sqstd_fclose(file);
 				return SQ_OK;
 			}
@@ -489,7 +489,7 @@ SQInteger _g_io_loadstring(HSQUIRRELVM v)
     }
     else
     {
-        rc = sq_compilebuffer(v, dump, size, _SC("loadstring"), SQFalse, SQFalse);
+        rc = sq_compilebuffer(v, dump, size, _SC("loadstring"), SQFalse, SQFalse, SQ_MAX_INCLUDE_FILES);
     }
 	return rc < 0 ? rc : 1;
 }

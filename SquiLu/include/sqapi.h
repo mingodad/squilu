@@ -25,10 +25,13 @@ SQUIRREL_API_FUNC(SQInteger, getvmstate, (HSQUIRRELVM v))
 SQUIRREL_API_FUNC(SQInteger, getversion, ())
 
 /*compiler*/
+#ifndef SQ_MAX_INCLUDE_FILES
+#define SQ_MAX_INCLUDE_FILES 10
+#endif
 SQUIRREL_API_FUNC(SQRESULT, compile, (HSQUIRRELVM v,SQLEXREADFUNC read,SQUserPointer p,const SQChar *sourcename,
-                                 SQBool raiseerror, SQBool show_warnings))
+                                 SQBool raiseerror, SQBool show_warnings, SQInteger max_nested_includes))
 SQUIRREL_API_FUNC(SQRESULT, compilebuffer, (HSQUIRRELVM v,const SQChar *s,SQInteger size,const SQChar *sourcename,
-                                       SQBool raiseerror, SQBool show_warnings))
+                                       SQBool raiseerror, SQBool show_warnings, SQInteger max_nested_includes))
 SQUIRREL_API_FUNC(void, enabledebuginfo, (HSQUIRRELVM v, SQBool enable))
 SQUIRREL_API_FUNC(void, notifyallexceptions, (HSQUIRRELVM v, SQBool enable))
 SQUIRREL_API_FUNC(void, setcompilererrorhandler, (HSQUIRRELVM v,SQCOMPILERERROR f))

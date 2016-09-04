@@ -4,7 +4,7 @@
 #define MixInteger SQInteger
 #include "code_mix_prep.c"
 
-/* Generic loader function. Load the data found in the state in the lua engine
+/* Generic loader function. Load the data found in the state in the squilu engine
  */
 static SQRESULT mix_loadbuffer(HSQUIRRELVM sqvm, mix_state_t *S, const SQChar *name, int isParseOnly) {
 	SQRESULT res;
@@ -31,7 +31,7 @@ static SQRESULT mix_loadbuffer(HSQUIRRELVM sqvm, mix_state_t *S, const SQChar *n
 	}
 	else
 	{
-        res = sq_compile(sqvm, sq_mix_reader_char, S, name, SQTrue, SQTrue);
+        res = sq_compile(sqvm, sq_mix_reader_char, S, name, SQTrue, SQTrue, SQ_MAX_INCLUDE_FILES);
         if (S->error != NULL) {
             return sq_throwerror(sqvm, S->error);
         } else if (res != 0) {
