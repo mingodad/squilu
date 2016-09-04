@@ -93,7 +93,7 @@ bool SQBlob::Resize(SQInteger n) {
     }
     return true;
 }
-bool SQBlob::GrowBufOf(SQInteger n)
+bool SQBlob::Reserve(SQInteger n)
 {
     bool ret = true;
     if(_size + n > _allocated) {
@@ -102,6 +102,11 @@ bool SQBlob::GrowBufOf(SQInteger n)
         else
             ret = Resize(_size * 2);
     }
+    return ret;
+}
+bool SQBlob::GrowBufOf(SQInteger n)
+{
+    bool ret = Reserve(n);
     _size = _size + n;
     return ret;
 }
@@ -152,12 +157,22 @@ static SQRESULT _blob_resize(HSQUIRRELVM v)
 	return 0;
 }
 
-static SQRESULT _blob_reserve(HSQUIRRELVM v)
+static SQRESULT _blob_grow(HSQUIRRELVM v)
 {
 	SETUP_BLOB(v);
 	SQInteger size;
 	sq_getinteger(v,2,&size);
 	if(!self->GrowBufOf(size))
+		return sq_throwerror(v,_SC("reserve failed"));
+	return 0;
+}
+
+static SQRESULT _blob_reserve(HSQUIRRELVM v)
+{
+	SETUP_BLOB(v);
+	SQInteger size;
+	sq_getinteger(v,2,&size);
+	if(!self->Reserve(size))
 		return sq_throwerror(v,_SC("reserve failed"));
 	return 0;
 }
@@ -350,6 +365,7 @@ static SQRESULT _blob_clear(HSQUIRRELVM v)
 static SQRegFunction _blob_methods[] = {
 	_DECL_BLOB_FUNC(constructor,-1,_SC("xnn")),
 	_DECL_BLOB_FUNC(resize,2,_SC("xn")),
+	_DECL_BLOB_FUNC(grow,2,_SC("xn")),
 	_DECL_BLOB_FUNC(reserve,2,_SC("xn")),
 	_DECL_BLOB_FUNC(swap2,1,_SC("x")),
 	_DECL_BLOB_FUNC(swap4,1,_SC("x")),

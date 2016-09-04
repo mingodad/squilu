@@ -64,6 +64,23 @@ SQInteger _stream_read_line(HSQUIRRELVM v) {
     return 1;
 }
 
+SQInteger _stream_read_all(HSQUIRRELVM v) {
+	SETUP_STREAM(v);
+    SQInteger size = 4096, read_size;
+    SQBlob line_buf(0, size);
+    do{
+        char *buf = (SQChar*)line_buf.GetBuf();
+        read_size = self->Gets(buf + line_buf.Len(), size);
+        line_buf.SetLen(line_buf.Len() + read_size);
+        line_buf.Reserve(size);
+    } while(read_size > 0);
+    if(line_buf.Len() > 0) {
+        sq_pushstring(v, (const SQChar*)line_buf.GetBuf(), line_buf.Len());
+    }
+    else sq_pushnull(v); //end of file
+    return 1;
+}
+
 SQInteger _stream_read(HSQUIRRELVM v)
 {
 	SETUP_STREAM(v);
@@ -391,6 +408,7 @@ static SQRegFunction _stream_methods[] = {
 	_DECL_STREAM_FUNC(gets,2,_SC("xn")),
 	_DECL_STREAM_FUNC(readblob,2,_SC("xn")),
 	_DECL_STREAM_FUNC(readn,2,_SC("xn")),
+	_DECL_STREAM_FUNC(read_all,1,_SC("x")),
 	_DECL_STREAM_FUNC(write_str,-2,_SC("xsii")),
 	_DECL_STREAM_FUNC(write,-2,_SC("x.")),
 	_DECL_STREAM_FUNC(writeblob,-2,_SC("xx")),

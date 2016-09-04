@@ -7,6 +7,7 @@ SQInteger _stream_readline(HSQUIRRELVM v);
 SQInteger _stream_readbytes(HSQUIRRELVM v);
 SQInteger _stream_readn(HSQUIRRELVM v);
 SQInteger _stream_read(HSQUIRRELVM v);
+SQInteger _stream_readall(HSQUIRRELVM v);
 SQInteger _stream_gets(HSQUIRRELVM v);
 SQInteger _stream_writeblob(HSQUIRRELVM v);
 SQInteger _stream_writebytes(HSQUIRRELVM v);
