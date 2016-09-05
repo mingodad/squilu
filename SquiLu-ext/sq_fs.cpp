@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
 #include <time.h>
 #include <sys/stat.h>
 
@@ -65,6 +66,8 @@
 #endif
 
 #include "squirrel.h"
+#include <sqstdio.h>
+#include <sqstdfile.h>
 SQ_OPT_STRING_STRLEN();
 #include "sqfs.h"
 
@@ -167,66 +170,6 @@ static SQRESULT sqfs_currentdir (HSQUIRRELVM v) {
 #endif
 
 #if 0
-/*
-** Check if the given element on the stack is a file and returns it.
-*/
-static FILE *check_file (HSQUIRRELVM v, int idx, const SQChar *funcname) {
-	FILE **fh = (FILE **)luaL_checkudata (L, idx, "FILE*");
-	if (fh == NULL) {
-		return sq_throwerror(v, "%s: not a file", funcname);
-	} else if (*fh == NULL) {
-		return sq_throwerror(v, "%s: closed file", funcname);
-		return 0;
-	} else
-		return *fh;
-}
-
-
-/*
-**
-*/
-static int _file_lock (HSQUIRRELVM v, FILE *fh, const char *mode, const long start, long len, const char *funcname) {
-	int code;
-#ifdef _WIN32
-	/* lkmode valid values are:
-	   LK_LOCK    Locks the specified bytes. If the bytes cannot be locked, the program immediately tries again after 1 second. If, after 10 attempts, the bytes cannot be locked, the constant returns an error.
-	   LK_NBLCK   Locks the specified bytes. If the bytes cannot be locked, the constant returns an error.
-	   LK_NBRLCK  Same as _LK_NBLCK.
-	   LK_RLCK    Same as _LK_LOCK.
-	   LK_UNLCK   Unlocks the specified bytes, which must have been previously locked.
-
-	   Regions should be locked only briefly and should be unlocked before closing a file or exiting the program.
-
-	   http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vclib/html/_crt__locking.asp
-	*/
-	int lkmode;
-	switch (*mode) {
-		case 'r': lkmode = LK_NBLCK; break;
-		case 'w': lkmode = LK_NBLCK; break;
-		case 'u': lkmode = LK_UNLCK; break;
-		default : return sq_throwerror (v, "%s: invalid mode", funcname);
-	}
-	if (!len) {
-		fseek (fh, 0L, SEEK_END);
-		len = ftell (fh);
-	}
-	fseek (fh, start, SEEK_SET);
-	code = _locking (fileno(fh), lkmode, len);
-#else
-	struct flock f;
-	switch (*mode) {
-		case 'w': f.l_type = F_WRLCK; break;
-		case 'r': f.l_type = F_RDLCK; break;
-		case 'u': f.l_type = F_UNLCK; break;
-		default : return sq_throwerror(v, "%s: invalid mode", funcname);
-	}
-	f.l_whence = SEEK_SET;
-	f.l_start = (off_t)start;
-	f.l_len = (off_t)len;
-	code = fcntl (fileno(fh), F_SETLK, &f);
-#endif
-	return (code != -1);
-}
 
 #ifdef _WIN32
 typedef struct sqfs_Lock {
@@ -337,6 +280,61 @@ static int sqfs_setmode(HSQUIRRELVM v) {
   return lfs_g_setmode(v, check_file(v, 1, "setmode"), 2);
 }
 
+#endif
+
+/*
+**
+*/
+static int _file_lock (HSQUIRRELVM v, FILE *fp, const char *mode, const long start, long len, const char *funcname) {
+	int code;
+#ifdef _WIN32
+	/* lkmode valid values are:
+	   LK_LOCK    Locks the specified bytes. If the bytes cannot be locked, the program immediately tries again after 1 second. If, after 10 attempts, the bytes cannot be locked, the constant returns an error.
+	   LK_NBLCK   Locks the specified bytes. If the bytes cannot be locked, the constant returns an error.
+	   LK_NBRLCK  Same as _LK_NBLCK.
+	   LK_RLCK    Same as _LK_LOCK.
+	   LK_UNLCK   Unlocks the specified bytes, which must have been previously locked.
+
+	   Regions should be locked only briefly and should be unlocked before closing a file or exiting the program.
+
+	   http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vclib/html/_crt__locking.asp
+	*/
+	int lkmode;
+	switch (*mode) {
+		case 'r': lkmode = LK_NBLCK; break;
+		case 'w': lkmode = LK_NBLCK; break;
+		case 'u': lkmode = LK_UNLCK; break;
+		default : return sq_throwerror (v, "%s: invalid mode", funcname);
+	}
+	if (!len) {
+		fseek (fh, 0L, SEEK_END);
+		len = ftell (fh);
+	}
+	fseek (fh, start, SEEK_SET);
+    int fd = fileno(fp);
+	code = _locking (fd, lkmode, len);
+#else
+	struct flock f;
+	switch (*mode) {
+		case 'w': f.l_type = F_WRLCK; break;
+		case 'r': f.l_type = F_RDLCK; break;
+		case 'u': f.l_type = F_UNLCK; break;
+		default : return sq_throwerror(v, "%s: invalid mode", funcname);
+	}
+	f.l_whence = SEEK_SET;
+	f.l_start = (off_t)start;
+	f.l_len = (off_t)len;
+    int fd = fileno(fp);
+    //do {
+        code = fcntl (fd, F_SETLK, &f);
+    //} while(code < 0 && errno == EINTR);
+#endif
+	return (code != -1);
+}
+
+#define GET_file_INSTANCE() SQ_GET_INSTANCE(v, 1, SQFile, SQSTD_FILE_TYPE_TAG) \
+	if(self == NULL) return sq_throwerror(v, _SC("file object already closed"));
+
 /*
 ** Locks a file.
 ** @param #1 File handle.
@@ -344,18 +342,17 @@ static int sqfs_setmode(HSQUIRRELVM v) {
 ** @param #3 Number with start position (optional).
 ** @param #4 Number with length (optional).
 */
-static SQRESULT sqfs_lock (HSQUIRRELVM v) {
+static SQRESULT sqfs_lock(HSQUIRRELVM v) {
     SQ_FUNC_VARS(v);
-    SQ_GET_STRING(v, 3, mode);
-    SQ_OPT_INTEGER(v, 4, start, 0);
-    SQ_OPT_INTEGER(v, 5, len, 0);
-	FILE *fh = check_file (L, 1, SC("lock");
-	if (_file_lock (v, fh, mode, start, len, _SC("lock")) {
-		sq_pushbool (v, SQTrue);
-		return 1;
-	} else {
-		return sq_throwerror(v, "%s", strerror(errno));
-	}
+	GET_file_INSTANCE();
+    SQ_GET_STRING(v, 2, mode);
+    SQ_OPT_INTEGER(v, 3, start, 0);
+    SQ_OPT_INTEGER(v, 4, len, 0);
+
+    FILE *fp = (FILE*)self->GetHandle();
+	int rc = _file_lock (v, fp, mode, start, len, _SC("lock"));
+    sq_pushbool (v, rc > 0);
+    return 1;
 }
 
 
@@ -367,17 +364,24 @@ static SQRESULT sqfs_lock (HSQUIRRELVM v) {
 */
 static SQRESULT sqfs_unlock (HSQUIRRELVM v) {
     SQ_FUNC_VARS(v);
-    SQ_OPT_INTEGER(v, 3, start, 0);
-    SQ_OPT_INTEGER(v, 4, len, 0);
-	FILE *fh = check_file (L, 1, "unlock");
-	if (_file_lock (v, fh, "u", start, len, "unlock")) {
-		sq_pushbool (v, SQTrue);
-		return 1;
-	} else {
-		return sq_throwerror (v, "%s", strerror(errno));
-	}
+	GET_file_INSTANCE();
+    SQ_OPT_INTEGER(v, 2, start, 0);
+    SQ_OPT_INTEGER(v, 3, len, 0);
+
+    FILE *fp = (FILE*)self->GetHandle();
+	int rc = _file_lock (v, fp, "u", start, len, _SC("unlock"));
+    sq_pushbool (v, rc > 0);
+    return 1;
 }
-#endif
+
+#define _DECL_FILELOCK_FUNC(name,nparams,pmask) {_SC(#name),sqfs_##name,nparams,pmask}
+static SQRegFunction file_lock_obj_funcs[]={
+	_DECL_FILELOCK_FUNC(lock, -2, _SC("xsii")),
+	//_DECL_FILELOCK_FUNC(trylock, -2, _SC("xsii")),
+	_DECL_FILELOCK_FUNC(unlock, -1, _SC("x")),
+	{0,0}
+};
+#undef _DECL_FILELOCK_FUNC
 
 /*
 ** Creates a link.
@@ -847,6 +851,13 @@ extern "C" {
 
     SQRESULT sqext_register_sqfs(HSQUIRRELVM v)
     {
+        sq_pushstring(v, SQSTD_FILE_CLASS_TYPE_TAG, -1);
+        if(sq_getonregistrytable(v) != SQ_OK){
+            return sq_throwerror(v, _SC("file class not found"));
+        }
+        sq_insert_reg_funcs(v, file_lock_obj_funcs);
+        sq_poptop(v);
+
         sq_pushstring(v,_SC("sqfs"),-1);
         sq_newtable(v);
         set_info(v);
