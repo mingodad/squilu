@@ -4,10 +4,12 @@
 #include <string.h>
 #include <squirrel.h>
 #include <sqstdio.h>
+#include <sqstdfile.h>
 #include "sqstdstream.h"
 
 //#define SQSTD_FILE_TYPE_TAG (SQSTD_STREAM_TYPE_TAG | 0x00000001)
-static const SQChar  SQSTD_FILE_TYPE_TAG[] = _SC("std_stream_file");
+const SQChar  SQSTD_FILE_TYPE_TAG[] = _SC("std_stream_file");
+const SQChar  SQSTD_FILE_CLASS_TYPE_TAG[] = _SC("std_file");
 
 //basic API
 SQFILE sqstd_fopen(const SQChar *filename ,const SQChar *mode)
@@ -61,60 +63,6 @@ SQInteger sqstd_feof(SQFILE file)
 {
 	return feof((FILE *)file);
 }
-
-//File
-struct SQFile : public SQStream {
-	SQFile() { _handle = NULL; _owns = false;}
-	SQFile(SQFILE file, bool owns) { _handle = file; _owns = owns;}
-	virtual ~SQFile() { Close(); }
-	virtual bool Open(const SQChar *filename ,const SQChar *mode) {
-		Close();
-		if( (_handle = sqstd_fopen(filename,mode)) ) {
-			_owns = true;
-			return true;
-		}
-		return false;
-	}
-	virtual void Close() {
-		if(_handle && _owns) {
-			sqstd_fclose(_handle);
-			_handle = NULL;
-			_owns = false;
-		}
-	}
-	SQInteger Read(void *buffer,SQInteger size) {
-		return sqstd_fread(buffer,1,size,_handle);
-	}
-	SQInteger Gets(char *buffer,SQInteger size) {
-	    SQChar *res = sqstd_fgets(buffer,size,_handle);
-		return res ? scstrlen(res) : 0;
-	}
-	SQInteger Write(const void *buffer,SQInteger size) {
-		return sqstd_fwrite((const SQUserPointer)buffer,1,size,_handle);
-	}
-	SQInteger Flush() {
-		return sqstd_fflush(_handle);
-	}
-	SQInteger Tell() {
-		return sqstd_ftell(_handle);
-	}
-	SQInteger Len() {
-		SQInteger prevpos=Tell();
-		Seek(0,SQ_SEEK_END);
-		SQInteger size=Tell();
-		Seek(prevpos,SQ_SEEK_SET);
-		return size;
-	}
-	SQInteger Seek(SQInteger offset, SQInteger origin)	{
-		return sqstd_fseek(_handle,offset,origin);
-	}
-	bool IsValid() { return _handle?true:false; }
-	bool EOS() { return Tell()==Len()?true:false;}
-	SQFILE GetHandle() {return _handle;}
-protected:
-	SQFILE _handle;
-	bool _owns;
-};
 
 struct SQPopen : public SQFile {
 	SQPopen():SQFile() {}
@@ -668,8 +616,8 @@ static const SQRegFunction iolib_funcs[]={
 SQRESULT sqstd_register_iolib(HSQUIRRELVM v)
 {
 	//create delegate
-	declare_stream(v,_SC("popen"),(SQUserPointer)SQSTD_FILE_TYPE_TAG,_SC("std_file"),_popen_methods,iolib_funcs);
-	declare_stream(v,_SC("file"),(SQUserPointer)SQSTD_FILE_TYPE_TAG,_SC("std_file"),_file_methods,iolib_funcs);
+	declare_stream(v,_SC("popen"),(SQUserPointer)SQSTD_FILE_TYPE_TAG,SQSTD_FILE_CLASS_TYPE_TAG,_popen_methods,iolib_funcs);
+	declare_stream(v,_SC("file"),(SQUserPointer)SQSTD_FILE_TYPE_TAG,SQSTD_FILE_CLASS_TYPE_TAG,_file_methods,iolib_funcs);
 	sq_pushstring(v,_SC("stdout"),-1);
 	sqstd_createfile(v,stdout,SQFalse);
 	sq_newslot(v,-3,SQFalse);

@@ -49,6 +49,10 @@ SQUIRREL_API SQRESULT sqstd_writeclosuretofile_as_source(HSQUIRRELVM v,const SQC
 
 SQUIRREL_API SQRESULT sqstd_register_iolib(HSQUIRRELVM v);
 
+extern const SQChar SQSTD_FILE_TYPE_TAG[];
+extern const SQChar SQSTD_FILE_CLASS_TYPE_TAG[];
+
+
 #ifdef __cplusplus
 } /*extern "C"*/
 #endif
