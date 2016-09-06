@@ -352,15 +352,19 @@ static SQRESULT _system_setlocale (HSQUIRRELVM v) {
 /*-------------------------------------------------------------------------*\
 * Sleep for n miliseconds.
 \*-------------------------------------------------------------------------*/
+int sq_system_sleep(int n)
+{
+#ifdef _WIN32
+    return Sleep(n);
+#else
+    return usleep((n)*1000);
+#endif
+}
 static SQRESULT  _system_sleep(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_INTEGER(v, 2, n);
-#ifdef _WIN32
-    Sleep((int)n);
-#else
-    usleep((n)*1000);
-#endif
+    sq_system_sleep(n);
     return 0;
 }
 

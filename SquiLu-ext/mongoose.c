@@ -1111,6 +1111,10 @@ static int pthread_mutex_lock(pthread_mutex_t *mutex) {
   return WaitForSingleObject(*mutex, INFINITE) == WAIT_OBJECT_0? 0 : -1;
 }
 
+static int pthread_mutex_trylock(pthread_mutex_t *mutex) {
+  return WaitForSingleObject(*mutex, 0) == WAIT_OBJECT_0? 0 : -1;
+}
+
 static int pthread_mutex_unlock(pthread_mutex_t *mutex) {
   return ReleaseMutex(*mutex) == 0 ? -1 : 0;
 }
@@ -5493,6 +5497,10 @@ int mg_thread_mutex_destroy(mg_thread_mutex_t *mutex){
 
 int mg_thread_mutex_lock(mg_thread_mutex_t *mutex){
     return pthread_mutex_lock(mutex);
+}
+
+int mg_thread_mutex_trylock(mg_thread_mutex_t *mutex){
+    return pthread_mutex_trylock(mutex);
 }
 
 int mg_thread_mutex_unlock(mg_thread_mutex_t *mutex){

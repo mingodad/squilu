@@ -1,7 +1,62 @@
+local svm = SlaveVM(1024, true, true);
+
+print(svm);
+print(svm.is_thread_idle(), svm.is_runing_as_thread());
+
+if(svm.is_runing_as_thread())
+{
+	auto slave_code = [==[
+auto count = 0;
+
+function getCount(){return count;}
+
+function slaveThreadTask(max_loop)
+{
+	print("==========", max_loop);
+	//foreach(k,v in getroottable()) print(k,v);
+	//print("slavevm_thread_lock", slavevm_thread_lock());
+	
+	for(auto i=0; i < max_loop; ++i)
+	{
+		count += max_loop;
+		print("count", count);
+		print("slavevm_thread_slave_state", slavevm_thread_slave_state(count));
+		print("slavevm_thread_cond_wait", slavevm_thread_cond_wait());
+		//print("slavevm_thread_lock", slavevm_thread_lock());
+	}
+}
+
+]==];
+
+	//local slave_func = "svm_code";
+	//svm.compilestring(slave_func, slave_code);
+	//svm.call(false, slave_func);
+	svm.dostring(slave_code);
+
+	svm.thread_run("slaveThreadTask", 5);
+
+	for(auto i=0; i < 10; ++i)
+	{
+		do {
+			os.sleep(1000);
+			print(i);
+			if(svm.is_thread_idle())
+			{
+				print("==thread_slave_state", svm.thread_slave_state());
+				print("==thread_cond_signal", svm.thread_cond_signal());
+				break;
+			}
+		} while(!svm.is_thread_idle());
+		
+	}
+}
+
 local vm = SlaveVM();
 vm.set("_slave_", true);
 
 print(vm);
+print(vm.is_thread_idle(), vm.is_runing_as_thread());
+
 print(vm.get("_version_"));
 vm.set("dad", "Domingo");
 print(vm.get("dad"));
@@ -29,7 +84,7 @@ local ar = "1,2,3,4,5".split(',');
 print("1,2,3,4,5".split(','));
 
 local globals = getroottable();
-if(!globals.get("_slave_", false)){
+if(!table_get(globals, "_slave_", false)){
 	print("I'm not a slave !");
 	//vm.dofile("test-slave-vm.nut");
 	//vm.dofile("loops.nut");

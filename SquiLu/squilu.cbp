@@ -1181,6 +1181,8 @@
 			<Add option="-DWITH_LIBCLANG=1" />
 			<Add option="-DWITH_MPDECIMAL=1" />
 			<Add option="-DSQ_USE_EASYCURL=1" />
+			<Add option="-DOS_POSIX=1" />
+			<Add option="-DSLAVE_VM_WITH_OS_THREADS=1" />
 			<Add directory="include" />
 			<Add directory="sqstdlib" />
 			<Add directory="../myaxtls" />
@@ -1807,7 +1809,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 		</Unit>
-		<Unit filename="../SquiLu-ext/sq_fs.c">
+		<Unit filename="../SquiLu-ext/sq_fs.cpp">
 			<Option compilerVar="CC" />
 			<Option target="Debug" />
 			<Option target="Release" />
@@ -2524,6 +2526,7 @@
 		<Unit filename="sqstdlib/sqstdaux.cpp" />
 		<Unit filename="sqstdlib/sqstdblob.cpp" />
 		<Unit filename="sqstdlib/sqstdblobimpl.h" />
+		<Unit filename="sqstdlib/sqstdfile.h" />
 		<Unit filename="sqstdlib/sqstdio.cpp" />
 		<Unit filename="sqstdlib/sqstdmath.cpp" />
 		<Unit filename="sqstdlib/sqstdrex.cpp" />

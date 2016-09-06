@@ -399,6 +399,7 @@ mg_thread_t mg_thread_self(void);
 int mg_thread_mutex_init(mg_thread_mutex_t *mutex, const mg_thread_mutexattr_t *attr);
 int mg_thread_mutex_destroy(mg_thread_mutex_t *mutex);
 int mg_thread_mutex_lock(mg_thread_mutex_t *mutex);
+int mg_thread_mutex_trylock(mg_thread_mutex_t *mutex);
 int mg_thread_mutex_unlock(mg_thread_mutex_t *mutex);
 int mg_thread_cond_init(mg_thread_cond_t *cv, const mg_thread_condattr_t *attr);
 int mg_thread_cond_wait(mg_thread_cond_t *cv, mg_thread_mutex_t *mutex);
