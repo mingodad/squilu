@@ -352,12 +352,12 @@ static SQRESULT _system_setlocale (HSQUIRRELVM v) {
 /*-------------------------------------------------------------------------*\
 * Sleep for n miliseconds.
 \*-------------------------------------------------------------------------*/
-int sq_system_sleep(int n)
+void sq_system_sleep(int n)
 {
 #ifdef _WIN32
-    return Sleep(n);
+    Sleep(n);
 #else
-    return usleep((n)*1000);
+    usleep((n)*1000);
 #endif
 }
 static SQRESULT  _system_sleep(HSQUIRRELVM v)

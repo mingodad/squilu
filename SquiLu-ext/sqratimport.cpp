@@ -88,7 +88,7 @@ static SQRESULT sqrat_importbin(HSQUIRRELVM v, const SQChar* moduleName) {
         }
     }
 
-    modLoad = (SQMODULELOAD)GetProcAddressA(mod, "sqmodule_load");
+    modLoad = (SQMODULELOAD)GetProcAddress(mod, "sqmodule_load");
     if(modLoad == NULL) {
         FreeLibrary(mod);
         return SQ_ERROR;

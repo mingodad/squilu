@@ -563,7 +563,7 @@ static void *slaveThreadTask(void *p)
     return NULL;
 }
 
-extern int sq_system_sleep(int n);
+extern void sq_system_sleep(int n);
 
 static SQRESULT sq_slave_vm_thread_run(HSQUIRRELVM v)
 {

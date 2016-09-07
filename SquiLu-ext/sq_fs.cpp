@@ -307,10 +307,10 @@ static int _file_lock (HSQUIRRELVM v, FILE *fp, const char *mode, const long sta
 		default : return sq_throwerror (v, "%s: invalid mode", funcname);
 	}
 	if (!len) {
-		fseek (fh, 0L, SEEK_END);
-		len = ftell (fh);
+		fseek (fp, 0L, SEEK_END);
+		len = ftell (fp);
 	}
-	fseek (fh, start, SEEK_SET);
+	fseek (fp, start, SEEK_SET);
     int fd = fileno(fp);
 	code = _locking (fd, lkmode, len);
 #else
@@ -481,7 +481,7 @@ static SQRESULT _dir_constructor(HSQUIRRELVM v)
     if (strlen(path) > MAX_PATH-2)
       return sq_throwerror(v, "path too long: %s", path);
     else
-      scsnprintf (dir->pattern, sizeof(dir->pattern), "%s/*", path);
+      scsprintf (dir->pattern, sizeof(dir->pattern), "%s/*", path);
 #else
     dir->dir = opendir (path);
     if (dir->dir == NULL)
