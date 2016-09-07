@@ -1146,6 +1146,7 @@
 			<Add option="-DNO_EXCEPTION_KEY_NOT_FOUND0=1" />
 			<Add option="-DNO_GARBAGE_COLLECTOR00=1" />
 			<Add option="-DTHREADSAFE=1" />
+			<Add option="-DSQLITE_USE_DECIMAL2=1" />
 			<Add option="-DSQLITE_DEFAULT_FILE_FORMAT=4" />
 			<Add option="-DSQLITE_DEFAULT_AUTOVACUUM=1" />
 			<Add option="-DSQLITE_DEFAULT_FOREIGN_KEYS=1" />

@@ -52,7 +52,8 @@ CFLAGS = $(INC) -O3 -Wall -fno-strict-aliasing  \
     -DTARGET_IOS=1 -DWITHOUTH_SHA512=1 \
     -DSQ_USE_MKSTEMP=1 \
     -DSQ_USE_LOCALTIME_R=1 \
-    -DSQ_ENABLE_INCLUDES=1
+    -DSQ_ENABLE_INCLUDES=1 \
+    -DSLAVE_VM_WITH_OS_THREADS=1
 
 RESINC = 
 LIBDIR = -L$(MYSDKPREFIX)/lib -L$(MYSDKPREFIX)/lib/system -Llib
@@ -87,7 +88,7 @@ SOURCES= sq/sq.c  \
     ../SquiLu-ext/pdf-font.cpp  \
     ../SquiLu-ext/sq_base64.cpp  \
     ../SquiLu-ext/sq_fpdf.cpp  \
-    ../SquiLu-ext/sq_fs.c  \
+    ../SquiLu-ext/sq_fs.cpp  \
     ../SquiLu-ext/sqlite3.c  \
     ../SquiLu-ext/sq_mix.cpp \
     ../SquiLu-ext/sq_mongoose.cpp  \
