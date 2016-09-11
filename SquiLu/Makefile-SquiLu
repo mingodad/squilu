@@ -55,7 +55,8 @@ CFLAGS = $(INC) -O3 -Wall -fno-strict-aliasing  \
     -DSQLITE_OMIT_PREPARED=1 \
     -DSQ_USE_MKSTEMP=1 \
     -DSQ_USE_LOCALTIME_R=1 \
-    -DSQ_ENABLE_INCLUDES=1
+    -DSQ_ENABLE_INCLUDES=1 \
+    -DSLAVE_VM_WITH_OS_THREADS=1
 
 RESINC = 
 #LIBDIR =  -Llib -L../myaxtls -L../mpdecimal -L../discount
@@ -83,7 +84,7 @@ SOURCES= \
     ../SquiLu-ext/sq_axtls.c  \
     ../SquiLu-ext/sq_base64.cpp  \
     ../SquiLu-ext/sq_fpdf.cpp  \
-    ../SquiLu-ext/sq_fs.c  \
+    ../SquiLu-ext/sq_fs.cpp  \
     ../SquiLu-ext/sq_gumbo.cpp  \
     ../SquiLu-ext/sqlite3.c  \
     ../SquiLu-ext/sq_unql.c  \
