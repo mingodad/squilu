@@ -198,6 +198,7 @@ public:
 	OpProfileVec _op_profile;
 	HighResolutionTimer _op_profile_timer;
 #endif
+	SQBool _closing;
 };
 
 struct AutoDec{

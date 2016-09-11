@@ -124,6 +124,7 @@ bool SQVM::ARITH_OP(SQUnsignedInteger op,SQObjectPtr &trg,const SQObjectPtr &o1,
 
 SQVM::SQVM(SQSharedState *ss)
 {
+    _closing=SQFalse;
 	_sharedstate=ss;
 	_suspended = SQFalse;
 	_suspended_target = -1;
@@ -162,6 +163,7 @@ SQVM::SQVM(SQSharedState *ss)
 
 void SQVM::Finalize()
 {
+    _closing=SQTrue;
     CallAtExitHandler();
 #ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
     _sharedstate->CallDelayedReleaseHooks(this);

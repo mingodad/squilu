@@ -204,7 +204,7 @@ SQBool sq_release(HSQUIRRELVM v,HSQOBJECT *po)
 	__Release(po->_type,po->_unVal);
 	return ret; //the ret val doesn't work(and cannot be fixed)
 #else
-	return _ss(v)->_refs_table.Release(*po);
+	return v->_closing ? SQ_OK : _ss(v)->_refs_table.Release(*po);
 #endif
 }
 
@@ -722,6 +722,7 @@ SQRESULT sq_delete_on_registry_table(HSQUIRRELVM v, SQUserPointer uptr)
 	if(type(key) == OT_NULL) {
 		return sq_throwerror(v, _SC("null key"));
 	}
+	if(v->_closing) return SQ_OK;
 	SQTable *registry = _table(_ss(v)->_registry);
     if(registry) //when closing the vm releasehooks are called with NULL registry
     {
