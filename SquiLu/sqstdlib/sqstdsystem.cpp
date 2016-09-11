@@ -371,7 +371,7 @@ static SQRESULT  _system_sleep(HSQUIRRELVM v)
 #ifndef _WIN32_WCE
 #include <sys/timeb.h>
 
-#ifndef TARGET_IOS
+#if !(defined(TARGET_IOS) || defined(__APPLE__))
 static int sqftime(struct timeb *tp)
 {
 	struct timespec ts;
@@ -390,7 +390,7 @@ int GetMilliCount()
   // It rolls over every ~ 12.1 days (0x100000/24/60/60)
   // Use GetMilliSpan to correct for rollover
   timeb tb;
-#ifndef TARGET_IOS
+#if !(defined(TARGET_IOS) || defined(__APPLE__))
   sqftime( &tb );
 #else
   ftime( &tb );
