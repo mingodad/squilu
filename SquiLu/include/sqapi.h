@@ -148,6 +148,7 @@ SQUIRREL_API_FUNC(SQRESULT, rawnewmember, (HSQUIRRELVM v,SQInteger idx,SQBool bs
 SQUIRREL_API_FUNC(SQRESULT, arrayappend, (HSQUIRRELVM v,SQInteger idx))
 SQUIRREL_API_FUNC(SQRESULT, arraypop, (HSQUIRRELVM v,SQInteger idx,SQBool pushval))
 SQUIRREL_API_FUNC(SQRESULT, arrayresize, (HSQUIRRELVM v,SQInteger idx,SQInteger newsize))
+SQUIRREL_API_FUNC(SQRESULT, arrayminsize, (HSQUIRRELVM v,SQInteger idx,SQInteger minsize))
 SQUIRREL_API_FUNC(SQRESULT, arrayreverse, (HSQUIRRELVM v,SQInteger idx))
 SQUIRREL_API_FUNC(SQRESULT, arrayremove, (HSQUIRRELVM v,SQInteger idx,SQInteger itemidx))
 SQUIRREL_API_FUNC(SQRESULT, arrayinsert, (HSQUIRRELVM v,SQInteger idx,SQInteger destpos))

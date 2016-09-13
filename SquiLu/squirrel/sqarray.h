@@ -70,7 +70,9 @@ public:
 		SQObjectPtr _null;
 		Resize(size,_null);
 	}
+	void Minsize(SQInteger size) { if(Size() <= size) Resize(size);}
 	void Resize(SQInteger size,SQObjectPtr &fill) { _values.resize(size,fill); ShrinkIfNeeded(); }
+	void Minsize(SQInteger size,SQObjectPtr &fill) { if(Size() <= size) _values.resize(size,fill);}
 	void Reserve(SQInteger size) { _values.reserve(size); }
 	void Append(const SQObject &o){_values.push_back(o);}
 	void Extend(const SQArray *a);

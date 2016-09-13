@@ -385,11 +385,14 @@ SQBool sq_instanceof(HSQUIRRELVM v)
 	return _instance(inst)->InstanceOf(_class(cl))?SQTrue:SQFalse;
 }
 
+#define CHECK_ARRAY_AT(check_n, arr_var) \
+	sq_aux_paramscheck(v,check_n);\
+	SQObjectPtr &arr_var = stack_get(v,idx);\
+	_CHECK_OBJ_TYPE(v, OT_ARRAY, arr_var);
+
 SQRESULT sq_arrayappend(HSQUIRRELVM v,SQInteger idx)
 {
-	sq_aux_paramscheck(v,2);
-	SQObjectPtr &arr = stack_get(v,idx);
-	_CHECK_OBJ_TYPE(v, OT_ARRAY, arr);
+    CHECK_ARRAY_AT(2, arr);
 	_array(arr)->Append(v->GetUp(-1));
 	v->Pop();
 	return SQ_OK;
@@ -397,9 +400,7 @@ SQRESULT sq_arrayappend(HSQUIRRELVM v,SQInteger idx)
 
 SQRESULT sq_arraypop(HSQUIRRELVM v,SQInteger idx,SQBool pushval)
 {
-	sq_aux_paramscheck(v, 1);
-	SQObjectPtr &arr = stack_get(v,idx);
-	_CHECK_OBJ_TYPE(v, OT_ARRAY, arr);
+    CHECK_ARRAY_AT(1, arr);
 	if(_array(arr)->Size() > 0) {
         if(pushval != 0){ v->Push(_array(arr)->Top()); }
 		_array(arr)->Pop();
@@ -408,24 +409,33 @@ SQRESULT sq_arraypop(HSQUIRRELVM v,SQInteger idx,SQBool pushval)
 	return sq_throwerror(v, _SC("empty array"));
 }
 
-SQRESULT sq_arrayresize(HSQUIRRELVM v,SQInteger idx,SQInteger newsize)
+static inline SQRESULT sq_arrayresize_base(HSQUIRRELVM v,SQArray *arr,SQInteger newsize)
 {
-	sq_aux_paramscheck(v,1);
-	SQObjectPtr &arr = stack_get(v,idx);
-	_CHECK_OBJ_TYPE(v, OT_ARRAY, arr);
 	if(newsize >= 0) {
-		_array(arr)->Resize(newsize);
+		arr->Resize(newsize);
 		return SQ_OK;
 	}
 	return sq_throwerror(v,_SC("negative size"));
 }
 
+SQRESULT sq_arrayresize(HSQUIRRELVM v,SQInteger idx,SQInteger newsize)
+{
+    CHECK_ARRAY_AT(1, arr);
+    return sq_arrayresize_base(v, _array(arr), newsize);
+}
+
+SQRESULT sq_arrayminsize(HSQUIRRELVM v,SQInteger idx,SQInteger minsize)
+{
+    CHECK_ARRAY_AT(1, arr);
+	if(_array(arr)->Size() < minsize) {
+        return sq_arrayresize_base(v, _array(arr), minsize);
+	}
+	return SQ_OK;
+}
 
 SQRESULT sq_arrayreverse(HSQUIRRELVM v,SQInteger idx)
 {
-	sq_aux_paramscheck(v, 1);
-	SQObjectPtr &o = stack_get(v,idx);
-	_CHECK_OBJ_TYPE(v, OT_ARRAY, o);
+    CHECK_ARRAY_AT(1, o);
 	SQArray *arr = _array(o);
 	if(arr->Size() > 0) {
 		SQObjectPtr t;
@@ -443,17 +453,13 @@ SQRESULT sq_arrayreverse(HSQUIRRELVM v,SQInteger idx)
 
 SQRESULT sq_arrayremove(HSQUIRRELVM v,SQInteger idx,SQInteger itemidx)
 {
-	sq_aux_paramscheck(v, 1);
-	SQObjectPtr &arr = stack_get(v,idx);
-	_CHECK_OBJ_TYPE(v, OT_ARRAY, arr);
+    CHECK_ARRAY_AT(1, arr);
 	return _array(arr)->Remove(itemidx) ? SQ_OK : sq_throwerror(v,_SC("index out of range"));
 }
 
 SQRESULT sq_arrayinsert(HSQUIRRELVM v,SQInteger idx,SQInteger destpos)
 {
-	sq_aux_paramscheck(v, 1);
-	SQObjectPtr &arr = stack_get(v,idx);
-	_CHECK_OBJ_TYPE(v, OT_ARRAY, arr);
+    CHECK_ARRAY_AT(1, arr);
 	SQRESULT ret = _array(arr)->Insert(destpos, v->GetUp(-1)) ? SQ_OK : sq_throwerror(v,_SC("index out of range"));
 	v->Pop();
 	return ret;
@@ -461,9 +467,7 @@ SQRESULT sq_arrayinsert(HSQUIRRELVM v,SQInteger idx,SQInteger destpos)
 
 SQRESULT sq_arrayset(HSQUIRRELVM v,SQInteger idx,SQInteger destpos)
 {
-	sq_aux_paramscheck(v, 1);
-	SQObjectPtr &arr = stack_get(v,idx);
-	_CHECK_OBJ_TYPE(v, OT_ARRAY, arr);
+    CHECK_ARRAY_AT(1, arr);
 	SQRESULT ret = _array(arr)->Set(destpos, v->GetUp(-1)) ? SQ_OK : sq_throwerror(v,_SC("index out of range"));
 	v->Pop();
 	return ret;
@@ -471,9 +475,7 @@ SQRESULT sq_arrayset(HSQUIRRELVM v,SQInteger idx,SQInteger destpos)
 
 SQRESULT sq_arrayget(HSQUIRRELVM v,SQInteger idx,SQInteger pos)
 {
-	sq_aux_paramscheck(v, 1);
-	SQObjectPtr &arr = stack_get(v,idx);
-	_CHECK_OBJ_TYPE(v, OT_ARRAY, arr);
+    CHECK_ARRAY_AT(1, arr);
 	v->PushNull();
 	if(!_array(arr)->Get(pos, v->GetUp(-1)))
 	{

@@ -852,7 +852,7 @@ static SQRESULT array_remove(HSQUIRRELVM v)
 	return sq_throwerror(v, _SC("idx out of range"));
 }
 
-static SQRESULT array_resize(HSQUIRRELVM v)
+static inline SQRESULT array_resize_base(HSQUIRRELVM v, int isMinSize)
 {
 	SQObject &o = stack_get(v, 1);
 	SQObject &nsize = stack_get(v, 2);
@@ -860,10 +860,22 @@ static SQRESULT array_resize(HSQUIRRELVM v)
 	if(sq_isnumeric(nsize)) {
 		if(sq_gettop(v) > 2)
 			fill = stack_get(v, 3);
+        if(isMinSize && (_array(o)->Size() >= tointeger(nsize)))
+            return SQ_OK;
 		_array(o)->Resize(tointeger(nsize),fill);
 		return 0;
 	}
 	return sq_throwerror(v, _SC("size must be a number"));
+}
+
+static SQRESULT array_resize(HSQUIRRELVM v)
+{
+    return array_resize_base(v, 0);
+}
+
+static SQRESULT array_minsize(HSQUIRRELVM v)
+{
+    return array_resize_base(v, 1);
 }
 
 static SQRESULT __map_array(SQArray *dest,SQArray *src,HSQUIRRELVM v) {
@@ -1218,6 +1230,7 @@ SQRegFunction SQSharedState::_array_default_delegate_funcz[]={
 	{_SC("insert"),array_insert,3, _SC("an")},
 	{_SC("remove"),array_remove,2, _SC("an")},
 	{_SC("resize"),array_resize,-2, _SC("an")},
+	{_SC("minsize"),array_minsize,-2, _SC("an")},
 	{_SC("reverse"),array_reverse,1, _SC("a")},
 	{_SC("sort"),array_sort,-1, _SC("ac")},
 	{_SC("slice"),array_slice,-1, _SC("ann")},
@@ -1590,12 +1603,23 @@ static SQRESULT string_find_lua(HSQUIRRELVM v)
         }
         else if(rtype == OT_ARRAY)
         {
+            SQObjectPtr &arr = stack_get(v,3);
+            _array(arr)->Minsize(2 + (ms.level*2));
             sq_pushinteger(v, 0);
             sq_pushinteger(v, ms.start_pos);
             sq_rawset(v, 3);
             sq_pushinteger(v, 1);
             sq_pushinteger(v, ms.end_pos);
             sq_rawset(v, 3);
+            SQInteger idx = 2;
+            for(int i=0; i < ms.level; ++i){
+                sq_pushinteger(v, idx++);
+                sq_pushinteger(v, ms.capture[i].init - ms.src_init);
+                sq_rawset(v, 3);
+                sq_pushinteger(v, idx++);
+                sq_pushinteger(v, ms.capture[i].len);
+                sq_rawset(v, 3);
+            }
         }
         sq_pushinteger(v, rc);
         return 1;
