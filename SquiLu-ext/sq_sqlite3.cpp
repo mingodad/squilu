@@ -430,7 +430,7 @@ static SQRESULT sq_sqlite3_stmt_bind_blob(HSQUIRRELVM v)
     return SQ_OK;
 }
 
-static SQRESULT sq_sqlite3_stmt_bind_values(HSQUIRRELVM v)
+static SQRESULT sq_sqlite3_stmt_bind_values0(HSQUIRRELVM v, int isExec)
 {
     SQ_FUNC_VARS(v);
     GET_sqlite3_stmt_INSTANCE();
@@ -445,7 +445,24 @@ static SQRESULT sq_sqlite3_stmt_bind_values(HSQUIRRELVM v)
     {
         if (sqlite3_stmt_bind_value(v, self, n-1, n) != SQ_OK) return SQ_ERROR;
     }
+    if(isExec)
+    {
+        int rc = sqlite3_step(self);
+        sqlite3_reset(self);
+        sq_pushinteger(v, rc);
+        return 1;
+    }
     return 0;
+}
+
+static SQRESULT sq_sqlite3_stmt_bind_values(HSQUIRRELVM v)
+{
+    return sq_sqlite3_stmt_bind_values0(v, 0);
+}
+
+static SQRESULT sq_sqlite3_stmt_bind_exec(HSQUIRRELVM v)
+{
+    return sq_sqlite3_stmt_bind_values0(v, 1);
 }
 
 static SQRESULT sq_sqlite3_stmt_bind_names(HSQUIRRELVM v)
@@ -1342,6 +1359,7 @@ static SQRegFunction sq_sqlite3_stmt_methods[] =
     _DECL_FUNC(bind_empty_null,  3, _SC("xi s|n|b|o|u"), SQFalse),
     _DECL_FUNC(bind_blob,  3, _SC("xis|u"), SQFalse),
     _DECL_FUNC(bind_values,  -2, _SC("x s|n|b|o|u"), SQFalse),
+    _DECL_FUNC(bind_exec,  -2, _SC("x s|n|b|o|u"), SQFalse),
     _DECL_FUNC(bind_names,  2, _SC("x t|a"), SQFalse),
     _DECL_FUNC(bind_parameter_index,  2, _SC("xs"), SQFalse),
     _DECL_FUNC(bind_parameter_count,  1, _SC("x"), SQFalse),
@@ -1585,6 +1603,7 @@ static SQRESULT sq_sqlite3_close_release(HSQUIRRELVM v, sq_sqlite3_sdb *sdb)
             rc = SQ_OK;
 
             //remove waekref from registrytable
+            //printf("Closing %s\n", sqlite3_db_filename(db, "main"));
             sq_delete_on_registry_table(sdb->v, db);
 
             if(sdb->func)
