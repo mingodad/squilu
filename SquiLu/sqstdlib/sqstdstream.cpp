@@ -28,7 +28,7 @@ SQInteger _stream_read_line(HSQUIRRELVM v) {
     if(sq_gettop(v) > 1) sq_getinteger(v,2,&size);
     else size = 2048;
     SQBlob line_buf(0, size);
-    while(!self->EOS()){
+    do {
         char *buf = (SQChar*)line_buf.GetBuf();
         read_size = self->Gets(buf + line_buf.Len(), size);
         if(!read_size) //end of file
@@ -52,7 +52,7 @@ SQInteger _stream_read_line(HSQUIRRELVM v) {
         }
         line_buf.SetLen(read_size);
         line_buf.GrowBufOf(size);
-    }
+    } while(read_size > 0);
     if(line_buf.Len() > 0) {
         sq_pushstring(v, (const SQChar*)line_buf.GetBuf(), line_buf.Len());
     }
