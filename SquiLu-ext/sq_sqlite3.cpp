@@ -13,7 +13,6 @@ static const SQChar *SQLite3_Stmt_TAG = "SQLite3Stmt";
 static const SQChar sqlite3_NULL_Name[] = _SC("sqlite3_NULL");
 static const SQChar nullName[] = _SC("Null");
 
-
 //return error if parameter exists but is not a blob
 //return 1 if the parameter exists and is a blob
 //return 0 if the parameter doesn't exists and creates a new blob
@@ -66,11 +65,12 @@ static SQRESULT get_sqlite3_stmt_instance(HSQUIRRELVM v, SQInteger idx, sqlite3_
 //the line bellow is the fastest one, any other attempt till now was slower
 #define push_sqlite3_null(v) {sq_pushstring(v, nullName, sizeof(nullName)-1);sq_get(v, 1);}
 
-#define GET_sqlite3_INSTANCE_AT(idx) \
+#define GET_sqlite3_INSTANCE_AT_VAR(idx, self) \
 	sq_sqlite3_sdb *sdb=NULL; \
 	if((_rc_ = get_sqlite3_instance(v,idx,&sdb)) < 0) return _rc_;\
 	sqlite3 *self = sdb->db;
 
+#define GET_sqlite3_INSTANCE_AT(idx) GET_sqlite3_INSTANCE_AT_VAR(idx, self)
 #define GET_sqlite3_INSTANCE() GET_sqlite3_INSTANCE_AT(1)
 
 //#define GET_sqlite3_INSTANCE() SQ_GET_INSTANCE(v, 1, sqlite3, SQLite3_TAG)
@@ -78,7 +78,6 @@ static SQRESULT get_sqlite3_stmt_instance(HSQUIRRELVM v, SQInteger idx, sqlite3_
 	sqlite3_stmt *var_name=NULL; \
 	if((_rc_ = get_sqlite3_stmt_instance(v,idx,&var_name)) < 0) return _rc_;
 #define GET_sqlite3_stmt_INSTANCE() GET_sqlite3_stmt_INSTANCE_AT(1, self)
-
 
 enum e_type_result {tr_first_row_first_col, tr_first_row, tr_all_rows, tr_ddml};
 
@@ -1394,6 +1393,107 @@ static SQRegFunction sq_sqlite3_stmt_methods[] =
     {0,0}
 };
 #undef _DECL_FUNC
+
+#ifdef SQLITE_ENABLE_SESSION
+
+static const SQChar *SQLite3_Session_TAG = "SQLite3Session";
+
+static SQRESULT get_sqlite3_session_instance(HSQUIRRELVM v, SQInteger idx, sqlite3_session **session)
+{
+    SQRESULT _rc_;
+    if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)session,(void*)SQLite3_Session_TAG)) < 0) return _rc_;
+    if(!*session) return sq_throwerror(v, _SC("session is closed"));
+    return _rc_;
+}
+
+#define GET_sqlite3_session_INSTANCE_AT(idx, var_name)  \
+	sqlite3_session *var_name=NULL; \
+	if((_rc_ = get_sqlite3_session_instance(v,idx,&var_name)) < 0) return _rc_;
+#define GET_sqlite3_session_INSTANCE() GET_sqlite3_session_INSTANCE_AT(1, self)
+
+static SQRESULT sq_sqlite3_session_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
+{
+    sqlite3_session *session = ((sqlite3_session *)p);
+    if(session) sqlite3session_delete(session);
+    return 0;
+}
+
+static SQRESULT sq_sqlite3_session_constructor(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    _rc_ = SQ_ERROR;
+    GET_sqlite3_INSTANCE_AT(2);
+    SQ_OPT_STRING(v, 3, dbname, _SC("main"))
+    sqlite3_session *session = 0;
+    if(sqlite3session_create(self, dbname, &session) != SQLITE_OK)
+    {
+        _rc_ = sq_throwerror(v, sqlite3_errmsg(self));
+    }
+    else _rc_ = SQ_OK;
+    sq_setinstanceup(v, 1, session); //replace self for this instance with this new sqlite3_stmt
+    sq_setreleasehook(v,1, sq_sqlite3_session_releasehook);
+    return _rc_;
+}
+
+static SQRESULT sq_sqlite3_session_attach(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    GET_sqlite3_session_INSTANCE();
+    SQ_OPT_STRING(v, 2, tables, NULL);
+    sq_pushinteger(v, sqlite3session_attach(self, tables));
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_session_delete(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_session_INSTANCE();
+    sqlite3session_delete(self);
+    sq_setinstanceup(v, 1, 0); //next calls will fail with "database is closed"
+    return 0;
+}
+
+static SQRESULT sq_sqlite3_session_changeset(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_session_INSTANCE();
+    int nChangeset;     /* OUT: Size of changeset blob in bytes */
+    void *pChangeset;   /* OUT: Pointer to changeset blob */
+    if(sqlite3session_changeset(self, &nChangeset, &pChangeset) != SQ_OK) return SQ_ERROR;
+    sq_pushstring(v, (SQChar*)pChangeset, nChangeset);
+    sqlite3_free(pChangeset);
+    return 1;
+}
+
+static int xConflict(void *pCtx, int eConflict, sqlite3_changeset_iter *pIter){
+  int ret = (int)(ptrdiff_t)pCtx;
+  return ret;
+}
+
+static SQRESULT sq_sqlite3_session_apply(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_session_INSTANCE();
+    GET_sqlite3_INSTANCE_AT_VAR(2, db);
+    SQ_GET_STRING(v, 3, changeset);
+    if(sqlite3changeset_apply(db, changeset_size, (void*)changeset, 0, xConflict, (void*)0) != SQ_OK) return SQ_ERROR;
+    return 0;
+}
+
+#define _DECL_FUNC(name,nparams,tycheck, isStatic) {_SC(#name),  sq_sqlite3_session_##name,nparams,tycheck, isStatic}
+static SQRegFunction sq_sqlite3_session_methods[] =
+{
+    _DECL_FUNC(constructor,  -2, _SC("xxs"), SQFalse),
+
+    _DECL_FUNC(attach,  -1, _SC("xs"), SQFalse),
+    _DECL_FUNC(changeset,  1, _SC("x"), SQFalse),
+    _DECL_FUNC(delete,  1, _SC("x"), SQFalse),
+    _DECL_FUNC(apply,  3, _SC("xxs"), SQFalse),
+    {0,0}
+};
+#undef _DECL_FUNC
+
+#endif // SQLITE_ENABLE_SESSION
 
 static SQRESULT sqlite3_exec_fmt(HSQUIRRELVM v, e_type_result type_result, int null_as_empty_str=1)
 {
@@ -3103,6 +3203,15 @@ extern "C" {
         sq_newslot(v,-3,SQTrue);
 
         sq_newslot(v,-3,SQTrue);
+
+#ifdef SQLITE_ENABLE_SESSION
+        sq_pushstring(v, SQLite3_Session_TAG,-1);
+        sq_newclass(v,SQFalse);
+        sq_settypetag(v,-1,(SQUserPointer)SQLite3_Session_TAG);
+        sq_insert_reg_funcs(v, sq_sqlite3_session_methods);
+
+        sq_newslot(v,-3,SQTrue);
+#endif // SQLITE_ENABLE_SESSION
 
         sq_pushstring(v, SQLite3_Stmt_TAG,-1);
         sq_newclass(v,SQFalse);
