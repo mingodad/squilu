@@ -903,11 +903,31 @@ SQRESULT sq_getinteger(HSQUIRRELVM v,SQInteger idx,SQInteger *i)
 	return SQ_ERROR;
 }
 
+SQRESULT sq_getinteger_ptr(HSQUIRRELVM v,SQInteger idx,SQInteger **i)
+{
+	SQObjectPtr &o = stack_get(v, idx);
+	if(sq_isinteger(o)) {
+		*i = &_integer(o);
+		return SQ_OK;
+	}
+	return SQ_ERROR;
+}
+
 SQRESULT sq_getfloat(HSQUIRRELVM v,SQInteger idx,SQFloat *f)
 {
 	SQObjectPtr &o = stack_get(v, idx);
 	if(sq_isnumeric(o)) {
 		*f = tofloat(o);
+		return SQ_OK;
+	}
+	return SQ_ERROR;
+}
+
+SQRESULT sq_getfloat_ptr(HSQUIRRELVM v,SQInteger idx,SQFloat **f)
+{
+	SQObjectPtr &o = stack_get(v, idx);
+	if(sq_isfloat(o)) {
+		*f = &_float(o);
 		return SQ_OK;
 	}
 	return SQ_ERROR;

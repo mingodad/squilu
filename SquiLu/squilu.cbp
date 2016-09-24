@@ -206,11 +206,15 @@
 					<Add directory="../fltk" />
 					<Add directory="../libharu/include" />
 					<Add directory="../flu" />
+					<Add directory="../fltk/png" />
+					<Add directory="../fltk/jpeg" />
+					<Add directory="../fltk/zlib" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
 					<Add option="-static-libstdc++" />
 					<Add option="-static-libgcc" />
+					<Add option="-static" />
 					<Add library="fltk_images" />
 					<Add library="fltk_png" />
 					<Add library="fltk_jpeg" />
@@ -1165,6 +1169,7 @@
 			<Add option="-DSQLITE_OMIT_PREPARED=1" />
 			<Add option="-DSQLITE_ENABLE_JSON1=1" />
 			<Add option="-DSQLITE_ENABLE_SESSION=1" />
+			<Add option="-DSQLITE_ENABLE_PREUPDATE_HOOK=1" />
 			<Add option="-DSQLITE_ENABLE_EXPLAIN_COMMENTS=1" />
 			<Add option="-DNO_POPEN=1" />
 			<Add option="-DNO_SSL_DL=1" />
@@ -2489,6 +2494,7 @@
 			<Option target="Release FLTK win32" />
 			<Option target="Release FLTK win32 no console" />
 		</Unit>
+		<Unit filename="include/sqapi.h" />
 		<Unit filename="include/sqconfig.h" />
 		<Unit filename="include/sqstdaux.h" />
 		<Unit filename="include/sqstdblob.h" />
