@@ -361,6 +361,69 @@ static SQRESULT _blob_clear(HSQUIRRELVM v)
     return 0;
 }
 
+//bit operations
+#define BLOB_BIT_GET 1
+#define BLOB_BIT_SET 2
+#define BLOB_BIT_CLEAR 3
+#define BLOB_BIT_TOGLE 4
+
+static SQRESULT _blob_bit_ops(HSQUIRRELVM v, int op)
+{
+	SETUP_BLOB(v);
+	SQInteger bpos;
+	sq_getinteger(v,2,&bpos);
+	SQInteger cpos = bpos/8;
+	SQInteger b8 = 1 << (bpos%8);
+
+	if(cpos < 0 || cpos >= self->Len())
+		return sq_throwerror(v,_SC("index out of range"));
+
+	#define BLOB_CH_POS(i) ((unsigned char *)self->GetBuf())[i]
+
+    switch(op)
+    {
+    case BLOB_BIT_GET:
+        sq_pushinteger(v, (BLOB_CH_POS(cpos) & b8));
+        return 1;
+        break;
+
+    case BLOB_BIT_SET:
+        BLOB_CH_POS(cpos) |= b8;
+        break;
+
+    case BLOB_BIT_CLEAR:
+        BLOB_CH_POS(cpos) &= (~b8);
+        break;
+
+    case BLOB_BIT_TOGLE:
+        BLOB_CH_POS(cpos) ^= b8;
+        break;
+
+    }
+	return 0;
+}
+
+static SQRESULT _blob_bitGet(HSQUIRRELVM v)
+{
+    return _blob_bit_ops(v, BLOB_BIT_GET);
+}
+
+static SQRESULT _blob_bitSet(HSQUIRRELVM v)
+{
+    return _blob_bit_ops(v, BLOB_BIT_SET);
+}
+
+static SQRESULT _blob_bitClear(HSQUIRRELVM v)
+{
+    return _blob_bit_ops(v, BLOB_BIT_CLEAR);
+}
+
+static SQRESULT _blob_bitTogle(HSQUIRRELVM v)
+{
+    return _blob_bit_ops(v, BLOB_BIT_TOGLE);
+}
+
+
 #define _DECL_BLOB_FUNC(name,nparams,typecheck) {_SC(#name),_blob_##name,nparams,typecheck}
 static SQRegFunction _blob_methods[] = {
 	_DECL_BLOB_FUNC(constructor,-1,_SC("xnn")),
@@ -377,8 +440,12 @@ static SQRegFunction _blob_methods[] = {
 	_DECL_BLOB_FUNC(_cloned,2,_SC("xx")),
 	//_DECL_BLOB_FUNC(_tostring,1,_SC("x")),
 	_DECL_BLOB_FUNC(tostring,1,_SC("x")),
-	_DECL_BLOB_FUNC(setLen,2,_SC("xi")),
+	_DECL_BLOB_FUNC(setLen,2,_SC("xn")),
 	_DECL_BLOB_FUNC(clear,1,_SC("x")),
+	_DECL_BLOB_FUNC(bitGet,2,_SC("xn")),
+	_DECL_BLOB_FUNC(bitSet,2,_SC("xn")),
+	_DECL_BLOB_FUNC(bitClear,2,_SC("xn")),
+	_DECL_BLOB_FUNC(bitTogle,2,_SC("xn")),
 	{NULL,(SQFUNCTION)0,0,NULL}
 };
 
