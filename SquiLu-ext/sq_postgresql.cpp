@@ -48,6 +48,14 @@ local pgsql_functions = [
                          const int *paramFormats,
                          int resultFormat"],
     ["PGresult *", "PQexec", "PGconn *conn, const char *command"],
+    ["PGresult *", "PQexecParams", @"PGconn *conn,
+                       const char *command,
+                       int nParams,
+                       const Oid *paramTypes,
+                       const char * const *paramValues,
+                       const int *paramLengths,
+                       const int *paramFormats,
+                       int resultFormat"],
     ["const char*", "PQgetvalue", @"const PGresult *res,
                          int row_number,
                          int column_number"],
@@ -143,6 +151,15 @@ typedef PGresult * (*PQexecPrepared_t)(PGconn *conn,
 static PQexecPrepared_t dlPQexecPrepared = 0;
 typedef PGresult * (*PQexec_t)(PGconn *conn, const char *command);
 static PQexec_t dlPQexec = 0;
+typedef PGresult * (*PQexecParams_t)(PGconn *conn,
+                       const char *command,
+                       int nParams,
+                       const Oid *paramTypes,
+                       const char * const *paramValues,
+                       const int *paramLengths,
+                       const int *paramFormats,
+                       int resultFormat);
+static PQexecParams_t dlPQexecParams = 0;
 typedef const char* (*PQgetvalue_t)(const PGresult *res,
                          int row_number,
                          int column_number);
@@ -242,6 +259,8 @@ dlPQexecPrepared = (PQexecPrepared_t) libpq.dlsym("PQexecPrepared");
 if(!dlPQexecPrepared) return false;
 dlPQexec = (PQexec_t) libpq.dlsym("PQexec");
 if(!dlPQexec) return false;
+dlPQexecParams = (PQexecParams_t) libpq.dlsym("PQexecParams");
+if(!dlPQexecParams) return false;
 dlPQgetvalue = (PQgetvalue_t) libpq.dlsym("PQgetvalue");
 if(!dlPQgetvalue) return false;
 dlPQntuples = (PQntuples_t) libpq.dlsym("PQntuples");
@@ -646,6 +665,85 @@ cleanup:
 #define SQ_EXEC_SCALAR 2
 #define SQ_EXEC_QUERY 3
 
+/*
+static SQRESULT sq_pgsql_statement_exec(HSQUIRRELVM v, int exec_type){
+	SQ_FUNC_VARS(v);
+	GET_pgsql_statement_INSTANCE();
+	SQ_OPT_INTEGER(v, 3, result_type, 0);
+	SQInteger psize = sq_getsize(v, 2);
+	if(psize != self->param_count)
+    {
+        return sq_throwerror(v, _SC("Wrong number of paramters, exptexted %d"), self->param_count);
+    }
+	int result = SQ_ERROR;
+	SQBool bval;
+	const SQChar *str_val;
+	SQInteger *int_val_ptr;
+	SQFloat *float_val_ptr;
+	PGresult *qres;
+    SQUnsignedInteger param_values_size = psize * sizeof(self->param_values);
+    SQUnsignedInteger param_sizes_size = psize * sizeof(self->param_sizes);
+    SQUnsignedInteger param_types_size = psize * sizeof(self->param_types);
+	if(!self->param_values)
+    {
+        //only allocate once
+        self->param_values = (void **)sq_malloc(param_values_size);
+        self->param_sizes = (int *)sq_malloc(param_sizes_size);
+        self->param_types = (int *)sq_malloc(param_types_size);
+    }
+
+    memset(self->param_values, 0, param_values_size);
+    memset(self->param_sizes, 0, param_sizes_size);
+    memset(self->param_types, 0, param_types_size);
+
+    sq_reservestack(v, psize*2);
+
+    for(SQInteger i=0; i < psize; ++i)
+    {
+        sq_pushinteger(v, i);
+        if(sq_get(v, 2) == SQ_OK)
+        {
+            switch(sq_gettype(v, -1))
+            {
+            case OT_NULL:
+                self->param_values[i] = NULL;
+                self->param_sizes[i] = 0;
+                self->param_types[i] = 0;
+                sq_poptop(v);
+                break;
+            case OT_BOOL:
+                sq_getbool(v, -1, &bval);
+                self->param_values[i] = (void*)(bval == SQTrue ? "1" : "0");
+                self->param_sizes[i] = 1;
+                param_types[i] = BOOLOID;
+                sq_poptop(v);
+                break;
+            case OT_INTEGER:
+                sq_getinteger_ptr(v, -1, &int_val_ptr);
+                self->param_values[i] = (void*)int_val_ptr;
+                self->param_sizes[i] = (int)sizeof(SQInteger);
+                param_types[i] = INT8OID;
+                break;
+            case OT_FLOAT:
+                sq_getfloat_ptr(v, -1, &float_val_ptr);
+                self->param_values[i] = (void*)float_val_ptr;
+                self->param_sizes[i] = (int)sizeof(SQFloat);
+                param_types[i] = FLOAT8OID;
+                break;
+            case OT_STRING:
+                //sq_tostring(v, -1);
+                sq_getstring(v, -1, &str_val);
+                self->param_values[i] = (void*)str_val;
+                self->param_sizes[i] = (int)sq_getsize(v, -1);
+                self->param_types[i] = VARCHAROID;
+                break;
+            default:
+                result = sq_throwerror(v, _SC("Unknow parameter type at pos %d"), i);
+                goto cleanup;
+            }
+        }
+    }
+*/
 
 static SQRESULT sq_pgsql_statement_exec(HSQUIRRELVM v, int exec_type){
 	SQ_FUNC_VARS(v);
@@ -817,6 +915,35 @@ static SQRESULT sq_pgsql_close(HSQUIRRELVM v){
     sq_setinstanceup(v, 1, 0); //next calls will fail with "database is closed"
 	return 0;
 }
+
+#if 0
+static PGresult *sq_pgsql_exec_params(HSQUIRRELVM v) {
+	SQ_FUNC_VARS(v);
+	GET_pgsql_INSTANCE();
+    SQ_GET_STRING(v, 2, szSQL);
+
+    int nParams = _top_ - 2;	/* subtract connection and command */
+    if(nParams)
+    {
+        if (nParams > 65535) return null;
+        sq_reservestack(v, 4);
+
+        Oid *paramTypes = sq_newuserdata(v, nParams * sizeof(Oid));
+        char **paramValues = sq_newuserdata(v, nParams * sizeof(char*));
+        int *paramLengths = sq_newuserdata(v, nParams * sizeof(int));
+        int *paramFormats = sq_newuserdata(v, nParams * sizeof(int));
+
+		for (int n = 0; n < nParams; n++)
+        {
+			//get_param(v, 3 + n, n, paramTypes, paramValues, paramLengths, paramFormats);
+        }
+
+        return dlPQexecParams(self. szSQL, nParams, paramTypes,
+            (const char * const*)paramValues, paramLengths, paramFormats, 0);
+    }
+    return dlPQexec(self, szSQL);
+}
+#endif
 
 static SQRESULT sq_pgsql_exec_dml(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
@@ -1123,6 +1250,7 @@ static SQRegFunction sq_pgsql_methods[] =
 	_DECL_FUNC(constructor,  2, _SC("xs")),
 	_DECL_FUNC(close,  1, _SC("x")),
 	_DECL_FUNC(exec_dml,  2, _SC("xs")),
+	//_DECL_FUNC(exec_one_dml,  -2, _SC("xs")),
 	_DECL_FUNC(exec_scalar,  2, _SC("xs")),
 	_DECL_FUNC(exec_query,  2, _SC("xs")),
 	_DECL_FUNC(prepare,  2, _SC("xs")),
