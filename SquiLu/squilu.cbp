@@ -2051,6 +2051,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 		</Unit>
+		<Unit filename="../SquiLu-ext/sq_pack.cpp" />
 		<Unit filename="../SquiLu-ext/sq_parsecsv.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />

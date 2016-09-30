@@ -585,6 +585,7 @@ SQRESULT sqext_register_xjd1(HSQUIRRELVM v);
 SQRESULT sqext_register_libclang(HSQUIRRELVM v);
 SQRESULT sqext_register_EasyCurl (HSQUIRRELVM v);
 SQRESULT sqext_register_tweetnacl(HSQUIRRELVM v);
+SQRESULT sqext_register_pack(HSQUIRRELVM v);
 
 int main(int argc, char* argv[])
 {
@@ -626,6 +627,7 @@ int main(int argc, char* argv[])
 	sqext_register_sqfs(v);
 	sqext_register_sq_socket(v);
 	sqext_register_tweetnacl(v);
+	sqext_register_pack(v);
 #ifdef USE_AXTLS
 	sqext_register_axtls(v);
 #endif
