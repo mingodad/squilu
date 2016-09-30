@@ -279,7 +279,7 @@ static SQRESULT sq_sqlite3_stmt_bind_vargv(HSQUIRRELVM v, sqlite3 *db, sqlite3_s
 
 static SQRESULT sq_sqlite3_stmt_prepare_aux(HSQUIRRELVM v, sqlite3 *db, sqlite3_stmt **stmt, int params_start)
 {
-    SQ_FUNC_VARS(v);
+    SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, params_start, szSQL);
     if(sqlite3_prepare_v2(db, szSQL, szSQL_size, stmt, 0) != SQLITE_OK)
     {
@@ -3015,6 +3015,15 @@ static SQRESULT sq_sqlite3_restore(HSQUIRRELVM v)
     return rc;
 }
 
+static SQRESULT sq_sqlite3_enable_load_extension(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_INSTANCE();
+    SQ_GET_BOOL(v, 2, onOff);
+    sqlite3_enable_load_extension(self, onOff);
+    return 0;
+}
+
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_sqlite3_##name,nparams,tycheck}
 static SQRegFunction sq_sqlite3_methods[] =
 {
@@ -3057,6 +3066,7 @@ static SQRegFunction sq_sqlite3_methods[] =
     _DECL_FUNC(total_changes,  1, _SC("x")),
     _DECL_FUNC(backup,  -2, _SC("xss")),
     _DECL_FUNC(restore,  -2, _SC("xss")),
+    _DECL_FUNC(enable_load_extension, 2, _SC("xb")),
 #ifdef SQLITE_HAS_CODEC
     _DECL_FUNC(key,  2, _SC("xs")),
     _DECL_FUNC(rekey,  2, _SC("xs")),
