@@ -1980,6 +1980,7 @@ static SQRESULT sq_sqlite3_temp_directory(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     const char *oldtemp = sqlite3_temp_directory;
+    sq_pushstring(v, oldtemp, -1);
 
     if (_top_ > 1)
     {
@@ -1997,7 +1998,6 @@ static SQRESULT sq_sqlite3_temp_directory(HSQUIRRELVM v)
             sqlite3_temp_directory = NULL;
         }
     }
-    sq_pushstring(v, oldtemp, -1);
     return 1;
 }
 #endif
