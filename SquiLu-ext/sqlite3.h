@@ -123,7 +123,7 @@ extern "C" {
 */
 #define SQLITE_VERSION        "3.15.0"
 #define SQLITE_VERSION_NUMBER 3015000
-#define SQLITE_SOURCE_ID      "2016-09-29 20:28:34 3c93c8f5bbf54ed2a331079b28fdd94eb0e59e69"
+#define SQLITE_SOURCE_ID      "2016-10-04 12:20:12 3a9d802fda10585654332b314d317250dc5d894e"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -3449,6 +3449,7 @@ SQLITE_API int sqlite3_limit(sqlite3*, int id, int newVal);
 #define SQLITE_LIMIT_VARIABLE_NUMBER           9
 #define SQLITE_LIMIT_TRIGGER_DEPTH            10
 #define SQLITE_LIMIT_WORKER_THREADS           11
+#define SQLITE_LIMIT_USE_ATTACHED_DBS           12
 
 /*
 ** CAPI3REF: Compiling An SQL Statement
