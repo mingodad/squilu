@@ -2260,6 +2260,16 @@ static SQRESULT _Flv_List_hscrollbar_value(HSQUIRRELVM v){
     return 1;
 }
 
+static SQRESULT _Flv_List_get_row(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SETUP_FLV_LIST(v);
+    SQ_GET_INTEGER(v, 2, x);
+    SQ_GET_INTEGER(v, 3, y);
+    sq_pushinteger(v, self->get_row(x,y));
+    return 1;
+}
+
 CHEAP_RTTI_FOR(Flv_List);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Flv_List_##name,nparams,pmask,isStatic}
 static SQRegFunction flv_list_obj_funcs[]={
@@ -2281,6 +2291,7 @@ static SQRegFunction flv_list_obj_funcs[]={
 	_DECL_FUNC(add_callback_when,2,_SC("xi"),SQFalse),
 	_DECL_FUNC(clear_callback_when,2,_SC("xi"),SQFalse),
 	_DECL_FUNC(get_style,-3,_SC("xxii"),SQFalse),
+	_DECL_FUNC(get_row,3,_SC("xii"),SQFalse),
 	_DECL_FUNC(hscrollbar_value,-2,_SC("xi"),SQFalse),
 	{0,0}
 };
@@ -2587,6 +2598,16 @@ static SQRESULT _Flv_Data_Table_draw_offset(HSQUIRRELVM v)
     return 1;
 }
 
+static SQRESULT _Flv_Data_Table_get_col(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SETUP_FLV_DATA_TABLE(v);
+    SQ_GET_INTEGER(v, 2, x);
+    SQ_GET_INTEGER(v, 3, y);
+    sq_pushinteger(v, ((Flv_Data_Table*)self)->get_col(x,y));
+    return 1;
+}
+
 //void get_style( Flv_Style &s, int R, int C=0 )
 static SQRESULT _Flv_Data_Table_get_style(HSQUIRRELVM v){
     SQ_FUNC_VARS(v);
@@ -2607,6 +2628,7 @@ static SQRegFunction flv_data_table_obj_funcs[]={
 	_DECL_FUNC(resize,5,_SC("xnnnn"),SQFalse),
 	_DECL_FUNC(draw_offset, -1,_SC("xn"),SQFalse),
 	_DECL_FUNC(get_style,-3,_SC("xxii"),SQFalse),
+	_DECL_FUNC(get_col,3,_SC("xii"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
