@@ -393,13 +393,15 @@ static SQRESULT sq_sqlite3_stmt_bind_stmt(HSQUIRRELVM v)
     GET_sqlite3_stmt_INSTANCE();
     GET_sqlite3_stmt_INSTANCE_AT(2, stmt_src);
 
-    int bind_count = sqlite3_bind_parameter_count(self);
+    int rc = SQ_OK, bind_count = sqlite3_bind_parameter_count(self);
     for(int i=0; i < bind_count; ++i)
     {
-        sqlite3_bind_value(self, i+1, sqlite3_column_value(stmt_src, i));
+        rc = sqlite3_bind_value(self, i+1, sqlite3_column_value(stmt_src, i));
+        if(rc != SQ_OK) break;
     }
 
-    return 0;
+    sq_pushinteger(v, rc);
+    return 1;
 }
 
 static SQRESULT sq_sqlite3_stmt_bind_empty_null(HSQUIRRELVM v)
