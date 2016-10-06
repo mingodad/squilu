@@ -387,21 +387,36 @@ static SQRESULT sq_sqlite3_stmt_bind(HSQUIRRELVM v)
 The number/order of fields should be the same to use this function
 it'll save temporary data convertion.
 */
-static SQRESULT sq_sqlite3_stmt_bind_stmt(HSQUIRRELVM v)
+static SQRESULT sq_sqlite3_stmt_bind_stmt0(HSQUIRRELVM v, int doExec)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_sqlite3_stmt_INSTANCE();
     GET_sqlite3_stmt_INSTANCE_AT(2, stmt_src);
 
-    int rc = SQ_OK, bind_count = sqlite3_bind_parameter_count(self);
+    int rc = SQLITE_OK, bind_count = sqlite3_bind_parameter_count(self);
     for(int i=0; i < bind_count; ++i)
     {
         rc = sqlite3_bind_value(self, i+1, sqlite3_column_value(stmt_src, i));
-        if(rc != SQ_OK) break;
+        if(rc != SQLITE_OK) break;
+    }
+    if(doExec && rc == SQLITE_OK)
+    {
+        rc = sqlite3_step(self);
+        sqlite3_reset(self);
     }
 
     sq_pushinteger(v, rc);
     return 1;
+}
+
+static SQRESULT sq_sqlite3_stmt_bind_stmt(HSQUIRRELVM v)
+{
+    return sq_sqlite3_stmt_bind_stmt0(v, 0);
+}
+
+static SQRESULT sq_sqlite3_stmt_bind_exec_stmt(HSQUIRRELVM v)
+{
+    return sq_sqlite3_stmt_bind_stmt0(v, 1);
 }
 
 static SQRESULT sq_sqlite3_stmt_bind_empty_null(HSQUIRRELVM v)
@@ -720,6 +735,49 @@ static SQRESULT sq_sqlite3_stmt_col(HSQUIRRELVM v)
     int col = get_col_index(v, self);
     if(col < 0) return col;
     sqlite3_stmt_push_value(v, self, col, 0);
+
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_stmt_col_slice(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_stmt_INSTANCE();
+    int col = get_col_index(v, self);
+    if(col < 0) return col;
+    SQ_GET_INTEGER(v, 3, start_pos);
+    SQ_GET_INTEGER(v, 4, size);
+
+    if((start_pos < 0) || (size < 0))
+        return sq_throwerror(v, _SC("slice start_pos or size can't be negative"));
+
+    const char *value = NULL;
+    int col_type = sqlite3_column_type(self, col);
+
+    switch (col_type)
+    {
+    case SQLITE_TEXT:
+        value = (const char*) sqlite3_column_text(self, col);
+        break;
+    case SQLITE_BLOB:
+        value = (const char*) sqlite3_column_blob(self, col);
+        break;
+    case SQLITE_NULL:
+        break;
+    default:
+        return sq_throwerror(v, _SC("column type do not allow slice %d:%d"), col, col_type);
+    }
+    if(value)
+    {
+        int col_size = sqlite3_column_bytes(self, col);
+        if(col_size > start_pos)
+        {
+            int space_left = col_size - start_pos;
+            sq_pushstring(v, value + start_pos, (space_left > size) ? size : space_left);
+        }
+        else value = NULL;
+    }
+    if(!value) push_sqlite3_null(v);
 
     return 1;
 }
@@ -1357,6 +1415,7 @@ static SQRegFunction sq_sqlite3_stmt_methods[] =
     _DECL_FUNC(get_sql,  1, _SC("x"), SQFalse),
     _DECL_FUNC(bind,  3, _SC("xi s|n|b|o|u"), SQFalse),
     _DECL_FUNC(bind_stmt,  2, _SC("xx"), SQFalse),
+    _DECL_FUNC(bind_exec_stmt,  2, _SC("xx"), SQFalse),
     _DECL_FUNC(bind_empty_null,  3, _SC("xi s|n|b|o|u"), SQFalse),
     _DECL_FUNC(bind_blob,  3, _SC("xis|u"), SQFalse),
     _DECL_FUNC(bind_values,  -2, _SC("x s|n|b|o|u"), SQFalse),
@@ -1385,6 +1444,7 @@ static SQRegFunction sq_sqlite3_stmt_methods[] =
     _DECL_FUNC(asJsonArray,  -1, _SC("xbx"), SQFalse),
     _DECL_FUNC(asJsonObject,  -1, _SC("xx"), SQFalse),
     _DECL_FUNC(col,  2, _SC("x i|s"), SQFalse),
+    _DECL_FUNC(col_slice,  4, _SC("x i|s ii"), SQFalse),
     _DECL_FUNC(asString,  2, _SC("x i|s"), SQFalse),
     _DECL_FUNC(asStringOrNull, 2, _SC("x i|s"), SQFalse),
     _DECL_FUNC(asInteger,  2, _SC("x i|s"), SQFalse),

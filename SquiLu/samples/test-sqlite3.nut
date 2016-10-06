@@ -155,4 +155,11 @@ print("SQL prepared function took:", os.clock() -now);
 stmt.finalize();
 stmt_squilu.finalize();
 
+db.exec_dml("create table if not exists test_slice(value text)");
+db.exec_dml("insert into test_slice values('value text')");
+stmt = db.prepare("select * from test_slice");
+if(stmt.next_row()) print("col_slice", stmt.col_slice(0, 2, 5));
+stmt.finalize();
+
+
 db.close();
