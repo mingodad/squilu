@@ -15,7 +15,7 @@
 #define	OP_WSTRING	'P'		/* string preceded by length word */
 #define	OP_SSTRING	'a'		/* string preceded by length size_t */
 #define	OP_STRING	'A'		/* string */
-#define	OP_FLOAT		'f'		/* float */
+#define	OP_FLOAT	'f'		/* float */
 #define	OP_DOUBLE	'd'		/* double */
 #define	OP_CHAR		'c'		/* char */
 #define	OP_BYTE		'b'		/* byte = unsigned char */
@@ -103,7 +103,19 @@ static void doswap(int swap, void *p, size_t n)
 static SQRESULT sq_unpack(HSQUIRRELVM v) 		/** unpack(s,f,[init]) */
 {
 	SQ_FUNC_VARS(v);
-	SQ_GET_STRING(v, 2, s);
+	const SQChar *s;
+	SQInteger s_size;
+	SQObjectType ot = sq_gettype(v, 2);
+	switch(ot)
+	{
+    case OT_STRING: sq_getstr_and_size(v, 2, &s, &s_size); break;
+    case OT_USERDATA:
+        sq_getuserdata(v, 2, (SQUserPointer*)&s, NULL);
+        s_size = sq_getsize(v, 2);
+        break;
+    default:
+        return sq_throwerror(v, _SC("unexpected type %d for parameter 1"), ot);
+	}
 	SQ_GET_STRING(v, 3, f);
 	SQ_OPT_INTEGER(v,4, i, 0);
 	SQInteger n=0;
@@ -215,7 +227,7 @@ done:
 		break; \
 	}
 
-static SQRESULT sq_pack(HSQUIRRELVM v) 		/** pack(f,...) */
+static SQRESULT sq_pack_base(HSQUIRRELVM v, int toUserdata) 		/** pack(f,...) */
 {
 	SQ_FUNC_VARS_NO_TOP(v);
 	SQ_GET_STRING(v, 2, f);
@@ -268,7 +280,38 @@ static SQRESULT sq_pack(HSQUIRRELVM v) 		/** pack(f,...) */
 			break;
 		}
 	}
-	sq_pushstring(v, (SQChar*)b.GetBuf(), b.Len());
+	if(toUserdata)
+    {
+        SQUserPointer ptr = sq_newuserdata(v, b.Len());
+        memcpy(ptr, b.GetBuf(), b.Len());
+    }
+	else sq_pushstring(v, (SQChar*)b.GetBuf(), b.Len());
+	return 1;
+}
+
+static SQRESULT sq_pack(HSQUIRRELVM v) 		/** pack(f,...) */
+{
+    return sq_pack_base(v, 0);
+}
+
+static SQRESULT sq_pack_to_userdata(HSQUIRRELVM v) 		/** pack(f,...) */
+{
+    return sq_pack_base(v, 1);
+}
+
+static SQRESULT sq_pushmem(HSQUIRRELVM v) 		/** pushmem(size) */
+{
+	SQ_FUNC_VARS_NO_TOP(v);
+	SQ_GET_INTEGER(v, 2, mem_size);
+	sq_newuserdata(v, mem_size);
+	return 1;
+}
+
+static SQRESULT sq_getaddress(HSQUIRRELVM v) 		/** getaddress(udata) */
+{
+	SQUserPointer ptr = 0;
+	sq_getuserdata(v, -1, &ptr, NULL);
+	sq_pushinteger(v, (SQInteger)ptr);
 	return 1;
 }
 
@@ -276,7 +319,10 @@ static SQRESULT sq_pack(HSQUIRRELVM v) 		/** pack(f,...) */
 static SQRegFunction sq_pack_methods[] =
 {
     _DECL_FUNC(pack,-3,_SC(".s.")),
-    _DECL_FUNC(unpack,-3,_SC(".ssi")),
+    _DECL_FUNC(pack_to_userdata,-3,_SC(".s.")),
+    _DECL_FUNC(unpack,-3,_SC(".s|usi")),
+    _DECL_FUNC(pushmem,2,_SC(".i")),
+    _DECL_FUNC(getaddress,2,_SC(".u")),
     {0,0}
 };
 #undef _DECL_FUNC

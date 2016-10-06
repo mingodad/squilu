@@ -252,6 +252,9 @@ static SQInteger sq_func__call(HSQUIRRELVM v)
         case OT_STRING:
             sq_getstring(v, i, (const char**)&values[pi]);
             break;
+        case OT_USERDATA:
+            sq_getuserdata(v, i, (SQUserPointer*)&values[pi], NULL);
+            break;
         case OT_INSTANCE: {
             if (SQ_FAILED(sqstd_getblob(v, i, (SQUserPointer*)&values[pi])))
                 return SQ_ERROR;
