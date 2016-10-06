@@ -32,6 +32,10 @@ function generateCppClassWrapper(klass, klass_name="klass")
 		{
 			return to_declare ? "f" : "FLOAT";
 		}
+		if(var_name.startswith("bool_"))
+		{
+			return to_declare ? "b" : "BOOL";
+		}
 		if(var_name.startswith("str_"))
 		{
 			return to_declare ? "s" : "STRING";

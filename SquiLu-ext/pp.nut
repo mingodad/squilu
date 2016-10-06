@@ -1,4 +1,7 @@
 #!/home/mingo/bin/squilu
+
+__max_print_stack_str_size <- 1000;
+
 function puts(s) {
 	fd.write(s);
 }
