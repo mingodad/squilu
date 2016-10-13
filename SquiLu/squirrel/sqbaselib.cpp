@@ -1348,6 +1348,13 @@ static SQInteger calc_new_size_by_max_len(SQInteger start_pos, SQInteger max_len
     return curr_size;
 }
 
+static inline void push_match_capture(HSQUIRRELVM v, int i, LuaMatchState *ms)
+{
+    ptrdiff_t len = ms->capture[i].len;
+    if(len == CAP_POSITION) sq_pushinteger(v, ms->capture[i].init - ms->src_init);
+    else sq_pushstring(v, ms->capture[i].init, ms->capture[i].len);
+}
+
 //on 64 bits there is an error SQRESULT/int
 static int process_string_gsub(LuaMatchState *ms, void *udata, lua_char_buffer_st **b) {
     const SQChar *str;
@@ -1362,7 +1369,7 @@ static int process_string_gsub(LuaMatchState *ms, void *udata, lua_char_buffer_s
             sq_pushroottable(v); //this
             int i=0;
             for(; i < ms->level; ++i){
-                sq_pushstring(v, ms->capture[i].init, ms->capture[i].len);
+                push_match_capture(v, i, ms);
             }
             int rc = sq_call(v, i+1, SQTrue, SQTrue);
             if(rc < 0) {
@@ -1393,7 +1400,7 @@ static int process_string_gsub(LuaMatchState *ms, void *udata, lua_char_buffer_s
         break;
         case OT_TABLE:{
             for(int i=0; i < ms->level; ++i){
-                sq_pushstring(v, ms->capture[i].init, ms->capture[i].len);
+                push_match_capture(v, i, ms);
                 if(SQ_SUCCEEDED(sq_get(v, 3)) && SQ_SUCCEEDED(sq_getstr_and_size(v, -1, &str, &str_size))){
                     if(!char_buffer_add_str(ms, b, str, str_size)) {
                         result = 0;
@@ -1459,9 +1466,7 @@ static SQRESULT process_string_gmatch_find(LuaMatchState *ms, void *udata, lua_c
         sq_pushinteger(v, ms->end_pos);
     }
     for(; i < ms->level; ++i){
-        ptrdiff_t len = ms->capture[i].len;
-        if(len == CAP_POSITION) sq_pushinteger(v, ms->capture[i].init - ms->src_init);
-        else sq_pushstring(v, ms->capture[i].init, len);
+        push_match_capture(v, i, ms);
     }
     if(!isFind && i == 0){
         sq_pushstring(v, ms->src_init + ms->start_pos, ms->end_pos-ms->start_pos+1);
@@ -1529,7 +1534,7 @@ SQRESULT string_gmatch_base(HSQUIRRELVM v, int isGmatch, const SQChar *src, SQIn
             sq_newarray(v, ms.level);
             for(int i=0; i < ms.level; ++i){
                 sq_pushinteger(v, i);
-                sq_pushstring(v, ms.capture[i].init, ms.capture[i].len);
+                push_match_capture(v, i, &ms);
                 sq_rawset(v, -3);
             }
         }
@@ -1751,6 +1756,15 @@ static SQRESULT string_find_close_quote(HSQUIRRELVM v) {
     }
     if(src[init] != quote) init = -1;
     sq_pushinteger(v, init);
+    return 1;
+}
+
+static SQRESULT string_strchr(HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, src);
+    SQ_GET_INTEGER(v, 2, delimiter);
+    const SQChar *token = scstrchr(src, delimiter);
+    sq_pushinteger(v, (token ? *token : -1));
     return 1;
 }
 
@@ -2160,6 +2174,7 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("find_lua"),string_find_lua,-2, _SC("ss a|t|c n b n")},
 	{_SC("find_close_quote"),string_find_close_quote,-1, _SC("sni")},
 	{_SC("find_delimiter"),string_find_delimiter,4, _SC("siin")},
+	{_SC("strchr"),string_strchr,2, _SC("si")},
 	{_SC("gsub"),string_gsub,-3, _SC("s s s|a|t|c n")},
 	{_SC("gmatch"),string_gmatch, -3, _SC("s s c n n")},
 	{_SC("match"), string_match, -2, _SC("s s n n")},
