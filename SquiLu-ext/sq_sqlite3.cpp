@@ -9,6 +9,7 @@ SQ_OPT_STRING_STRLEN();
 
 const SQChar *SQLite3_TAG = "SQLite3";
 static const SQChar *SQLite3_Stmt_TAG = "SQLite3Stmt";
+static const SQChar *SQLite3_Blob_TAG = "SQLite3Blob";
 
 static const SQChar sqlite3_NULL_Name[] = _SC("sqlite3_NULL");
 static const SQChar nullName[] = _SC("Null");
@@ -57,6 +58,14 @@ static SQRESULT get_sqlite3_stmt_instance(HSQUIRRELVM v, SQInteger idx, sqlite3_
     return _rc_;
 }
 
+static SQRESULT get_sqlite3_blob_instance(HSQUIRRELVM v, SQInteger idx, sqlite3_blob **blob)
+{
+    SQRESULT _rc_;
+    if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)blob,(void*)SQLite3_Blob_TAG)) < 0) return _rc_;
+    if(!*blob) return sq_throwerror(v, _SC("blob is closed"));
+    return _rc_;
+}
+
 //#define push_sqlite3_null(v) sq_getonregistrytable(v, sqlite3_NULL_Name, sizeof(sqlite3_NULL_Name)-1);
 //#define push_sqlite3_null(v) sq_pushobject(v, sqlite3_NULL);
 //#define push_sqlite3_null(v) sq_getbyname(v, 1, nullName, sizeof(nullName)-1)
@@ -78,6 +87,11 @@ static SQRESULT get_sqlite3_stmt_instance(HSQUIRRELVM v, SQInteger idx, sqlite3_
 	sqlite3_stmt *var_name=NULL; \
 	if((_rc_ = get_sqlite3_stmt_instance(v,idx,&var_name)) < 0) return _rc_;
 #define GET_sqlite3_stmt_INSTANCE() GET_sqlite3_stmt_INSTANCE_AT(1, self)
+
+#define GET_sqlite3_blob_INSTANCE_AT(idx, var_name)  \
+	sqlite3_blob *var_name=NULL; \
+	if((_rc_ = get_sqlite3_blob_instance(v,idx,&var_name)) < 0) return _rc_;
+#define GET_sqlite3_blob_INSTANCE() GET_sqlite3_blob_INSTANCE_AT(1, self)
 
 enum e_type_result {tr_first_row_first_col, tr_first_row, tr_all_rows, tr_ddml};
 
@@ -439,6 +453,20 @@ static SQRESULT sq_sqlite3_stmt_bind_blob(HSQUIRRELVM v)
     SQ_GET_INTEGER(v, 2, npar);
     SQ_GET_STRING(v, 3, blob);
     if(sqlite3_bind_blob(self, npar, blob, blob_size, SQLITE_TRANSIENT) != SQLITE_OK)
+    {
+        sqlite3 *db = sqlite3_db_handle(self);
+        return sq_throwerror(v, sqlite3_errmsg(db));
+    }
+    return SQ_OK;
+}
+
+static SQRESULT sq_sqlite3_stmt_bind_zeroblob(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_stmt_INSTANCE();
+    SQ_GET_INTEGER(v, 2, npar);
+    SQ_GET_INTEGER(v, 3, nsize);
+    if(sqlite3_bind_zeroblob(self, npar, nsize))
     {
         sqlite3 *db = sqlite3_db_handle(self);
         return sq_throwerror(v, sqlite3_errmsg(db));
@@ -1418,6 +1446,7 @@ static SQRegFunction sq_sqlite3_stmt_methods[] =
     _DECL_FUNC(bind_exec_stmt,  2, _SC("xx"), SQFalse),
     _DECL_FUNC(bind_empty_null,  3, _SC("xi s|n|b|o|u"), SQFalse),
     _DECL_FUNC(bind_blob,  3, _SC("xis|u"), SQFalse),
+    _DECL_FUNC(bind_zeroblob,  3, _SC("xii"), SQFalse),
     _DECL_FUNC(bind_values,  -2, _SC("x s|n|b|o|u"), SQFalse),
     _DECL_FUNC(bind_exec,  -2, _SC("x s|n|b|o|u"), SQFalse),
     _DECL_FUNC(bind_names,  2, _SC("x t|a"), SQFalse),
@@ -1955,6 +1984,104 @@ static SQRESULT sq_sqlite3_prepare(HSQUIRRELVM v)
     if(sq_call(v, 3, SQTrue, SQFalse) != SQ_OK) return SQ_ERROR;
     return 1;
 }
+
+//sqlite3_blob
+static SQRESULT sq_sqlite3_blob_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
+{
+    sqlite3_blob *self = ((sqlite3_blob *)p);
+    if(self) sqlite3_blob_close(self);
+    return 0;
+}
+
+static SQRESULT sq_sqlite3_blob_close(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_blob_INSTANCE();
+    sq_setinstanceup(v, 1, 0); //next calls will fail with "blob is closed"
+    sq_pushinteger(v, sqlite3_blob_close(self));
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_blob_reopen(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_blob_INSTANCE();
+    SQ_GET_INTEGER(v, 2, iRow);
+    int rc = sqlite3_blob_reopen(self, iRow);
+    if(rc != SQLITE_OK) return sq_sqlite3_blob_close(v);
+    sq_pushinteger(v, rc);
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_blob_bytes(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_blob_INSTANCE();
+    sq_pushinteger(v, sqlite3_blob_bytes(self));
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_blob_read(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    GET_sqlite3_blob_INSTANCE();
+    SQ_OPT_INTEGER(v, 2, size, 0);
+    SQ_OPT_INTEGER(v, 3, offset, 0);
+    if(!size) size = sqlite3_blob_bytes(self);
+    SQChar *buf = sq_getscratchpad(v, size);
+    int rc = sqlite3_blob_read(self, buf, size, offset);
+    if(rc == SQLITE_OK) sq_pushstring(v, buf, size);
+    else sq_pushnull(v);
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_blob_write(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    GET_sqlite3_blob_INSTANCE();
+    SQ_GET_STRING(v, 2, buf);
+    SQ_OPT_INTEGER(v, 3, size, buf_size);
+    SQ_OPT_INTEGER(v, 4, offset, 0);
+    int rc = sqlite3_blob_write(self, buf, size, offset);
+    sq_pushinteger(v, rc);
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_blob_open(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    GET_sqlite3_INSTANCE();
+    SQ_GET_STRING(v, 2, zDb);
+    SQ_GET_STRING(v, 3, zTable);
+    SQ_GET_STRING(v, 4, zColumn);
+    SQ_GET_INTEGER(v, 5, iRow);
+    SQ_OPT_INTEGER(v, 6, flags, 0);
+
+    sqlite3_blob *pBlob;
+    int rc = sqlite3_blob_open(self, zDb, zTable, zColumn, iRow, flags, &pBlob);
+    if(rc == SQLITE_OK)
+    {
+        sq_pushstring(v, SQLite3_Blob_TAG, -1);
+        if(sq_getonregistrytable(v) == SQ_ERROR) return SQ_ERROR;
+        sq_createinstance(v, -1);
+        sq_setinstanceup(v, -1, pBlob);
+        sq_setreleasehook(v, -1, sq_sqlite3_blob_releasehook);
+    }
+    else sq_pushnull(v);
+    return 1;
+}
+
+#define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_sqlite3_blob_##name,nparams,tycheck}
+static SQRegFunction sq_sqlite3_blob_methods[] =
+{
+    _DECL_FUNC(close,  1, _SC("x")),
+    _DECL_FUNC(reopen,  2, _SC("xi")),
+    _DECL_FUNC(bytes,  1, _SC("x")),
+    _DECL_FUNC(read,  -1, _SC("xii")),
+    _DECL_FUNC(write,  -2, _SC("xsii")),
+    {0,0}
+};
+#undef _DECL_FUNC
 
 /* void set_busy_timeout( int nMillisecs  ) */
 static SQRESULT sq_sqlite3_set_busy_timeout(HSQUIRRELVM v)
@@ -3088,6 +3215,86 @@ static SQRESULT sq_sqlite3_enable_load_extension(HSQUIRRELVM v)
 }
 #endif
 
+#if 0
+/**
+The number/order of fields should be the same to use this function
+it'll save temporary data convertion.
+*/
+static SQRESULT sq_sqlite3_exec_loop(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    GET_sqlite3_INSTANCE();
+    SQ_GET_STRING(v, 2, outer_sql);
+    SQ_GET_STRING(v, 3, inner1_sql);
+    SQ_OPT_STRING(v, 4, inner2_sql, NULL);
+
+    sqlite3_stmt *stmt_outer = NULL, *stmt_inner1 = NULL, *stmt_inner2 = NULL;
+
+    int rc = sqlite3_prepare_v2(self, outer_sql, outer_sql_size, &stmt_outer, NULL);
+    if(rc == SQLITE_OK)
+    {
+        rc = sqlite3_prepare_v2(self, inner1_sql, inner1_sql_size, &stmt_inner1, NULL);
+        if(rc == SQLITE_OK)
+        {
+            if(inner2_sql)
+            {
+                rc = sqlite3_prepare_v2(self, inner2_sql, inner2_sql_size, &stmt_inner2, NULL);
+            }
+            if(rc == SQLITE_OK)
+            {
+                int outer_col_count = sqlite3_column_count(stmt_outer);
+                int inner1_param_count = sqlite3_bind_parameter_count(stmt_inner1);
+                int inner2_param_count = stmt_inner2 ? sqlite3_bind_parameter_count(stmt_inner2) : -1;
+                if( (inner1_param_count <= outer_col_count) && ((inner2_param_count > 0)
+                                            && (inner2_param_count <= outer_col_count) ) )
+                {
+                    while(sqlite3_step(stmt_outer) == SQLITE_ROW)
+                    {
+                        for(int i=0; i < inner1_param_count; ++i)
+                        {
+                            rc = sqlite3_bind_value(stmt_inner1, i+1, sqlite3_column_value(stmt_outer, i));
+                            if(rc != SQLITE_OK) break;
+                        }
+                        if(rc == SQLITE_OK)
+                        {
+                            rc = sqlite3_step(stmt_inner1);
+                            sqlite3_reset(stmt_inner1);
+                        }
+                        if(rc != SQLITE_DONE) break;
+                        if((inner2_param_count > 0) && (sqlite3_changes(self) == 0))
+                        {
+                            for(int i=0; i < inner2_param_count; ++i)
+                            {
+                                rc = sqlite3_bind_value(stmt_inner2, i+1, sqlite3_column_value(stmt_outer, i));
+                                if(rc != SQLITE_OK) break;
+                            }
+                            if(rc == SQLITE_OK)
+                            {
+                                rc = sqlite3_step(stmt_inner2);
+                                sqlite3_reset(stmt_inner2);
+                            }
+                            if(rc != SQLITE_DONE) break;
+                        }
+                    }
+                }
+                else
+                {
+                    return sq_throwerror(v, _SC("bind parameter count mismatch expect %d : %d but got outer %d"),
+                                    inner1_param_count, inner2_param_count, outer_col_count);
+                }
+            }
+        }
+    }
+
+    if(stmt_outer) sqlite3_finalize(stmt_outer);
+    if(stmt_inner1) sqlite3_finalize(stmt_inner1);
+    if(stmt_inner2) sqlite3_finalize(stmt_inner2);
+
+    sq_pushinteger(v, rc);
+    return 1;
+}
+#endif // 0
+
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_sqlite3_##name,nparams,tycheck}
 static SQRegFunction sq_sqlite3_methods[] =
 {
@@ -3123,9 +3330,11 @@ static SQRegFunction sq_sqlite3_methods[] =
     _DECL_FUNC(exec_one_dml,  -2, _SC("x s|x")),
     _DECL_FUNC(exec_get_first_row,  -2, _SC("x s|x")),
     _DECL_FUNC(exec_get_one,  -2, _SC("x s|x")),
+    //_DECL_FUNC(exec_loop,  -3, _SC("x sss")),
     _DECL_FUNC(get_db_name,  1, _SC("x")),
     _DECL_FUNC(last_row_id,  1, _SC("x")),
     _DECL_FUNC(prepare,  2, _SC("xs")),
+    _DECL_FUNC(blob_open, -5, _SC("xsssii")),
     _DECL_FUNC(set_busy_timeout,  -1, _SC("xi")),
     _DECL_FUNC(total_changes,  1, _SC("x")),
     _DECL_FUNC(backup,  -2, _SC("xss")),
@@ -3186,6 +3395,12 @@ extern "C" {
         sq_newclass(v,SQFalse);
         sq_settypetag(v,-1,(SQUserPointer)sq_sqlite3_context_TAG);
         sq_insert_reg_funcs(v, sq_sqlite3_context_methods);
+        sq_newslot(v,-3,SQTrue);
+
+        sq_pushstring(v,SQLite3_Blob_TAG,-1);
+        sq_newclass(v,SQFalse);
+        sq_settypetag(v,-1,(SQUserPointer)SQLite3_Blob_TAG);
+        sq_insert_reg_funcs(v, sq_sqlite3_blob_methods);
         sq_newslot(v,-3,SQTrue);
 
         sq_poptop(v); //remove registrytable
