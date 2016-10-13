@@ -361,6 +361,26 @@ static SQRESULT _blob_clear(HSQUIRRELVM v)
     return 0;
 }
 
+#if 0
+static SQRESULT _blob_writefile(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_BLOB(v);
+    SQ_GET_STRING(v, fname);
+	sq_pushstring(v, (const SQChar*)self->GetBuf(), self->Len());
+	return 1;
+}
+
+static SQRESULT _blob_readfile(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_BLOB(v);
+    SQ_GET_STRING(v, fname);
+	sq_pushstring(v, (const SQChar*)self->GetBuf(), self->Len());
+	return 1;
+}
+#endif
+
 //bit operations
 #define BLOB_BIT_GET 1
 #define BLOB_BIT_SET 2
@@ -423,6 +443,26 @@ static SQRESULT _blob_bitTogle(HSQUIRRELVM v)
     return _blob_bit_ops(v, BLOB_BIT_TOGLE);
 }
 
+extern SQRESULT string_gmatch_base(HSQUIRRELVM v, int isGmatch, const SQChar *src, SQInteger src_size);
+extern SQRESULT string_find_lua(HSQUIRRELVM v, const SQChar *src, SQInteger src_size);
+
+static SQRESULT _blob_find_lua(HSQUIRRELVM v)
+{
+	SETUP_BLOB(v);
+    return string_find_lua(v, (const SQChar*)self->GetBuf(), self->Len());
+}
+
+static SQRESULT _blob_gmatch(HSQUIRRELVM v)
+{
+	SETUP_BLOB(v);
+    return string_gmatch_base(v, 1, (const SQChar*)self->GetBuf(), self->Len());
+}
+
+static SQRESULT _blob_match(HSQUIRRELVM v)
+{
+	SETUP_BLOB(v);
+    return string_gmatch_base(v, 0, (const SQChar*)self->GetBuf(), self->Len());
+}
 
 #define _DECL_BLOB_FUNC(name,nparams,typecheck) {_SC(#name),_blob_##name,nparams,typecheck}
 static SQRegFunction _blob_methods[] = {
@@ -446,6 +486,9 @@ static SQRegFunction _blob_methods[] = {
 	_DECL_BLOB_FUNC(bitSet,2,_SC("xn")),
 	_DECL_BLOB_FUNC(bitClear,2,_SC("xn")),
 	_DECL_BLOB_FUNC(bitTogle,2,_SC("xn")),
+	_DECL_BLOB_FUNC(find_lua,-2,_SC("xs a|t|c n b n")),
+	_DECL_BLOB_FUNC(gmatch,-3,_SC("x s c n n")),
+	_DECL_BLOB_FUNC(match,-2,_SC("x s n n")),
 	{NULL,(SQFUNCTION)0,0,NULL}
 };
 

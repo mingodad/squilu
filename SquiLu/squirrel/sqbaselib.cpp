@@ -1489,10 +1489,9 @@ static int process_string_gmatch(LuaMatchState *ms, void *udata, lua_char_buffer
     return process_string_gmatch_find(ms, udata, b, false);
 }
 
-static SQRESULT string_gmatch_base(HSQUIRRELVM v, int isGmatch)
+SQRESULT string_gmatch_base(HSQUIRRELVM v, int isGmatch, const SQChar *src, SQInteger src_size)
 {
     SQ_FUNC_VARS(v);
-    SQ_GET_STRING(v, 1, src);
     SQ_GET_STRING(v, 2, pattern);
     LuaMatchState ms;
     memset(&ms, 0, sizeof(ms));
@@ -1542,22 +1541,25 @@ static SQRESULT string_gmatch_base(HSQUIRRELVM v, int isGmatch)
 
 static SQRESULT string_gmatch(HSQUIRRELVM v)
 {
-    return string_gmatch_base(v, 1);
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, src);
+    return string_gmatch_base(v, 1, src, src_size);
 }
 
 static SQRESULT string_match(HSQUIRRELVM v)
 {
-    return string_gmatch_base(v, 0);
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, src);
+    return string_gmatch_base(v, 0, src, src_size);
 }
 
 static int process_string_find_lua(LuaMatchState *ms, void *udata, lua_char_buffer_st **b) {
     return process_string_gmatch_find(ms, udata, b, true);
 }
 
-static SQRESULT string_find_lua(HSQUIRRELVM v)
+SQRESULT string_find_lua(HSQUIRRELVM v, const SQChar *src, SQInteger src_size)
 {
     SQ_FUNC_VARS(v);
-    SQ_GET_STRING(v, 1, src);
     SQ_GET_STRING(v, 2, pattern);
     SQ_OPT_INTEGER(v, 4, start_pos, 0);
     SQ_OPT_BOOL(v, 5, raw, SQFalse);
@@ -1625,6 +1627,13 @@ static SQRESULT string_find_lua(HSQUIRRELVM v)
         return 1;
     }
 	return sq_throwerror(v,_SC("invalid type for parameter 3 function expected"));
+}
+
+static SQRESULT string_find_lua(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, src);
+    return string_find_lua(v, src, src_size);
 }
 
 static const SQChar *lmemfind (const SQChar *s1, size_t l1,
