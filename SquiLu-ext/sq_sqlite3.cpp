@@ -1660,6 +1660,13 @@ static SQRESULT sqlite3_exec_fmt(HSQUIRRELVM v, e_type_result type_result, int n
 #define FUNC_IS_FIND_COUNT 3
 #define FUNC_IS_MATCH 4
 
+static inline void push_match_capture(sqlite3_context *context, int i, LuaMatchState *ms)
+{
+    ptrdiff_t len = ms->capture[i].len;
+    if(len == CAP_POSITION) sqlite3_result_int(context, ms->capture[i].init - ms->src_init);
+    else sqlite3_result_text(context, ms->capture[0].init, ms->capture[0].len, SQLITE_TRANSIENT);
+}
+
 static void sqlite3_lua_find_base( sqlite3_context *context, int argc, sqlite3_value **argv, int funcType ) {
     assert(argc == 2);
     LuaMatchState ms;
@@ -1682,9 +1689,10 @@ static void sqlite3_lua_find_base( sqlite3_context *context, int argc, sqlite3_v
             if(ms.error) sqlite3_result_error(context, ms.error, strlen(ms.error));
             else if(rc < 0) sqlite3_result_null(context);
             else if(ms.level){
-                if(ms.level == 1) sqlite3_result_text(context, ms.capture[0].init, ms.capture[0].len, SQLITE_TRANSIENT);
+                if(ms.level == 1) push_match_capture(context, 0, &ms);
                 else {
-                    sqlite3_result_text(context, ms.capture[0].init, ms.capture[0].len, SQLITE_TRANSIENT);
+                    //no way to differentiate more than one match
+                    push_match_capture(context, 0, &ms);
                 }
             } else {
                 sqlite3_result_text(context, subject + ms.start_pos, ms.end_pos-ms.start_pos+1, SQLITE_TRANSIENT);
