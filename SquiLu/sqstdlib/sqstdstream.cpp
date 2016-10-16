@@ -29,8 +29,8 @@ SQInteger _stream_read_line(HSQUIRRELVM v) {
     else size = 2048;
     SQBlob line_buf(0, size);
     do {
-        char *buf = (SQChar*)line_buf.GetBuf();
-        read_size = self->Gets(buf + line_buf.Len(), size);
+        char *buf = (SQChar*)line_buf.GetBuf() + line_buf.Len();
+        read_size = self->Gets(buf, size);
         if(!read_size) //end of file
         {
             break;
@@ -46,12 +46,12 @@ SQInteger _stream_read_line(HSQUIRRELVM v) {
             {
                 read_size -= 1;
             }
-            line_buf.SetLen(read_size);
+            line_buf.SetLen(line_buf.Len() + read_size);
             new_line_found = true;
             break;
         }
-        line_buf.SetLen(read_size);
-        line_buf.GrowBufOf(size);
+        line_buf.SetLen(line_buf.Len() + read_size);
+        line_buf.Reserve(size);
     } while(read_size > 0);
     if(line_buf.Len() > 0) {
         sq_pushstring(v, (const SQChar*)line_buf.GetBuf(), line_buf.Len());

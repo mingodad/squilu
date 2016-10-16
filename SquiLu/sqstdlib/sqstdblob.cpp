@@ -107,7 +107,7 @@ bool SQBlob::Reserve(SQInteger n)
 bool SQBlob::GrowBufOf(SQInteger n)
 {
     bool ret = Reserve(n);
-    _size = _size + n;
+    if(ret) _size = _size + n;
     return ret;
 }
 SQInteger SQBlob::Seek(SQInteger offset, SQInteger origin) {
