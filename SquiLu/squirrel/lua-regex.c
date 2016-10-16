@@ -29,6 +29,7 @@ http://code.google.com/p/lua-regex-standalone/
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <limits.h>
 #include <ctype.h>
 #include <inttypes.h>
 
@@ -158,10 +159,11 @@ static int singlematch (int c, const char *p, const char *ep) {
 
 static const char *match (LuaMatchState *ms, const char *s, const char *p);
 
-
+//add escape char extension from https://github.com/jcgoble3/lua-matchext
 static const char *matchbalance (LuaMatchState *ms, const char *s,
                                    const char *p) {
-  if (p >= ms->p_end - 1){
+  int escaped = (*(p-1) == 'B'); /* EXT */
+  if (p >= ms->p_end - 1 - escaped){
     ms->error = "malformed pattern "
                       "(missing arguments to " LUA_QL("%%b") ")";
     return NULL;
@@ -169,10 +171,12 @@ static const char *matchbalance (LuaMatchState *ms, const char *s,
   if (*s != *p) return NULL;
   else {
     int b = *p;
-    int e = *(p+1);
+    int e = *(p + (escaped ? 2 : 1));  /* EXT */
+    int esc = escaped ? *(p + 1) : INT_MAX;  /* EXT */
     int cont = 1;
     while (++s < ms->src_end) {
-      if (*s == e) {
+      if (*s == esc) s++; /* EXT */
+      else if (*s == e) {
         if (--cont == 0) return s+1;
       }
       else if (*s == b) cont++;
@@ -272,10 +276,10 @@ static const char *match (LuaMatchState *ms, const char *s, const char *p) {
     }
     case L_ESC: {  /* escaped sequences not in the format class[*+?-]? */
       switch (*(p+1)) {
-        case 'b': {  /* balanced string? */
+        case 'b': case 'B': { /* balanced string? */ /* EXT */
           s = matchbalance(ms, s, p+2);
           if (s == NULL) return NULL;
-          p+=4; goto init;  /* else return match(ms, s, p+4); */
+          p += (*(p + 1) == 'b') ? 4 : 5; /* EXT */ goto init;  /* else return match(ms, s, p+4); */
         }
         case 'f': {  /* frontier? */
           const char *ep; char previous;
