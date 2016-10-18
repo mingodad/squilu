@@ -1,4 +1,4 @@
-#ifdef SQ_USE_PCRE2
+#if defined(SQ_USE_PCRE2) || defined(SQ_USE_PCRE2_STATIC)
 
 #include <ctype.h>
 #include <string.h>
@@ -32,6 +32,7 @@ local library_functions = [
     ["int", "pcre2_set_match_limit", "pcre2_match_context *mcontext, uint32_t value"],
     ["int", "pcre2_set_recursion_limit", "pcre2_match_context *mcontext, uint32_t value"],
     ["int", "pcre2_set_callout", "pcre2_match_context *, int (*)(pcre2_callout_block *, void *), void *"],
+    ["int", "pcre2_substitute", "const pcre2_code *, PCRE2_SPTR, PCRE2_SIZE, PCRE2_SIZE, uint32_t, pcre2_match_data *, pcre2_match_context *, PCRE2_SPTR, PCRE2_SIZE, PCRE2_UCHAR *, PCRE2_SIZE *"],
 
     //next entry should be the last one
     //to make valid the test made on load_library function
@@ -51,7 +52,41 @@ function write_library_functions_load(chsz){
         putsnl("if(!dl" + v[1] + ") return false;");
     }
 }
+
+function write_library_functions_static_defines(){
+    foreach(k,v in library_functions){
+        putsnl("#define dl" + v[1] + " " + v[1]);
+    }
+}
 SquiLu*/
+
+#ifdef SQ_USE_PCRE2_STATIC
+
+#define load_library(x) true
+
+//@write_library_functions_static_defines()
+// generated-code:begin
+#define dlpcre2_compile pcre2_compile
+#define dlpcre2_jit_compile pcre2_jit_compile
+#define dlpcre2_code_free pcre2_code_free
+#define dlpcre2_match_data_create_from_pattern pcre2_match_data_create_from_pattern
+#define dlpcre2_get_ovector_pointer pcre2_get_ovector_pointer
+#define dlpcre2_get_ovector_count pcre2_get_ovector_count
+#define dlpcre2_match_data_free pcre2_match_data_free
+#define dlpcre2_match pcre2_match
+#define dlpcre2_dfa_match pcre2_dfa_match
+#define dlpcre2_get_error_message pcre2_get_error_message
+#define dlpcre2_match_context_create pcre2_match_context_create
+#define dlpcre2_match_context_copy pcre2_match_context_copy
+#define dlpcre2_match_context_free pcre2_match_context_free
+#define dlpcre2_set_match_limit pcre2_set_match_limit
+#define dlpcre2_set_recursion_limit pcre2_set_recursion_limit
+#define dlpcre2_set_callout pcre2_set_callout
+#define dlpcre2_substitute pcre2_substitute
+#define dlpcre2_config pcre2_config
+// generated-code:end
+
+#else
 
 static DynamicLibrary libdyn;
 
@@ -89,6 +124,8 @@ typedef int (*pcre2_set_recursion_limit_t)(pcre2_match_context *mcontext, uint32
 static pcre2_set_recursion_limit_t dlpcre2_set_recursion_limit = 0;
 typedef int (*pcre2_set_callout_t)(pcre2_match_context *, int (*)(pcre2_callout_block *, void *), void *);
 static pcre2_set_callout_t dlpcre2_set_callout = 0;
+typedef int (*pcre2_substitute_t)(const pcre2_code *, PCRE2_SPTR, PCRE2_SIZE, PCRE2_SIZE, uint32_t, pcre2_match_data *, pcre2_match_context *, PCRE2_SPTR, PCRE2_SIZE, PCRE2_UCHAR *, PCRE2_SIZE *);
+static pcre2_substitute_t dlpcre2_substitute = 0;
 typedef int (*pcre2_config_t)(uint32_t what, void *where);
 static pcre2_config_t dlpcre2_config = 0;
 // generated-code:end
@@ -134,6 +171,8 @@ dlpcre2_set_recursion_limit = (pcre2_set_recursion_limit_t) libdyn.dlsym("pcre2_
 if(!dlpcre2_set_recursion_limit) return false;
 dlpcre2_set_callout = (pcre2_set_callout_t) libdyn.dlsym("pcre2_set_callout_8");
 if(!dlpcre2_set_callout) return false;
+dlpcre2_substitute = (pcre2_substitute_t) libdyn.dlsym("pcre2_substitute_8");
+if(!dlpcre2_substitute) return false;
 dlpcre2_config = (pcre2_config_t) libdyn.dlsym("pcre2_config_8");
 if(!dlpcre2_config) return false;
 // generated-code:end
@@ -142,6 +181,8 @@ if(!dlpcre2_config) return false;
     }
     return false;
 }
+
+#endif // SQ_USE_PCRE2_STATIC
 
 typedef int (*pre2_callout_func_t)(pcre2_callout_block *, void *);
 
@@ -306,7 +347,7 @@ static SQRESULT sq_pcre2_gmatch(HSQUIRRELVM v)
         self->match_data,     /* block for storing the result */
         self->match_context)) > 0)           /* use default match context */
     {
-        if(!isFirst)
+        if(isFirst)
         {
             sq_push(v, 3); //push the function
             isFirst = false;
@@ -318,7 +359,7 @@ static SQRESULT sq_pcre2_gmatch(HSQUIRRELVM v)
             SQInteger start_pos = self->ovector[ov_offset], end_pos = self->ovector[ov_offset+1];
             sq_pushstring(v, subject + start_pos, end_pos - start_pos);
 		}
-		i = sq_call(v, i+1, SQFalse, SQTrue);
+		i = sq_call(v, rc+1, SQFalse, SQTrue);
 		if(i < 0) return i;
 		start_offset = self->ovector[(rc*2)-1]; //the last match + 1
 	}
@@ -357,7 +398,7 @@ static SQRESULT sq_pcre2_gsub(HSQUIRRELVM v)
 	    blob.Write(str+start_offset, self->ovector[0]-start_offset);
 	    switch(ptype){
 	        case OT_CLOSURE:{
-                if(!isFirst)
+                if(isFirst)
                 {
                     sq_push(v, replacement_idx); //push the function
                     isFirst = false;
@@ -368,7 +409,7 @@ static SQRESULT sq_pcre2_gsub(HSQUIRRELVM v)
                     start_pos = self->ovector[ov_offset], end_pos = self->ovector[ov_offset+1];
                     sq_pushstring(v, str + start_pos, end_pos - start_pos);
                 }
-                i = sq_call(v, rc, SQTrue, SQTrue);
+                i = sq_call(v, rc+1, SQTrue, SQTrue);
                 if(i < 0) return i;
                 if(sq_gettype(v, -1) == OT_STRING){
                     const SQChar *svalue;
@@ -583,6 +624,41 @@ static SQRESULT sq_pcre2_set_callout_param(HSQUIRRELVM v)
 	return 0;
 }
 
+#if 0
+static SQRESULT sq_pcre2_substitute(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS(v);
+    GET_pcre2_INSTANCE();
+    SQ_GET_STRING(v, 2, subject);
+    SQ_GET_STRING(v, 3, replacement);
+
+    PCRE2_UCHAR *out_str;
+    PCRE2_SIZE out_str_size;
+
+    int rc = dlpcre2_substitute(
+        self->re,             /* the compiled pattern */
+        (PCRE2_SPTR)subject,  /* the subject string */
+        str_size,             /* the length of the subject */
+        start_offset,         /* start at offset 0 in the subject */
+        options,              /* 0 = default options */
+        self->match_data,     /* block for storing the result */
+        self->match_context,  /* use default match context */
+        (PCRE2_SPTR)replacement,
+        replacement_size,
+        out_str,
+        &out_str_size);
+
+    if(rc)
+    {
+        sq_pushstring(v, (const SQChar*)out_str, out_str_size);
+
+    }
+    else sq_pushnull(v);
+
+	return 1;
+}
+#endif
+
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),sq_pcre2_##name,nparams,tycheck}
 static SQRegFunction sq_pcre2_methods[] =
 {
@@ -619,6 +695,13 @@ static KeyIntType sqpcre2_constants[] = {
 	MK_CONST(NO_START_OPTIMIZE),
 	MK_CONST(PARTIAL_HARD),
 	MK_CONST(PARTIAL_SOFT),
+	MK_CONST(NO_AUTO_POSSESS),
+	MK_CONST(NO_START_OPTIMIZE),
+	MK_CONST(NO_DOTSTAR_ANCHOR),
+	MK_CONST(DOTALL),
+	MK_CONST(CASELESS),
+	MK_CONST(MULTILINE),
+	MK_CONST(EXTENDED),
 	MK_CONST(NEWLINE_CR),
 	MK_CONST(NEWLINE_LF),
 	MK_CONST(NEWLINE_CRLF),
@@ -635,6 +718,7 @@ static KeyIntType sqpcre2_constants[] = {
 	MK_CONST(JIT_PARTIAL_HARD),
 	MK_CONST(JIT_PARTIAL_SOFT),
 	MK_CONST(AUTO_CALLOUT),
+	MK_CONST(SUBSTITUTE_GLOBAL),
     {0,0}
 };
 

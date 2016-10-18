@@ -1,0 +1,73 @@
+//auto str = " this code 10.89.973.8.3.00.34-8 is special 23.456-2 car";
+auto str = " this code 10.89.973.8.3.00.34/8 is special 23.456/2 car";
+
+//print("loadlib", sqpcre.loadlib("/home/mingo/dev/c/A_libs/pcre-8.38/.libs/libpcre.so.1.2.6"));
+print("loadlib", sqpcre2.loadlib("/home/mingo/dev/c/A_libs/pcre2-10.20/.libs/libpcre2-8.so"));
+
+local function mycallout(cb_idx, cb_str, start_match, current_position, p)
+{
+	print("mycallout", cb_idx, cb_str, start_match, current_position, p);
+	return 0;
+}
+
+//auto pcre = sqpcre(@"(\d+[.,\-])+\d+");
+//auto pcre = sqpcre(@"(?:\d+[.,\-/])+\d+");
+auto pcre = sqpcre2(@"(?:\d+[.,\-/]\n*)+(?C'number found')\d+");
+pcre.set_callout(mycallout, "myparam");
+print(pcre, typeof(pcre));
+print(pcre.version());
+
+pcre.set_callout_param(str);
+print("match", pcre.match(str));
+
+pcre.gmatch(str,
+	function(...){
+		print("gmatch vargv.len()", vargv.len());
+		foreach(idx, elm in vargv) print(idx, elm);
+		return true;
+	});
+	
+auto new_str = pcre.gsub(str, "@$0@");
+print(new_str);
+
+auto result = [];
+auto rc, start_pos;
+
+auto max_loop = 1;
+
+auto start_time = os.getmillicount();
+for(auto i=0; i < max_loop; ++i)
+{
+	start_pos = 0;
+	while( (rc = pcre.exec(str, result, start_pos)) > 0)
+	{
+		print(rc, result.len());
+
+		if(rc > 0)
+		{
+			//foreach(idx, elm in result) 
+			print(str.slice(result[0], result[1]));
+			start_pos = result[1] + 1;
+		}
+	}
+}
+print("Spent time", os.getmillicount() - start_time);
+
+/*
+start_time = os.getmillicount();
+for(auto i=0; i < max_loop; ++i)
+{
+	start_pos = 0;
+	while( (rc = str.find_lua("(%d[,.%-])", result, start_pos)) > 0)
+	{
+		print(rc, result.len());
+
+		if(rc > 0)
+		{
+			foreach(idx, elm in result) print(idx, elm, str.slice(result[0], result[1]));
+			start_pos = result[1] + 1;
+		}
+	}
+}
+print("Spent time", os.getmillicount() - start_time);
+*/

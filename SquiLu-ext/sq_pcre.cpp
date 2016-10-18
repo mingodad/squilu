@@ -266,7 +266,7 @@ static SQRESULT sq_pcre_gmatch(HSQUIRRELVM v)
         self->ovector,        /* output vector for substring information */
         self->ovector_size)) > 0)   /* number of elements in the output vector */
     {
-        if(!isFirst)
+        if(isFirst)
         {
             sq_push(v, 3); //push the function
             isFirst = false;
@@ -278,7 +278,7 @@ static SQRESULT sq_pcre_gmatch(HSQUIRRELVM v)
             SQInteger start_pos = self->ovector[ov_offset], end_pos = self->ovector[ov_offset+1];
             sq_pushstring(v, subject + start_pos, end_pos - start_pos);
 		}
-		i = sq_call(v, i+1, SQFalse, SQTrue);
+		i = sq_call(v, rc+1, SQFalse, SQTrue);
 		if(i < 0) return i;
 		start_offset = self->ovector[(rc*2)-1]; //the last match + 1
 	}
@@ -318,7 +318,7 @@ static SQRESULT sq_pcre_gsub(HSQUIRRELVM v)
 	    blob.Write(str+start_offset, self->ovector[0]-start_offset);
 	    switch(ptype){
 	        case OT_CLOSURE:{
-                if(!isFirst)
+                if(isFirst)
                 {
                     sq_push(v, replacement_idx); //push the function
                     isFirst = false;
@@ -329,7 +329,7 @@ static SQRESULT sq_pcre_gsub(HSQUIRRELVM v)
                     start_pos = self->ovector[ov_offset], end_pos = self->ovector[ov_offset+1];
                     sq_pushstring(v, str + start_pos, end_pos - start_pos);
                 }
-                i = sq_call(v, rc, SQTrue, SQTrue);
+                i = sq_call(v, rc+1, SQTrue, SQTrue);
                 if(i < 0) return i;
                 if(sq_gettype(v, -1) == OT_STRING){
                     const SQChar *svalue;
