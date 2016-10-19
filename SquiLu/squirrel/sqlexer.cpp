@@ -597,6 +597,7 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
         }
 	}
 	for(;;) {
+try_again:
 		while(CUR_CHAR != ndelim) {
             SQInteger x = CUR_CHAR;
 			switch(x) {
@@ -687,12 +688,24 @@ SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 		    NEXT();
 		}
 		else if(saved_ndelim == _SC('R')) {
+            if(CUR_CHAR == ndelim)
+            {
+                APPEND_CHAR(ndelim);
+                goto try_again;
+            }
             size_t i = 0;
             for(;(i < sizeof(cpp_delimin)-1) && (CUR_CHAR != _SC('"')) && cpp_delimin[i]; ++i)
             {
                 if(CUR_CHAR != cpp_delimin[i])
                 {
-                    return Error(_SC("expect \"%s\" to close literal delimiter"), cpp_delimin);
+                    //false positive append all chars till here and continue
+                    APPEND_CHAR(ndelim);
+                    for(int j=0; j < i; ++j) APPEND_CHAR(cpp_delimin[j]); //recover already eaten chars from buffer
+                    APPEND_CHAR(CUR_CHAR); //append the last one that mismatch
+                    if(CUR_CHAR == _SC('\n')) data->currentline++;
+                    NEXT();
+                    goto try_again;
+                    //return Error(_SC("expect \"%s\" to close literal delimiter"), cpp_delimin);
                 }
                 NEXT();
             }
