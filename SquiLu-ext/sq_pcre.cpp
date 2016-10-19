@@ -219,7 +219,7 @@ static SQRESULT sq_pcre_exec(HSQUIRRELVM v)
 
 static SQRESULT sq_pcre_match(HSQUIRRELVM v)
 {
-	SQ_FUNC_VARS(v);
+    SQ_FUNC_VARS(v);
     GET_pcre_INSTANCE();
     SQ_GET_STRING(v, 2, subject);
     SQ_OPT_INTEGER(v, 3, start_offset, 0);
@@ -235,19 +235,20 @@ static SQRESULT sq_pcre_match(HSQUIRRELVM v)
         self->ovector,        /* output vector for substring information */
         self->ovector_size);  /* number of elements in the output vector */
 
-	if(rc > 0)
-	{
-	    SQInteger start_pos = self->ovector[0], end_pos = self->ovector[1];
-		sq_pushstring(v, subject + start_pos, end_pos - start_pos);
-		return 1;
-	}
-	sq_pushbool(v,SQFalse);
-	return 1;
+    if(rc > 0)
+    {
+        SQInteger start_pos = self->ovector[0], end_pos = self->ovector[1];
+        if(start_pos == end_pos) sq_pushinteger(v, start_pos);
+        else sq_pushstring(v, subject + start_pos, end_pos - start_pos);
+        return 1;
+    }
+    sq_pushbool(v,SQFalse);
+    return 1;
 }
 
 static SQRESULT sq_pcre_gmatch(HSQUIRRELVM v)
 {
-	SQ_FUNC_VARS(v);
+    SQ_FUNC_VARS(v);
     GET_pcre_INSTANCE();
     SQ_GET_STRING(v, 2, subject);
     SQ_OPT_INTEGER(v, 4, start_offset, 0);
@@ -271,19 +272,20 @@ static SQRESULT sq_pcre_gmatch(HSQUIRRELVM v)
             sq_push(v, 3); //push the function
             isFirst = false;
         }
-	    sq_pushroottable(v); //this
-	    SQInteger ov_offset = 0, i = 0;
-	    for(;i < rc; i++) {
+        sq_pushroottable(v); //this
+        SQInteger ov_offset = 0, i = 0;
+        for(;i < rc; i++) {
             ov_offset = i*2;
             SQInteger start_pos = self->ovector[ov_offset], end_pos = self->ovector[ov_offset+1];
-            sq_pushstring(v, subject + start_pos, end_pos - start_pos);
-		}
-		i = sq_call(v, rc+1, SQFalse, SQTrue);
-		if(i < 0) return i;
-		start_offset = self->ovector[(rc*2)-1]; //the last match + 1
-	}
-	sq_pushbool(v,SQFalse);
-	return 1;
+            if(start_pos == end_pos) sq_pushinteger(v, start_pos);
+            else sq_pushstring(v, subject + start_pos, end_pos - start_pos);
+        }
+        i = sq_call(v, rc+1, SQFalse, SQTrue);
+        if(i < 0) return i;
+        start_offset = self->ovector[(rc*2)-1]; //the last match + 1
+    }
+    sq_pushbool(v,SQFalse);
+    return 1;
 }
 
 #include "sqstdblobimpl.h"
@@ -327,7 +329,8 @@ static SQRESULT sq_pcre_gsub(HSQUIRRELVM v)
                 for(i=0; i < rc; i++) {
                     ov_offset = i*2;
                     start_pos = self->ovector[ov_offset], end_pos = self->ovector[ov_offset+1];
-                    sq_pushstring(v, str + start_pos, end_pos - start_pos);
+                    if(start_pos == end_pos) sq_pushinteger(v, start_pos);
+                    else sq_pushstring(v, str + start_pos, end_pos - start_pos);
                 }
                 i = sq_call(v, rc+1, SQTrue, SQTrue);
                 if(i < 0) return i;
