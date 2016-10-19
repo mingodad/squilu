@@ -204,11 +204,13 @@ static SQRESULT sq_pcre_exec(HSQUIRRELVM v)
         if(rtype == OT_ARRAY)
         {
             int nelms = rc*2;
-            sq_arrayminsize(v, array_pos, nelms);
+            sq_clear(v, array_pos);
             for (int i = 0; i < nelms; i++)
             {
-                sq_pushinteger(v, self->ovector[i]);
-                sq_arrayset(v, array_pos, i);
+                SQInteger pos = self->ovector[i];
+                if(pos < 0) continue; //forget defined subroutines
+                sq_pushinteger(v, pos);
+                sq_arrayappend(v, array_pos);
             }
         }
     }
@@ -273,12 +275,16 @@ static SQRESULT sq_pcre_gmatch(HSQUIRRELVM v)
             isFirst = false;
         }
         sq_pushroottable(v); //this
-        SQInteger ov_offset = 0, i = 0;
+        SQInteger start_pos, end_pos, ov_offset = 0, i = 0,
+            param_count = 1; //root table already on the stack
         for(;i < rc; i++) {
             ov_offset = i*2;
-            SQInteger start_pos = self->ovector[ov_offset], end_pos = self->ovector[ov_offset+1];
+            start_pos = self->ovector[ov_offset];
+            if(start_pos < 0) continue;
+            end_pos = self->ovector[ov_offset+1];
             if(start_pos == end_pos) sq_pushinteger(v, start_pos);
             else sq_pushstring(v, subject + start_pos, end_pos - start_pos);
+            ++param_count;
         }
         i = sq_call(v, rc+1, SQFalse, SQTrue);
         if(i < 0) return i;
@@ -326,13 +332,17 @@ static SQRESULT sq_pcre_gsub(HSQUIRRELVM v)
                     isFirst = false;
                 }
                 sq_pushroottable(v); //this
+                SQInteger param_count = 1; //root table
                 for(i=0; i < rc; i++) {
                     ov_offset = i*2;
-                    start_pos = self->ovector[ov_offset], end_pos = self->ovector[ov_offset+1];
+                    start_pos = self->ovector[ov_offset];
+                    if(start_pos < 0) continue; //defined subroutines not pushed as parameter
+                    end_pos = self->ovector[ov_offset+1];
                     if(start_pos == end_pos) sq_pushinteger(v, start_pos);
                     else sq_pushstring(v, str + start_pos, end_pos - start_pos);
+                    ++param_count;
                 }
-                i = sq_call(v, rc+1, SQTrue, SQTrue);
+                i = sq_call(v, param_count, SQTrue, SQTrue);
                 if(i < 0) return i;
                 if(sq_gettype(v, -1) == OT_STRING){
                     const SQChar *svalue;
@@ -343,8 +353,12 @@ static SQRESULT sq_pcre_gsub(HSQUIRRELVM v)
 	        }
 	        break;
 	        case OT_ARRAY:{
+                SQInteger array_idx = 0;
                 for(i=0; i < rc; i++) {
-                    sq_pushinteger(v, i);
+                    ov_offset = i*2;
+                    SQInteger pos = self->ovector[ov_offset];
+                    if(pos < 0) continue; //forget defined subroutines
+                    sq_pushinteger(v, array_idx++);
                     if(SQ_SUCCEEDED(sq_get(v, replacement_idx)) &&
                             SQ_SUCCEEDED(sq_getstr_and_size(v, -1, &replacement, &replacement_size))){
                         blob.Write(replacement, replacement_size);
@@ -356,7 +370,9 @@ static SQRESULT sq_pcre_gsub(HSQUIRRELVM v)
 	        case OT_TABLE:{
                 for(i=0; i < rc; i++) {
                     ov_offset = i*2;
-                    start_pos = self->ovector[ov_offset], end_pos = self->ovector[ov_offset+1];
+                    start_pos = self->ovector[ov_offset];
+                    if(start_pos < 0) continue;
+                    end_pos = self->ovector[ov_offset+1];
                     sq_pushstring(v, str + start_pos, end_pos - start_pos);
                     if(SQ_SUCCEEDED(sq_get(v, replacement_idx)) &&
                             SQ_SUCCEEDED(sq_getstr_and_size(v, -1, &replacement, &replacement_size))){
@@ -377,14 +393,20 @@ static SQRESULT sq_pcre_gsub(HSQUIRRELVM v)
                         ++i;
                         if(i < replacement_size)
                         {
-                            SQInteger idx = replacement[i] - '0';
-                            if(idx < rc)
-                            {
-                                ov_offset = idx*2;
-                                start_pos = self->ovector[ov_offset], end_pos = self->ovector[ov_offset+1];
-                                blob.Write(str+start_pos, end_pos-start_pos);
+                            SQInteger idx = replacement[i] - '0', match_idx = 0;
+                            for(int j=0; j < rc; j++) {
+                                ov_offset = j*2;
+                                start_pos = self->ovector[ov_offset];
+                                if(start_pos < 0) continue;
+                                if(match_idx == idx)
+                                {
+                                    end_pos = self->ovector[ov_offset+1];
+                                    blob.Write(str+start_pos, end_pos-start_pos);
+                                    break;
+                                }
+                                ++match_idx;
                             }
-                            else
+                            if(idx != match_idx)
                             {
                                 return sq_throwerror(v, _SC("there is no match for replacement $%d"), idx);
                             }
