@@ -46,10 +46,10 @@ static const SQChar *jvm_lib_name =
  _SC("/usr/lib/jvm/default-java/jre/lib/i386/client/libjvm.so");
 #endif
 
-static bool load_libjni()
+static bool load_libjni(const SQChar *shared_lib)
 {
     if(dl_JNI_CreateJavaVM) return true;
-    if(libjni.open(jvm_lib_name))
+    if(libjni.open(shared_lib))
     {
         //@write_jni_functions_load();
 // generated-code:begin
@@ -114,7 +114,7 @@ static const SQChar *_java_class_methods_key = _SC("_class_methods");
 
 #define GET_java_class_INSTANCE() GET_java_class_INSTANCE_AT(1)
 
-static SQRESULT sq_java_class_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT sq_java_class_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	jclass self = ((jclass)p);
 	if (_jvm_env && self) _jvm_env->DeleteGlobalRef(self);
@@ -185,8 +185,9 @@ static SQRESULT sq_java_open(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     if(_jvm_vm) return sq_throwerror(v, _SC("java vm already opened"));
+    SQ_GET_STRING(v,2, shared_lib);
 
-    if(load_libjni())
+    if(load_libjni(shared_lib))
     {
         /* Create Java VM */
         int num_options=0;
@@ -242,7 +243,7 @@ static SQRESULT sq_java_FindClass(HSQUIRRELVM v){
 #define _DECL_FUNC(name,nparams,tycheck,isStatic) {_SC(#name),  sq_java_##name,nparams,tycheck,isStatic}
 static SQRegFunction sq_java_methods[] =
 {
-	_DECL_FUNC(open,  1, _SC("y"),SQTrue),
+	_DECL_FUNC(open,  2, _SC("ys"),SQTrue),
 	_DECL_FUNC(close,  1, _SC("y"),SQTrue),
 	_DECL_FUNC(GetVersion,  1, _SC("y"),SQTrue),
 	_DECL_FUNC(FindClass,  2, _SC("ys"),SQTrue),
