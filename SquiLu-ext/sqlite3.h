@@ -121,9 +121,9 @@ extern "C" {
 ** [sqlite3_libversion_number()], [sqlite3_sourceid()],
 ** [sqlite_version()] and [sqlite_source_id()].
 */
-#define SQLITE_VERSION        "3.15.0"
-#define SQLITE_VERSION_NUMBER 3015000
-#define SQLITE_SOURCE_ID      "2016-10-12 18:55:53 443913d582bcd953d85159047541592e2f68ade3"
+#define SQLITE_VERSION        "3.16.0"
+#define SQLITE_VERSION_NUMBER 3016000
+#define SQLITE_SOURCE_ID      "2016-10-14 21:27:50 16039be3739b8d3b34a1e6093eaebb09e07f984b"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -993,6 +993,12 @@ struct sqlite3_io_methods {
 ** on whether or not the file has been renamed, moved, or deleted since it
 ** was first opened.
 **
+** <li>[[SQLITE_FCNTL_WIN32_GET_HANDLE]]
+** The [SQLITE_FCNTL_WIN32_GET_HANDLE] opcode can be used to obtain the
+** underlying native file handle associated with a file handle.  This file
+** control interprets its argument as a pointer to a native file handle and
+** writes the resulting value there.
+**
 ** <li>[[SQLITE_FCNTL_WIN32_SET_HANDLE]]
 ** The [SQLITE_FCNTL_WIN32_SET_HANDLE] opcode is used for debugging.  This
 ** opcode causes the xFileControl method to swap the file handle with the one
@@ -1043,6 +1049,7 @@ struct sqlite3_io_methods {
 #define SQLITE_FCNTL_RBU                    26
 #define SQLITE_FCNTL_VFS_POINTER            27
 #define SQLITE_FCNTL_JOURNAL_POINTER        28
+#define SQLITE_FCNTL_WIN32_GET_HANDLE       29
 
 /* deprecated names */
 #define SQLITE_GET_LOCKPROXYFILE      SQLITE_FCNTL_GET_LOCKPROXYFILE
@@ -2847,7 +2854,7 @@ SQLITE_API int sqlite3_set_authorizer(
 */
 SQLITE_API void *sqlite3_trace(sqlite3*, void(*xTrace)(void*,const char*), void*);
 SQLITE_API void *sqlite3_trace_v0(sqlite3*, void(*xTrace)(void*,const char*), void*, int);
-SQLITE_API SQLITE_EXPERIMENTAL void *sqlite3_profile(sqlite3*,
+SQLITE_API SQLITE_DEPRECATED void *sqlite3_profile(sqlite3*,
    void(*xProfile)(void*,const char*,sqlite3_uint64), void*);
 
 /*
@@ -3449,7 +3456,7 @@ SQLITE_API int sqlite3_limit(sqlite3*, int id, int newVal);
 #define SQLITE_LIMIT_VARIABLE_NUMBER           9
 #define SQLITE_LIMIT_TRIGGER_DEPTH            10
 #define SQLITE_LIMIT_WORKER_THREADS           11
-#define SQLITE_LIMIT_USE_ATTACHED_DBS           12
+#define SQLITE_LIMIT_USE_ATTACHED_DBS         12
 
 /*
 ** CAPI3REF: Compiling An SQL Statement
