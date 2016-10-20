@@ -1095,15 +1095,11 @@ static SQRESULT sq_sqlite3_stmt_asJsonObject(HSQUIRRELVM v)
 }
 
 #define UNSIGNED(n) n##U
-#define IBYTE1 UNSIGNED(255)
-#define IBYTE2 UNSIGNED(255*255)
-#define IBYTE3 UNSIGNED(255*255*255)
-#define IBYTE4 UNSIGNED(255*255*255*255)
-
-#define SIZE1BYTE 250
-#define SIZE2BYTE 251
-#define SIZE3BYTE 252
-#define SIZE4BYTE 253
+#define IBYTE_MAX UNSIGNED(256)
+#define IBYTE1 UNSIGNED(240)
+#define IBYTE2 UNSIGNED(2287)
+#define IBYTE3 UNSIGNED(67823)
+#define IBYTE4 UNSIGNED(16777215)
 
 #define SLEMARK 254
 #define SLEEND 255
@@ -1121,33 +1117,23 @@ static SQRESULT sle2array(HSQUIRRELVM v, const unsigned char *p, size_t sle_size
     while(*p != SLEEND) //data finished now follow digest
     {
         size = *p++;
-        if(size >= SIZE1BYTE)
+        if(size > IBYTE1)
         {
-            if(size == SIZE1BYTE)
+            if(size <= 248)
             {
-                //data bigger than 250 and less 500 next byte has more info
-                size += *p++;
+                size = (size-241)*IBYTE_MAX + (*p++) + IBYTE1;
             }
-            else if(size == SIZE2BYTE)
+            else if(size == 249)
             {
-                //data bigger than 250 next two bytes has more info
-                size = (*p++ * IBYTE1);
-                size += *p++;
+                size = 2288 + (IBYTE_MAX * (*p++)) + (*p++);
             }
-            else if(size == SIZE3BYTE)
+            else if(size == 250)
             {
-                //data bigger than 250 next three bytes has more info
-                size = (*p++ * IBYTE2);
-                size += (*p++ * IBYTE1);
-                size += *p++;
+                size = ((*p++)<<16) + ((*p++)<<8) + (*p++);
             }
-            else if(size == SIZE4BYTE)
+            else if(size == 251)
             {
-                //data bigger than 250 next four bytes has more info
-                size = (*p++ * IBYTE3);
-                size += (*p++ * IBYTE2);
-                size += (*p++ * IBYTE1);
-                size += *p++;
+                size = ((*p++)<<24) + ((*p++)<<16) + ((*p++)<<8) + (*p++);
             }
             else if(size == SLEMARK)
             {
@@ -1265,53 +1251,42 @@ typedef unsigned char slebuf_t[8];
 
 static int sleSize2buf(slebuf_t sle, size_t size)
 {
-    size_t next_size, tmp_size;
-    if(size < SIZE1BYTE)
+    size_t next_size;
+    if(size <= IBYTE1)
     {
         sle[0] = size;
         return 1;
     }
-    else if(size < (SIZE1BYTE*2))
+    else if(size <= IBYTE2)
     {
-        sle[0] = SIZE1BYTE;
-        next_size = size - 250;
-        sle[1] = next_size;
+        next_size = size - IBYTE1;
+        sle[0] = next_size/IBYTE_MAX + 241;
+        sle[1] = next_size%IBYTE_MAX;
         return 2;
     }
-    else if(size < IBYTE2)
+    else if(size <= IBYTE3)
     {
-        sle[0] = SIZE2BYTE;
-        next_size = size/IBYTE1;
-        sle[1] = next_size;
-        next_size = size%IBYTE1;
-        sle[2] = next_size;
+        sle[0] = 249;
+        next_size = size - 2288;
+        sle[1] = next_size/IBYTE_MAX;
+        sle[2] = next_size%IBYTE_MAX;
         return 3;
     }
-    else if(size < IBYTE3)
+    else if(size <= IBYTE4)
     {
-        sle[0] = SIZE3BYTE;
-        next_size = size/IBYTE2;
-        sle[1] = next_size;
-        tmp_size = size%IBYTE2;
-        next_size = tmp_size/IBYTE1;
-        sle[2] = next_size;
-        next_size = tmp_size%IBYTE1;
-        sle[3] = next_size;
+        sle[0] = 250;
+        sle[1] = size >> 16;
+        sle[2] = size >> 8;
+        sle[3] = size;
         return 4;
     }
-    else if(size < IBYTE4)
+    else
     {
-        sle[0] = SIZE4BYTE;
-        next_size = size/IBYTE3;
-        sle[1] = next_size;
-        tmp_size = size%IBYTE3;
-        next_size = tmp_size/IBYTE2;
-        sle[2] = next_size;
-        tmp_size = tmp_size%IBYTE2;
-        next_size = tmp_size/IBYTE1;
-        sle[3] = next_size;
-        next_size = tmp_size%IBYTE1;
-        sle[5] = next_size;
+        sle[0] = 251;
+        sle[1] = size >> 24;
+        sle[2] = size >> 16;
+        sle[3] = size >> 8;
+        sle[4] = size;
         return 5;
     }
     return 0;
@@ -3377,10 +3352,7 @@ extern "C" {
         INT_SLE_CONST(IBYTE2);
         INT_SLE_CONST(IBYTE3);
         INT_SLE_CONST(IBYTE4);
-        INT_SLE_CONST(SIZE1BYTE);
-        INT_SLE_CONST(SIZE2BYTE);
-        INT_SLE_CONST(SIZE3BYTE);
-        INT_SLE_CONST(SIZE4BYTE);
+        INT_SLE_CONST(IBYTE_MAX);
         INT_SLE_CONST(SLEMARK);
         INT_SLE_CONST(SLEEND);
 
