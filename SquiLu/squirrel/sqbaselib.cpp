@@ -1768,6 +1768,19 @@ static SQRESULT string_strchr(HSQUIRRELVM v) {
     return 1;
 }
 
+static SQRESULT string_countchr(HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, src);
+    SQ_GET_INTEGER(v, 2, ch);
+
+    SQInteger count = 0;
+    for(SQInteger i=0; i < src_size; ++i) {
+        if(src[i] == ch) ++count;
+    }
+    sq_pushinteger(v, count);
+    return 1;
+}
+
 static SQRESULT string_find_delimiter(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, src);
@@ -2175,6 +2188,7 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("find_close_quote"),string_find_close_quote,-1, _SC("sni")},
 	{_SC("find_delimiter"),string_find_delimiter,4, _SC("siin")},
 	{_SC("strchr"),string_strchr,2, _SC("si")},
+	{_SC("countchr"),string_countchr,2, _SC("si")},
 	{_SC("gsub"),string_gsub,-3, _SC("s s s|a|t|c n")},
 	{_SC("gmatch"),string_gmatch, -3, _SC("s s c n n")},
 	{_SC("match"), string_match, -2, _SC("s s n n")},
