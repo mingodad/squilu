@@ -1760,11 +1760,13 @@ static SQRESULT string_find_close_quote(HSQUIRRELVM v) {
 }
 
 static SQRESULT string_strchr(HSQUIRRELVM v) {
-    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_FUNC_VARS(v);
     SQ_GET_STRING(v, 1, src);
     SQ_GET_INTEGER(v, 2, delimiter);
-    const SQChar *token = scstrchr(src, delimiter);
-    sq_pushinteger(v, (token ? *token : -1));
+    SQ_OPT_INTEGER(v, 3, offset, 0);
+    if(offset > src_size) return sq_throwerror(v, _SC("offset bigger than string size"));
+    const SQChar *token = scstrchr(src+offset, delimiter);
+    sq_pushinteger(v, (token ? (SQInteger)(token-src) : -1));
     return 1;
 }
 
@@ -2187,7 +2189,7 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("find_lua"),string_find_lua,-2, _SC("ss a|t|c n b n")},
 	{_SC("find_close_quote"),string_find_close_quote,-1, _SC("sni")},
 	{_SC("find_delimiter"),string_find_delimiter,4, _SC("siin")},
-	{_SC("strchr"),string_strchr,2, _SC("si")},
+	{_SC("strchr"),string_strchr,-2, _SC("sii")},
 	{_SC("countchr"),string_countchr,2, _SC("si")},
 	{_SC("gsub"),string_gsub,-3, _SC("s s s|a|t|c n")},
 	{_SC("gmatch"),string_gmatch, -3, _SC("s s c n n")},
