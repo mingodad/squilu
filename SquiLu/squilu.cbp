@@ -1132,9 +1132,11 @@
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-std=c++11" />
 			<Add option="-Wall" />
 			<Add option="-fno-strict-aliasing" />
+			<Add option="-DSQ_USE_PCRE=1" />
+			<Add option="-DSQ_USE_FREETYPE=1" />
+			<Add option="-DSQ_USE_PCRE2_STATIC=1" />
 			<Add option="-DSQ_ENABLE_INCLUDES=1" />
 			<Add option="-DSQ_USE_MKSTEMP=1" />
 			<Add option="-DSQ_USE_LOCALTIME_R=1" />
@@ -1143,6 +1145,7 @@
 			<Add option="-DSQ_JIT_LLVM44=1" />
 			<Add option="-D_DEBUG_DUMP33=1" />
 			<Add option="-DWITH_DAD_EXTRAS=1" />
+			<Add option="-DSQ_USE_CBLOSC=1" />
 			<Add option="-DSQ_SUBLATIN=1" />
 			<Add option="-DNEED_SUBLATIN_C2=1" />
 			<Add option="-DSQUSEDOUBLE=1" />
@@ -1171,6 +1174,8 @@
 			<Add option="-DSQLITE_ENABLE_SESSION=1" />
 			<Add option="-DSQLITE_ENABLE_PREUPDATE_HOOK=1" />
 			<Add option="-DSQLITE_ENABLE_EXPLAIN_COMMENTS=1" />
+			<Add option="-DSQLITE_USE_ATTACHED_DBS2=1" />
+			<Add option="-DUSE_BITVECTOR=1" />
 			<Add option="-DNO_POPEN=1" />
 			<Add option="-DNO_SSL_DL=1" />
 			<Add option="-DHAVE_STDINT=1" />
@@ -1189,6 +1194,7 @@
 			<Add option="-DSQ_USE_EASYCURL=1" />
 			<Add option="-DOS_POSIX=1" />
 			<Add option="-DSLAVE_VM_WITH_OS_THREADS=1" />
+			<Add option="-DUSE_LMDB=1" />
 			<Add directory="include" />
 			<Add directory="sqstdlib" />
 			<Add directory="../myaxtls" />
@@ -1205,6 +1211,10 @@
 			<Add directory="../unql/src" />
 			<Add directory="../../../local/include" />
 			<Add directory="squirrel" />
+			<Add directory="../../java/jdk/include/linux" />
+			<Add directory="../liblmdb" />
+			<Add directory="../../c/A_libs/c-blosc/blosc" />
+			<Add directory="../../c/A_libs/pcre2-10.20/src" />
 		</Compiler>
 		<Linker>
 			<Add library="m" />
@@ -1213,12 +1223,15 @@
 			<Add library="../minizip/libminizip.a" />
 			<Add library="ffi" />
 			<Add library="../unql/libunql.a" />
+			<Add library="../../c/A_libs/c-blosc/build/blosc/libblosc.a" />
+			<Add library="../../c/A_libs/pcre2-10.20/.libs/libpcre2-8.a" />
 			<Add directory="lib" />
 			<Add directory="../myaxtls" />
 			<Add directory="../mpdecimal" />
 			<Add directory="../discount" />
 			<Add directory="../gumbo" />
 			<Add directory="../../../local/lib" />
+			<Add directory="../liblmdb" />
 		</Linker>
 		<Unit filename="../SquiLu-ext/HighResolutionTimer.cpp">
 			<Option target="Debug" />
@@ -1679,6 +1692,8 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 		</Unit>
+		<Unit filename="../SquiLu-ext/sq_bitvector.cpp" />
+		<Unit filename="../SquiLu-ext/sq_blosc.cpp" />
 		<Unit filename="../SquiLu-ext/sq_civetweb.cpp">
 			<Option target="Temp Code FLTK 64bits" />
 		</Unit>
@@ -1815,6 +1830,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 		</Unit>
+		<Unit filename="../SquiLu-ext/sq_freetype.cpp" />
 		<Unit filename="../SquiLu-ext/sq_fs.cpp">
 			<Option compilerVar="CC" />
 			<Option target="Debug" />
@@ -2076,6 +2092,8 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 		</Unit>
+		<Unit filename="../SquiLu-ext/sq_pcre.cpp" />
+		<Unit filename="../SquiLu-ext/sq_pcre2.cpp" />
 		<Unit filename="../SquiLu-ext/sq_postgresql.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
