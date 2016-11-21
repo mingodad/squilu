@@ -56,6 +56,7 @@ CFLAGS = $(INC) -O3 -Wall -fno-strict-aliasing  \
     -DSQ_USE_MKSTEMP=1 \
     -DSQ_USE_LOCALTIME_R=1 \
     -DSQ_ENABLE_INCLUDES=1 \
+    -DSQ_USE_EASYCURL=1 \
     -DSLAVE_VM_WITH_OS_THREADS=1
 
 RESINC = 
@@ -89,9 +90,11 @@ SOURCES= \
     ../SquiLu-ext/sqlite3.c  \
     ../SquiLu-ext/sq_unql.c  \
     ../SquiLu-ext/sq_decimal.cpp  \
+    ../SquiLu-ext/sq_libcurl.cpp  \
     ../SquiLu-ext/sq_markdown.cpp  \
     ../SquiLu-ext/sq_mix.c \
     ../SquiLu-ext/sq_mongoose.cpp  \
+    ../SquiLu-ext/sq_pack.cpp  \
     ../SquiLu-ext/sq_mysql.cpp  \
     ../SquiLu-ext/sq_postgresql.cpp  \
     ../SquiLu-ext/sqratimport.cpp  \
@@ -103,9 +106,9 @@ SOURCES= \
     ../SquiLu-ext/sq_zlib.cpp  \
     ../SquiLu-ext/tinyxml2.cpp \
     ../SquiLu-ext/dad_utils.cpp \
-    ../SquiLu-ext/sq_tweetnacl.cpp \
-    ../SquiLu-ext/tweetnacl.c \
     ../SquiLu-ext/randombytes.c \
+    ../SquiLu-ext/tweetnacl.c \
+    ../SquiLu-ext/sq_tweetnacl.cpp \
     squirrel/lua-regex.c  \
     squirrel/sqapi.cpp  \
     squirrel/sqbaselib.cpp  \

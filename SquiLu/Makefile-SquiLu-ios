@@ -87,6 +87,7 @@ SOURCES= sq/sq.c  \
     ../SquiLu-ext/sq_markdown.cpp  \
     ../SquiLu-ext/sq_mix.c \
     ../SquiLu-ext/sq_mongoose.cpp  \
+    ../SquiLu-ext/sq_pack.cpp  \
     ../SquiLu-ext/sq_mysql.cpp  \
     ../SquiLu-ext/sq_postgresql.cpp  \
     ../SquiLu-ext/sqratimport.cpp  \
