@@ -248,32 +248,64 @@ static SQRESULT sq_freetype_face_set_char_size(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQRESULT sq_freetype_face_load_char(HSQUIRRELVM v)
+static SQRESULT sq_freetype_face_load_char_or_glyph(HSQUIRRELVM v, bool onlyGlyph, bool asArray)
 {
 	SQ_FUNC_VARS(v);
     GET_freetype_face_INSTANCE();
     SQ_GET_INTEGER(v, 2, char_idx);
     SQ_OPT_INTEGER(v, 3, load_flags, FT_LOAD_RENDER);
     FT_GlyphSlot slot = self->glyph;
-    FT_Error error = dlFT_Load_Char(self, char_idx, load_flags);
+    FT_Error error;
+    if(onlyGlyph) error = dlFT_Load_Char(self, char_idx, load_flags);
+    else error = dlFT_Load_Char(self, char_idx, load_flags);
     if(error) sq_pushinteger(v, error);
-    else sq_pushstring(v, (const SQChar*)slot->bitmap.buffer,
-                       slot->bitmap.pitch * slot->bitmap.rows * sizeof (unsigned char));
+    else
+    {
+        if(asArray)
+        {
+            sq_newarray(v, 8);
+            sq_pushstring(v, (const SQChar*)slot->bitmap.buffer,
+                           slot->bitmap.width * slot->bitmap.rows * sizeof (unsigned char));
+            sq_arrayset(v, -2, 0);
+            sq_pushinteger(v, slot->bitmap.width);
+            sq_arrayset(v, -2, 1);
+            sq_pushinteger(v, slot->bitmap.rows);
+            sq_arrayset(v, -2, 2);
+            sq_pushinteger(v, slot->metrics.horiBearingX);
+            sq_arrayset(v, -2, 3);
+            sq_pushinteger(v, slot->metrics.horiBearingY);
+            sq_arrayset(v, -2, 4);
+            sq_pushinteger(v, slot->metrics.horiAdvance);
+            sq_arrayset(v, -2, 5);
+            sq_pushinteger(v, slot->metrics.width);
+            sq_arrayset(v, -2, 6);
+            sq_pushinteger(v, slot->metrics.height);
+            sq_arrayset(v, -2, 7);
+        }
+        else sq_pushstring(v, (const SQChar*)slot->bitmap.buffer,
+                       slot->bitmap.width * slot->bitmap.rows * sizeof (unsigned char));
+    }
 	return 1;
+}
+
+static SQRESULT sq_freetype_face_load_char(HSQUIRRELVM v)
+{
+	return sq_freetype_face_load_char_or_glyph(v, false, false);
+}
+
+static SQRESULT sq_freetype_face_load_char2(HSQUIRRELVM v)
+{
+	return sq_freetype_face_load_char_or_glyph(v, false, true);
 }
 
 static SQRESULT sq_freetype_face_load_glyph(HSQUIRRELVM v)
 {
-	SQ_FUNC_VARS(v);
-    GET_freetype_face_INSTANCE();
-    SQ_GET_INTEGER(v, 2, glyph_idx);
-    SQ_OPT_INTEGER(v, 3, load_flags, FT_LOAD_RENDER);
-    FT_GlyphSlot slot = self->glyph;
-    FT_Error error = dlFT_Load_Glyph(self, glyph_idx, load_flags);
-    if(error) sq_pushinteger(v, error);
-    else sq_pushstring(v, (const SQChar*)slot->bitmap.buffer,
-                       slot->bitmap.pitch * slot->bitmap.rows * sizeof (unsigned char));
-	return 1;
+	return sq_freetype_face_load_char_or_glyph(v, true, false);
+}
+
+static SQRESULT sq_freetype_face_load_glyph2(HSQUIRRELVM v)
+{
+	return sq_freetype_face_load_char_or_glyph(v, true, true);
 }
 
 static SQRESULT sq_freetype_face_char_index(HSQUIRRELVM v)
@@ -359,6 +391,23 @@ static SQRESULT sq_freetype_face_get_num_glyphs(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT sq_freetype_face_metrics(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS_NO_TOP(v);
+    GET_freetype_face_INSTANCE();
+    sq_newtableex(v, 3);
+    sq_pushliteral(v, _SC("ascender"));
+    sq_pushinteger(v, self->ascender);
+    sq_rawset(v, -3);
+    sq_pushliteral(v, _SC("descender"));
+    sq_pushinteger(v, self->descender);
+    sq_rawset(v, -3);
+    sq_pushliteral(v, _SC("height"));
+    sq_pushinteger(v, self->height);
+    sq_rawset(v, -3);
+	return 1;
+}
+
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),sq_freetype_face_##name,nparams,tycheck}
 static SQRegFunction sq_freetype_face_methods[] =
 {
@@ -366,16 +415,35 @@ static SQRegFunction sq_freetype_face_methods[] =
     _DECL_FUNC(set_char_size,-3,_SC(".iiii")),
     _DECL_FUNC(get_num_glyphs,1,_SC("x")),
     _DECL_FUNC(load_char,-2,_SC("xi")),
+    _DECL_FUNC(load_char2,-2,_SC("xi")),
     _DECL_FUNC(load_glyph,-2,_SC("xi")),
+    _DECL_FUNC(load_glyph2,-2,_SC("xi")),
     _DECL_FUNC(first_char,1,_SC("x")),
     _DECL_FUNC(next_char,2,_SC("xi")),
     _DECL_FUNC(char_index,2,_SC("xi")),
     _DECL_FUNC(name_index,2,_SC("xs")),
     _DECL_FUNC(glyph_name,2,_SC("xi")),
     _DECL_FUNC(postscript_name,1,_SC("x")),
+    _DECL_FUNC(metrics,1,_SC("x")),
     {0,0}
 };
 #undef _DECL_FUNC
+
+typedef struct {
+  const SQChar *Str;
+  SQInteger Val;
+} KeyIntType, * KeyIntPtrType;
+
+static KeyIntType sqfreetype_constants[] = {
+    #define MK_CONST(c) {_SC(#c), c}
+    #define MK_CONST2(c) {_SC(#c), (SQInteger)c}
+    //MK_CONST(SSL_SESSION_ID_SIZE),
+
+	MK_CONST(FT_LOAD_RENDER),
+	MK_CONST(FT_LOAD_MONOCHROME),
+	MK_CONST(FT_LOAD_TARGET_LIGHT),
+    {0,0}
+};
 
 #ifdef __cplusplus
 extern "C" {
