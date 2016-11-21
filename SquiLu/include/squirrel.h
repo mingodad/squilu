@@ -318,11 +318,14 @@ typedef struct {
 #define SQ_FUNC_VARS_NO_TOP(v) \
     SQRESULT _rc_;
 
+#define KLASS_VAR(Klass, Var) Klass *Var
+
 #define SQ_GET_INSTANCE_VAR(v, idx, Klass, Var, Klass_tag) \
-	Klass *Var; \
+	KLASS_VAR(Klass, Var); \
 	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)&Var,(void*)Klass_tag)) < 0) return _rc_;
 
 #define SQ_GET_INSTANCE(v, idx, Klass, Klass_tag) SQ_GET_INSTANCE_VAR(v, idx, Klass, self, Klass_tag)
+#define SQ_GET_INSTANCE2(v, idx, Var, Klass, Klass_tag) SQ_GET_INSTANCE_VAR(v, idx, Klass, Var, Klass_tag)
 
 #define SQ_GET_STRING(v, idx, var)\
     const SQChar *var;\
