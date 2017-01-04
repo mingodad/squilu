@@ -2181,6 +2181,30 @@ static SQRESULT string_mod_97_10 (HSQUIRRELVM v) {
     return 1;
 }
 
+static SQRESULT string_iso88959_to_utf8 (HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, str);
+    SQInteger size = (str_size)+sizeof(SQChar); //'\0' terminator
+    SQChar *buf = sq_getscratchpad(v, size*2);
+    SQUChar *c = (SQUChar*)buf;
+    SQUChar *s = (SQUChar*)str;
+    for (; *s; ++s)
+    {
+        if (*s < 0x80)
+        {
+            *c++ = *s;
+        }
+        else
+        {
+            *c++ = (0xc0 | (0x03 & (*s >> 6)));
+            *c++ = (0x80 | (*s & 0x3f));
+        }
+    }
+    *c++ = '\0';
+    sq_pushstring(v, buf, c - (SQUChar*)buf);
+    return 1;
+}
+
 
 SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("len"),default_delegate_len,1, _SC("s")},
@@ -2224,6 +2248,7 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("count_char"),string_count_char,2, _SC("si")},
 	{_SC("edit_distance"),string_edit_distance,-2, _SC("ssi")},
 	{_SC("mod_97_10"),string_mod_97_10,1, _SC("s")},
+	{_SC("iso88959_to_utf8"),string_iso88959_to_utf8,1, _SC("s")},
 #ifdef SQ_SUBLATIN
 	{_SC("sl_len"),string_sl_len,1, _SC("s")},
 	{_SC("sl_lower"),string_sl_lower,1, _SC("s")},
