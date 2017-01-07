@@ -92,10 +92,10 @@ static curl_easy_cleanup_t dlcurl_easy_cleanup = 0;
 
 static const char *dynamicLibName = DYNLIB_FOR_OS(libcurl);
 
-static bool load_library()
+static bool load_library(const char *libname)
 {
     if(dlcurl_easy_cleanup) return true;
-    if(libdyn.open(dynamicLibName))
+    if(libdyn.open(libname))
     {
         //@write_library_functions_load();
 // generated-code:begin
@@ -152,7 +152,7 @@ struct sq_easycurl_st
 
 static const SQChar SQ_LIBNAME[] = _SC("EasyCurl");
 
-SQ_OPT_STRING_STRLEN();
+//SQ_OPT_STRING_STRLEN();
 
 static const SQChar EasyCurl_Tag[]   = _SC("EasyCurl_TAG");
 #define GET_EasyCurl_INSTANCE() SQ_GET_INSTANCE(v, 1, sq_easycurl_st, EasyCurl_Tag) \
@@ -241,7 +241,7 @@ static SQRESULT EasyCurl_create_instance(HSQUIRRELVM v, CURL *EasyCurl, int free
 }
 
 static SQRESULT sq_EasyCurl_constructor(HSQUIRRELVM v){
-    if(!load_library()) return sq_throwerror(v, _SC("Failed to load libcurl !"));
+    if(!load_library(dynamicLibName)) return sq_throwerror(v, _SC("Failed to load libpcre !"));
     CURL *curl = dlcurl_easy_init();
 	return EasyCurl_constructor(v, 1, curl, 1);
 }
@@ -605,6 +605,15 @@ static SQRESULT sq_EasyCurl_wait_on_socket(HSQUIRRELVM v){
     return 0;
 }
 
+static SQRESULT sq_EasyCurl_loadlib(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 2, libname);
+    sq_pushbool(v, load_library(libname));
+	return 1;
+}
+
+
 #define _DECL_EASYCURL_FUNC(name,nparams,pmask) {_SC(#name),sq_EasyCurl_##name,nparams,pmask}
 static SQRegFunction EasyCurl_obj_funcs[]={
 
@@ -624,6 +633,7 @@ static SQRegFunction EasyCurl_obj_funcs[]={
 	_DECL_EASYCURL_FUNC(wait_on_socket, 3, _SC("x bi")),
 	_DECL_EASYCURL_FUNC(escape, 2, _SC("xs")),
 	_DECL_EASYCURL_FUNC(unescape, 2, _SC("xs")),
+    _DECL_EASYCURL_FUNC(loadlib,2,_SC(".s")),
 	{0,0}
 };
 #undef _DECL_EASYCURL_FUNC
