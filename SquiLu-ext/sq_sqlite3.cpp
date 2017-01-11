@@ -3152,7 +3152,8 @@ static SQRESULT sq_sqlite3_backup(HSQUIRRELVM v)
     SQ_FUNC_VARS(v);
     GET_sqlite3_INSTANCE();
     SQ_GET_STRING(v, 2, fname);
-    SQ_OPT_STRING(v, 3, dbname, _SC("main"));
+    SQ_OPT_STRING(v, 3, dbSrcName, _SC("main"));
+    SQ_OPT_STRING(v, 4, dbDestName, _SC("main"));
 
     sqlite3 *pDest;
     sqlite3_backup *pBackup;
@@ -3164,7 +3165,7 @@ static SQRESULT sq_sqlite3_backup(HSQUIRRELVM v)
         return sq_throwerror(v, _SC("SQLite can't open %s"), fname);
     }
 
-    pBackup = sqlite3_backup_init(pDest, "main", self, dbname);
+    pBackup = sqlite3_backup_init(pDest, dbDestName, self, dbSrcName);
     if( pBackup==0 ){
         rc = sq_throwerror(v, _SC("Error: %s\n"), sqlite3_errmsg(pDest));
         sqlite3_close(pDest);
@@ -3186,7 +3187,8 @@ static SQRESULT sq_sqlite3_restore(HSQUIRRELVM v)
     SQ_FUNC_VARS(v);
     GET_sqlite3_INSTANCE();
     SQ_GET_STRING(v, 2, fname);
-    SQ_OPT_STRING(v, 3, dbname, _SC("main"));
+    SQ_OPT_STRING(v, 3, dbSrcName, _SC("main"));
+    SQ_OPT_STRING(v, 4, dbDestName, _SC("main"));
 
     sqlite3 *pSrc;
     sqlite3_backup *pBackup;
@@ -3199,7 +3201,7 @@ static SQRESULT sq_sqlite3_restore(HSQUIRRELVM v)
         return sq_throwerror(v, _SC("SQLite can't open %s"), fname);
     }
 
-    pBackup = sqlite3_backup_init(self, "main", pSrc, dbname);
+    pBackup = sqlite3_backup_init(self, dbDestName, pSrc, dbSrcName);
     if( pBackup==0 ){
         sqlite3_close(pSrc);
         return sq_throwerror(v, _SC("Error: %s\n"), sqlite3_errmsg(self));
@@ -3358,8 +3360,8 @@ static SQRegFunction sq_sqlite3_methods[] =
     _DECL_FUNC(blob_open, -5, _SC("xsssii")),
     _DECL_FUNC(set_busy_timeout,  -1, _SC("xi")),
     _DECL_FUNC(total_changes,  1, _SC("x")),
-    _DECL_FUNC(backup,  -2, _SC("xss")),
-    _DECL_FUNC(restore,  -2, _SC("xss")),
+    _DECL_FUNC(backup,  -2, _SC("xsss")),
+    _DECL_FUNC(restore,  -2, _SC("xsss")),
 #ifndef SQLITE_OMIT_LOAD_EXTENSION
     _DECL_FUNC(enable_load_extension, 2, _SC("xb")),
 #endif
