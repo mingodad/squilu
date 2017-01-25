@@ -886,6 +886,7 @@ public:
             id = _fs->CreateString(_lex.data->svalue);
         }
         //else id = {}; //old compilers do not allow this
+        else id._type = OT_NULL;
 
 		LogicalOrExp();
 		switch(_token)  {
