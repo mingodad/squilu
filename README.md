@@ -8,9 +8,9 @@ It is the base of a cross platform application server (windows, macosx, linux, a
 
 ~~A preview of the application server running on an Android phone (Huawei U8105 IDEOS on an ADSL line) can be seem here:~~
 
--A simple search page for companies in Reading UK http://companies-uk.dadbiz.es/  or https://companies-uk.dadbiz.es/
+-A simple search page for companies in Reading UK http://companies-uk.unolotiene.com/  or https://companies-uk.unolotiene.com/
 
--A Small business application http/javascript interface http://ourbiz.dadbiz.es/ or https://ourbiz.dadbiz.es/ when asked use username: mingote password: tr14pink
+-A Small business application http/javascript interface http://ourbiz.unolotiene.com/ or https://ourbiz.unolotiene.com/ when asked use username: mingote password: tr14pink
 
 Also you'll find several changes and additions to the original Squirrel 3.0.4:
 
@@ -38,7 +38,7 @@ Also you'll find several changes and additions to the original Squirrel 3.0.4:
 Changes to the Squirrel syntax:
 
   * Accepts "->" as alias for "."
-  * Accepts "var" as alias for "local"
+  * Accepts "var"/"auto" as alias for "local"
   * Accepts lua literal string delimiters "[===[" and "]===]", also "{==={" and "}===}" or "(===(" and ")===)"
   * The "new" keyword is ignored so lines like in C++/Javascript are accepted " var obj = new {{{MyClass();}}}"
   * Local scope for "const/enum", checking for redeclaration on the same compilation unit.
