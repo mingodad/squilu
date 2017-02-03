@@ -585,7 +585,101 @@ SQRESULT sqext_register_xjd1(HSQUIRRELVM v);
 SQRESULT sqext_register_libclang(HSQUIRRELVM v);
 SQRESULT sqext_register_EasyCurl (HSQUIRRELVM v);
 SQRESULT sqext_register_tweetnacl(HSQUIRRELVM v);
+SQRESULT sqext_register_ipc (HSQUIRRELVM v);
+SQRESULT sqext_register_BitVector (HSQUIRRELVM v); //depends on sqlite3
 SQRESULT sqext_register_pack(HSQUIRRELVM v);
+SQRESULT sqext_register_sq_blosc(HSQUIRRELVM v);
+SQRESULT sqext_register_pcre(HSQUIRRELVM v);
+SQRESULT sqext_register_pcre2(HSQUIRRELVM v);
+SQRESULT sqext_register_freetype(HSQUIRRELVM v);
+
+static sq_modules_preload_st modules_preload[] = {
+    {"blob", sqstd_register_bloblib},
+    {"io", sqstd_register_iolib},
+    {"math", sqstd_register_mathlib},
+    {"sys", sqstd_register_systemlib},
+    {"string", sqstd_register_stringlib},
+#ifdef WITH_DAD_EXTRAS
+#ifndef SQUILU_ALONE
+    {"sqlexer", sqext_register_SQLexer},
+    {"gumbo", sqext_register_gumbo},
+    {"base64", sqext_register_base64},
+    {"fpdf", sqext_register_Sq_Fpdf},
+    {"sqlite3", sqext_register_SQLite3},
+    {"bitvector", sqext_register_BitVector}, //depends on sqlite3
+    //{"xdj1", sqext_register_xjd1},
+    {"mix", sqext_register_mix},
+    {"sqfs", sqext_register_sqfs},
+    //{"ipc", sqext_register_ipc},
+    {"socket", sqext_register_sq_socket},
+    {"tweetnacl", sqext_register_tweetnacl},
+    {"pack", sqext_register_pack},
+#ifndef TARGET_IOS
+#ifdef SQ_USE_PCRE
+    {"pcre", sqext_register_pcre},
+#endif // SQ_USE_PCRE
+#if defined(SQ_USE_PCRE2) || defined(SQ_USE_PCRE2_STATIC)
+    {"pcre2", sqext_register_pcre2},
+#endif // SQ_USE_PCRE2
+#ifdef SQ_USE_FREETYPE
+    {"freetype", sqext_register_freetype},
+#endif // SQ_USE_FREETYPE
+    {"blosc", sqext_register_sq_blosc},
+#endif
+#ifdef USE_AXTLS
+    {"axtls", sqext_register_axtls},
+#endif
+#ifdef WITH_FFI
+    {"ffi", sqext_register_ffi},
+#endif
+#ifdef USE_OPENSSL
+    {"openssl", sqext_register_openssl},
+#endif
+    {"zlib", sqext_register_sq_zlib},
+    //{"miniz", sqext_register_sq_miniz},
+    {"mongoose", sqext_register_mongoose},
+    {"importlib", sqrat_register_importlib},
+    {"tinyxml2", sqext_register_tinyxml2},
+#ifndef _WIN32_WCE
+#ifdef WITH_MPDECIMAL
+    {"decimal", sqext_register_decimal},
+#endif
+    {"markdown", sqext_register_markdown},
+#endif
+    {"slave_vm", sqext_register_sq_slave_vm},
+    //{"thread", sqext_register_ThreadObjects},
+    {"dad_utils", sqext_register_dad_utils},
+    //{"sys_extra", sqext_register_sys},
+#ifdef SQ_USE_EASYCURL
+    {"easycurl", sqext_register_EasyCurl},
+#endif // SQ_USE_EASYCURL
+
+#ifdef WITH_FULL_DAD_EXTRAS
+    {"csv_parser", sqext_register_csv_parser},
+    //{"zmq3", sqext_register_sq_zmq3},
+    //{"java", sqext_register_Java},
+#endif
+#ifdef WITH_LIBCLANG
+    {"libclang", sqext_register_libclang},
+#endif
+#ifdef WITH_POSTGRESQL
+    {"postgresql", sqext_register_PostgreSQL},
+#endif
+#ifdef WITH_MYSQL
+    {"mysql", sqext_register_MySQL},
+#endif
+    {"rs232", sqext_register_rs232},
+#ifdef WITH_FLTK
+    {"fltk", sqext_register_fltklib},
+#endif
+#ifdef WITH_DNS_SD
+    {"dns_sd", sqext_register_DNS_SD},
+#endif
+
+#endif //SQUILU_ALONE
+#endif
+    {NULL, NULL}
+};
 
 int main(int argc, char* argv[])
 {
@@ -599,7 +693,10 @@ int main(int argc, char* argv[])
 	_CrtSetAllocHook(MemAllocHook);
 #endif
 
-	v=sq_open(1024);
+#ifndef SQ_OPEN_VM_SIZE
+#define SQ_OPEN_VM_SIZE 1024
+#endif // SQ_OPEN_VM_SIZE
+	v=sq_open(SQ_OPEN_VM_SIZE);
 	sq_setprintfunc(v,printfunc,errorfunc);
 
 	sq_pushroottable(v);
@@ -608,81 +705,14 @@ int main(int argc, char* argv[])
     sq_pushstring(v, argv[0], -1);
     sq_newslot(v,-3,SQFalse);
 */
+    sq_modules_preload_st *mp = modules_preload;
+    sq_preload_modules(v, mp);
 
-	sqstd_register_bloblib(v);
-	sqstd_register_iolib(v);
-	sqstd_register_systemlib(v);
-	sqstd_register_mathlib(v);
-	sqstd_register_stringlib(v);
+    while(mp->module_load_func){
+      mp->module_load_func(v);
+      ++mp;
+    }
 
-#ifdef WITH_DAD_EXTRAS
-#ifndef SQUILU_ALONE
-    sqext_register_SQLexer(v);
-	sqext_register_gumbo(v);
-	sqext_register_base64(v);
-	sqext_register_Sq_Fpdf(v);
-	sqext_register_SQLite3(v);
-	sqext_register_xjd1(v);
-	sqext_register_mix(v);
-	sqext_register_sqfs(v);
-	sqext_register_sq_socket(v);
-	sqext_register_tweetnacl(v);
-	sqext_register_pack(v);
-#ifdef USE_AXTLS
-	sqext_register_axtls(v);
-#endif
-#ifdef WITH_FFI
-	sqext_register_ffi(v);
-#endif
-#ifdef USE_OPENSSL
-	sqext_register_openssl(v);
-#endif
-	sqext_register_sq_zlib(v);
-	//sqext_register_sq_miniz(v);
-	sqext_register_mongoose(v);
-	sqrat_register_importlib(v);
-	sqext_register_tinyxml2(v);
-#ifndef _WIN32_WCE
-#ifdef WITH_MPDECIMAL
-	sqext_register_decimal(v);
-#endif
-	sqext_register_markdown(v);
-#endif
-
-	sqext_register_sq_slave_vm(v);
-	//sqext_register_ThreadObjects(v);
-	sqext_register_dad_utils(v);
-	//sqext_register_sys(v);
-
-#ifdef SQ_USE_EASYCURL
-    sqext_register_EasyCurl(v);
-#endif // SQ_USE_EASYCURL
-
-#ifdef WITH_FULL_DAD_EXTRAS
-	sqext_register_csv_parser(v);
-	//sqext_register_sq_zmq3(v);
-	//sqext_register_Java(v);
-#endif
-
-#ifdef WITH_LIBCLANG
-	sqext_register_libclang(v);
-#endif
-#ifdef WITH_POSTGRESQL
-	sqext_register_PostgreSQL(v);
-#endif
-#ifdef WITH_MYSQL
-	sqext_register_MySQL(v);
-#endif
-	sqext_register_rs232(v);
-#ifdef WITH_FLTK
-	sqext_register_fltklib(v);
-#endif
-#ifdef WITH_DNS_SD
-	sqext_register_DNS_SD(v);
-#endif
-
-#endif //SQUILU_ALONE
-#endif
 	//aux library
 	//sets error handlers
 	sqstd_seterrorhandlers(v);

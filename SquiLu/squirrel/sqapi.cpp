@@ -734,7 +734,7 @@ SQRESULT sq_delete_on_registry_table(HSQUIRRELVM v, SQUserPointer uptr)
     return SQ_ERROR;
 }
 
-SQRESULT sq_preload_modules(HSQUIRRELVM v, sq_modules_preload_st *modules){
+SQRESULT sq_preload_modules(HSQUIRRELVM v, const sq_modules_preload_st *modules){
     int result = 0;
     int saved_top = sq_gettop(v);
     sq_pushliteral(v, SQ_EXTENSIONS_KEY);
@@ -755,6 +755,22 @@ SQRESULT sq_preload_modules(HSQUIRRELVM v, sq_modules_preload_st *modules){
       ++result;
     }
 
+    sq_settop(v, saved_top);
+    return result;
+}
+
+SQFUNCTION sq_get_preload_module_func(HSQUIRRELVM v, const SQChar *module_name)
+{
+    SQFUNCTION result = NULL;
+    int saved_top = sq_gettop(v);
+    sq_pushliteral(v, SQ_EXTENSIONS_KEY);
+    if(sq_getonregistrytable(v) == SQ_OK){
+      sq_pushstring(v, module_name, -1);
+      if(sq_rawget(v, -2) == SQ_OK)
+      {
+          sq_getuserpointer(v, -1, (SQUserPointer*)&result);
+      }
+    }
     sq_settop(v, saved_top);
     return result;
 }

@@ -267,6 +267,25 @@ static SQRESULT sq_slave_vm_constructor (HSQUIRRELVM v)
     return 1;
 }
 
+static SQRESULT sq_slave_vm_preload_lib (HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sq_slave_vm_INSTANCE(v, 1);
+    SQ_GET_STRING(v, 2, module_name);
+
+    SQFUNCTION sq_func = sq_get_preload_module_func(v, module_name);
+    SQBool rc =  sq_func != NULL;
+    if(rc)
+    {
+        sq_pushroottable(svm);
+        sq_func(svm);
+        sq_poptop(svm); //remove root table
+    }
+
+    sq_pushbool(v, rc);
+    return 1;
+}
+
 #ifdef SLAVE_VM_WITH_OS_THREADS
 static SQRESULT checkTryLock(HSQUIRRELVM v, SlaveVM_st *self)
 {
@@ -681,6 +700,7 @@ extern "C" {
         sq_insertfunc(v, _SC("thread_master_state"), sq_slave_vm_thread_master_state, -1, _SC("xi"), SQFalse);
         sq_insertfunc(v, _SC("thread_slave_state"), sq_slave_vm_thread_slave_state, 1, _SC("x"), SQFalse);
 #endif // SLAVE_VM_WITH_OS_THREADS
+        sq_insertfunc(v, _SC("preload_lib"), sq_slave_vm_preload_lib, 2, _SC("xs"), SQFalse);
 
         sq_newslot(v,-3,SQTrue); //push sq_slave_vm class
         return 0;

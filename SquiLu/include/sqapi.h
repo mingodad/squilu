@@ -1,4 +1,5 @@
-SQUIRREL_API_FUNC(SQRESULT, preload_modules, (HSQUIRRELVM v, sq_modules_preload_st *modules))
+SQUIRREL_API_FUNC(SQRESULT, preload_modules, (HSQUIRRELVM v, const sq_modules_preload_st *modules))
+SQUIRREL_API_FUNC(SQFUNCTION, get_preload_module_func, (HSQUIRRELVM v, const SQChar *module_name))
 
 /*vm*/
 SQUIRREL_API_FUNC(HSQUIRRELVM, open, (SQInteger initialstacksize))

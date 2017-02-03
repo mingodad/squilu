@@ -1077,6 +1077,41 @@ SQRESULT sqext_register_pcre2(HSQUIRRELVM v);
 } /*extern "C"*/
 #endif
 
+static sq_modules_preload_st modules_preload[] = {
+    {"blob", sqstd_register_bloblib},
+    {"io", sqstd_register_iolib},
+    {"math", sqstd_register_mathlib},
+    {"sys", sqstd_register_systemlib},
+    {"string", sqstd_register_stringlib},
+    {"base64", sqext_register_base64},
+    {"fpdf", sqext_register_Sq_Fpdf},
+    {"sqlite3", sqext_register_SQLite3},
+    {"zlib", sqext_register_sq_zlib},
+#if defined(SQ_USE_PCRE2) || defined(SQ_USE_PCRE2_STATIC)
+    {"pcre2", sqext_register_pcre2},
+#endif
+#ifdef SQ_USE_CBLOSC
+    {"blosc", sqext_register_sq_blosc},
+#endif // SQ_USE_CBLOSC
+#ifdef WITH_MYSQL
+    {"mysql", sqext_register_MySQL},
+#endif
+#ifdef WITH_POSTGRESQL
+    {"postgresql", sqext_register_PostgreSQL},
+#endif
+    {"sqfs", sqext_register_sqfs},
+    {"mix", sqext_register_mix},
+    {"socket", sqext_register_sq_socket},
+    {"slave_vm", sqext_register_sq_slave_vm},
+#ifdef USE_AXTLS
+    {"axtls", sqext_register_axtls},
+#endif
+#ifdef USE_OPENSSL
+    {"openssl", sqext_register_openssl},
+#endif
+    {NULL, NULL}
+};
+
 void sq_printfunc(HSQUIRRELVM v,const SQChar *s,...)
 {
 	va_list vl;
@@ -1116,38 +1151,13 @@ static HSQUIRRELVM my_new_squirrel(struct mg_context *ctx) {
 
     sq_pushroottable(v);
 
-	sqstd_register_bloblib(v);
-	sqstd_register_iolib(v);
-	sqstd_register_systemlib(v);
-	sqstd_register_mathlib(v);
-	sqstd_register_stringlib(v);
-	sqstd_register_stringlib(v);
-	sqext_register_base64(v);
-	sqext_register_Sq_Fpdf(v);
-	sqext_register_SQLite3(v);
-	sqext_register_sq_zlib(v);
-#if defined(SQ_USE_PCRE2) || defined(SQ_USE_PCRE2_STATIC)
-    sqext_register_pcre2(v);
-#endif
-#ifdef SQ_USE_CBLOSC
-	sqext_register_sq_blosc(v);
-#endif // SQ_USE_CBLOSC
-#ifdef WITH_MYSQL
-	sqext_register_MySQL(v);
-#endif
-#ifdef WITH_POSTGRESQL
-	sqext_register_PostgreSQL(v);
-#endif
-	sqext_register_sqfs(v);
-	sqext_register_mix(v);
-	sqext_register_sq_socket(v);
-	sqext_register_sq_slave_vm(v);
-#ifdef USE_AXTLS
-	sqext_register_axtls(v);
-#endif
-#ifdef USE_OPENSSL
-	sqext_register_openssl(v);
-#endif
+    sq_modules_preload_st *mp = modules_preload;
+    sq_preload_modules(v, mp);
+
+    while(mp->module_load_func){
+      mp->module_load_func(v);
+      ++mp;
+    }
 
     sq_pushstring(v,sq_http_request_TAG, -1);
     sq_newclass(v,SQFalse);
