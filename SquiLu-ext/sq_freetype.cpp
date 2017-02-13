@@ -207,7 +207,7 @@ static SQRESULT sq_freetype_face_releasehook(SQUserPointer p, SQInteger /*size*/
 	FT_Face self = ((FT_Face)p);
 	if(self)
     {
-        FT_Done_Face(self);
+        dlFT_Done_Face(self);
     }
 	return 1;
 }
