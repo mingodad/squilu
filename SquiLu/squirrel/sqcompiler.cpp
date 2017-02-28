@@ -886,7 +886,7 @@ public:
             id = _fs->CreateString(_lex.data->svalue);
         }
         //else id = {}; //old compilers do not allow this
-        else id._type = OT_NULL;
+        else id._type = OT_NULL; //segfault without it with gcc -O3
 
 		LogicalOrExp();
 		switch(_token)  {
