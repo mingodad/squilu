@@ -411,7 +411,7 @@ static const SQChar *sqstd_rex_matchnode(SQRex* exp,SQRexNode *node,const SQChar
 				break;
 			nmaches++;
 			good=s;
-			if(greedystop) {
+			if(greedystop && !sqstd_rex_matchclass(exp,&exp->_nodes[node->left],*s)) {
 				//checks that 0 matches satisfy the expression(if so skips)
 				//if not would always stop(for instance if is a '?')
 				if(greedystop->type != OP_GREEDY ||
