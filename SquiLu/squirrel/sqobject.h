@@ -223,18 +223,16 @@ struct SQObjectPtr : public SQObject
 		_type=OT_NULL;
 		_unVal.pUserPointer=NULL;
 	}
+	#define _constructWith(o){_type = o._type; _unVal = o._unVal; __AddRef(_type,_unVal);}
 	SQObjectPtr(const SQObjectPtr &o)
 	{
-		_type = o._type;
-		_unVal = o._unVal;
-		__AddRef(_type,_unVal);
+	    _constructWith(o);
 	}
 	SQObjectPtr(const SQObject &o)
 	{
-		_type = o._type;
-		_unVal = o._unVal;
-		__AddRef(_type,_unVal);
+	    _constructWith(o);
 	}
+	#undef _constructWith
 	_REF_TYPE_DECL(OT_TABLE,SQTable,Table)
 	_REF_TYPE_DECL(OT_CLASS,SQClass,Class)
 	_REF_TYPE_DECL(OT_INSTANCE,SQInstance,Instance)
@@ -275,7 +273,7 @@ struct SQObjectPtr : public SQObject
 		__Release(_type,_unVal);
 	}
 
-	inline SQObjectPtr& operator=(const SQObjectPtr& obj)
+	inline SQObjectPtr& _assignThis(const SQObject& obj)
 	{
 		//saving temporarily the old value for cases
 		//where we are assigning a inner value to the old value
@@ -289,16 +287,13 @@ struct SQObjectPtr : public SQObject
 		if(isRefCounted) __ReleaseRefCounted(old_unVal);
 		return *this;
 	}
+	inline SQObjectPtr& operator=(const SQObjectPtr& obj)
+	{
+	    return _assignThis(obj);
+	}
 	inline SQObjectPtr& operator=(const SQObject& obj)
 	{
-		SQObjectValue old_unVal;
-		bool isRefCounted = ISREFCOUNTED(_type);
-		if(isRefCounted) old_unVal = _unVal;
-		_unVal = obj._unVal;
-		_type = obj._type;
-		__AddRef(_type,_unVal);
-		if(isRefCounted) __ReleaseRefCounted(old_unVal);
-		return *this;
+	    return _assignThis(obj);
 	}
 
 	inline void Null()
