@@ -192,7 +192,7 @@
 				<Option output="bin/squilu-fltk.exe" prefix_auto="1" extension_auto="0" />
 				<Option object_output="obj/Release-win32/" />
 				<Option type="1" />
-				<Option compiler="gcc" />
+				<Option compiler="gnu_gcc_mingw32_compiler" />
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Wall" />
@@ -372,9 +372,10 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-fomit-frame-pointer" />
+					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
 					<Add option="-Wall" />
-					<Add option="-flto" />
 					<Add option="-DNDEBUG=1" />
 					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
 					<Add option="-D_SQ64=1" />
@@ -387,7 +388,6 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add option="-flto" />
 					<Add library="pthread" />
 					<Add library="rt" />
 					<Add library="dl" />
@@ -410,10 +410,8 @@
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
 					<Add option="-Wall" />
-					<Add option="-DWITH_FLTK=1" />
 					<Add option="-DNDEBUG=1" />
 					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
-					<Add option="-DPROFILE_SQVM22=1" />
 					<Add option="-D_SQ64=1" />
 					<Add option="-DCONFIG_64=1" />
 					<Add option="-DHAS_UNIX_DOMAIN_SOCKETS=1" />
@@ -421,6 +419,8 @@
 					<Add option="-DWITH_MYSQL=1" />
 					<Add option="-DWITH_POSTGRESQL=1" />
 					<Add option="-DWITH_DNS_SD2=1" />
+					<Add option="-DPROFILE_SQVM22=1" />
+					<Add option="-DWITH_FLTK=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 					<Add directory="../fltk" />
 					<Add directory="../libharu/include" />
@@ -544,7 +544,6 @@
 					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
 					<Add option="-Wall" />
-					<Add option="-flto" />
 					<Add option="-DWITH_FLTK=1" />
 					<Add option="-DNDEBUG=1" />
 					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
@@ -560,7 +559,6 @@
 					<Add directory="../flu" />
 				</Compiler>
 				<Linker>
-					<Add option="-flto" />
 					<Add library="pthread" />
 					<Add library="rt" />
 					<Add library="dl" />
@@ -1134,6 +1132,8 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fno-strict-aliasing" />
+			<Add option="-DSQ_MAX_FUNC_STACKSIZE=2048" />
+			<Add option="-DSQ_OPEN_VM_SIZE=2048" />
 			<Add option="-DSQ_USE_PCRE=1" />
 			<Add option="-DSQ_USE_FREETYPE=1" />
 			<Add option="-DSQ_USE_PCRE2_STATIC=1" />
@@ -1153,6 +1153,7 @@
 			<Add option="-DNO_EXCEPTION_KEY_NOT_FOUND0=1" />
 			<Add option="-DNO_GARBAGE_COLLECTOR00=1" />
 			<Add option="-DTHREADSAFE=1" />
+			<Add option="-DSQLITE_ENABLE_NULL_TRIM=1" />
 			<Add option="-DSQLITE_USE_DECIMAL2=1" />
 			<Add option="-DSQLITE_DEFAULT_FILE_FORMAT=4" />
 			<Add option="-DSQLITE_DEFAULT_AUTOVACUUM=1" />
@@ -1175,6 +1176,7 @@
 			<Add option="-DSQLITE_ENABLE_PREUPDATE_HOOK=1" />
 			<Add option="-DSQLITE_ENABLE_EXPLAIN_COMMENTS=1" />
 			<Add option="-DSQLITE_USE_ATTACHED_DBS2=1" />
+			<Add option="-DSQLITE_USE_ALLOCA=1" />
 			<Add option="-DUSE_BITVECTOR=1" />
 			<Add option="-DNO_POPEN=1" />
 			<Add option="-DNO_SSL_DL=1" />
@@ -1214,7 +1216,8 @@
 			<Add directory="../../java/jdk/include/linux" />
 			<Add directory="../liblmdb" />
 			<Add directory="../../c/A_libs/c-blosc/blosc" />
-			<Add directory="../../c/A_libs/pcre2-10.20/src" />
+			<Add directory="../../c/A_libs/pcre2-10.22/src" />
+			<Add directory="/usr/include/freetype2" />
 		</Compiler>
 		<Linker>
 			<Add library="m" />
@@ -1224,7 +1227,7 @@
 			<Add library="ffi" />
 			<Add library="../unql/libunql.a" />
 			<Add library="../../c/A_libs/c-blosc/build/blosc/libblosc.a" />
-			<Add library="../../c/A_libs/pcre2-10.20/.libs/libpcre2-8.a" />
+			<Add library="../../c/A_libs/pcre2-10.22/.libs/libpcre2-8.a" />
 			<Add directory="lib" />
 			<Add directory="../myaxtls" />
 			<Add directory="../mpdecimal" />

@@ -26,6 +26,7 @@ CFLAGS = $(INC) -O3 -Wall -fno-strict-aliasing  \
     -DSQLITE_ENABLE_EXTENSION_FUNCTIONS=1 \
     -DSQLITE_ENABLE_FTS3_PARENTHESIS=1 \
     -DSQLITE_ENABLE_FTS4=1 \
+    -DSQLITE_ENABLE_FTS5=1 \
     -DSQLITE_ENABLE_RTREE=1 \
     -DSQLITE_ENABLE_STAT4=1 \
     -DSQLITE_ENABLE_UNLOCK_NOTIFY=1 \
@@ -33,6 +34,7 @@ CFLAGS = $(INC) -O3 -Wall -fno-strict-aliasing  \
     -DSQLITE_OMIT_TCL_VARIABLE=1 \
     -DSQLITE_SOUNDEX=1 \
     -DSQLITE_USE_URI=1 \
+    -DUSE_BITVECTOR=1 \
     -DSQ_SUBLATIN=1 \
     -DSQUSEDECIMAL64x=1 \
     -DSQUSEDOUBLE=1 \
@@ -100,6 +102,7 @@ SOURCES= sq/sq.c  \
     ../SquiLu-ext/sq_slave_vm.cpp  \
     ../SquiLu-ext/sq_socket.cpp  \
     ../SquiLu-ext/sq_sqlite3.cpp  \
+    ../SquiLu-ext/sq_bitvector.cpp  \
     ../SquiLu-ext/sq_tinyxml2.cpp  \
     ../SquiLu-ext/sq_zlib.cpp  \
     ../SquiLu-ext/tinyxml2.cpp \
