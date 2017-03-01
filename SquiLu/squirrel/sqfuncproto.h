@@ -46,16 +46,11 @@ struct SQLocalVarInfo
 {
 	SQLocalVarInfo():_start_op(0),_end_op(0),_pos(0),
         _type(_VAR_ANY),_scope(0) {}
-	SQLocalVarInfo(const SQLocalVarInfo &lvi)
-	{
-		_name=lvi._name;
-		_type_name=lvi._type_name;
-		_start_op=lvi._start_op;
-		_end_op=lvi._end_op;
-		_pos=lvi._pos;
-		_type=lvi._type;
-		_scope=lvi._scope;
-	}
+	SQLocalVarInfo(const SQLocalVarInfo &lvi):
+	    _name(lvi._name),_type_name(lvi._type_name),
+	    _start_op(lvi._start_op),_end_op(lvi._end_op),
+	    _pos(lvi._pos),_type(lvi._type),_scope(lvi._scope)
+	{}
 	SQObjectPtr _name;
 	SQObjectPtr _type_name;
 	SQUnsignedInteger _start_op;

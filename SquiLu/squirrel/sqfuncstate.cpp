@@ -28,25 +28,13 @@ void DumpLiteral(SQObjectPtr &o)
 	}
 }
 
-SQFuncState::SQFuncState(SQSharedState *ss,SQFuncState *parent,CompilerErrorFunc efunc,void *ed)
+SQFuncState::SQFuncState(SQSharedState *ss,SQFuncState *parent,CompilerErrorFunc efunc,void *ed):
+    _returnexp(0),_stacksize(0),_nliterals(0),_parent(parent),_lastline(0),_traps(0),
+    _outers(0),_optimization(true),_varparams(false),_bgenerator(false),_sharedstate(ss),
+    _errfunc(efunc),_errtarget(ed),_ss(ss)
 {
-		_nliterals = 0;
 		_literals = SQTable::Create(ss,0);
 		_strings =  SQTable::Create(ss,0);
-		_sharedstate = ss;
-		_lastline = 0;
-		_optimization = true;
-		_parent = parent;
-		_stacksize = 0;
-		_traps = 0;
-		_returnexp = 0;
-		_varparams = false;
-		_errfunc = efunc;
-		_errtarget = ed;
-		_bgenerator = false;
-		_outers = 0;
-		_ss = ss;
-
 }
 
 void SQFuncState::Error(const SQChar *err)

@@ -118,15 +118,16 @@ public:
 
 struct SQInstance : public SQDelegable
 {
+private:
 	void Init(SQSharedState *ss);
 	SQInstance(SQSharedState *ss, SQClass *c, SQInteger memsize);
 	SQInstance(SQSharedState *ss, SQInstance *c, SQInteger memsize);
 public:
-	static SQInstance* Create(SQSharedState *ss,SQClass *theclass) {
+	static SQInstance* Create(SQSharedState *ss, SQClass *theclass) {
 
 		SQInteger size = calcinstancesize(theclass);
 		SQInstance *newinst = (SQInstance *)SQ_MALLOC(size);
-		new (newinst) SQInstance(ss, theclass,size);
+		new (newinst) SQInstance(ss, theclass, size);
 		if(theclass->_udsize) {
 			newinst->_userpointer = ((unsigned char *)newinst) + (size - theclass->_udsize);
 		}

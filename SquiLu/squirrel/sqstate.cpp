@@ -608,11 +608,9 @@ void RefTable::AllocNodes(SQUnsignedInteger size)
 * http://www.lua.org/source/4.0.1/src_lstring.c.html
 */
 
-SQStringTable::SQStringTable(SQSharedState *ss)
+SQStringTable::SQStringTable(SQSharedState *ss):_slotused(0), _sharedstate(ss)
 {
-	_sharedstate = ss;
 	AllocNodes(4);
-	_slotused = 0;
 }
 
 SQStringTable::~SQStringTable()

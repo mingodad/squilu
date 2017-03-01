@@ -7,12 +7,11 @@ see copyright notice in squirrel.h
 #include "sqfuncproto.h"
 #include "sqclosure.h"
 
-SQTable::SQTable(SQSharedState *ss,SQInteger nInitialSize)
+SQTable::SQTable(SQSharedState *ss,SQInteger nInitialSize):_usednodes(0)
 {
 	SQInteger pow2size=MINPOWER2;
 	while(nInitialSize>pow2size)pow2size=pow2size<<1;
 	AllocNodes(pow2size);
-	_usednodes = 0;
 	_delegate = NULL;
 	INIT_CHAIN();
 	ADD_TO_CHAIN(&_sharedstate->_gc_chain,this);

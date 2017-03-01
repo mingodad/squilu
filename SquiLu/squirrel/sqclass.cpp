@@ -10,14 +10,9 @@
 
 
 
-SQClass::SQClass(SQSharedState *ss,SQClass *base)
+SQClass::SQClass(SQSharedState *ss,SQClass *base):
+    _base(base),_typetag(0),_hook(NULL),_constructoridx(-1),_destructoridx(-1),_udsize(0),_locked(false)
 {
-	_base = base;
-	_typetag = 0;
-	_hook = NULL;
-	_udsize = 0;
-	_locked = false;
-	_constructoridx = _destructoridx = -1;
 	if(_base) {
 		_constructoridx = _base->_constructoridx;
 		_destructoridx = _base->_destructoridx;

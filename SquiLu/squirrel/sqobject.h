@@ -88,7 +88,7 @@ struct SQRefCounted
 {
 	SQUnsignedInteger _uiRef;
 	struct SQWeakRef *_weakref;
-	SQRefCounted() { _uiRef = 0; _weakref = NULL; }
+	SQRefCounted(): _uiRef(0), _weakref(NULL) {}
 	virtual ~SQRefCounted();
 	SQWeakRef *GetWeakRef(SQObjectType type);
 	virtual void Release()=0;
