@@ -296,17 +296,17 @@ struct SQObjectPtr : public SQObject
 	    return _assignThis(obj);
 	}
 
+	inline bool isNull()
+	{
+		return _type == OT_NULL;
+	}
 	inline void Null()
 	{
-		if(_type != OT_NULL){
+		if(!isNull()){
 			__Release(_type,_unVal);
 			_type = OT_NULL;
 			_unVal.raw = (SQRawObjectVal)NULL;
 		}
-	}
-	inline bool isNull()
-	{
-		return _type == OT_NULL;
 	}
 	SQObjectPtr operator[](SQInteger nidx);
 	SQObjectPtr operator[](const SQChar *key);
