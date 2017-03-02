@@ -371,7 +371,7 @@ static SQRESULT  _system_sleep(HSQUIRRELVM v)
 #ifndef _WIN32_WCE
 #include <sys/timeb.h>
 
-#if !(defined(TARGET_IOS) || defined(__APPLE__))
+#if !(defined(TARGET_IOS) || defined(__APPLE__) || defined(_WIN32))
 static int sqftime(struct timeb *tp)
 {
 	struct timespec ts;

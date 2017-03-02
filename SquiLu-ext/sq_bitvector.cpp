@@ -4,6 +4,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>  /* for malloc */
+#ifdef _WIN32
+#include <malloc.h>  /* for alloc */
+#endif
 #include <assert.h>  /* for a few sanity tests */
 
 #include "sqlite3.h"

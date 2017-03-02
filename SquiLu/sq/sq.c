@@ -624,7 +624,9 @@ static sq_modules_preload_st modules_preload[] = {
 #ifdef SQ_USE_FREETYPE
     {"freetype", sqext_register_freetype},
 #endif // SQ_USE_FREETYPE
+#ifdef SQ_USE_BLOSC
     {"blosc", sqext_register_sq_blosc},
+#endif // SQ_USE_BLOSC
 #endif
 #ifdef USE_AXTLS
     {"axtls", sqext_register_axtls},

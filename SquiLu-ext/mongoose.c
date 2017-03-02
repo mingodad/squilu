@@ -72,6 +72,7 @@
 #include <process.h>
 #include <direct.h>
 #include <io.h>
+typedef const char *SOCK_OPT_TYPE;
 #else // _WIN32_WCE
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -1496,7 +1497,7 @@ static pid_t spawn_process(struct mg_connection *conn, const char *prog,
   if (CreateProcessA(NULL, cmdline, NULL, NULL, TRUE,
         CREATE_NEW_PROCESS_GROUP, envblk, dir, &si, &pi) == 0) {
     cry(conn, "%s: CreateProcess(%s): %d",
-        __func__, cmdline, ERRNO);
+        __func__, cmdline, (int)ERRNO);
     pi.hProcess = (pid_t) -1;
   }
 
