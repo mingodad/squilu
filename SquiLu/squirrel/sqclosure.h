@@ -10,16 +10,16 @@ struct SQClass;
 struct SQClosure : public CHAINABLE_OBJ
 {
 private:
-    SQClosure(SQSharedState *ss,SQFunctionProto *func){_function = func; __ObjAddRef(_function); _base = NULL; INIT_CHAIN();ADD_TO_CHAIN(&_ss(this)->_gc_chain,this); _env = NULL; _root=NULL;}
+    SQClosure(SQSharedState *ss,SQFunctionProto *func, SQWeakRef *root):
+        _env(NULL),_root(root),_base(NULL),_function(func)
+    { __ObjAddRef(_function); __ObjAddRef(_root); INIT_CHAIN();ADD_TO_CHAIN(&_ss(this)->_gc_chain,this); }
 public:
     static SQClosure *Create(SQSharedState *ss,SQFunctionProto *func,SQWeakRef *root){
         SQInteger size = _CALC_CLOSURE_SIZE(func);
         SQClosure *nc=(SQClosure*)SQ_MALLOC(size);
-        new (nc) SQClosure(ss,func);
+        new (nc) SQClosure(ss,func,root);
         nc->_outervalues = (SQObjectPtr *)(nc + 1);
         nc->_defaultparams = &nc->_outervalues[func->_noutervalues];
-        nc->_root = root;
-        __ObjAddRef(nc->_root);
 		_CONSTRUCT_VECTOR(SQObjectPtr,func->_noutervalues,nc->_outervalues);
 		_CONSTRUCT_VECTOR(SQObjectPtr,func->_ndefaultparams,nc->_defaultparams);
 		return nc;
