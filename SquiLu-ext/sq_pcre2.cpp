@@ -184,6 +184,23 @@ if(!dlpcre2_config) return false;
 
 #endif // SQ_USE_PCRE2_STATIC
 
+static SQInteger calc_new_size_by_max_len(SQInteger start_pos, SQInteger max_len, SQInteger curr_size)
+{
+    SQInteger new_size;
+    if(start_pos < 0)
+    {
+        new_size = curr_size + start_pos;
+        start_pos = new_size < 0 ? 0 : new_size;
+    }
+    if(max_len > 0) new_size = start_pos + max_len;
+    else new_size = curr_size + max_len;
+    if( (new_size < curr_size) && (new_size > start_pos) )
+    {
+        return new_size;
+    }
+    return curr_size;
+}
+
 typedef int (*pre2_callout_func_t)(pcre2_callout_block *, void *);
 
 struct sqpcre2_st {
@@ -267,6 +284,12 @@ static SQRESULT sq_pcre2_exec(HSQUIRRELVM v)
     SQ_GET_STRING(v, 2, subject);
     SQ_OPT_INTEGER(v, 4, start_offset, 0);
     SQ_OPT_INTEGER(v, 5, options, 0);
+    SQ_OPT_INTEGER(v, 6, max_len, 0);
+
+    if(max_len)
+    {
+        subject_size = calc_new_size_by_max_len(start_offset, max_len, subject_size);
+    }
 
     int rc = dlpcre2_match(
         self->re,             /* the compiled pattern */
@@ -309,6 +332,12 @@ static SQRESULT sq_pcre2_match(HSQUIRRELVM v)
     SQ_GET_STRING(v, 2, subject);
     SQ_OPT_INTEGER(v, 3, start_offset, 0);
     SQ_OPT_INTEGER(v, 4, options, 0);
+    SQ_OPT_INTEGER(v, 5, max_len, 0);
+
+    if(max_len)
+    {
+        subject_size = calc_new_size_by_max_len(start_offset, max_len, subject_size);
+    }
 
     int rc = dlpcre2_match(
         self->re,             /* the compiled pattern */
@@ -337,9 +366,15 @@ static SQRESULT sq_pcre2_gmatch(HSQUIRRELVM v)
     SQ_GET_STRING(v, 2, subject);
     SQ_OPT_INTEGER(v, 4, start_offset, 0);
     SQ_OPT_INTEGER(v, 5, options, 0);
+    SQ_OPT_INTEGER(v, 6, max_len, 0);
 
     SQInteger rc;
     bool isFirst = true;
+
+    if(max_len)
+    {
+        subject_size = calc_new_size_by_max_len(start_offset, max_len, subject_size);
+    }
 
     while( (rc = dlpcre2_match(
         self->re,             /* the compiled pattern */
@@ -383,6 +418,12 @@ static SQRESULT sq_pcre2_gsub(HSQUIRRELVM v)
     SQ_GET_STRING(v, 2, str);
     SQ_OPT_INTEGER(v, 4, start_offset, 0);
     SQ_OPT_INTEGER(v, 5, options, 0);
+    SQ_OPT_INTEGER(v, 6, max_len, 0);
+
+    if(max_len)
+    {
+        str_size = calc_new_size_by_max_len(start_offset, max_len, str_size);
+    }
 
 	SQBlob blob(0,8192);
 	const int replacement_idx = 3;
@@ -689,10 +730,10 @@ static SQRegFunction sq_pcre2_methods[] =
 {
 	_DECL_FUNC(constructor,-2,_SC(".sn")),
 	_DECL_FUNC(jit_compile,-1,_SC("xi")),
-	_DECL_FUNC(exec,-3,_SC("xsann")),
-	_DECL_FUNC(match,-2,_SC("xsnn")),
-	_DECL_FUNC(gmatch,-3,_SC("xscnn")),
-	_DECL_FUNC(gsub,-3,_SC("xs s|c|a|t nn")),
+	_DECL_FUNC(exec,-3,_SC("xsannn")),
+	_DECL_FUNC(match,-2,_SC("xsnnn")),
+	_DECL_FUNC(gmatch,-3,_SC("xscnnn")),
+	_DECL_FUNC(gsub,-3,_SC("xs s|c|a|t nnn")),
 	_DECL_FUNC(_typeof,1,_SC("x")),
     _DECL_FUNC(version,1,_SC(".")),
     _DECL_FUNC(loadlib,2,_SC(".s")),
