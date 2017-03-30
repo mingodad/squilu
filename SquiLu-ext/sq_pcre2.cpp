@@ -33,6 +33,7 @@ local library_functions = [
     ["int", "pcre2_set_recursion_limit", "pcre2_match_context *mcontext, uint32_t value"],
     ["int", "pcre2_set_callout", "pcre2_match_context *, int (*)(pcre2_callout_block *, void *), void *"],
     ["int", "pcre2_substitute", "const pcre2_code *, PCRE2_SPTR, PCRE2_SIZE, PCRE2_SIZE, uint32_t, pcre2_match_data *, pcre2_match_context *, PCRE2_SPTR, PCRE2_SIZE, PCRE2_UCHAR *, PCRE2_SIZE *"],
+    //["int", "pcre2_get_error_message", "int errorcode, PCRE2_UCHAR *buffer, PCRE2_SIZE bufflen"],
 
     //next entry should be the last one
     //to make valid the test made on load_library function
@@ -355,8 +356,11 @@ static SQRESULT sq_pcre2_match(HSQUIRRELVM v)
         else sq_pushstring(v, subject + start_pos, end_pos - start_pos);
         return 1;
     }
-    sq_pushbool(v,SQFalse);
-    return 1;
+    if(rc < -2) //only no matching errore
+    {
+        return sq_throwerror(v, _SC("pcre2_match error %d"), (int)rc);
+    }
+    return 0;
 }
 
 static SQRESULT sq_pcre2_gmatch(HSQUIRRELVM v)
@@ -404,10 +408,21 @@ static SQRESULT sq_pcre2_gmatch(HSQUIRRELVM v)
         }
         i = sq_call(v, param_count, SQFalse, SQTrue);
         if(i < 0) return i;
+        SQObjectType rtype = sq_gettype(v, -1);
+        SQBool keep_matching = SQFalse;
+        if(rtype == OT_BOOL) {
+            sq_getbool(v, -1, &keep_matching);
+        }
+
+        if(!keep_matching) break;
+
         start_offset = self->ovector[(rc*2)-1]; //the last match + 1
     }
-    sq_pushbool(v,SQFalse);
-    return 1;
+    if(rc < -2) //only no matching errore
+    {
+        return sq_throwerror(v, _SC("pcre2_match error %d"), (int)rc);
+    }
+    return 0;
 }
 
 #include "sqstdblobimpl.h"
@@ -557,6 +572,11 @@ static SQRESULT sq_pcre2_gsub(HSQUIRRELVM v)
 	    }
 		start_offset = self->ovector[(rc*2)-1]; //the last match + 1
 	}
+
+    if(rc < -2) //only no matching errore
+    {
+        return sq_throwerror(v, _SC("pcre2_match error %d"), (int)rc);
+    }
 
     if(str_size) blob.Write(str+start_offset, str_size-start_offset);
 	sq_pushstring(v, (const SQChar *)blob.GetBuf(), blob.Len());

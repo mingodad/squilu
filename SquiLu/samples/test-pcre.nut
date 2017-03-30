@@ -1,11 +1,14 @@
 //auto str = " this code 10.89.973.8.3.00.34-8 is special 23.456-2 car";
 auto str = " this code 10.89.973.8.3.00.34/8 is special 23.456/2 car";
 
+print("loadlib", sqpcre.loadlib("/libs/pcre-8.38/.libs/libpcre.so.1.2.6"));
+//print("loadlib", sqpcre.loadlib("/libs/pcre2-10.20/.libs/libpcre2-8.so"));
+
 //auto pcre = sqpcre(@"(\d+[.,\-])+\d+");
 //auto pcre = sqpcre(@"(?:\d+[.,\-/])+\d+");
 auto pcre = sqpcre(@"(?:\d+[.,\-/])+\d+");
 pcre.study(pcre.STUDY_JIT_COMPILE);
-print(pcre);
+print(pcre, typeof(pcre));
 print(pcre.version());
 
 print("match", pcre.match(str));

@@ -273,8 +273,11 @@ static SQRESULT sq_pcre_match(HSQUIRRELVM v)
         else sq_pushstring(v, subject + start_pos, end_pos - start_pos);
         return 1;
     }
-    sq_pushbool(v,SQFalse);
-    return 1;
+    if(rc < -2) //only no matching errore
+    {
+        return sq_throwerror(v, _SC("pcre2_match error %d"), (int)rc);
+    }
+    return 0;
 }
 
 static SQRESULT sq_pcre_gmatch(HSQUIRRELVM v)
@@ -323,10 +326,22 @@ static SQRESULT sq_pcre_gmatch(HSQUIRRELVM v)
         }
         i = sq_call(v, rc+1, SQFalse, SQTrue);
         if(i < 0) return i;
+
+        SQObjectType rtype = sq_gettype(v, -1);
+        SQBool keep_matching = SQFalse;
+        if(rtype == OT_BOOL) {
+            sq_getbool(v, -1, &keep_matching);
+        }
+
+        if(!keep_matching) break;
+
         start_offset = self->ovector[(rc*2)-1]; //the last match + 1
     }
-    sq_pushbool(v,SQFalse);
-    return 1;
+    if(rc < -2) //only no matching errore
+    {
+        return sq_throwerror(v, _SC("pcre2_match error %d"), (int)rc);
+    }
+    return 0;
 }
 
 #include "sqstdblobimpl.h"
@@ -477,6 +492,11 @@ static SQRESULT sq_pcre_gsub(HSQUIRRELVM v)
 	    }
 		start_offset = self->ovector[(rc*2)-1]; //the last match + 1
 	}
+
+    if(rc < -2) //only no matching errore
+    {
+        return sq_throwerror(v, _SC("pcre_match error %d"), (int)rc);
+    }
 
     if(str_size) blob.Write(str+start_offset, str_size-start_offset);
 	sq_pushstring(v, (const SQChar *)blob.GetBuf(), blob.Len());
