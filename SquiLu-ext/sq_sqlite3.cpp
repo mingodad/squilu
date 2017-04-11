@@ -1161,15 +1161,18 @@ static SQRESULT sle2array(HSQUIRRELVM v, const unsigned char *p, size_t sle_size
             }
             else if(size == 249)
             {
-                size = 2288 + (IBYTE_MAX * (*p++)) + (*p++);
+                const unsigned char *p1 = p++, *p2 = p++;
+                size = 2288 + (IBYTE_MAX * (*p1)) + (*p2);
             }
             else if(size == 250)
             {
-                size = ((*p++)<<16) + ((*p++)<<8) + (*p++);
+                const unsigned char *p1 = p++, *p2 = p++, *p3 = p++;
+                size = ((*p1)<<16) + ((*p2)<<8) + (*p3);
             }
             else if(size == 251)
             {
-                size = ((*p++)<<24) + ((*p++)<<16) + ((*p++)<<8) + (*p++);
+                const unsigned char *p1 = p++, *p2 = p++, *p3 = p++, *p4 = p++;
+                size = ((*p1)<<24) + ((*p2)<<16) + ((*p3)<<8) + (*p4);
             }
             else if(size == SLEMARK)
             {
