@@ -1323,6 +1323,7 @@ public:
 					* for the latter. If we are not using the variable as a dref expr, generate
 					* the _OP_GET instruction.
 					*/
+					if(CheckNameIsType(id)) EatTemplateInitialization();
 					_fs->PushTarget(0);
 					_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(id));
 					if(NeedGet()) {
@@ -1560,6 +1561,10 @@ public:
 					//isprivate = true;
 					Lex();
 				}
+				else if(_token == TK_PROTECTED) {
+					//isprivate = true;
+					Lex();
+				}
 				else if(_token == TK_INLINE) {
 					Lex();
 				}
@@ -1604,6 +1609,7 @@ function_params_decl:
                 {
                     CheckClassMemberExists(member_names, obj_id, false);
                     addClassMember = 0;
+                    EatTemplateInitialization();
                     switch(_token)
                     {
                         case _SC('('): //C/C++ style function declaration
@@ -1721,6 +1727,16 @@ function_params_decl:
 	    LocalDeclStatement();
 	    _is_parsing_extern = false;
 	}
+	void EatTemplateInitialization()
+	{
+        //C++/Java template instantiation
+        if(_token == _SC('<')) {
+            Lex();
+            ExpectTypeToken();
+            if(_token != _SC('>')) Error(_SC("template instantiation declaration expected <TYPE>"));
+            Lex();
+        }
+	}
 	#define CHECK_REF_DECLARATION(tk) if(tk == _SC('&')){is_reference_declaration = true;Lex();}
 	void LocalDeclStatement()
 	{
@@ -1732,6 +1748,7 @@ function_params_decl:
 		//bool is_instance_declaration = _token == TK_IDENTIFIER;
 		SQInteger declType = _token;
 		Lex();
+		EatTemplateInitialization();
 		if( _token == TK_FUNCTION) {
 			Lex();
 			varname = Expect(TK_IDENTIFIER);
@@ -1783,6 +1800,7 @@ function_params_decl:
             }
 
 			CheckLocalNameScope(varname, _scope.nested);
+			EatTemplateInitialization();
 			if(_token == _SC('(')) {
                 //C/C++ style function declaration
                 Lex();
@@ -2362,6 +2380,7 @@ error:
             switch(_token)
             {
             case TK_PRIVATE:
+            case TK_PROTECTED:
             case TK_PUBLIC:
             Lex(); //ignore, accepted only to compile a subset of C++
             }
@@ -2472,6 +2491,7 @@ error:
                     //ignore custom types for now
                     param_type_name = _stringval(paramname);
                     CHECK_REF_DECLARATION(_token);
+                    EatTemplateInitialization();
                     paramname = Expect(TK_IDENTIFIER);
                 }
 				funcstate->AddParameter(paramname, _scope.nested+1, is_reference_declaration ? _VAR_REFERENCE : _VAR_ANY);
