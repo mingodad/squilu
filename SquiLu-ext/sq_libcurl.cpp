@@ -241,7 +241,7 @@ static SQRESULT EasyCurl_create_instance(HSQUIRRELVM v, CURL *EasyCurl, int free
 }
 
 static SQRESULT sq_EasyCurl_constructor(HSQUIRRELVM v){
-    if(!load_library(dynamicLibName)) return sq_throwerror(v, _SC("Failed to load libpcre !"));
+    if(!load_library(dynamicLibName)) return sq_throwerror(v, _SC("Failed to load libcurl !"));
     CURL *curl = dlcurl_easy_init();
 	return EasyCurl_constructor(v, 1, curl, 1);
 }
@@ -633,7 +633,7 @@ static SQRegFunction EasyCurl_obj_funcs[]={
 	_DECL_EASYCURL_FUNC(wait_on_socket, 3, _SC("x bi")),
 	_DECL_EASYCURL_FUNC(escape, 2, _SC("xs")),
 	_DECL_EASYCURL_FUNC(unescape, 2, _SC("xs")),
-    _DECL_EASYCURL_FUNC(loadlib,2,_SC(".s")),
+	_DECL_EASYCURL_FUNC(loadlib,2,_SC(".s")),
 	{0,0}
 };
 #undef _DECL_EASYCURL_FUNC
