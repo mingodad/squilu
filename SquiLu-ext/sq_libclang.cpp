@@ -118,10 +118,10 @@ static clang_getResultType_t dlclang_getResultType = 0;
 
 static const char *dynamicLibName = DYNLIB_FOR_OS(libclang);
 
-static bool load_dynamicLib()
+static bool load_dynamicLib(const char *libname)
 {
     if(dlclang_createIndex) return true;
-    if(dynamicLib.open(dynamicLibName))
+    if(dynamicLib.open(libname))
     {
         //@write_dynamic_functions_load();
 // generated-code:begin
@@ -222,7 +222,7 @@ static SQRESULT sq_libclang_releasehook(SQUserPointer p, SQInteger size, void */
 static SQRESULT sq_libclang_constructor(HSQUIRRELVM v)
 {
     //SQ_FUNC_VARS_NO_TOP(v);
-    if(!load_dynamicLib()) return sq_throwerror(v, _SC("Failed to load libclang !"));
+    if(!load_dynamicLib(dynamicLibName)) return sq_throwerror(v, _SC("Failed to load libclang !"));
 
     MyLibClang *self = (MyLibClang *)sq_malloc(sizeof(MyLibClang));
     memset(self, 0, sizeof(MyLibClang));
@@ -430,12 +430,21 @@ cleanup:
 	return rc;
 }
 
+static SQRESULT sq_libclang_loadlib(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS_NO_TOP(v);
+	SQ_GET_STRING(v, 2, libname);
+	sq_pushbool(v, load_dynamicLib(libname));
+	return 1;
+}
+
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_libclang_##name,nparams,tycheck}
 static SQRegFunction sq_libclang_methods[] =
 {
 	_DECL_FUNC(constructor, 1, _SC("x")),
 	_DECL_FUNC(close, 1, _SC("x")),
 	_DECL_FUNC(parseTranslationUnit, -3, _SC("xcs")),
+	_DECL_FUNC(loadlib,2,_SC(".s")),
 	{0,0}
 };
 #undef _DECL_FUNC
