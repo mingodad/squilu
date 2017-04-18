@@ -19,7 +19,7 @@
 #endif
 #else
 #define SQ_INT_MAX INT_MAX
-#define SQ_INT_MAX INT_MIN
+#define SQ_INT_MIN INT_MIN
 #endif // _SQ64
 
 #define SINGLE_ARG_FUNC(_funcname) static SQRESULT math_##_funcname(HSQUIRRELVM v){ \
