@@ -1,8 +1,26 @@
 /* see copyright notice in squirrel.h */
 #include <squirrel.h>
 #include <math.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <sqstdmath.h>
+
+#ifndef M_PI
+#define M_PI (3.14159265358979323846)
+#endif
+
+#ifdef _SQ64
+#ifdef _MSC_VER
+    #define SQ_INT_MAX _I64_MAX
+    #define SQ_INT_MIN _I64_MIN
+#else
+    #define SQ_INT_MAX LLONG_MAX
+    #define SQ_INT_MIN LLONG_MIN
+#endif
+#else
+#define SQ_INT_MAX INT_MAX
+#define SQ_INT_MAX INT_MIN
+#endif // _SQ64
 
 #define SINGLE_ARG_FUNC(_funcname) static SQRESULT math_##_funcname(HSQUIRRELVM v){ \
 	SQFloat f; \
@@ -308,6 +326,51 @@ static SQRESULT math_number_format(HSQUIRRELVM v) {
 	return 1;
 }
 
+static SQRESULT math_ult(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_INTEGER(v, 2, n1);
+    SQ_GET_INTEGER(v, 3, n2);
+	sq_pushbool(v,((SQUnsignedInteger)n1) < ((SQUnsignedInteger)n2));
+	return 1;
+}
+
+static SQRESULT math_min (HSQUIRRELVM v) {
+    SQInteger n = sq_gettop(v);  /* number of arguments */
+    SQInteger imin = 2;  /* index of current minimum value */
+    for (SQInteger i = 3; i <= n; i++) {
+    if (sq_compare(v, i, imin) < 0)
+      imin = i;
+    }
+    sq_push(v, imin);
+    return 1;
+}
+
+static SQRESULT math_max (HSQUIRRELVM v) {
+    SQInteger n = sq_gettop(v);  /* number of arguments */
+    SQInteger imax = 2;  /* index of current minimum value */
+    for (SQInteger i = 3; i <= n; i++) {
+    if (sq_compare(v, i, imax) > 0)
+      imax = i;
+    }
+    sq_push(v, imax);
+    return 1;
+}
+
+static SQRESULT math_deg (HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_FLOAT(v, 2, n);
+    sq_pushfloat(v, n * (180.0 / M_PI));
+    return 1;
+}
+
+static SQRESULT math_rad (HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_FLOAT(v, 2, n);
+    sq_pushfloat(v, n * (M_PI / 180.0));
+    return 1;
+}
+
 //DAD end
 
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),math_##name,nparams,tycheck}
@@ -340,13 +403,14 @@ static const SQRegFunction mathlib_funcs[] = {
 	_DECL_FUNC(number_format_set_dec_point,2,_SC(".s")),
 	_DECL_FUNC(number_format_get_thousand_sep,1,_SC(".")),
 	_DECL_FUNC(number_format_set_thousand_sep,2,_SC(".s")),
+	_DECL_FUNC(ult,3,_SC(".nn")),
+	_DECL_FUNC(min,-3,_SC(".nn")),
+	_DECL_FUNC(max,-3,_SC(".nn")),
+	_DECL_FUNC(rad,2,_SC(".n")),
+	_DECL_FUNC(deg,2,_SC(".n")),
 	{NULL,(SQFUNCTION)0,0,NULL}
 };
 #undef _DECL_FUNC
-
-#ifndef M_PI
-#define M_PI (3.14159265358979323846)
-#endif
 
 SQRESULT sqstd_register_mathlib(HSQUIRRELVM v)
 {
@@ -367,6 +431,15 @@ SQRESULT sqstd_register_mathlib(HSQUIRRELVM v)
 	sq_newslot(v,-3,SQFalse);
 	sq_pushstring(v,_SC("PI"),-1);
 	sq_pushfloat(v,(SQFloat)M_PI);
+	sq_newslot(v,-3,SQFalse);
+	sq_pushstring(v,_SC("HUGE"),-1);
+	sq_pushfloat(v,(SQFloat)HUGE_VAL);
+	sq_newslot(v,-3,SQFalse);
+	sq_pushstring(v,_SC("INT_MAX"),-1);
+	sq_pushinteger(v,SQ_INT_MAX);
+	sq_newslot(v,-3,SQFalse);
+	sq_pushstring(v,_SC("INT_MIN"),-1);
+	sq_pushinteger(v,SQ_INT_MIN);
 	sq_newslot(v,-3,SQFalse);
 
 	sq_newslot(v,-3,SQTrue); //insert math
