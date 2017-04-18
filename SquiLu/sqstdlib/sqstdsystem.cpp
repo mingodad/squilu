@@ -390,7 +390,7 @@ int GetMilliCount()
   // It rolls over every ~ 12.1 days (0x100000/24/60/60)
   // Use GetMilliSpan to correct for rollover
   timeb tb;
-#if !(defined(TARGET_IOS) || defined(__APPLE__))
+#if !(defined(TARGET_IOS) || defined(__APPLE__) || defined(_WIN32))
   sqftime( &tb );
 #else
   ftime( &tb );
