@@ -394,7 +394,7 @@ static const SQChar *sqstd_rex_matchnode(SQRex* exp,SQRexNode *node,const SQChar
 	case OP_GREEDY: {
 		//SQRexNode *greedystop = (node->next != -1) ? &exp->_nodes[node->next] : NULL;
 		SQRexNode *greedystop = NULL;
-		SQInteger p0 = (node->right >> 16)&0x0000FFFF, p1 = node->right&0x0000FFFF, nmaches = 0;
+		SQInteger p0 = (node->right >> 16)&0x0000FFFF, p1 = node->right&0x0000FFFF, nmatches = 0;
 		const SQChar *s=str, *good = str;
 
 		if(node->next != -1) {
@@ -404,12 +404,17 @@ static const SQChar *sqstd_rex_matchnode(SQRex* exp,SQRexNode *node,const SQChar
 			greedystop = next;
 		}
 
-		while((nmaches == 0xFFFF || nmaches < p1)) {
+		while((nmatches == 0xFFFF || nmatches < p1)) {
 
-			const SQChar *stop;
-			if(!(s = sqstd_rex_matchnode(exp,&exp->_nodes[node->left],s,greedystop)))
-				break;
-			nmaches++;
+			const SQChar *stop, *last_match = s;
+			SQInteger while_nmatches = 0;
+			while((last_match = sqstd_rex_matchnode(exp,&exp->_nodes[node->left],s,greedystop)))
+			{
+			    while_nmatches++;
+			    s = last_match;
+			}
+			if(!while_nmatches) break;
+			nmatches += while_nmatches;
 			good=s;
 			if(greedystop && !sqstd_rex_matchclass(exp,&exp->_nodes[node->left],*s)) {
 				//checks that 0 matches satisfy the expression(if so skips)
@@ -426,9 +431,9 @@ static const SQChar *sqstd_rex_matchnode(SQRex* exp,SQRexNode *node,const SQChar
 					stop = sqstd_rex_matchnode(exp,greedystop,s,gnext);
 					if(stop) {
 						//if satisfied stop it
-						if(p0 == p1 && p0 == nmaches) break;
-						else if(nmaches >= p0 && p1 == 0xFFFF) break;
-						else if(nmaches >= p0 && nmaches <= p1) break;
+						if(p0 == p1 && p0 == nmatches) break;
+						else if(nmatches >= p0 && p1 == 0xFFFF) break;
+						else if(nmatches >= p0 && nmatches <= p1) break;
 					}
 				}
 			}
@@ -436,9 +441,9 @@ static const SQChar *sqstd_rex_matchnode(SQRex* exp,SQRexNode *node,const SQChar
 			if(s >= exp->_eol)
 				break;
 		}
-		if(p0 == p1 && p0 == nmaches) return good;
-		else if(nmaches >= p0 && p1 == 0xFFFF) return good;
-		else if(nmaches >= p0 && nmaches <= p1) return good;
+		if(p0 == p1 && p0 == nmatches) return good;
+		else if(nmatches >= p0 && p1 == 0xFFFF) return good;
+		else if(nmatches >= p0 && nmatches <= p1) return good;
 		return NULL;
 	}
 	case OP_OR: {
