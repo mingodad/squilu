@@ -986,6 +986,7 @@ public:
         INVOKE_EXP(f);
         SQInteger op1 = _fs->PopTarget();SQInteger op2 = _fs->PopTarget();
         _fs->AddInstruction(op, _fs->PushTarget(), op1, op2, op3);
+        _es.etype = EXPR;
     }
     void LogicalOrExp()
     {
@@ -1002,6 +1003,7 @@ public:
             if(trg != second_exp) _fs->AddInstruction(_OP_MOVE, trg, second_exp);
             _fs->SnoozeOpt();
             _fs->SetIntructionParam(jpos, 1, (_fs->GetCurrentPos() - jpos));
+            _es.etype = EXPR;
             break;
         }else return;
     }
@@ -1021,6 +1023,7 @@ public:
             if(trg != second_exp) _fs->AddInstruction(_OP_MOVE, trg, second_exp);
             _fs->SnoozeOpt();
             _fs->SetIntructionParam(jpos, 1, (_fs->GetCurrentPos() - jpos));
+            _es.etype = EXPR;
             break;
             }
 
