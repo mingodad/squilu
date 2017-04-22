@@ -78,8 +78,8 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
 	SQChar fmt[MAX_FORMAT_LEN];
 	SQRESULT res = sq_getstring(v,nformatstringidx,&format);
 	if (SQ_FAILED(res)) {
-        return res; // propagate the error
-    }
+		return res; // propagate the error
+	}
 	SQInteger format_size = sq_getsize(v,nformatstringidx);
 	SQInteger allocated = (format_size+2)*sizeof(SQChar);
 	dest = sq_getscratchpad(v,allocated);
