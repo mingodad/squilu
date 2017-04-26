@@ -64,14 +64,24 @@ SQInteger SQBlob::Gets(char *buffer,SQInteger size) {
             n = _size - _ptr;
         else return 0;
     }
+    //because we are zero based wee need to use/return i+1 when i > 0
     SQInteger i=0;
     for(; i < n; ++i)
     {
         char c = _buf[_ptr+i];
         buffer[i] = c;
-        if(c == '\n') break;
+        if(c == '\n')
+        {
+            ++i;
+            _ptr += i;
+            return i;
+        }
     }
-    _ptr += i;
+    if(i)
+    {
+        ++i;
+        _ptr += i;
+    }
     return i;
 }
 bool SQBlob::Resize(SQInteger n) {
