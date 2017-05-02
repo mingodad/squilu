@@ -123,7 +123,7 @@ extern "C" {
 */
 #define SQLITE_VERSION        "3.19.0"
 #define SQLITE_VERSION_NUMBER 3019000
-#define SQLITE_SOURCE_ID      "2017-04-26 04:32:17 304689f8acb53d68e1afed6e6c4332e78132e3d57071b8f94df0d13515b3b3d8"
+#define SQLITE_SOURCE_ID      "2017-05-02 16:55:07 47cbb471d056c8e1834a5ca72491404a3bfb273b5ff7bdd84b98d263938ea874"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -872,7 +872,7 @@ struct sqlite3_io_methods {
 ** opcode allows these two values (10 retries and 25 milliseconds of delay)
 ** to be adjusted.  The values are changed for all database connections
 ** within the same process.  The argument is a pointer to an array of two
-** integers where the first integer i the new retry count and the second
+** integers where the first integer is the new retry count and the second
 ** integer is the delay.  If either integer is negative, then the setting
 ** is not changed but instead the prior value of that setting is written
 ** into the array entry, allowing the current retry settings to be
