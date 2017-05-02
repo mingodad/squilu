@@ -73,7 +73,7 @@ struct SQLexer
 	SQInteger Init(SQSharedState *ss,SQLEXREADFUNC rg,SQUserPointer up,
                 CompilerErrorFunc efunc,void *ed, SQBool want_comments=SQFalse);
 	SQInteger ResetReader(SQLEXREADFUNC rg, SQUserPointer up, SQInteger line);
-	SQTable * GetKeywords();
+	virtual SQTable * GetKeywords();
 	SQInteger Error(const SQChar *err, ...);
 	SQInteger Lex();
 	SQInteger LookaheadLex();

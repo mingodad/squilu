@@ -701,7 +701,7 @@ try_again:
                 {
                     //false positive append all chars till here and continue
                     APPEND_CHAR(ndelim);
-                    for(int j=0; j < i; ++j) APPEND_CHAR(cpp_delimin[j]); //recover already eaten chars from buffer
+                    for(size_t j=0; j < i; ++j) APPEND_CHAR(cpp_delimin[j]); //recover already eaten chars from buffer
                     APPEND_CHAR(CUR_CHAR); //append the last one that mismatch
                     if(CUR_CHAR == _SC('\n')) data->currentline++;
                     NEXT();

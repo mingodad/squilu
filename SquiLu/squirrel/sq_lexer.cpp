@@ -6,6 +6,7 @@
 #include "sqstate.h"
 #include "sqvm.h"
 #include "sqlexer.h"
+#include "sqtable.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>  /* for malloc */
@@ -15,10 +16,30 @@ static const SQChar SQ_LIBNAME[] = _SC("SQLexer");
 
 SQ_OPT_STRING_STRLEN();
 
+class CustomSQLexer : public SQLexer
+{
+public:
+    HSQUIRRELVM _vm;
+    SQInteger _kw_idx;
+
+    CustomSQLexer(HSQUIRRELVM vm, SQInteger kw_idx):
+        _vm(vm), _kw_idx(kw_idx){}
+
+    virtual SQTable * GetKeywords()
+    {
+        if(_vm && _kw_idx)
+        {
+            SQObjectPtr &tbl_var = stack_get(_vm, _kw_idx);
+            SQTable *tbl = _table(tbl_var)->Clone();
+            return tbl;
+        }
+        return SQLexer::GetKeywords();
+    }
+};
 
 struct sq_lexer_st
 {
-    SQLexer *lex;
+    CustomSQLexer *lex;
     HSQOBJECT source;
     SQStrBufState buf;
     HSQUIRRELVM vm;
@@ -35,8 +56,8 @@ static SQRESULT SQLexer_release_hook(SQUserPointer p, SQInteger size, void */*ep
 	if(self && self->lex)
     {
         sq_release(self->vm, &self->source);
-        self->lex->~SQLexer();
-        sq_free(self->lex, sizeof(SQLexer));
+        self->lex->~CustomSQLexer();
+        sq_free(self->lex, sizeof(CustomSQLexer));
         self->lex = NULL;
         sq_free(self, sizeof(sq_lexer_st));
     }
@@ -61,17 +82,17 @@ static SQRESULT sq_SQLexer_reset_src(HSQUIRRELVM v, sq_lexer_st *self){
 }
 
 static SQRESULT sq_SQLexer_constructor(HSQUIRRELVM v){
-
+    SQInteger _top = sq_gettop(v);
 	sq_lexer_st *self = (sq_lexer_st*)sq_malloc(sizeof(sq_lexer_st));//sq_newuserdata(v, sizeof(sq_lexer_st));
 	memset(self, 0, sizeof(*self));
 
     sq_SQLexer_reset_src(v, self);
-    self->lex = (SQLexer*)sq_malloc(sizeof(SQLexer));
-    new (self->lex) SQLexer();
+    self->lex = (CustomSQLexer*)sq_malloc(sizeof(CustomSQLexer));
+    new (self->lex) CustomSQLexer(v, ((_top > 3) ? 4 : 0));
     self->vm = v;
 
     SQBool want_comments = SQFalse;
-    if(sq_gettop(v) > 2)
+    if(_top > 2)
     {
         //we want comments returned by the lexer
         sq_getbool(v, 3, &want_comments);
@@ -232,7 +253,7 @@ static SQRESULT sq_SQLexer_last_enum_token(HSQUIRRELVM v){
 #define _DECL_SQLEXER_FUNC(name,nparams,pmask) {_SC(#name),sq_SQLexer_##name,nparams,pmask}
 static SQRegFunction SQLexer_obj_funcs[]={
 
-	_DECL_SQLEXER_FUNC(constructor, -2, _SC(".sb")),
+	_DECL_SQLEXER_FUNC(constructor, -2, _SC(".sbt")),
 	_DECL_SQLEXER_FUNC(reset, 2, _SC(".s")),
 	_DECL_SQLEXER_FUNC(tok2str, 2, _SC(".i")),
 	_DECL_SQLEXER_FUNC(token_name, 2, _SC(".i")),
