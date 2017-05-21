@@ -324,7 +324,7 @@ static SQRESULT sq_pcre_gmatch(HSQUIRRELVM v)
             else sq_pushstring(v, subject + start_pos, end_pos - start_pos);
             ++param_count;
         }
-        i = sq_call(v, rc+1, SQFalse, SQTrue);
+        i = sq_call(v, rc+1, SQTrue, SQTrue);
         if(i < 0) return i;
 
         SQObjectType rtype = sq_gettype(v, -1);
@@ -332,6 +332,7 @@ static SQRESULT sq_pcre_gmatch(HSQUIRRELVM v)
         if(rtype == OT_BOOL) {
             sq_getbool(v, -1, &keep_matching);
         }
+        sq_poptop(v); //remove return parameter
 
         if(!keep_matching) break;
 
