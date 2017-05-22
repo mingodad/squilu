@@ -1832,8 +1832,12 @@ static SQRESULT string_rep (HSQUIRRELVM v) {
   SQ_FUNC_VARS_NO_TOP(v);
   SQ_GET_STRING(v, 1, s)
   SQ_GET_INTEGER(v, 2, n);
+  //FIXME should check all number parameters that need be positive|negative only
+  if(n < 0)  return sq_throwerror(v, _SC("only positive number allowed"));
   SQInteger nsize = n*s_size;
   SQChar *data = sq_getscratchpad(v, nsize);
+  //FIXME all calls to sq_getscratchpad should check for NULL pointer
+  if(!data) return sq_throwerror(v, _SC("not enough memory"));
   for(i=0; i<n ; ++i){
       memcpy(data+(i*s_size), s, s_size);
   }
