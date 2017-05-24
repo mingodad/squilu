@@ -2220,7 +2220,7 @@ static SQRESULT string_iso88959_to_utf8 (HSQUIRRELVM v) {
             *c++ = (0x80 | (*s & 0x3f));
         }
     }
-    *c++ = '\0';
+    *c = '\0';
     sq_pushstring(v, buf, c - (SQUChar*)buf);
     return 1;
 }
