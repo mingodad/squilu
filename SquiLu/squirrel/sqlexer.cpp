@@ -626,7 +626,7 @@ try_again:
                     break;
                     case _SC('U'):
                     case _SC('u'):  {
-                        const SQInteger maxdigits = x == 'u' ? 4 : 8;
+                        const SQInteger maxdigits = CUR_CHAR == 'u' ? 4 : 8;
                         SQChar temp[8 + 1];
                         if(ProcessStringHexEscape(temp, maxdigits) < 0) return -1;
                         SQChar *stemp;
