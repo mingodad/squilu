@@ -1551,6 +1551,22 @@ static SQRESULT sq_sqlite3_session_attach(HSQUIRRELVM v)
     return 1;
 }
 
+static SQRESULT sq_sqlite3_session_enable(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    GET_sqlite3_session_INSTANCE();
+    SQ_GET_BOOL(v, 2, enable);
+    sq_pushinteger(v, sqlite3session_enable(self, enable));
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_session_isempty(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    GET_sqlite3_session_INSTANCE();
+    sq_pushinteger(v, sqlite3session_isempty(self));
+    return 1;
+}
 static SQRESULT sq_sqlite3_session_delete(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
@@ -1569,6 +1585,43 @@ static SQRESULT sq_sqlite3_session_changeset(HSQUIRRELVM v)
     if(sqlite3session_changeset(self, &nChangeset, &pChangeset) != SQ_OK) return SQ_ERROR;
     sq_pushstring(v, (SQChar*)pChangeset, nChangeset);
     sqlite3_free(pChangeset);
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_session_invert(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_session_INSTANCE();
+    SQ_GET_STRING(v, 2, changeset);
+    int nOutChangeset;     /* OUT: Size of changeset blob in bytes */
+    void *pOutChangeset;   /* OUT: Pointer to changeset blob */
+    if(sqlite3changeset_invert(changeset_size, changeset, &nOutChangeset, &pOutChangeset) != SQ_OK) return SQ_ERROR;
+    sq_pushstring(v, (SQChar*)pOutChangeset, nOutChangeset);
+    sqlite3_free(pOutChangeset);
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_session_concat(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_session_INSTANCE();
+    SQ_GET_STRING(v, 2, changeset1);
+    SQ_GET_STRING(v, 3, changeset2);
+    int nOutChangeset;     /* OUT: Size of changeset blob in bytes */
+    void *pOutChangeset;   /* OUT: Pointer to changeset blob */
+    if(sqlite3changeset_concat(changeset1_size, changeset1, changeset2_size, changeset2, &nOutChangeset, &pOutChangeset) != SQ_OK) return SQ_ERROR;
+    sq_pushstring(v, (SQChar*)pOutChangeset, nOutChangeset);
+    sqlite3_free(pOutChangeset);
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_session_diff(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_session_INSTANCE();
+    SQ_GET_STRING(v, 2, fromDB);
+    SQ_GET_STRING(v, 3, tbl);
+    sq_pushinteger(v, sqlite3session_diff(self, fromDB, tbl, NULL));
     return 1;
 }
 
@@ -1593,6 +1646,11 @@ static SQRegFunction sq_sqlite3_session_methods[] =
     _DECL_FUNC(constructor,  -2, _SC("xxs"), SQFalse),
 
     _DECL_FUNC(attach,  -1, _SC("xs"), SQFalse),
+    _DECL_FUNC(enable,  2, _SC("xb"), SQFalse),
+    _DECL_FUNC(isempty,  1, _SC("x"), SQFalse),
+    _DECL_FUNC(invert,  2, _SC("xs"), SQFalse),
+    _DECL_FUNC(concat,  3, _SC("xss"), SQFalse),
+    _DECL_FUNC(diff,  3, _SC("xss"), SQFalse),
     _DECL_FUNC(changeset,  1, _SC("x"), SQFalse),
     _DECL_FUNC(delete,  1, _SC("x"), SQFalse),
     _DECL_FUNC(apply,  3, _SC("xxs"), SQFalse),
