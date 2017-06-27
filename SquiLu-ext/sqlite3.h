@@ -123,7 +123,7 @@ extern "C" {
 */
 #define SQLITE_VERSION        "3.20.0"
 #define SQLITE_VERSION_NUMBER 3020000
-#define SQLITE_SOURCE_ID      "2017-06-01 01:53:19 4c2458c1908181dc2f6bc594395c06d015fcbd78f5d3472f07a6a3909be9673c"
+#define SQLITE_SOURCE_ID      "2017-06-26 21:08:32 18f0616e15684ca327fb10a1d133331af1d3b75f609498982290f6ad69fcaced"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -5659,7 +5659,9 @@ SQLITE_API SQLITE_DEPRECATED void sqlite3_soft_heap_limit(int N);
 ** ^If the column-name parameter to sqlite3_table_column_metadata() is a
 ** NULL pointer, then this routine simply checks for the existence of the
 ** table and returns SQLITE_OK if the table exists and SQLITE_ERROR if it
-** does not.
+** does not.  If the table name parameter T in a call to
+** sqlite3_table_column_metadata(X,D,T,C,...) is NULL then the result is
+** undefined behavior.
 **
 ** ^The column is identified by the second, third and fourth parameters to
 ** this function. ^(The second parameter is either the name of the database
@@ -9107,7 +9109,7 @@ SQLITE_API int sqlite3session_isempty(sqlite3_session *pSession);
 SQLITE_API int sqlite3changeset_start(
   sqlite3_changeset_iter **pp,    /* OUT: New changeset iterator handle */
   int nChangeset,                 /* Size of changeset blob in bytes */
-  void *pChangeset                /* Pointer to blob containing changeset */
+  const void *pChangeset                /* Pointer to blob containing changeset */
 );
 
 
@@ -9394,9 +9396,9 @@ SQLITE_API int sqlite3changeset_invert(
 */
 SQLITE_API int sqlite3changeset_concat(
   int nA,                         /* Number of bytes in buffer pA */
-  void *pA,                       /* Pointer to buffer containing changeset A */
+  const void *pA,                       /* Pointer to buffer containing changeset A */
   int nB,                         /* Number of bytes in buffer pB */
-  void *pB,                       /* Pointer to buffer containing changeset B */
+  const void *pB,                       /* Pointer to buffer containing changeset B */
   int *pnOut,                     /* OUT: Number of bytes in output changeset */
   void **ppOut                    /* OUT: Buffer containing output changeset */
 );
@@ -9519,7 +9521,7 @@ SQLITE_API int sqlite3changegroup_new(sqlite3_changegroup **pp);
 **
 ** If no error occurs, SQLITE_OK is returned.
 */
-SQLITE_API int sqlite3changegroup_add(sqlite3_changegroup*, int nData, void *pData);
+SQLITE_API int sqlite3changegroup_add(sqlite3_changegroup*, int nData, const void *pData);
 
 /*
 ** CAPI3REF: Obtain A Composite Changeset From A Changegroup
