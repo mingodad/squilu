@@ -1567,7 +1567,7 @@ static SQRESULT sq_sqlite3_session_isempty(HSQUIRRELVM v)
     sq_pushinteger(v, sqlite3session_isempty(self));
     return 1;
 }
-static SQRESULT sq_sqlite3_session_delete(HSQUIRRELVM v)
+static SQRESULT sq_sqlite3_session_xdelete(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_sqlite3_session_INSTANCE();
@@ -1652,7 +1652,7 @@ static SQRegFunction sq_sqlite3_session_methods[] =
     _DECL_FUNC(concat,  3, _SC("xss"), SQFalse),
     _DECL_FUNC(diff,  3, _SC("xss"), SQFalse),
     _DECL_FUNC(changeset,  1, _SC("x"), SQFalse),
-    _DECL_FUNC(delete,  1, _SC("x"), SQFalse),
+    _DECL_FUNC(xdelete,  1, _SC("x"), SQFalse),
     _DECL_FUNC(apply,  3, _SC("xxs"), SQFalse),
     {0,0}
 };
