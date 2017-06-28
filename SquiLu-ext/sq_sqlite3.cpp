@@ -1567,6 +1567,7 @@ static SQRESULT sq_sqlite3_session_isempty(HSQUIRRELVM v)
     sq_pushinteger(v, sqlite3session_isempty(self));
     return 1;
 }
+
 static SQRESULT sq_sqlite3_session_xdelete(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
@@ -1654,6 +1655,136 @@ static SQRegFunction sq_sqlite3_session_methods[] =
     _DECL_FUNC(changeset,  1, _SC("x"), SQFalse),
     _DECL_FUNC(xdelete,  1, _SC("x"), SQFalse),
     _DECL_FUNC(apply,  3, _SC("xxs"), SQFalse),
+    {0,0}
+};
+#undef _DECL_FUNC
+
+static const SQChar *SQLite3_Session_Iterator_TAG = "SQLite3SessionIterator";
+
+static SQRESULT get_sqlite3_session_iterator_instance(HSQUIRRELVM v, SQInteger idx, sqlite3_changeset_iter **ppIter)
+{
+    SQRESULT _rc_;
+    if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)ppIter,(void*)SQLite3_Session_Iterator_TAG)) < 0) return _rc_;
+    if(!*ppIter) return sq_throwerror(v, _SC("changeset iterator is closed"));
+    return _rc_;
+}
+
+#define GET_sqlite3_session_iterator_INSTANCE_AT(idx, var_name)  \
+	sqlite3_changeset_iter *var_name=NULL; \
+	if((_rc_ = get_sqlite3_session_iterator_instance(v,idx,&var_name)) < 0) return _rc_;
+#define GET_sqlite3_session_iterator_INSTANCE() GET_sqlite3_session_iterator_INSTANCE_AT(1, self)
+
+static SQRESULT sq_sqlite3_session_iterator_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
+{
+    sqlite3_changeset_iter *pIter = ((sqlite3_changeset_iter *)p);
+    if(pIter) sqlite3changeset_finalize(pIter);
+    return 0;
+}
+
+static SQRESULT sq_sqlite3_session_iterator_constructor(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    _rc_ = SQ_ERROR;
+    SQ_GET_STRING(v, 2, changeset)
+    sqlite3_changeset_iter *pIter = 0;
+    if(sqlite3changeset_start(&pIter, changeset_size, changeset) != SQLITE_OK)
+    {
+        _rc_ = sq_throwerror(v, _SC("sqlite3_changeset_iter error %d"), _rc_);
+    }
+    else _rc_ = SQ_OK;
+    sq_setinstanceup(v, 1, pIter); //replace self for this instance with this new sqlite3_stmt
+    sq_setreleasehook(v,1, sq_sqlite3_session_iterator_releasehook);
+    return _rc_;
+}
+
+static SQRESULT sq_sqlite3_session_iterator_next(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    GET_sqlite3_session_iterator_INSTANCE();
+    sq_pushinteger(v, sqlite3changeset_next(self));
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_session_iterator_op(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    GET_sqlite3_session_iterator_INSTANCE();
+    const char *pzTab;             /* OUT: Pointer to table name */
+    int nCol;                     /* OUT: Number of columns in table */
+    int Op;                       /* OUT: SQLITE_INSERT, DELETE or UPDATE */
+    int bIndirect;                /* OUT: True for an 'indirect' change */
+    if(sqlite3changeset_op(self, &pzTab, &nCol, &Op, &bIndirect) == SQLITE_OK)
+    {
+        sq_pushstring(v, _SC("table"), -1);
+        sq_pushstring(v, pzTab, -1);
+        sq_rawset(v, 3);
+        sq_pushstring(v, _SC("ncol"), -1);
+        sq_pushinteger(v, nCol);
+        sq_rawset(v, 3);
+        sq_pushstring(v, _SC("op"), -1);
+        sq_pushinteger(v, Op);
+        sq_rawset(v, 3);
+        sq_pushstring(v, _SC("indirect"), -1);
+        sq_pushinteger(v, bIndirect);
+        sq_rawset(v, 3);
+        sq_pushbool(v, SQTrue);
+    }
+    sq_pushbool(v, SQFalse);
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_session_iterator_push_value(HSQUIRRELVM v, int isNew)
+{
+    SQ_FUNC_VARS(v);
+    GET_sqlite3_session_iterator_INSTANCE();
+    SQ_GET_INTEGER(v, 2, col);
+    sqlite3_value *pVal;
+    int rc;
+    if(isNew) rc = sqlite3changeset_new(self, col, &pVal);
+    else rc = sqlite3changeset_old(self, col, &pVal);
+    if(rc != SQLITE_OK) return sq_throwerror(v, _SC("sqlite3changeset_(old/new) %d"), rc);
+    switch( sqlite3_value_type(pVal) ){
+        case SQLITE_FLOAT: {
+            sq_pushfloat(v, sqlite3_value_double(pVal));
+            break;
+        }
+        case SQLITE_INTEGER: {
+            sq_pushinteger(v, sqlite3_value_int64(pVal));
+            break;
+        }
+        case SQLITE_BLOB:
+        case SQLITE_TEXT: {
+            sq_pushstring(v, (const SQChar*)sqlite3_value_text(pVal), sqlite3_value_bytes(pVal));
+            break;
+        }
+        default: {
+            assert( sqlite3_value_type(pVal)==SQLITE_NULL );
+            sq_pushnull(v);
+            break;
+        }
+    }
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_session_iterator_new(HSQUIRRELVM v)
+{
+    return sq_sqlite3_session_iterator_push_value(v, 1);
+}
+
+static SQRESULT sq_sqlite3_session_iterator_old(HSQUIRRELVM v)
+{
+    return sq_sqlite3_session_iterator_push_value(v, 0);
+}
+
+#define _DECL_FUNC(name,nparams,tycheck, isStatic) {_SC(#name),  sq_sqlite3_session_iterator_##name,nparams,tycheck, isStatic}
+static SQRegFunction sq_sqlite3_session_iterator_methods[] =
+{
+    _DECL_FUNC(constructor, 2, _SC("xs"), SQFalse),
+
+    _DECL_FUNC(next,  1, _SC("x"), SQFalse),
+    _DECL_FUNC(op,  2, _SC("xt"), SQFalse),
+    _DECL_FUNC(new,  2, _SC("xi"), SQFalse),
+    _DECL_FUNC(old,  2, _SC("x1"), SQFalse),
     {0,0}
 };
 #undef _DECL_FUNC
@@ -3581,6 +3712,13 @@ extern "C" {
         sq_newclass(v,SQFalse);
         sq_settypetag(v,-1,(SQUserPointer)SQLite3_Session_TAG);
         sq_insert_reg_funcs(v, sq_sqlite3_session_methods);
+
+        sq_newslot(v,-3,SQTrue);
+
+        sq_pushstring(v, SQLite3_Session_Iterator_TAG,-1);
+        sq_newclass(v,SQFalse);
+        sq_settypetag(v,-1,(SQUserPointer)SQLite3_Session_Iterator_TAG);
+        sq_insert_reg_funcs(v, sq_sqlite3_session_iterator_methods);
 
         sq_newslot(v,-3,SQTrue);
 #endif // SQLITE_ENABLE_SESSION
