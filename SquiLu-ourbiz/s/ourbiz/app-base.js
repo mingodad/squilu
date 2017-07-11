@@ -1789,6 +1789,15 @@ dad.fillSelectByRecords = function(select, records, addDumy, dummyValue){
 };
 
 dad.StrLenEncoded = function(){
+var IBYTE1 = 255;
+var IBYTE2 = 255*255;
+var IBYTE3 = 255*255*255;
+var IBYTE4 = 255*255*255*255;
+
+var SIZE1BYTE = 250;
+var SIZE2BYTE = 251;
+var SIZE3BYTE = 252;
+var SIZE4BYTE = 253;
 
 var SLEMARK = 254;
 var SLEEND = 255;
@@ -1862,42 +1871,51 @@ this.sle2array = function(strascii, strascii_size, p, result_array)
 {
     if(strascii_size === 0) return 0;
     var size = 0, data_count = 0, data_len = 0;
-    var rec = [];
-    var mycharCodeAt = this.charCodeAt;
-    while((mycharCodeAt(strascii, p) !== SLEEND) || (p >= strascii_size)) //data finished now follow digest
+	var rec = [];
+	var mycharCodeAt = this.charCodeAt;
+    while((mycharCodeAt(strascii, p) !== SLEEND) && (p <= strascii_size)) //data finished now follow digest
     {
         size = mycharCodeAt(strascii, p++);
-	if(size <= 240)
-	{
-	}
-	else if(size <= 248)
-	{
-		size = (size-241)*256 + mycharCodeAt(strascii, p++) + 240;
-	}
-	else if(size === 249)
-	{
-		size = 2288 + 256*mycharCodeAt(strascii, p++) + mycharCodeAt(strascii, p++);
-	}
-	else if(size === 250)
-	{
-		size = (mycharCodeAt(strascii, p++)<<16) + (mycharCodeAt(strascii, p++)<<8) +
-			mycharCodeAt(strascii, p++);
-	}
-	else if(size === 251)
-	{
-		size = (mycharCodeAt(strascii, p++)<<24) + (mycharCodeAt(strascii, p++)<<16) +
-			(mycharCodeAt(strascii, p++)<<8) + mycharCodeAt(strascii, p++);
-	}
-	else if(size === SLEMARK)
-	{
-		//reserved can be used for multi part data, metadata, digest, ...
-	}
-	if(size > 0) {
-		var segment = strascii.substr(p, size);
-		rec.push(this.utf8toUtf16(segment));
-		//try {rec.push(decodeURIComponent(escape(segment)));} catch(e) {rec.push(segment);}
-	}
-	else rec.push("");
+        if(size >= SIZE1BYTE)
+        {
+            if(size === SIZE1BYTE)
+            {
+                //data bigger than 250 and less 500 next byte has more info
+                size += mycharCodeAt(strascii, p++);
+            }
+            else if(size === SIZE2BYTE)
+            {
+                //data bigger than 250 next two bytes has more info
+                size = mycharCodeAt(strascii, p++) * IBYTE1;
+                size += mycharCodeAt(strascii, p++);
+            }
+            else if(size === SIZE3BYTE)
+            {
+                //data bigger than 250 next three bytes has more info
+                size = mycharCodeAt(strascii, p++) * IBYTE2;
+                size += mycharCodeAt(strascii, p++) * IBYTE1;
+                size += mycharCodeAt(strascii, p++);
+            }
+            else if(size === SIZE4BYTE)
+            {
+                //data bigger than 250 next four bytes has more info
+                size = mycharCodeAt(strascii, p++) * IBYTE3;
+                size += mycharCodeAt(strascii, p++) * IBYTE2;
+                size += mycharCodeAt(strascii, p++) * IBYTE1;
+                size += mycharCodeAt(strascii, p++);
+            }
+            else if(size === SLEMARK)
+            {
+                //reserved can be used for multi part data, metadata, digest, ...
+                break;
+            }
+        }
+		if(size > 0) {
+			var segment = strascii.substr(p, size);
+			rec.push(this.utf8toUtf16(segment));
+			//try {rec.push(decodeURIComponent(escape(segment)));} catch(e) {rec.push(segment);}
+		}
+		else rec.push("");
         p += size;
         data_count++;
         data_len += size;
@@ -1908,7 +1926,7 @@ this.sle2array = function(strascii, strascii_size, p, result_array)
             break;
         }
     }
-    result_array.push(rec);
+	result_array.push(rec);
     return ++p;
 };
 

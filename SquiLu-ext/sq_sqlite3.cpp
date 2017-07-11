@@ -1143,6 +1143,7 @@ static SQRESULT sq_sqlite3_stmt_asJsonObject(HSQUIRRELVM v)
 static SQRESULT sle2array(HSQUIRRELVM v, const unsigned char *p, size_t sle_size, const unsigned char **next)
 {
     size_t size, data_len = 0;
+    const unsigned char *p_end = p + sle_size;
 
     if(sle_size == 0)
     {
@@ -1150,7 +1151,7 @@ static SQRESULT sle2array(HSQUIRRELVM v, const unsigned char *p, size_t sle_size
         return 0;
     }
 
-    while(*p != SLEEND) //data finished now follow digest
+    while((*p != SLEEND) && (p <= p_end)) //data finished now follow digest
     {
         size = *p++;
         if(size > IBYTE1)
@@ -3195,8 +3196,6 @@ static void db_sql_normal_function(sqlite3_context *context, int argc, sqlite3_v
     {
         sqlite3_result_error(context, sq_getlasterror_str(v), -1);
     }
-
-
     sq_settop(v, top);
 }
 
@@ -3235,7 +3234,6 @@ static void db_sql_finalize_function(sqlite3_context *context)
     {
         sqlite3_result_error(context, sq_getlasterror_str(v), -1);
     }
-
     sq_settop(v, top);
 }
 
