@@ -210,7 +210,11 @@ static SQRESULT sq_Decimal_set_from(HSQUIRRELVM v, SQInteger idx, mpd_context_t 
 
         case OT_INTEGER:{
             SQ_GET_INTEGER(v, idx, iparam);
+#ifdef CONFIG_32
             mpd_qset_i32(dec, iparam, ctx, status);
+#else
+            mpd_qset_i64(dec, iparam, ctx, status);
+#endif
         }
         break;
         case OT_STRING:{
@@ -248,7 +252,12 @@ static SQRESULT sq_Decimal_constructor (HSQUIRRELVM v) {
     if(sq_gettop(v) > 1){
         if(sq_Decimal_set_from(v, 2, ctx, dec, &status) != SQ_OK) return SQ_ERROR;
     }
-    else mpd_qset_i32(dec, 0, ctx, &status);
+    else
+#ifdef CONFIG_32
+        mpd_qset_i32(dec, 0, ctx, &status);
+#else
+        mpd_qset_i64(dec, 0, ctx, &status);
+#endif
 
 	ctx->status |= status;
 	if (status&ctx->traps) {
