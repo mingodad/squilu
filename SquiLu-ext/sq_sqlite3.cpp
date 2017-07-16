@@ -514,16 +514,11 @@ static SQRESULT sq_sqlite3_stmt_bind_exec_get_one(HSQUIRRELVM v)
     SQ_FUNC_VARS_NO_TOP(v);
     GET_sqlite3_stmt_INSTANCE();
     SQInteger rc = sq_sqlite3_stmt_bind_values0(v, 0);
-    if(rc != SQ_OK) return rc;
-    sq_getinteger(v, -1, &rc);
-    if(rc == SQLITE_OK)
-    {
-        rc = sqlite3_step(self);
-        if(rc == SQLITE_ROW) sqlite3_stmt_push_value(v, self, 0, 0);
-        else sq_pushnull(v);
-        sqlite3_reset(self);
-    }
+    if(rc == SQ_ERROR) return rc;
+    rc = sqlite3_step(self);
+    if(rc == SQLITE_ROW) sqlite3_stmt_push_value(v, self, 0, 0);
     else sq_pushnull(v);
+    sqlite3_reset(self);
     return 1;
 }
 
@@ -532,16 +527,11 @@ static SQRESULT sq_sqlite3_stmt_bind_exec_get_first_row(HSQUIRRELVM v)
     SQ_FUNC_VARS_NO_TOP(v);
     GET_sqlite3_stmt_INSTANCE();
     SQInteger rc = sq_sqlite3_stmt_bind_values0(v, 0);
-    if(rc != SQ_OK) return rc;
-    sq_getinteger(v, -1, &rc);
-    if(rc == SQLITE_OK)
-    {
-        rc = sqlite3_step(self);
-        if(rc == SQLITE_ROW) sqlite3_stmt_row_asArray(v, self, NULL_AS_EMPTY_STR|AS_STRING_ALWAYS);
-        else sq_pushnull(v);
-        sqlite3_reset(self);
-    }
+    if(rc == SQ_ERROR) return rc;
+    rc = sqlite3_step(self);
+    if(rc == SQLITE_ROW) sqlite3_stmt_row_asArray(v, self, NULL_AS_EMPTY_STR|AS_STRING_ALWAYS);
     else sq_pushnull(v);
+    sqlite3_reset(self);
     return 1;
 }
 
