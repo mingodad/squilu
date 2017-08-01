@@ -185,7 +185,7 @@ SQSharedState::~SQSharedState()
 		_systemstrings->back().Null();
 		_systemstrings->pop_back();
 	}
-	if(type(_root_vm) != OT_NULL)
+	if(sqtype(_root_vm) != OT_NULL)
     {
         _thread(_root_vm)->Finalize();
         _root_vm.Null();
@@ -232,7 +232,7 @@ SQSharedState::~SQSharedState()
 
 SQInteger SQSharedState::GetMetaMethodIdxByName(const SQObjectPtr &name)
 {
-	if(type(name) != OT_STRING)
+	if(sqtype(name) != OT_STRING)
 		return -1;
 	SQObjectPtr ret;
 	if(_table(_metamethodsmap)->Get(name,ret)) {
@@ -275,7 +275,7 @@ void SQSharedState::CallDelayedReleaseHooks(SQVM *vm, int count)
 
 void SQSharedState::MarkObject(SQObjectPtr &o,SQCollectable **chain)
 {
-	switch(type(o)){
+	switch(sqtype(o)){
 	case OT_TABLE:_table(o)->Mark(chain);break;
 	case OT_ARRAY:_array(o)->Mark(chain);break;
 	case OT_USERDATA:_userdata(o)->Mark(chain);break;
@@ -464,7 +464,7 @@ void RefTable::Mark(SQCollectable **chain)
 {
 	RefNode *nodes = (RefNode *)_nodes;
 	for(SQUnsignedInteger n = 0; n < _numofslots; n++) {
-		if(type(nodes->obj) != OT_NULL) {
+		if(sqtype(nodes->obj) != OT_NULL) {
 			SQSharedState::MarkObject(nodes->obj,chain);
 		}
 		nodes++;
@@ -526,7 +526,7 @@ void RefTable::Resize(SQUnsignedInteger size)
 	//rehash
 	SQUnsignedInteger nfound = 0;
 	for(SQUnsignedInteger n = 0; n < oldnumofslots; n++) {
-		if(type(t->obj) != OT_NULL) {
+		if(sqtype(t->obj) != OT_NULL) {
 			//add back;
 			assert(t->refs != 0);
 			RefNode *nn = Add(::HashObj(t->obj)&(_numofslots-1),t->obj);
@@ -559,7 +559,7 @@ RefTable::RefNode *RefTable::Get(SQObject &obj,SQHash &mainpos,RefNode **prev,bo
 	mainpos = ::HashObj(obj)&(_numofslots-1);
 	*prev = NULL;
 	for (ref = _buckets[mainpos]; ref; ) {
-		if(_rawval(ref->obj) == _rawval(obj) && type(ref->obj) == type(obj))
+		if(_rawval(ref->obj) == _rawval(obj) && sqtype(ref->obj) == sqtype(obj))
 			break;
 		*prev = ref;
 		ref = ref->next;

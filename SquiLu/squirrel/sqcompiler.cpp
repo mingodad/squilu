@@ -297,7 +297,7 @@ public:
             /* Handle named constant */
             SQObjectPtr constval;
             SQObject    constid;
-            if(type(constant) == OT_TABLE) {
+            if(sqtype(constant) == OT_TABLE) {
                 Expect('.');
                 constid = Expect(TK_IDENTIFIER);
                 if(!_table(constant)->Get(constid, constval)) {
@@ -311,7 +311,7 @@ public:
             epos = _fs->PushTarget();
 
             /* generate direct or literal function depending on size */
-            SQObjectType ctype = type(constval);
+            SQObjectType ctype = sqtype(constval);
             switch(ctype) {
                 case OT_INTEGER: EmitLoadConstInt(_integer(constval),epos); break;
                 case OT_FLOAT: EmitLoadConstFloat(_float(constval),epos); break;
@@ -558,7 +558,7 @@ public:
 		}
 		else {
 			if(_raiseerror && _ss(_vm)->_compilererrorhandler) {
-				_ss(_vm)->_compilererrorhandler(_vm, _compilererror, type(_sourcename) == OT_STRING?_stringval(_sourcename):_SC("unknown"),
+				_ss(_vm)->_compilererrorhandler(_vm, _compilererror, sqtype(_sourcename) == OT_STRING?_stringval(_sourcename):_SC("unknown"),
 					_lex.data->currentline, _lex.data->currentcolumn);
 			}
 			_vm->_lasterror = SQString::Create(_ss(_vm), _compilererror, -1);
@@ -910,7 +910,7 @@ public:
 				if(ds == OBJECT || ds == BASE) {
 					EmitDerefOp(_OP_NEWSLOT);
                     if((_es.epos == -1) && (es.etype == EXPR_STATEMENT)
-                       && (type(id) == OT_STRING) ) AddGlobalName(id);
+                       && (sqtype(id) == OT_STRING) ) AddGlobalName(id);
 				}
 				else //if _derefstate != DEREF_NO_DEREF && DEREF_FIELD so is the index of a local
 					Error(_SC("can't 'create' a local slot"));
@@ -1296,7 +1296,7 @@ public:
 					/* Handle named constant */
 					SQObjectPtr constval;
 					SQObject    constid;
-					if(type(constant) == OT_TABLE) {
+					if(sqtype(constant) == OT_TABLE) {
 						Expect('.');
 						constid = Expect(TK_IDENTIFIER);
 						if(!_table(constant)->Get(constid, constval)) {
@@ -1310,7 +1310,7 @@ public:
 					_es.epos = _fs->PushTarget();
 
 					/* generate direct or literal function depending on size */
-					SQObjectType ctype = type(constval);
+					SQObjectType ctype = sqtype(constval);
 					switch(ctype) {
 						case OT_INTEGER: EmitLoadConstInt(_integer(constval),_es.epos); break;
 						case OT_FLOAT: EmitLoadConstFloat(_float(constval),_es.epos); break;

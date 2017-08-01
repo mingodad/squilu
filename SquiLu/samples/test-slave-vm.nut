@@ -1,5 +1,14 @@
 local svm = SlaveVM(1024, true, true);
 
+print(SQLite3, SQLite3.SQLITE_ERROR);
+
+if(svm.preload_lib("sqlite3"))
+{
+	local slave_func = "getInteger";
+	svm.compilestring(slave_func, "return SQLite3.SQLITE_ERROR;");
+	local slave_integer = svm.call(true, slave_func);
+	print("SQLite3.SQLITE_ERROR", slave_integer);	
+}
 print(svm);
 print(svm.is_thread_idle(), svm.is_runing_as_thread());
 

@@ -7,3 +7,7 @@ ex = regexp(@"\m()");
 string = "123 Test; strlen(str);";
 res = ex.search(string);
 print(string.slice(res.begin,res.end)); //prints "(str)"
+
+local re = regexp(@"(style|layout)\.width");
+
+print(re.gsub(txt, "$1.dimensions[DIMENSION_WIDTH]"));
