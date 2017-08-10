@@ -592,6 +592,8 @@ SQRESULT sqext_register_sq_blosc(HSQUIRRELVM v);
 SQRESULT sqext_register_pcre(HSQUIRRELVM v);
 SQRESULT sqext_register_pcre2(HSQUIRRELVM v);
 SQRESULT sqext_register_freetype(HSQUIRRELVM v);
+SQRESULT sqext_register_tre(HSQUIRRELVM v);
+SQRESULT sqext_register_hunspell(HSQUIRRELVM v);
 
 static sq_modules_preload_st modules_preload[] = {
     {"blob", sqstd_register_bloblib},
@@ -620,6 +622,12 @@ static sq_modules_preload_st modules_preload[] = {
 #endif // SQ_USE_PCRE
 #if defined(SQ_USE_PCRE2) || defined(SQ_USE_PCRE2_STATIC)
     {"pcre2", sqext_register_pcre2},
+#endif // SQ_USE_PCRE2
+#if defined(SQ_USE_TRE) || defined(SQ_USE_TRE_STATIC)
+    {"sqtre", sqext_register_tre},
+#endif // SQ_USE_PCRE2
+#if defined(SQ_USE_HUNSPELL) || defined(SQ_USE_HUNSPELL_STATIC)
+    {"sqhunspell", sqext_register_hunspell},
 #endif // SQ_USE_PCRE2
 #ifdef SQ_USE_FREETYPE
     {"freetype", sqext_register_freetype},
