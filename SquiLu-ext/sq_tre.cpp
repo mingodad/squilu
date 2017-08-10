@@ -215,7 +215,7 @@ static SQRESULT sq_tre_constructor(HSQUIRRELVM v)
     }
 
     if (eflags & REG_NOSUB) sqtre->re.re_nsub = 0;
-    else if(sqtre->re.re_nsub)
+    else
     {
         sqtre->amatch.nmatch = sqtre->re.re_nsub+1; //+1 fror the whole match at 0
         sqtre->amatch.pmatch = (regmatch_t *) sq_malloc(sqtre->amatch.nmatch * sizeof (regmatch_t));
