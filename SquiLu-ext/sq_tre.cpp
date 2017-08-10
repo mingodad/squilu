@@ -625,10 +625,34 @@ static SQRESULT sq_tre_regaparams(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT sq_tre_config(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_INTEGER(v, 2, option);
+    void *config_result;
+    switch(option)
+    {
+        case TRE_CONFIG_APPROX:
+        case TRE_CONFIG_WCHAR:
+        case TRE_CONFIG_MULTIBYTE:
+        case TRE_CONFIG_SYSTEM_ABI:
+            tre_config(option, &config_result);
+            sq_pushinteger(v, (SQInteger)config_result);
+            break;
+        case TRE_CONFIG_VERSION:
+            tre_config(option, &config_result);
+            sq_pushstring(v, (const SQChar*)config_result, -1);
+            break;
+        default:
+            return sq_throwerror(v, _SC("unknown config option '%d'"), option);
+    }
+	return 1;
+}
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),sq_tre_##name,nparams,tycheck}
 static SQRegFunction sq_tre_methods[] =
 {
 	_DECL_FUNC(constructor,-2,_SC(".sn")),
+	_DECL_FUNC(config,2,_SC("xi")),
 	_DECL_FUNC(regaparams_default,1,_SC("x")),
 	_DECL_FUNC(regaparams,-2,_SC("xsi")),
 	_DECL_FUNC(regamatch,2,_SC("xs")),
