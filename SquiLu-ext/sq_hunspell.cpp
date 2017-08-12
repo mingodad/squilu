@@ -284,12 +284,27 @@ static SQRESULT sq_hunspell_stem(HSQUIRRELVM v)
 
 static SQRESULT sq_hunspell_suggest(HSQUIRRELVM v)
 {
-	SQ_FUNC_VARS_NO_TOP(v);
+	SQ_FUNC_VARS(v);
     GET_hunspell_INSTANCE();
 	SQ_GET_STRING(v, 2, word);
+	SQ_OPT_INTEGER(v, 3, max_suggestion, 0);
 	char **list;
 
 	int nelms = dlHunspell_suggest(self, &list, word);
+	if(max_suggestion)
+    {
+        if(max_suggestion == 1)
+        {
+            if(nelms)
+            {
+                sq_pushstring(v, list[0], -1);
+                dlHunspell_free_list(self, &list, nelms);
+            }
+            else sq_pushnull(v);
+            return 1;
+        }
+        if(nelms > max_suggestion) nelms = max_suggestion;
+    }
 	return sq_hunspell_list(v, self, nelms, list);
 }
 
@@ -344,7 +359,7 @@ static SQRegFunction sq_hunspell_methods[] =
 	_DECL_FUNC(generate,-2,_SC("x s|a")),
 	_DECL_FUNC(spell,2,_SC("xs")),
 	_DECL_FUNC(stem,2,_SC("xs")),
-	_DECL_FUNC(suggest,2,_SC("xs")),
+	_DECL_FUNC(suggest,-2,_SC("xsi")),
 	_DECL_FUNC(add_word,2,_SC("xs")),
 	_DECL_FUNC(remove_word,2,_SC("xs")),
     _DECL_FUNC(get_dic_encoding,1,_SC("x")),
