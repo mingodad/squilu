@@ -1775,7 +1775,7 @@ static SQRegFunction sq_sqlite3_session_iterator_methods[] =
     _DECL_FUNC(next,  1, _SC("x"), SQFalse),
     _DECL_FUNC(op,  2, _SC("xt"), SQFalse),
     _DECL_FUNC(new,  2, _SC("xi"), SQFalse),
-    _DECL_FUNC(old,  2, _SC("x1"), SQFalse),
+    _DECL_FUNC(old,  2, _SC("xi"), SQFalse),
     {0,0}
 };
 #undef _DECL_FUNC
