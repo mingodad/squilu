@@ -139,22 +139,6 @@ if(!dltre_version) return false;
 
 #endif // SQ_USE_TRE_STATIC
 
-static SQInteger calc_new_size_by_max_len(SQInteger start_pos, SQInteger max_len, SQInteger curr_size)
-{
-    SQInteger new_size;
-    if(start_pos < 0)
-    {
-        new_size = curr_size + start_pos;
-        start_pos = new_size < 0 ? 0 : new_size;
-    }
-    if(max_len > 0) new_size = start_pos + max_len;
-    else new_size = curr_size + max_len;
-    if( (new_size < curr_size) && (new_size > start_pos) )
-    {
-        return new_size;
-    }
-    return curr_size;
-}
 
 struct sqtre_st {
     regex_t re;
@@ -231,27 +215,30 @@ static SQRESULT sq_tre_constructor(HSQUIRRELVM v)
 	return 0;
 }
 
+#define GET_EXTRA_MATCH_PARAMS(stack_pos) \
+    SQ_OPT_INTEGER(v, stack_pos, start_offset, 0); \
+    SQ_OPT_INTEGER(v, stack_pos+1, eflags, 0); \
+    SQ_OPT_INTEGER(v, stack_pos+2, max_len, 0); \
+    \
+    if(start_offset < 0) return sq_throwerror(v, _SC("start_offset can't be negative")); \
+    SQInteger subject_str_size = subject_size - start_offset; \
+    if(subject_str_size < 0) return sq_throwerror(v, _SC("str size - start_offset can't be negative")); \
+    const SQChar *subject_str = subject + start_offset; \
+    if(max_len && (max_len < subject_str_size)) subject_str_size = max_len;
 static SQRESULT sq_tre_exec(HSQUIRRELVM v)
 {
 	SQ_FUNC_VARS(v);
     GET_tre_INSTANCE();
     SQ_GET_STRING(v, 2, subject);
-    SQ_OPT_INTEGER(v, 4, start_offset, 0);
-    SQ_OPT_INTEGER(v, 5, eflags, 0);
-    SQ_OPT_INTEGER(v, 6, max_len, 0);
-
-    if(max_len)
-    {
-        subject_size = calc_new_size_by_max_len(start_offset, max_len, subject_size);
-    }
+    GET_EXTRA_MATCH_PARAMS(4);
 
     int rc = dltre_reganexec(
-        &self->re,             /* the compiled pattern */
-        subject+start_offset, /* the subject string */
-        subject_size,         /* the length of the subject */
+        &self->re,          /* the compiled pattern */
+        subject_str,        /* the subject string */
+        subject_str_size,   /* the length of the subject */
         &self->amatch,
         self->aparams,
-        eflags);             /* 0 = default eflags */
+        eflags);            /* 0 = default eflags */
 
     const int array_pos = 3;
     SQInteger rtype = sq_gettype(v, array_pos);
@@ -265,10 +252,10 @@ static SQRESULT sq_tre_exec(HSQUIRRELVM v)
             sq_clear(v, array_pos);
             for (int i = 0; i < nelms; i++)
             {
-                SQInteger pos = pmatch[i].rm_so;
+                SQInteger pos = pmatch[i].rm_so + start_offset;
                 sq_pushinteger(v, pos);
                 sq_arrayappend(v, array_pos);
-                pos = pmatch[i].rm_eo;
+                pos = pmatch[i].rm_eo + start_offset;
                 sq_pushinteger(v, pos);
                 sq_arrayappend(v, array_pos);
             }
@@ -284,29 +271,22 @@ static SQRESULT sq_tre_match(HSQUIRRELVM v)
     SQ_FUNC_VARS(v);
     GET_tre_INSTANCE();
     SQ_GET_STRING(v, 2, subject);
-    SQ_OPT_INTEGER(v, 3, start_offset, 0);
-    SQ_OPT_INTEGER(v, 4, eflags, 0);
-    SQ_OPT_INTEGER(v, 5, max_len, 0);
-
-    if(max_len)
-    {
-        subject_size = calc_new_size_by_max_len(start_offset, max_len, subject_size);
-    }
+    GET_EXTRA_MATCH_PARAMS(3);
 
     int rc = dltre_reganexec(
-        &self->re,             /* the compiled pattern */
-        subject+start_offset, /* the subject string */
-        subject_size,         /* the length of the subject */
+        &self->re,          /* the compiled pattern */
+        subject_str,        /* the subject string */
+        subject_str_size,   /* the length of the subject */
         &self->amatch,
         self->aparams,
-        eflags);             /* 0 = default eflags */
+        eflags);            /* 0 = default eflags */
 
     if(rc == 0)
     {
         regmatch_t *pmatch = self->amatch.pmatch;
         SQInteger start_pos = pmatch[0].rm_so, end_pos = pmatch[0].rm_eo;
-        if(start_pos == end_pos) sq_pushinteger(v, start_pos); //empty match return it's position
-        else sq_pushstring(v, subject + start_pos, end_pos - start_pos);
+        if(start_pos == end_pos) sq_pushinteger(v, start_pos + start_offset); //empty match return it's position
+        else sq_pushstring(v, subject_str + start_pos, end_pos - start_pos);
         return 1;
     }
     if(rc == REG_ESPACE) //only no matching errore
@@ -321,28 +301,22 @@ static SQRESULT sq_tre_gmatch(HSQUIRRELVM v)
     SQ_FUNC_VARS(v);
     GET_tre_INSTANCE();
     SQ_GET_STRING(v, 2, subject);
-    SQ_OPT_INTEGER(v, 4, start_offset, 0);
-    SQ_OPT_INTEGER(v, 5, eflags, 0);
-    SQ_OPT_INTEGER(v, 6, max_len, 0);
+    GET_EXTRA_MATCH_PARAMS(4);
 
     SQInteger rc;
     bool isFirst = true;
 
-    if(max_len)
-    {
-        subject_size = calc_new_size_by_max_len(start_offset, max_len, subject_size);
-    }
 
     regmatch_t *pmatch = self->amatch.pmatch;
     SQInteger nmatch = self->amatch.nmatch;
 
     while( (rc = dltre_reganexec(
         &self->re,             /* the compiled pattern */
-        subject+start_offset, /* the subject string */
-        subject_size,         /* the length of the subject */
+        subject_str,           /* the subject string */
+        subject_str_size,      /* the length of the subject */
         &self->amatch,
         self->aparams,
-        eflags)) == 0)           /* use default match context */
+        eflags)) == 0)         /* use default match context */
     {
         if(isFirst)
         {
@@ -350,13 +324,13 @@ static SQRESULT sq_tre_gmatch(HSQUIRRELVM v)
             isFirst = false;
         }
         sq_pushroottable(v); //this
-        SQInteger start_pos, end_pos, i = 0,
+        SQInteger start_pos, end_pos = 0, i = 0,
             param_count = 1; //root table already on the stack
         for(;i < nmatch; i++) {
             start_pos = pmatch[i].rm_so;
             end_pos = pmatch[i].rm_eo;
-            if(start_pos == end_pos) sq_pushinteger(v, start_pos); //empty match return it's position
-            else sq_pushstring(v, subject + start_offset + start_pos, end_pos - start_pos);
+            if(start_pos == end_pos) sq_pushinteger(v, start_pos + start_offset); //empty match return it's position
+            else sq_pushstring(v, subject_str + start_pos, end_pos - start_pos);
             ++param_count;
         }
         i = sq_call(v, param_count, SQTrue, SQTrue);
@@ -370,7 +344,11 @@ static SQRESULT sq_tre_gmatch(HSQUIRRELVM v)
 
         if(!keep_matching) break;
 
-        start_offset += pmatch[nmatch-1].rm_eo; //the last match + 1
+        end_pos = pmatch[0].rm_eo;
+        subject_str_size -= end_pos;
+        if(subject_str_size <= 0) break;
+        start_offset += end_pos;
+        subject_str += end_pos; //the last match + 1
     }
     if(rc == REG_ESPACE) //only no matching errore
     {
@@ -385,20 +363,15 @@ static SQRESULT sq_tre_gsub(HSQUIRRELVM v)
 	SQ_FUNC_VARS(v);
     GET_tre_INSTANCE();
     SQ_GET_STRING(v, 2, subject);
-    SQ_OPT_INTEGER(v, 4, start_offset, 0);
-    SQ_OPT_INTEGER(v, 5, eflags, 0);
-    SQ_OPT_INTEGER(v, 6, max_len, 0);
-
-    if(max_len)
-    {
-        subject_size = calc_new_size_by_max_len(start_offset, max_len, subject_size);
-    }
+    SQ_OPT_INTEGER(v, 4, eflags, 0);
+    SQ_OPT_INTEGER(v, 5, max_sub, 0);
+    if(max_sub < 0) return sq_throwerror(v, _SC("max substitutions can't be less than zero"));
 
 	SQBlob blob(0,8192);
 	const int replacement_idx = 3;
 	SQObjectType ptype = sq_gettype(v, replacement_idx);
     const SQChar *replacement;
-    SQInteger replacement_size;
+    SQInteger replacement_size, start_offset=0;
 
     SQInteger rc;
     bool isFirst = true;
@@ -410,15 +383,15 @@ static SQRESULT sq_tre_gsub(HSQUIRRELVM v)
     }
 
     while( (rc = dltre_reganexec(
-        &self->re,             /* the compiled pattern */
-        subject+start_offset, /* the subject string */
-        subject_size,         /* the length of the subject */
+        &self->re,                  /* the compiled pattern */
+        subject,                /* the subject string */
+        subject_size,  /* the length of the subject */
         &self->amatch,
         self->aparams,
-        eflags)) == 0)           /* use default match context */
+        eflags)) == 0)              /* use default match context */
     {
         SQInteger i, start_pos, end_pos;
-	    blob.Write(subject+start_offset, pmatch[0].rm_so);
+	    blob.Write(subject, pmatch[0].rm_so);
 	    switch(ptype){
 	        case OT_CLOSURE:{
                 if(isFirst)
@@ -431,8 +404,8 @@ static SQRESULT sq_tre_gsub(HSQUIRRELVM v)
                 for(i=0; i < nmatch; i++) {
                     start_pos = pmatch[i].rm_so;
                     end_pos = pmatch[i].rm_eo;
-                    if(start_pos == end_pos) sq_pushinteger(v, start_pos);
-                    else sq_pushstring(v, subject + start_offset + start_pos, end_pos - start_pos);
+                    if(start_pos == end_pos) sq_pushinteger(v, start_pos + start_offset);
+                    else sq_pushstring(v, subject + start_pos, end_pos - start_pos);
                     ++param_count;
                 }
                 i = sq_call(v, param_count, SQTrue, SQTrue);
@@ -461,7 +434,7 @@ static SQRESULT sq_tre_gsub(HSQUIRRELVM v)
                 for(i=0; i < nmatch; i++) {
                     start_pos = pmatch[i].rm_so;
                     end_pos = pmatch[i].rm_eo;
-                    sq_pushstring(v, subject + start_offset + start_pos, end_pos - start_pos);
+                    sq_pushstring(v, subject + start_pos, end_pos - start_pos);
                     if(SQ_SUCCEEDED(sq_get(v, replacement_idx)) &&
                             SQ_SUCCEEDED(sq_getstr_and_size(v, -1, &replacement, &replacement_size))){
                         blob.Write(replacement, replacement_size);
@@ -485,7 +458,7 @@ static SQRESULT sq_tre_gsub(HSQUIRRELVM v)
                                 {
                                     start_pos = pmatch[j].rm_so;
                                     end_pos = pmatch[j].rm_eo;
-                                    blob.Write(subject+start_offset+start_pos, end_pos-start_pos);
+                                    blob.Write(subject + start_pos, end_pos-start_pos);
                                     break;
                                 }
                                 ++match_idx;
@@ -518,7 +491,14 @@ static SQRESULT sq_tre_gsub(HSQUIRRELVM v)
 	        default:
                 return sq_throwerror(v, _SC("gsub only works with closure, array, table for replacement"));
 	    }
-		start_offset += pmatch[nmatch-1].rm_eo; //the last match + 1
+        end_pos = pmatch[0].rm_eo;
+        subject_size -= end_pos;
+        if(subject_size <= 0) break;
+        subject += end_pos; //the last match + 1
+        if(max_sub)
+        {
+            if(--max_sub == 0) break;
+        }
 	}
 
     if(rc == REG_ESPACE) //only no matching errore
@@ -526,7 +506,7 @@ static SQRESULT sq_tre_gsub(HSQUIRRELVM v)
         return sq_throwerror(v, _SC("tre_match error %d"), (int)rc);
     }
 
-    if(subject_size) blob.Write(subject+start_offset, subject_size-start_offset);
+    if(subject_size > 0) blob.Write(subject+start_offset, subject_size-start_offset);
 	sq_pushstring(v, (const SQChar *)blob.GetBuf(), blob.Len());
 	return 1;
 }
@@ -659,7 +639,7 @@ static SQRegFunction sq_tre_methods[] =
 	_DECL_FUNC(exec,-3,_SC("xsannn")),
 	_DECL_FUNC(match,-2,_SC("xsnnn")),
 	_DECL_FUNC(gmatch,-3,_SC("xscnnn")),
-	_DECL_FUNC(gsub,-3,_SC("xs s|c|a|t nnn")),
+	_DECL_FUNC(gsub,-3,_SC("xs s|c|a|t nn")),
 	_DECL_FUNC(_typeof,1,_SC("x")),
     _DECL_FUNC(version,1,_SC(".")),
 	_DECL_FUNC(have_approx,1,_SC("x")),

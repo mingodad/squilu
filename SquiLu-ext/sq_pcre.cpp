@@ -351,20 +351,15 @@ static SQRESULT sq_pcre_gsub(HSQUIRRELVM v)
 	SQ_FUNC_VARS(v);
     GET_pcre_INSTANCE();
     SQ_GET_STRING(v, 2, str);
-    SQ_OPT_INTEGER(v, 4, start_offset, 0);
-    SQ_OPT_INTEGER(v, 5, options, 0);
-    SQ_OPT_INTEGER(v, 6, max_len, 0);
-
-    if(max_len)
-    {
-        str_size = calc_new_size_by_max_len(start_offset, max_len, str_size);
-    }
+    SQ_OPT_INTEGER(v, 4, options, 0);
+    SQ_OPT_INTEGER(v, 5, max_sub, 0);
+    if(max_sub < 0) return sq_throwerror(v, _SC("max substitutions can't be less than zero"));
 
 	SQBlob blob(0,8192);
 	const int replacement_idx = 3;
 	SQObjectType ptype = sq_gettype(v, replacement_idx);
     const SQChar *replacement;
-    SQInteger replacement_size;
+    SQInteger replacement_size, start_offset=0;
 
     SQInteger rc;
     bool isFirst = true;
@@ -492,6 +487,10 @@ static SQRESULT sq_pcre_gsub(HSQUIRRELVM v)
                 return sq_throwerror(v, _SC("gsub only works with closure, array, table for replacement"));
 	    }
 		start_offset = self->ovector[(rc*2)-1]; //the last match + 1
+        if(max_sub)
+        {
+            if(--max_sub == 0) break;
+        }
 	}
 
     if(rc < -2) //only no matching errore
@@ -532,7 +531,7 @@ static SQRegFunction sq_pcre_methods[] =
 	_DECL_FUNC(exec,-3,_SC("xsannn")),
 	_DECL_FUNC(match,-2,_SC("xsnnn")),
 	_DECL_FUNC(gmatch,-3,_SC("xscnnn")),
-	_DECL_FUNC(gsub,-3,_SC("xs s|c|a|t nnn")),
+	_DECL_FUNC(gsub,-3,_SC("xs s|c|a|t nn")),
 	_DECL_FUNC(_typeof,1,_SC("x")),
     _DECL_FUNC(version,1,_SC(".")),
     _DECL_FUNC(loadlib,2,_SC(".s")),

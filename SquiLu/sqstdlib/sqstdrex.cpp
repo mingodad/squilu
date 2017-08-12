@@ -38,6 +38,7 @@ static const SQChar *g_nnames[] =
 #define OP_BOL			(MAX_CHAR+12)
 #define OP_WB			(MAX_CHAR+13)
 #define OP_MB           (MAX_CHAR+14) //match balanced
+#define OP_EMPTY        (MAX_CHAR+15) //match position
 
 #define SQREX_SYMBOL_ANY_CHAR ('.')
 #define SQREX_SYMBOL_GREEDY_ONE_OR_MORE ('+')
@@ -81,7 +82,7 @@ static SQInteger sqstd_rex_newnode(SQRex *exp, SQRexNodeType type)
 	SQRexNode n;
 	n.type = type;
 	n.next = n.right = n.left = -1;
-	if(type == OP_EXPR)
+	if((type == OP_EXPR) || (type == OP_EMPTY))
 		n.right = exp->_nsubexpr++;
 	if(exp->_nallocated < (exp->_nsize + 1)) {
 		SQInteger oldsize = exp->_nallocated;
@@ -172,7 +173,8 @@ static SQInteger sqstd_rex_charnode(SQRex *exp,SQBool isclass)
 				return sqstd_rex_newnode(exp,t);
 		}
 	}
-	else if(!scisprint(*exp->_p)) {
+	//else if(!scisprint(*exp->_p)) {
+	else if(((SQUChar)*exp->_p) < ' ') {
 
 		sqstd_rex_error(exp,_SC("letter expected"));
 	}
@@ -254,14 +256,26 @@ static SQInteger sqstd_rex_element(SQRex *exp)
 			sqstd_rex_expect(exp,':');
 			expr = sqstd_rex_newnode(exp,OP_NOCAPEXPR);
 		}
+		else if(*exp->_p ==')')
+        {
+            exp->_p++;
+			expr = sqstd_rex_newnode(exp,OP_EMPTY);
+			if(*exp->_p !='\0')
+            {
+                SQInteger newn = sqstd_rex_list(exp);
+                exp->_nodes[expr].next = newn;
+            }
+            ret = expr;
+            break;
+        }
 		else
 			expr = sqstd_rex_newnode(exp,OP_EXPR);
-		SQInteger newn = sqstd_rex_list(exp);
-		exp->_nodes[expr].left = newn;
-		ret = expr;
-		sqstd_rex_expect(exp,')');
-			  }
-			  break;
+            SQInteger newn = sqstd_rex_list(exp);
+            exp->_nodes[expr].left = newn;
+            ret = expr;
+            sqstd_rex_expect(exp,')');
+        }
+        break;
 	case '[':
 		exp->_p++;
 		ret = sqstd_rex_class(exp);
@@ -287,19 +301,19 @@ static SQInteger sqstd_rex_element(SQRex *exp)
 			p0 = (unsigned short)sqstd_rex_parsenumber(exp);
 			/*******************************/
 			switch(*exp->_p) {
-		case '}':
-			p1 = p0; exp->_p++;
-			break;
-		case ',':
-			exp->_p++;
-			p1 = 0xFFFF;
-			if(isdigit(*exp->_p)){
-				p1 = (unsigned short)sqstd_rex_parsenumber(exp);
-			}
-			sqstd_rex_expect(exp,'}');
-			break;
-		default:
-			sqstd_rex_error(exp,_SC(", or } expected"));
+                case '}':
+                    p1 = p0; exp->_p++;
+                    break;
+                case ',':
+                    exp->_p++;
+                    p1 = 0xFFFF;
+                    if(isdigit(*exp->_p)){
+                        p1 = (unsigned short)sqstd_rex_parsenumber(exp);
+                    }
+                    sqstd_rex_expect(exp,'}');
+                    break;
+                default:
+                    sqstd_rex_error(exp,_SC(", or } expected"));
 			}
 			/*******************************/
 			isgreedy = SQTrue;
@@ -466,6 +480,7 @@ static const SQChar *sqstd_rex_matchnode(SQRex* exp,SQRexNode *node,const SQChar
 			return NULL;
 			break;
 	}
+	case OP_EMPTY: //zero length capture
 	case OP_EXPR:
 	case OP_NOCAPEXPR:{
 			SQRexNode *n = &exp->_nodes[node->left];
@@ -475,6 +490,11 @@ static const SQChar *sqstd_rex_matchnode(SQRex* exp,SQRexNode *node,const SQChar
 				capture = exp->_currsubexp;
 				exp->_matches[capture].begin = cur;
 				exp->_currsubexp++;
+				if(type == OP_EMPTY)
+                {
+                    exp->_matches[capture].len = -1;
+                    return cur;
+                }
 			}
 			SQInteger tempcap = exp->_currsubexp;
 			do {
@@ -614,11 +634,11 @@ void sqstd_rex_free(SQRex *exp)
 	}
 }
 
-SQBool sqstd_rex_match(SQRex* exp,const SQChar* text)
+SQBool sqstd_rex_match(SQRex* exp,const SQChar* text, SQInteger text_size)
 {
 	const SQChar* res = NULL;
 	exp->_bol = text;
-	exp->_eol = text + scstrlen(text);
+	exp->_eol = text + ((text_size < 0) ? scstrlen(text) : text_size);
 	exp->_currsubexp = 0;
 	res = sqstd_rex_matchnode(exp,exp->_nodes,text,NULL);
 	if(res == NULL || res != exp->_eol)

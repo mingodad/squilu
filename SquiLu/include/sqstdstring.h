@@ -16,7 +16,7 @@ typedef struct {
 
 SQUIRREL_API SQRex *sqstd_rex_compile(const SQChar *pattern,const SQChar **error);
 SQUIRREL_API void sqstd_rex_free(SQRex *exp);
-SQUIRREL_API SQBool sqstd_rex_match(SQRex* exp,const SQChar* text);
+SQUIRREL_API SQBool sqstd_rex_match(SQRex* exp,const SQChar* text, SQInteger text_size);
 SQUIRREL_API SQBool sqstd_rex_search(SQRex* exp,const SQChar* text, const SQChar** out_begin, const SQChar** out_end);
 SQUIRREL_API SQBool sqstd_rex_searchrange(SQRex* exp,const SQChar* text_begin,const SQChar* text_end,const SQChar** out_begin, const SQChar** out_end);
 SQUIRREL_API SQInteger sqstd_rex_getsubexpcount(SQRex* exp);
