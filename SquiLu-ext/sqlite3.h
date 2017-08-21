@@ -123,7 +123,7 @@ extern "C" {
 */
 #define SQLITE_VERSION        "3.21.0"
 #define SQLITE_VERSION_NUMBER 3021000
-#define SQLITE_SOURCE_ID      "2017-08-10 03:27:27 e49279e65169a939b6058a0960dc1fe09ce4ee2d78992a1969773cbc7ce1043b"
+#define SQLITE_SOURCE_ID      "2017-08-21 02:20:57 56d19f9fd7b01d4ed5c3e7309977b43fedffee168c9760d3e3b7e885790f781e"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -445,7 +445,7 @@ SQLITE_API int sqlite3_exec(
 #define SQLITE_FULL        13   /* Insertion failed because database is full */
 #define SQLITE_CANTOPEN    14   /* Unable to open the database file */
 #define SQLITE_PROTOCOL    15   /* Database lock protocol error */
-#define SQLITE_EMPTY       16   /* Not used */
+#define SQLITE_EMPTY       16   /* Internal use only */
 #define SQLITE_SCHEMA      17   /* The database schema changed */
 #define SQLITE_TOOBIG      18   /* String or BLOB exceeds size limit */
 #define SQLITE_CONSTRAINT  19   /* Abort due to constraint violation */
