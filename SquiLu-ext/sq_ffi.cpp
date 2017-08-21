@@ -94,9 +94,16 @@ static ffi_type *char2ffi_type(char c)
         return &ffi_type_slong;
     case 'L':
         return &ffi_type_ulong;
+    case 'f':
+        return &ffi_type_float;
+    case 'd':
+        return &ffi_type_double;
     case 'P':
+    case 'A':
     case 's':
         return &ffi_type_pointer;
+    case 'v':
+        return &ffi_type_void;
     default:
         return NULL;
     }
@@ -225,6 +232,25 @@ static void return_ffi_value(HSQUIRRELVM v, ptrdiff_t val, char type)
     case 's':
         sq_pushstring(v, (char*)val, -1);
         break;
+    case 'i':
+    case 'I':
+        sq_pushinteger(v, (int)val);
+        break;
+    case 'b':
+        sq_pushinteger(v, (SQChar)val);
+        break;
+    case 'B':
+        sq_pushinteger(v, (SQUChar)val);
+        break;
+    case 'f':
+        sq_pushfloat(v, (float)val);
+        break;
+    case 'd':
+        sq_pushfloat(v, (double)val);
+        break;
+    case 'P':
+        sq_pushuserpointer(v, (SQUserPointer)val);
+        break;
     default:
         sq_pushinteger(v, val);
     }
@@ -240,7 +266,7 @@ static SQInteger sq_func__call(HSQUIRRELVM v)
     if (ffibuf->cif.nargs != ((unsigned)(top - EXTRA_PARAMS)))
         return sq_throwerror(v, "Wrong number of args");
 
-    SQInteger values[top - EXTRA_PARAMS];
+    SQUserPointer values[top - EXTRA_PARAMS];
     void *valueptrs[top - EXTRA_PARAMS];
     int i;
     for (i = EXTRA_PARAMS + 1; i <= top; i++) {
@@ -252,12 +278,18 @@ static SQInteger sq_func__call(HSQUIRRELVM v)
         case OT_STRING:
             sq_getstring(v, i, (const char**)&values[pi]);
             break;
+        case OT_USERPOINTER:
+            sq_getuserpointer(v, i, (SQUserPointer*)&values[pi]);
+            break;
         case OT_USERDATA:
             sq_getuserdata(v, i, (SQUserPointer*)&values[pi], NULL);
             break;
         case OT_INSTANCE: {
             if (SQ_FAILED(sqstd_getblob(v, i, (SQUserPointer*)&values[pi])))
                 return SQ_ERROR;
+            break;
+        case OT_NULL:
+            values[pi] = NULL;
             break;
         }
         default:
@@ -305,6 +337,9 @@ static SQInteger sq_var_get(HSQUIRRELVM v)
         break;
     case 'B':
         sq_pushinteger(v, *(unsigned char*)pval);
+        break;
+    case 'P':
+        sq_pushuserpointer(v, (SQUserPointer)pval);
         break;
     default:
         sq_pushinteger(v, *(int*)pval);
@@ -359,21 +394,25 @@ struct FFI_type_name {
     ffi_type *type;
 };
 
+#define FFI_TYPE_WRAP(tp) {"t_" #tp, &ffi_type_##tp}
 static struct FFI_type_name ffi_types_wrap[] = {
-    {"void",    &ffi_type_void},
-    {"schar",   &ffi_type_schar},
-    {"uchar",   &ffi_type_uchar},
-    {"sshort",  &ffi_type_sshort},
-    {"ushort",  &ffi_type_ushort},
-    {"sint",    &ffi_type_sint},
-    {"uint",    &ffi_type_uint},
-    {"slong",   &ffi_type_slong},
-    {"ulong",   &ffi_type_ulong},
-    {"float",   &ffi_type_float},
-    {"double",  &ffi_type_double},
-    {"pointer", &ffi_type_pointer},
+    FFI_TYPE_WRAP(void),
+    FFI_TYPE_WRAP(schar),
+    FFI_TYPE_WRAP(uchar),
+    FFI_TYPE_WRAP(sshort),
+    FFI_TYPE_WRAP(ushort),
+    FFI_TYPE_WRAP(sint),
+    FFI_TYPE_WRAP(uint),
+    FFI_TYPE_WRAP(sint64),
+    FFI_TYPE_WRAP(uint64),
+    FFI_TYPE_WRAP(slong),
+    FFI_TYPE_WRAP(ulong),
+    FFI_TYPE_WRAP(float),
+    FFI_TYPE_WRAP(double),
+    FFI_TYPE_WRAP(pointer),
     {NULL}
 };
+#undef FFI_TYPE_WRAP
 
 
 #ifdef __cplusplus
