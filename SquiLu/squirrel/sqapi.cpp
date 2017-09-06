@@ -1052,7 +1052,7 @@ SQRESULT sq_gettypetag(HSQUIRRELVM v,SQInteger idx,SQUserPointer *typetag)
 {
 	SQObjectPtr &o = stack_get(v,idx);
 	if(SQ_FAILED(sq_getobjtypetag(&o,typetag)))
-		return sq_throwerror(v,_SC("invalid object type"));
+		return SQ_ERROR;// this is not an error it should be a bool but would break backward compatibility
 	return SQ_OK;
 }
 
