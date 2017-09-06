@@ -1544,7 +1544,7 @@ static SQRESULT sq_sqlite3_session_attach(HSQUIRRELVM v)
 
 static SQRESULT sq_sqlite3_session_enable(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS(v);
+    SQ_FUNC_VARS_NO_TOP(v);
     GET_sqlite3_session_INSTANCE();
     SQ_GET_BOOL(v, 2, enable);
     sq_pushinteger(v, sqlite3session_enable(self, enable));
@@ -1553,7 +1553,7 @@ static SQRESULT sq_sqlite3_session_enable(HSQUIRRELVM v)
 
 static SQRESULT sq_sqlite3_session_isempty(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS(v);
+    SQ_FUNC_VARS_NO_TOP(v);
     GET_sqlite3_session_INSTANCE();
     sq_pushinteger(v, sqlite3session_isempty(self));
     return 1;
@@ -1674,7 +1674,7 @@ static SQRESULT sq_sqlite3_session_iterator_releasehook(SQUserPointer p, SQInteg
 
 static SQRESULT sq_sqlite3_session_iterator_constructor(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS(v);
+    SQ_FUNC_VARS_NO_TOP(v);
     _rc_ = SQ_ERROR;
     SQ_GET_STRING(v, 2, changeset)
     sqlite3_changeset_iter *pIter = 0;
@@ -1690,7 +1690,7 @@ static SQRESULT sq_sqlite3_session_iterator_constructor(HSQUIRRELVM v)
 
 static SQRESULT sq_sqlite3_session_iterator_next(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS(v);
+    SQ_FUNC_VARS_NO_TOP(v);
     GET_sqlite3_session_iterator_INSTANCE();
     sq_pushinteger(v, sqlite3changeset_next(self));
     return 1;
@@ -1698,7 +1698,7 @@ static SQRESULT sq_sqlite3_session_iterator_next(HSQUIRRELVM v)
 
 static SQRESULT sq_sqlite3_session_iterator_op(HSQUIRRELVM v)
 {
-    SQ_FUNC_VARS(v);
+    SQ_FUNC_VARS_NO_TOP(v);
     GET_sqlite3_session_iterator_INSTANCE();
     const char *pzTab;             /* OUT: Pointer to table name */
     int nCol;                     /* OUT: Number of columns in table */
@@ -1726,7 +1726,7 @@ static SQRESULT sq_sqlite3_session_iterator_op(HSQUIRRELVM v)
 
 static SQRESULT sq_sqlite3_session_iterator_push_value(HSQUIRRELVM v, int isNew)
 {
-    SQ_FUNC_VARS(v);
+    SQ_FUNC_VARS_NO_TOP(v);
     GET_sqlite3_session_iterator_INSTANCE();
     SQ_GET_INTEGER(v, 2, col);
     sqlite3_value *pVal;
