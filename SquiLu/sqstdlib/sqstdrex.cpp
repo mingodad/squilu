@@ -360,13 +360,17 @@ static SQInteger sqstd_rex_list(SQRex *exp)
 	return ret;
 }
 
+static inline bool isChClassWord(int c)
+{
+    return (isalnum(c) || c == '_');
+}
 static SQBool sqstd_rex_matchcclass(SQInteger cclass,SQChar c)
 {
 	switch(cclass) {
 	case 'a': return isalpha(c)?SQTrue:SQFalse;
 	case 'A': return !isalpha(c)?SQTrue:SQFalse;
-	case 'w': return (isalnum(c) || c == '_')?SQTrue:SQFalse;
-	case 'W': return (!isalnum(c) && c != '_')?SQTrue:SQFalse;
+	case 'w': return isChClassWord(c)?SQTrue:SQFalse;
+	case 'W': return !isChClassWord(c)?SQTrue:SQFalse;
 	case 's': return isspace(c)?SQTrue:SQFalse;
 	case 'S': return !isspace(c)?SQTrue:SQFalse;
 	case 'd': return isdigit(c)?SQTrue:SQFalse;
@@ -426,6 +430,7 @@ static const SQChar *sqstd_rex_matchnode(SQRex* exp,SQRexNode *node,const SQChar
 			{
 			    while_nmatches++;
 			    s = last_match;
+			    if(while_nmatches == p1) break;
 			}
 			if(!while_nmatches) break;
 			nmatches += while_nmatches;
@@ -519,10 +524,9 @@ static const SQChar *sqstd_rex_matchnode(SQRex* exp,SQRexNode *node,const SQChar
 			return cur;
 	}
 	case OP_WB:
-		if((str == exp->_bol && !isspace(*str))
-		 || (str == exp->_eol && !isspace(*(str-1)))
-		 || (!isspace(*str) && isspace(*(str+1)))
-		 || (isspace(*str) && !isspace(*(str+1))) ) {
+		if((str == exp->_bol && isChClassWord(*str))
+		 || (str == exp->_eol && isChClassWord(*(str-1)))
+		 || (isChClassWord(*str) != isChClassWord(*(str-1))) ) {
 			return (node->left == 'b')?str:NULL;
 		}
 		return (node->left == 'b')?NULL:str;
