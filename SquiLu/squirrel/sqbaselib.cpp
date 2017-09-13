@@ -1430,6 +1430,11 @@ static SQRESULT string_gsub(HSQUIRRELVM v)
     SQ_FUNC_VARS(v);
     SQ_GET_STRING(v, 1, src);
     SQ_GET_STRING(v, 2, pattern);
+    if(pattern_size == 0) //empty str to search
+    {
+        sq_push(v, 1);
+        return 1;
+    }
     SQ_OPT_INTEGER(v, 4, max_sub, 0);
     SQObjectType rtype = sq_gettype(v, 3);
     if(rtype == OT_STRING){
@@ -1518,6 +1523,7 @@ SQRESULT string_gmatch_base(HSQUIRRELVM v, int isGmatch, const SQChar *src, SQIn
         {
             src_size = calc_new_size_by_max_len(start_pos, max_len, src_size);
         }
+        //if (start_pos < 0) start_pos = 0;
         if(rtype == OT_CLOSURE){
             _rc_ = lua_str_match(&ms, src, max_len ? start_pos + max_len : src_size,
                     pattern, pattern_size, start_pos, 0, process_string_gmatch, v);
@@ -1676,6 +1682,11 @@ static SQRESULT string_replace(HSQUIRRELVM v) {
     SQ_FUNC_VARS(v);
     SQ_GET_STRING(v, 1, src);
     SQ_GET_STRING(v, 2, p);
+    if(p_size == 0) //empty str to search
+    {
+        sq_push(v, 1);
+        return 1;
+    }
     SQ_GET_STRING(v, 3, p2);
     SQ_OPT_INTEGER(v, 4, count, 0);
     const SQChar *s2;
