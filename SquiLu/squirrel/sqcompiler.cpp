@@ -1587,7 +1587,8 @@ member_has_type:
 				Lex();
 				obj_id = saved_tok == TK_FUNCTION ? Expect(TK_IDENTIFIER) :
 					_fs->CreateString(saved_tok == TK_CONSTRUCTOR ? _SC("constructor") : _SC("destructor"));
-                CheckClassMemberExists(member_names, obj_id);
+                if(sqtype(member_names) == OT_TABLE) CheckClassMemberExists(member_names, obj_id);
+                else Error(_SC("unexpected error in class declaration"));
 				Expect(_SC('('));
 function_params_decl:
 				_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(obj_id));
