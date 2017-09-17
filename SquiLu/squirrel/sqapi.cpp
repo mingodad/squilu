@@ -216,7 +216,7 @@ SQUnsignedInteger sq_getvmrefcount(HSQUIRRELVM SQ_UNUSED_ARG(v), const HSQOBJECT
 
 const SQChar *sq_objtostring(const HSQOBJECT *o)
 {
-	if(sq_type(*o) == OT_STRING) {
+	if(sqtype(*o) == OT_STRING) {
 		return _stringval(*o);
 	}
 	return NULL;
@@ -641,7 +641,7 @@ SQRESULT sq_setclosureroot(HSQUIRRELVM v,SQInteger idx)
         v->Pop();
         return SQ_OK;
     }
-    return sq_throwerror(v, _SC("ivalid type"));
+    return sq_throwerror(v, _SC("invalid type"));
 }
 
 SQRESULT sq_getclosureroot(HSQUIRRELVM v,SQInteger idx)
@@ -799,7 +799,7 @@ SQRESULT sq_setconsttable(HSQUIRRELVM v)
 		v->Pop();
 		return SQ_OK;
 	}
-	return sq_throwerror(v, _SC("ivalid type, expected table"));
+	return sq_throwerror(v, _SC("invalid type, expected table"));
 }
 
 void sq_setforeignptr(HSQUIRRELVM v,SQUserPointer p)
@@ -916,6 +916,10 @@ SQRESULT sq_getinteger(HSQUIRRELVM v,SQInteger idx,SQInteger *i)
 		*i = tointeger(o);
 		return SQ_OK;
 	}
+    if(sq_isbool(o)) {
+        *i = SQVM::IsFalse(o)?SQFalse:SQTrue;
+        return SQ_OK;
+    }
 	return SQ_ERROR;
 }
 
@@ -1274,7 +1278,11 @@ SQRESULT sq_setdelegate(HSQUIRRELVM v,SQInteger idx)
 	switch(type) {
 	case OT_TABLE:
 		if(sqtype(mt) == OT_TABLE) {
-			if(!_table(self)->SetDelegate(_table(mt))) return sq_throwerror(v, _SC("delagate cycle")); v->Pop();}
+			if(!_table(self)->SetDelegate(_table(mt))) {
+                return sq_throwerror(v, _SC("delagate cycle"));
+            }
+			v->Pop();
+        }
 		else if(sqtype(mt)==OT_NULL) {
 			_table(self)->SetDelegate(NULL); v->Pop(); }
 		else return sq_aux_invalidtype(v,type);
@@ -1552,7 +1560,7 @@ SQRESULT sq_call(HSQUIRRELVM v,SQInteger params,SQBool retval,SQBool raiseerror)
 	if(v->Call(v->GetUp(-(params+1)),params,v->_top-params,res,raiseerror?true:false)){
 
 		if(!v->_suspended) {
-			v->Pop(params);//pop closure and args
+			v->Pop(params);//pop args
 #ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
 			//collect garbage right after function call if any
 			_ss(v)->CallDelayedReleaseHooks(v);

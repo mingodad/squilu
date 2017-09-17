@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2003-2012 Alberto Demichelis
+Copyright (c) 2003-2017 Alberto Demichelis
 Forked by Domingo Alvarez Duarte
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -123,7 +123,7 @@ struct SQOuter;
 #include "sqconfig.h"
 
 #define SQUIRREL_VERSION	_SC("SquiLu based on Squirrel 3.1 stable and Lua 5.1.5")
-#define SQUIRREL_COPYRIGHT	_SC("Copyright (C) 2003-2016 Alberto Demichelis, Domingo Alvarez Duarte")
+#define SQUIRREL_COPYRIGHT	_SC("Copyright (C) 2003-2017 Alberto Demichelis, Domingo Alvarez Duarte")
 #define SQUIRREL_AUTHOR		_SC("Alberto Demichelis, Domingo Alvarez Duarte")
 #define SQUIRREL_VERSION_NUMBER	310
 
