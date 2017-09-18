@@ -72,12 +72,24 @@ typedef unsigned wchar_t SQUChar;
 #define scfprintf fwprintf
 #define scvprintf vfwprintf
 #define scfopen	_wfopen
+#define scgetenv _wgetenv
+#define scsystem _wsystem
+#define scasctime _wasctime
+#define scstrftime _wstrftime
+#define scremove _wremove
+#define screname _wrename
 #else
 #define scsprintf   swprintf
 #define scvfprintf	vfwprintf
 #define scfprintf fwprintf
 #define scvprintf vfwprintf
 #define scfopen	wfopen
+#define scgetenv wgetenv
+#define scsystem wsystem
+#define scasctime wasctime
+#define scstrftime wstrftime
+#define scremove wremove
+#define screname wrename
 #endif
 #define scstrlen    wcslen
 #define scstrcpy    wcstrcpy
@@ -94,6 +106,12 @@ typedef unsigned wchar_t SQUChar;
 #define scstrpbrk	wcspbrk
 #define scstrtok	wcstrtok
 #define scprintf    wprintf
+#define scgetenv wgetenv
+#define scsystem wsystem
+#define scasctime wasctime
+#define scstrftime wstrftime
+#define scremove wremove
+#define screname wrename
 
 #ifdef _WIN32
 #define WCHAR_SIZE 2
@@ -118,6 +136,7 @@ typedef unsigned wchar_t SQUChar;
 
 
 #define sq_rsl(l) ((l)<<WCHAR_SHIFT_MUL)
+#define sq_str_sizeof(p) (sizeof(p)/WCHAR_SIZE)
 
 #else
 typedef char SQChar;
@@ -165,7 +184,14 @@ typedef unsigned char SQUChar;
 #define scprintf    printf
 #define MAX_CHAR 0xFF
 
+#define scgetenv getenv
+#define scsystem system
+#define scasctime asctime
+#define scstrftime strftime
+#define scremove remove
+#define screname rename
 #define sq_rsl(l) (l)
+#define sq_str_sizeof(p) (sizeof(p))
 
 #endif
 
@@ -174,4 +200,22 @@ typedef unsigned char SQUChar;
 #define _PRINT_INT_FMT _SC("%lld")
 #else
 #define _PRINT_INT_FMT _SC("%d")
+#endif
+
+#if !defined(SQUILU_MAX_PATH)
+#define SQUILU_MAX_PATH	1024
+#endif
+
+#if defined(_WIN32)
+#define SQUILU_DIRSEP	_SC("\\")
+#else
+#define SQUILU_DIRSEP	_SC("/")
+#endif
+
+#if !defined(SQUILU_PATH_VAR)
+#define SQUILU_PATH_VAR	_SC("SQUILU_PATH")
+#endif
+
+#if !defined (SQUILU_PATH_SEP)
+#define SQUILU_PATH_SEP		_SC(";")
 #endif

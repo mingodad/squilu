@@ -1993,6 +1993,8 @@ SQObjectPtr &SQVM::Top() { return _stack[_top-1]; }
 SQObjectPtr &SQVM::PopGet() { return _stack[--_top]; }
 SQObjectPtr &SQVM::GetUp(SQInteger n) { return _stack[_top+n]; }
 SQObjectPtr &SQVM::GetAt(SQInteger n) { return _stack[n]; }
+void SQVM::SetIncludePath(const SQChar *s){_include_path = SQString::Create(_ss(this), s);}
+const SQChar *SQVM::GetIncludePath(){return _stringval(_include_path);}
 
 #ifdef _DEBUG_DUMP
 void SQVM::dumpstack(SQInteger stackbase,bool dumpall)

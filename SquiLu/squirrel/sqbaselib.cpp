@@ -405,6 +405,13 @@ static SQRESULT base_str_from_chars (HSQUIRRELVM v) {
   return 1;
 }
 
+static SQRESULT base_getincludepath(HSQUIRRELVM v)
+{
+    const SQChar *include_path = v->GetIncludePath();
+    if(include_path) sq_pushstring(v, include_path, 1);
+    else sq_pushnull(v);
+	return 1;
+}
 /////////////////////////////////////////////////////////////////
 //TABLE BASE FUNCTIONS
 
@@ -559,6 +566,7 @@ static SQRegFunction base_funcs[]={
 #endif
 	{_SC("str_from_chars"),base_str_from_chars,-1, _SC(".i")},
 	{_SC("try_tostring"),base_try_tostring,-2, _SC("..s")},
+	{_SC("getincludepath"),base_getincludepath,1, _SC(".")},
 	{_SC("table_create"),bf_table_create,-1, _SC(".i")},
 	{_SC("table_new"),bf_table_create,-1, _SC(".i")},
 	{_SC("table_len"),bf_table_len,2, _SC(".t")},

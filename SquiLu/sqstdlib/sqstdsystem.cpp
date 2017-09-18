@@ -18,22 +18,6 @@
 #include <unistd.h>
 #endif
 
-#ifdef SQUNICODE
-#include <wchar.h>
-#define scgetenv _wgetenv
-#define scsystem _wsystem
-#define scasctime _wasctime
-#define scstrftime _wstrftime
-#define scremove _wremove
-#define screname _wrename
-#else
-#define scgetenv getenv
-#define scsystem system
-#define scasctime asctime
-#define scstrftime strftime
-#define scremove remove
-#define screname rename
-#endif
 
 SQ_OPT_STRING_STRLEN();
 

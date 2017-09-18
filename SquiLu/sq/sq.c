@@ -100,6 +100,7 @@ void PrintUsage()
 		_SC("   -d              generates debug infos\n")
 		_SC("   -v              displays version infos\n")
 		_SC("   -p              preload given script file\n")
+		_SC("   -i              set the include_path\n")
 		_SC("   -h              prints help\n"));
 }
 
@@ -112,7 +113,8 @@ void loadDefaultScript(HSQUIRRELVM v, const char *script)
     SQChar srcBoot[256];
     scsprintf(srcBoot, sizeof(srcBoot), _SC("dofile(\"%s\", false);"), script);
 
-    if(SQ_SUCCEEDED(sq_compilebuffer(v,srcBoot, strlen(srcBoot), _SC("defaultScript"), SQTrue, SQTrue, SQ_MAX_INCLUDE_FILES))) {
+    if(SQ_SUCCEEDED(sq_compilebuffer(v,srcBoot, strlen(srcBoot), _SC("defaultScript"), SQTrue, SQTrue,
+                                     SQ_MAX_INCLUDE_FILES))) {
         int callargs = 1;
         sq_pushroottable(v);
         callargs += push_program_args(v, 0, sq_main_argc, sq_main_argv, 0);
@@ -164,7 +166,12 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 					if(arg < argc) {
 						arg++;
 						preload = argv[arg];
-                        loadDefaultScript(v, preload);
+					}
+					break;
+				case 'i':
+					if(arg < argc) {
+						arg++;
+						sq_set_include_path(v, argv[arg]);
 					}
 					break;
 				case 'v':
@@ -185,6 +192,7 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 			}else break;
 			arg++;
 		}
+		if(preload) loadDefaultScript(v, preload);
 
 		// src file
 
@@ -356,7 +364,8 @@ void Interactive(HSQUIRRELVM v)
 		i=scstrlen(buffer);
 		if(i>0){
 			SQInteger oldtop=sq_gettop(v);
-			if(SQ_SUCCEEDED(sq_compilebuffer(v,buffer,i,_SC("interactive console"),SQTrue, SQTrue, SQ_MAX_INCLUDE_FILES))){
+			if(SQ_SUCCEEDED(sq_compilebuffer(v,buffer,i,_SC("interactive console"),SQTrue, SQTrue,
+                                    SQ_MAX_INCLUDE_FILES))){
 				sq_pushroottable(v);
 				if(SQ_SUCCEEDED(sq_call(v,1,retval,SQTrue)) &&	retval){
 					scprintf(_SC("\n"));
@@ -535,7 +544,7 @@ static SQInteger LoadFrozenScript(HSQUIRRELVM v, const SQChar* filename, int onl
 
     chngChar(srcBoot, '\\', '/');
 
-    if(SQ_SUCCEEDED(sq_compilebuffer(v,srcBoot, scr_len, _SC("bootScript"), SQTrue, SQTrue, SQ_MAX_INCLUDE_FILES))) {
+    if(SQ_SUCCEEDED(sq_compilebuffer(v,srcBoot, scr_len, _SC("bootScript"), SQTrue, SQTrue,SQ_MAX_INCLUDE_FILES))) {
         int callargs = 1;
         sq_pushroottable(v);
         callargs += push_program_args(v, 0, sq_main_argc, sq_main_argv, 0);
@@ -615,12 +624,12 @@ static sq_modules_preload_st modules_preload[] = {
     {"socket", sqext_register_sq_socket},
     {"tweetnacl", sqext_register_tweetnacl},
     {"pack", sqext_register_pack},
-#ifndef TARGET_IOS
+#if !defined(TARGET_IOS)
 #ifdef SQ_USE_PCRE
-    {"pcre", sqext_register_pcre},
+    {"sqpcre", sqext_register_pcre},
 #endif // SQ_USE_PCRE
 #if defined(SQ_USE_PCRE2) || defined(SQ_USE_PCRE2_STATIC)
-    {"pcre2", sqext_register_pcre2},
+    {"sqpcre2", sqext_register_pcre2},
 #endif // SQ_USE_PCRE2
 #if defined(SQ_USE_TRE) || defined(SQ_USE_TRE_STATIC)
     {"sqtre", sqext_register_tre},
@@ -657,7 +666,9 @@ static sq_modules_preload_st modules_preload[] = {
 #endif
     {"slave_vm", sqext_register_sq_slave_vm},
     //{"thread", sqext_register_ThreadObjects},
+#if !defined(ANDROID_BUILD)
     {"dad_utils", sqext_register_dad_utils},
+#endif
     //{"sys_extra", sqext_register_sys},
 #ifdef SQ_USE_EASYCURL
     {"easycurl", sqext_register_EasyCurl},
@@ -677,7 +688,9 @@ static sq_modules_preload_st modules_preload[] = {
 #ifdef WITH_MYSQL
     {"mysql", sqext_register_MySQL},
 #endif
+#if !defined(ANDROID_BUILD)
     {"rs232", sqext_register_rs232},
+#endif
 #ifdef WITH_FLTK
     {"fltk", sqext_register_fltklib},
 #endif
@@ -686,7 +699,7 @@ static sq_modules_preload_st modules_preload[] = {
 #endif
 
 #endif //SQUILU_ALONE
-#endif
+#endif // WITH_DAD_EXTRAS
     {NULL, NULL}
 };
 
@@ -706,6 +719,8 @@ int main(int argc, char* argv[])
 #define SQ_OPEN_VM_SIZE 1024
 #endif // SQ_OPEN_VM_SIZE
 	v=sq_open(SQ_OPEN_VM_SIZE);
+	const SQChar *include_path = scgetenv(_SC("SQUILU_PATH"));
+	if(include_path) sq_set_include_path(v, include_path);
 	sq_setprintfunc(v,printfunc,errorfunc);
 
 	sq_pushroottable(v);

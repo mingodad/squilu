@@ -154,6 +154,7 @@ public:
         _max_nested_includes = max_nested_includes;
         _nested_includes_count = 0;
         _is_parsing_extern = false;
+        squilu_lib_path = NULL;
 	}
 	~SQCompiler(){
         _table(_globals)->Finalize();
@@ -465,7 +466,34 @@ public:
             //Warning(_SC("%s:%d:%d warning pragma include %s\n"),
             //        _stringval(_sourcename), line, column, _stringval(id));
 
+            const SQChar *lib_path = NULL;
+            //first try the filename alone
             FILE *fp = scfopen(_stringval(id), "r");
+            while(!fp)
+            {
+                //now if we have an environment path let's try it
+                if(!lib_path)
+                {
+                    if(!squilu_lib_path) squilu_lib_path = _vm->GetIncludePath();
+                    lib_path = squilu_lib_path;
+                    if(!lib_path) break;
+                }
+                while (*lib_path == *SQUILU_PATH_SEP) lib_path++;  /* skip separators */
+                if (*lib_path == '\0') break;  /* no more templates */
+                const SQChar *l = scstrchr(lib_path, *SQUILU_PATH_SEP);  /* find next separator */
+                if (l == NULL) l = lib_path + scstrlen(lib_path);
+                size_t path_len = l - lib_path;
+                SQChar file_path_name[SQUILU_MAX_PATH];
+                if(path_len < sizeof(file_path_name)) //enough room to work ?
+                {
+                    scsprintf(file_path_name, sizeof(file_path_name), "%s", lib_path);
+                    scsprintf(file_path_name + path_len, sizeof(file_path_name) - path_len,
+                              "%s%s", SQUILU_DIRSEP, _stringval(id));
+                    //printf("file_path_name = %s\n", file_path_name);
+                    fp = scfopen(file_path_name, "r");
+                    lib_path += path_len; //move the pointer to the next path
+                }
+            }
             if(fp != NULL)
             {
                 //increment nested count
@@ -2717,6 +2745,7 @@ private:
 	SQObjectPtr _extern_names; //to allow C/C++ style extern declarations
 	SQChar error_buf[MAX_COMPILER_ERROR_LEN];
 	SQInteger _max_nested_includes, _nested_includes_count;
+	const SQChar *squilu_lib_path;
 };
 
 bool Compile(SQVM *vm,SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, SQObjectPtr &out,

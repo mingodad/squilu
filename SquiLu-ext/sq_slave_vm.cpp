@@ -309,6 +309,32 @@ static SQRESULT sq_slave_vm_close(HSQUIRRELVM v)
     return 0;
 }
 
+static SQRESULT sq_slave_vm_set_include_path(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sq_slave_vm_INSTANCE(v, 1);
+#ifdef SLAVE_VM_WITH_OS_THREADS
+    if(checkTryLock(v, self)) return SQ_ERROR;
+    releaseSlaveThread(self);
+#endif // SLAVE_VM_WITH_OS_THREADS
+    SQ_GET_STRING(v, 2, include_path);
+    sq_set_include_path(svm, include_path);
+    return 0;
+}
+
+static SQRESULT sq_slave_vm_get_include_path(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sq_slave_vm_INSTANCE(v, 1);
+#ifdef SLAVE_VM_WITH_OS_THREADS
+    if(checkTryLock(v, self)) return SQ_ERROR;
+    releaseSlaveThread(self);
+#endif // SLAVE_VM_WITH_OS_THREADS
+    const SQChar *include_path = sq_get_include_path(svm);
+    if(include_path) sq_pushstring(v, include_path, -1);
+    else sq_pushnull(v);
+    return 1;
+}
 static SQRESULT sq_slave_vm_call(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
@@ -681,6 +707,8 @@ extern "C" {
         sq_insertfunc(v, _SC("constructor"), sq_slave_vm_constructor, -1, _SC("xibb"), SQFalse);
         sq_insertfunc(v, _SC("_tostring"), sq_slave_vm__tostring, 1, _SC("x"), SQFalse);
         sq_insertfunc(v, _SC("close"), sq_slave_vm_close, 1, _SC("x"), SQFalse);
+        sq_insertfunc(v, _SC("set_include_path"), sq_slave_vm_set_include_path, 2, _SC("xs"), SQFalse);
+        sq_insertfunc(v, _SC("get_include_path"), sq_slave_vm_get_include_path, 1, _SC("x"), SQFalse);
         sq_insertfunc(v, _SC("set"), sq_slave_vm_set, 3, get_set_validation_mask, SQFalse);
         sq_insertfunc(v, _SC("_set"), sq_slave_vm_set, 3, get_set_validation_mask, SQFalse);
         sq_insertfunc(v, _SC("get"), sq_slave_vm_get, -2, get_set_validation_mask, SQFalse);

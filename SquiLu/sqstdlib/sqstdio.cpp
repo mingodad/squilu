@@ -426,7 +426,8 @@ SQRESULT sqstd_loadfile(HSQUIRRELVM v,const SQChar *filename,SQBool printerror,S
 			buffer.size = 0;
 			buffer.file = file;
 
-			if(SQ_SUCCEEDED(sq_compile(v,func,&buffer,filename,printerror,show_warnings, SQ_MAX_INCLUDE_FILES))){
+			if(SQ_SUCCEEDED(sq_compile(v,func,&buffer,filename,printerror,show_warnings,
+                              SQ_MAX_INCLUDE_FILES))){
 				sqstd_fclose(file);
 				return SQ_OK;
 			}
@@ -435,6 +436,11 @@ SQRESULT sqstd_loadfile(HSQUIRRELVM v,const SQChar *filename,SQBool printerror,S
 		return SQ_ERROR;
 	}
 	return sq_throwerror(v,_SC("cannot open the file"));
+}
+
+SQRESULT sqstd_loadfile(HSQUIRRELVM v,const SQChar *filename,SQBool printerror,SQBool show_warnings)
+{
+    return sqstd_loadfile_include_path(v, filename, printerror, show_warnings, NULL);
 }
 
 SQRESULT sqstd_dofile(HSQUIRRELVM v,const SQChar *filename,SQBool retval,SQBool printerror,SQBool show_warnings)

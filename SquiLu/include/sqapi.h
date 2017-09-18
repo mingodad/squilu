@@ -24,6 +24,8 @@ SQUIRREL_API_FUNC(SQRESULT, suspendvm, (HSQUIRRELVM v))
 SQUIRREL_API_FUNC(SQRESULT, wakeupvm, (HSQUIRRELVM v,SQBool resumedret,SQBool retval,SQBool raiseerror,SQBool throwerror))
 SQUIRREL_API_FUNC(SQInteger, getvmstate, (HSQUIRRELVM v))
 SQUIRREL_API_FUNC(SQInteger, getversion, ())
+SQUIRREL_API_FUNC(void, set_include_path, (HSQUIRRELVM v, const SQChar *include_path))
+SQUIRREL_API_FUNC(const SQChar*, get_include_path, (HSQUIRRELVM v))
 
 /*compiler*/
 #ifndef SQ_MAX_INCLUDE_FILES

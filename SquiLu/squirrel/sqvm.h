@@ -156,6 +156,8 @@ public:
 	SQObjectPtr &GetUp(SQInteger n);
 	SQObjectPtr &GetAt(SQInteger n);
 
+	void SetIncludePath(const SQChar *s);
+	const SQChar *GetIncludePath();
 	SQObjectPtrVec _stack;
 
 	SQInteger _top;
@@ -188,6 +190,7 @@ public:
 	SQInteger _nnativecalls;
 	SQInteger _nmetamethodscall;
     SQRELEASEHOOK _releasehook;
+    SQObjectPtr _include_path;
 	//suspend infos
 	SQBool _suspended;
 	SQBool _suspended_root;
