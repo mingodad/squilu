@@ -178,6 +178,7 @@ void SQVM::Finalize()
 	_debughook = false;
 	_debughook_native = NULL;
 	_debughook_closure.Null();
+	_include_path.Null();
 	temp_reg.Null();
 	_callstackdata.resize(0);
 	SQInteger size=_stack.size();
@@ -1994,7 +1995,7 @@ SQObjectPtr &SQVM::PopGet() { return _stack[--_top]; }
 SQObjectPtr &SQVM::GetUp(SQInteger n) { return _stack[_top+n]; }
 SQObjectPtr &SQVM::GetAt(SQInteger n) { return _stack[n]; }
 void SQVM::SetIncludePath(const SQChar *s){_include_path = SQString::Create(_ss(this), s);}
-const SQChar *SQVM::GetIncludePath(){return _stringval(_include_path);}
+const SQChar *SQVM::GetIncludePath(){return (sqtype(_include_path) == OT_STRING) ? _stringval(_include_path) : NULL;}
 
 #ifdef _DEBUG_DUMP
 void SQVM::dumpstack(SQInteger stackbase,bool dumpall)
