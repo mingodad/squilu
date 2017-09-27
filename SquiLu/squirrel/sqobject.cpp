@@ -43,18 +43,18 @@ const SQChar *IdType2Name(SQObjectType type)
 
 const SQChar *GetTypeName(const SQObjectPtr &obj1)
 {
-	return IdType2Name(sqtype(obj1));
+	return IdType2Name(sq_type(obj1));
 }
 
 SQObjectPtr SQObjectPtr::operator[](SQInteger nidx) {
     SQObjectPtr val;
-    if(sqtype(*this) == OT_ARRAY) _array(*this)->Get(nidx, val);
+    if(sq_type(*this) == OT_ARRAY) _array(*this)->Get(nidx, val);
     return val;
 }
 
 SQObjectPtr SQObjectPtr::operator[](const SQChar *key) {
     SQObjectPtr val;
-    switch(sqtype(*this))
+    switch(sq_type(*this))
     {
         case OT_TABLE: _table(*this)->Get(key, val); break;
         case OT_CLASS: _class(*this)->Get(key, val); break;
@@ -89,7 +89,7 @@ SQInteger SQString::Next(const SQObjectPtr &refpos, SQObjectPtr &outkey, SQObjec
 
 SQUnsignedInteger SQTranslateIndex(const SQObjectPtr &idx)
 {
-	switch(sqtype(idx)){
+	switch(sq_type(idx)){
 		case OT_NULL:
 			return 0;
 		case OT_INTEGER:
@@ -156,7 +156,7 @@ bool SQGenerator::Yield(SQVM *v,SQInteger target)
 
 	_stack.resize(size);
 	SQObject _this = v->_stack[v->_stackbase];
-	_stack._vals[0] = ISREFCOUNTED(sqtype(_this)) ? SQObjectPtr(_refcounted(_this)->GetWeakRef(sqtype(_this))) : _this;
+	_stack._vals[0] = ISREFCOUNTED(sq_type(_this)) ? SQObjectPtr(_refcounted(_this)->GetWeakRef(sq_type(_this))) : _this;
 	for(SQInteger n =1; n<target; n++) {
 		_stack._vals[n] = v->_stack[v->_stackbase+n];
 	}
@@ -208,7 +208,7 @@ bool SQGenerator::Resume(SQVM *v,SQObjectPtr &dest)
 		et._stacksize += newbase;
 	}
 	SQObject _this = _stack._vals[0];
-	v->_stack[v->_stackbase] = sqtype(_this) == OT_WEAKREF ? _weakref(_this)->_obj : _this;
+	v->_stack[v->_stackbase] = sq_type(_this) == OT_WEAKREF ? _weakref(_this)->_obj : _this;
 
 	for(SQInteger n = 1; n<size; n++) {
 		v->_stack[v->_stackbase+n] = _stack._vals[n];
@@ -344,7 +344,7 @@ static bool WriteObjectAsCode(HSQUIRRELVM v,SQUserPointer up,SQWRITEFUNC write,S
 {
 	SQChar buf[32];
 	SQInteger sz;
-	switch(sqtype(o)){
+	switch(sq_type(o)){
 	case OT_STRING:{
             SQInteger str_size = _string(o)->_len;
             if(str_size){
@@ -390,9 +390,9 @@ static bool WriteObjectAsCode(HSQUIRRELVM v,SQUserPointer up,SQWRITEFUNC write,S
 
 static bool WriteObject(HSQUIRRELVM v,SQUserPointer up,SQWRITEFUNC write,SQObjectPtr &o)
 {
-	SQUnsignedInteger32 _type = (SQUnsignedInteger32)sqtype(o);
+	SQUnsignedInteger32 _type = (SQUnsignedInteger32)sq_type(o);
 	_CHECK_IO(SafeWrite(v,write,up,&_type,sizeof(_type)));
-	switch(sqtype(o)){
+	switch(sq_type(o)){
 	case OT_STRING:
 		_CHECK_IO(SafeWrite(v,write,up,&_string(o)->_len,sizeof(SQInteger)));
 		_CHECK_IO(SafeWrite(v,write,up,_stringval(o),rsl(_string(o)->_len)));
@@ -794,7 +794,7 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
                                      inst._arg0, inst._arg1, SQGetNewObjTypeName(inst._arg3), inst._arg3);
             break;
             case _OP_APPENDARRAY:
-                        SafeWriteFmt(v,write,up,"\t/* array_at_stk(%d), %s(%d), sqtype(%d) */",
+                        SafeWriteFmt(v,write,up,"\t/* array_at_stk(%d), %s(%d), sq_type(%d) */",
                                      inst._arg0, SQGetArrayAppendTypeName(inst._arg2), inst._arg1, inst._arg2);
             break;
             case _OP_NEWSLOT:

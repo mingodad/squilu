@@ -19,7 +19,7 @@ SQInstructionDesc g_InstrDesc[]={
 #endif
 void DumpLiteral(SQObjectPtr &o)
 {
-	switch(sqtype(o)){
+	switch(sq_type(o)){
 		case OT_STRING:	scprintf(_SC("\"%s\""),_stringval(o));break;
 		case OT_FLOAT: scprintf(_SC("{%f}"),_float(o));break;
 		case OT_INTEGER: scprintf(_SC("{") _PRINT_INT_FMT _SC("}"),_integer(o));break;
@@ -50,7 +50,7 @@ void SQFuncState::Dump(SQFunctionProto *func)
 	scprintf(_SC("SQInstruction sizeof %d\n"),(SQInt32)sizeof(SQInstruction));
 	scprintf(_SC("SQObject sizeof %d\n"),(SQInt32)sizeof(SQObject));
 	scprintf(_SC("--------------------------------------------------------------------\n"));
-	scprintf(_SC("*****FUNCTION [%s]\n"),sqtype(func->_name)==OT_STRING?_stringval(func->_name):_SC("unknown"));
+	scprintf(_SC("*****FUNCTION [%s]\n"),sq_type(func->_name)==OT_STRING?_stringval(func->_name):_SC("unknown"));
 	scprintf(_SC("-----LITERALS\n"));
 	SQObjectPtr refidx,key,val;
 	SQInteger idx;
@@ -220,7 +220,7 @@ SQInteger SQFuncState::PopTarget()
 	SQUnsignedInteger npos=_targetstack.back();
 	assert(npos < _vlocals.size());
 	SQLocalVarInfo &t = _vlocals[npos];
-	if(sqtype(t._name)==OT_NULL){
+	if(sq_type(t._name)==OT_NULL){
 		_vlocals.pop_back();
 	}
 	_targetstack.pop_back();
@@ -252,7 +252,7 @@ void SQFuncState::SetStackSize(SQInteger n)
 	while(size>n){
 		size--;
 		SQLocalVarInfo lvi = _vlocals.back();
-		if(sqtype(lvi._name)!=OT_NULL){
+		if(sq_type(lvi._name)!=OT_NULL){
 			if(lvi._end_op == UINT_MINUS_ONE) { //this means is an outer
 				_outers--;
 			}
@@ -276,7 +276,7 @@ bool SQFuncState::IsConstant(const SQObject &name,SQObject &e)
 bool SQFuncState::IsLocal(SQUnsignedInteger stkpos)
 {
 	if(stkpos>=_vlocals.size())return false;
-	else if(sqtype(_vlocals[stkpos]._name)!=OT_NULL)return true;
+	else if(sq_type(_vlocals[stkpos]._name)!=OT_NULL)return true;
 	return false;
 }
 
@@ -302,7 +302,7 @@ SQInteger SQFuncState::GetLocalVariable(const SQObject &name)
 	SQInteger locals=_vlocals.size();
 	while(locals>=1){
 		SQLocalVarInfo &lvi = _vlocals[locals-1];
-		if(sqtype(lvi._name)==OT_STRING && _string(lvi._name)==_string(name)){
+		if(sq_type(lvi._name)==OT_STRING && _string(lvi._name)==_string(name)){
 			return locals-1;
 		}
 		locals--;

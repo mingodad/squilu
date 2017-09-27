@@ -62,7 +62,7 @@ static SQRESULT base_resurectureachable(HSQUIRRELVM v)
 static SQRESULT base_getrefcount(HSQUIRRELVM v)
 {
     SQObjectPtr &o=stack_get(v,2);
-    if(!ISREFCOUNTED(sqtype(o))) sq_pushinteger(v,0);
+    if(!ISREFCOUNTED(sq_type(o))) sq_pushinteger(v,0);
     else sq_pushinteger(v, o._unVal.pRefCounted->_uiRef - 1);
 	return 1;
 }
@@ -244,7 +244,7 @@ static SQRESULT get_slice_params(HSQUIRRELVM v,SQInteger &sidx,SQInteger &eidx,S
 	o=stack_get(v,1);
 	if(top>1){
 		SQObjectPtr &start=stack_get(v,2);
-		if(sqtype(start)!=OT_NULL && sq_isnumeric(start)){
+		if(sq_type(start)!=OT_NULL && sq_isnumeric(start)){
 			sidx=tointeger(start);
 		}
 	}
@@ -626,7 +626,7 @@ static SQRESULT default_delegate_len(HSQUIRRELVM v)
 static SQRESULT default_delegate_tofloat(HSQUIRRELVM v)
 {
 	SQObjectPtr &o=stack_get(v,1);
-	switch(sqtype(o)){
+	switch(sq_type(o)){
 	case OT_STRING:{
 		SQObjectPtr res;
 		if(str2num(_stringval(o),res)){
@@ -651,7 +651,7 @@ static SQRESULT default_delegate_tofloat(HSQUIRRELVM v)
 static SQRESULT default_delegate_tointeger(HSQUIRRELVM v)
 {
 	SQObjectPtr &o=stack_get(v,1);
-	switch(sqtype(o)){
+	switch(sq_type(o)){
 	case OT_STRING:{
 		SQObjectPtr res;
 		SQInteger base;
@@ -1171,7 +1171,7 @@ static SQRESULT array_concat0 (HSQUIRRELVM v, int allowAll) {
 
   for (; i < last; ++i) {
       SQObjectPtr str, &o = aryvec[i];
-      switch(sqtype(o)){
+      switch(sq_type(o)){
           case OT_STRING:
               break;
           case OT_INTEGER:
@@ -1191,7 +1191,7 @@ static SQRESULT array_concat0 (HSQUIRRELVM v, int allowAll) {
 
       const SQChar *value;
       SQInteger value_size;
-      if(sqtype(o) == OT_STRING) {
+      if(sq_type(o) == OT_STRING) {
 		value = _stringval(o);
 		value_size = _string(o)->_len;
       }
@@ -2379,7 +2379,7 @@ static SQRESULT closure_getenv(HSQUIRRELVM v)
 static SQRESULT closure_getinfos(HSQUIRRELVM v) {
 	SQObject o = stack_get(v,1);
 	SQTable *res = SQTable::Create(_ss(v),4);
-	if(sqtype(o) == OT_CLOSURE) {
+	if(sq_type(o) == OT_CLOSURE) {
 		SQFunctionProto *f = _closure(o)->_function;
 		SQInteger nparams = f->_nparameters + (f->_varparams?1:0);
 		SQObjectPtr params = SQArray::Create(_ss(v),nparams);
@@ -2476,7 +2476,7 @@ SQRegFunction SQSharedState::_generator_default_delegate_funcz[]={
 static SQRESULT thread_call(HSQUIRRELVM v)
 {
 	SQObjectPtr o = stack_get(v,1);
-	if(sqtype(o) == OT_THREAD) {
+	if(sq_type(o) == OT_THREAD) {
 		SQInteger nparams = sq_gettop(v);
 		_thread(o)->Push(_thread(o)->_roottable);
 		for(SQInteger i = 2; i<(nparams+1); i++)
@@ -2495,7 +2495,7 @@ static SQRESULT thread_call(HSQUIRRELVM v)
 static SQRESULT thread_wakeup(HSQUIRRELVM v)
 {
 	SQObjectPtr o = stack_get(v,1);
-	if(sqtype(o) == OT_THREAD) {
+	if(sq_type(o) == OT_THREAD) {
 		SQVM *thread = _thread(o);
 		SQInteger state = sq_getvmstate(thread);
 		if(state != SQ_VMSTATE_SUSPENDED) {
@@ -2550,7 +2550,7 @@ static SQRESULT thread_getstatus(HSQUIRRELVM v)
 static SQRESULT thread_getstackinfos(HSQUIRRELVM v)
 {
 	SQObjectPtr o = stack_get(v,1);
-	if(sqtype(o) == OT_THREAD) {
+	if(sq_type(o) == OT_THREAD) {
 		SQVM *thread = _thread(o);
 		SQInteger threadtop = sq_gettop(thread);
 		SQInteger level;
@@ -2559,7 +2559,7 @@ static SQRESULT thread_getstackinfos(HSQUIRRELVM v)
 		if(SQ_FAILED(res))
 		{
 			sq_settop(thread,threadtop);
-			if(sqtype(thread->_lasterror) == OT_STRING) {
+			if(sq_type(thread->_lasterror) == OT_STRING) {
 				sq_throwerror(v,_stringval(thread->_lasterror));
 			}
 			else {

@@ -298,7 +298,7 @@ public:
             /* Handle named constant */
             SQObjectPtr constval;
             SQObject    constid;
-            if(sqtype(constant) == OT_TABLE) {
+            if(sq_type(constant) == OT_TABLE) {
                 Expect('.');
                 constid = Expect(TK_IDENTIFIER);
                 if(!_table(constant)->Get(constid, constval)) {
@@ -312,7 +312,7 @@ public:
             epos = _fs->PushTarget();
 
             /* generate direct or literal function depending on size */
-            SQObjectType ctype = sqtype(constval);
+            SQObjectType ctype = sq_type(constval);
             switch(ctype) {
                 case OT_INTEGER: EmitLoadConstInt(_integer(constval),epos); break;
                 case OT_FLOAT: EmitLoadConstFloat(_float(constval),epos); break;
@@ -586,7 +586,7 @@ public:
 		}
 		else {
 			if(_raiseerror && _ss(_vm)->_compilererrorhandler) {
-				_ss(_vm)->_compilererrorhandler(_vm, _compilererror, sqtype(_sourcename) == OT_STRING?_stringval(_sourcename):_SC("unknown"),
+				_ss(_vm)->_compilererrorhandler(_vm, _compilererror, sq_type(_sourcename) == OT_STRING?_stringval(_sourcename):_SC("unknown"),
 					_lex.data->currentline, _lex.data->currentcolumn);
 			}
 			_vm->_lasterror = SQString::Create(_ss(_vm), _compilererror, -1);
@@ -938,7 +938,7 @@ public:
 				if(ds == OBJECT || ds == BASE) {
 					EmitDerefOp(_OP_NEWSLOT);
                     if((_es.epos == -1) && (es.etype == EXPR_STATEMENT)
-                       && (sqtype(id) == OT_STRING) ) AddGlobalName(id);
+                       && (sq_type(id) == OT_STRING) ) AddGlobalName(id);
 				}
 				else //if _derefstate != DEREF_NO_DEREF && DEREF_FIELD so is the index of a local
 					Error(_SC("can't 'create' a local slot"));
@@ -1324,7 +1324,7 @@ public:
 					/* Handle named constant */
 					SQObjectPtr constval;
 					SQObject    constid;
-					if(sqtype(constant) == OT_TABLE) {
+					if(sq_type(constant) == OT_TABLE) {
 						Expect('.');
 						constid = Expect(TK_IDENTIFIER);
 						if(!_table(constant)->Get(constid, constval)) {
@@ -1338,7 +1338,7 @@ public:
 					_es.epos = _fs->PushTarget();
 
 					/* generate direct or literal function depending on size */
-					SQObjectType ctype = sqtype(constval);
+					SQObjectType ctype = sq_type(constval);
 					switch(ctype) {
 						case OT_INTEGER: EmitLoadConstInt(_integer(constval),_es.epos); break;
 						case OT_FLOAT: EmitLoadConstFloat(_float(constval),_es.epos); break;
@@ -1615,7 +1615,7 @@ member_has_type:
 				Lex();
 				obj_id = saved_tok == TK_FUNCTION ? Expect(TK_IDENTIFIER) :
 					_fs->CreateString(saved_tok == TK_CONSTRUCTOR ? _SC("constructor") : _SC("destructor"));
-                if(sqtype(member_names) == OT_TABLE) CheckClassMemberExists(member_names, obj_id);
+                if(sq_type(member_names) == OT_TABLE) CheckClassMemberExists(member_names, obj_id);
                 else Error(_SC("unexpected error in class declaration"));
 				Expect(_SC('('));
 function_params_decl:

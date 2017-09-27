@@ -63,7 +63,7 @@ public:
 	}
     bool Set(SQObjectPtr &idx, const SQObjectPtr &val){
         SQClassMember &m = _methods[_member_idx(idx)];
-        if(!(sqtype(m.val) == OT_CLOSURE || sqtype(m.val) == OT_NATIVECLOSURE)){
+        if(!(sq_type(m.val) == OT_CLOSURE || sq_type(m.val) == OT_NATIVECLOSURE)){
             m.val = val;
             return true;
         }
