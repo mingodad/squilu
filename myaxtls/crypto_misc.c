@@ -42,6 +42,9 @@
 #include "wincrypt.h"
 #endif
 
+static int rng_started = 0;
+EXP_FUNC int STDCALL RNG_is_initialized() {return rng_started;}
+
 #ifndef WIN32
 static int rng_fd = -1;
 #elif defined(CONFIG_WIN32_USE_CRYPTO_LIB)
@@ -103,6 +106,7 @@ int get_file(const char *filename, uint8_t **buf)
  */
 EXP_FUNC void STDCALL RNG_initialize()
 {
+    if(rng_started) return;
 #if !defined(WIN32) && defined(CONFIG_USE_DEV_URANDOM)
     rng_fd = ax_open("/dev/urandom", O_RDONLY);
 #elif defined(WIN32) && defined(CONFIG_WIN32_USE_CRYPTO_LIB)
@@ -130,6 +134,7 @@ EXP_FUNC void STDCALL RNG_initialize()
     srand((unsigned int)&i); 
 #endif
 #endif
+    rng_started = 1;
 }
 
 /**
@@ -150,11 +155,13 @@ EXP_FUNC void STDCALL RNG_custom_init(const uint8_t *seed_buf, int size)
  */
 EXP_FUNC void STDCALL RNG_terminate(void)
 {
+    if(!rng_started) return;
 #ifndef WIN32
     close(rng_fd);
 #elif defined(CONFIG_WIN32_USE_CRYPTO_LIB)
     CryptReleaseContext(gCryptProv, 0);
 #endif
+	rng_started = 0;
 }
 
 /**
