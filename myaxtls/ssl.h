@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007, Cameron Rich
+ * Copyright (c) 2007-2016, Cameron Rich
  *
  * All rights reserved.
  *
@@ -85,6 +85,7 @@ extern "C" {
 #endif
 typedef struct SSL_CTX SSL_CTX;
 typedef struct SSL SSL;
+typedef struct SSL_EXTENSIONS SSL_EXTENSIONS;
 #endif
 
 /* The optional parameters that can be given to the client/server SSL engine */
@@ -103,13 +104,16 @@ typedef struct SSL SSL;
 #define SSL_ERROR_DEAD                          -2
 #define SSL_CLOSE_NOTIFY                        -3
 #define SSL_ERROR_CONN_LOST                     -256
+#define SSL_ERROR_RECORD_OVERFLOW               -257
 #define SSL_ERROR_SOCK_SETUP_FAILURE            -258
 #define SSL_ERROR_INVALID_HANDSHAKE             -260
 #define SSL_ERROR_INVALID_PROT_MSG              -261
 #define SSL_ERROR_INVALID_HMAC                  -262
 #define SSL_ERROR_INVALID_VERSION               -263
+#define SSL_ERROR_UNSUPPORTED_EXTENSION         -264
 #define SSL_ERROR_INVALID_SESSION               -265
 #define SSL_ERROR_NO_CIPHER                     -266
+#define SSL_ERROR_INVALID_CERT_HASH_ALG         -267
 #define SSL_ERROR_BAD_CERTIFICATE               -268
 #define SSL_ERROR_INVALID_KEY                   -269
 #define SSL_ERROR_FINISHED_INVALID              -271
@@ -127,19 +131,25 @@ typedef struct SSL SSL;
 #define SSL_ALERT_CLOSE_NOTIFY                  0
 #define SSL_ALERT_UNEXPECTED_MESSAGE            10
 #define SSL_ALERT_BAD_RECORD_MAC                20
+#define SSL_ALERT_RECORD_OVERFLOW               22
 #define SSL_ALERT_HANDSHAKE_FAILURE             40
 #define SSL_ALERT_BAD_CERTIFICATE               42
+#define SSL_ALERT_UNSUPPORTED_CERTIFICATE       43
+#define SSL_ALERT_CERTIFICATE_EXPIRED           45
+#define SSL_ALERT_CERTIFICATE_UNKNOWN           46
 #define SSL_ALERT_ILLEGAL_PARAMETER             47
+#define SSL_ALERT_UNKNOWN_CA                    48
 #define SSL_ALERT_DECODE_ERROR                  50
 #define SSL_ALERT_DECRYPT_ERROR                 51
 #define SSL_ALERT_INVALID_VERSION               70
 #define SSL_ALERT_NO_RENEGOTIATION              100
+#define SSL_ALERT_UNSUPPORTED_EXTENSION         110
 
 /* The ciphers that are supported */
 #define SSL_AES128_SHA                          0x2f
 #define SSL_AES256_SHA                          0x35
-#define SSL_RC4_128_SHA                         0x05
-#define SSL_RC4_128_MD5                         0x04
+#define SSL_AES128_SHA256                       0x3c
+#define SSL_AES256_SHA256                       0x3d
 
 /* build mode ids' */
 #define SSL_BUILD_SKELETON_MODE                 0x01
@@ -162,9 +172,15 @@ typedef struct SSL SSL;
 #define SSL_X509_CERT_COMMON_NAME               0
 #define SSL_X509_CERT_ORGANIZATION              1
 #define SSL_X509_CERT_ORGANIZATIONAL_NAME       2
-#define SSL_X509_CA_CERT_COMMON_NAME            3
-#define SSL_X509_CA_CERT_ORGANIZATION           4
-#define SSL_X509_CA_CERT_ORGANIZATIONAL_NAME    5
+#define SSL_X509_CERT_LOCATION                  3
+#define SSL_X509_CERT_COUNTRY                   4
+#define SSL_X509_CERT_STATE                     5
+#define SSL_X509_CA_CERT_COMMON_NAME            6
+#define SSL_X509_CA_CERT_ORGANIZATION           7
+#define SSL_X509_CA_CERT_ORGANIZATIONAL_NAME    8
+#define SSL_X509_CA_CERT_LOCATION               9
+#define SSL_X509_CA_CERT_COUNTRY                10
+#define SSL_X509_CA_CERT_STATE                  11
 
 /* SSL object loader types */
 #define SSL_OBJ_X509_CERT                       1
@@ -262,10 +278,13 @@ EXP_FUNC SSL * LIB_CALLTYPE ssl_server_new(SSL_CTX *ssl_ctx, int client_fd);
  * can be null if no session resumption is being used or required. This option
  * is not used in skeleton mode.
  * @param sess_id_size The size of the session id (max 32)
+ * @param ssl_ext pointer to a structure with the activated SSL extensions
+ * and their values
  * @return An SSL object reference. Use ssl_handshake_status() to check
  * if a handshake succeeded.
  */
-EXP_FUNC SSL * LIB_CALLTYPE ssl_client_new(SSL_CTX *ssl_ctx, int client_fd, const uint8_t *session_id, uint8_t sess_id_size);
+EXP_FUNC SSL * LIB_CALLTYPE ssl_client_new(SSL_CTX *ssl_ctx, int client_fd, const uint8_t *session_id,
+                                           uint8_t sess_id_size, SSL_EXTENSIONS* ssl_ext);
 
 /**
  * @brief Free any used resources on this connection.
@@ -344,8 +363,8 @@ EXP_FUNC uint8_t LIB_CALLTYPE ssl_get_session_id_size(const SSL *ssl);
  * @return The cipher id. This will be one of the following:
  * - SSL_AES128_SHA (0x2f)
  * - SSL_AES256_SHA (0x35)
- * - SSL_RC4_128_SHA (0x05)
- * - SSL_RC4_128_MD5 (0x04)
+ * - SSL_AES128_SHA256 (0x3c)
+ * - SSL_AES256_SHA256 (0x3d)
  */
 EXP_FUNC uint8_t LIB_CALLTYPE ssl_get_cipher_id(const SSL *ssl);
 
@@ -407,9 +426,15 @@ EXP_FUNC int LIB_CALLTYPE ssl_verify_cert(const SSL *ssl);
  * - SSL_X509_CERT_COMMON_NAME
  * - SSL_X509_CERT_ORGANIZATION
  * - SSL_X509_CERT_ORGANIZATIONAL_NAME
+ * - SSL_X509_CERT_LOCATION
+ * - SSL_X509_CERT_COUNTRY
+ * - SSL_X509_CERT_STATE
  * - SSL_X509_CA_CERT_COMMON_NAME
  * - SSL_X509_CA_CERT_ORGANIZATION
  * - SSL_X509_CA_CERT_ORGANIZATIONAL_NAME
+ * - SSL_X509_CA_CERT_LOCATION
+ * - SSL_X509_CA_CERT_COUNTRY
+ * - SSL_X509_CA_CERT_STATE
  * @return The appropriate string (or null if not defined)
  * @note Verification build mode must be enabled.
  */

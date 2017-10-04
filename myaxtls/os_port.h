@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2007-2015, Cameron Rich
- *
+ * Copyright (c) 2007-2016, Cameron Rich
+ * 
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

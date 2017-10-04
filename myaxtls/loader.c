@@ -82,7 +82,9 @@ EXP_FUNC int LIB_CALLTYPE ssl_obj_load(SSL_CTX *ssl_ctx, int obj_type,
 #ifdef CONFIG_SSL_HAS_PEM
         ret = ssl_obj_PEM_load(ssl_ctx, obj_type, ssl_obj, password);
 #else
+#ifdef CONFIG_SSL_FULL_MODE
         printf("%s", unsupported_str);
+#endif
         ret = SSL_ERROR_NOT_SUPPORTED;
 #endif
     }
@@ -93,7 +95,9 @@ error:
     ssl_obj_free(ssl_obj);
     return ret;
 #else
+#ifdef CONFIG_SSL_FULL_MODE
     printf("%s", unsupported_str);
+#endif
     return SSL_ERROR_NOT_SUPPORTED;
 #endif /* CONFIG_SSL_SKELETON_MODE */
 }
@@ -150,7 +154,9 @@ static int do_obj(SSL_CTX *ssl_ctx, int obj_type,
             break;
 #endif
         default:
+#ifdef CONFIG_SSL_FULL_MODE
             printf("%s", unsupported_str);
+#endif
             ret = SSL_ERROR_NOT_SUPPORTED;
             break;
     }
@@ -491,7 +497,6 @@ int load_key_certs_with_params(SSL_CTX *ssl_ctx,
     else if (!(options & SSL_NO_DEFAULT_KEY))
     {
 #if defined(CONFIG_SSL_USE_DEFAULT_KEY) || defined(CONFIG_SSL_SKELETON_MODE)
-        static const    /* saves a few bytes and RAM */
 #include "cert.h"
         ssl_obj_memory_load(ssl_ctx, SSL_OBJ_X509_CERT,
                     default_certificate, default_certificate_len, NULL);

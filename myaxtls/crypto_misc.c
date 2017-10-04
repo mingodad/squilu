@@ -124,7 +124,11 @@ EXP_FUNC void STDCALL RNG_initialize()
     /* start of with a stack to copy across */
     int i;
     memcpy(entropy_pool, &i, ENTROPY_POOL_SIZE);
+#if defined(CONFIG_USE_DEV_URANDOM)
+    rand_r((unsigned int *)entropy_pool); 
+#else
     srand((unsigned int)&i); 
+#endif
 #endif
 }
 
@@ -168,7 +172,7 @@ EXP_FUNC int STDCALL get_random(int num_rand_bytes, uint8_t *rand_data)
 #else   /* nothing else to use, so use a custom RNG */
     /* The method we use when we've got nothing better. Use RC4, time 
        and a couple of random seeds to generate a random sequence */
-    RC4_CTX rng_ctx;
+    AES_CTX rng_ctx;
     struct timeval tv;
     MD5_CTX rng_digest_ctx;
     uint8_t digest[MD5_SIZE];
@@ -187,10 +191,10 @@ EXP_FUNC int STDCALL get_random(int num_rand_bytes, uint8_t *rand_data)
     MD5_Final(digest, &rng_digest_ctx);
 
     /* come up with the random sequence */
-    RC4_setup(&rng_ctx, digest, MD5_SIZE); /* use as a key */
+    AES_set_key(&rng_ctx, digest, (const uint8_t *)ep, AES_MODE_128); /* use as a key */
     memcpy(rand_data, entropy_pool, num_rand_bytes < ENTROPY_POOL_SIZE ?
 				num_rand_bytes : ENTROPY_POOL_SIZE);
-    RC4_crypt(&rng_ctx, rand_data, rand_data, num_rand_bytes);
+    AES_cbc_encrypt(&rng_ctx, rand_data, rand_data, num_rand_bytes);
 
     /* move things along */
     for (i = ENTROPY_POOL_SIZE-1; i >= MD5_SIZE ; i--)

@@ -114,6 +114,7 @@
 			<Add option="-DAXTLS_LIBRARY=1" />
 			<Add option="-DAS_STATIC_LIB=1" />
 			<Add option="-DCONFIG_OPENSSL_COMPATIBLE=1" />
+			<Add option="-DCONFIG_USE_DEV_URANDOM=1" />
 		</Compiler>
 		<Linker>
 			<Add option="-s" />

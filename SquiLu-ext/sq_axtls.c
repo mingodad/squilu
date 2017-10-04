@@ -172,7 +172,7 @@ static SQRESULT sq_ssl_ctx_client_new(HSQUIRRELVM v){
     SQ_OPT_STRING(v, 3, session_id, NULL);
     SQ_OPT_INTEGER(v, 4, size, -1);
 	SSL *ssl = ssl_client_new(self, client_fd, (const uint8_t *)session_id,
-                           size >= 0 ? size : session_id_size);
+                           size >= 0 ? size : session_id_size, NULL);
     SQRESULT rc = ssl_constructor(v, ssl, 1);
     if(rc == SQ_ERROR && ssl){
         ssl_free(ssl);
@@ -361,8 +361,6 @@ static KeyIntType axtls_constants[] = {
     MK_CONST(SSL_ALERT_NO_RENEGOTIATION),
     MK_CONST(SSL_AES128_SHA),
     MK_CONST(SSL_AES256_SHA),
-    MK_CONST(SSL_RC4_128_SHA),
-    MK_CONST(SSL_RC4_128_MD5),
     MK_CONST(SSL_BUILD_SKELETON_MODE),
     MK_CONST(SSL_BUILD_SERVER_ONLY),
     MK_CONST(SSL_BUILD_ENABLE_VERIFICATION),
