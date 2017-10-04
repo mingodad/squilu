@@ -12,6 +12,7 @@ extern "C" {
 
 #include "os_port.h"
 #include "ssl.h"
+#include "crypto.h"
 
 static const SQChar SQ_LIBNAME[] = _SC("axtls");
 static const SQChar ssl_ctx_NAME[] = _SC("ssl_ctx");
@@ -272,12 +273,86 @@ static SQRESULT sq_ssl_ctx_constructor(HSQUIRRELVM v)
 	return 1;
 }
 
+// Stringify binary data. Output buffer must be twice as big as input,
+// because each byte takes 2 bytes in string representation
+void sq_axtls_bin2str(char *to, const unsigned char *p, size_t len) {
+  static const char *hex = "0123456789abcdef";
+
+  for (; len--; p++) {
+    *to++ = hex[p[0] >> 4];
+    *to++ = hex[p[0] & 0x0f];
+  }
+  *to = '\0';
+}
+
+static SQRESULT sq_axtls_md5(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS(v);
+
+    char buf[(MD5_SIZE*2)+1];
+    unsigned char hash[MD5_SIZE];
+    MD5_CTX ctx;
+    MD5_Init(&ctx);
+
+    for (int i = 2; i <= _top_; ++i) {
+        SQ_GET_STRING(v, i, p);
+        MD5_Update(&ctx, (const unsigned char *) p, p_size);
+    }
+
+    MD5_Final(hash, &ctx);
+    sq_axtls_bin2str(buf, hash, sizeof(hash));
+    sq_pushstring(v, buf, -1);
+    return 1;
+}
+
+static SQRESULT sq_axtls_sha1(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS(v);
+
+    char buf[(SHA1_SIZE*2)+1];
+    unsigned char hash[SHA1_SIZE];
+    SHA1_CTX ctx;
+    SHA1_Init(&ctx);
+
+    for (int i = 2; i <= _top_; ++i) {
+        SQ_GET_STRING(v, i, p);
+        SHA1_Update(&ctx, (const unsigned char *) p, p_size);
+    }
+
+    SHA1_Final(hash, &ctx);
+    sq_axtls_bin2str(buf, hash, sizeof(hash));
+    sq_pushstring(v, buf, -1);
+    return 1;
+}
+
+static SQRESULT sq_axtls_sha256(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS(v);
+
+    char buf[(SHA256_SIZE*2)+1];
+    unsigned char hash[SHA256_SIZE];
+    SHA256_CTX ctx;
+    SHA256_Init(&ctx);
+
+    for (int i = 2; i <= _top_; ++i) {
+        SQ_GET_STRING(v, i, p);
+        SHA256_Update(&ctx, (const unsigned char *) p, p_size);
+    }
+
+    SHA256_Final(hash, &ctx);
+    sq_axtls_bin2str(buf, hash, sizeof(hash));
+    sq_pushstring(v, buf, -1);
+    return 1;
+}
 #define _DECL_AXTLS_FUNC(name,nparams,pmask) {_SC(#name),sq_axtls_##name,nparams,pmask}
 static SQRegFunction axtls_obj_funcs[]={
 	_DECL_AXTLS_FUNC(get_config,2,_SC(".i")),
 	_DECL_AXTLS_FUNC(display_error,2,_SC(".i")),
 	_DECL_AXTLS_FUNC(get_error,2,_SC(".i")),
-	_DECL_AXTLS_FUNC(version,2,_SC(".")),
+	_DECL_AXTLS_FUNC(version,1,_SC(".")),
+	_DECL_AXTLS_FUNC(md5,-2,_SC(".s")),
+	_DECL_AXTLS_FUNC(sha1,-2,_SC(".s")),
+	_DECL_AXTLS_FUNC(sha256,-2,_SC(".s")),
 	{0,0}
 };
 #undef _DECL_AXTLS_FUNC
