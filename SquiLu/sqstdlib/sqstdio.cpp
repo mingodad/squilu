@@ -438,10 +438,6 @@ SQRESULT sqstd_loadfile(HSQUIRRELVM v,const SQChar *filename,SQBool printerror,S
 	return sq_throwerror(v,_SC("cannot open the file"));
 }
 
-SQRESULT sqstd_loadfile(HSQUIRRELVM v,const SQChar *filename,SQBool printerror,SQBool show_warnings)
-{
-    return sqstd_loadfile_include_path(v, filename, printerror, show_warnings, NULL);
-}
 
 SQRESULT sqstd_dofile(HSQUIRRELVM v,const SQChar *filename,SQBool retval,SQBool printerror,SQBool show_warnings)
 {
