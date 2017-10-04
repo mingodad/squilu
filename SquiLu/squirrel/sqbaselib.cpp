@@ -408,7 +408,7 @@ static SQRESULT base_str_from_chars (HSQUIRRELVM v) {
 static SQRESULT base_getincludepath(HSQUIRRELVM v)
 {
     const SQChar *include_path = v->GetIncludePath();
-    if(include_path) sq_pushstring(v, include_path, 1);
+    if(include_path) sq_pushstring(v, include_path, -1);
     else sq_pushnull(v);
 	return 1;
 }
