@@ -777,7 +777,7 @@ SQInteger SQLexer::ReadNumber()
 #define THEX 3
 #define TSCIENTIFIC 4
 #define TOCTAL 5
-	SQInteger type = TINT, firstchar = CUR_CHAR;
+	SQInteger rtype, type = TINT, firstchar = CUR_CHAR;
 	SQUnsignedInteger itmp=0;
 	SQChar *sTemp;
 	INIT_TEMP_STRING();
@@ -810,7 +810,7 @@ SQInteger SQLexer::ReadNumber()
 				type = TSCIENTIFIC;
 				APPEND_CHAR(CUR_CHAR);
 				NEXT();
-				if(CUR_CHAR == '+' || CUR_CHAR == '-'){
+				if(CUR_CHAR == _SC('+') || CUR_CHAR == _SC('-')){
 					APPEND_CHAR(CUR_CHAR);
 					NEXT();
 				}
@@ -837,14 +837,51 @@ SQInteger SQLexer::ReadNumber()
 		LexOctal(&data->longstr[0],&itmp);
 		break;
 	}
+	rtype = TK_INTEGER;
 	switch(type) {
 	case TINT:
+	    switch(CUR_CHAR)
+	    {
+        case _SC('u'):
+        case _SC('U'):
+            rtype = TK_UNSIGNED_INTEGER;
+            NEXT();
+            break;
+	    }
+
+	    switch(CUR_CHAR)
+	    {
+        case _SC('s'):
+        case _SC('S'):
+            rtype = (rtype == TK_UNSIGNED_INTEGER) ? TK_UNSIGNED_SHORT_INTEGER : TK_SHORT_INTEGER;
+            NEXT();
+            break;
+
+        case _SC('l'):
+        case _SC('L'):
+            rtype = (rtype == TK_UNSIGNED_INTEGER) ? TK_UNSIGNED_LONG_INTEGER : TK_LONG_INTEGER;
+            NEXT();
+            if((CUR_CHAR == _SC('l')) || (CUR_CHAR == _SC('L')) )
+            {
+                switch(rtype)
+                {
+                case TK_UNSIGNED_INTEGER:
+                case TK_UNSIGNED_LONG_INTEGER:
+                    rtype = TK_UNSIGNED_LONG_LONG_INTEGER;
+                    break;
+                default:
+                    rtype = TK_LONG_LONG_INTEGER;
+                }
+                NEXT();
+            }
+            break;
+	    }
 	case THEX:
 	case TOCTAL:
 	    //to allow 64 bits integers comment bellow
         //if(itmp > INT_MAX) return Error(_SC("integer overflow %ulld %d"));
         data->nvalue = (SQInteger) itmp;
-		return TK_INTEGER;
+		return rtype;
 	}
 	return 0;
 }

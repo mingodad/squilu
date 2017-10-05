@@ -123,6 +123,15 @@ struct SQScope {
 		case TK_LOCAL_VOIDPTR_T: \
 		case TK_LOCAL_WEAKREF_T
 
+#define CASE_TK_INTEGER \
+        case TK_INTEGER: \
+        case TK_UNSIGNED_INTEGER: \
+        case TK_SHORT_INTEGER: \
+        case TK_UNSIGNED_SHORT_INTEGER: \
+        case TK_LONG_INTEGER: \
+        case TK_UNSIGNED_LONG_INTEGER: \
+        case TK_LONG_LONG_INTEGER: \
+        case TK_UNSIGNED_LONG_LONG_INTEGER
 static SQInteger compilerReadFunc(SQUserPointer fp)
 {
     SQInteger c = fgetc((FILE *)fp);
@@ -367,7 +376,7 @@ public:
 		case TK_STRING_LITERAL:
 			ret = _fs->CreateString(_lex.data->svalue,_lex.data->longstr.size()-1);
 			break;
-		case TK_INTEGER:
+		CASE_TK_INTEGER:
 			ret = SQObjectPtr(_lex.data->nvalue);
 			break;
 		case TK_FLOAT:
@@ -395,7 +404,7 @@ public:
 					case TK_STRING_LITERAL:
 						etypename = _SC("STRING_LITERAL");
 						break;
-					case TK_INTEGER:
+					CASE_TK_INTEGER:
 						etypename = _SC("INTEGER");
 						break;
 					case TK_FLOAT:
@@ -1382,7 +1391,8 @@ public:
 			_fs->AddInstruction(_OP_LOADNULLS, _fs->PushTarget(),1);
 			Lex();
 			break;
-		case TK_INTEGER: EmitLoadConstInt(_lex.data->nvalue,-1); Lex();	break;
+		CASE_TK_INTEGER:
+		    EmitLoadConstInt(_lex.data->nvalue,-1); Lex();	break;
 		case TK_FLOAT: EmitLoadConstFloat(_lex.data->fvalue,-1); Lex(); break;
 		case TK_TRUE: case TK_FALSE:
 			_fs->AddInstruction(_OP_LOADBOOL, _fs->PushTarget(),_token == TK_TRUE?1:0);
@@ -1415,7 +1425,8 @@ public:
 		case _SC('-'):
 			Lex();
 			switch(_token) {
-			case TK_INTEGER: EmitLoadConstInt(-_lex.data->nvalue,-1); Lex(); break;
+			CASE_TK_INTEGER:
+			    EmitLoadConstInt(-_lex.data->nvalue,-1); Lex(); break;
 			case TK_FLOAT: EmitLoadConstFloat(-_lex.data->fvalue,-1); Lex(); break;
 			default: UnaryOP(_OP_NEG);
 			}
@@ -1423,7 +1434,15 @@ public:
 		case _SC('!'): Lex(); UnaryOP(_OP_NOT); break;
 		case _SC('~'):
 			Lex();
-			if(_token == TK_INTEGER)  { EmitLoadConstInt(~_lex.data->nvalue,-1); Lex(); break; }
+			bool isInteger;
+			switch(_token)
+			{
+                CASE_TK_INTEGER:
+                    isInteger = true;
+                default:
+                    isInteger = false;
+			}
+			if(isInteger)  { EmitLoadConstInt(~_lex.data->nvalue,-1); Lex(); break; }
 			UnaryOP(_OP_BWNOT);
 			break;
 		case TK_TYPEOF : Lex() ;UnaryOP(_OP_TYPEOF); break;
@@ -2250,7 +2269,7 @@ if(color == "yellow"){
 		SQObject val;
 		val._type = OT_NULL; val._unVal.nInteger = 0; //shut up GCC 4.x
 		switch(_token) {
-			case TK_INTEGER:
+			CASE_TK_INTEGER:
 				val._type = OT_INTEGER;
 				val._unVal.nInteger = _lex.data->nvalue;
 				break;
@@ -2270,7 +2289,7 @@ if(color == "yellow"){
 				Lex();
 				switch(_token)
 				{
-				case TK_INTEGER:
+				CASE_TK_INTEGER:
 					val._type = OT_INTEGER;
 					val._unVal.nInteger = -_lex.data->nvalue;
 				break;
@@ -2292,7 +2311,7 @@ if(color == "yellow"){
 	{
 	    SQInteger tk_type = _token;
 		switch(_token) {
-			case TK_INTEGER:
+			CASE_TK_INTEGER:
                 EmitLoadConstInt(_lex.data->nvalue,-1);
 				break;
 			case TK_FLOAT:
@@ -2313,7 +2332,7 @@ if(color == "yellow"){
 				tk_type = _token;
 				switch(_token)
 				{
-				case TK_INTEGER:
+				CASE_TK_INTEGER:
                     EmitLoadConstInt(-_lex.data->nvalue,-1);
 				break;
 				case TK_FLOAT:
