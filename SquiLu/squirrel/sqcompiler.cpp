@@ -737,7 +737,7 @@ public:
                 Lex();
                 ExpectTypeToken(); //ignore for now
 			}
-			Expect('=');
+			Expect(_SC('='));
 			SQObjectPtr strongid = id;
 			CheckLocalNameScope(id, _scope.nested);
 			//CheckConstsExists(strongid);
@@ -774,6 +774,12 @@ public:
 			CheckLocalNameScope(id, _scope.nested);
 			//Expect(_SC(';'));
 			TypesNewSlot(strongid,SQObjectPtr(type_val));
+			if(_token == _SC('[')) //fixed size array
+            {
+                Lex();
+                Expect(TK_INTEGER);
+                Expect(_SC(']'));
+            }
 			}
 			break;
         case TK_USING:
