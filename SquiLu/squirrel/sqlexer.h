@@ -22,6 +22,7 @@ struct SQLexerData
     SQInteger nvalue;
     SQFloat fvalue;
     LexChar currdata;
+    SQInteger readcount;
     SQChar lasterror[256];
     SQLexerData()
     {
@@ -46,6 +47,7 @@ struct SQLexerData
         nvalue = src->nvalue;
         fvalue = src->fvalue;
         currdata = src->currdata;
+        readcount = src->readcount;
         scstrcpy(lasterror, src->lasterror);
     }
     void clear()
@@ -63,6 +65,7 @@ struct SQLexerData
         fvalue = 0.0;
         currdata = 0;
         lasterror[0] = '\0';
+        readcount = 0;
     }
 };
 

@@ -250,6 +250,13 @@ static SQRESULT sq_SQLexer_last_enum_token(HSQUIRRELVM v){
 	return 1;
 }
 
+static SQRESULT sq_SQLexer_readcount(HSQUIRRELVM v){
+	SQ_FUNC_VARS_NO_TOP(v);
+	GET_SQLexer_INSTANCE();
+
+    sq_pushinteger(v, self->lex->data->readcount);
+	return 1;
+}
 #define _DECL_SQLEXER_FUNC(name,nparams,pmask) {_SC(#name),sq_SQLexer_##name,nparams,pmask}
 static SQRegFunction SQLexer_obj_funcs[]={
 
@@ -271,6 +278,7 @@ static SQRegFunction SQLexer_obj_funcs[]={
 	_DECL_SQLEXER_FUNC(last_enum_token, 1, _SC(".")),
 	_DECL_SQLEXER_FUNC(lex, 1, _SC(".")),
 	_DECL_SQLEXER_FUNC(lookaheadlex, 1, _SC(".")),
+	_DECL_SQLEXER_FUNC(readcount, 1, _SC(".")),
 	{0,0}
 };
 #undef _DECL_SQLEXER_FUNC

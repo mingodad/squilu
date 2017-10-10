@@ -48,6 +48,7 @@ SQInteger SQLexer::ResetReader(SQLEXREADFUNC rg, SQUserPointer up, SQInteger lin
 	data->lasttokencolumn = 0;
 	data->currentcolumn = 0;
 	data->prevtoken = -1;
+	data->readcount = 0;
 	data->reached_eof = SQFalse;
 	return Next();
 }
@@ -165,6 +166,7 @@ SQInteger SQLexer::Next()
 	if(t != 0) {
 		data->currdata = (LexChar)t;
 		++data->currentcolumn;
+		++data->readcount;
 		return 0;
 	}
 	data->currdata = SQUIRREL_EOB;
