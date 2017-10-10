@@ -217,7 +217,8 @@ SQInteger SQLexer::LexBlockComment()
 			    NEXT();
 			    if(CUR_CHAR == _SC('/')) { done = true; NEXT(); continue;}
 			    if(_want_comments) APPEND_CHAR(CUR_CHAR);
-			    continue;
+			    //we don't want to continue from here because we need accumulate anoter '*'
+			    //because we called NEXT() just entering this block
 			    };
 			break;
 			case _SC('\n'): data->currentline++; break;
@@ -273,6 +274,7 @@ SQInteger SQLexer::Lex()
     }
 	data->lasttokenline = data->currentline;
 	data->lasttokencolumn = data->currentcolumn;
+	data->svalue = NULL;
 	while(CUR_CHAR != SQUIRREL_EOB) {
 		switch(CUR_CHAR){
 		case _SC('\t'): case _SC('\r'): case _SC(' '): NEXT(); continue;
