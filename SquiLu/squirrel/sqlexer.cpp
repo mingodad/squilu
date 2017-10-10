@@ -287,7 +287,7 @@ SQInteger SQLexer::Lex()
 			continue;
 		case _SC('#'):
 		    NEXT();
-		    if(CUR_CHAR == '!') //shell shebang
+		    if(CUR_CHAR == _SC('!')) //shell shebang
             {
                 if(LexLineComment()) return -1;
                 if(_want_comments) RETURN_TOKEN(TK_COMMENT_LINE)
@@ -355,7 +355,7 @@ SQInteger SQLexer::Lex()
 			else { RETURN_TOKEN('>') }
 		case _SC('!'):
 			NEXT();
-			if (CUR_CHAR != _SC('=')){ RETURN_TOKEN('!')}
+			if (CUR_CHAR != _SC('=')){ RETURN_TOKEN(_SC('!'))}
 			else {
                 NEXT();
                 if (CUR_CHAR == _SC('=')){ NEXT(); RETURN_TOKEN(TK_NE_IDENTITY)}
@@ -365,9 +365,9 @@ SQInteger SQLexer::Lex()
 			SQInteger stype;
 			NEXT();
 			if(CUR_CHAR != _SC('"')) {
-				RETURN_TOKEN('@');
+				RETURN_TOKEN(_SC('@'));
 			}
-			if((stype=ReadString('"',true))!=-1) {
+			if((stype=ReadString(_SC('"'),true))!=-1) {
 				RETURN_TOKEN(stype);
 			}
 			return Error(_SC("error parsing the string"));
@@ -397,7 +397,7 @@ SQInteger SQLexer::Lex()
             }
 		case _SC('.'):
 			NEXT();
-			if (CUR_CHAR != _SC('.')){ RETURN_TOKEN('.') }
+			if (CUR_CHAR != _SC('.')){ RETURN_TOKEN(_SC('.')) }
 			NEXT();
 			if (CUR_CHAR != _SC('.')){ return Error(_SC("invalid token '..'")); }
 			NEXT();
@@ -405,40 +405,40 @@ SQInteger SQLexer::Lex()
 		case _SC('^'):
 			NEXT();
 			//if (CUR_CHAR == _SC('=')){ NEXT(); RETURN_TOKEN(TK_BIT_XOR_EQ);}
-			RETURN_TOKEN('^');
+			RETURN_TOKEN(_SC('^'));
 		case _SC('&'):
 			NEXT();
 			//if (CUR_CHAR == _SC('=')){ NEXT(); RETURN_TOKEN(TK_BIT_AND_EQ);}
-			if (CUR_CHAR != _SC('&')){ RETURN_TOKEN('&') }
+			if (CUR_CHAR != _SC('&')){ RETURN_TOKEN(_SC('&')) }
 			else { NEXT(); RETURN_TOKEN(TK_AND); }
 		case _SC('|'):
 			NEXT();
 			//if (CUR_CHAR == _SC('=')){ NEXT(); RETURN_TOKEN(TK_BIT_OR_EQ);}
-			if (CUR_CHAR != _SC('|')){ RETURN_TOKEN('|') }
+			if (CUR_CHAR != _SC('|')){ RETURN_TOKEN(_SC('|')) }
 			else { NEXT(); RETURN_TOKEN(TK_OR); }
 		case _SC(':'):
 			NEXT();
-			if (CUR_CHAR != _SC(':')){ RETURN_TOKEN(':') }
+			if (CUR_CHAR != _SC(':')){ RETURN_TOKEN(_SC(':')) }
 			else { NEXT(); RETURN_TOKEN(TK_DOUBLE_COLON); }
 		case _SC('*'):
 			NEXT();
 			if (CUR_CHAR == _SC('=')){ NEXT(); RETURN_TOKEN(TK_MULEQ);}
-			else RETURN_TOKEN('*');
+			else RETURN_TOKEN(_SC('*'));
 		case _SC('%'):
 			NEXT();
 			if (CUR_CHAR == _SC('=')){ NEXT(); RETURN_TOKEN(TK_MODEQ);}
-			else RETURN_TOKEN('%');
+			else RETURN_TOKEN(_SC('%'));
 		case _SC('-'):
 			NEXT();
 			if (CUR_CHAR == _SC('=')){ NEXT(); RETURN_TOKEN(TK_MINUSEQ);}
 			else if  (CUR_CHAR == _SC('-')){ NEXT(); RETURN_TOKEN(TK_MINUSMINUS);}
-			else if  (CUR_CHAR == _SC('>')){ NEXT(); RETURN_TOKEN('.');} //accept C/C++ like pointers
-			else RETURN_TOKEN('-');
+			else if  (CUR_CHAR == _SC('>')){ NEXT(); RETURN_TOKEN(_SC('.'));} //accept C/C++ like pointers
+			else RETURN_TOKEN(_SC('-'));
 		case _SC('+'):
 			NEXT();
 			if (CUR_CHAR == _SC('=')){ NEXT(); RETURN_TOKEN(TK_PLUSEQ);}
 			else if (CUR_CHAR == _SC('+')){ NEXT(); RETURN_TOKEN(TK_PLUSPLUS);}
-			else RETURN_TOKEN('+');
+			else RETURN_TOKEN(_SC('+'));
 		case SQUIRREL_EOB:
 			return 0;
 		default:{
@@ -533,6 +533,7 @@ SQInteger SQLexer::ProcessStringHexEscape(SQChar *dest, SQInteger maxdigits)
     dest[n] = 0;
     return n;
 }
+SQInteger scisodigit(SQInteger c) { return c >= _SC('0') && c <= _SC('7'); }
 
 SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 {
@@ -613,7 +614,7 @@ try_again:
 				break;
 			case _SC('\\'):
 				if(verbatim) {
-					APPEND_CHAR('\\'); NEXT();
+					APPEND_CHAR(_SC('\\')); NEXT();
 				}
 				else {
 					NEXT();
@@ -628,7 +629,7 @@ try_again:
                     break;
                     case _SC('U'):
                     case _SC('u'):  {
-                        const SQInteger maxdigits = CUR_CHAR == 'u' ? 4 : 8;
+                        const SQInteger maxdigits = CUR_CHAR == _SC('u') ? 4 : 8;
                         SQChar temp[8 + 1];
                         if(ProcessStringHexEscape(temp, maxdigits) < 0) return -1;
                         SQChar *stemp;
@@ -650,10 +651,30 @@ try_again:
 					case _SC('r'): APPEND_CHAR(_SC('\r')); NEXT(); break;
 					case _SC('v'): APPEND_CHAR(_SC('\v')); NEXT(); break;
 					case _SC('f'): APPEND_CHAR(_SC('\f')); NEXT(); break;
-					case _SC('0'): APPEND_CHAR(_SC('\0')); NEXT(); break;
 					case _SC('\\'): APPEND_CHAR(_SC('\\')); NEXT(); break;
 					case _SC('"'): APPEND_CHAR(_SC('"')); NEXT(); break;
 					case _SC('\''): APPEND_CHAR(_SC('\'')); NEXT(); break;
+					case _SC('0'):
+					case _SC('1'):
+					case _SC('2'):
+					case _SC('3'):
+					case _SC('4'):
+					case _SC('5'):
+					case _SC('6'):
+					case _SC('7'):
+					    {
+                            int ndigits = 0;
+                            int octal_char = 0;
+                            while(scisodigit(CUR_CHAR)) {
+                                octal_char = (octal_char)*8+(CUR_CHAR-_SC('0'));
+                                ++ndigits;
+                                NEXT();
+                            }
+                            if(ndigits > 3) return Error(_SC("max number of octal digits is 3"));
+                            APPEND_CHAR(octal_char);
+                            goto try_again;
+					    }
+					    break;
 					default:
 						return Error(_SC("unrecognised escaper char"));
 					break;
@@ -741,8 +762,8 @@ void LexHexadecimal(const SQChar *s,SQUnsignedInteger *res)
 	*res = 0;
 	while(*s != 0)
 	{
-		if(scisdigit(*s)) *res = (*res)*16+((*s++)-'0');
-		else if(scisxdigit(*s)) *res = (*res)*16+(toupper(*s++)-'A'+10);
+		if(scisdigit(*s)) *res = (*res)*16+((*s++)-_SC('0'));
+		else if(scisxdigit(*s)) *res = (*res)*16+(toupper(*s++)-_SC('A')+10);
 		else { assert(0); }
 	}
 }
@@ -752,23 +773,22 @@ void LexInteger(const SQChar *s,SQUnsignedInteger *res)
 	*res = 0;
 	while(*s != 0)
 	{
-		*res = (*res)*10+((*s++)-'0');
+		*res = (*res)*10+((*s++)-_SC('0'));
 	}
 }
 
-SQInteger scisodigit(SQInteger c) { return c >= _SC('0') && c <= _SC('7'); }
 
 void LexOctal(const SQChar *s,SQUnsignedInteger *res)
 {
 	*res = 0;
 	while(*s != 0)
 	{
-		if(scisodigit(*s)) *res = (*res)*8+((*s++)-'0');
+		if(scisodigit(*s)) *res = (*res)*8+((*s++)-_SC('0'));
 		else { assert(0); }
 	}
 }
 
-SQInteger isexponent(SQInteger c) { return c == 'e' || c=='E'; }
+SQInteger isexponent(SQInteger c) { return c == _SC('e') || c==_SC('E'); }
 
 
 #define MAX_HEX_DIGITS (sizeof(SQInteger)*2)
