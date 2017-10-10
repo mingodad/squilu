@@ -218,9 +218,7 @@ SQInteger SQLexer::LexBlockComment()
 			case _SC('*'): {
 			    NEXT();
 			    if(CUR_CHAR == _SC('/')) { done = true; NEXT(); continue;}
-			    if(_want_comments) APPEND_CHAR(CUR_CHAR);
-			    //we don't want to continue from here because we need accumulate anoter '*'
-			    //because we called NEXT() just entering this block
+			    if(_want_comments) APPEND_CHAR(_SC('*')); //this is the '*' before NEXT()
 			    };
 			break;
 			case _SC('\n'): data->currentline++; break;
