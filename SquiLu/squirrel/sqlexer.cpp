@@ -670,7 +670,8 @@ try_again:
                                 ++ndigits;
                                 NEXT();
                             }
-                            if(ndigits > 3) return Error(_SC("max number of octal digits is 3"));
+                            if(ndigits > 3) return Error(_SC("max number of embedded octal digits is 3"));
+                            if(octal_char > 0xff) return Error(_SC("max value of embedded octal digits is \377"));
                             APPEND_CHAR(octal_char);
                             goto try_again;
 					    }
