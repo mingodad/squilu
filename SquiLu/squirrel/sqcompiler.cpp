@@ -1288,9 +1288,29 @@ public:
 		_es.etype = EXPR;
 		switch(_token)
 		{
-		case TK_STRING_LITERAL:
-			_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(_fs->CreateString(_lex.data->svalue,_lex.data->longstr.size()-1)));
+		case TK_STRING_LITERAL: {
+			SQInteger lhtk = _lex.LookaheadLex();
+			if(lhtk == TK_STRING_LITERAL) //C/C++ two consecutive strings
+			{
+				SQCharBuf buf;
+				//save the current string
+				buf.append(_lex.data->svalue,_lex.data->longstr.size()-1);
+				while(lhtk == TK_STRING_LITERAL)
+				{
+					Lex(); //get lookahead token
+					buf.append(_lex.data->svalue,_lex.data->longstr.size()-1);
+					lhtk = _lex.LookaheadLex();
+				}
+				_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(
+					_fs->CreateString(buf.data(),buf.size())));
+			}
+			else
+			{
+				_fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(
+					_fs->CreateString(_lex.data->svalue,_lex.data->longstr.size()-1)));
+			}
 			Lex();
+			}
 			break;
 		case TK_BASE:
 			Lex();
