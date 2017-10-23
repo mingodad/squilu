@@ -219,6 +219,7 @@ SQInteger SQLexer::LexBlockComment()
 			    NEXT();
 			    if(CUR_CHAR == _SC('/')) { done = true; NEXT(); continue;}
 			    if(_want_comments) APPEND_CHAR(_SC('*')); //this is the '*' before NEXT()
+			    continue; //reevaluate, when it's a \n it'll be incremented line bellow
 			    };
 			break;
 			case _SC('\n'): data->currentline++; break;
