@@ -2067,7 +2067,11 @@ if(color == "yellow"){
 		switch(_token){
             case TK_IDENTIFIER:{
                 SQObject id = _fs->CreateString(_lex.data->svalue);
-                if(!CheckTypeName(id)) goto lbl_commaexpr;//not a C/C++ type declaration;
+                if(!CheckTypeName(id)){
+                    SQInteger lhtk = _lex.LookaheadLex();
+                    if(lhtk == TK_IDENTIFIER) Error(_SC("unknown type specifier"));
+                    goto lbl_commaexpr;//not a C/C++ type declaration;
+                }
             }
                 //ignore custom types for now
                 //fallthrough as local declaration
