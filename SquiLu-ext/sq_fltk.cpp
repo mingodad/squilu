@@ -2355,13 +2355,14 @@ CREATE_TAG(Flv_Data_Table);
 class Flv_Data_Table : public Flv_Table
 {
 public:
-    int selection_count, _draw_offset;
+    int selection_count, _draw_offset, _prev_selected_row;
 
     Flv_Data_Table(int X, int Y, int W=340, int H=202, const char *L=0):
         Flv_Table(X, Y, W, H, L)
     {
         _draw_offset = 5;
         selection_count = 0;
+        _prev_selected_row = 0;
 
         callback_when( FLVEcb_ROW_CHANGED | FLVEcb_CLICKED);
         selection_color(FL_BLUE);
@@ -2491,6 +2492,10 @@ public:
                     }
                 }
                 break;
+            case FL_Up:
+            case FL_Down:
+                if(Fl::event_shift()) mark_row(false, false);
+            break;
                 //default:
                 //handled = handle_key(key);
             }
@@ -2501,6 +2506,7 @@ public:
             switch(Fl::event_button())
             {
             case FL_LEFT_MOUSE:
+                _prev_selected_row = row();
                 take_focus();
                 break;
             }
@@ -2508,7 +2514,7 @@ public:
         break;
         case FL_RELEASE:
         {
-            mark_row(true);
+            mark_row(true, false, true);
         }
         break;
         }
@@ -2539,8 +2545,14 @@ public:
         selection_count = 0;
     }
 
-    void mark_row(bool withCtrl, bool withAdvance=false){
-        if(!withCtrl || Fl::event_ctrl())
+    bool isRowSelected(int irow){
+        Flv_Style  &rs = row_style.get(irow);
+        Fl_Color scolor = get_multi_select_color();
+        return (rs.background_defined() && rs.background() == scolor);
+    }
+
+    void mark_row(bool withCtrl, bool withAdvance=false, bool withShift=false){
+        if( (!withCtrl || Fl::event_ctrl()) )
         {
             //this->on_Mark_Row();
             Flv_Style  &rs = row_style.get(row());
@@ -2557,7 +2569,29 @@ public:
             }
             //return 1;
         }
-        if(withAdvance){
+        else if(withShift && Fl::event_shift())
+        {
+            Fl_Color scolor = get_multi_select_color();
+            int range_first_row = _prev_selected_row;
+            int range_last_row = row();
+            if(range_first_row > range_last_row){
+                int tmp = range_first_row;
+                range_first_row = range_last_row;
+                range_last_row = tmp;
+            }
+            for(int i=range_first_row; i <= range_last_row; ++i)
+            {
+                Flv_Style  &rs = row_style.get(i);
+                if(!rs.background_defined())
+                {
+                    ++selection_count;
+                    rs.background(scolor);
+                }
+            }
+            redraw();
+        }
+        else if(withAdvance)
+        {
             int next_row = row()+1;
             if(rows() > next_row) row(next_row);
         }
@@ -2619,6 +2653,28 @@ static SQRESULT _Flv_Data_Table_get_style(HSQUIRRELVM v){
     return 0;
 }
 
+static SQRESULT _Flv_Data_Table_clear_selection(HSQUIRRELVM v){
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FLV_DATA_TABLE(v);
+    ((Flv_Data_Table*)self)->clear_selection();
+    return 0;
+}
+
+static SQRESULT _Flv_Data_Table_selection_count(HSQUIRRELVM v){
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FLV_DATA_TABLE(v);
+    sq_pushinteger(v, ((Flv_Data_Table*)self)->selection_count);
+    return 1;
+}
+
+static SQRESULT _Flv_Data_Table_isRowSelected(HSQUIRRELVM v){
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FLV_DATA_TABLE(v);
+    SQ_GET_INTEGER(v, 2, irow);
+    sq_pushbool(v, ((Flv_Data_Table*)self)->isRowSelected(irow));
+    return 1;
+}
+
 FLTK_CONSTRUCTOR(Flv_Data_Table);
 
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Flv_Data_Table_##name,nparams,pmask,isStatic}
@@ -2629,6 +2685,9 @@ static SQRegFunction flv_data_table_obj_funcs[]={
 	_DECL_FUNC(draw_offset, -1,_SC("xn"),SQFalse),
 	_DECL_FUNC(get_style,-3,_SC("xxii"),SQFalse),
 	_DECL_FUNC(get_col,3,_SC("xii"),SQFalse),
+	_DECL_FUNC(clear_selection,1,_SC("x"),SQFalse),
+	_DECL_FUNC(selection_count,1,_SC("x"),SQFalse),
+	_DECL_FUNC(isRowSelected,2,_SC("xi"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -3415,7 +3474,8 @@ static SQRegFunction fl_double_window_obj_funcs[]={
 };
 #undef _DECL_FUNC
 
-#define SETUP_FL_DEVICE(v) SETUP_FL_KLASS(v, Fl_Device)
+#define SETUP_FL_DEVICE(v) SETUP_FL_KLASS(v, Fl_Surface_Device)
+//#define SETUP_FL_DEVICE(v) SETUP_FL_KLASS(v, Fl_Device)
 static SQRESULT _Fl_Device_class_name(HSQUIRRELVM v)
 {
     SETUP_FL_DEVICE(v);
