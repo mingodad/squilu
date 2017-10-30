@@ -1488,12 +1488,16 @@ void sq_resetobject(HSQOBJECT *po)
 
 SQRESULT sq_throwerror(HSQUIRRELVM v,const SQChar *fmt, ...)
 {
-    SQChar err[256];
-    va_list vl;
-    va_start(vl, fmt);
-    scvsprintf(err, sizeof(err), fmt, vl);
-    va_end(vl);
-	v->_lasterror=SQString::Create(_ss(v),err);
+    if(fmt)
+    {
+        SQChar err[256];
+        va_list vl;
+        va_start(vl, fmt);
+        scvsprintf(err, sizeof(err), fmt, vl);
+        va_end(vl);
+        v->_lasterror=SQString::Create(_ss(v),err);
+    }
+    else v->_lasterror.Null();
 	return SQ_ERROR;
 }
 
