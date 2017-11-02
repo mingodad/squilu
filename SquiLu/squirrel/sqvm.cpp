@@ -254,6 +254,26 @@ bool SQVM::NEG_OP(SQObjectPtr &trg,const SQObjectPtr &o)
 	return false;
 }
 
+static int sq_l_strcmp (const SQObjectPtr &ls,const SQObjectPtr &rs) {
+  const SQChar *l = _stringval(ls);
+  SQInteger ll = _string(ls)->_len;
+  const SQChar *r = _stringval(rs);
+  SQInteger lr = _string(rs)->_len;
+  for (;;) {
+    int temp = scstrcmp(l, r); //strcoll(l, r);
+    if (temp != 0) return temp;
+    else {  /* strings are equal up to a `\0' */
+      int len = (int)scstrlen(l);  /* index of first `\0' in both strings */
+      if (len == lr)  /* r is finished? */
+        return (len == ll) ? 0 : 1;
+      else if (len == ll)  /* l is finished? */
+        return -1;  /* l is smaller than r (because r is not finished) */
+      /* both strings longer than `len'; go on comparing (after the `\0') */
+      len++;
+      l += len; ll -= len; r += len; lr -= len;
+    }
+  }
+}
 #define _RET_SUCCEED(exp) { result = (exp); return true; }
 bool SQVM::ObjCmp(const SQObjectPtr &o1,const SQObjectPtr &o2,SQInteger &result)
 {
@@ -263,7 +283,7 @@ bool SQVM::ObjCmp(const SQObjectPtr &o1,const SQObjectPtr &o2,SQInteger &result)
 		SQObjectPtr res;
 		switch(t1){
 		case OT_STRING:
-			_RET_SUCCEED(scstrcmp(_stringval(o1),_stringval(o2)));
+			_RET_SUCCEED(sq_l_strcmp(o1,o2));
 		case OT_INTEGER:
 			_RET_SUCCEED((_integer(o1)<_integer(o2))?-1:1);
 		case OT_FLOAT:
