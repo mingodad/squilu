@@ -668,10 +668,9 @@ try_again:
                             int octal_char = 0;
                             while(scisodigit(CUR_CHAR)) {
                                 octal_char = (octal_char)*8+(CUR_CHAR-_SC('0'));
-                                ++ndigits;
                                 NEXT();
+                                if(++ndigits == 3) break;
                             }
-                            if(ndigits > 3) return Error(_SC("max number of embedded octal digits is 3"));
                             if(octal_char > 0xff) return Error(_SC("max value of embedded octal digits is \377"));
                             APPEND_CHAR(octal_char);
                             goto try_again;
