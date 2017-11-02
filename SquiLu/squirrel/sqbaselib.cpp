@@ -2267,7 +2267,7 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("match"), string_match, -2, _SC("s s n n")},
 	{_SC("startswith"),string_startswith, 2, _SC("ss")},
 	{_SC("endswith"),string_endswith, 2, _SC("ss")},
-	{_SC("reverse"),string_reverse, 2, _SC("ss")},
+	{_SC("reverse"),string_reverse, 1, _SC("s")},
 	{_SC("rep"),string_rep, 2, _SC("si")},
 	{_SC("tolower"),string_tolower,1, _SC("s")},
 	{_SC("toupper"),string_toupper,1, _SC("s")},
