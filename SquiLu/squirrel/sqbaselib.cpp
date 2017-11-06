@@ -1582,7 +1582,7 @@ SQRESULT string_gmatch_base(HSQUIRRELVM v, int isGmatch, const SQChar *src, SQIn
             }
         }
     } else {
-        sq_pushstring(v, src + ms.start_pos, ms.end_pos-ms.start_pos+1);
+        sq_pushstring(v, src + ms.start_pos, ms.end_pos-ms.start_pos);
     }
     return 1;
 }
