@@ -391,6 +391,7 @@ bool SQVM::ToString(const SQObjectPtr &o,SQObjectPtr &res)
 	return true;
 }
 
+#define SQ_MAX_STR_SIZE	(((size_t)(512*1024*1024)))
 
 bool SQVM::StringCat(const SQObjectPtr &str,const SQObjectPtr &obj,SQObjectPtr &dest)
 {
@@ -398,6 +399,7 @@ bool SQVM::StringCat(const SQObjectPtr &str,const SQObjectPtr &obj,SQObjectPtr &
 	if(!ToString(str, a)) return false;
 	if(!ToString(obj, b)) return false;
 	SQInteger l = _string(a)->_len , ol = _string(b)->_len;
+	//if (l >= SQ_MAX_STR_SIZE - ol) Raise_Error(_SC("string length overflow"));
 	SQChar *s = _sp(sq_rsl(l + ol + 1));
 	memcpy(s, _stringval(a), sq_rsl(l));
 	memcpy(s + l, _stringval(b), sq_rsl(ol));

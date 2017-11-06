@@ -50,17 +50,35 @@ static ptrdiff_t posrelat (ptrdiff_t pos, size_t len) {
   return (pos >= 0) ? pos : 0;
 }
 
-static int check_capture (LuaMatchState *ms, int *l_out) {
-  int l;
-  *l_out -= '1';
-  l = *l_out;
-  if (l < 0 || l >= ms->level || ms->capture[l].len == CAP_UNFINISHED){
+static int check_capture_all_closed (LuaMatchState *ms) {
+  int i;
+  for(i=0; i<ms->level; ++i){
+      if(ms->capture[i].len == CAP_UNFINISHED){
+          ms->error = "unfinished capture";
+          return 0;
+      }
+  }
+  return 1;
+}
+
+static int check_capture_is_closed (LuaMatchState *ms, int l) {
+  if (l < 0 || l >= ms->level){
       ms->error = "invalid capture index";
+      return 0;
+  }
+  if (ms->capture[l].len == CAP_UNFINISHED){
+      ms->error = "unfinished capture";
       return 0;
   }
   return 1;
 }
 
+static int check_capture (LuaMatchState *ms, int *l_out) {
+  int l;
+  *l_out -= '1';
+  l = *l_out;
+  return check_capture_is_closed(ms, l);
+}
 static int capture_to_close (LuaMatchState *ms, int *level_out) {
   int level = ms->level;
   for (level--; level>=0; level--)
@@ -392,7 +410,7 @@ do_again:
   /* explicit request or no special characters? */
   if (find && (raw_find || nospecials(p, lp))) {
     /* do a plain search */
-    const char *s2 = lmemfind(s + init, ls - init + 1, p, lp);
+    const char *s2 = lmemfind(s + init, ls - init, p, lp);
     if (s2) {
       ms->start_pos = ((int)(s2 - s));
       result = ms->end_pos = ms->start_pos+lp;
@@ -411,7 +429,7 @@ do_again:
       ms->level = 0;
       if ((res=match(ms, s1, p)) != NULL) {
           ms->start_pos = s1-s;
-          result = ms->end_pos = res-s-1;
+          result = ms->end_pos = res-s;
           goto eofunc;
       }
     } while (s1++ < ms->src_end && !anchor);
@@ -420,15 +438,9 @@ do_again:
 eofunc:
 
   if(result >= 0){
-      int i;
-      for(i=0; i<ms->level; ++i){
-          if(ms->capture[i].len == CAP_UNFINISHED){
-              ms->error = "unfinished capture";
-              return 0;
-          }
-      }
+      if(!check_capture_all_closed(ms)) return 0;
       if(fp && (*fp)(ms, udata, 0)) {
-          init = result+1;
+          init = result;
           if (init < ls) goto do_again;
       }
   }
@@ -565,6 +577,7 @@ lua_char_buffer_st *lua_str_gsub (const char *src, ptrdiff_t srcl, const char *p
     p++; lp--;  /* skip anchor character */
   }
   ms.error = 0;
+  ms.start_pos = ms.end_pos = 0;
   ms.src_init = src;
   ms.src_end = src+srcl;
   ms.p_end = p + lp;
@@ -572,18 +585,22 @@ lua_char_buffer_st *lua_str_gsub (const char *src, ptrdiff_t srcl, const char *p
     const char *e;
     ms.level = 0;
     e = match(&ms, src, p);
-    if(ms.error) goto free_and_null;
+    if(ms.error || !check_capture_all_closed(&ms)) goto free_and_null;
     if (e) {
       n++;
       if(fp){
+          ms.end_pos = e-ms.src_init;
           if(!(*fp)(&ms, udata, &b)) goto free_and_null;
       }
       else if(!add_value(&ms, &b, src, e, tr, ltr)) goto free_and_null;
     }
-    if (e && e>src) /* non empty match? */
+    if (e && e>src){ /* non empty match? */
+      ms.start_pos = e-ms.src_init;
       src = e;  /* skip it */
+    }
     else if (src < ms.src_end){
       if(!char_buffer_add_char(&ms, &b, *src++)) goto free_and_null;
+      ++ms.start_pos;
     }
     else break;
     if (anchor) break;

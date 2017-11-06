@@ -1156,20 +1156,25 @@ static SQRESULT array_concat0 (HSQUIRRELVM v, int allowAll) {
     SQ_FUNC_VARS(v);
     SQObjectPtr &arobj = stack_get(v,1);
     SQObjectPtrVec &aryvec = _array(arobj)->_values;
-    SQInteger last = aryvec.size();
+    SQInteger last = aryvec.size()-1;
     if(last == 0){
         sq_pushstring(v, _SC(""), 0);
         return 1;
     }
     SQ_OPT_STRING(v, 2, sep, _SC(""));
-    SQ_OPT_INTEGER(v, 3, i, 0);
+    SQ_OPT_INTEGER(v, 3, opt_first, 0);
     SQ_OPT_INTEGER(v, 4, opt_last, last);
 
-  last = opt_last < last ? opt_last : last;
-  opt_last = last -1;
+  opt_last = opt_last < last ? opt_last : last;
+
+  if(opt_first > opt_last)
+  {
+      sq_pushstring(v, "", 0);
+      return 1;
+  }
   SQBlob blob(0, 8192);
 
-  for (; i < last; ++i) {
+  for (int i=opt_first; i <= opt_last; ++i) {
       SQObjectPtr str, &o = aryvec[i];
       switch(sq_type(o)){
           case OT_STRING:
@@ -1200,8 +1205,8 @@ static SQRESULT array_concat0 (HSQUIRRELVM v, int allowAll) {
 		value = _stringval(str);
 		value_size = _string(str)->_len;
       }
+      if(i > opt_first && sep_size) blob.Write((void*)sep, sep_size);
       blob.Write((void*)value, value_size);
-      if(i != opt_last && sep_size) blob.Write((void*)sep, sep_size);
   }
   sq_pushstring(v, (SQChar*)blob.GetBuf(), blob.Len());
   return 1;
@@ -1381,12 +1386,18 @@ static int process_string_gsub(LuaMatchState *ms, void *udata, lua_char_buffer_s
     SQInteger top = sq_gettop(v);
     SQInteger result = 1;
     switch(rtype){
+        case OT_NATIVECLOSURE:
         case OT_CLOSURE:{
             sq_push(v, 3); //push the function
             sq_pushroottable(v); //this
             int i=0;
             for(; i < ms->level; ++i){
                 push_match_capture(v, i, ms);
+            }
+            if(i==0) //no captures push whole match
+            {
+                sq_pushstring(v, ms->src_init + ms->start_pos, ms->end_pos-ms->start_pos);
+                ++i;
             }
             int rc = sq_call(v, i+1, SQTrue, SQTrue);
             if(rc < 0) {
@@ -1425,6 +1436,13 @@ static int process_string_gsub(LuaMatchState *ms, void *udata, lua_char_buffer_s
                     }
                     sq_pop(v, 1); //remove value
                 }
+                else
+                {
+                    if(!char_buffer_add_str(ms, b, ms->capture[i].init, ms->capture[i].len)) {
+                        result = 0;
+                        break;
+                    }
+                }
             }
         }
     }
@@ -1434,7 +1452,7 @@ static int process_string_gsub(LuaMatchState *ms, void *udata, lua_char_buffer_s
 
 static SQRESULT string_gsub(HSQUIRRELVM v)
 {
-    const char *error_ptr;
+    const char *error_ptr = NULL;
     SQ_FUNC_VARS(v);
     SQ_GET_STRING(v, 1, src);
     SQ_GET_STRING(v, 2, pattern);
@@ -1460,14 +1478,16 @@ static SQRESULT string_gsub(HSQUIRRELVM v)
     {
         switch(rtype){
             case OT_CLOSURE:
+            case OT_NATIVECLOSURE:
             case OT_ARRAY:
             case OT_TABLE:{
                 lua_char_buffer_st *buf = lua_str_gsub (src, src_size, pattern, pattern_size,
                               0, 0, max_sub, &error_ptr, process_string_gsub, v);
                 if(buf){
-                    sq_pushstring(v, buf->buf, buf->used);
+                    if(buf->used) sq_pushstring(v, buf->buf, buf->used);
+                    else sq_push(v, 1); //nothing matches so return the original
                     free(buf);
-                    return 1;
+                    if(!error_ptr) return 1;
                 }
                 return sq_throwerror(v,error_ptr);
             }
@@ -1491,7 +1511,7 @@ static SQRESULT process_string_gmatch_find(LuaMatchState *ms, void *udata, lua_c
         push_match_capture(v, i, ms);
     }
     if(!isFind && i == 0){
-        sq_pushstring(v, ms->src_init + ms->start_pos, ms->end_pos-ms->start_pos+1);
+        sq_pushstring(v, ms->src_init + ms->start_pos, ms->end_pos-ms->start_pos);
         i=1;
     }
     int rc = sq_call(v, i+1 + (isFind ? 2 : 0), SQTrue, SQTrue);
@@ -1532,7 +1552,7 @@ SQRESULT string_gmatch_base(HSQUIRRELVM v, int isGmatch, const SQChar *src, SQIn
             src_size = calc_new_size_by_max_len(start_pos, max_len, src_size);
         }
         //if (start_pos < 0) start_pos = 0;
-        if(rtype == OT_CLOSURE){
+        if((rtype == OT_CLOSURE) || (rtype == OT_NATIVECLOSURE)){
             _rc_ = lua_str_match(&ms, src, max_len ? start_pos + max_len : src_size,
                     pattern, pattern_size, start_pos, 0, process_string_gmatch, v);
             if(ms.error) return sq_throwerror(v, ms.error);
@@ -1608,7 +1628,7 @@ SQRESULT string_find_lua(HSQUIRRELVM v, const SQChar *src, SQInteger src_size)
         sq_pushinteger(v, rc);
         return 1;
     }
-    if(rtype == OT_CLOSURE){
+    if((rtype == OT_CLOSURE) || (rtype == OT_NATIVECLOSURE)){
         LuaMatchState ms;
         memset(&ms, 0, sizeof(ms));
         int rc = lua_str_find(&ms, src, src_size, pattern, pattern_size,

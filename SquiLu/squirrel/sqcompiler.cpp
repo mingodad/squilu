@@ -1993,8 +1993,8 @@ function_params_decl:
 		Lex(); Expect(_SC('(')); CommaExpr(true); Expect(_SC(')'));
 		_fs->AddInstruction(_OP_JZ, _fs->PopTarget());
 		SQInteger jnepos = _fs->GetCurrentPos();
-		BEGIN_SCOPE();
 
+        IfBlock();
         //there is a situation where the if statement has a statement enclosed by {}
         //and after the closing "}" there is no newline or semicolom
         //it's a valid construction but the compiler was complaining about it
@@ -2005,11 +2005,7 @@ if(color == "yellow"){
 	print(color);
 } print("Waht color is it ?");
 */
-		Statement();
-		//
-		if(_token != _SC('}') && _token != TK_ELSE && _token != TK_IDENTIFIER) OptionalSemicolon();
 
-		END_SCOPE();
 		SQInteger endifblock = _fs->GetCurrentPos();
 		if(_token == TK_ELSE){
 			haselse = true;
