@@ -1456,11 +1456,6 @@ static SQRESULT string_gsub(HSQUIRRELVM v)
     SQ_FUNC_VARS(v);
     SQ_GET_STRING(v, 1, src);
     SQ_GET_STRING(v, 2, pattern);
-    if(pattern_size == 0) //empty str to search
-    {
-        sq_push(v, 1);
-        return 1;
-    }
     SQ_OPT_INTEGER(v, 4, max_sub, 0);
     SQObjectType rtype = sq_gettype(v, 3);
     if(rtype == OT_STRING){
