@@ -349,7 +349,7 @@ static SQRESULT _regexp_match(HSQUIRRELVM v)
 	if(sqstd_rex_searchrange(self,subject_str, subject_str + subject_str_size,&begin,&end)){
 	    SQInteger n = sqstd_rex_getsubexpcount(self);
 	    SQRexMatch match;
-        sqstd_rex_getsubexp(self, (n ? 1 : 0),&match);
+        sqstd_rex_getsubexp(self, ((n > 1) ? 1 : 0),&match);
         if(match.len == -1) sq_pushinteger(v, match.begin - subject); //on empty capture push position
         else sq_pushstring(v, match.begin, match.len);
 	}
