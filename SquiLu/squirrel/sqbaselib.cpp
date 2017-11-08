@@ -1385,6 +1385,7 @@ static int process_string_gsub(LuaMatchState *ms, void *udata, lua_char_buffer_s
     SQObjectType rtype = sq_gettype(v, 3);
     SQInteger top = sq_gettop(v);
     SQInteger result = 1;
+    int rc;
     switch(rtype){
         case OT_NATIVECLOSURE:
         case OT_CLOSURE:{
@@ -1399,7 +1400,7 @@ static int process_string_gsub(LuaMatchState *ms, void *udata, lua_char_buffer_s
                 sq_pushstring(v, ms->src_init + ms->start_pos, ms->end_pos-ms->start_pos);
                 ++i;
             }
-            int rc = sq_call(v, i+1, SQTrue, SQTrue);
+            rc = sq_call(v, i+1, SQTrue, SQTrue);
             if(rc < 0) {
                 ms->error = sq_getlasterror_str(v);
                 return 0;
@@ -1413,38 +1414,45 @@ static int process_string_gsub(LuaMatchState *ms, void *udata, lua_char_buffer_s
             }
         }
         break;
-        case OT_ARRAY:{
-            for(int i=0; i < ms->level; ++i){
-                sq_pushinteger(v, i);
-                if(SQ_SUCCEEDED(sq_get(v, 3)) && SQ_SUCCEEDED(sq_getstr_and_size(v, -1, &str, &str_size))){
-                    if(!char_buffer_add_str(ms, b, str, str_size)) {
+        case OT_ARRAY:
+        case OT_TABLE:{
+            bool isArray = rtype == OT_ARRAY;
+            for(int i=0; (i < ms->level) || (!ms->level && !i); ++i){
+                sq_settop(v, top);
+                if(ms->level == 0)//no captures push whole match
+                {
+                    sq_pushstring(v, ms->src_init + ms->start_pos, ms->end_pos-ms->start_pos);
+                }
+                else push_match_capture(v, i, ms);
+
+                rc = !isArray || (sq_gettype(v, -1) == OT_INTEGER);
+                if(rc && (sq_get(v, 3) == SQ_OK))
+                {
+                    if(isArray) rc = sq_tostring(v, -1);
+                    else rc = SQ_OK;
+
+                    if(rc == SQ_OK)
+                    {
+                        rc = sq_getstr_and_size(v, -1, &str, &str_size);
+                        if(rc == SQ_OK)
+                        {
+                            if(!char_buffer_add_str(ms, b, str, str_size)) {
+                                result = 0;
+                                break;
+                            }
+                        }
+                    }
+                }
+                else //not found in table push the original value
+                {
+                    if(!char_buffer_add_str(ms, b, ms->src_init+ms->start_pos, ms->end_pos-ms->start_pos)) {
                         result = 0;
                         break;
                     }
-                    sq_pop(v, 1); //remove value
                 }
             }
         }
         break;
-        case OT_TABLE:{
-            for(int i=0; i < ms->level; ++i){
-                push_match_capture(v, i, ms);
-                if(SQ_SUCCEEDED(sq_get(v, 3)) && SQ_SUCCEEDED(sq_getstr_and_size(v, -1, &str, &str_size))){
-                    if(!char_buffer_add_str(ms, b, str, str_size)) {
-                        result = 0;
-                        break;
-                    }
-                    sq_pop(v, 1); //remove value
-                }
-                else
-                {
-                    if(!char_buffer_add_str(ms, b, ms->capture[i].init, ms->capture[i].len)) {
-                        result = 0;
-                        break;
-                    }
-                }
-            }
-        }
     }
     sq_settop(v, top); //restore the stack to it's original state
     return result; //returning non zero means continue

@@ -441,6 +441,7 @@ eofunc:
       if(!check_capture_all_closed(ms)) return 0;
       if(fp && (*fp)(ms, udata, 0)) {
           init = result;
+          if (init == ms->start_pos) ++init;  /* empty match? go at least one position */
           if (init < ls) goto do_again;
       }
   }
