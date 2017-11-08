@@ -432,6 +432,11 @@ static SQRESULT _regexp_gsub(HSQUIRRELVM v)
                         else sq_pushstring(v, match.begin, match.len);
                     }
                 }
+                if(i==0) //no captures push whole match
+                {
+                    sq_pushstring(v, match.begin, match.len);
+                    ++i;
+                }
                 i = sq_call(v, n, SQTrue, SQTrue);
                 if(i < 0) return i;
                 if(sq_gettype(v, -1) == OT_STRING){
@@ -453,18 +458,26 @@ static SQRESULT _regexp_gsub(HSQUIRRELVM v)
                             sq_pop(v, 1); //remove value
                         }
                     }
+                    else //not found in table push the original value
+                    {
+                        blob.Write(match.begin, match.len);
+                    }
                 }
 	        }
 	        break;
 	        case OT_TABLE:{
-                for(i=0; i < n; i++) {
+                for(i=0; (i < n) || (!i && !n); i++) {
                     sqstd_rex_getsubexp(self,i,&match);
-                    if(i > 0){ //skip whole match
+                    if((i > 0) || (!n)){
                         sq_pushstring(v, match.begin, match.len);
                         if(SQ_SUCCEEDED(sq_get(v, 3)) &&
                                 SQ_SUCCEEDED(sq_getstr_and_size(v, -1, &replacement, &replacement_size))){
                             blob.Write(replacement, replacement_size);
                             sq_pop(v, 1); //remove value
+                        }
+                        else //not found in table push the original value
+                        {
+                            blob.Write(match.begin, match.len);
                         }
                     }
                 }
