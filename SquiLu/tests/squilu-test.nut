@@ -660,6 +660,8 @@ sqt.run("pattern matching", function(){
 sqt.run("table", function(){
 	
 	local t = table_new(10);
+	local t2 = obj_clone(t);
+	sqt.ok((type(t2) == "table") && (t != t2));
 	sqt.ok(table_len(t) == 0);
 	table_rawset(t, "one", 1);
 	sqt.ok(table_len(t) == 1 && (table_get(t, "one") == 1));
@@ -673,13 +675,15 @@ sqt.run("table", function(){
 	table_clear(t);
 	sqt.ok(table_len(t) == 0);
 
-	sqt.ok({ abc = "abc" } != { abc = "abc" }); 
+	sqt.ok({ abc = "abc" } != { abc = "abc" });
 
 });
 
 sqt.run("array", function(){
 	
 	local t = array(0);
+	local t2 = obj_clone(t);
+	sqt.ok((type(t2) == "array") && (t != t2));
 	sqt.ok(t.len() == 0);
 	t.append(1);
 	sqt.ok(t.len() == 1 && (t.get(0) == 1));
@@ -892,8 +896,8 @@ sqt.run("number", function(){
 	sqt.ok(math.abs(-123) == 123);
 	sqt.ok(math.abs(0) == 0);
 	sqt.ok(math.abs(-0) == 0);
-	sqt.ok(math.abs(-0.12) == 0.12);
-	sqt.ok(math.abs(12.34) == 12.34);
+	sqt.ok(math.fabs(-0.12) == 0.12);
+	sqt.ok(math.fabs(12.34) == 12.34);
 
 	//print("math.acos(0)", math.acos(0))
 	sqt.fequal(math.acos(0), 1.5707963267949);
