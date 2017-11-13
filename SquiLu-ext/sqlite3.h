@@ -123,9 +123,9 @@ extern "C" {
 ** [sqlite3_libversion_number()], [sqlite3_sourceid()],
 ** [sqlite_version()] and [sqlite_source_id()].
 */
-#define SQLITE_VERSION        "3.21.0"
-#define SQLITE_VERSION_NUMBER 3021000
-#define SQLITE_SOURCE_ID      "2017-10-03 14:24:24 c5ad5e1675f6cb5a54df21606dfec2198a7cf88acc529460ebe27bdab128alt1"
+#define SQLITE_VERSION        "3.22.0"
+#define SQLITE_VERSION_NUMBER 3022000
+#define SQLITE_SOURCE_ID      "2017-10-08 20:48:16 9da71da85a6a94620a706f3e44e20b9157c8e3497d5792750f06b88668baalt1"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -283,20 +283,7 @@ typedef sqlite_uint64 sqlite3_uint64;
 ** substitute integer for floating-point.
 */
 #ifdef SQLITE_OMIT_FLOATING_POINT
-# define sqlite_double sqlite3_int64
-# define sqlite_float sqlite3_int
-#else
-# ifdef SQLITE_USE_DECIMAL
-# define sqlite_double  _Decimal64
-# define sqlite_float  _Decimal32
-#define LITDBL(n) n##dd
-#define LONGDOUBLE_TYPE _Decimal128
-# else
-#  define sqlite_double  double
-#  define sqlite_float  float
-#  define LITDBL(n) n
-#  define LONGDOUBLE_TYPE long double
-# endif
+# define double sqlite3_int64
 #endif
 
 /*
@@ -1146,12 +1133,18 @@ typedef struct sqlite3_api_routines sqlite3_api_routines;
 ** in the name of the object stands for "virtual file system".  See
 ** the [VFS | VFS documentation] for further information.
 **
-** The value of the iVersion field is initially 1 but may be larger in
-** future versions of SQLite.  Additional fields may be appended to this
-** object when the iVersion value is increased.  Note that the structure
-** of the sqlite3_vfs object changes in the transaction between
-** SQLite version 3.5.9 and 3.6.0 and yet the iVersion field was not
-** modified.
+** The VFS interface is sometimes extended by adding new methods onto
+** the end.  Each time such an extension occurs, the iVersion field
+** is incremented.  The iVersion value started out as 1 in
+** SQLite [version 3.5.0] on [dateof:3.5.0], then increased to 2
+** with SQLite [version 3.7.0] on [dateof:3.7.0], and then increased
+** to 3 with SQLite [version 3.7.6] on [dateof:3.7.6].  Additional fields
+** may be appended to the sqlite3_vfs object and the iVersion value
+** may increase again in future versions of SQLite.
+** Note that the structure
+** of the sqlite3_vfs object changes in the transition from
+** SQLite [version 3.5.9] to [version 3.6.0] on [dateof:3.6.0]
+** and yet the iVersion field was not modified.
 **
 ** The szOsFile field is the size of the subclassed [sqlite3_file]
 ** structure used by this VFS.  mxPathname is the maximum length of
@@ -1315,7 +1308,7 @@ struct sqlite3_vfs {
   void (*xDlClose)(sqlite3_vfs*, void*);
   int (*xRandomness)(sqlite3_vfs*, int nByte, char *zOut);
   int (*xSleep)(sqlite3_vfs*, int microseconds);
-  int (*xCurrentTime)(sqlite3_vfs*, sqlite_double*);
+  int (*xCurrentTime)(sqlite3_vfs*, double*);
   int (*xGetLastError)(sqlite3_vfs*, int, char *);
   /*
   ** The methods above are in version 1 of the sqlite_vfs object
@@ -2611,7 +2604,6 @@ SQLITE_API char *sqlite3_str_accum_vprintf(sqlite3_str_accum *p, const char *zFo
 SQLITE_API char *sqlite3_str_accum_printf(sqlite3_str_accum *p, const char *zFormat, ...);
 SQLITE_API int sqlite3_isnprintf(char*, int, const char*, ...);
 SQLITE_API int sqlite3_ivsnprintf(char*, int, const char*, va_list);
-
 /*
 ** CAPI3REF: Memory Allocation Subsystem
 **
@@ -3329,7 +3321,6 @@ SQLITE_API int sqlite3_open_v2(
 
 SQLITE_API void sqlite3_set_db_user_data(sqlite3 *db, void *data);
 SQLITE_API void *sqlite3_get_db_user_data(sqlite3 *db);
-
 /*
 ** CAPI3REF: Obtain Values For URI Parameters
 **
@@ -3557,7 +3548,7 @@ SQLITE_API int sqlite3_limit(sqlite3*, int id, int newVal);
 #define SQLITE_LIMIT_VARIABLE_NUMBER           9
 #define SQLITE_LIMIT_TRIGGER_DEPTH            10
 #define SQLITE_LIMIT_WORKER_THREADS           11
-#define SQLITE_LIMIT_USE_ATTACHED_DBS         12
+
 /*
 ** CAPI3REF: Prepare Flags
 **
@@ -3994,7 +3985,7 @@ typedef struct sqlite3_context sqlite3_context;
 SQLITE_API int sqlite3_bind_blob(sqlite3_stmt*, int, const void*, int n, void(*)(void*));
 SQLITE_API int sqlite3_bind_blob64(sqlite3_stmt*, int, const void*, sqlite3_uint64,
                         void(*)(void*));
-SQLITE_API int sqlite3_bind_double(sqlite3_stmt*, int, sqlite_double);
+SQLITE_API int sqlite3_bind_double(sqlite3_stmt*, int, double);
 SQLITE_API int sqlite3_bind_int(sqlite3_stmt*, int, int);
 SQLITE_API int sqlite3_bind_int64(sqlite3_stmt*, int, sqlite3_int64);
 SQLITE_API int sqlite3_bind_null(sqlite3_stmt*, int);
@@ -4549,7 +4540,7 @@ SQLITE_API int sqlite3_data_count(sqlite3_stmt *pStmt);
 ** [SQLITE_NOMEM].)^
 */
 SQLITE_API const void *sqlite3_column_blob(sqlite3_stmt*, int iCol);
-SQLITE_API sqlite_double sqlite3_column_double(sqlite3_stmt*, int iCol);
+SQLITE_API double sqlite3_column_double(sqlite3_stmt*, int iCol);
 SQLITE_API int sqlite3_column_int(sqlite3_stmt*, int iCol);
 SQLITE_API sqlite3_int64 sqlite3_column_int64(sqlite3_stmt*, int iCol);
 SQLITE_API const unsigned char *sqlite3_column_text(sqlite3_stmt*, int iCol);
@@ -4871,7 +4862,7 @@ SQLITE_API SQLITE_DEPRECATED int sqlite3_memory_alarm(void(*)(void*,sqlite3_int6
 ** the SQL function that supplied the [sqlite3_value*] parameters.
 */
 SQLITE_API const void *sqlite3_value_blob(sqlite3_value*);
-SQLITE_API sqlite_double sqlite3_value_double(sqlite3_value*);
+SQLITE_API double sqlite3_value_double(sqlite3_value*);
 SQLITE_API int sqlite3_value_int(sqlite3_value*);
 SQLITE_API sqlite3_int64 sqlite3_value_int64(sqlite3_value*);
 SQLITE_API void *sqlite3_value_pointer(sqlite3_value*, const char*);
@@ -5194,7 +5185,7 @@ typedef void (*sqlite3_destructor_type)(void*);
 SQLITE_API void sqlite3_result_blob(sqlite3_context*, const void*, int, void(*)(void*));
 SQLITE_API void sqlite3_result_blob64(sqlite3_context*,const void*,
                            sqlite3_uint64,void(*)(void*));
-SQLITE_API void sqlite3_result_double(sqlite3_context*, sqlite_double);
+SQLITE_API void sqlite3_result_double(sqlite3_context*, double);
 SQLITE_API void sqlite3_result_error(sqlite3_context*, const char*, int);
 SQLITE_API void sqlite3_result_error16(sqlite3_context*, const void*, int);
 SQLITE_API void sqlite3_result_error_toobig(sqlite3_context*);
@@ -5413,10 +5404,6 @@ SQLITE_API int sqlite3_rekey_v2(
 SQLITE_API void sqlite3_activate_see(
   const char *zPassPhrase        /* Activation phrase */
 );
-
-SQLITE_API int sqlite3_CodecAttach(sqlite3* db, int nDb, const void* zKey, int nKey);
-SQLITE_API void sqlite3_CodecGetKey(sqlite3* db, int nDb, void** zKey, int* nKey);
-
 #endif
 
 #ifdef SQLITE_ENABLE_CEROD
@@ -6264,7 +6251,7 @@ struct sqlite3_index_info {
   char *idxStr;              /* String, possibly obtained from sqlite3_malloc */
   int needToFreeIdxStr;      /* Free idxStr using sqlite3_free() if true */
   int orderByConsumed;       /* True if output is already ordered */
-  sqlite_double estimatedCost;           /* Estimated cost of using this index */
+  double estimatedCost;           /* Estimated cost of using this index */
   /* Fields below are only available in SQLite 3.8.2 and later */
   sqlite3_int64 estimatedRows;    /* Estimated number of rows returned */
   /* Fields below are only available in SQLite 3.9.0 and later */
@@ -8805,7 +8792,7 @@ typedef struct sqlite3_rtree_query_info sqlite3_rtree_query_info;
 #ifdef SQLITE_RTREE_INT_ONLY
   typedef sqlite3_int64 sqlite3_rtree_dbl;
 #else
-  typedef sqlite_double sqlite3_rtree_dbl;
+  typedef double sqlite3_rtree_dbl;
 #endif
 
 /*
@@ -9270,8 +9257,8 @@ SQLITE_API int sqlite3session_diff(
 */
 SQLITE_API int sqlite3session_patchset(
   sqlite3_session *pSession,      /* Session object */
-  int *pnPatchset,                /* OUT: Size of buffer at *ppChangeset */
-  void **ppPatchset               /* OUT: Buffer containing changeset */
+  int *pnPatchset,                /* OUT: Size of buffer at *ppPatchset */
+  void **ppPatchset               /* OUT: Buffer containing patchset */
 );
 
 /*
@@ -10038,12 +10025,12 @@ SQLITE_API int sqlite3changeset_apply(
 **
 ** <table border=1 style="margin-left:8ex;margin-right:8ex">
 **   <tr><th>Streaming function<th>Non-streaming equivalent</th>
-**   <tr><td>sqlite3changeset_apply_str<td>[sqlite3changeset_apply] 
-**   <tr><td>sqlite3changeset_concat_str<td>[sqlite3changeset_concat] 
-**   <tr><td>sqlite3changeset_invert_str<td>[sqlite3changeset_invert] 
-**   <tr><td>sqlite3changeset_start_str<td>[sqlite3changeset_start] 
-**   <tr><td>sqlite3session_changeset_str<td>[sqlite3session_changeset] 
-**   <tr><td>sqlite3session_patchset_str<td>[sqlite3session_patchset] 
+**   <tr><td>sqlite3changeset_apply_strm<td>[sqlite3changeset_apply] 
+**   <tr><td>sqlite3changeset_concat_strm<td>[sqlite3changeset_concat] 
+**   <tr><td>sqlite3changeset_invert_strm<td>[sqlite3changeset_invert] 
+**   <tr><td>sqlite3changeset_start_strm<td>[sqlite3changeset_start] 
+**   <tr><td>sqlite3session_changeset_strm<td>[sqlite3session_changeset] 
+**   <tr><td>sqlite3session_patchset_strm<td>[sqlite3session_patchset] 
 ** </table>
 **
 ** Non-streaming functions that accept changesets (or patchsets) as input
