@@ -428,15 +428,18 @@ static SQRESULT sq_BitVector_constructor(HSQUIRRELVM v){
 	return rc;
 }
 
+#define BV_CHECK_RANGE() \
+    	if(int_pos < 1 || int_pos > self->iSize) return sq_throwerror(v, _SC("index out of range '%u'"), (u32)int_pos);
 static SQRESULT sq_BitVector_clear(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_BitVector_INSTANCE();
 
 	SQ_GET_INTEGER(v, 2, int_pos);
+	BV_CHECK_RANGE();
 //	void sqlite3BitvecClear(Bitvec*, u32, void*)
     SQChar *bv_buf = sq_getscratchpad(v, sqlite3BITVEC_SZ());
 
-    sqlite3BitvecClear(self, int_pos, bv_buf);
+    sqlite3BitvecClear(self, (u32)int_pos, bv_buf);
 	return 0;
 }
 
@@ -445,6 +448,7 @@ static SQRESULT sq_BitVector_set(HSQUIRRELVM v){
 	GET_BitVector_INSTANCE();
 
 	SQ_GET_INTEGER(v, 2, int_pos);
+	BV_CHECK_RANGE();
 //	int sqlite3BitvecSet(Bitvec*, u32)
     sq_pushinteger(v, sqlite3BitvecSet(self, (u32)int_pos));
 	return 1;
@@ -464,6 +468,7 @@ static SQRESULT sq_BitVector_test(HSQUIRRELVM v){
 	GET_BitVector_INSTANCE();
 
 	SQ_GET_INTEGER(v, 2, int_pos);
+	BV_CHECK_RANGE();
 //	int sqlite3BitvecTest(Bitvec*, u32)
     sq_pushinteger(v, sqlite3BitvecTest(self, (u32)int_pos));
 	return 1;
@@ -474,6 +479,7 @@ static SQRESULT sq_BitVector_test_not_null(HSQUIRRELVM v){
 	GET_BitVector_INSTANCE();
 
 	SQ_GET_INTEGER(v, 2, int_pos);
+	BV_CHECK_RANGE();
 //	int sqlite3BitvecTestNotNull(Bitvec*, u32)
     sq_pushinteger(v, sqlite3BitvecTestNotNull(self, (u32)int_pos));
 	return 1;
