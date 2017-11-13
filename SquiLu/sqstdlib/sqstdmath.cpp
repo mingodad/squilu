@@ -80,18 +80,9 @@ static SQRESULT math_random(HSQUIRRELVM v) {
 
 static SQRESULT math_abs(HSQUIRRELVM v)
 {
-	if(sq_gettype(v,2) == OT_INTEGER)
-    {
-        SQInteger n;
-        sq_getinteger(v,2,&n);
-        sq_pushinteger(v,(SQInteger)abs(n));
-    }
-    else
-    {
-        SQFloat n;
-        sq_getfloat(v,2,&n);
-        sq_pushfloat(v,abs(n));
-    }
+    SQInteger n;
+    sq_getinteger(v,2,&n);
+    sq_pushinteger(v,(SQInteger)abs(n));
 	return 1;
 }
 
