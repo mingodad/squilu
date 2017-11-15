@@ -2351,10 +2351,13 @@ SQRegFunction SQSharedState::_number_default_delegate_funcz[]={
 };
 
 //CLOSURE DEFAULT DELEGATE//////////////////////////
+/*
+//pcall removed because it doesn't work as documented use try/catch instead
 static SQRESULT closure_pcall(HSQUIRRELVM v)
 {
 	return SQ_SUCCEEDED(sq_call(v,sq_gettop(v)-1,SQTrue,SQFalse))?1:SQ_ERROR;
 }
+*/
 
 static SQRESULT closure_call(HSQUIRRELVM v)
 {
@@ -2462,7 +2465,8 @@ static SQRESULT closure_getdelegate(HSQUIRRELVM v)
 
 SQRegFunction SQSharedState::_closure_default_delegate_funcz[]={
 	{_SC("call"),closure_call,-1, _SC("c")},
-	{_SC("pcall"),closure_pcall,-1, _SC("c")},
+	//pcall removed because it doesn't work as documented use try/catch instead
+	//{_SC("pcall"),closure_pcall,-1, _SC("c")},
 	{_SC("acall"),closure_acall,2, _SC("ca")},
 	{_SC("acall2"),closure_acall2,3, _SC("c.a")},
 	{_SC("pacall"),closure_pacall,2, _SC("ca")},
