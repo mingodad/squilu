@@ -181,6 +181,7 @@ SQUIRREL_API_FUNC(SQRESULT, throwerror, (HSQUIRRELVM v,const SQChar *fmt, ...))
 SQUIRREL_API_FUNC(SQRESULT, throwobject, (HSQUIRRELVM v))
 SQUIRREL_API_FUNC(void, reseterror, (HSQUIRRELVM v))
 SQUIRREL_API_FUNC(void, getlasterror, (HSQUIRRELVM v))
+SQUIRREL_API_FUNC(SQRESULT, tailcall, (HSQUIRRELVM v, SQInteger nparams))
 SQUIRREL_API_FUNC(const SQChar*, getlasterror_str, (HSQUIRRELVM v))
 SQUIRREL_API_FUNC(void, getlasterror_line_col, (HSQUIRRELVM v, SQInteger *line, SQInteger *column))
 

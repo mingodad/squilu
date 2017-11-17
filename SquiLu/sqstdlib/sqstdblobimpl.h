@@ -23,7 +23,7 @@ struct SQBlob : public SQStream
 	}
 	SQInteger Seek(SQInteger offset, SQInteger origin);
 	bool IsValid() {
-		return _buf?true:false;
+		return _size == 0 || _buf?true:false;
 	}
 	bool EOS() {
 		return _ptr == _size;
