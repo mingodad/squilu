@@ -690,7 +690,10 @@ sqt.run("array", function(){
 	t.clear();
 	sqt.ok(t.len() == 0);
 
-	sqt.ok([ 0, 1, 2 ] != [ 0, 1, 2 ]); 
+	sqt.ok([ 0, 1, 2 ] != [ 0, 1, 2 ]);
+
+	t = ["one"];
+	sqt.ok(t.concat(",") == "one");
 
 });
 
@@ -845,6 +848,28 @@ sqt.run("string", function(){
 
 sqt.run("number", function(){
 
+	sqt.ok(15 == "0x0F".tointeger(16));
+	sqt.ok(15 == "F".tointeger(16));
+	sqt.ok(15 == "017".tointeger(8));
+	sqt.ok(15 == "17".tointeger(8));
+	sqt.ok(15 == "1111".tointeger(2));
+	sqt.ok(15 == "00001111".tointeger(2));
+
+	sqt.ok("0.5".tofloat() == 0.5);
+	sqt.ok("0.5" == (0.5).tostring());
+	sqt.ok("9.99".tofloat() == 9.99);
+	sqt.ok("9.99" == (9.99).tostring());
+	sqt.ok("12".tointeger() == 12);
+	sqt.ok("12" == (12).tostring());
+	sqt.ok("12.0".tofloat() == 12.0);
+	//sqt.ok("12.0" == (12.0).tostring());
+	sqt.ok("12.0e+10".tofloat() == 12.0e+10);
+	sqt.ok("-122131242342.0e-10".tofloat() == -122131242342.0e-10);
+	//sqt.ok("-122131242342.0e-10" == (-122131242342.0e-10).tostring());
+	//sqt.ok(".5".tofloat() == .5);
+	sqt.ok("122138760e-2".tofloat() == 122138760e-2);
+	//sqt.ok("122138760e-2" == (122138760e-2).tostring());
+	
 	// signed and unsigned integer
 	sqt.ok( 1 == 1 );
 	sqt.ok(-1 == -1);
@@ -993,22 +1018,20 @@ sqt.run("number", function(){
 	sqt.ok((-0.123).round == -0);
 	sqt.ok((-12.3).round == -12);
 */
-/*
-	sqt.ok(123.fraction == 0);
-	sqt.ok((-123).fraction == -0);
-	sqt.ok(0.fraction == 0);
-	sqt.ok((-0).fraction == -0);
-	sqt.ok(0.123.fraction == 0.123);
-	sqt.ok(12.3.fraction == 0.3);
-	sqt.ok((-0.123).fraction == -0.123);
-	sqt.ok((-12.3).fraction == -0.3);
-	sqt.ok((1.23456789012345).fraction == 0.23456789012345);
-	sqt.ok((-1.23456789012345).fraction == -0.23456789012345);
-	sqt.ok((0.000000000000000000000000000000000000000001).fraction == 1e-42);
-	sqt.ok((-0.000000000000000000000000000000000000000001).fraction == -1e-42);
-	sqt.ok((1.000000000000000000000000000000000000000001).fraction == 0);
-	sqt.ok((-1.000000000000000000000000000000000000000001).fraction == -0);
-*/
+	sqt.ok(123 % 1 == 0);
+	sqt.ok((-123) % 1 == -0);
+	sqt.ok(0 % 1 == 0);
+	sqt.ok((-0) % 1 == -0);
+	sqt.ok((0.123) % 1.0 == 0.123);
+	sqt.ok((-0.123) % 1.0 == -0.123);
+	sqt.fequal((12.3) % 1.0, 0.3);
+	sqt.fequal((-12.3) % 1.0, -0.3);
+	sqt.fequal((1.23456789012345) % 1.0, 0.23456789012345);
+	sqt.fequal((-1.23456789012345) % 1.0, -0.23456789012345);
+	sqt.ok((0.000000000000000000000000000000000000000001) % 1.0 == 1e-42);
+	sqt.ok((-0.000000000000000000000000000000000000000001) % 1.0 == -1e-42);
+	sqt.ok((1.000000000000000000000000000000000000000001) % 1.0 == 0);
+	sqt.ok((-1.000000000000000000000000000000000000000001) % 1.0 == -0);
 
 	sqt.ok("123".tointeger() == 123);
 	sqt.ok("-123".tointeger() == -123);
@@ -1016,11 +1039,15 @@ sqt.run("number", function(){
 	sqt.ok("12.34".tofloat() == 12.34);
 	sqt.ok("-0.0001".tofloat() == -0.0001 == true);
 	sqt.ok(" 12 ".tointeger() == 12);
-	//sqt.ok("test1".tointeger() == null);
+	try{"test1".tointeger(), sqt.ok(0);}catch(e){sqt.ok(1);};
+	try{"test1".tofloat(), sqt.ok(0);}catch(e){sqt.ok(1);};
 	//sqt.ok("".tointeger() == null);
 	//sqt.ok("prefix1.2".tofloat() == null);
 	//sqt.ok("1.2suffix".tofloat() == null);
 
+	sqt.ok("1.2suffix".tofloat() == 1.2); // ??????
+	sqt.ok("1.2suffix".tointeger() == 1); // ?????
+	
 	sqt.ok((123).tostring() == "123");
 	sqt.ok((-123).tostring() == "-123");
 	//sqt.ok((-0).tostring() == "-0");
@@ -1083,7 +1110,7 @@ sqt.run("number", function(){
 	sqt.ok((0xf0f0f0f0 & 0x3c3c3c3c) == 808464432);
 	sqt.ok((0xffffffff & 0xffffffff) == 4294967295);
 	
-	//sqt.ok(1 & false); // expect runtime error: Right operand must be a number.
+	try{1 & false, sqt.ok(0)} catch(e) {sqt.ok(1);} // expect runtime error: Right operand must be a number.
 
 	sqt.ok((0 << 0) == 0);
 	sqt.ok((1 << 0) == 1);

@@ -1164,7 +1164,7 @@ static SQRESULT array_concat0 (HSQUIRRELVM v, int allowAll) {
     SQObjectPtr &arobj = stack_get(v,1);
     SQObjectPtrVec &aryvec = _array(arobj)->_values;
     SQInteger last = aryvec.size()-1;
-    if(last == 0){
+    if(last == -1){
         sq_pushstring(v, _SC(""), 0);
         return 1;
     }
