@@ -264,6 +264,11 @@ sqt.run("calls", function(){
 
 	Y, F, f = null
 
+	try { assert(true); sqt.ok(true);} catch(e) {sqt.ok(false);};
+	try { assert(true, "opt msg"); sqt.ok(true);} catch(e) {sqt.ok(false);};
+	try { assert(false); sqt.ok(false);} catch(e) {sqt.ok(true);};
+	try { assert(false, "opt msg"); sqt.ok(false);} catch(e) {sqt.ok(e == "opt msg");};
+
 });
 
 sqt.run("sort", function(){
