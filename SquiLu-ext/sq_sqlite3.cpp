@@ -1891,7 +1891,7 @@ static void sqlite3_lua_find_base( sqlite3_context *context, int argc, sqlite3_v
                     push_match_capture(context, 0, &ms);
                 }
             } else {
-                sqlite3_result_text(context, subject + ms.start_pos, ms.end_pos-ms.start_pos+1, SQLITE_TRANSIENT);
+                sqlite3_result_text(context, subject + ms.start_pos, ms.end_pos-ms.start_pos, SQLITE_TRANSIENT);
             }
         }
         break;
