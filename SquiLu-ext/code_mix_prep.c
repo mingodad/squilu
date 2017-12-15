@@ -162,6 +162,9 @@ static int mix_skip_comment(mix_state_t *S) {
 
 static const char * sq_mix_reader_str(void *ud) {
 	mix_state_t *S = (mix_state_t *)ud;
+	int retrying_code_start = 0;
+
+try_again:
 
 	if (S->error != NULL)
 		return 0;
@@ -188,7 +191,7 @@ static const char * sq_mix_reader_str(void *ud) {
 				    S->new_lines++;
 				    c = 'n';
 				}
-            }
+			}
 
 			S->temp[S->result_size++] = c;
 			++S->pos;
@@ -217,7 +220,7 @@ static const char * sq_mix_reader_str(void *ud) {
 		} else {
 			S->token = tok_code;
 		}
-		return result_literal("\");");
+		if(!retrying_code_start) return result_literal("\");");
 	}
 
 	/* Send the output function, but without the string start character, so
@@ -288,11 +291,18 @@ static const char * sq_mix_reader_str(void *ud) {
 	 * the lua engine and switch to the tok_data state.
 	 */
 	if (S->token == tok_code_end) {
-	    if(S->new_lines){
-	        --S->new_lines;
-	        return result_literal("\n");
-	    }
+		if(S->new_lines){
+			--S->new_lines;
+			return result_literal("\n");
+		}
 		S->token = tok_data;
+		if(mix_iscode_start(S))
+        {
+            //we have an empty str so let's skip it
+            retrying_code_start = 1;
+            goto try_again;
+        }
+        if ((S->pos+1) == S->size) return 0;
 		S->result_size = S->print_outsize;
 		return S->result = S->print_out;
 	}
