@@ -59,6 +59,8 @@ SQObjectPtr SQObjectPtr::operator[](const SQChar *key) {
         case OT_TABLE: _table(*this)->Get(key, val); break;
         case OT_CLASS: _class(*this)->Get(key, val); break;
         case OT_INSTANCE: _instance(*this)->Get(key, val); break;
+	default:
+		break;
     }
     return val;
 }

@@ -644,6 +644,8 @@ bool SQVM::FOREACH_OP(SQObjectPtr &o1,SQObjectPtr &o2,SQObjectPtr
                 _FINISH(0);
             }
             break;
+	    default:
+		break;
         }
 	default:
 		Raise_Error(_SC("cannot iterate %s"), GetTypeName(o1));

@@ -2,6 +2,9 @@
 SQUIRREL=.
 MAKE=make
 
+DIRS=bin lib
+$(shell mkdir -p $(DIRS))
+
 sq32:
 	cd squirrel; $(MAKE) 
 	cd sqstdlib; $(MAKE) 

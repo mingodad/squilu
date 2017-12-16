@@ -1467,6 +1467,8 @@ static int process_string_gsub(LuaMatchState *ms, void *udata, lua_char_buffer_s
             }
         }
         break;
+	default:
+		return sq_throwerror(v, _SC("unexpected type"));
     }
     sq_settop(v, top); //restore the stack to it's original state
     return result; //returning non zero means continue
@@ -1508,6 +1510,8 @@ static SQRESULT string_gsub(HSQUIRRELVM v)
                 }
                 return sq_throwerror(v,error_ptr);
             }
+   	   default:
+		return sq_throwerror(v, _SC("unexpected type"));
         }
     }
 	return sq_throwerror(v,_SC("invalid type for parameter 3 function/table/array/string expected"));

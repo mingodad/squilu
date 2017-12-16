@@ -1446,6 +1446,8 @@ SQBool sq_rawexists(HSQUIRRELVM v,SQInteger idx)
 			result = _array(self)->Exists(tointeger(obj));
 		}
 		break;
+	default:
+		break;
 	}
 	v->Pop();
 	return result;
@@ -1699,7 +1701,7 @@ SQRESULT sq_writeclosure_as_source(HSQUIRRELVM v,SQWRITEFUNC w,SQUserPointer up)
 	if(_closure(o)->_function->_noutervalues)
 		return sq_throwerror(v,_SC("a closure with free valiables bound cannot be serialized"));
     const SQChar decl[] = _SC("local bytecode = ");
-	if(w(up, (void*)decl, scstrlen(decl)) != scstrlen(decl))
+	if(w(up, (void*)decl, scstrlen(decl)) != (int)scstrlen(decl))
 		return sq_throwerror(v,_SC("io error"));
 	if(!_closure(o)->SaveAsSource(v,up,w))
 		return SQ_ERROR;
