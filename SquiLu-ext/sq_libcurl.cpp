@@ -147,6 +147,7 @@ struct sq_easycurl_st
     HSQOBJECT writer_cb;
     HSQOBJECT writer_cb_udata;
     HSQOBJECT slist_array;
+    SQInteger last_reader_pos;
     struct curl_slist *slist; //only one linked list
 };
 
@@ -445,13 +446,14 @@ static SQRESULT sq_EasyCurl_unescape(HSQUIRRELVM v){
 static size_t sq_EasyCurl_reader_writer_callback(char *bufptr, size_t size, size_t nitems, void *userp, int isReader)
 {
     SQInteger result = 0; /* abort by default */
+    size_t data_size = size * nitems;
+    if(data_size == 0) return result;
     sq_easycurl_st *self = (sq_easycurl_st*)userp;
     HSQUIRRELVM v = self->vm;
     int top = sq_gettop(v);
 
     HSQOBJECT &rw_cb = (isReader ? self->reader_cb : self->writer_cb);
     HSQOBJECT &rw_cb_udata = (isReader ? self->reader_cb_udata : self->writer_cb_udata);
-    size_t data_size = size * nitems;
 
     sq_pushobject(v, rw_cb);
 
@@ -460,13 +462,35 @@ static size_t sq_EasyCurl_reader_writer_callback(char *bufptr, size_t size, size
     {
     case OT_INSTANCE:
         {
-        SQBlob *blob = NULL;
-        if(SQ_FAILED(sq_getinstanceup(v,-1,(SQUserPointer*)&blob,(SQUserPointer)SQBlob::SQBlob_TAG)))
-            break;
-        if(!blob || !blob->IsValid())
-            break;
-        blob->Write(bufptr, data_size);
-        result = data_size;
+            SQBlob *blob = NULL;
+            if(SQ_FAILED(sq_getinstanceup(v,-1,(SQUserPointer*)&blob,(SQUserPointer)SQBlob::SQBlob_TAG)))
+                break;
+            if(!blob || !blob->IsValid())
+                break;
+            if(isReader)
+            {
+                SQInteger blen = blob->Len();
+                if(blen < self->last_reader_pos)
+                {
+                    if(blen < data_size)
+                    {
+                        memcpy(bufptr, blob->GetBuf(), blen);
+                        self->last_reader_pos += blen;
+                        result = blen;
+                    }
+                    else
+                    {
+                        memcpy(bufptr, blob->GetBuf() + self->last_reader_pos, data_size);
+                        self->last_reader_pos += data_size;
+                        result = data_size;
+                    }
+                }
+            }
+            else
+            {
+                blob->Write(bufptr, data_size);
+                result = data_size;
+            }
         }
         break;
     case OT_CLOSURE:
@@ -536,6 +560,7 @@ static SQRESULT sq_EasyCurl_set_reader_writer(HSQUIRRELVM v, int isReader){
 
     sq_resetobject(&rw_cb);
     sq_resetobject(&rw_cb_udata);
+    self->last_reader_pos = 0;
 
     SQObjectType otype = sq_gettype(v, 2);
     if(_top_ > 1 && otype != OT_NULL)
