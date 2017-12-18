@@ -125,7 +125,7 @@ extern "C" {
 */
 #define SQLITE_VERSION        "3.22.0"
 #define SQLITE_VERSION_NUMBER 3022000
-#define SQLITE_SOURCE_ID      "2017-10-08 20:48:16 9da71da85a6a94620a706f3e44e20b9157c8e3497d5792750f06b88668baalt1"
+#define SQLITE_SOURCE_ID      "2017-12-13 23:47:55 3765aaf712998af5ffb6bc680a0c1419f2b5deb47ecbc1835ba5879127c4alt1"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -470,6 +470,8 @@ SQLITE_API int sqlite3_exec(
 ** the most recent error can be obtained using
 ** [sqlite3_extended_errcode()].
 */
+#define SQLITE_ERROR_MISSING_COLLSEQ   (SQLITE_ERROR | (1<<8))
+#define SQLITE_ERROR_RETRY             (SQLITE_ERROR | (2<<8))
 #define SQLITE_IOERR_READ              (SQLITE_IOERR | (1<<8))
 #define SQLITE_IOERR_SHORT_READ        (SQLITE_IOERR | (2<<8))
 #define SQLITE_IOERR_WRITE             (SQLITE_IOERR | (3<<8))
@@ -508,11 +510,14 @@ SQLITE_API int sqlite3_exec(
 #define SQLITE_CANTOPEN_ISDIR          (SQLITE_CANTOPEN | (2<<8))
 #define SQLITE_CANTOPEN_FULLPATH       (SQLITE_CANTOPEN | (3<<8))
 #define SQLITE_CANTOPEN_CONVPATH       (SQLITE_CANTOPEN | (4<<8))
+#define SQLITE_CANTOPEN_DIRTYWAL       (SQLITE_CANTOPEN | (5<<8))
 #define SQLITE_CORRUPT_VTAB            (SQLITE_CORRUPT | (1<<8))
 #define SQLITE_READONLY_RECOVERY       (SQLITE_READONLY | (1<<8))
 #define SQLITE_READONLY_CANTLOCK       (SQLITE_READONLY | (2<<8))
 #define SQLITE_READONLY_ROLLBACK       (SQLITE_READONLY | (3<<8))
 #define SQLITE_READONLY_DBMOVED        (SQLITE_READONLY | (4<<8))
+#define SQLITE_READONLY_CANTINIT       (SQLITE_READONLY | (5<<8))
+#define SQLITE_READONLY_DIRECTORY      (SQLITE_READONLY | (6<<8))
 #define SQLITE_ABORT_ROLLBACK          (SQLITE_ABORT | (2<<8))
 #define SQLITE_CONSTRAINT_CHECK        (SQLITE_CONSTRAINT | (1<<8))
 #define SQLITE_CONSTRAINT_COMMITHOOK   (SQLITE_CONSTRAINT | (2<<8))
