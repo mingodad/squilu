@@ -662,6 +662,238 @@ sqt.run("pattern matching", function(){
 
 });
 
+sqt.run("regexp", function(){
+
+	/*
+	Adapted from
+		http://www.theiling.de/cnc/date/2017-12-19.html
+		http://www.theiling.de/cnc/regexp/test.c
+	*/
+
+	const RE_E_OK = 1;
+	const RE_E_FAIL = 2;
+	const RE_E_SYNTAX = 3;
+	const RE_E_NOTIMPL = 3;
+
+	local function re_match(re_str, test_str)
+	{
+		local result;
+		try {
+			local re = regexp(re_str);
+			result = (re.match(test_str) != null) ? RE_E_OK : RE_E_FAIL;
+		} catch(e) {result = RE_E_SYNTAX;}
+		return result;
+	}
+/*
+	print(re_match("aaa", "aaa"));
+	print(re_match("aaa", "aab"));
+	print(re_match("(a|[(])+", "a(aa((a"));
+	print("bac".match("[\\^a]*"));
+*/
+	sqt.ok(re_match("aaa", "aaa") == RE_E_OK);
+	sqt.ok(re_match("aaa", "aab") == RE_E_FAIL);
+	sqt.ok(re_match("aaa", "aa") == RE_E_FAIL);
+	sqt.ok(re_match("aa", "aaa") == RE_E_OK);
+	sqt.ok(re_match("a..", "aaa") == RE_E_OK);
+	sqt.ok(re_match("aaa", "a..") == RE_E_FAIL);
+	sqt.ok(re_match("a{}", "") == RE_E_SYNTAX);
+	sqt.ok(re_match("(aaa)", "aaa") == RE_E_OK);
+	sqt.ok(re_match("(aa)a", "aaa") == RE_E_OK);
+	sqt.ok(re_match("(aaa", "aaa") == RE_E_SYNTAX);
+	sqt.ok(re_match("a+", "") == RE_E_FAIL);
+	sqt.ok(re_match("a+", "aaa") == RE_E_OK);
+	sqt.ok(re_match(".+", "aaa") == RE_E_OK);
+	sqt.ok(re_match("(a)+", "aaa") == RE_E_OK);
+	sqt.ok(re_match("(aa)+", "aaaa") == RE_E_OK);
+	//sqt.ok(re_match("(aa)+", "aaa") == RE_E_FAIL);
+	sqt.ok(re_match("(aa(b)+)+", "aabaabb") == RE_E_OK);
+	//sqt.ok(re_match("(aa(b)+)+", "aaabaabb") == RE_E_FAIL);
+	//sqt.ok(re_match("(aa(b)+)+", "aaaabb") == RE_E_FAIL);
+	sqt.ok(re_match("a+b", "aaaaaaaaaaaaaaaab") == RE_E_OK);
+	sqt.ok(re_match("a+b", "aaaaaaaaaaaaaaaa") == RE_E_FAIL);
+	sqt.ok(re_match("a?", "a") == RE_E_OK);
+	sqt.ok(re_match("a?", "aa") == RE_E_OK);
+	sqt.ok(re_match("a?b", "b") == RE_E_OK);
+	//sqt.ok(re_match("a?", "") == RE_E_OK);
+	//sqt.ok(re_match("(a?)?", "") == RE_E_OK);
+	//sqt.ok(re_match("a*", "") == RE_E_OK);
+	//sqt.ok(re_match("(a?)+", "") == RE_E_OK);
+	//sqt.ok(re_match("?", "") == RE_E_SYNTAX);
+	sqt.ok(re_match("a*b", "b") == RE_E_OK);
+	//sqt.ok(re_match("(a+)?", "") == RE_E_OK);
+	sqt.ok(re_match("a+b", "b") == RE_E_FAIL);
+	sqt.ok(re_match("a+b", "ab") == RE_E_OK);
+	sqt.ok(re_match("a+b", "aab") == RE_E_OK);
+	sqt.ok(re_match("a+b", "aaab") == RE_E_OK);
+	sqt.ok(re_match("a{2}b", "ab") == RE_E_FAIL);
+	sqt.ok(re_match("a{2}b", "aab") == RE_E_OK);
+	sqt.ok(re_match("a{2}b", "aaab") == RE_E_OK);
+	sqt.ok(re_match("a{2,}b", "aaab") == RE_E_OK);
+	sqt.ok(re_match("a{2,}b", "aab") == RE_E_OK);
+	sqt.ok(re_match("a{2,}b", "ab") == RE_E_FAIL);
+	sqt.ok(re_match("a*b", "aaab") == RE_E_OK);
+	sqt.ok(re_match("a{1}", "a") == RE_E_OK);
+	sqt.ok(re_match("a{2}", "a") == RE_E_FAIL);
+	sqt.ok(re_match("a{2}", "aa") == RE_E_OK);
+	sqt.ok(re_match("a{2}", "aaa") == RE_E_OK);
+	sqt.ok(re_match("a{3}", "aa") == RE_E_FAIL);
+	sqt.ok(re_match("a{3}", "aaa") == RE_E_OK);
+	sqt.ok(re_match("a{3}", "aaaa") == RE_E_OK);
+	sqt.ok(re_match("a{2,4}", "a") == RE_E_FAIL);
+	sqt.ok(re_match("a{2,4}", "aa") == RE_E_OK);
+	sqt.ok(re_match("a{2,4}", "aaa") == RE_E_OK);
+	sqt.ok(re_match("a{2,4}", "aaaa") == RE_E_OK);
+	sqt.ok(re_match("a{2,4}", "aaaaa") == RE_E_OK);
+	sqt.ok(re_match("ab{2,4}", "a") == RE_E_FAIL);
+	sqt.ok(re_match("ab{2,4}", "ab") == RE_E_FAIL);
+	sqt.ok(re_match("ab{2,4}", "abb") == RE_E_OK);
+	sqt.ok(re_match("ab{2,4}", "abbb") == RE_E_OK);
+	sqt.ok(re_match("ab{2,4}", "abbbb") == RE_E_OK);
+	sqt.ok(re_match("ab{2,4}", "abbbbb") == RE_E_OK);
+	sqt.ok(re_match("ab{2,4}", "aabbbb") == RE_E_OK);
+	sqt.ok(re_match("a{,2}b{2,4}", "aabbbb") == RE_E_SYNTAX);
+	sqt.ok(re_match("a{0,2}b{2,4}", "aabbbb") == RE_E_OK); 
+	sqt.ok(re_match("a)", "") == RE_E_SYNTAX);
+	//sqt.ok(re_match("(a+b+)?", "") == RE_E_OK);
+	sqt.ok(re_match("(a{2}b+)*c", "aabc") == RE_E_OK);
+	//sqt.ok(re_match("(a{2}b+)*c", "c") == RE_E_OK);
+	sqt.ok(re_match("(a{2}b+)*", "aab") == RE_E_OK);
+	//sqt.ok(re_match("(a{2}b+)*", "") == RE_E_OK);
+	sqt.ok(re_match("(a{2}b+)?", "aab") == RE_E_OK);
+	//sqt.ok(re_match("(a{2}b+)?", "") == RE_E_OK);
+	sqt.ok(re_match("(ab){2,4}", "a") == RE_E_FAIL);
+	sqt.ok(re_match("(ab){2,4}", "b") == RE_E_FAIL);
+	sqt.ok(re_match("(ab){2,4}", "") == RE_E_FAIL);
+	sqt.ok(re_match("(ab){2,4}", "ab") == RE_E_FAIL);
+	sqt.ok(re_match("(ab){2,4}", "abab") == RE_E_OK);
+	sqt.ok(re_match("(ab){2,4}", "ababab") == RE_E_OK);
+	sqt.ok(re_match("(ab){2,4}", "abababab") == RE_E_OK);
+	sqt.ok(re_match("(ab){2,4}", "ababababab") == RE_E_OK);
+	sqt.ok(re_match("ab", "ab") == RE_E_OK);
+	sqt.ok(re_match("ab", "abab") == RE_E_OK);
+	sqt.ok(re_match("(ab)", "ab") == RE_E_OK);
+	sqt.ok(re_match("(ab)", "abab") == RE_E_OK);
+	sqt.ok(re_match("(ab){1}", "ab") == RE_E_OK);
+	sqt.ok(re_match("(ab){1}", "abab") == RE_E_OK);
+	sqt.ok(re_match("(ab){1,1}", "ab") == RE_E_OK);
+	sqt.ok(re_match("(ab){1,1}", "abab") == RE_E_OK);
+	//sqt.ok(re_match("(ab){1}{1,1}", "ab") == RE_E_OK);
+	sqt.ok(re_match("(ab){1}{1,1}", "abab") == RE_E_FAIL);
+	sqt.ok(re_match("((ab){2,4}c)+", "") == RE_E_FAIL);
+	//sqt.ok(re_match("(((ab){2,4}c)+)?", "") == RE_E_OK);
+	//sqt.ok(re_match("((ab){2,4}c)+?", "") == RE_E_OK);
+	sqt.ok(re_match("((ab){2,4}c)+", "ababc") == RE_E_OK);
+	sqt.ok(re_match("((ab){2,4}c)+", "ababcabababc") == RE_E_OK);
+	//sqt.ok(re_match("((ab){2,4}c)+?", "ababcabababc") == RE_E_OK);
+	//sqt.ok(re_match("((ab){2,4}c)+?", "") == RE_E_OK);
+	sqt.ok(re_match("a{0,1}", "a") == RE_E_OK);
+	sqt.ok(re_match("a{1,1}", "a") == RE_E_OK);
+	sqt.ok(re_match("a{0,}", "a") == RE_E_OK);
+	sqt.ok(re_match("a{,}", "a") == RE_E_SYNTAX);
+	sqt.ok(re_match("a{,}", "a") == RE_E_SYNTAX);
+	sqt.ok(re_match("a{,g}", "a") == RE_E_SYNTAX);
+	sqt.ok(re_match("a{,1g}", "a") == RE_E_SYNTAX);
+	sqt.ok(re_match("a{0,g}", "a") == RE_E_SYNTAX);
+	sqt.ok(re_match("a{0,1g}", "a") == RE_E_SYNTAX);
+	//sqt.ok(re_match("a{1,0}", "a") == RE_E_SYNTAX);
+	//sqt.ok(re_match("a{1,0}", "a") == RE_E_SYNTAX);
+	//sqt.ok(re_match("a{0}", "a") == RE_E_FAIL);
+	//sqt.ok(re_match("a{0,0}", "a") == RE_E_FAIL);
+	//sqt.ok(re_match("a++", "aaa") == RE_E_OK);
+	//sqt.ok(re_match("a??", "") == RE_E_OK);
+	//sqt.ok(re_match("a**", "") == RE_E_OK);
+	//sqt.ok(re_match("a?*", "") == RE_E_OK);
+	//sqt.ok(re_match("a*?", "") == RE_E_OK);
+	sqt.ok(re_match("a?", "a") == RE_E_OK);
+	//sqt.ok(re_match("a??", "a") == RE_E_OK);
+	//sqt.ok(re_match("a**", "a") == RE_E_OK);
+	//sqt.ok(re_match("a?*", "a") == RE_E_OK);
+	//sqt.ok(re_match("a*?", "a") == RE_E_OK);
+	sqt.ok(re_match("a?", "aa") == RE_E_OK);
+	//sqt.ok(re_match("a??", "aa") == RE_E_FAIL);
+	//sqt.ok(re_match("a**", "aa") == RE_E_OK);
+	//sqt.ok(re_match("a?*", "aa") == RE_E_OK);
+	//sqt.ok(re_match("a*?", "aa") == RE_E_OK);
+	//sqt.ok(re_match("a+?", "") == RE_E_OK);
+	//sqt.ok(re_match("a?+", "") == RE_E_OK);
+	//sqt.ok(re_match("a+?b", "b") == RE_E_OK);
+	sqt.ok(re_match("a\\rb", "a\rb") == RE_E_OK);
+	sqt.ok(re_match("a+\n+b+", "aa\n\nbb") == RE_E_SYNTAX);
+	sqt.ok(re_match("a+\\n+b+", "aa\n\nbb") == RE_E_OK);
+	//sqt.ok(re_match("a+\\5+b+", "aa\n\nbb") == RE_E_SYNTAX);
+	sqt.ok(re_match("a+\\(+b+", "aa((bb") == RE_E_OK);
+	sqt.ok(re_match("[a]+", "a") == RE_E_OK);
+	sqt.ok(re_match("[a]+", "aa") == RE_E_OK);
+	sqt.ok(re_match("[a]+", "aaa") == RE_E_OK);
+	sqt.ok(re_match("[ba]+", "a") == RE_E_OK);
+	sqt.ok(re_match("[ba]+", "ab") == RE_E_OK);
+	sqt.ok(re_match("[ba]+", "baaa") == RE_E_OK);
+	sqt.ok(re_match("[ba]+", "c") == RE_E_FAIL);
+	sqt.ok(re_match("[\\n]+", "\n") == RE_E_OK);
+	sqt.ok(re_match("[\\n]+", "\n\n") == RE_E_OK);
+	sqt.ok(re_match("[\\n]+", "\n\n\n") == RE_E_OK);
+	sqt.ok(re_match("[a-c]+", "aaa") == RE_E_OK);
+	sqt.ok(re_match("[a-c]+", "ccc") == RE_E_OK);
+	sqt.ok(re_match("[a-c]+", "bbb") == RE_E_OK);
+	sqt.ok(re_match("[a", "bbb") == RE_E_SYNTAX);
+	sqt.ok(re_match("[a-", "bbb") == RE_E_SYNTAX);
+	sqt.ok(re_match("[a-b", "bbb") == RE_E_SYNTAX);
+	sqt.ok(re_match("[a-\\b", "bbb") == RE_E_NOTIMPL);
+	//sqt.ok(re_match("a\\bb", "bbb") == RE_E_NOTIMPL);
+	sqt.ok(re_match("[a-\\n", "bbb") == RE_E_NOTIMPL);
+	sqt.ok(re_match("[\\n-a", "bbb") == RE_E_NOTIMPL);
+	//sqt.ok(re_match("[-]", "bbb") == RE_E_NOTIMPL);
+	//sqt.ok(re_match("[a-b-c]", "bbb") == RE_E_NOTIMPL);
+	sqt.ok(re_match("[a--]", "bbb") == RE_E_NOTIMPL);
+	//sqt.ok(re_match("[a-z-[bc]]", "bbb") == RE_E_NOTIMPL);
+	sqt.ok(re_match("0[xX][\\da-fA-F]{1,4}", "0x12a6") == RE_E_OK);
+	//sqt.ok(re_match("0[xX][\\da-fA-F]{1,4}", "0x12ag") == RE_E_FAIL);
+	sqt.ok(re_match("(a|c)+", "aa") == RE_E_OK);
+	sqt.ok(re_match("(a|c)+", "cc") == RE_E_OK);
+	sqt.ok(re_match("(a|c)+", "cccc") == RE_E_OK);
+	sqt.ok(re_match("(a|c)+", "aaaa") == RE_E_OK);
+	sqt.ok(re_match("(a|c)+", "ca") == RE_E_OK);
+	sqt.ok(re_match("(a|c)+", "caca") == RE_E_OK);
+	sqt.ok(re_match("(a|b|c|d)+", "aa") == RE_E_OK);
+	sqt.ok(re_match("(a|b|c|d)+", "bb") == RE_E_OK);
+	sqt.ok(re_match("(a|b|c|d)+", "cc") == RE_E_OK);
+	sqt.ok(re_match("(a|b|c|d)+", "dd") == RE_E_OK);
+	sqt.ok(re_match("(a|b|c)+", "aa") == RE_E_OK);
+	sqt.ok(re_match("(a|b|c)+", "bb") == RE_E_OK);
+	sqt.ok(re_match("(a|b|c)+", "cc") == RE_E_OK);
+	sqt.ok(re_match("(a|b|c)+", "abc") == RE_E_OK);
+	sqt.ok(re_match("(a|b|c)+", "cba") == RE_E_OK);
+	sqt.ok(re_match("(a|b|c)+", "cccc") == RE_E_OK);
+	sqt.ok(re_match("(a|b|c)+", "aa") == RE_E_OK);
+	sqt.ok(re_match("(a|b|c)+", "aaaa") == RE_E_OK);
+	sqt.ok(re_match("(a|b|c)+", "ca") == RE_E_OK);
+	sqt.ok(re_match("(a|b|c)+", "caca") == RE_E_OK);
+	sqt.ok(re_match("(ab|cd|ed)+", "abcded") == RE_E_OK);
+	//sqt.ok(re_match("(?:ab)", "a") == RE_E_SYNTAX);
+	//sqt.ok(re_match("[^a]*", "") == RE_E_OK);
+	sqt.ok(re_match("[^a]+", "") == RE_E_FAIL);
+	sqt.ok(re_match("[^a]*", "b") == RE_E_OK);
+	sqt.ok(re_match("[^a]*", "bcbd") == RE_E_OK);
+	//sqt.ok(re_match("[^a]*", "a") == RE_E_FAIL);
+	sqt.ok(re_match("[^a]*", "bac") == RE_E_OK);
+	sqt.ok(re_match("[^ab]*", "bac") == RE_E_OK);
+	sqt.ok(re_match("[^ab]*", "cded") == RE_E_OK);
+	sqt.ok(re_match("[\\^a]*", "bac") == RE_E_OK);
+	sqt.ok(re_match("[\\^a]*", "a") == RE_E_OK);
+	sqt.ok(re_match("[\\^a]*", "a^") == RE_E_OK);
+	sqt.ok(re_match("(a|[\\(])+", "a(aa((a") == RE_E_OK);
+	sqt.ok(re_match("(a|[\\[])+", "a[aa[[a") == RE_E_OK);
+	sqt.ok(re_match("(a|[(])+", "a(aa((a") == RE_E_OK);
+	sqt.ok(re_match("(a|[[])+", "a(aa((a") == RE_E_OK);
+	sqt.ok(re_match("\\D*", "bac") == RE_E_OK);
+	sqt.ok(re_match("\\D*", "b0c") == RE_E_OK);
+	sqt.ok(re_match("\\S*", "bac") == RE_E_OK);
+	sqt.ok(re_match("\\S*", "b c") == RE_E_OK);
+	sqt.ok(re_match(".", "") == RE_E_FAIL);
+	sqt.ok(re_match("a.b", "acb") == RE_E_OK);
+	sqt.ok(re_match("a.b", "a\nb") == RE_E_OK);
+});
+
 sqt.run("table", function(){
 	
 	local t = table_new(10);
@@ -700,6 +932,8 @@ sqt.run("array", function(){
 	t = ["one"];
 	sqt.ok(t.concat(",") == "one");
 
+	t = ["one", "two"];
+	sqt.ok(t.concat(", ") == "one, two");
 });
 
 //	core/string/index_of_start.wren
@@ -1049,7 +1283,6 @@ sqt.run("number", function(){
 	//sqt.ok("".tointeger() == null);
 	//sqt.ok("prefix1.2".tofloat() == null);
 	//sqt.ok("1.2suffix".tofloat() == null);
-
 	sqt.ok("1.2suffix".tofloat() == 1.2); // ??????
 	sqt.ok("1.2suffix".tointeger() == 1); // ?????
 	
