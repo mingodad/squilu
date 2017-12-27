@@ -371,6 +371,10 @@ void SQFuncState::AddParameterTypeName(const SQChar *type_name)
 	if(type_name) AddParameterTypeName(CreateString(type_name, scstrlen(type_name)));
 }
 
+void SQFuncState::SetReturnTypeName(const SQChar *type_name)
+{
+	if(type_name) _return_type = CreateString(type_name, scstrlen(type_name));
+}
 SQInteger SQFuncState::FindGotoTarget(const SQObject &name)
 {
 	for(size_t i=0, len=_gototargets.size(); i < len; ++i){

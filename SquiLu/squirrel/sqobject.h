@@ -371,5 +371,6 @@ const SQChar *SQGetNewObjTypeName(int it);
 const SQChar *SQGetArrayAppendTypeName(int it);
 const SQChar *SQGetCmpOpName(int it);
 const SQChar *SQGetBitwiseOpName(int it);
+const SQChar *SQGetVarTypeName(int it);
 
 #endif //_SQOBJECT_H_

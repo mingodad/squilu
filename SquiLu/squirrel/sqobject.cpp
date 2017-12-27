@@ -605,6 +605,21 @@ const SQChar *SQGetNewObjTypeName(int it){
 #undef SCASE
 }
 
+const SQChar *SQGetVarTypeName(int it){
+#define SCASE(x) case _VAR_##x: return _SC(#x); break;
+    switch(it){
+        SCASE(ANY)
+        SCASE(INTEGER)
+        SCASE(FLOAT)
+        SCASE(BOOL)
+        SCASE(STRING)
+        SCASE(TABLE)
+        SCASE(ARRAY)
+        SCASE(CLOSURE)
+        default: return _SC("?");
+    }
+#undef SCASE
+}
 const SQChar *SQGetArithOpName(int it){
 #define SCASE(x, z) case x: return _SC(#z); break;
     switch(it){
@@ -642,7 +657,9 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 	_CHECK_IO(WriteObjectAsCode(v,up,write,_sourcename));
 	SafeWriteFmt(v,write,up,",\n\tfunction_name = ");
 	_CHECK_IO(WriteObjectAsCode(v,up,write,_name));
-	SafeWriteFmt(v,write,up,"\n");
+	SafeWriteFmt(v,write,up,",\n\tfunction_return_type = ");
+	_CHECK_IO(WriteObjectAsCode(v,up,write,_return_type));
+	SafeWriteFmt(v,write,up,",\n");
 
 	SafeWriteFmt(v,write,up,"\tliterals = [\n");
 	for(i=0;i<nliterals;i++){
@@ -679,7 +696,8 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 		SafeWriteFmt(v,write,up,", %d", lvi._start_op);
 		SafeWriteFmt(v,write,up,", %d", lvi._end_op);
 		SafeWriteFmt(v,write,up,", %d", lvi._scope);
-		SafeWriteFmt(v,write,up,", %d],\n", lvi._type);
+		const char* type_name = (sq_type(lvi._type_name) == OT_STRING) ? _stringval(lvi._type_name) : "";
+		SafeWriteFmt(v,write,up,", %d], //%s : %s\n", lvi._type, SQGetVarTypeName(lvi._type), type_name);
 	}
     SafeWriteFmt(v,write,up,"\t],\n");
 
@@ -854,7 +872,7 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
 	    _CHECK_IO(_funcproto(_functions[i])->SaveAsSource(v,up,write));
 	    SafeWriteFmt(v,write,up,",\n");
 	}
-    SafeWriteFmt(v,write,up,"],\n");
+    SafeWriteFmt(v,write,up,"\t],\n");
 
 	SafeWriteFmt(v,write,up,"\tstacksize = %d,\n", _stacksize);
 	SafeWriteFmt(v,write,up,"\tbgenerator = %d,\n", _bgenerator);

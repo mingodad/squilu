@@ -32,6 +32,7 @@ struct SQFuncState
 	void AddParameter(const SQObject &name, SQInteger scope, SQInteger type=_VAR_ANY);
 	void AddParameterTypeName(const SQObject &type_name);
 	void AddParameterTypeName(const SQChar *type_name);
+	void SetReturnTypeName(const SQChar *type_name);
 	//void AddOuterValue(const SQObject &name);
 	SQInteger GetLocalVariable(const SQObject &name);
 	void MarkLocalAsOuter(SQInteger pos);

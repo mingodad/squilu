@@ -2150,10 +2150,56 @@ function_params_decl:
             Lex();
         }
     }
+    SQInteger GetVarTypeDeclaration(SQInteger declType, SQInteger dest=-1)
+    {
+        bool doAddInstruction = (dest >= 0);
+        switch(declType)
+        {
+        CASE_TK_LOCAL_CHAR_TYPES:
+            if(doAddInstruction) _fs->AddInstruction(_OP_LOADNULLS, dest,1);
+            declType = _VAR_STRING;
+            break;
+
+        case TK_LOCAL_BOOL_T:
+            //default value false
+            if(doAddInstruction) _fs->AddInstruction(_OP_LOADBOOL, dest,0);
+            declType = _VAR_BOOL;
+            break;
+
+        case TK_LOCAL_TABLE_T:
+            if(doAddInstruction) _fs->AddInstruction(_OP_LOADNULLS, dest,1);
+            declType = _VAR_TABLE;
+            break;
+        case TK_LOCAL_ARRAY_T:
+            if(doAddInstruction) _fs->AddInstruction(_OP_LOADNULLS, dest,1);
+            declType = _VAR_ARRAY;
+            break;
+
+        CASE_TK_LOCAL_INT_TYPES:
+            //default value 0
+            if(doAddInstruction) _fs->AddInstruction(_OP_LOADINT, dest,0);
+            declType = _VAR_INTEGER;
+            break;
+        CASE_TK_LOCAL_FLOAT_TYPES:
+        case TK_LOCAL_NUMBER_T: //start numbers as floats
+            //default value 0.0
+            //_OP_LOADFLOAT is only valid when SQFloat size == SQInt32 size
+            if(doAddInstruction) _fs->AddInstruction(_OP_LOADINT, dest,0);
+            declType = _VAR_FLOAT;
+            break;
+        //case TK_LOCAL:
+        default:
+            //default value null
+            if(doAddInstruction) _fs->AddInstruction(_OP_LOADNULLS, dest,1);
+            declType = _VAR_ANY;
+        }
+        return declType;
+    }
 #define CHECK_REF_DECLARATION(tk) if(tk == _SC('&')){is_reference_declaration = true;Lex();}
     void LocalDeclStatement()
     {
         SQObject varname;
+        SQObject type_name = GetTokenObject(_token, false);
         //SQChar *param_type_name;
         bool is_void_declaration = _token == TK_VOID;
         bool is_const_declaration = _token == TK_CONST;
@@ -2169,12 +2215,14 @@ function_params_decl:
             CheckLocalNameScope(varname, _scope.nested);
             Expect(_SC('('));
 function_params_decl:
-#if 1 //doing this way works but prevents garbage collection when doing multiple reloads on the same vm
+#if 1
+            //doing this way works but prevents garbage collection when doing multiple reloads on the same vm
             //the following is an attempt to allow local declared functions be called recursivelly
             SQInteger old_pos = _fs->GetCurrentPos(); //save current instructions position
             _fs->PushLocalVariable(varname, _scope.nested, _VAR_CLOSURE); //add function name to find it as outer var if needed
+            if(sq_type(type_name) == OT_STRING) _fs->AddParameterTypeName(type_name);
             //-1 to compensate default parameters when relocating
-            CreateFunction(varname, eFunctionType_local, -1);
+            CreateFunction(varname, eFunctionType_local, -1, declType);
             if(_is_parsing_extern)
             {
                 if(_token == _SC(';')) //to parse thinscript
@@ -2220,6 +2268,7 @@ function_params_decl:
             EatTemplateInitialization();
             if(_token == _SC('('))
             {
+                declType = GetVarTypeDeclaration(declType);
                 //C/C++ style function declaration
                 Lex();
                 goto function_params_decl;
@@ -2228,7 +2277,8 @@ function_params_decl:
             {
                 //type specifier like typescript
                 Lex();
-                ExpectTypeToken(); //ignore for now
+                declType = _token;
+                type_name = ExpectTypeToken(); //ignore for now
             }
             if(is_void_declaration)
             {
@@ -2245,7 +2295,7 @@ function_params_decl:
                 SQInteger src = _fs->PopTarget();
                 SQInteger dest = _fs->PushTarget();
                 if(dest != src) _fs->AddInstruction(_OP_MOVE, dest, src);
-                declType = _VAR_ANY;
+                declType = GetVarTypeDeclaration(declType);
             }
             else if(is_const_declaration || is_reference_declaration)
                 Error(_SC("const/reference '%s' need an initializer"), _stringval(varname));
@@ -2255,46 +2305,7 @@ function_params_decl:
                 if(!_is_parsing_extern)
                 {
                     SQInteger dest = _fs->PushTarget();
-                    switch(declType)
-                    {
-CASE_TK_LOCAL_CHAR_TYPES:
-                        _fs->AddInstruction(_OP_LOADNULLS, dest,1);
-                        declType = _VAR_STRING;
-                        break;
-
-                    case TK_LOCAL_BOOL_T:
-                        //default value false
-                        _fs->AddInstruction(_OP_LOADBOOL, dest,0);
-                        declType = _VAR_BOOL;
-                        break;
-
-                    case TK_LOCAL_TABLE_T:
-                        _fs->AddInstruction(_OP_LOADNULLS, dest,1);
-                        declType = _VAR_TABLE;
-                        break;
-                    case TK_LOCAL_ARRAY_T:
-                        _fs->AddInstruction(_OP_LOADNULLS, dest,1);
-                        declType = _VAR_ARRAY;
-                        break;
-
-CASE_TK_LOCAL_INT_TYPES:
-                        //default value 0
-                        _fs->AddInstruction(_OP_LOADINT, dest,0);
-                        declType = _VAR_INTEGER;
-                        break;
-CASE_TK_LOCAL_FLOAT_TYPES:
-                    case TK_LOCAL_NUMBER_T: //start numbers as floats
-                        //default value 0.0
-                        //_OP_LOADFLOAT is only valid when SQFloat size == SQInt32 size
-                        _fs->AddInstruction(_OP_LOADINT, dest,0);
-                        declType = _VAR_FLOAT;
-                        break;
-                    //case TK_LOCAL:
-                    default:
-                        //default value null
-                        _fs->AddInstruction(_OP_LOADNULLS, dest,1);
-                        declType = _VAR_ANY;
-                    }
+                    declType = GetVarTypeDeclaration(declType, dest);
                 }
             }
             if(_is_parsing_extern)
@@ -2309,6 +2320,7 @@ CASE_TK_LOCAL_FLOAT_TYPES:
                 _fs->PopTarget();
                 _fs->PushLocalVariable(varname, _scope.nested, (is_const_declaration ? _VAR_CONST : declType)
                                        | (is_reference_declaration ? _VAR_REFERENCE : 0));
+                if(sq_type(type_name) == OT_STRING) _fs->AddParameterTypeName(type_name);
             }
             if(_token == _SC(',')) Lex();
             else break;
@@ -2941,7 +2953,7 @@ error:
         }
         _es = es;
     }
-    void CreateFunction(SQObject &name, int ftype, int stack_offset=0)
+    void CreateFunction(SQObject &name, int ftype, int stack_offset=0, int fdeclType=0)
     {
         SQFuncState *funcstate = _fs->PushChildState(_ss(_vm));
         funcstate->_name = name;
@@ -2952,6 +2964,10 @@ error:
         bool is_reference_declaration = 0;
         const SQChar *param_type_name = 0;
         bool isVoid = false;
+        if(fdeclType)
+        {
+            funcstate->SetReturnTypeName(SQGetVarTypeName(fdeclType));
+        }
         while(_token!=_SC(')'))
         {
             if(isVoid)
