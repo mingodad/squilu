@@ -24,7 +24,7 @@ SQ_OPT_STRING_STRLEN();
 #ifdef WITH_UUID
 
 #ifdef _WIN32
-#include <Rpc.h> //uuid
+#include <rpc.h> //uuid
 #else
 #include <uuid/uuid.h>
 #endif
@@ -226,7 +226,7 @@ static SQRESULT _system_date(HSQUIRRELVM v)
     }
     else
     {
-#ifdef SQ_USE_LOCALTIME_R
+#if !defined(_WIN32) && defined(SQ_USE_LOCALTIME_R)
         stm = localtime_r(&t, &ltm_r);
 #else
         stm = localtime(&t);
@@ -285,7 +285,7 @@ static SQRESULT _system_exit (HSQUIRRELVM v) {
   exit(status);
 }
 
-#if defined(SQ_USE_MKSTEMP)
+#if !defined(_WIN32) && defined(SQ_USE_MKSTEMP)
 #include <unistd.h>
 #define SQ_TMPNAMBUFSIZE	32
 #define sq_tmpnam(b,e)	{ \
