@@ -871,6 +871,18 @@ sq_mg_url_encode(HSQUIRRELVM v)
 }
 
 static SQRESULT
+sq_mg_get_builtin_mime_type(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 2, src);
+
+    const char *dst = mg_get_builtin_mime_type(src);
+
+    sq_pushstring(v, dst, -1);
+    return 1;
+}
+
+static SQRESULT
 sq_mg_md5(HSQUIRRELVM v)
 {
 	SQ_FUNC_VARS(v);
@@ -934,6 +946,7 @@ static SQRegFunction sq_mg_methods[] =
 	_DECL_FUNC(url_decode,  2, _SC(".s")),
 	_DECL_FUNC(uri_decode,  2, _SC(".s")),
 	_DECL_FUNC(url_encode,  2, _SC(".s")),
+	_DECL_FUNC(get_builtin_mime_type,  2, _SC(".s")),
 	_DECL_FUNC(md5,  -2, _SC(".s")),
 #ifdef JNI_ENABLE_LOG
 	_DECL_FUNC(jniLog,  -2, _SC(".s")),
@@ -1072,6 +1085,7 @@ SQRESULT sqext_register_decimal(HSQUIRRELVM v);
 SQRESULT sqext_register_sq_zlib(HSQUIRRELVM v);
 SQRESULT sqext_register_sq_blosc(HSQUIRRELVM v);
 SQRESULT sqext_register_pcre2(HSQUIRRELVM v);
+SQRESULT sqext_register_markdown(HSQUIRRELVM v);
 
 #ifdef __cplusplus
 } /*extern "C"*/
@@ -1087,6 +1101,7 @@ static sq_modules_preload_st modules_preload[] = {
     {"fpdf", sqext_register_Sq_Fpdf},
     {"sqlite3", sqext_register_SQLite3},
     {"zlib", sqext_register_sq_zlib},
+    {"markdown", sqext_register_markdown},
 #if defined(SQ_USE_PCRE2) || defined(SQ_USE_PCRE2_STATIC)
     {"pcre2", sqext_register_pcre2},
 #endif
