@@ -480,7 +480,7 @@ static size_t sq_EasyCurl_reader_writer_callback(char *bufptr, size_t size, size
                     }
                     else
                     {
-                        memcpy(bufptr, blob->GetBuf() + self->last_reader_pos, data_size);
+                        memcpy(bufptr, ((char*)blob->GetBuf()) + self->last_reader_pos, data_size);
                         self->last_reader_pos += data_size;
                         result = data_size;
                     }
