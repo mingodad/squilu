@@ -103,6 +103,7 @@ typedef unsigned wchar_t SQUChar;
 #define scvsprintf  vswprintf
 #define scstrstr    wcsstr
 #define scstrchr wcschr
+#define scstrncmp wcstrncmp
 #define scstrpbrk	wcspbrk
 #define scstrtok	wcstrtok
 #define scprintf    wprintf
@@ -173,6 +174,7 @@ typedef unsigned char SQUChar;
 #define scstrstr    strstr
 #define scstrpbrk	strpbrk
 #define scstrchr	strchr
+#define scstrncmp	strncmp
 #define scstrtok	strtok
 #define scisspace   isspace
 #define scisdigit   isdigit

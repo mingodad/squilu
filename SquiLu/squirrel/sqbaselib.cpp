@@ -332,8 +332,8 @@ static SQRESULT base_compilestring(HSQUIRRELVM v)
     SQ_GET_STRING(v, 2, src);
     SQ_OPT_STRING(v, 3, name, _SC("unnamedbuffer"));
     SQ_OPT_BOOL(v, 4, show_wanings, SQTrue);
-    SQ_OPT_INTEGER(v, 5, max_includes, 0);
-    if(SQ_SUCCEEDED(sq_compilebuffer(v,src,src_size,name,SQFalse, show_wanings, max_includes)))
+    //if we want to have includes we should call loadstring from sqstdio
+    if(SQ_SUCCEEDED(sq_compilebuffer(v,src,src_size,name,SQFalse, show_wanings, 0)))
         return 1;
     else
         return SQ_ERROR;
@@ -561,7 +561,7 @@ static SQRegFunction base_funcs[]={
 	{_SC("error"),base_error,2, NULL},
 	{_SC("get_last_error"),base_get_last_error,1, NULL},
 	{_SC("get_last_stackinfo"),base_get_last_stackinfo,1, NULL},
-	{_SC("compilestring"),base_compilestring,-2, _SC(".ssbi")},
+	{_SC("compilestring"),base_compilestring,-2, _SC(".ssb")},
 	{_SC("newthread"),base_newthread,2, _SC(".c")},
 	{_SC("suspend"),base_suspend,-1, NULL},
 	{_SC("array"),base_array,-2, _SC(".n")},
@@ -876,30 +876,54 @@ static SQRESULT array_remove(HSQUIRRELVM v)
 	return sq_throwerror(v, _SC("idx out of range"));
 }
 
-static inline SQRESULT array_resize_base(HSQUIRRELVM v, int isMinSize)
+enum e_array_op_type {e_resize, e_minsize, e_reserve, e_capacity};
+static inline SQRESULT array_resize_base(HSQUIRRELVM v, e_array_op_type opType)
 {
 	SQObject &o = stack_get(v, 1);
+	if(opType == e_capacity)
+    {
+        sq_pushinteger(v, _array(o)->Capacity());
+        return 1;
+    }
 	SQObject &nsize = stack_get(v, 2);
 	SQObjectPtr fill;
 	if(sq_isnumeric(nsize)) {
-		if(sq_gettop(v) > 2)
-			fill = stack_get(v, 3);
-        if(isMinSize && (_array(o)->Size() >= tointeger(nsize)))
-            return SQ_OK;
-		_array(o)->Resize(tointeger(nsize),fill);
-		return 0;
+        switch(opType)
+        {
+        case e_reserve:
+            _array(o)->Reserve(tointeger(nsize));
+            break;
+        case e_minsize:
+            if(_array(o)->Size() >= tointeger(nsize)) break;
+            //falthrough
+        default:
+            if(sq_gettop(v) > 2)
+                fill = stack_get(v, 3);
+            _array(o)->Resize(tointeger(nsize),fill);
+        }
+		return SQ_OK;
 	}
 	return sq_throwerror(v, _SC("size must be a number"));
 }
 
 static SQRESULT array_resize(HSQUIRRELVM v)
 {
-    return array_resize_base(v, 0);
+    return array_resize_base(v, e_resize);
 }
 
 static SQRESULT array_minsize(HSQUIRRELVM v)
 {
-    return array_resize_base(v, 1);
+    return array_resize_base(v, e_minsize);
+}
+
+static SQRESULT array_reserve(HSQUIRRELVM v)
+{
+    return array_resize_base(v, e_reserve);
+}
+
+static SQRESULT array_capacity(HSQUIRRELVM v)
+{
+    return array_resize_base(v, e_capacity);
 }
 
 static SQRESULT __map_array(SQArray *dest,SQArray *src,HSQUIRRELVM v) {
@@ -1260,6 +1284,8 @@ SQRegFunction SQSharedState::_array_default_delegate_funcz[]={
 	{_SC("remove"),array_remove,2, _SC("an")},
 	{_SC("resize"),array_resize,-2, _SC("an")},
 	{_SC("minsize"),array_minsize,-2, _SC("an")},
+	{_SC("reserve"),array_reserve,-2, _SC("an")},
+	{_SC("capacity"),array_capacity,1, _SC("a")},
 	{_SC("reverse"),array_reverse,1, _SC("a")},
 	{_SC("sort"),array_sort,-1, _SC("ac")},
 	{_SC("slice"),array_slice,-1, _SC("ann")},
@@ -1839,6 +1865,16 @@ static SQRESULT string_strchr(HSQUIRRELVM v) {
     return 1;
 }
 
+static SQRESULT string_strncmp(HSQUIRRELVM v) {
+    SQ_FUNC_VARS(v);
+    SQ_GET_STRING(v, 1, str1);
+    SQ_GET_INTEGER(v, 2, offset);
+    SQ_GET_STRING(v, 3, str2);
+    SQ_OPT_INTEGER(v, 4, n, str2_size);
+    if(offset > str1_size) return sq_throwerror(v, _SC("offset bigger than string size"));
+    sq_pushinteger(v, scstrncmp(str1+offset, str2, str2_size));
+    return 1;
+}
 static SQRESULT string_countchr(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, src);
@@ -2033,29 +2069,26 @@ static SQRESULT string_isempty(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQRESULT string_isalpha(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS_NO_TOP(v);
-    SQ_GET_STRING(v, 1, str);
-    SQ_GET_INTEGER(v, 2, idx);
-    if(idx >= str_size) {
-        return sq_throwerror(v, _SC("index %d out of range"), idx);
-    }
-	sq_pushbool(v, scisalpha(str[idx]));
-	return 1;
+#define string_char_is(name) \
+static SQRESULT string_##name(HSQUIRRELVM v)\
+{\
+    SQ_FUNC_VARS_NO_TOP(v);\
+    SQ_GET_STRING(v, 1, str);\
+    SQ_GET_INTEGER(v, 2, idx);\
+    if(idx >= str_size) {\
+        return sq_throwerror(v, _SC("index %d out of range"), idx);\
+    }\
+	sq_pushbool(v, sc##name(str[idx]));\
+	return 1;\
 }
 
-static SQRESULT string_isdigit(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS_NO_TOP(v);
-    SQ_GET_STRING(v, 1, str);
-    SQ_GET_INTEGER(v, 2, idx);
-    if(idx >= str_size) {
-        return sq_throwerror(v, _SC("index %d out of range"), idx);
-    }
-	sq_pushbool(v, scisdigit(str[idx]));
-	return 1;
-}
+string_char_is(isspace);
+string_char_is(isprint);
+string_char_is(isalpha);
+string_char_is(isalnum);
+string_char_is(isdigit);
+string_char_is(isxdigit);
+string_char_is(iscntrl);
 
 static SQRESULT string_count_char(HSQUIRRELVM v)
 {
@@ -2302,6 +2335,7 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("find_close_quote"),string_find_close_quote,-1, _SC("sni")},
 	{_SC("find_delimiter"),string_find_delimiter,4, _SC("siin")},
 	{_SC("strchr"),string_strchr,-2, _SC("sii")},
+	{_SC("strncmp"),string_strncmp,-3, _SC("sisi")},
 	{_SC("countchr"),string_countchr,2, _SC("si")},
 	{_SC("gsub"),string_gsub,-3, _SC("s s s|a|t|c n")},
 	{_SC("gmatch"),string_gmatch, -3, _SC("s s c n n")},
@@ -2323,8 +2357,13 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("split"),string_split,2, _SC("s i|s")},
 	{_SC("split_csv"),string_split_csv,2, _SC("si")},
 	{_SC("isempty"),string_isempty,1, _SC("s")},
+	{_SC("isspace"),string_isspace,2, _SC("si")},
+	{_SC("isprint"),string_isprint,2, _SC("si")},
+	{_SC("iscntrl"),string_iscntrl,2, _SC("si")},
 	{_SC("isalpha"),string_isalpha,2, _SC("si")},
+	{_SC("isalnum"),string_isalnum,2, _SC("si")},
 	{_SC("isdigit"),string_isdigit,2, _SC("si")},
+	{_SC("isxdigit"),string_isxdigit,2, _SC("si")},
 	{_SC("count_char"),string_count_char,2, _SC("si")},
 	{_SC("uchar"),string_uchar,2, _SC("si")},
 	{_SC("edit_distance"),string_edit_distance,-2, _SC("ssi")},
