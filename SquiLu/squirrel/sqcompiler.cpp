@@ -50,6 +50,7 @@ struct SQScope
     ++_scope.nested; \
     _scope.outers = _fs->_outers; \
     _scope.stacksize = _fs->GetStackSize();\
+    _scope_types.push_back(SQTable::Create(_ss(_vm),0)); \
     _scope_consts.push_back(SQTable::Create(_ss(_vm),0));
 
 #define RESOLVE_OUTERS() if(_fs->GetStackSize() != _scope.stacksize) { \
@@ -62,6 +63,7 @@ struct SQScope
             _fs->SetStackSize(_scope.stacksize); \
         } \
         _scope = __oldscope__; \
+        _scope_types.pop_back();\
         _scope_consts.pop_back();\
     }
 
@@ -201,12 +203,16 @@ public:
 
     bool CheckNameIsType(const SQObject &name)
     {
+        for(int i=_scope.nested-1; i >= 0; --i)
+        {
+            if(_table(_scope_types[i])->Exists(name)) return true;
+        }
         return _table(_type_names)->Exists(name);
     }
 
     bool CheckTypeName(const SQObject &name, bool addIfNotExists=false)
     {
-        bool found = _table(_type_names)->Exists(name);
+        bool found = CheckNameIsType(name);
         if(addIfNotExists && !found)
         {
             SQObjectPtr oname = name, otrue = true;
@@ -217,11 +223,16 @@ public:
 
     bool TypesGet(const SQObjectPtr &key,SQObjectPtr &val)
     {
-        return _table(_type_names)->Get(key,val);
+        for(int i=_scope.nested-1; i >= 0; --i)
+        {
+            if(_table(_scope_types[i])->Get(key,val)) return true;
+        }
+        return _table(_type_names)->NewSlot(key,val);
     }
 
     bool TypesNewSlot(const SQObjectPtr &key, const SQObjectPtr &val)
     {
+        if(_scope.nested) return _table(_scope_types[_scope.nested-1])->NewSlot(key,val);
         return _table(_type_names)->NewSlot(key,val);
     }
 
@@ -307,15 +318,7 @@ public:
     bool IsConstant(const SQObject &name,SQObject &e)
     {
         SQObjectPtr val;
-        for(int i=_scope.nested-1; i >= 0; --i)
-        {
-            if(_table(_scope_consts[i])->Get(name,val))
-            {
-                e = val;
-                return true;
-            }
-        }
-        if(_table(_ss(_vm)->_consts)->Get(name,val))
+        if(ConstsGet(name, val))
         {
             e = val;
             return true;
@@ -944,7 +947,7 @@ start_again:
             _fs->DiscardTarget();
             /*
             //Fagiano says that this is not a bug
-            //and with this modification stack grow by one lement all the time
+            //and with this modification the stack grow by one lement all the time
             if(_token == TK_IDENTIFIER){
                 CommaExpr();
                 if(_token == TK_IDENTIFIER){
@@ -977,11 +980,17 @@ start_again:
         {
         case LOCAL:
         {
+            SQOpcode op = ChooseArithOpByToken(tok);
+            SQInteger p3 = 0;
             SQInteger p2 = _fs->PopTarget(); //src in OP_GET
             SQInteger p1 = _fs->PopTarget(); //key in OP_GET
             _fs->PushTarget(p1);
             //EmitCompArithLocal(tok, p1, p1, p2);
-            _fs->AddInstruction(ChooseArithOpByToken(tok),p1, p2, p1, 0);
+            if(op == _OP_BITW)
+            {
+                p3 = ChooseBitwOpByToken(tok);
+            }
+            _fs->AddInstruction(op,p1, p2, p1, p3);
             _fs->SnoozeOpt(); //FIX: stop optimizer in retargeting opcode
         }
         break;
@@ -1042,6 +1051,11 @@ start_again:
         case TK_MULEQ:
         case TK_DIVEQ:
         case TK_MODEQ:
+        case TK_BIT_XOR_EQ:
+        case TK_BIT_AND_EQ:
+        case TK_BIT_OR_EQ:
+        case TK_BIT_SHIFT_LEFT_EQ:
+        case TK_BIT_SHIFT_RIGHT_EQ:
         {
             SQInteger op = _token;
             SQInteger ds = _es.etype;
@@ -1093,6 +1107,11 @@ start_again:
             case TK_MULEQ:
             case TK_DIVEQ:
             case TK_MODEQ:
+            case TK_BIT_XOR_EQ:
+            case TK_BIT_AND_EQ:
+            case TK_BIT_OR_EQ:
+            case TK_BIT_SHIFT_LEFT_EQ:
+            case TK_BIT_SHIFT_RIGHT_EQ:
                 EmitCompoundArith(op, ds, pos);
                 break;
             }
@@ -1290,24 +1309,63 @@ start_again:
         switch(tok)
         {
         case TK_PLUSEQ:
-        case '+':
+        case _SC('+'):
             return _OP_ADD;
         case TK_MINUSEQ:
-        case '-':
+        case _SC('-'):
             return _OP_SUB;
         case TK_MULEQ:
-        case '*':
+        case _SC('*'):
             return _OP_MUL;
         case TK_DIVEQ:
-        case '/':
+        case _SC('/'):
             return _OP_DIV;
         case TK_MODEQ:
-        case '%':
+        case _SC('%'):
             return _OP_MOD;
+        case TK_BIT_XOR_EQ:
+        case _SC('^'):
+            return _OP_BITW;
+        case TK_BIT_AND_EQ:
+        case _SC('&'):
+            return _OP_BITW;
+        case TK_BIT_OR_EQ:
+        case _SC('|'):
+            return _OP_BITW;
+        case TK_BIT_SHIFT_LEFT_EQ:
+        case _SC('<'):
+            return _OP_BITW;
+        case TK_BIT_SHIFT_RIGHT_EQ:
+        case _SC('>'):
+            return _OP_BITW;
         default:
             assert(0);
         }
         return _OP_ADD;
+    }
+    BitWiseOP ChooseBitwOpByToken(SQInteger tok)
+    {
+        switch(tok)
+        {
+        case TK_BIT_XOR_EQ:
+        case _SC('^'):
+            return BW_XOR;
+        case TK_BIT_AND_EQ:
+        case _SC('&'):
+            return BW_AND;
+        case TK_BIT_OR_EQ:
+        case _SC('|'):
+            return BW_OR;
+        case TK_BIT_SHIFT_LEFT_EQ:
+        case _SC('<'):
+            return BW_SHIFTL;
+        case TK_BIT_SHIFT_RIGHT_EQ:
+        case _SC('>'):
+            return BW_SHIFTR;
+        default:
+            Error(_SC("unknown bitwise token"));
+        }
+        return BW_AND;
     }
     SQInteger ChooseCompArithCharByToken(SQInteger tok)
     {
@@ -1315,19 +1373,34 @@ start_again:
         switch(tok)
         {
         case TK_MINUSEQ:
-            oper = '-';
+            oper = _SC('-');
             break;
         case TK_PLUSEQ:
-            oper = '+';
+            oper = _SC('+');
             break;
         case TK_MULEQ:
-            oper = '*';
+            oper = _SC('*');
             break;
         case TK_DIVEQ:
-            oper = '/';
+            oper = _SC('/');
             break;
         case TK_MODEQ:
-            oper = '%';
+            oper = _SC('%');
+            break;
+        case TK_BIT_XOR_EQ:
+            oper = _SC('^');
+            break;
+        case TK_BIT_AND_EQ:
+            oper = _SC('&');
+            break;
+        case TK_BIT_OR_EQ:
+            oper = _SC('|');
+            break;
+        case TK_BIT_SHIFT_LEFT_EQ:
+            oper = _SC('<');
+            break;
+        case TK_BIT_SHIFT_RIGHT_EQ:
+            oper = _SC('>');
             break;
         default:
             oper = 0; //shut up compiler
@@ -1854,6 +1927,11 @@ start_again:
         case TK_DIVEQ:
         case TK_MINUSEQ:
         case TK_PLUSEQ:
+        case TK_BIT_XOR_EQ:
+        case TK_BIT_AND_EQ:
+        case TK_BIT_OR_EQ:
+        case TK_BIT_SHIFT_LEFT_EQ:
+        case TK_BIT_SHIFT_RIGHT_EQ:
             return false;
         case TK_PLUSPLUS:
         case TK_MINUSMINUS:
@@ -1930,6 +2008,7 @@ start_again:
             //bool isvirtual = false;
             //bool isprivate = false;
             const SQChar *membertypename = 0;
+            SQInteger member_type_token = 0;
             //check if is an attribute
             if(isClass)
             {
@@ -2065,7 +2144,8 @@ function_params_decl:
                         if(_token != _SC('='))
                         {
                             _fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(obj_id));
-                            _fs->AddInstruction(_OP_LOADNULLS, _fs->PushTarget(), 1);
+                            if(member_type_token) GetVarTypeDeclaration(member_type_token, _fs->PushTarget());
+                            else _fs->AddInstruction(_OP_LOADNULLS, _fs->PushTarget(), 1);
                             break;
                         }
                     }
@@ -2083,6 +2163,7 @@ function_params_decl:
             case TK_LOCAL:
                 if(isClass)
                 {
+                    member_type_token = _token;
                     membertypename = _lex.GetTokenName(_token);
                     Lex();
                     goto member_has_type;
@@ -2183,8 +2264,11 @@ function_params_decl:
         CASE_TK_LOCAL_FLOAT_TYPES:
         case TK_LOCAL_NUMBER_T: //start numbers as floats
             //default value 0.0
-            //_OP_LOADFLOAT is only valid when SQFloat size == SQInt32 size
-            if(doAddInstruction) _fs->AddInstruction(_OP_LOADINT, dest,0);
+            if(doAddInstruction)
+            {
+                SQFloat value = 0.0;
+                EmitLoadConstFloat(value, dest);
+            }
             declType = _VAR_FLOAT;
             break;
         //case TK_LOCAL:
@@ -2797,6 +2881,7 @@ error:
         //CheckLocalNameScope(id, _scope.nested);
         SQObjectPtr strongid = id;
         CheckLocalNameScope(id, _scope.nested);
+        TypesNewSlot(strongid,strongid);
         SQObject table = _fs->CreateTable();
         //_fs->AddInstruction(_OP_NEWOBJ, _fs->PushTarget(),0,NOT_TABLE);
         SQInteger nval = 0;
@@ -2808,6 +2893,7 @@ error:
             {
                 Lex();
                 val = ExpectScalar();
+                nval = _integer(val)+1;
             }
             else
             {
@@ -3237,6 +3323,7 @@ private:
     jmp_buf _errorjmp;
     SQVM *_vm;
     SQObjectPtrVec _scope_consts;
+    SQObjectPtrVec _scope_types;
     SQObjectPtr _globals;
     SQObjectPtr _type_names; //to allow C/C++ style instance declarations
     SQObjectPtr _extern_names; //to allow C/C++ style extern declarations

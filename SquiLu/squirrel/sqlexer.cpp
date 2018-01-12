@@ -338,7 +338,10 @@ SQInteger SQLexer::Lex()
 				RETURN_TOKEN(TK_LE)
 				break;
 			case _SC('-'): NEXT(); RETURN_TOKEN(TK_NEWSLOT); break;
-			case _SC('<'): NEXT(); RETURN_TOKEN(TK_SHIFTL); break;
+			case _SC('<'):
+			    NEXT();
+			    if (CUR_CHAR == _SC('=')){ NEXT(); RETURN_TOKEN(TK_BIT_SHIFT_LEFT_EQ);}
+			    RETURN_TOKEN(TK_SHIFTL); break;
 			case _SC('/'): NEXT(); RETURN_TOKEN(TK_ATTR_OPEN); break;
 			}
 			RETURN_TOKEN('<');
@@ -350,7 +353,10 @@ SQInteger SQLexer::Lex()
 				if(CUR_CHAR == _SC('>')){
 					NEXT();
 					RETURN_TOKEN(TK_USHIFTR);
-				}
+				} else if (CUR_CHAR == _SC('=')){
+				    NEXT();
+				    RETURN_TOKEN(TK_BIT_SHIFT_RIGHT_EQ);
+                }
 				RETURN_TOKEN(TK_SHIFTR);
 			}
 			else { RETURN_TOKEN('>') }
@@ -405,16 +411,16 @@ SQInteger SQLexer::Lex()
 			RETURN_TOKEN(TK_VARPARAMS);
 		case _SC('^'):
 			NEXT();
-			//if (CUR_CHAR == _SC('=')){ NEXT(); RETURN_TOKEN(TK_BIT_XOR_EQ);}
+			if (CUR_CHAR == _SC('=')){ NEXT(); RETURN_TOKEN(TK_BIT_XOR_EQ);}
 			RETURN_TOKEN(_SC('^'));
 		case _SC('&'):
 			NEXT();
-			//if (CUR_CHAR == _SC('=')){ NEXT(); RETURN_TOKEN(TK_BIT_AND_EQ);}
+			if (CUR_CHAR == _SC('=')){ NEXT(); RETURN_TOKEN(TK_BIT_AND_EQ);}
 			if (CUR_CHAR != _SC('&')){ RETURN_TOKEN(_SC('&')) }
 			else { NEXT(); RETURN_TOKEN(TK_AND); }
 		case _SC('|'):
 			NEXT();
-			//if (CUR_CHAR == _SC('=')){ NEXT(); RETURN_TOKEN(TK_BIT_OR_EQ);}
+			if (CUR_CHAR == _SC('=')){ NEXT(); RETURN_TOKEN(TK_BIT_OR_EQ);}
 			if (CUR_CHAR != _SC('|')){ RETURN_TOKEN(_SC('|')) }
 			else { NEXT(); RETURN_TOKEN(TK_OR); }
 		case _SC(':'):
@@ -645,6 +651,14 @@ try_again:
 #endif
 					}
 				    break;
+				    //end of string continuation
+					case _SC('\n'):
+					    if(ndelim == _SC('"')){
+                            data->currentline++;
+                            NEXT();
+                            break;
+                        }
+                        //falthrough
 					case _SC('t'): APPEND_CHAR(_SC('\t')); NEXT(); break;
 					case _SC('a'): APPEND_CHAR(_SC('\a')); NEXT(); break;
 					case _SC('b'): APPEND_CHAR(_SC('\b')); NEXT(); break;
