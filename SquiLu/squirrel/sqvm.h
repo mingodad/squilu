@@ -147,7 +147,7 @@ public:
 	void ReplaceAbs(SQInteger n);
 	void Insert(SQInteger n);
 
-	static bool IsFalse(SQObjectPtr &o);
+	static bool IsFalse(const SQObjectPtr &o);
 
 	void Pop();
 	void Pop(SQInteger n);

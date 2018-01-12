@@ -724,6 +724,16 @@ bool SQVM::IsEqual(const SQObjectPtr &o1,const SQObjectPtr &o2)
 	else if(sq_isnumeric(o1) && sq_isnumeric(o2)) {
 		res = (tofloat(o1) == tofloat(o2));
 	}
+	else if(sq_type(o1) == OT_BOOL) {
+        if(sq_type(o2) & SQOBJECT_CANBEFALSE) {
+            res = _integer(o1) == (IsFalse(o2) ? 0 : 1);
+        }
+	}
+	else if(sq_type(o2) == OT_BOOL) {
+        if(sq_type(o1) & SQOBJECT_CANBEFALSE) {
+            res = _integer(o2) == (IsFalse(o1) ? 0 : 1);
+        }
+	}
 	return res;
 }
 
@@ -736,7 +746,7 @@ bool SQVM::IsEqualIdentity(const SQObjectPtr &o1,const SQObjectPtr &o2)
 	return res;
 }
 
-bool SQVM::IsFalse(SQObjectPtr &o)
+bool SQVM::IsFalse(const SQObjectPtr &o)
 {
 	if(((sq_type(o) & SQOBJECT_CANBEFALSE)
 		&& ( ((sq_type(o) == OT_FLOAT) && (_float(o) == SQFloat(0.0))) ))
