@@ -1324,19 +1324,10 @@ start_again:
         case _SC('%'):
             return _OP_MOD;
         case TK_BIT_XOR_EQ:
-        case _SC('^'):
-            return _OP_BITW;
         case TK_BIT_AND_EQ:
-        case _SC('&'):
-            return _OP_BITW;
         case TK_BIT_OR_EQ:
-        case _SC('|'):
-            return _OP_BITW;
         case TK_BIT_SHIFT_LEFT_EQ:
-        case _SC('<'):
-            return _OP_BITW;
         case TK_BIT_SHIFT_RIGHT_EQ:
-        case _SC('>'):
             return _OP_BITW;
         default:
             assert(0);
@@ -1348,19 +1339,14 @@ start_again:
         switch(tok)
         {
         case TK_BIT_XOR_EQ:
-        case _SC('^'):
             return BW_XOR;
         case TK_BIT_AND_EQ:
-        case _SC('&'):
             return BW_AND;
         case TK_BIT_OR_EQ:
-        case _SC('|'):
             return BW_OR;
         case TK_BIT_SHIFT_LEFT_EQ:
-        case _SC('<'):
             return BW_SHIFTL;
         case TK_BIT_SHIFT_RIGHT_EQ:
-        case _SC('>'):
             return BW_SHIFTR;
         default:
             Error(_SC("unknown bitwise token"));
@@ -1387,20 +1373,6 @@ start_again:
         case TK_MODEQ:
             oper = _SC('%');
             break;
-        case TK_BIT_XOR_EQ:
-            oper = _SC('^');
-            break;
-        case TK_BIT_AND_EQ:
-            oper = _SC('&');
-            break;
-        case TK_BIT_OR_EQ:
-            oper = _SC('|');
-            break;
-        case TK_BIT_SHIFT_LEFT_EQ:
-            oper = _SC('<');
-            break;
-        case TK_BIT_SHIFT_RIGHT_EQ:
-            oper = _SC('>');
             break;
         default:
             oper = 0; //shut up compiler
