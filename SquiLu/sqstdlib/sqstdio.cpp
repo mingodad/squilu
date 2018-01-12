@@ -206,7 +206,7 @@ static SQRESULT _file_close(HSQUIRRELVM v)
 //bindings
 #define _DECL_FILE_FUNC(name,nparams,typecheck) {_SC(#name),_file_##name,nparams,typecheck}
 static const SQRegFunction _file_methods[] = {
-    _DECL_FILE_FUNC(constructor,3,_SC("x")),
+    _DECL_FILE_FUNC(constructor,3,_SC("x")), //TODO if we change "x" to "xss" it stops working
     _DECL_FILE_FUNC(_typeof,1,_SC("x")),
     _DECL_FILE_FUNC(close,1,_SC("x")),
     {NULL,(SQFUNCTION)0,0,NULL}
