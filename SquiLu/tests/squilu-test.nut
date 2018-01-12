@@ -934,6 +934,24 @@ sqt.run("array", function(){
 
 	t = ["one", "two"];
 	sqt.ok(t.concat(", ") == "one, two");
+	sqt.ok(t.len() == 2);
+	sqt.ok(t.capacity() == 2);
+	t.reserve(100);
+	sqt.ok(t.len() == 2);
+	sqt.ok(t.capacity() == 100);
+	t.clear();
+	sqt.ok(t.len() == 0);
+	sqt.ok(t.capacity() == 100);
+	t.extend([1,2,3,4,5,6,7,8,9,10]);
+	sqt.ok(t.len() == 10);
+	sqt.ok(t.capacity() == 100);
+	t.minsize(5);
+	sqt.ok(t.len() == 10);
+	sqt.ok(t.capacity() == 100);
+	t.resize(5);
+	sqt.ok(t.len() == 5);
+	sqt.ok(t.capacity() == t.len());
+	
 });
 
 //	core/string/index_of_start.wren
@@ -1083,6 +1101,14 @@ sqt.run("string", function(){
 	sqt.ok("a\0b\0c".indexOf("a") == 0);
 	//sqt.ok("a\0b\0c".indexOf("a\0b\0c\0d") == -1);
 	sqt.ok("a\0b\0a\0b".indexOf("a\0b") == 0);
+	
+	local base_str = "one two"
+	str = "one \
+two";
+	sqt.ok(base_str == str);
+	str = "one "
+		"two";
+	sqt.ok(base_str == str);
 });
 
 sqt.run("number", function(){
@@ -1340,8 +1366,10 @@ sqt.run("number", function(){
 	sqt.ok(-3 != 3);
 	sqt.ok(0 == -0);
 	sqt.ok(123 != "123");
-	sqt.ok(1 != true);
-	sqt.ok(0 != false);
+	sqt.ok(1 == true);
+	sqt.ok(0 == false);
+	sqt.ok(1 !== true);
+	sqt.ok(0 !== false);
 
 	sqt.ok((0 & 0) == 0);
 	sqt.ok((0xaaaaaaaa & 0x55555555) == 0);
@@ -1411,6 +1439,24 @@ sqt.run("number", function(){
 	sqt.ok((5 * 3) == 15);
 	sqt.ok((12.34 * 0.3) == 3.702);
 
+});
+
+sqt.run("enum", function(){
+	enum e1 {one=1, two};
+	sqt.ok(e1.one == 1);
+	sqt.ok(e1.two == 2);
+
+	enum e2 {one=-1, two, three};
+	sqt.ok(e2.one == -1);
+	sqt.ok(e2.two == 0);
+	sqt.ok(e2.three == 1);
+
+	enum e3 {one=-1, two, three, nine=9, ten};
+	sqt.ok(e3.one == -1);
+	sqt.ok(e3.two == 0);
+	sqt.ok(e3.three == 1);
+	sqt.ok(e3.nine == 9);
+	sqt.ok(e3.ten == 10);
 });
 
 return sqt.results();           //show results
