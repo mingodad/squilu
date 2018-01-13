@@ -211,16 +211,34 @@ SQInteger SQLexer::LexBlockComment()
     }
 */
 	bool done = false;
+	SQInteger nested = 0;
 	if(_want_comments) INIT_TEMP_STRING();
 	NEXT(); //remove the comment token '*'
 	while(!done) {
 		switch(CUR_CHAR) {
+			case _SC('/'): {
+				if(_want_comments) APPEND_CHAR(CUR_CHAR);
+				NEXT();
+				if(CUR_CHAR == _SC('*'))	++nested;
+				else continue; //reevaluate, when it's a \n it'll be incremented line bellow
+			}
+			break;
 			case _SC('*'): {
-			    NEXT();
-			    if(CUR_CHAR == _SC('/')) { done = true; NEXT(); continue;}
-			    if(_want_comments) APPEND_CHAR(_SC('*')); //this is the '*' before NEXT()
-			    continue; //reevaluate, when it's a \n it'll be incremented line bellow
-			    };
+				NEXT();
+				if(CUR_CHAR == _SC('/')) {
+					if(nested) {
+						--nested;
+						if(_want_comments) APPEND_CHAR(_SC('*'));
+						break;
+					}
+					else
+					{
+						done = true; NEXT(); continue;
+					}
+				}
+				else if(_want_comments) APPEND_CHAR(_SC('*'));
+				continue; //reevaluate, when it's a \n it'll be incremented line bellow
+			}
 			break;
 			case _SC('\n'): data->currentline++; break;
 			case SQUIRREL_EOB: return Error(_SC("missing \"*/\" in comment"));
