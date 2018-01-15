@@ -161,6 +161,20 @@ const SQChar * sq_get_include_path(HSQUIRRELVM v)
 	return v->GetIncludePath();
 }
 
+SQBool sq_set_define_name(HSQUIRRELVM v, const SQChar *define_name)
+{
+	return v->AddDefined(define_name);
+}
+
+void sq_remove_define_name(HSQUIRRELVM v, const SQChar *define_name)
+{
+	v->RemoveDefined(define_name);
+}
+
+SQBool sq_exists_define_name(HSQUIRRELVM v, const SQChar *define_name)
+{
+	return v->IsDefined(define_name);
+}
 SQRESULT sq_compile(HSQUIRRELVM v,SQLEXREADFUNC read,SQUserPointer p,const SQChar *sourcename
                     ,SQBool raiseerror, SQBool show_warnings, SQInteger max_nested_includes)
 {

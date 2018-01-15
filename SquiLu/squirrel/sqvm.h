@@ -160,6 +160,9 @@ public:
 
 	void SetIncludePath(const SQChar *s);
 	const SQChar *GetIncludePath();
+	bool AddDefined(const SQChar *s);
+	void RemoveDefined(const SQChar *s);
+	bool IsDefined(const SQChar *s);
 	SQObjectPtrVec _stack;
 
 	SQInteger _top;

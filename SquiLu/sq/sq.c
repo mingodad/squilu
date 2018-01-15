@@ -101,6 +101,7 @@ void PrintUsage()
 		_SC("   -v              displays version infos\n")
 		_SC("   -p              preload given script file\n")
 		_SC("   -i              set the include_path\n")
+		_SC("   -D              define a preprocesor named constant\n")
 		_SC("   -h              prints help\n"));
 }
 
@@ -172,6 +173,20 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 					if(arg < argc) {
 						arg++;
 						sq_set_include_path(v, argv[arg]);
+					}
+					break;
+				case 'D':
+					if(arg < argc) {
+						if(argv[arg][2])
+                        {
+                            //printf("-D=%s\n", argv[arg]+2);
+                            sq_set_define_name(v, argv[arg]+2);
+                        }
+                        else //argument separated by spaces
+                        {
+                            arg++;
+                            sq_set_define_name(v, argv[arg]);
+                        }
 					}
 					break;
 				case 'v':
@@ -255,7 +270,6 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 					if(SQ_SUCCEEDED(sq_call(v,callargs,SQTrue,SQTrue))) {
 						SQObjectType type = sq_gettype(v,-1);
 						if(type == OT_INTEGER) {
-							*retval = type;
 							sq_getinteger(v,-1,retval);
 						}
 						//if there is a function called "main" we call it like in C/C++
@@ -272,7 +286,6 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
                                 if(SQ_SUCCEEDED(sq_call(v,3,SQTrue,SQTrue))) {
                                     SQObjectType type = sq_gettype(v,-1);
                                     if(type == OT_INTEGER) {
-                                        *retval = type;
                                         sq_getinteger(v,-1,retval);
                                     }
                                 }
@@ -666,7 +679,7 @@ static sq_modules_preload_st modules_preload[] = {
 #endif
     {"slave_vm", sqext_register_sq_slave_vm},
     //{"thread", sqext_register_ThreadObjects},
-#if !defined(ANDROID_BUILD)
+#ifndef ANDROID_BUILD
     {"dad_utils", sqext_register_dad_utils},
 #endif
     //{"sys_extra", sqext_register_sys},
@@ -688,7 +701,7 @@ static sq_modules_preload_st modules_preload[] = {
 #ifdef WITH_MYSQL
     {"mysql", sqext_register_MySQL},
 #endif
-#if !defined(ANDROID_BUILD)
+#ifndef ANDROID_BUILD
     {"rs232", sqext_register_rs232},
 #endif
 #ifdef WITH_FLTK

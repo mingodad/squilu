@@ -2055,6 +2055,19 @@ SQObjectPtr &SQVM::GetUp(SQInteger n) { return _stack[_top+n]; }
 SQObjectPtr &SQVM::GetAt(SQInteger n) { return _stack[n]; }
 void SQVM::SetIncludePath(const SQChar *s){_include_path = SQString::Create(_ss(this), s);}
 const SQChar *SQVM::GetIncludePath(){return (sq_type(_include_path) == OT_STRING) ? _stringval(_include_path) : NULL;}
+bool SQVM::AddDefined(const SQChar *s){
+	SQObjectPtr key = SQString::Create(_ss(this), s);
+	SQObjectPtr value;
+    return _table(_ss(this)->_defined_names)->NewSlot(key, value);
+};
+void SQVM::RemoveDefined(const SQChar *s){
+	SQObjectPtr key = SQString::Create(_ss(this), s);
+	_table(_ss(this)->_defined_names)->Remove(key);
+};
+bool SQVM::IsDefined(const SQChar *s){
+	SQObjectPtr key = SQString::Create(_ss(this), s);
+	return _table(_ss(this)->_defined_names)->Exists(key);
+};
 
 #ifdef _DEBUG_DUMP
 void SQVM::dumpstack(SQInteger stackbase,bool dumpall)

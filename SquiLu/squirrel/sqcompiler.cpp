@@ -168,6 +168,9 @@ public:
         _max_nested_includes = max_nested_includes;
         _nested_includes_count = 0;
         _is_parsing_extern = false;
+        _ifdef_exclude = 0;
+        _ifdef_line = 0;
+        _inside_ifdef = 0;
         squilu_lib_path = NULL;
     }
     ~SQCompiler()
@@ -519,8 +522,17 @@ public:
     void Pragma()
     {
         int line = _lex.data->currentline;
-        //int column = _lex.data->currentcolumn;
+        int column = _lex.data->currentcolumn;
         Lex();
+        if(_token == TK_ELSE)
+        {
+            if(!_inside_ifdef) Error(_SC("'#else' without '#ifdef'"));
+            Lex();
+            //if we were not been excluding we start excluding
+            if(_ifdef_exclude == 0) ++_ifdef_exclude;
+            else if(_ifdef_exclude == 1) --_ifdef_exclude;
+            return;
+        }
         SQObject id = Expect(TK_IDENTIFIER);
         if(scstrcmp(_stringval(id), _SC("include")) == 0)
         {
@@ -594,6 +606,7 @@ public:
 
                 //close file
                 fclose(fp);
+                if(_inside_ifdef) Error(_SC("unterminated #ifdef starting on line %d"), _ifdef_line);
                 //restore saved source file and lex state
                 _fs->_sourcename = saved_source_name;
                 _sourcename = saved_source_name;
@@ -619,6 +632,43 @@ public:
 #else
             Error(_SC("Error: includes are not enabled\n"));
 #endif
+        }
+        else if(scstrcmp(_stringval(id), _SC("endif")) == 0)
+        {
+            if(!_inside_ifdef) Error(_SC("'#endif' without '#ifdef'"));
+            if(_ifdef_exclude) --_ifdef_exclude;
+            --_inside_ifdef;
+        }
+        else if((scstrcmp(_stringval(id), _SC("ifdef")) == 0)
+                || (scstrcmp(_stringval(id), _SC("ifndef")) == 0))
+        {
+            ++_inside_ifdef;
+            bool isIfndef = _stringval(id)[2] == _SC('n');
+            id = Expect(TK_IDENTIFIER);
+            if(_ifdef_exclude) ++_ifdef_exclude;
+            else
+            {
+                _ifdef_line = line;
+                bool isDefined = _vm->IsDefined(_stringval(id));
+                if(isIfndef) isDefined = !isDefined;
+                _ifdef_exclude = (isDefined ? 0 : 1);
+            }
+        }
+        else if(scstrcmp(_stringval(id), _SC("define")) == 0)
+        {
+            id = Expect(TK_IDENTIFIER);
+            if(_ifdef_exclude == 0)
+            {
+                if(_vm->IsDefined(_stringval(id)))
+                    Warning(_SC("%s:%d:%d warning '%s' redefined\n"),
+                        _stringval(_sourcename), line, column, _stringval(id));
+                _vm->AddDefined(_stringval(id));
+            }
+        }
+        else if(scstrcmp(_stringval(id), _SC("undef")) == 0)
+        {
+            id = Expect(TK_IDENTIFIER);
+            if(_ifdef_exclude == 0) _vm->RemoveDefined(_stringval(id));
         }
         else
         {
@@ -649,6 +699,7 @@ public:
                 Statement();
                 if(_lex.data->prevtoken != _SC('}') && _lex.data->prevtoken != _SC(';')) OptionalSemicolon();
             }
+            if(_inside_ifdef) Error(_SC("unterminated #ifdef starting on line %d"), _ifdef_line);
             _fs->SetStackSize(stacksize);
             _fs->AddLineInfos(_lex.data->currentline, _lineinfo, true);
             _fs->AddInstruction(_OP_RETURN, 0xFF);
@@ -685,6 +736,11 @@ public:
         _es.etype = EXPR_STATEMENT;
         SQObject id;
         _fs->AddLineInfos(_lex.data->currentline, _lineinfo);
+        while(_ifdef_exclude && (_token != TK_PRAGMA))
+        {
+            Lex();
+            if(_token <= 0) Error(_SC("'#endif' expected to close '#ifdef' started at %d"), _ifdef_line);
+        }
 start_again:
         switch(_token)
         {
@@ -3301,6 +3357,7 @@ private:
     SQObjectPtr _extern_names; //to allow C/C++ style extern declarations
     SQChar error_buf[MAX_COMPILER_ERROR_LEN];
     SQInteger _max_nested_includes, _nested_includes_count;
+    SQInteger _ifdef_exclude, _ifdef_line, _inside_ifdef;
     const SQChar *squilu_lib_path;
 };
 

@@ -86,6 +86,7 @@ public:
 	SQObjectPtr _metamethodsmap;
 	SQObjectPtrVec *_systemstrings;
 	SQObjectPtrVec *_types;
+	SQObjectPtr _defined_names;
 	SQStringTable *_stringtable;
 	RefTable _refs_table;
 	SQObjectPtr _registry;

@@ -115,6 +115,7 @@ void SQSharedState::Init()
 	sq_new(_metamethods,SQObjectPtrVec);
 	sq_new(_systemstrings,SQObjectPtrVec);
 	sq_new(_types,SQObjectPtrVec);
+	_defined_names = SQTable::Create(this,0);
 	_metamethodsmap = SQTable::Create(this,MT_LAST-1);
 	//adding type strings to avoid memory trashing
 	//types names
@@ -178,9 +179,11 @@ SQSharedState::~SQSharedState()
 	_table(_registry)->Finalize();
 	_table(_consts)->Finalize();
 	_table(_metamethodsmap)->Finalize();
+	_table(_defined_names)->Finalize();
 	_registry.Null();
 	_consts.Null();
 	_metamethodsmap.Null();
+	_defined_names.Null();
 	while(!_systemstrings->empty()) {
 		_systemstrings->back().Null();
 		_systemstrings->pop_back();
