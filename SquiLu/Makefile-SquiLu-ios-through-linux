@@ -1,6 +1,6 @@
 MYSDKPREFIX=$(HOME)/local/theos/sdks/iPhoneOS5.1.sdk/usr
 
-INC = -Iinclude -Isqstdlib  -Isquirrel -I../SquiLu-ext -I../myaxtls -I../mpdecimal-ios -I../discount -I../gumbo -I.. -I../minizip -I../unql/src -I$(MYSDKPREFIX)/include -I$(MYSDKPREFIX)/include/c++/4.2.1 
+INC = -Iinclude -Isqstdlib  -Isquirrel -I../SquiLu-ext -I../myaxtls -I../mpdecimal-ios -I../md4c/md4c -I../md4c/md2html -I../gumbo -I.. -I../minizip -I$(MYSDKPREFIX)/include -I$(MYSDKPREFIX)/include/c++/4.2.1 
 
 CFLAGS = $(INC) -O3 -Wall -fno-strict-aliasing  \
     -D_DEBUG_DUMP33=1 \
@@ -45,7 +45,6 @@ CFLAGS = $(INC) -O3 -Wall -fno-strict-aliasing  \
     -DUSE_OPENSSL2=1 \
     -DUSE_SIGNAL_HANDLER=1 \
     -DWITH_DAD_EXTRAS=1 \
-    -DWITH_MPDECIMAL=1 \
     -DWITH_MYSQL2=1 \
     -DWITH_POSTGRESQL2=1 \
     -DWITH_UUID=1 \
@@ -110,6 +109,8 @@ SOURCES= sq/sq.c  \
     ../SquiLu-ext/sq_tweetnacl.cpp \
     ../SquiLu-ext/tweetnacl.c \
     ../SquiLu-ext/randombytes.c \
+    ../SquiLu-ext/sq_fossil.cpp \
+    ../SquiLu-ext/fossil-delta.c \
     squirrel/lua-regex.c  \
     squirrel/sqapi.cpp  \
     squirrel/sqbaselib.cpp  \
@@ -226,61 +227,25 @@ MPDECIMAL_OPT_DEFINES := \
 	-DMPD_DPREC=18 \
 	-DCONFIG_32=1 \
 	-DANSI=1 \
-	-DCOMPILING_FOR_IOS=1
+	-DCOMPILING_FOR_IOS=1 \
+	-DWITH_MPDECIMAL=1
 
-MPDECIMAL_INCLUDE_DIRS := -I$MPDECIMAL_PATH)
+MPDECIMAL_INCLUDE_DIRS := -I$(MPDECIMAL_PATH)
 SOURCES += $(MPDECIMAL_SRC_FILES)
 CFLAGS += $(MPDECIMAL_OPT_DEFINES)
 
 
-LIBDISCOUNT_PATH := ../discount
+LIBDISCOUNT_PATH := ../md4c
 LIBDISCOUNT_SRC_FILES= \
 	../SquiLu-ext/sq_markdown.cpp  \
-	$(LIBDISCOUNT_PATH)/mkdio.c \
-	$(LIBDISCOUNT_PATH)/markdown.c \
-	$(LIBDISCOUNT_PATH)/dumptree.c \
-	$(LIBDISCOUNT_PATH)/generate.c \
-	$(LIBDISCOUNT_PATH)/resource.c \
-	$(LIBDISCOUNT_PATH)/docheader.c \
-	$(LIBDISCOUNT_PATH)/version.c \
-	$(LIBDISCOUNT_PATH)/toc.c \
-	$(LIBDISCOUNT_PATH)/css.c \
-	$(LIBDISCOUNT_PATH)/xml.c \
-	$(LIBDISCOUNT_PATH)/Csio.c \
-	$(LIBDISCOUNT_PATH)/xmlpage.c \
-	$(LIBDISCOUNT_PATH)/basename.c \
-	$(LIBDISCOUNT_PATH)/emmatch.c \
-	$(LIBDISCOUNT_PATH)/setup.c \
-	$(LIBDISCOUNT_PATH)/tags.c \
-	$(LIBDISCOUNT_PATH)/html5.c \
-	$(LIBDISCOUNT_PATH)/flags.c
+	$(LIBDISCOUNT_PATH)/md4c/md4c.c \
+	$(LIBDISCOUNT_PATH)/md2html/entity.c \
+	$(LIBDISCOUNT_PATH)/md2html/render_html.c
 	
-LIBDISCOUNT_INCLUDE_DIRS := -I$(LIBDISCOUNT_PATH)
+LIBDISCOUNT_INCLUDE_DIRS := -I$(LIBDISCOUNT_PATH)/md4c -I$(LIBDISCOUNT_PATH)/md2html
 SOURCES += $(LIBDISCOUNT_SRC_FILES)
 
-UNQL_PATH := ../unql/src
-UNQL_SRC_FILES = \
-	../SquiLu-ext/sq_unql.cpp  \
-	$(UNQL_PATH)/update.c \
-	$(UNQL_PATH)/trace.c \
-	$(UNQL_PATH)/tokenize.c \
-	$(UNQL_PATH)/string.c \
-	$(UNQL_PATH)/stmt.c \
-	$(UNQL_PATH)/query.c \
-	$(UNQL_PATH)/pragma.c \
-	$(UNQL_PATH)/complete.c \
-	$(UNQL_PATH)/parse.c \
-	$(UNQL_PATH)/memory.c \
-	$(UNQL_PATH)/json.c \
-	$(UNQL_PATH)/func.c \
-	$(UNQL_PATH)/expr.c \
-	$(UNQL_PATH)/delete.c \
-	$(UNQL_PATH)/datasrc.c \
-	$(UNQL_PATH)/context.c \
-	$(UNQL_PATH)/conn.c
-
-UNQL_INCLUDE_DIRS := -I$(UNQL_PATH)
-SOURCES += $(UNQL_SRC_FILES)
+CFLAGS += -DMD4C_USE_UTF8
 
 #SOURCES += ../SquiLu-ext/sq_fltk.cpp  ../SquiLu-ext/sq_parsecsv.cpp \
 #	../SquiLu-ext/sq_postgresql.cpp ../SquiLu-ext/sq_zmq3.cpp  

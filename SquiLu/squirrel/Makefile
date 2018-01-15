@@ -3,7 +3,7 @@ SQUIRREL= ..
 
 OUT= $(SQUIRREL)/lib/libsquirrel.a
 INCZ= -I$(SQUIRREL)/include -I. -Iinclude -I$(SQUIRREL)/sqstdlib
-DEFS= 
+DEFS= -DSQ_ENABLE_INCLUDES -DSQ_SUBLATIN -DNEED_SUBLATIN_C
 LIB=	
 
 OBJS= \
@@ -19,7 +19,8 @@ OBJS= \
 	sqmem.o \
 	sqvm.o \
 	sqclass.o \
-	lua-regex.o
+	lua-regex.o \
+	sublatin.o
 	
 SRCS= \
 	sqapi.cpp \
@@ -34,7 +35,8 @@ SRCS= \
 	sqmem.cpp \
 	sqvm.cpp \
 	sqclass.cpp \
-	lua-regex.c
+	lua-regex.c \
+	sublatin.c
 
 	
 	
