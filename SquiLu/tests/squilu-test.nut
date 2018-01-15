@@ -1382,17 +1382,28 @@ sqt.run("number", function(){
 	sqt.ok((1 << 0) == 1);
 	sqt.ok((0 << 1) == 0);
 	sqt.ok((1 << 1) == 2);
-	//sqt.ok((0xaaaaaaaa << 1) == 1431655764);
-	//sqt.ok((0xf0f0f0f0 << 1) == 3789677024);
 	sqt.ok((0xffffffff << 0) == 4294967295);
 
 	sqt.ok((0 >> 0) == 0);
 	sqt.ok((1 >> 0) == 1);
 	sqt.ok((0 >> 1) == 0);
 	sqt.ok((1 >> 1) == 0);
-	sqt.ok((0xaaaaaaaa >> 1) == 1431655765);
-	sqt.ok((0xf0f0f0f0 >> 1) == 2021161080);
-	sqt.ok((0xffffffff >> 1) == 2147483647);
+	if(_intsize_ == 8)
+	{
+		sqt.ok((0xaaaaaaaa << 1) == 5726623060);
+		sqt.ok((0xf0f0f0f0 << 1) == 8084644320);
+		sqt.ok((0xaaaaaaaa >> 1) == 1431655765);
+		sqt.ok((0xf0f0f0f0 >> 1) == 2021161080);
+		sqt.ok((0xffffffff >> 1) == 2147483647);
+	}
+	else
+	{
+		sqt.ok((0xaaaaaaaa << 1) == 1431655764);
+		sqt.ok((0xf0f0f0f0 << 1) == -505290272);
+		sqt.ok((0xaaaaaaaa >> 1) == -715827883);
+		sqt.ok((0xf0f0f0f0 >> 1) == -126322568);
+		sqt.ok((0xffffffff >> 1) == -1);
+	}
 
 	sqt.ok((0 ^ 0) == 0);
 	sqt.ok((1 ^ 1) == 0);
