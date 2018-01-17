@@ -1109,9 +1109,50 @@ two";
 	str = "one "
 		"two";
 	sqt.ok(base_str == str);
+
+	sqt.ok(@"foo
+bar" == "foo\nbar");
+	sqt.ok("foo \
+bar" == "foo bar");
+	sqt.ok("foo "
+"bar" == "foo bar");
+	sqt.ok(R"(foo
+bar)" == "foo\nbar");
+	sqt.ok([==[foo
+bar]==] == "foo\nbar");
+
+	sqt.ok(("(" + 0x7fffffff + ")") == "(2147483647)");
+	sqt.ok(("(" + -0x80000000 + ")") ==  "(-2147483648)");
+
 });
 
 sqt.run("number", function(){
+
+//adapetd from pike https://github.com/pikelang/Pike
+	sqt.ok(1e1 == 10.0);
+	sqt.ok(1E1 == 10.0);
+	sqt.ok(1e+1 == 10.0);
+	sqt.ok(1.1e1 == 11.0);
+	sqt.ok(1e-1 == 0.1);
+	sqt.ok('\x20' == 32);
+	sqt.ok("\x20" == "\040");
+	//sqt.ok("\d32" == "\x20");
+
+	sqt.ok('Å' == "Å"[0]);
+	//sqt.ok('\7777' == "\7777"[0]);
+	//sqt.ok('\77777777' == "\77777777"[0]);
+	sqt.ok("\x10000" == "\x10000");
+	sqt.ok(0x80000000-0x80000000 ==  0);
+	sqt.ok(0xf0000000-0xf0000000 ==  0);
+	sqt.ok(0x80000001-0x80000000 ==  1);
+	sqt.ok(0x80000000-0x80000001 == -1);
+	sqt.ok(-2147483648*-1 ==  -2147483648/-1);
+	sqt.ok(0x8000000000000000-0x8000000000000000 ==  0);
+	sqt.ok(0xf000000000000000-0xf000000000000000 ==  0);
+	sqt.ok(0x8000000000000001-0x8000000000000000 ==  1);
+	sqt.ok(0x8000000000000000-0x8000000000000001 == -1);
+	//sqt.ok(-9223372036854775808*-1 ==  -9223372036854775808/-1);
+// https://github.com/pikelang/Pike
 
 	sqt.ok(15 == "0x0F".tointeger(16));
 	sqt.ok(15 == "F".tointeger(16));
