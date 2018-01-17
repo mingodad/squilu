@@ -26,6 +26,9 @@ SQUIRREL_API_FUNC(SQInteger, getvmstate, (HSQUIRRELVM v))
 SQUIRREL_API_FUNC(SQInteger, getversion, ())
 SQUIRREL_API_FUNC(void, set_include_path, (HSQUIRRELVM v, const SQChar *include_path))
 SQUIRREL_API_FUNC(const SQChar*, get_include_path, (HSQUIRRELVM v))
+SQUIRREL_API_FUNC(SQBool, set_define_name, (HSQUIRRELVM v, const SQChar*))
+SQUIRREL_API_FUNC(void, remove_define_name, (HSQUIRRELVM v, const SQChar*))
+SQUIRREL_API_FUNC(SQBool, exists_define_name, (HSQUIRRELVM v, const SQChar*))
 
 /*compiler*/
 #ifndef SQ_MAX_INCLUDE_FILES
