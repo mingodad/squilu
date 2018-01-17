@@ -9,18 +9,6 @@
 #define M_PI (3.14159265358979323846)
 #endif
 
-#ifdef _SQ64
-#ifdef _MSC_VER
-    #define SQ_INT_MAX _I64_MAX
-    #define SQ_INT_MIN _I64_MIN
-#else
-    #define SQ_INT_MAX LLONG_MAX
-    #define SQ_INT_MIN LLONG_MIN
-#endif
-#else
-#define SQ_INT_MAX INT_MAX
-#define SQ_INT_MIN INT_MIN
-#endif // _SQ64
 
 #define SINGLE_ARG_FUNC(_funcname) static SQRESULT math_##_funcname(HSQUIRRELVM v){ \
 	SQFloat f; \
