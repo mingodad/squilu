@@ -61,7 +61,7 @@ bool SQVM::BW_OP(SQUnsignedInteger op,SQObjectPtr &trg,const SQObjectPtr &o1,con
 #define _ARITH_NOZERO(op,trg,o1,o2,err) _ARITH_BASE_(op,trg,o1,o2, {\
 			SQInteger i1 = _integer(o1); SQInteger i2 = _integer(o2);\
             if(i2 == 0) { Raise_Error(err); SQ_THROW(); } \
-            else if(i2 == -1 && i1 == INT_MIN) { Raise_Error(_SC("integer overflow")); SQ_THROW(); }\
+            else if(i2 == -1 && i1 == SQ_INT_MIN) { Raise_Error(_SC("integer overflow")); SQ_THROW(); }\
             trg = i1 op i2;\
 		})
 
@@ -77,12 +77,12 @@ bool SQVM::ARITH_OP(SQUnsignedInteger op,SQObjectPtr &trg,const SQObjectPtr &o1,
 			case '-': res = i1 - i2; break;
 			case '/':
                     if(i2 == 0) { Raise_Error(_SC("division by zero")); return false; }
-                    else if(i2 == -1 && i1 == INT_MIN) { Raise_Error(_SC("integer overflow")); return false; }
+                    else if(i2 == -1 && i1 == SQ_INT_MIN) { Raise_Error(_SC("integer overflow")); return false; }
 					res = i1 / i2;
 					break;
 			case '*': res = i1 * i2; break;
 			case '%': if(i2 == 0) { Raise_Error(_SC("modulo by zero")); return false; }
-                    else if(i2 == -1 && i1 == INT_MIN) { res = 0; break; }
+                    else if(i2 == -1 && i1 == SQ_INT_MIN) { res = 0; break; }
 					res = i1 % i2;
 					break;
 			default: res = 0xDEADBEEF;
