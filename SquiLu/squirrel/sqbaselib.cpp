@@ -2119,6 +2119,18 @@ static SQRESULT string_uchar(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT string_ushort(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, str);
+    SQ_GET_INTEGER(v, 2, char_idx);
+    if(((char_idx*((SQInteger)sizeof(SQUnsignedInt16))) >= str_size) || (char_idx < 0))
+    {
+        return sq_throwerror(v, _SC("index out of range"));
+    }
+	sq_pushinteger(v, (((SQUnsignedInt16*)str)[char_idx]));
+	return 1;
+}
 
 #define MMIN(a,b) (((a)<(b))?(a):(b))
 static SQRESULT string_edit_distance (HSQUIRRELVM v) {
@@ -2366,6 +2378,7 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("isxdigit"),string_isxdigit,2, _SC("si")},
 	{_SC("count_char"),string_count_char,2, _SC("si")},
 	{_SC("uchar"),string_uchar,2, _SC("si")},
+	{_SC("ushort"),string_ushort,2, _SC("si")},
 	{_SC("edit_distance"),string_edit_distance,-2, _SC("ssi")},
 	{_SC("mod_97_10"),string_mod_97_10,1, _SC("s")},
 	{_SC("iso88959_to_utf8"),string_iso88959_to_utf8,1, _SC("s")},
