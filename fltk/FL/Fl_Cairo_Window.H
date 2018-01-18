@@ -70,7 +70,6 @@ public:
   void set_draw_cb(cairo_draw_cb  cb){draw_cb_=cb;}
 private:
     cairo_draw_cb draw_cb_;
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Cairo_Window, public Fl_Double_Window)
 };
 

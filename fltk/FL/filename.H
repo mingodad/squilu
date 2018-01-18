@@ -1,5 +1,5 @@
 /*
- * "$Id: filename.H 9704 2012-10-19 11:23:51Z manolo $"
+ * "$Id: filename.H 11555 2016-04-08 15:48:28Z manolo $"
  *
  * Filename header file for the Fast Light Tool Kit (FLTK).
  *
@@ -19,17 +19,11 @@
  File names and URI utility functions.
  */
 
-/* Xcode on OS X includes files by recursing down into directories.
- * This code catches the cycle and directly includes the required file.
- */
-#ifdef fl_dirent_h_cyclic_include
-#  include "/usr/include/dirent.h"
-#endif
-
 #ifndef FL_FILENAME_H
 #  define FL_FILENAME_H
 
-#  include "Fl_Export.H"
+#include "Fl_Export.H"
+#include <FL/platform_types.h>
 
 /** \addtogroup filenames File names and URI utility functions
  File names and URI functions defined in <FL/filename.H>
@@ -72,36 +66,6 @@ FL_EXPORT int fl_filename_relative(char *to, int tolen, const char *from, const 
 inline int fl_filename_relative(char *to, const char *from) { return fl_filename_relative(to, FL_PATH_MAX, from); }
 #  endif /* __cplusplus */
 
-
-#  if defined(WIN32) /*&& !defined(__MINGW32__)*/ && !defined(__CYGWIN__) && !defined(__WATCOMC__)
-
-struct dirent {char d_name[1];};
-
-#  elif defined(__WATCOMC__)
-#    include <sys/types.h>
-#    include <direct.h>
-
-#  else
-/*
- * WARNING: on some systems (very few nowadays?) <dirent.h> may not exist.
- * The correct information is in one of these files:
- *
- *     #include <sys/ndir.h>
- *     #include <sys/dir.h>
- *     #include <ndir.h>
- *
- * plus you must do the following #define:
- *
- *     #define dirent direct
- *
- * It would be best to create a <dirent.h> file that does this...
- */
-#    include <sys/types.h>
-#    define fl_dirent_h_cyclic_include
-#    include <dirent.h>
-#    undef fl_dirent_h_cyclic_include
-#  endif
-
 #  if defined (__cplusplus)
 extern "C" {
 #  endif /* __cplusplus */
@@ -113,7 +77,7 @@ FL_EXPORT int fl_casenumericsort(struct dirent **, struct dirent **);
 FL_EXPORT int fl_numericsort(struct dirent **, struct dirent **);
 #  endif
 
-  typedef int (Fl_File_Sort_F)(struct dirent **, struct dirent **); /**< File sorting function. \see fl_filename_list() */
+typedef int (Fl_File_Sort_F)(struct dirent **, struct dirent **); /**< File sorting function. \see fl_filename_list() */
 
 #  if defined(__cplusplus)
 }
@@ -135,17 +99,6 @@ FL_EXPORT int	fl_open_uri(const char *uri, char *msg = (char *)0,
 		            int msglen = 0);
 
 FL_EXPORT void fl_decode_uri(char *uri);
-
-#    ifndef FL_DOXYGEN
-/*
- * _fl_filename_isdir_quick() is a private function that checks for a
- * trailing slash and assumes that the passed name is a directory if
- * it finds one.  This function is used by Fl_File_Browser and
- * Fl_File_Chooser to avoid extra stat() calls, but is not supported
- * outside of FLTK...
- */
-int _fl_filename_isdir_quick(const char *name);
-#    endif
 
 #  endif /* __cplusplus */
 
@@ -172,5 +125,5 @@ int _fl_filename_isdir_quick(const char *name);
 /** @} */
 
 /*
- * End of "$Id: filename.H 9704 2012-10-19 11:23:51Z manolo $".
+ * End of "$Id: filename.H 11555 2016-04-08 15:48:28Z manolo $".
  */

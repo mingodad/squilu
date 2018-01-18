@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Tree.H 10081 2014-01-24 19:03:15Z greg.ercolano $"
+// "$Id: Fl_Tree.H 11976 2016-09-24 23:15:48Z AlbrechtS $"
 //
 
 #ifndef FL_TREE_H
@@ -51,7 +51,6 @@
 ///                  |--- Fl_Tree_Select (enum)         // Selection modes
 ///                  |--- Fl_Tree_Sort (enum)           // Sort behavior
 /// \endcode
-///
 ///     Similar to Fl_Browser, Fl_Tree is a browser of Fl_Tree_Item's arranged
 ///     in a parented hierarchy, or 'tree'. Subtrees can be expanded or closed.
 ///     Items can be added, deleted, inserted, sorted and re-ordered.
@@ -227,8 +226,8 @@
 ///     \image html tree-elements.png
 ///     \image latex tree-elements.png "Fl_Tree elements" width=6cm
 /// \par
-///     The following shows the protected 'tree inner' (tix..)
-///     and 'tree outer' (tox..) dimension variables:
+///     The following shows the protected dimension variables 'tree inner' (tix..)
+///     and 'tree outer' (tox..):
 ///     \image html tree-dimensions.png "Fl_Tree inner/outer dimensions" width=6cm
 ///     \image latex tree-dimensions.png "Fl_Tree inner/outer dimensions" width=6cm
 ///
@@ -313,34 +312,25 @@ enum Fl_Tree_Reason {
   FL_TREE_REASON_NONE=0,	///< unknown reason
   FL_TREE_REASON_SELECTED,	///< an item was selected
   FL_TREE_REASON_DESELECTED,	///< an item was de-selected
-#if FLTK_ABI_VERSION >= 10301
   FL_TREE_REASON_RESELECTED,	///< an item was re-selected (e.g. double-clicked)
-#endif /*FLTK_ABI_VERSION*/
   FL_TREE_REASON_OPENED,	///< an item was opened
-  FL_TREE_REASON_CLOSED		///< an item was closed
+  FL_TREE_REASON_CLOSED,	///< an item was closed
+  FL_TREE_REASON_DRAGGED	///< an item was dragged into a new place
 };
 
 class FL_EXPORT Fl_Tree : public Fl_Group {
-protected:
   friend class Fl_Tree_Item;
   Fl_Tree_Item  *_root;				// can be null!
   Fl_Tree_Item  *_item_focus;			// item that has focus box
-  int _select_focus;					//select item instead of only draw focus
   Fl_Tree_Item  *_callback_item;		// item invoked during callback (can be NULL)
   Fl_Tree_Reason _callback_reason;		// reason for the callback
   Fl_Tree_Prefs  _prefs;			// all the tree's settings
   int            _scrollbar_size;		// size of scrollbar trough
-#if FLTK_ABI_VERSION >= 10301
-  // NEW: 
   Fl_Tree_Item *_lastselect;
-#else /*FLTK_ABI_VERSION*/
-  // OLD: static data inside handle() method
-#endif /*FLTK_ABI_VERSION*/
   void fix_scrollbar_order();
 
 protected:
   Fl_Scrollbar *_vscroll;	///< Vertical scrollbar
-#if FLTK_ABI_VERSION >= 10303
   Fl_Scrollbar *_hscroll;	///< Horizontal scrollbar
   int _tox,_toy,_tow,_toh;	///< Tree widget outer xywh dimension: outside scrollbars, inside widget border
   int _tix,_tiy,_tiw,_tih;	///< Tree widget inner xywh dimension: inside borders + scrollbars
@@ -349,18 +339,10 @@ protected:
   int _tree_w;
   /// the calculated height of the entire tree hierarchy. See calc_tree()
   int _tree_h;
-#endif
   void item_clicked(Fl_Tree_Item* val);
   void do_callback_for_item(Fl_Tree_Item* item, Fl_Tree_Reason reason);
-#if FLTK_ABI_VERSION >= 10303
 // next_visible_item() and extend_selection() moved to 'public' in ABI 1.3.3
 // undocmented draw_tree() dropped -- draw() does all the work now
-#else
-  Fl_Tree_Item *next_visible_item(Fl_Tree_Item *start, int dir);
-  void extend_selection(Fl_Tree_Item *from, Fl_Tree_Item *to);
-  int draw_tree();
-#endif
-  void set_root(Fl_Tree_Item *item);
 
 public:
   Fl_Tree(int X, int Y, int W, int H, const char *L=0);
@@ -381,13 +363,7 @@ public:
   ////////////////////////////////
   // Item creation/removal methods
   ////////////////////////////////
-  virtual Fl_Tree_Item *new_fl_tree_item(const Fl_Tree_Prefs &prefs);
-#if FLTK_ABI_VERSION >= 10303
   Fl_Tree_Item *add(const char *path, Fl_Tree_Item *newitem=0);
-#else
-  Fl_Tree_Item *add(const char *path);
-  Fl_Tree_Item *add(const char *path, Fl_Tree_Item *newitem);
-#endif
   Fl_Tree_Item* add(Fl_Tree_Item *parent_item, const char *name);
   Fl_Tree_Item *insert_above(Fl_Tree_Item *above, const char *name);
   Fl_Tree_Item* insert(Fl_Tree_Item *item, const char *name, int pos);
@@ -401,24 +377,9 @@ public:
   Fl_Tree_Item *find_item(const char *path);
   const Fl_Tree_Item *find_item(const char *path) const;
   int item_pathname(char *pathname, int pathnamelen, const Fl_Tree_Item *item) const;
-#if FLTK_ABI_VERSION >= 10303
   const Fl_Tree_Item* find_clicked(int yonly=0) const;
   Fl_Tree_Item* find_clicked(int yonly=0);
-#else
-  const Fl_Tree_Item *find_clicked() const;
-  Fl_Tree_Item *find_clicked();
-#endif
   Fl_Tree_Item *item_clicked();
-  /// Return the parent for specified \p item.
-  ///
-  /// \returns item's parent, or 0 if none (root).
-  ///
-  Fl_Tree_Item *parent(Fl_Tree_Item *item) {
-    return(item->parent());
-  }
-  Fl_Tree_Item *item_focus() {
-    return(_item_focus);
-  }
   Fl_Tree_Item *first();
   Fl_Tree_Item *first_visible();		// deprecated in ABI 10303
   Fl_Tree_Item *first_visible_item();
@@ -427,19 +388,12 @@ public:
   Fl_Tree_Item *last();
   Fl_Tree_Item *last_visible();			// deprecated in ABI 10303
   Fl_Tree_Item *last_visible_item();
-#if FLTK_ABI_VERSION >= 10303
   Fl_Tree_Item *next_visible_item(Fl_Tree_Item *start, int dir);	// made public in 1.3.3 ABI
-#endif
   Fl_Tree_Item *first_selected_item();
   Fl_Tree_Item *last_selected_item();
   Fl_Tree_Item *next_item(Fl_Tree_Item *item, int dir=FL_Down, bool visible=false);
-#if FLTK_ABI_VERSION >= 10303
   Fl_Tree_Item *next_selected_item(Fl_Tree_Item *item=0, int dir=FL_Down);
   int get_selected_items(Fl_Tree_Item_Array &items);
-#else
-  Fl_Tree_Item *next_selected_item(Fl_Tree_Item *item=0);
-  Fl_Tree_Item *next_selected_item(Fl_Tree_Item *item, int dir);
-#endif
 
   //////////////////////////
   // Item open/close methods
@@ -470,21 +424,10 @@ public:
 			   int dir,
 			   int val,
 			   bool visible);
-#if FLTK_ABI_VERSION >= 10303
   int extend_selection(Fl_Tree_Item *from,
   		       Fl_Tree_Item *to,
 		       int val=1,
 		       bool visible=false);
-#else
-private:
-  // Adding overload if not at least one overload breaks ABI, so avoid
-  // by keeping private until we can break ABI. ref: http://www.ros.org/reps/rep-0009.html
-  int extend_selection__(Fl_Tree_Item *from,
-  			 Fl_Tree_Item *to,
-			 int val,
-			 bool visible);
-public:
-#endif
   void set_item_focus(Fl_Tree_Item *item);
   Fl_Tree_Item *get_item_focus() const;
   int is_selected(Fl_Tree_Item *item) const;
@@ -507,10 +450,8 @@ public:
   void marginleft(int val);
   int margintop() const;
   void margintop(int val);
-#if FLTK_ABI_VERSION >= 10301
   int marginbottom() const;
   void marginbottom(int val);
-#endif /*FLTK_ABI_VERSION*/
   int linespacing() const;
   void linespacing(int val);
   int openchild_marginbottom() const;
@@ -519,10 +460,8 @@ public:
   void usericonmarginleft(int val);
   int labelmarginleft() const;
   void labelmarginleft(int val);
-#if FLTK_ABI_VERSION >= 10301
   int widgetmarginleft() const;
   void widgetmarginleft(int val);
-#endif /*FLTK_ABI_VERSION*/
   int connectorwidth() const;
   void connectorwidth(int val);
   Fl_Image* usericon() const;
@@ -543,17 +482,13 @@ public:
   void selectbox(Fl_Boxtype val);
   Fl_Tree_Select selectmode() const;
   void selectmode(Fl_Tree_Select val);
-#if FLTK_ABI_VERSION >= 10301
   Fl_Tree_Item_Reselect_Mode item_reselect_mode() const;
   void item_reselect_mode(Fl_Tree_Item_Reselect_Mode mode);
   Fl_Tree_Item_Draw_Mode item_draw_mode() const;
   void item_draw_mode(Fl_Tree_Item_Draw_Mode mode);
   void item_draw_mode(int mode);
-#endif
-#if FLTK_ABI_VERSION >= 10303
   void calc_dimensions();
   void calc_tree();
-#endif
   void recalc_tree();
   int displayed(Fl_Tree_Item *item);
   void show_item(Fl_Tree_Item *item, int yoff);
@@ -561,8 +496,6 @@ public:
   void show_item_top(Fl_Tree_Item *item);
   void show_item_middle(Fl_Tree_Item *item);
   void show_item_bottom(Fl_Tree_Item *item);
-  void select_focus(int b) {_select_focus=b;};
-  int select_focus() {return _select_focus;};
   void display(Fl_Tree_Item *item);
   int  vposition() const;
   void vposition(int pos);
@@ -591,5 +524,5 @@ DECLARE_CLASS_CHEAP_RTTI_2(Fl_Tree, Fl_Group)
 #endif /*FL_TREE_H*/
 
 //
-// End of "$Id: Fl_Tree.H 10081 2014-01-24 19:03:15Z greg.ercolano $".
+// End of "$Id: Fl_Tree.H 11976 2016-09-24 23:15:48Z AlbrechtS $".
 //

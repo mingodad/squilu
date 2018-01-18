@@ -51,7 +51,6 @@ public:
     Fl_Color textcolor() const {return textcolor_;}
     /**    Sets the color of the text in the value box.  */
     void textcolor(Fl_Color s) {textcolor_ = s;}
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Value_Slider, Fl_Slider)
 };
 

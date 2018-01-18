@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_get_key_win32.cxx 9303 2012-03-26 16:54:54Z manolo $"
+// "$Id: Fl_get_key_win32.cxx 11545 2016-04-06 20:30:28Z manolo $"
 //
 // WIN32 keyboard state routines for the Fast Light Tool Kit (FLTK).
 //
@@ -20,7 +20,7 @@
 // which are actually X keysyms.  So this has to translate to MSWindows
 // VK_x symbols.
 
-#include <FL/Fl.H>
+#include "drivers/WinAPI//Fl_WinAPI_System_Driver.H"
 #include <FL/x.H>
 
 // convert an Fltk (X) keysym to a MSWindows VK symbol:
@@ -115,16 +115,16 @@ static int fltk2ms(int fltk) {
   return 0;
 }
 
-int Fl::event_key(int k) {
+int Fl_WinAPI_System_Driver::event_key(int k) {
   return GetKeyState(fltk2ms(k))&~1;
 }
 
-int Fl::get_key(int k) {
+int Fl_WinAPI_System_Driver::get_key(int k) {
   uchar foo[256];
   GetKeyboardState(foo);
   return foo[fltk2ms(k)]&~1;
 }
 
 //
-// End of "$Id: Fl_get_key_win32.cxx 9303 2012-03-26 16:54:54Z manolo $".
+// End of "$Id: Fl_get_key_win32.cxx 11545 2016-04-06 20:30:28Z manolo $".
 //

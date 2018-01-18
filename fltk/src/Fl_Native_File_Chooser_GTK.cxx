@@ -1,4 +1,4 @@
-// "$Id$"
+// "$Id: Fl_Native_File_Chooser_GTK.cxx 11695 2016-04-24 20:03:05Z manolo $"
 //
 // FLTK native file chooser widget wrapper for GTK's GtkFileChooserDialog 
 //
@@ -16,8 +16,15 @@
 //     http://www.fltk.org/str.php
 //
 
+#include "config_lib.h"
+
+#ifdef FL_CFG_WIN_X11
 #include <FL/x.H>
+#include <FL/Fl_Native_File_Chooser.H>
+
+#if HAVE_DLSYM && HAVE_DLFCN_H
 #include <dlfcn.h>   // for dlopen et al
+#endif
 #include <locale.h>  // for setlocale
 
 /* --------------------- Type definitions from GLIB and GTK --------------------- */
@@ -88,7 +95,51 @@ typedef void  (*GClosureNotify)(gpointer data, GClosure	*closure);
 
 /* --------------------- End of Type definitions from GLIB and GTK --------------------- */
 
-int Fl_GTK_File_Chooser::did_find_GTK_libs = 0;
+
+class FL_EXPORT Fl_GTK_Native_File_Chooser_Driver : public Fl_Native_File_Chooser_FLTK_Driver {
+  friend class Fl_Native_File_Chooser;
+private:
+  static int have_looked_for_GTK_libs;
+  typedef struct _GtkWidget GtkWidget;
+  typedef struct _GtkFileFilterInfo GtkFileFilterInfo;
+  struct pair {
+    Fl_GTK_Native_File_Chooser_Driver* running; // the running Fl_GTK_File_Chooser
+    const char *filter; // a filter string of the chooser
+    pair(Fl_GTK_Native_File_Chooser_Driver* c, const char *f) {
+      running = c;
+      filter = strdup(f);
+    };
+    ~pair() {
+      free((char*)filter);
+    };
+  };
+  GtkWidget *gtkw_ptr; // used to hold a GtkWidget* without pulling GTK into everything...
+  void *gtkw_slist; // used to hold a GLib GSList...
+  unsigned gtkw_count; // number of files read back - if any
+  mutable char *gtkw_filename; // last name we read back
+  char *gtkw_title; // the title to be applied to the dialog
+  const char *previous_filter;
+  
+  int fl_gtk_chooser_wrapper(); // method that wraps the GTK widget
+  Fl_GTK_Native_File_Chooser_Driver(int val);
+  virtual ~Fl_GTK_Native_File_Chooser_Driver();
+  static int did_find_GTK_libs;
+  static void probe_for_GTK_libs(void);
+  virtual void type(int);
+  virtual int count() const;
+  virtual const char *filename() const;
+  virtual const char *filename(int i) const;
+  virtual void title(const char *);
+  virtual const char* title() const;
+  virtual int show();
+  void changed_output_type(const char *filter);
+  
+  static int custom_gtk_filter_function(const GtkFileFilterInfo*, Fl_GTK_Native_File_Chooser_Driver::pair*);
+  static void free_pair(pair *p);
+};
+
+
+int Fl_GTK_Native_File_Chooser_Driver::did_find_GTK_libs = 0;
 
 /* These are the GTK/GLib methods we want to load, but not call by name...! */
 
@@ -240,7 +291,26 @@ typedef void (*XX_gtk_toggle_button_set_active)(GtkToggleButton *, gboolean);
 static XX_gtk_toggle_button_set_active fl_gtk_toggle_button_set_active = NULL;
 
 
-Fl_GTK_File_Chooser::Fl_GTK_File_Chooser(int val) : Fl_FLTK_File_Chooser(-1)
+int Fl_GTK_Native_File_Chooser_Driver::have_looked_for_GTK_libs = 0;
+
+
+Fl_Native_File_Chooser::Fl_Native_File_Chooser(int val) {
+  if (Fl_GTK_Native_File_Chooser_Driver::have_looked_for_GTK_libs == 0) {
+    // First Time here, try to find the GTK libs if they are installed
+#if HAVE_DLSYM && HAVE_DLFCN_H
+    if (Fl::option(Fl::OPTION_FNFC_USES_GTK)) {
+      Fl_GTK_Native_File_Chooser_Driver::probe_for_GTK_libs();
+    }
+#endif
+    Fl_GTK_Native_File_Chooser_Driver::have_looked_for_GTK_libs = -1;
+  }
+  // if we found all the GTK functions we need, we will use the GtkFileChooserDialog
+  if (Fl_GTK_Native_File_Chooser_Driver::did_find_GTK_libs) platform_fnfc = new Fl_GTK_Native_File_Chooser_Driver(val);
+  else platform_fnfc = new Fl_Native_File_Chooser_FLTK_Driver(val);
+}
+
+
+Fl_GTK_Native_File_Chooser_Driver::Fl_GTK_Native_File_Chooser_Driver(int val) : Fl_Native_File_Chooser_FLTK_Driver(-1)
 {
   gtkw_ptr   = NULL;    // used to hold a GtkWidget* 
   gtkw_slist = NULL;    // will hold the returned file names in a multi-selection...
@@ -251,7 +321,7 @@ Fl_GTK_File_Chooser::Fl_GTK_File_Chooser(int val) : Fl_FLTK_File_Chooser(-1)
   previous_filter = NULL;
 }
 
-Fl_GTK_File_Chooser::~Fl_GTK_File_Chooser()
+Fl_GTK_Native_File_Chooser_Driver::~Fl_GTK_Native_File_Chooser_Driver()
 {
   // Should free up resources taken for...
   if(gtkw_ptr) { 
@@ -275,15 +345,15 @@ Fl_GTK_File_Chooser::~Fl_GTK_File_Chooser()
   gtkw_title = strfree(gtkw_title);
 }
 
-void Fl_GTK_File_Chooser::type(int val) {
+void Fl_GTK_Native_File_Chooser_Driver::type(int val) {
   _btype = val;
 }
 
-int Fl_GTK_File_Chooser::count() const {
+int Fl_GTK_Native_File_Chooser_Driver::count() const {
   return gtkw_count;
 }
 
-const char *Fl_GTK_File_Chooser::filename() const
+const char *Fl_GTK_Native_File_Chooser_Driver::filename() const
 {
   if(gtkw_ptr) {
     if(fl_gtk_file_chooser_get_select_multiple((GtkFileChooser *)gtkw_ptr) == FALSE) {
@@ -298,7 +368,7 @@ const char *Fl_GTK_File_Chooser::filename() const
   return("");
 }
 
-const char *Fl_GTK_File_Chooser::filename(int i) const
+const char *Fl_GTK_Native_File_Chooser_Driver::filename(int i) const
 {
   if(fl_gtk_file_chooser_get_select_multiple((GtkFileChooser *)gtkw_ptr) == FALSE) {
     return gtkw_filename;
@@ -313,19 +383,19 @@ const char *Fl_GTK_File_Chooser::filename(int i) const
   return("");
 }
 
-void Fl_GTK_File_Chooser::title(const char *val)
+void Fl_GTK_Native_File_Chooser_Driver::title(const char *val)
 {
   strfree(gtkw_title);
   gtkw_title = strnew(val);
 }
 
-const char* Fl_GTK_File_Chooser::title() const
+const char* Fl_GTK_Native_File_Chooser_Driver::title() const
 {
   return gtkw_title;
 }
 
 /* changes the extension of the outfile in the chooser according to newly selected filter */
-void Fl_GTK_File_Chooser::changed_output_type(const char *filter)
+void Fl_GTK_Native_File_Chooser_Driver::changed_output_type(const char *filter)
 {
   if ( !(options()&Fl_Native_File_Chooser::USE_FILTER_EXT) ) return;
   if (strchr(filter, '(') || strchr(filter, '{') || strchr(filter+1, '*') || strncmp(filter, "*.", 2)) return;
@@ -343,16 +413,16 @@ void Fl_GTK_File_Chooser::changed_output_type(const char *filter)
 
 /* Filters files before display in chooser. 
  Also used to detect when the filter just changed */
-gboolean Fl_GTK_File_Chooser::custom_gtk_filter_function(const GtkFileFilterInfo *info, Fl_GTK_File_Chooser::pair* p)
+gboolean Fl_GTK_Native_File_Chooser_Driver::custom_gtk_filter_function(const GtkFileFilterInfo *info, Fl_GTK_Native_File_Chooser_Driver::pair* p)
 {
   if (p->running->previous_filter != p->filter) {
     p->running->changed_output_type(p->filter);
     p->running->previous_filter = p->filter;
     }
-  return (gboolean)fl_filename_match(info->filename, p->filter);
+  return (gboolean)fl_filename_match(fl_filename_name(info->filename), p->filter);
 }
 
-void Fl_GTK_File_Chooser::free_pair(Fl_GTK_File_Chooser::pair *p)
+void Fl_GTK_Native_File_Chooser_Driver::free_pair(Fl_GTK_Native_File_Chooser_Driver::pair *p)
 {
   delete p;
 }
@@ -363,7 +433,7 @@ static void hidden_files_cb(GtkToggleButton *togglebutton, gpointer user_data)
   fl_gtk_file_chooser_set_show_hidden((GtkFileChooser*)user_data, state);
 }
 
-int Fl_GTK_File_Chooser::show()
+int Fl_GTK_Native_File_Chooser_Driver::show()
 {
   // The point here is that after running a GTK dialog, the calling program's current locale is modified.
   // To avoid that, we memorize the calling program's current locale, and the locale as modified
@@ -373,6 +443,7 @@ int Fl_GTK_File_Chooser::show()
   char *p;
   char *before = NULL;
   static char *gtk_wants = NULL;
+  fl_open_display();
   // record in before the calling program's current locale
   p = setlocale(LC_ALL, NULL);
   if (p) before = strdup(p);
@@ -393,6 +464,23 @@ int Fl_GTK_File_Chooser::show()
   return retval;
 }
 
+static char *extract_dir_from_path(const char *path)
+{
+  static char *dir = NULL;
+  if (fl_filename_isdir(path)) {
+    return (char*)path;
+  }
+  if (*path != '/') return NULL;
+  if (dir) free(dir);
+  dir = strdup(path);
+  do {
+    char *p = strrchr(dir, '/');
+    if (p == dir) p++;
+    *p = 0;
+    }
+  while (!fl_filename_isdir(dir));
+  return dir;
+}
 
 static void run_response_handler(GtkDialog *dialog, gint response_id, gpointer data)
 {
@@ -401,10 +489,12 @@ static void run_response_handler(GtkDialog *dialog, gint response_id, gpointer d
 }
 
 
-int Fl_GTK_File_Chooser::fl_gtk_chooser_wrapper()
+int Fl_GTK_Native_File_Chooser_Driver::fl_gtk_chooser_wrapper()
 {
   int result = 1;
   static int have_gtk_init = 0;
+  char *p;
+  
   if(!have_gtk_init) {
     have_gtk_init = -1;
     int ac = 0;
@@ -474,13 +564,20 @@ int Fl_GTK_File_Chooser::fl_gtk_chooser_wrapper()
       break;
   }
   
-  if (_directory && _directory[0]) fl_gtk_file_chooser_set_current_folder((GtkFileChooser *)gtkw_ptr, _directory);
+  if (_directory && _directory[0]) {
+    p = extract_dir_from_path(_directory);
+    if (p) fl_gtk_file_chooser_set_current_folder((GtkFileChooser *)gtkw_ptr, p);
+  }
+  else if (_preset_file) {
+    p = extract_dir_from_path(_preset_file);
+    if (p) fl_gtk_file_chooser_set_current_folder((GtkFileChooser *)gtkw_ptr, p);
+  }
   
   GtkFileFilter **filter_tab = NULL;
   if (_parsedfilt) {
     filter_tab = new GtkFileFilter*[_nfilters];
     char *filter = strdup(_parsedfilt);
-    char *p = strtok(filter, "\t");
+    p = strtok(filter, "\t");
     int count = 0;
     while (p) {
       filter_tab[count] = fl_gtk_file_filter_new();
@@ -489,15 +586,15 @@ int Fl_GTK_File_Chooser::fl_gtk_chooser_wrapper()
       char *q = strchr(p, ')'); *q = 0;
       fl_gtk_file_filter_add_custom(filter_tab[count], 
 				    GTK_FILE_FILTER_FILENAME, 
-				    (GtkFileFilterFunc)Fl_GTK_File_Chooser::custom_gtk_filter_function, 
-				    new Fl_GTK_File_Chooser::pair(this, p), 
-				    (GDestroyNotify)Fl_GTK_File_Chooser::free_pair);
+				    (GtkFileFilterFunc)Fl_GTK_Native_File_Chooser_Driver::custom_gtk_filter_function,
+				    new Fl_GTK_Native_File_Chooser_Driver::pair(this, p),
+				    (GDestroyNotify)Fl_GTK_Native_File_Chooser_Driver::free_pair);
       fl_gtk_file_chooser_add_filter((GtkFileChooser *)gtkw_ptr, filter_tab[count]);
       p = strtok(NULL, "\t");
       count++;
     }
     free(filter);
-    fl_gtk_file_chooser_set_filter((GtkFileChooser *)gtkw_ptr, filter_tab[_filtvalue]);
+    fl_gtk_file_chooser_set_filter((GtkFileChooser *)gtkw_ptr, filter_tab[_filtvalue < _nfilters?_filtvalue:0]);
     previous_filter = NULL;
     if (gtw_action_type == GTK_FILE_CHOOSER_ACTION_OPEN) {
       GtkFileFilter* gfilter = fl_gtk_file_filter_new();
@@ -594,8 +691,9 @@ int Fl_GTK_File_Chooser::fl_gtk_chooser_wrapper()
   return result;
 } // fl_gtk_chooser_wrapper
 
+#if HAVE_DLSYM && HAVE_DLFCN_H
 // macro to help with the symbol loading boilerplate...
-#define GET_SYM(SSS, LLL) \
+#  define GET_SYM(SSS, LLL) \
 dlerror();    /* Clear any existing error */  \
 fl_##SSS = (XX_##SSS)dlsym(LLL, #SSS);        \
 if ((pc_dl_error = dlerror()) != NULL)  {     \
@@ -609,13 +707,15 @@ static void* fl_dlopen(const char *filename1, const char *filename2)
   if (!ptr) ptr = dlopen(filename2, RTLD_LAZY | RTLD_GLOBAL);
   return ptr;
 }
+#endif // HAVE_DLSYM && HAVE_DLFCN_H
 
 /* 
  * Use dlopen to see if we can load the gtk dynamic libraries that
  * will allow us to create a GtkFileChooserDialog() on the fly,
  * without linking to the GTK libs at compile time.
  */
-void Fl_GTK_File_Chooser::probe_for_GTK_libs(void) {
+void Fl_GTK_Native_File_Chooser_Driver::probe_for_GTK_libs(void) {
+#if HAVE_DLSYM && HAVE_DLFCN_H
   void *ptr_glib    = NULL;
   void *ptr_gtk     = NULL;
   
@@ -693,8 +793,11 @@ void Fl_GTK_File_Chooser::probe_for_GTK_libs(void) {
   GET_SYM(gtk_toggle_button_set_active, ptr_gtk);
   
   did_find_GTK_libs = 1;
+#endif // HAVE_DLSYM && HAVE_DLFCN_H
 } // probe_for_GTK_libs
 
+#endif // FL_CFG_WIN_X11
+
 //
-// End of "$Id$".
+// End of "$Id: Fl_Native_File_Chooser_GTK.cxx 11695 2016-04-24 20:03:05Z manolo $".
 //

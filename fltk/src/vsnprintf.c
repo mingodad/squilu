@@ -1,5 +1,5 @@
 /*
- * "$Id: vsnprintf.c 9325 2012-04-05 05:12:30Z fabien $"
+ * "$Id: vsnprintf.c 11246 2016-02-27 17:27:21Z AlbrechtS $"
  *
  * snprintf() and vsnprintf() functions for the Fast Light Tool Kit (FLTK).
  *
@@ -28,6 +28,9 @@ extern "C" {
 #endif
 
 int fl_vsnprintf(char* buffer, size_t bufsize, const char* format, va_list ap) {
+#if defined(HAVE_VSNPRINTF) && defined(__linux__)
+  return vsnprintf(buffer, bufsize, format, ap);
+#else
   char		*bufptr,		/* Pointer to position in buffer */
 		*bufend,		/* Pointer to end of buffer */
 		sign,			/* Sign of format width */
@@ -125,7 +128,7 @@ int fl_vsnprintf(char* buffer, size_t bufsize, const char* format, va_list ap) {
 	case 'e' :
 	case 'f' :
 	case 'g' :
-	  if ((width + 2) > sizeof(temp)) break;
+	  if ((width + 2) > (int)sizeof(temp)) break;
 
 	  sprintf(temp, tformat, va_arg(ap, double));
 
@@ -150,7 +153,7 @@ int fl_vsnprintf(char* buffer, size_t bufsize, const char* format, va_list ap) {
 	case 'o' :
 	case 'u' :
 	case 'x' :
-	  if ((width + 2) > sizeof(temp)) break;
+	  if ((width + 2) > (int)sizeof(temp)) break;
 
 #ifdef HAVE_LONG_LONG
 	  if (size == 'L')
@@ -176,7 +179,7 @@ int fl_vsnprintf(char* buffer, size_t bufsize, const char* format, va_list ap) {
 	  break;
 	    
 	case 'p' : /* Pointer value */
-	  if ((width + 2) > sizeof(temp)) break;
+	  if ((width + 2) > (int)sizeof(temp)) break;
 
 	  sprintf(temp, tformat, va_arg(ap, void *));
 
@@ -251,6 +254,7 @@ int fl_vsnprintf(char* buffer, size_t bufsize, const char* format, va_list ap) {
   if (bufptr) *bufptr = '\0';
 
   return (bytes);
+#endif /* HAVE_VSNPRINTF */
 }
 
 int fl_snprintf(char* str, size_t size, const char* fmt, ...) {
@@ -267,6 +271,6 @@ int fl_snprintf(char* str, size_t size, const char* fmt, ...) {
 #endif
 
 /*
- * End of "$Id: vsnprintf.c 9325 2012-04-05 05:12:30Z fabien $".
+ * End of "$Id: vsnprintf.c 11246 2016-02-27 17:27:21Z AlbrechtS $".
  */
 

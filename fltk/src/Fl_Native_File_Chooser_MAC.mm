@@ -1,4 +1,4 @@
-// "$Id: Fl_Native_File_Chooser_MAC.mm 9825 2013-02-19 15:19:58Z manolo $"
+// "$Id: Fl_Native_File_Chooser_MAC.mm 12569 2017-11-22 12:42:42Z manolo $"
 //
 // FLTK native OS file chooser widget
 //
@@ -23,20 +23,79 @@
 
 #ifdef __APPLE__
 
-#include "Fl_Native_File_Chooser_common.cxx"		// strnew/strfree/strapp/chrcat
-#include <libgen.h>		// dirname(3)
-#include <sys/types.h>		// stat(2)
-#include <sys/stat.h>		// stat(2)
-
-
 #include <FL/Fl.H>
-#include <FL/x.H>
+#include <FL/x.H> // for fl_mac_os_version
 #include <FL/Fl_Native_File_Chooser.H>
 #include <FL/Fl_File_Chooser.H>
 #include <FL/filename.H>
+#define MAXFILTERS	80
+
+class Fl_Quartz_Native_File_Chooser_Driver : public Fl_Native_File_Chooser_Driver {
+private:
+  int             _btype;		// kind-of browser to show()
+  int             _options;		// general options
+  void 	         *_panel;
+  char          **_pathnames;		// array of pathnames
+  int             _tpathnames;	        // total pathnames
+  char           *_directory;		// default pathname to use
+  char           *_title;		// title for window
+  char           *_preset_file;	        // the 'save as' filename
+  
+  char           *_filter;		// user-side search filter, eg:
+  // C Files\t*.[ch]\nText Files\t*.txt"
+  
+  char           *_filt_names;		// filter names (tab delimited)
+  // eg. "C Files\tText Files"
+  
+  char           *_filt_patt[MAXFILTERS];
+  // array of filter patterns, eg:
+  //     _filt_patt[0]="*.{cxx,h}"
+  //     _filt_patt[1]="*.txt"
+  
+  int             _filt_total;		// parse_filter() # of filters loaded
+  int             _filt_value;		// index of the selected filter
+  char           *_errmsg;		// error message
+  
+  // Private methods
+  void errmsg(const char *msg);
+  void clear_pathnames();
+  void set_single_pathname(const char *s);
+  int get_saveas_basename(void);
+  void clear_filters();
+  void parse_filter(const char *from);
+  int post();
+  int runmodal();
+public:
+  Fl_Quartz_Native_File_Chooser_Driver(int val);
+  ~Fl_Quartz_Native_File_Chooser_Driver();
+  virtual void type(int t);
+  virtual int type() const ;
+  virtual void options(int o);
+  virtual int options() const;
+  virtual int count() const;
+  virtual const char *filename() const ;
+  virtual const char *filename(int i) const ;
+  virtual void directory(const char *val) ;
+  virtual const char *directory() const;
+  virtual void title(const char *t);
+  virtual const char* title() const;
+  virtual const char *filter() const ;
+  virtual void filter(const char *f);
+  virtual int filters() const ;
+  virtual void filter_value(int i) ;
+  virtual int filter_value() const ;
+  virtual void preset_file(const char*f) ;
+  virtual const char* preset_file() const;
+  virtual const char *errmsg() const ;
+  virtual int show() ;
+};
+
+Fl_Native_File_Chooser::Fl_Native_File_Chooser(int val) {
+  platform_fnfc = new Fl_Quartz_Native_File_Chooser_Driver(val);
+}
 
 // FREE PATHNAMES ARRAY, IF IT HAS ANY CONTENTS
-void Fl_Native_File_Chooser::clear_pathnames() {
+void Fl_Quartz_Native_File_Chooser_Driver::clear_pathnames() {
   if ( _pathnames ) {
     while ( --_tpathnames >= 0 ) {
       _pathnames[_tpathnames] = strfree(_pathnames[_tpathnames]);
@@ -48,7 +107,7 @@ void Fl_Native_File_Chooser::clear_pathnames() {
 }
 
 // SET A SINGLE PATHNAME
-void Fl_Native_File_Chooser::set_single_pathname(const char *s) {
+void Fl_Quartz_Native_File_Chooser_Driver::set_single_pathname(const char *s) {
   clear_pathnames();
   _pathnames = new char*[1];
   _pathnames[0] = strnew(s);
@@ -56,10 +115,11 @@ void Fl_Native_File_Chooser::set_single_pathname(const char *s) {
 }
 
 // CONSTRUCTOR
-Fl_Native_File_Chooser::Fl_Native_File_Chooser(int val) {
+Fl_Quartz_Native_File_Chooser_Driver::Fl_Quartz_Native_File_Chooser_Driver(int val) :
+  Fl_Native_File_Chooser_Driver(val) {
   _btype          = val;
   _panel = NULL;
-  _options        = NO_OPTIONS;
+  _options        = Fl_Native_File_Chooser::NO_OPTIONS;
   _pathnames      = NULL;
   _tpathnames     = 0;
   _title          = NULL;
@@ -74,7 +134,7 @@ Fl_Native_File_Chooser::Fl_Native_File_Chooser(int val) {
 }
 
 // DESTRUCTOR
-Fl_Native_File_Chooser::~Fl_Native_File_Chooser() {
+Fl_Quartz_Native_File_Chooser_Driver::~Fl_Quartz_Native_File_Chooser_Driver() {
   // _opts		// nothing to manage
   // _options		// nothing to manage
   // _keepstate		// nothing to manage
@@ -93,17 +153,17 @@ Fl_Native_File_Chooser::~Fl_Native_File_Chooser() {
 }
 
 // GET TYPE OF BROWSER
-int Fl_Native_File_Chooser::type() const {
+int Fl_Quartz_Native_File_Chooser_Driver::type() const {
   return(_btype);
 }
 
 // SET OPTIONS
-void Fl_Native_File_Chooser::options(int val) {
+void Fl_Quartz_Native_File_Chooser_Driver::options(int val) {
   _options = val;
 }
 
 // GET OPTIONS
-int Fl_Native_File_Chooser::options() const {
+int Fl_Quartz_Native_File_Chooser_Driver::options() const {
   return(_options);
 }
 
@@ -113,7 +173,7 @@ int Fl_Native_File_Chooser::options() const {
 //         1 - user cancelled
 //        -1 - failed; errmsg() has reason
 //
-int Fl_Native_File_Chooser::show() {
+int Fl_Quartz_Native_File_Chooser_Driver::show() {
 
   // Make sure fltk interface updates before posting our dialog
   Fl::flush();
@@ -127,37 +187,37 @@ int Fl_Native_File_Chooser::show() {
 // SET ERROR MESSAGE
 //     Internal use only.
 //
-void Fl_Native_File_Chooser::errmsg(const char *msg) {
+void Fl_Quartz_Native_File_Chooser_Driver::errmsg(const char *msg) {
   _errmsg = strfree(_errmsg);
   _errmsg = strnew(msg);
 }
 
 // RETURN ERROR MESSAGE
-const char *Fl_Native_File_Chooser::errmsg() const {
+const char *Fl_Quartz_Native_File_Chooser_Driver::errmsg() const {
   return(_errmsg ? _errmsg : "No error");
 }
 
 // GET FILENAME
-const char* Fl_Native_File_Chooser::filename() const {
+const char* Fl_Quartz_Native_File_Chooser_Driver::filename() const {
   if ( _pathnames && _tpathnames > 0 ) return(_pathnames[0]);
   return("");
 }
 
 // GET FILENAME FROM LIST OF FILENAMES
-const char* Fl_Native_File_Chooser::filename(int i) const {
+const char* Fl_Quartz_Native_File_Chooser_Driver::filename(int i) const {
   if ( _pathnames && i < _tpathnames ) return(_pathnames[i]);
   return("");
 }
 
 // GET TOTAL FILENAMES CHOSEN
-int Fl_Native_File_Chooser::count() const {
+int Fl_Quartz_Native_File_Chooser_Driver::count() const {
   return(_tpathnames);
 }
 
 // PRESET PATHNAME
 //     Value can be NULL for none.
 //
-void Fl_Native_File_Chooser::directory(const char *val) {
+void Fl_Quartz_Native_File_Chooser_Driver::directory(const char *val) {
   _directory = strfree(_directory);
   _directory = strnew(val);
 }
@@ -165,14 +225,14 @@ void Fl_Native_File_Chooser::directory(const char *val) {
 // GET PRESET PATHNAME
 //     Returned value can be NULL if none set.
 //
-const char* Fl_Native_File_Chooser::directory() const {
+const char* Fl_Quartz_Native_File_Chooser_Driver::directory() const {
   return(_directory);
 }
 
 // SET TITLE
 //     Value can be NULL if no title desired.
 //
-void Fl_Native_File_Chooser::title(const char *val) {
+void Fl_Quartz_Native_File_Chooser_Driver::title(const char *val) {
   _title = strfree(_title);
   _title = strnew(val);
 }
@@ -180,14 +240,14 @@ void Fl_Native_File_Chooser::title(const char *val) {
 // GET TITLE
 //     Returned value can be NULL if none set.
 //
-const char *Fl_Native_File_Chooser::title() const {
+const char *Fl_Quartz_Native_File_Chooser_Driver::title() const {
   return(_title);
 }
 
 // SET FILTER
 //     Can be NULL if no filter needed
 //
-void Fl_Native_File_Chooser::filter(const char *val) {
+void Fl_Quartz_Native_File_Chooser_Driver::filter(const char *val) {
   _filter = strfree(_filter);
   _filter = strnew(val);
 
@@ -204,14 +264,14 @@ void Fl_Native_File_Chooser::filter(const char *val) {
 // GET FILTER
 //     Returned value can be NULL if none set.
 //
-const char *Fl_Native_File_Chooser::filter() const {
+const char *Fl_Quartz_Native_File_Chooser_Driver::filter() const {
   return(_filter);
 }
 
 // CLEAR ALL FILTERS
 //    Internal use only.
 //
-void Fl_Native_File_Chooser::clear_filters() {
+void Fl_Quartz_Native_File_Chooser_Driver::clear_filters() {
   _filt_names = strfree(_filt_names);
   for (int i=0; i<_filt_total; i++) {
     _filt_patt[i] = strfree(_filt_patt[i]);
@@ -239,7 +299,7 @@ void Fl_Native_File_Chooser::clear_filters() {
 //             \_____/  \_______/
 //              Name     Wildcard
 //
-void Fl_Native_File_Chooser::parse_filter(const char *in) {
+void Fl_Quartz_Native_File_Chooser_Driver::parse_filter(const char *in) {
   clear_filters();
   if ( ! in ) return;
   int has_name = strchr(in, '\t') ? 1 : 0;
@@ -285,7 +345,7 @@ void Fl_Native_File_Chooser::parse_filter(const char *in) {
 	  //     CFStringCreateArrayBySeparatingStrings()
 	  //
 	  if ( _filt_total ) {
-	      _filt_names = strapp(_filt_names, "\t");
+            _filt_names = strapp(_filt_names, "\t");
 	  }
 	  _filt_names = strapp(_filt_names, name);
 
@@ -303,8 +363,8 @@ void Fl_Native_File_Chooser::parse_filter(const char *in) {
       default:				// handle all non-special chars
       regchar:				// handle regular char
 	switch ( mode ) {
-	  case 'n': chrcat(name, *in);     continue;
-	  case 'w': chrcat(wildcard, *in); continue;
+          case 'n': chrcat(name, *in);     continue;
+          case 'w': chrcat(wildcard, *in); continue;
 	}
 	break;
     }
@@ -315,7 +375,7 @@ void Fl_Native_File_Chooser::parse_filter(const char *in) {
 // SET PRESET FILE
 //     Value can be NULL for none.
 //
-void Fl_Native_File_Chooser::preset_file(const char* val) {
+void Fl_Quartz_Native_File_Chooser_Driver::preset_file(const char* val) {
   _preset_file = strfree(_preset_file);
   _preset_file = strnew(val);
 }
@@ -323,30 +383,30 @@ void Fl_Native_File_Chooser::preset_file(const char* val) {
 // PRESET FILE
 //     Returned value can be NULL if none set.
 //
-const char* Fl_Native_File_Chooser::preset_file() const {
+const char* Fl_Quartz_Native_File_Chooser_Driver::preset_file() const {
   return(_preset_file);
 }
 
-void Fl_Native_File_Chooser::filter_value(int val) {
+void Fl_Quartz_Native_File_Chooser_Driver::filter_value(int val) {
   _filt_value = val;
 }
 
-int Fl_Native_File_Chooser::filter_value() const {
+int Fl_Quartz_Native_File_Chooser_Driver::filter_value() const {
   return(_filt_value);
 }
 
-int Fl_Native_File_Chooser::filters() const {
+int Fl_Quartz_Native_File_Chooser_Driver::filters() const {
   return(_filt_total);
 }
 
 #import <Cocoa/Cocoa.h>
 #define UNLIKELYPREFIX "___fl_very_unlikely_prefix_"
 
-int Fl_Native_File_Chooser::get_saveas_basename(void) {
+int Fl_Quartz_Native_File_Chooser_Driver::get_saveas_basename(void) {
   char *q = strdup( [[[(NSSavePanel*)_panel URL] path] UTF8String] );
-  if ( !(_options & SAVEAS_CONFIRM) ) {
+  if ( !(_options & Fl_Native_File_Chooser::SAVEAS_CONFIRM) ) {
     const char *d = [[[[(NSSavePanel*)_panel URL] path] stringByDeletingLastPathComponent] UTF8String];
-    int l = strlen(d) + 1;
+    int l = (int)strlen(d) + 1;
     if (strcmp(d, "/") == 0) l = 1;
     int lu = strlen(UNLIKELYPREFIX);
     // Remove UNLIKELYPREFIX between directory and filename parts
@@ -358,7 +418,7 @@ int Fl_Native_File_Chooser::get_saveas_basename(void) {
 }
 
 // SET THE TYPE OF BROWSER
-void Fl_Native_File_Chooser::type(int val) {
+void Fl_Quartz_Native_File_Chooser_Driver::type(int val) {
   _btype = val;
 }
 
@@ -411,6 +471,7 @@ static char *prepareMacFilter(int count, const char *filter, char **patterns) {
 }
 - (FLopenDelegate*)setPopup:(NSPopUpButton*)popup filter_pattern:(char**)pattern;
 - (BOOL)panel:(id)sender shouldShowFilename:(NSString *)filename;
+- (BOOL)panel:(id)sender shouldEnableURL:(NSURL *)url;
 @end
 @implementation FLopenDelegate
 - (FLopenDelegate*)setPopup:(NSPopUpButton*)popup filter_pattern:(char**)pattern
@@ -422,10 +483,15 @@ static char *prepareMacFilter(int count, const char *filter, char **patterns) {
 - (BOOL)panel:(id)sender shouldShowFilename:(NSString *)filename
 {
   if ( [nspopup indexOfSelectedItem] == [nspopup numberOfItems] - 1) return YES;
-  const char *pathname = [filename fileSystemRepresentation];
-  if ( fl_filename_isdir(pathname) ) return YES;
-  if ( fl_filename_match(pathname, filter_pattern[ [nspopup indexOfSelectedItem] ]) ) return YES;
+  BOOL isdir = NO;
+  [[NSFileManager defaultManager] fileExistsAtPath:filename isDirectory:&isdir];
+  if (isdir) return YES;
+  if ( fl_filename_match([filename fileSystemRepresentation], filter_pattern[ [nspopup indexOfSelectedItem] ]) ) return YES;
   return NO;
+}
+- (BOOL)panel:(id)sender shouldEnableURL:(NSURL *)url
+{
+  return [self panel:sender shouldShowFilename:[url path]];
 }
 @end
 
@@ -521,12 +587,12 @@ static NSPopUpButton *createPopupAccessory(NSSavePanel *panel, const char *filte
   return popup;
 }
 
-int Fl_Native_File_Chooser::runmodal()
+int Fl_Quartz_Native_File_Chooser_Driver::runmodal()
 {
   NSString *dir = nil;
   NSString *fname = nil;
   NSString *preset = nil;
-  int retval;
+  NSInteger retval;
   if (_preset_file) {
     preset = [[NSString alloc] initWithUTF8String:_preset_file];
     if (strchr(_preset_file, '/') != NULL) {
@@ -536,8 +602,25 @@ int Fl_Native_File_Chooser::runmodal()
   }
   if (_directory && !dir) dir = [[NSString alloc] initWithUTF8String:_directory];
   if (fl_mac_os_version >= 100600) {
-    if (dir) [(NSSavePanel*)_panel performSelector:@selector(setDirectoryURL:) withObject:[NSURL fileURLWithPath:dir]];
-    if (fname) [(NSSavePanel*)_panel performSelector:@selector(setNameFieldStringValue:) withObject:fname];
+    bool usepath = false;
+    NSString *path = nil;
+    if (dir && fname && [(NSSavePanel*)_panel isKindOfClass:[NSOpenPanel class]]) {
+      // STR #3406: If both dir + fname specified, combine and pass to setDirectoryURL
+      path = [[NSString alloc] initWithFormat:@"%@/%@", dir, fname];  // dir+fname -> path
+      // See if full path to file exists
+      //    If dir exists but fname doesn't, avoid using setDirectoryURL,
+      //    otherwise NSSavePanel falls back to showing user's Documents dir.
+      //
+      if ( [[NSFileManager defaultManager] fileExistsAtPath:path] ) usepath = true;
+    }
+      if (usepath) {
+        // Set only if full path exists
+        [(NSSavePanel*)_panel performSelector:@selector(setDirectoryURL:) withObject:[NSURL fileURLWithPath:path]];
+      } else { // didn't setDirectoryURL to full path? Set dir + fname separately..
+        if (dir) [(NSSavePanel*)_panel performSelector:@selector(setDirectoryURL:) withObject:[NSURL fileURLWithPath:dir]];
+        if (fname) [(NSSavePanel*)_panel performSelector:@selector(setNameFieldStringValue:) withObject:fname];
+      }
+      [path release];
     retval = [(NSSavePanel*)_panel runModal];
   }
   else {
@@ -545,7 +628,7 @@ int Fl_Native_File_Chooser::runmodal()
   }
   [dir release];
   [preset release];
-  return retval;
+  return (retval == NSFileHandlingPanelOKButton ? 1 : 0);
 }
 
 // POST BROWSER
@@ -557,45 +640,49 @@ int Fl_Native_File_Chooser::runmodal()
 //         1 - user cancelled
 //        -1 - failed; errmsg() has reason
 //     
-int Fl_Native_File_Chooser::post() {
+int Fl_Quartz_Native_File_Chooser_Driver::post() {
   // INITIALIZE BROWSER
   if ( _filt_total == 0 ) {	// Make sure they match
     _filt_value = 0;		// TBD: move to someplace more logical?
   }
+  fl_open_display();
   NSAutoreleasePool *localPool;
   localPool = [[NSAutoreleasePool alloc] init];
   switch (_btype) {
-    case BROWSE_FILE:
-    case BROWSE_MULTI_FILE:
-    case BROWSE_DIRECTORY:
-    case BROWSE_MULTI_DIRECTORY:
+    case Fl_Native_File_Chooser::BROWSE_FILE:
+    case Fl_Native_File_Chooser::BROWSE_MULTI_FILE:
+    case Fl_Native_File_Chooser::BROWSE_DIRECTORY:
+    case Fl_Native_File_Chooser::BROWSE_MULTI_DIRECTORY:
       _panel =  [NSOpenPanel openPanel];
       break;	  
-    case BROWSE_SAVE_DIRECTORY:
-    case BROWSE_SAVE_FILE:
+    case Fl_Native_File_Chooser::BROWSE_SAVE_DIRECTORY:
+    case Fl_Native_File_Chooser::BROWSE_SAVE_FILE:
       _panel =  [NSSavePanel savePanel];
       break;
   }
-  NSString *nstitle = [NSString stringWithUTF8String: (_title ? _title : "No Title")];
-  [(NSSavePanel*)_panel setTitle:nstitle];
+  BOOL is_open_panel = [(NSSavePanel*)_panel isKindOfClass:[NSOpenPanel class]];
+  if (_title) {
+    SEL title_or_message = (is_open_panel && fl_mac_os_version >= 101200) ?
+          @selector(setMessage:) : @selector(setTitle:);
+    [(NSSavePanel*)_panel performSelector:title_or_message withObject:[NSString stringWithUTF8String:_title]];
+  }
   switch (_btype) {
-    case BROWSE_MULTI_FILE:
+    case Fl_Native_File_Chooser::BROWSE_MULTI_FILE:
       [(NSOpenPanel*)_panel setAllowsMultipleSelection:YES];
       break;
-    case BROWSE_MULTI_DIRECTORY:
+    case Fl_Native_File_Chooser::BROWSE_MULTI_DIRECTORY:
       [(NSOpenPanel*)_panel setAllowsMultipleSelection:YES];
       /* FALLTHROUGH */
-    case BROWSE_DIRECTORY:
+    case Fl_Native_File_Chooser::BROWSE_DIRECTORY:
       [(NSOpenPanel*)_panel setCanChooseDirectories:YES];
       break;
-    case BROWSE_SAVE_DIRECTORY:
+    case Fl_Native_File_Chooser::BROWSE_SAVE_DIRECTORY:
       [(NSSavePanel*)_panel setCanCreateDirectories:YES];
       break;
   }
   
   // SHOW THE DIALOG
   NSWindow *key = [NSApp keyWindow];
-  BOOL is_open_panel = [(NSSavePanel*)_panel isKindOfClass:[NSOpenPanel class]];
   NSPopUpButton *popup = nil;
   if ( is_open_panel ) {
     if (_filt_total) {
@@ -603,7 +690,7 @@ int Fl_Native_File_Chooser::post() {
       popup = createPopupAccessory((NSSavePanel*)_panel, t, Fl_File_Chooser::show_label, 0);
       delete[] t;
       [[popup menu] addItem:[NSMenuItem separatorItem]];
-      [popup addItemWithTitle:[[NSString alloc] initWithUTF8String:Fl_File_Chooser::all_files_label]];
+      [popup addItemWithTitle:[NSString stringWithUTF8String:Fl_File_Chooser::all_files_label]];
       [popup setAction:@selector(validateVisibleColumns)];
       [popup setTarget:(NSObject*)_panel];
       FLopenDelegate *openDelegate = [[[FLopenDelegate alloc] init] autorelease];
@@ -615,13 +702,13 @@ int Fl_Native_File_Chooser::post() {
     FLsaveDelegate *saveDelegate = [[[FLsaveDelegate alloc] init] autorelease]; 
     [(NSSavePanel*)_panel setAllowsOtherFileTypes:YES];
     [(NSSavePanel*)_panel setDelegate:saveDelegate];
-    [saveDelegate option:(_options & SAVEAS_CONFIRM)];
+    [saveDelegate option:(_options & Fl_Native_File_Chooser::SAVEAS_CONFIRM)];
     if (_filt_total) {
       if (_filt_value >= _filt_total) _filt_value = _filt_total - 1;
       char *t = prepareMacFilter(_filt_total, _filter, _filt_patt);
       popup = createPopupAccessory((NSSavePanel*)_panel, t, [[(NSSavePanel*)_panel nameFieldLabel] UTF8String], _filt_value);
       delete[] t;
-      if (_options & USE_FILTER_EXT) {
+      if (_options & Fl_Native_File_Chooser::USE_FILTER_EXT) {
 	[popup setAction:@selector(changedPopup:)];
 	[popup setTarget:saveDelegate];
 	[saveDelegate panel:(NSSavePanel*)_panel];
@@ -631,13 +718,13 @@ int Fl_Native_File_Chooser::post() {
   }
   int retval = runmodal();
   if (_filt_total) {
-    _filt_value = [popup indexOfSelectedItem];
+    _filt_value = (int)[popup indexOfSelectedItem];
   }
-  if ( retval == NSOKButton ) {
+  if ( retval == 1 ) {
     if (is_open_panel) {
       clear_pathnames();
       NSArray *array = [(NSOpenPanel*)_panel URLs];
-      _tpathnames = [array count];
+      _tpathnames = (int)[array count];
       _pathnames = new char*[_tpathnames];
       for(int i = 0; i < _tpathnames; i++) {
 	_pathnames[i] = strnew([[(NSURL*)[array objectAtIndex:i] path] UTF8String]);
@@ -647,11 +734,11 @@ int Fl_Native_File_Chooser::post() {
   }
   [key makeKeyWindow];
   [localPool release];
-  return (retval == NSOKButton ? 0 : 1);
+  return (retval == 1 ? 0 : 1);
 }
 
 #endif // __APPLE__
 
 //
-// End of "$Id: Fl_Native_File_Chooser_MAC.mm 9825 2013-02-19 15:19:58Z manolo $".
+// End of "$Id: Fl_Native_File_Chooser_MAC.mm 12569 2017-11-22 12:42:42Z manolo $".
 //

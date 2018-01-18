@@ -1,4 +1,4 @@
-README - Fast Light Tool Kit (FLTK) Version 1.3.2
+README - Fast Light Tool Kit (FLTK) Version 1.4.0
 -------------------------------------------------
 
 WHAT IS FLTK?
@@ -18,7 +18,7 @@ LICENSING
     FLTK comes with complete free source code. FLTK is available
     under the terms of the GNU Library General Public License.
     Contrary to popular belief, it can be used in commercial
-    software! (Even Bill Gates could use it.) 
+    software! (Even Bill Gates could use it.)
 
 
 ON-LINE DOCUMENTATION
@@ -79,14 +79,14 @@ BUILDING AND INSTALLING FLTK UNDER UNIX AND Mac OS X
     install".  This will copy the "fluid" executable to
     "bindir", the header files to "includedir", and the library
     files to "libdir".
-    
+
     To install additional files and icons to be used by the main
     desktop environments such as KDE, GNOME and XFCE, you will also
     need to run "make install-desktop" as root.
 
 
 SVN USERS
-    
+
     If you've just checked out a fresh copy of FLTK from SVN,
     you'll need to generate an initial version of 'configure'
     by running 'make makeinclude'. (We don't include a copy
@@ -94,7 +94,7 @@ SVN USERS
 
 
 MAKE TARGETS
-    
+
     make            -- builds the library + test programs (does not install)
     make install    -- builds and installs
     make clean      -- clean for a rebuild
@@ -104,7 +104,7 @@ MAKE TARGETS
 
 BUILDING FLTK UNDER MICROSOFT WINDOWS
 
-    There are two ways to build FLTK under Microsoft Windows. 
+    There are two ways to build FLTK under Microsoft Windows.
     The first is to use the Visual C++ project files under the
     "ide/" directory.  See the file ide/README.IDE for more info.
 
@@ -124,7 +124,7 @@ BUILDING HTML DOCUMENTATION
     If you want to build the PDF documentation:
 
     	( cd documentation && make pdf )
-    
+
     FLTK uses doxygen for documentation, so you'll at least need doxygen
     installed for creating html docs, and LaTeX for creating PDF docs.
 
@@ -136,13 +136,6 @@ INTERNET RESOURCES
 	- WWW:   http://www.fltk.org/
 	         http://www.fltk.org/str.php [for reporting bugs]
 	         http://www.fltk.org/software.php [source code]
-
-	- FTP:   (offline Apr 20 '13) http://ftp.easysw.com/pub/fltk
-	         (offline Apr 20 '13) ftp://ftp.easysw.com/pub/fltk
-	         (offline Apr 20 '13) ftp://ftp2.easysw.com/pub/fltk
-	         ftp://ftp.funet.fi/pub/mirrors/ftp.easysw.com/pub/fltk
-	         ftp://linux.mathematik.tu-darmstadt.de/pub/linux/mirrors/misc/fltk
-	         ftp://gd.tuwien.ac.at/hci/fltk
 
     To join the FLTK mailing list, go the following web page:
 
@@ -163,14 +156,13 @@ TRADEMARKS
     Microsoft and Windows are registered trademarks of Microsoft
     Corporation. UNIX is a registered trademark of the X/Open
     Group, Inc.  OpenGL is a registered trademark of Silicon
-    Graphics, Inc.  MacOS is a registered trademark of Apple
+    Graphics, Inc.  Mac OS is a registered trademark of Apple
     Computers, Inc.
 
 
 COPYRIGHT
 
-    FLTK is copyright 1998-2013 by Bill Spitzak
-    (spitzak@users.sourceforge.net) and others,
+    FLTK is copyright 1998-2016 by Bill Spitzak and others,
     see the CREDITS file for more info.
 
     This library is free software. Distribution and use rights are

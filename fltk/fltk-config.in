@@ -1,10 +1,10 @@
 #!/bin/sh
 #
-# "$Id: fltk-config.in 9861 2013-04-05 15:28:43Z manolo $"
+# "$Id: fltk-config.in 12150 2016-12-19 14:35:08Z manolo $"
 #
 # FLTK configuration utility.
 #
-# Copyright 2000-2010 by Bill Spitzak and others.
+# Copyright 2000-2016 by Bill Spitzak and others.
 # Original version Copyright 2000 by James Dean Palmer
 # Adapted by Vincent Penne and Michael Sweet
 #
@@ -31,10 +31,12 @@ selfdir=`dirname "$0"`
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 exec_prefix_set=no
-bindir=@bindir@
 includedir=@includedir@
 libdir=@libdir@
 srcdir=@srcdir@
+
+# BINARY_DIR - used only for CMake builds in local (binary) directory
+BINARY_DIR=@BINARY_DIR@
 
 # compiler names
 CC="@CC@"
@@ -51,7 +53,6 @@ CAIROFLAGS="@CAIROFLAGS@"
 
 # Check for local invocation, and update paths accordingly...
 if test -f "$selfdir/FL/Fl_Window.H"; then
-	bindir="$selfdir/fluid"
 	includedir="$selfdir"
 	libdir="$selfdir/lib"
 
@@ -223,6 +224,10 @@ else
     includes=
 fi
 
+if test "$BINARY_DIR" != ""; then
+    includes="-I$BINARY_DIR $includes"
+fi
+
 if test "$libdir" != /usr/lib -a "$libdir" != /usr/lib32; then
     libs=-L$libdir
 else
@@ -286,7 +291,14 @@ if test -n "$compile"; then
 fi
 
 if test -n "$post"; then
-    case "`uname`" in
+    running=`uname`
+    if test "$running" = "Darwin"; then
+   	# if FLTK targets MacOS+X11, apps need not be bundled
+    	if test `echo $LDLIBS | fgrep -c -e " -lX11"` = 1; then
+    		running=""
+    	fi
+    fi
+    case $running in
 	Darwin)
 	    echo Creating "'$post.app'" bundle for desktop...
 	    id=`echo $post | tr ' ' '_'`
@@ -395,5 +407,5 @@ if test "$echo_includedir" = "yes"; then
 fi
 
 #
-# End of "$Id: fltk-config.in 9861 2013-04-05 15:28:43Z manolo $".
+# End of "$Id: fltk-config.in 12150 2016-12-19 14:35:08Z manolo $".
 #

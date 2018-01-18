@@ -48,7 +48,6 @@ public:
   Fl_Menu_Window(int W, int H, const char *l = 0);
   /** Creates a new Fl_Menu_Window widget using the given position, size, and label string. */
   Fl_Menu_Window(int X, int Y, int W, int H, const char *l = 0);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Menu_Window, Fl_Single_Window)
 };
 

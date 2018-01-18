@@ -1,10 +1,12 @@
 //
-// "$Id: Fl_PNG_Image.cxx 9980 2013-09-21 16:41:23Z greg.ercolano $"
+// "$Id: Fl_PNG_Image.cxx 12439 2017-09-10 11:38:23Z AlbrechtS $"
 //
 // Fl_PNG_Image routines.
 //
 // Copyright 1997-2012 by Easy Software Products.
 // Image support by Matthias Melcher, Copyright 2000-2009.
+//
+// Copyright 2013-2017 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -26,13 +28,15 @@
 // Include necessary header files...
 //
 
+#include <config.h>
 #include <FL/Fl.H>
+#include <FL/Fl_System_Driver.H>
 #include <FL/Fl_PNG_Image.H>
 #include <FL/Fl_Shared_Image.H>
-#include <config.h>
+#include <FL/fl_utf8.h>
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <FL/fl_utf8.h>
 
 #if defined(HAVE_LIBPNG) && defined(HAVE_LIBZ)
 extern "C"
@@ -71,26 +75,32 @@ extern "C" {
 
 
 /**
-  The constructor loads the named PNG image from the given png filename.
+ The constructor loads the named PNG image from the given png filename.
 
-  The destructor frees all memory and server resources that are used by
-  the image.
+ The destructor frees all memory and server resources that are used by
+ the image.
 
-  \param[in] filename	Name of PNG file to read
-*/
+ Use Fl_Image::fail() to check if Fl_PNG_Image failed to load. fail() returns
+ ERR_FILE_ACCESS if the file could not be opened or read, ERR_FORMAT if the
+ PNG format could not be decoded, and ERR_NO_IMAGE if the image could not
+ be loaded for another reason.
+
+ \param[in] filename	Name of PNG file to read
+ */
 Fl_PNG_Image::Fl_PNG_Image (const char *filename): Fl_RGB_Image(0,0,0)
 {
   load_png_(filename, NULL, 0);
 }
 
-/** 
+
+/**
  \brief Constructor that reads a PNG image from memory.
 
  Construct an image from a block of memory inside the application. Fluid offers
  "binary Data" chunks as a great way to add image data into the C++ source code.
- name_png can be NULL. If a name is given, the image is added to the list of 
+ name_png can be NULL. If a name is given, the image is added to the list of
  shared images (see: Fl_Shared_Image) and will be available by that name.
- 
+
  \param name_png  A name given to this image or NULL
  \param buffer	  Pointer to the start of the PNG image in memory
  \param maxsize   Size in bytes of the memory buffer containing the PNG image
@@ -101,20 +111,28 @@ Fl_PNG_Image::Fl_PNG_Image (
   load_png_(name_png, buffer, maxsize);
 }
 
+
 void Fl_PNG_Image::load_png_(const char *name_png, const unsigned char *buffer_png, int maxsize)
 {
 #if defined(HAVE_LIBPNG) && defined(HAVE_LIBZ)
-  int i;	  // Looping var
-  FILE *fp = NULL;	  // File pointer
-  int channels;	  // Number of color channels
-  png_structp pp; // PNG read pointer
-  png_infop info; // PNG info pointers
-  png_bytep *rows;// PNG row pointers
+  int i;		// Looping var
+  int channels;		// Number of color channels
+  png_structp pp;	// PNG read pointer
+  png_infop info = 0;	// PNG info pointers
+  png_bytep *rows;	// PNG row pointers
   fl_png_memory png_mem_data;
   int from_memory = (buffer_png != NULL); // true if reading image from memory
 
+  // Note: The file pointer fp must not be an automatic (stack) variable
+  // to avoid potential clobbering by setjmp/longjmp (gcc: [-Wclobbered]).
+  static FILE *fp;	// intentionally initialized separately below
+  fp = NULL;		// always initialize file pointer
+
   if (!from_memory) {
-    if ((fp = fl_fopen(name_png, "rb")) == NULL) return;
+    if ((fp = fl_fopen(name_png, "rb")) == NULL) {
+      ld(ERR_FILE_ACCESS);
+      return;
+    }
   }
   const char *display_name = (name_png ? name_png : "In-memory PNG data");
 
@@ -125,14 +143,15 @@ void Fl_PNG_Image::load_png_(const char *name_png, const unsigned char *buffer_p
     if (pp) png_destroy_read_struct(&pp, NULL, NULL);
     if (!from_memory) fclose(fp);
     Fl::warning("Cannot allocate memory to read PNG file or data \"%s\".\n", display_name);
+    w(0); h(0); d(0); ld(ERR_FORMAT);
     return;
   }
-  
-  if (setjmp(png_jmpbuf(pp)))
-  {
+
+  if (setjmp(png_jmpbuf(pp))) {
     png_destroy_read_struct(&pp, &info, NULL);
     if (!from_memory) fclose(fp);
     Fl::warning("PNG file or data \"%s\" is too large or contains errors!\n", display_name);
+    w(0); h(0); d(0); ld(ERR_FORMAT);
     return;
   }
 
@@ -144,7 +163,7 @@ void Fl_PNG_Image::load_png_(const char *name_png, const unsigned char *buffer_p
     png_set_read_fn (pp, (png_voidp) &png_mem_data, png_read_data_from_mem);
   } else {
     png_init_io(pp, fp); // Initialize the PNG file read "engine"...
-  }  
+  }
 
   // Get the image dimensions and convert to grayscale or RGB...
   png_read_info(pp, info);
@@ -194,15 +213,7 @@ void Fl_PNG_Image::load_png_(const char *name_png, const unsigned char *buffer_p
   for (i = png_set_interlace_handling(pp); i > 0; i --)
     png_read_rows(pp, rows, NULL, h());
 
-#ifdef WIN32
-  // Some Windows graphics drivers don't honor transparency when RGB == white
-  if (channels == 4) {
-    // Convert RGB to 0 when alpha == 0...
-    uchar *ptr = (uchar *)array;
-    for (i = w() * h(); i > 0; i --, ptr += 4)
-      if (!ptr[3]) ptr[0] = ptr[1] = ptr[2] = 0;
-  }
-#endif // WIN32
+  if (channels == 4) Fl::system_driver()->png_extra_rgba_processing((uchar*)array, w(), h());
 
   // Free memory and return...
   delete[] rows;
@@ -332,5 +343,5 @@ int Fl_PNG_Image::encode(Fl_Image *img, unsigned char **outbuffer, int &outlen){
 }
 
 //
-// End of "$Id: Fl_PNG_Image.cxx 9980 2013-09-21 16:41:23Z greg.ercolano $".
+// End of "$Id: Fl_PNG_Image.cxx 12439 2017-09-10 11:38:23Z AlbrechtS $".
 //

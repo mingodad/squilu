@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_File_Icon.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: Fl_File_Icon.cxx 11581 2016-04-11 13:07:08Z manolo $"
 //
 // Fl_File_Icon routines.
 //
@@ -36,34 +36,12 @@
 #include <stdlib.h>
 #include <FL/fl_utf8.h>
 #include "flstring.h"
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#if (defined(WIN32) && ! defined(__CYGWIN__)) || defined(__EMX__)
-#  include <io.h>
-#  define F_OK	0
-#else
-#  include <unistd.h>
-#endif /* WIN32 || __EMX__ */
-
+#include <FL/Fl.H>
+#include <FL/Fl_System_Driver.H>
 #include <FL/Fl_File_Icon.H>
 #include <FL/Fl_Widget.H>
 #include <FL/fl_draw.H>
 #include <FL/filename.H>
-
-
-//
-// Define missing POSIX/XPG4 macros as needed...
-//
-
-#ifndef S_ISDIR
-#  define S_ISBLK(m) (((m) & S_IFMT) == S_IFBLK)
-#  define S_ISCHR(m) (((m) & S_IFMT) == S_IFCHR)
-#  define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
-#  define S_ISFIFO(m) (((m) & S_IFMT) == S_IFIFO)
-#  define S_ISLNK(m) (((m) & S_IFMT) == S_IFLNK)
-#endif /* !S_ISDIR */
-
 
 //
 // Icon cache...
@@ -120,7 +98,7 @@ Fl_File_Icon::~Fl_File_Icon() {
   // Find the icon in the list...
   for (current = first_, prev = (Fl_File_Icon *)0;
        current != this && current != (Fl_File_Icon *)0;
-       prev = current, current = current->next_);
+       prev = current, current = current->next_) {/*empty*/}
 
   // Remove the icon from the list as needed...
   if (current)
@@ -182,45 +160,12 @@ Fl_File_Icon::find(const char *filename,// I - Name of file */
                    int        filetype)	// I - Enumerated file type
 {
   Fl_File_Icon	*current;		// Current file in list
-#ifndef WIN32
-  struct stat	fileinfo;		// Information on file
-#endif // !WIN32
   const char	*name;			// Base name of filename
 
 
   // Get file information if needed...
-  if (filetype == ANY)
-  {
-#ifdef WIN32
-    if (filename[strlen(filename) - 1] == '/')
-      filetype = DIRECTORY;
-    else if (fl_filename_isdir(filename))
-      filetype = DIRECTORY;
-    else
-      filetype = PLAIN;
-#else
-    if (!fl_stat(filename, &fileinfo))
-    {
-      if (S_ISDIR(fileinfo.st_mode))
-        filetype = DIRECTORY;
-#  ifdef S_IFIFO
-      else if (S_ISFIFO(fileinfo.st_mode))
-        filetype = FIFO;
-#  endif // S_IFIFO
-#  if defined(S_ICHR) && defined(S_IBLK)
-      else if (S_ISCHR(fileinfo.st_mode) || S_ISBLK(fileinfo.st_mode))
-        filetype = DEVICE;
-#  endif // S_ICHR && S_IBLK
-#  ifdef S_ILNK
-      else if (S_ISLNK(fileinfo.st_mode))
-        filetype = LINK;
-#  endif // S_ILNK
-      else
-        filetype = PLAIN;
-    }
-    else
-      filetype = PLAIN;
-#endif // WIN32
+  if (filetype == ANY) {
+    filetype = Fl::system_driver()->file_type(filename);
   }
 
   // Look at the base name in the filename
@@ -479,5 +424,5 @@ Fl_File_Icon::labeltype(const Fl_Label *o,	// I - Label data
 
 
 //
-// End of "$Id: Fl_File_Icon.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: Fl_File_Icon.cxx 11581 2016-04-11 13:07:08Z manolo $".
 //

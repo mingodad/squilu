@@ -1,9 +1,9 @@
 /*
- * "$Id: numericsort.c 8864 2011-07-19 04:49:30Z greg.ercolano $"
+ * "$Id: numericsort.c 11559 2016-04-09 10:15:42Z AlbrechtS $"
  *
  * Numeric sorting routine for the Fast Light Tool Kit (FLTK).
  *
- * Copyright 1998-2010 by Bill Spitzak and others.
+ * Copyright 1998-2016 by Bill Spitzak and others.
  *
  * This library is free software. Distribution and use rights are outlined in
  * the file "COPYING" which should have been included with this file.  If this
@@ -16,32 +16,10 @@
  *     http://www.fltk.org/str.php
  */
 
-/* My own scandir sorting function, useful for the film industry where
-   we have many files with numbers in their names: */
-
-#include <config.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include <sys/types.h>
-
-#if !defined(WIN32) || defined(__CYGWIN__)
-#  ifdef HAVE_DIRENT_H
-#    include <dirent.h>
-#  else
-#    define dirent direct
-#    if HAVE_SYS_NDIR_H
-#      include <sys/ndir.h>
-#    endif /* HAVE_SYS_NDIR_H */
-#    if HAVE_SYS_DIR_H
-#      include <sys/dir.h>
-#    endif /* HAVE_SYS_DIR_H */
-#    if HAVE_NDIR_H
-#      include <ndir.h>
-#    endif /* HAVE_NDIR_H */
-#  endif /* HAVE_DIRENT_H */
-#else /* For WIN32 variants */
-#  include <FL/filename.H>
-#endif /* !WIN32 || __CYGWIN__ */
+#include <FL/platform_types.h>
+#include <FL/filename.H>
 
 /*
  * 'numericsort()' - Compare two directory entries, possibly with
@@ -98,5 +76,5 @@ int fl_numericsort(struct dirent **A, struct dirent **B) {
 }
 
 /*
- * End of "$Id: numericsort.c 8864 2011-07-19 04:49:30Z greg.ercolano $".
+ * End of "$Id: numericsort.c 11559 2016-04-09 10:15:42Z AlbrechtS $".
  */

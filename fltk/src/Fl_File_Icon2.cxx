@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_File_Icon2.cxx 10140 2014-05-01 15:55:03Z manolo $"
+// "$Id: Fl_File_Icon2.cxx 12029 2016-10-14 16:35:52Z AlbrechtS $"
 //
 // Fl_File_Icon system icon routines.
 //
@@ -40,37 +40,14 @@
 #include <ctype.h>
 #include <errno.h>
 #include <FL/math.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#if defined(WIN32) && !defined(__CYGWIN__)
-#  include <io.h>
-#  define F_OK	0
-// Visual C++ 2005 incorrectly displays a warning about the use of POSIX APIs
-// on Windows, which is supposed to be POSIX compliant...
-#  define access _access
-#else
-#  include <unistd.h>
-#endif // WIN32
-
 #include <FL/Fl_File_Icon.H>
 #include <FL/Fl_Shared_Image.H>
 #include <FL/Fl_Widget.H>
 #include <FL/fl_draw.H>
 #include <FL/filename.H>
-
-
-//
-// Define missing POSIX/XPG4 macros as needed...
-//
-
-#ifndef S_ISDIR
-#  define S_ISBLK(m) (((m) & S_IFMT) == S_IFBLK)
-#  define S_ISCHR(m) (((m) & S_IFMT) == S_IFCHR)
-#  define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
-#  define S_ISFIFO(m) (((m) & S_IFMT) == S_IFIFO)
-#  define S_ISLNK(m) (((m) & S_IFMT) == S_IFLNK)
-#endif /* !S_ISDIR */
-
+#ifndef F_OK
+#  define F_OK	0
+#endif
 
 //
 // Local functions...
@@ -353,9 +330,10 @@ int Fl_File_Icon::load_image(const char *ifile)	// I - File to read from
 		temp;		// Temporary color
     const uchar *row;		// Pointer into image
 
+    const int extra_data = img->ld() ? (img->ld()-img->w()*img->d()) : 0;
 
     // Loop through grayscale or RGB image...
-    for (y = 0, row = (const uchar *)(*(img->data())); y < img->h(); y ++, row += img->ld())
+    for (y = 0, row = (const uchar *)(*(img->data())); y < img->h(); y ++, row += extra_data)
     {
       for (x = 0, startx = 0, c = (Fl_Color)-1;
            x < img->w();
@@ -426,7 +404,6 @@ int Fl_File_Icon::load_image(const char *ifile)	// I - File to read from
     int		red, green, blue;	// Red, green, and blue values
     int		x, y;			// X & Y in image
     int		startx;			// Starting X coord
-
 
     // Get the pixmap data...
     ptr = img->data();
@@ -676,16 +653,16 @@ Fl_File_Icon::load_system_icons(void) {
 
     if (!kdedir) {
       // Figure out where KDE is installed...
-      if ((kdedir = getenv("KDEDIR")) == NULL) {
-        if (!access("/opt/kde", F_OK)) kdedir = "/opt/kde";
-	else if (!access("/usr/local/share/mimelnk", F_OK)) kdedir = "/usr/local";
+      if ((kdedir = fl_getenv("KDEDIR")) == NULL) {
+        if (!fl_access("/opt/kde", F_OK)) kdedir = "/opt/kde";
+	else if (!fl_access("/usr/local/share/mimelnk", F_OK)) kdedir = "/usr/local";
         else kdedir = "/usr";
       }
     }
 
     snprintf(filename, sizeof(filename), "%s/share/mimelnk", kdedir);
 
-    if (!access(filename, F_OK)) {
+    if (!fl_access(filename, F_OK)) {
       // Load KDE icons...
       icon = new Fl_File_Icon("*", Fl_File_Icon::PLAIN);
 
@@ -693,7 +670,7 @@ Fl_File_Icon::load_system_icons(void) {
 	snprintf(icondir, sizeof(icondir), "%s/share/icons/%s", kdedir,
 		 icondirs[i]);
 
-        if (!access(icondir, F_OK)) break;
+        if (!fl_access(icondir, F_OK)) break;
       }
 
       if (icondirs[i]) {
@@ -704,25 +681,25 @@ Fl_File_Icon::load_system_icons(void) {
 	         kdedir);
       }
 
-      if (!access(filename, F_OK)) icon->load_image(filename);
+      if (!fl_access(filename, F_OK)) icon->load_image(filename);
 
       icon = new Fl_File_Icon("*", Fl_File_Icon::LINK);
 
       snprintf(filename, sizeof(filename), "%s/16x16/filesystems/link.png",
                icondir);
 
-      if (!access(filename, F_OK)) icon->load_image(filename);
+      if (!fl_access(filename, F_OK)) icon->load_image(filename);
 
       snprintf(filename, sizeof(filename), "%s/share/mimelnk", kdedir);
       load_kde_icons(filename, icondir);
-    } else if (!access("/usr/share/icons/folder.xpm", F_OK)) {
+    } else if (!fl_access("/usr/share/icons/folder.xpm", F_OK)) {
       // Load GNOME icons...
       icon = new Fl_File_Icon("*", Fl_File_Icon::PLAIN);
       icon->load_image("/usr/share/icons/page.xpm");
 
       icon = new Fl_File_Icon("*", Fl_File_Icon::DIRECTORY);
       icon->load_image("/usr/share/icons/folder.xpm");
-    } else if (!access("/usr/dt/appconfig/icons", F_OK)) {
+    } else if (!fl_access("/usr/dt/appconfig/icons", F_OK)) {
       // Load CDE icons...
       icon = new Fl_File_Icon("*", Fl_File_Icon::PLAIN);
       icon->load_image("/usr/dt/appconfig/icons/C/Dtdata.m.pm");
@@ -741,7 +718,7 @@ Fl_File_Icon::load_system_icons(void) {
 
       icon = new Fl_File_Icon("*.ppd", Fl_File_Icon::PLAIN);
       icon->load_image("/usr/dt/appconfig/icons/C/DtPrtpr.m.pm");
-    } else if (!access("/usr/lib/filetype", F_OK)) {
+    } else if (!fl_access("/usr/lib/filetype", F_OK)) {
       // Load SGI icons...
       icon = new Fl_File_Icon("*", Fl_File_Icon::PLAIN);
       icon->load_fti("/usr/lib/filetype/iconlib/generic.doc.fti");
@@ -755,7 +732,7 @@ Fl_File_Icon::load_system_icons(void) {
       icon = new Fl_File_Icon("*.{bmp|bw|gif|jpg|pbm|pcd|pgm|ppm|png|ras|rgb|tif|xbm|xpm}", Fl_File_Icon::PLAIN);
       icon->load_fti("/usr/lib/filetype/system/iconlib/ImageFile.fti");
 
-      if (!access("/usr/lib/filetype/install/iconlib/acroread.doc.fti", F_OK)) {
+      if (!fl_access("/usr/lib/filetype/install/iconlib/acroread.doc.fti", F_OK)) {
 	icon = new Fl_File_Icon("*.{eps|ps}", Fl_File_Icon::PLAIN);
 	icon->load_fti("/usr/lib/filetype/system/iconlib/PostScriptFile.closed.fti");
 
@@ -766,13 +743,13 @@ Fl_File_Icon::load_system_icons(void) {
 	icon->load_fti("/usr/lib/filetype/system/iconlib/PostScriptFile.closed.fti");
       }
 
-      if (!access("/usr/lib/filetype/install/iconlib/html.fti", F_OK)) {
+      if (!fl_access("/usr/lib/filetype/install/iconlib/html.fti", F_OK)) {
 	icon = new Fl_File_Icon("*.{htm|html|shtml}", Fl_File_Icon::PLAIN);
         icon->load_fti("/usr/lib/filetype/iconlib/generic.doc.fti");
 	icon->load_fti("/usr/lib/filetype/install/iconlib/html.fti");
       }
 
-      if (!access("/usr/lib/filetype/install/iconlib/color.ps.idle.fti", F_OK)) {
+      if (!fl_access("/usr/lib/filetype/install/iconlib/color.ps.idle.fti", F_OK)) {
 	icon = new Fl_File_Icon("*.ppd", Fl_File_Icon::PLAIN);
 	icon->load_fti("/usr/lib/filetype/install/iconlib/color.ps.idle.fti");
       }
@@ -871,7 +848,7 @@ load_kde_mimelnk(const char *filename,	// I - mimelnk filename
     if (iconfilename[0]) {
       if (iconfilename[0] == '/') {
         strlcpy(full_iconfilename, iconfilename, sizeof(full_iconfilename));
-      } else if (!access(icondir, F_OK)) {
+      } else if (!fl_access(icondir, F_OK)) {
         // KDE 3.x and 2.x icons
 	int		i;		// Looping var
 	static const char *paths[] = {	// Subdirs to look in...
@@ -934,7 +911,7 @@ load_kde_mimelnk(const char *filename,	// I - mimelnk filename
           snprintf(full_iconfilename, sizeof(full_iconfilename),
 	           "%s/%s/%s.png", icondir, paths[i], iconfilename);
 
-          if (!access(full_iconfilename, F_OK)) break;
+          if (!fl_access(full_iconfilename, F_OK)) break;
 	}
 
         if (i >= (int)(sizeof(paths) / sizeof(paths[0]))) return;
@@ -943,7 +920,7 @@ load_kde_mimelnk(const char *filename,	// I - mimelnk filename
         snprintf(full_iconfilename, sizeof(full_iconfilename),
 	         "%s/%s", tmp, iconfilename);
 
-        if (access(full_iconfilename, F_OK)) return;
+        if (fl_access(full_iconfilename, F_OK)) return;
       }
 
       if (strncmp(mimetype, "inode/", 6) == 0) {
@@ -1014,5 +991,5 @@ get_kde_val(char       *str,
 
 
 //
-// End of "$Id: Fl_File_Icon2.cxx 10140 2014-05-01 15:55:03Z manolo $".
+// End of "$Id: Fl_File_Icon2.cxx 12492 2017-10-13 14:58:30Z AlbrechtS $".
 //

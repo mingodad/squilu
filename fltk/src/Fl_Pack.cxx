@@ -30,7 +30,7 @@
   and label string. The default boxtype is FL_NO_BOX.
   <P>The destructor <I>also deletes all the children</I>. This allows a
   whole tree to be deleted at once, without having to keep a pointer to
-  all the children in the user code. A kludge has been done so the
+  all the children in the user code. A kludge has been done so the 
   Fl_Pack and all of it's children can be automatic (local)
   variables, but you must declare the Fl_Pack<I>first</I>, so
   that it is destroyed last.
@@ -58,7 +58,6 @@ void Fl_Pack::draw() {
   if (horizontal()) {
     rw = -spacing_;
     rh = th;
-
     for (int i = children(); i--;) {
 	  Fl_Widget *o = child(i);
       if (o->visible()) {
@@ -73,7 +72,6 @@ void Fl_Pack::draw() {
   } else {
     rw = tw;
     rh = -spacing_;
-
     for (int i = children(); i--;) {
       Fl_Widget *o = child(i);
       if (o->visible()) {
@@ -173,7 +171,7 @@ void Fl_Pack::draw() {
       current_position += spacing_;
     }
   }
-
+  
   if (horizontal()) {
     if (maximum_position < tx+tw && box()) {
       fl_color(color());
@@ -187,7 +185,7 @@ void Fl_Pack::draw() {
     }
     th = maximum_position-ty;
   }
-
+  
   tw += Fl::box_dw(box()); if (tw <= 0) tw = 1;
   th += Fl::box_dh(box()); if (th <= 0) th = 1;
   if (tw != w() || th != h()) {

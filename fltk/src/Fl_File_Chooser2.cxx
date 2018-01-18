@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_File_Chooser2.cxx 10004 2013-10-21 04:58:43Z greg.ercolano $"
+// "$Id: Fl_File_Chooser2.cxx 12301 2017-07-07 18:28:10Z AlbrechtS $"
 //
 // More Fl_File_Chooser routines.
 //
@@ -344,6 +344,8 @@
 //
 
 #include <FL/Fl_File_Chooser.H>
+#include <FL/Fl_System_Driver.H>
+#include <FL/Fl.H>
 #include <FL/filename.H>
 #include <FL/fl_ask.H>
 #include <FL/x.H>
@@ -354,32 +356,12 @@
 #include <stdlib.h>
 #include "flstring.h"
 #include <errno.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-
-#if defined(WIN32) && ! defined (__CYGWIN__)
-#  include <direct.h>
-#  include <io.h>
-// Visual C++ 2005 incorrectly displays a warning about the use of POSIX APIs
-// on Windows, which is supposed to be POSIX compliant...
-#  define access _access
-#  define mkdir _mkdir
-// Apparently Borland C++ defines DIRECTORY in <direct.h>, which
-// interfers with the Fl_File_Icon enumeration of the same name.
-#  ifdef DIRECTORY
-#    undef DIRECTORY
-#  endif // DIRECTORY
-#else
-#  include <unistd.h>
-#  include <pwd.h>
-#endif /* WIN32 */
-
 
 //
 // File chooser label strings and sort function...
 //
 
-Fl_Preferences	Fl_File_Chooser::prefs_(Fl_Preferences::USER, "fltk.org", "filechooser");
+Fl_Preferences*	Fl_File_Chooser::prefs_ = NULL;
 
 const char	*Fl_File_Chooser::add_favorites_label = "Add to Favorites";
 const char	*Fl_File_Chooser::all_files_label = "All Files (*)";
@@ -387,11 +369,7 @@ const char	*Fl_File_Chooser::custom_filter_label = "Custom Filter";
 const char	*Fl_File_Chooser::existing_file_label = "Please choose an existing file!";
 const char	*Fl_File_Chooser::favorites_label = "Favorites";
 const char	*Fl_File_Chooser::filename_label = "Filename:";
-#ifdef WIN32
-const char	*Fl_File_Chooser::filesystems_label = "My Computer";
-#else
-const char	*Fl_File_Chooser::filesystems_label = "File Systems";
-#endif // WIN32
+const char	*Fl_File_Chooser::filesystems_label = Fl::system_driver()->filesystems_label();
 const char	*Fl_File_Chooser::manage_favorites_label = "Manage Favorites";
 const char	*Fl_File_Chooser::new_directory_label = "New Directory?";
 const char	*Fl_File_Chooser::new_directory_tooltip = "Create a new directory.";
@@ -409,7 +387,6 @@ Fl_File_Sort_F	*Fl_File_Chooser::sort = fl_numericsort;
 static int	compare_dirnames(const char *a, const char *b);
 static void	quote_pathname(char *, const char *, int);
 static void	unquote_pathname(char *, const char *, int);
-
 
 //
 // 'Fl_File_Chooser::count()' - Return the number of selected files.
@@ -464,29 +441,25 @@ Fl_File_Chooser::directory(const char *d)// I - Directory to change to
   if (d == NULL)
     d = ".";
 
-#ifdef WIN32
-  // See if the filename contains backslashes...
-  char	*slash;				// Pointer to slashes
-  char	fixpath[FL_PATH_MAX];			// Path with slashes converted
-  if (strchr(d, '\\')) {
-    // Convert backslashes to slashes...
-    strlcpy(fixpath, d, sizeof(fixpath));
+  if (Fl::system_driver()->backslash_as_slash()) {
+    // See if the filename contains backslashes...
+    char	*slash;				// Pointer to slashes
+    char	fixpath[FL_PATH_MAX];			// Path with slashes converted
+    if (strchr(d, '\\')) {
+      // Convert backslashes to slashes...
+      strlcpy(fixpath, d, sizeof(fixpath));
 
-    for (slash = strchr(fixpath, '\\'); slash; slash = strchr(slash + 1, '\\'))
-      *slash = '/';
+      for (slash = strchr(fixpath, '\\'); slash; slash = strchr(slash + 1, '\\'))
+        *slash = '/';
 
-    d = fixpath;
+      d = fixpath;
+    }
   }
-#endif // WIN32
 
   if (d[0] != '\0')
   {
     // Make the directory absolute...
-#if (defined(WIN32) && ! defined(__CYGWIN__))|| defined(__EMX__)
-    if (d[0] != '/' && d[0] != '\\' && d[1] != ':')
-#else
-    if (d[0] != '/' && d[0] != '\\')
-#endif /* WIN32 || __EMX__ */
+    if (d[0] != '/' && d[0] != '\\' && ( !Fl::system_driver()->colon_is_drive() || d[1] != ':' ) )
       fl_filename_absolute(directory_, d);
     else
       strlcpy(directory_, d, sizeof(directory_));
@@ -539,13 +512,13 @@ Fl_File_Chooser::favoritesButtonCB()
 
   if (!v) {
     // Add current directory to favorites...
-    if (getenv("HOME")) v = favoritesButton->size() - 5;
+    if (Fl::system_driver()->home_directory_name()) v = favoritesButton->size() - 5;
     else v = favoritesButton->size() - 4;
 
     sprintf(menuname, "favorite%02d", v);
 
-    prefs_.set(menuname, directory_);
-    prefs_.flush();
+    prefs_->set(menuname, directory_);
+    prefs_->flush();
 
     quote_pathname(menuname, directory_, sizeof(menuname));
     favoritesButton->add(menuname);
@@ -588,7 +561,7 @@ Fl_File_Chooser::favoritesCB(Fl_Widget *w)
       // Get favorite directory 0 to 99...
       sprintf(name, "favorite%02d", i);
 
-      prefs_.get(name, pathname, "", sizeof(pathname));
+      prefs_->get(name, pathname, "", sizeof(pathname));
 
       // Stop on the first empty favorite...
       if (!pathname[0]) break;
@@ -667,7 +640,7 @@ Fl_File_Chooser::favoritesCB(Fl_Widget *w)
       // Set favorite directory 0 to 99...
       sprintf(name, "favorite%02d", i);
 
-      prefs_.set(name, favList->text(i + 1));
+      prefs_->set(name, favList->text(i + 1));
     }
 
     // Clear old entries as necessary...
@@ -675,14 +648,14 @@ Fl_File_Chooser::favoritesCB(Fl_Widget *w)
       // Clear favorite directory 0 to 99...
       sprintf(name, "favorite%02d", i);
 
-      prefs_.get(name, pathname, "", sizeof(pathname));
+      prefs_->get(name, pathname, "", sizeof(pathname));
 
-      if (pathname[0]) prefs_.set(name, "");
+      if (pathname[0]) prefs_->set(name, "");
       else break;
     }
 
     update_favorites();
-    prefs_.flush();
+    prefs_->flush();
 
     favWindow->hide();
   }
@@ -714,13 +687,11 @@ Fl_File_Chooser::fileListCB()
   }
 
   if (Fl::event_clicks()) {
-#if (defined(WIN32) && ! defined(__CYGWIN__)) || defined(__EMX__)
-    if ((strlen(pathname) == 2 && pathname[1] == ':') ||
-        _fl_filename_isdir_quick(pathname))
-#else
-    if (_fl_filename_isdir_quick(pathname))
-#endif /* WIN32 || __EMX__ */
-    {
+    int condition = 0;
+    if (Fl::system_driver()->colon_is_drive() && strlen(pathname) == 2 && pathname[1] == ':') condition = 1;
+    if (!condition) condition = Fl::system_driver()->filename_isdir_quick(pathname);
+    if (condition)
+   {
       // Change directories...
       directory(pathname);
 
@@ -782,7 +753,7 @@ Fl_File_Chooser::fileListCB()
     if (callback_) (*callback_)(this, data_);
 
     // Activate the OK button as needed...
-    if (!_fl_filename_isdir_quick(pathname) || (type_ & DIRECTORY))
+    if (!Fl::system_driver()->filename_isdir_quick(pathname) || (type_ & DIRECTORY))
       okButton->activate();
     else
       okButton->deactivate();
@@ -827,13 +798,9 @@ Fl_File_Chooser::fileNameCB()
   }
 
   // Make sure we have an absolute path...
-#if (defined(WIN32) && !defined(__CYGWIN__)) || defined(__EMX__)
-  if (directory_[0] != '\0' && filename[0] != '/' &&
-      filename[0] != '\\' &&
-      !(isalpha(filename[0] & 255) && (!filename[1] || filename[1] == ':'))) {
-#else
-  if (directory_[0] != '\0' && filename[0] != '/') {
-#endif /* WIN32 || __EMX__ */
+  int condition = directory_[0] != '\0' && filename[0] != '/';
+  if (condition && Fl::system_driver()->colon_is_drive()) condition = !(isalpha(filename[0] & 255) && (!filename[1] || filename[1] == ':'));
+  if (condition) {
     fl_filename_absolute(pathname, sizeof(pathname), filename);
     value(pathname);
     fileName->mark(fileName->position()); // no selection after expansion
@@ -847,17 +814,13 @@ Fl_File_Chooser::fileNameCB()
   // Now process things according to the key pressed...
   if (Fl::event_key() == FL_Enter || Fl::event_key() == FL_KP_Enter) {
     // Enter pressed - select or change directory...
-#if (defined(WIN32) && ! defined(__CYGWIN__)) || defined(__EMX__)
-    if ((isalpha(pathname[0] & 255) && pathname[1] == ':' && !pathname[2]) ||
-        (_fl_filename_isdir_quick(pathname) &&
-	 compare_dirnames(pathname, directory_))) {
-#else
-    if (_fl_filename_isdir_quick(pathname) &&
-	compare_dirnames(pathname, directory_)) {
-#endif /* WIN32 || __EMX__ */
+    int condition = 0;
+    if (Fl::system_driver()->colon_is_drive()) condition = isalpha(pathname[0] & 255) && pathname[1] == ':' && !pathname[2];
+    if (!condition) condition = ( Fl::system_driver()->filename_isdir_quick(pathname) && compare_dirnames(pathname, directory_) );
+    if (condition) {
       directory(pathname);
-    } else if ((type_ & CREATE) || access(pathname, 0) == 0) {
-      if (!_fl_filename_isdir_quick(pathname) || (type_ & DIRECTORY)) {
+    } else if ((type_ & CREATE) || fl_access(pathname, 0) == 0) {
+      if (!Fl::system_driver()->filename_isdir_quick(pathname) || (type_ & DIRECTORY)) {
 	// Update the preview box...
 	update_preview();
 
@@ -884,13 +847,9 @@ Fl_File_Chooser::fileNameCB()
     *slash++ = '\0';
     filename = slash;
 
-#if defined(WIN32) || defined(__EMX__)
-    if (strcasecmp(pathname, directory_) &&
-        (pathname[0] || strcasecmp("/", directory_))) {
-#else
-    if (strcmp(pathname, directory_) &&
-        (pathname[0] || strcasecmp("/", directory_))) {
-#endif // WIN32 || __EMX__
+    int condition = Fl::system_driver()->case_insensitive_filenames() ?
+                    strcasecmp(pathname, directory_) : strcmp(pathname, directory_);
+    if (condition && (pathname[0] || strcmp("/", directory_))) {
       int p = fileName->position();
       int m = fileName->mark();
 
@@ -916,11 +875,8 @@ Fl_File_Chooser::fileNameCB()
     for (i = 1; i <= num_files && max_match > min_match; i ++) {
       file = fileList->text(i);
 
-#if (defined(WIN32) && ! defined(__CYGWIN__)) || defined(__EMX__)
-      if (strncasecmp(filename, file, min_match) == 0) {
-#else
-      if (strncmp(filename, file, min_match) == 0) {
-#endif // WIN32 || __EMX__
+      if ( (Fl::system_driver()->case_insensitive_filenames()?
+            strncasecmp(filename, file, min_match) : strncmp(filename, file, min_match)) == 0) {
         // OK, this one matches; check against the previous match
 	if (!first_line) {
 	  // First match; copy stuff over...
@@ -939,11 +895,8 @@ Fl_File_Chooser::fileNameCB()
 	} else {
 	  // Succeeding match; compare to find maximum string match...
 	  while (max_match > min_match)
-#if (defined(WIN32) && ! defined(__CYGWIN__)) || defined(__EMX__)
-	    if (strncasecmp(file, matchname, max_match) == 0)
-#else
-	    if (strncmp(file, matchname, max_match) == 0)
-#endif // WIN32 || __EMX__
+            if ( (Fl::system_driver()->case_insensitive_filenames()?
+                  strncasecmp(file, matchname, max_match) : strncmp(file, matchname, max_match)) == 0)
 	      break;
 	    else
 	      max_match --;
@@ -980,7 +933,7 @@ Fl_File_Chooser::fileNameCB()
     }
 
     // See if we need to enable the OK button...
-    if (((type_ & CREATE) || !access(fileName->value(), 0)) &&
+    if (((type_ & CREATE) || !fl_access(fileName->value(), 0)) &&
         (!fl_filename_isdir(fileName->value()) || (type_ & DIRECTORY))) {
       okButton->activate();
     } else {
@@ -990,7 +943,7 @@ Fl_File_Chooser::fileNameCB()
     // FL_Delete or FL_BackSpace
     fileList->deselect(0);
     fileList->redraw();
-    if (((type_ & CREATE) || !access(fileName->value(), 0)) &&
+    if (((type_ & CREATE) || !fl_access(fileName->value(), 0)) &&
         (!fl_filename_isdir(fileName->value()) || (type_ & DIRECTORY))) {
       okButton->activate();
     } else {
@@ -1064,21 +1017,13 @@ Fl_File_Chooser::newdir()
     return;
 
   // Make it relative to the current directory as needed...
-#if (defined(WIN32) && ! defined (__CYGWIN__)) || defined(__EMX__)
-  if (dir[0] != '/' && dir[0] != '\\' && dir[1] != ':')
-#else
-  if (dir[0] != '/' && dir[0] != '\\')
-#endif /* WIN32 || __EMX__ */
+  if (dir[0] != '/' && dir[0] != '\\' && (!Fl::system_driver()->colon_is_drive() || dir[1] != ':') )
     snprintf(pathname, sizeof(pathname), "%s/%s", directory_, dir);
   else
     strlcpy(pathname, dir, sizeof(pathname));
 
   // Create the directory; ignore EEXIST errors...
-#if defined(WIN32) && ! defined (__CYGWIN__)
-  if (mkdir(pathname))
-#else
-  if (mkdir(pathname, 0777))
-#endif /* WIN32 */
+  if (fl_mkdir(pathname, 0777))
     if (errno != EEXIST)
     {
       fl_alert("%s", strerror(errno));
@@ -1095,8 +1040,8 @@ Fl_File_Chooser::newdir()
 void Fl_File_Chooser::preview(int e)
 {
   previewButton->value(e);
-  prefs_.set("preview", e);
-  prefs_.flush();
+  prefs_->set("preview", e);
+  prefs_->flush();
 
   Fl_Group *p = previewBox->parent();
   if (e) {
@@ -1155,9 +1100,7 @@ Fl_File_Chooser::rescan()
 
   // Build the file list...
   fileList->load(directory_, sort);
-#ifndef WIN32	
-  if (!showHiddenButton->value()) remove_hidden_files();
-#endif
+  if (Fl::system_driver()->dot_file_hidden() && !showHiddenButton->value()) remove_hidden_files();
   // Update the preview box...
   update_preview();
 }
@@ -1182,9 +1125,7 @@ void Fl_File_Chooser::rescan_keep_filename()
 
   // Build the file list...
   fileList->load(directory_, sort);
-#ifndef WIN32	
-  if (!showHiddenButton->value()) remove_hidden_files();
-#endif
+  if (Fl::system_driver()->dot_file_hidden() && !showHiddenButton->value()) remove_hidden_files();
   // Update the preview box...
   update_preview();
 
@@ -1196,11 +1137,7 @@ void Fl_File_Chooser::rescan_keep_filename()
   else
     slash = pathname;
   for (i = 1; i <= fileList->size(); i ++)
-#if defined(WIN32) || defined(__EMX__)
-    if (strcasecmp(fileList->text(i), slash) == 0) {
-#else
-    if (strcmp(fileList->text(i), slash) == 0) {
-#endif // WIN32 || __EMX__
+    if ( (Fl::system_driver()->case_insensitive_filenames() ? strcasecmp(fileList->text(i), slash) : strcmp(fileList->text(i), slash)) == 0) {
       fileList->topline(i);
       fileList->select(i);
       found = 1;
@@ -1273,15 +1210,15 @@ Fl_File_Chooser::update_favorites()
   favoritesButton->add(add_favorites_label, FL_ALT + 'a', 0);
   favoritesButton->add(manage_favorites_label, FL_ALT + 'm', 0, 0, FL_MENU_DIVIDER);
   favoritesButton->add(filesystems_label, FL_ALT + 'f', 0);
-    
-  if ((home = getenv("HOME")) != NULL) {
+
+  if ((home = Fl::system_driver()->home_directory_name()) != NULL) {
     quote_pathname(menuname, home, sizeof(menuname));
     favoritesButton->add(menuname, FL_ALT + 'h', 0);
   }
 
   for (i = 0; i < 100; i ++) {
     sprintf(menuname, "favorite%02d", i);
-    prefs_.get(menuname, pathname, "", sizeof(pathname));
+    prefs_->get(menuname, pathname, "", sizeof(pathname));
     if (!pathname[0]) break;
 
     quote_pathname(menuname, pathname, sizeof(menuname));
@@ -1322,12 +1259,12 @@ Fl_File_Chooser::update_preview()
   } else {
     struct stat s;
     if (fl_stat(filename, &s)==0) {
-      if ((s.st_mode&S_IFMT)!=S_IFREG) {
+      if ((s.st_mode & S_IFREG) == 0) {
         // this is no regular file, probably some kind of device
         newlabel = "@-3refresh"; // a cross
         set = 1;
       } else if (s.st_size==0) {
-        // this file is emty
+        // this file is empty
         newlabel = "<empty file>";
         set = 1;
       } else {
@@ -1402,7 +1339,7 @@ Fl_File_Chooser::update_preview()
     if (*ptr || ptr == preview_text_) {
       for (ptr = preview_text_;
          *ptr && (isprint(*ptr & 255) || isspace(*ptr & 255));
-	 ptr ++);
+	 ptr ++) {/*empty*/}
     }
 
     if (*ptr || ptr == preview_text_) {
@@ -1425,7 +1362,9 @@ Fl_File_Chooser::update_preview()
     }
   } else if (image && ( (image->w() <= 0) ||
                         (image->h() <= 0) ||
-                        (image->d() <= 0) )) {
+                        (image->d() < 0)  ||
+                        (image->count() <= 0))) {
+    image->release();
     // Image has errors? Show big 'X'
     previewBox->label("X");
     previewBox->align(FL_ALIGN_CLIP);
@@ -1537,19 +1476,19 @@ Fl_File_Chooser::value(const char *filename)
     return;
   }
 
-#ifdef WIN32
-  // See if the filename contains backslashes...
-  char	fixpath[FL_PATH_MAX];			// Path with slashes converted
-  if (strchr(filename, '\\')) {
-    // Convert backslashes to slashes...
-    strlcpy(fixpath, filename, sizeof(fixpath));
+  if (Fl::system_driver()->backslash_as_slash()) {
+    // See if the filename contains backslashes...
+    char	fixpath[FL_PATH_MAX];			// Path with slashes converted
+    if (strchr(filename, '\\')) {
+      // Convert backslashes to slashes...
+      strlcpy(fixpath, filename, sizeof(fixpath));
 
-    for (slash = strchr(fixpath, '\\'); slash; slash = strchr(slash + 1, '\\'))
-      *slash = '/';
+      for (slash = strchr(fixpath, '\\'); slash; slash = strchr(slash + 1, '\\'))
+        *slash = '/';
 
-    filename = fixpath;
+      filename = fixpath;
+    }
   }
-#endif // WIN32
 
   // See if there is a directory in there...
   fl_filename_absolute(pathname, sizeof(pathname), filename);
@@ -1579,18 +1518,14 @@ Fl_File_Chooser::value(const char *filename)
   fileList->redraw();
 
   for (i = 1; i <= fcount; i ++)
-#if defined(WIN32) || defined(__EMX__)
-    if (strcasecmp(fileList->text(i), slash) == 0) {
-#else
-    if (strcmp(fileList->text(i), slash) == 0) {
-#endif // WIN32 || __EMX__
+    if ( ( Fl::system_driver()->case_insensitive_filenames() ? strcasecmp(fileList->text(i), slash) : strcmp(fileList->text(i), slash)) == 0) {
 //      printf("Selecting line %d...\n", i);
       fileList->topline(i);
       fileList->select(i);
       break;
     }
 }
-
+  
 void Fl_File_Chooser::show()
 {
   window->hotspot(fileList);
@@ -1600,9 +1535,7 @@ void Fl_File_Chooser::show()
   rescan_keep_filename();
   fl_cursor(FL_CURSOR_DEFAULT);
   fileName->take_focus();
-#ifdef WIN32
-  showHiddenButton->hide();
-#endif
+  if (!Fl::system_driver()->dot_file_hidden()) showHiddenButton->hide();
 }
 
 void Fl_File_Chooser::showHidden(int value)
@@ -1625,7 +1558,7 @@ void Fl_File_Chooser::remove_hidden_files()
   fileList->topline(1);
 }
 
-
+  
 //
 // 'compare_dirnames()' - Compare two directory names.
 //
@@ -1648,11 +1581,7 @@ compare_dirnames(const char *a, const char *b) {
   if (alen != blen) return alen - blen;
 
   // Do a comparison of the first N chars (alen == blen at this point)...
-#ifdef WIN32
-  return strncasecmp(a, b, alen);
-#else
-  return strncmp(a, b, alen);
-#endif // WIN32
+  return Fl::system_driver()->case_insensitive_filenames() ? strncasecmp(a, b, alen) : strncmp(a, b, alen);
 }
 
 
@@ -1665,18 +1594,22 @@ quote_pathname(char       *dst,		// O - Destination string
                const char *src,		// I - Source string
 	       int        dstsize)	// I - Size of destination string
 {
-  dstsize --;
+  dstsize--; // prepare for trailing zero
 
   while (*src && dstsize > 1) {
     if (*src == '\\') {
       // Convert backslash to forward slash...
       *dst++ = '\\';
       *dst++ = '/';
+      dstsize -= 2;
       src ++;
     } else {
-      if (*src == '/') *dst++ = '\\';
-
+      if (*src == '/') {
+	*dst++ = '\\';
+	dstsize--;
+      }
       *dst++ = *src++;
+      dstsize--;
     }
   }
 
@@ -1693,17 +1626,17 @@ unquote_pathname(char       *dst,	// O - Destination string
                  const char *src,	// I - Source string
 	         int        dstsize)	// I - Size of destination string
 {
-  dstsize --;
+  dstsize--; // prepare for trailing zero
 
-  while (*src && dstsize > 1) {
-    if (*src == '\\') src ++;
+  while (*src && dstsize > 0) {
+    if (*src == '\\') src++;
     *dst++ = *src++;
+    dstsize--;
   }
 
   *dst = '\0';
 }
 
-
 //
-// End of "$Id: Fl_File_Chooser2.cxx 10004 2013-10-21 04:58:43Z greg.ercolano $".
+// End of "$Id: Fl_File_Chooser2.cxx 12301 2017-07-07 18:28:10Z AlbrechtS $".
 //

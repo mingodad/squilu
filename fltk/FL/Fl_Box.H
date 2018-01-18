@@ -23,7 +23,7 @@
 #define Fl_Box_H
 
 #ifndef Fl_Widget_H
-#include <FL/Fl_Widget.H>
+#include "Fl_Widget.H"
 #endif
 
 /**
@@ -32,13 +32,9 @@
   will let you draw a frame around them.
 */
 class FL_EXPORT Fl_Box : public Fl_Widget {
-#ifdef LUAFLTK
+//protected:
 public:
-#else
-protected:
-#endif
   void draw();
-public:
   /**
     - The first constructor sets box() to FL_NO_BOX, which
     means it is invisible. However such widgets are useful as placeholders
@@ -49,12 +45,11 @@ public:
     <P>The destructor removes the box.
   */
   Fl_Box(int X, int Y, int W, int H, const char *l=0);
-  
+
   /**    See Fl_Box::Fl_Box(int x, int y, int w, int h, const char * = 0)   */
   Fl_Box(Fl_Boxtype b, int X, int Y, int W, int H, const char *l);
 
   virtual int handle(int);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Box, Fl_Widget)
 };
 

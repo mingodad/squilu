@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_Browser.cxx 9637 2012-07-24 04:37:22Z matt $"
+// "$Id: Fl_Browser.cxx 12516 2017-10-18 15:48:29Z greg.ercolano $"
 //
 // Browser widget for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2010 by Bill Spitzak and others.
+// Copyright 1998-2017 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -80,7 +80,7 @@ void* Fl_Browser::item_next(void* item) const {return ((FL_BLINE*)item)->next;}
 /**
   Returns the previous item before \p item.
   \param[in] item The 'current' item
-  \returns The previous item before \p item, or NULL if there none before this one.
+  \returns The previous item before \p item, or NULL if there are none before this one.
   \see item_first(), item_last(), item_next(), item_prev()
 */
 void* Fl_Browser::item_prev(void* item) const {return ((FL_BLINE*)item)->prev;}
@@ -210,7 +210,6 @@ int Fl_Browser::lineno_for_data(void *data) const {
   ((Fl_Browser*)this)->cacheline = n;
   return n;
 }
-
 /**
   Removes the item at the specified \p line.
   Caveat: See efficiency note in find_line().
@@ -300,6 +299,7 @@ void Fl_Browser::insert(int line, FL_BLINE* item) {
   \param[in] d Optional pointer to user data to be associated with the new line.
 */
 void Fl_Browser::insert(int line, const char* newtext, void* d) {
+  if (!newtext) newtext = "";		// STR #3269
   int l = (int) strlen(newtext);
   FL_BLINE* t = (FL_BLINE*)malloc(sizeof(FL_BLINE)+l);
   t->length = (short)l;
@@ -335,6 +335,7 @@ void Fl_Browser::move(int to, int from) {
 void Fl_Browser::text(int line, const char* newtext) {
   if (line < 1 || line > lines) return;
   FL_BLINE* t = find_line(line);
+  if (!newtext) newtext = "";		// STR #3269
   int l = (int) strlen(newtext);
   if (l > t->length) {
     FL_BLINE* n = (FL_BLINE*)malloc(sizeof(FL_BLINE)+l);
@@ -390,22 +391,24 @@ int Fl_Browser::item_height(void *item) const {
     // do each column separately as they may all set different fonts:
     for (char* str = l->txt; str && *str; str++) {
       Fl_Font font = textfont(); // default font
-      int tsize = textsize(); // default size
-      while (*str==format_char()) {
-	str++;
-	switch (*str++) {
-	case 'l': case 'L': tsize = 24; break;
-	case 'm': case 'M': tsize = 18; break;
-	case 's': tsize = 11; break;
-	case 'b': font = (Fl_Font)(font|FL_BOLD); break;
-	case 'i': font = (Fl_Font)(font|FL_ITALIC); break;
-	case 'f': case 't': font = FL_COURIER; break;
-	case 'B':
-	case 'C': while (isdigit(*str & 255)) str++; break; // skip a color number
-	case 'F': font = (Fl_Font)strtol(str,&str,10); break;
-	case 'S': tsize = strtol(str,&str,10); break;
-	case 0: case '@': str--;
-	case '.': goto END_FORMAT;
+      int tsize = textsize();    // default size
+      if ( format_char() ) {     // can be NULL
+	while (*str==format_char()) {
+	  str++;
+	  switch (*str++) {
+	  case 'l': case 'L': tsize = 24; break;
+	  case 'm': case 'M': tsize = 18; break;
+	  case 's': tsize = 11; break;
+	  case 'b': font = (Fl_Font)(font|FL_BOLD); break;
+	  case 'i': font = (Fl_Font)(font|FL_ITALIC); break;
+	  case 'f': case 't': font = FL_COURIER; break;
+	  case 'B':
+	  case 'C': while (isdigit(*str & 255)) str++; break; // skip a color number
+	  case 'F': font = (Fl_Font)strtol(str,&str,10); break;
+	  case 'S': tsize = strtol(str,&str,10); break;
+	  case 0: case '@': str--;
+	  case '.': goto END_FORMAT;
+	  }
 	}
       }
       END_FORMAT:
@@ -453,33 +456,35 @@ int Fl_Browser::item_width(void *item) const {
   Fl_Font font = textfont();
   int done = 0;
 
-  while (*str == format_char_ && str[1] && str[1] != format_char_) {
-    str ++;
-    switch (*str++) {
-    case 'l': case 'L': tsize = 24; break;
-    case 'm': case 'M': tsize = 18; break;
-    case 's': tsize = 11; break;
-    case 'b': font = (Fl_Font)(font|FL_BOLD); break;
-    case 'i': font = (Fl_Font)(font|FL_ITALIC); break;
-    case 'f': case 't': font = FL_COURIER; break;
-    case 'B':
-    case 'C': while (isdigit(*str & 255)) str++; break; // skip a color number
-    case 'F': font = (Fl_Font)strtol(str, &str, 10); break;
-    case 'S': tsize = strtol(str, &str, 10); break;
-    case '.':
-      done = 1;
-      break;
-    case '@':
-      str--;
-      done = 1;
-    }
+  if ( format_char() ) {	// can be NULL
+    while (*str == format_char_ && str[1] && str[1] != format_char_) {
+      str ++;
+      switch (*str++) {
+      case 'l': case 'L': tsize = 24; break;
+      case 'm': case 'M': tsize = 18; break;
+      case 's': tsize = 11; break;
+      case 'b': font = (Fl_Font)(font|FL_BOLD); break;
+      case 'i': font = (Fl_Font)(font|FL_ITALIC); break;
+      case 'f': case 't': font = FL_COURIER; break;
+      case 'B':
+      case 'C': while (isdigit(*str & 255)) str++; break; // skip a color number
+      case 'F': font = (Fl_Font)strtol(str, &str, 10); break;
+      case 'S': tsize = strtol(str, &str, 10); break;
+      case '.':
+	done = 1;
+	break;
+      case '@':
+	str--;
+	done = 1;
+      }
 
     if (done)
       break;
+    }
+    if (*str == format_char_ && str[1])
+      str ++;
   }
 
-  if (*str == format_char_ && str[1])
-    str ++;
 
   if (ww==0 && l->icon) ww = l->icon->w();
 
@@ -547,49 +552,51 @@ void Fl_Browser::item_draw(void* item, int X, int Y, int W, int H) const {
     //#if defined(__GNUC__)
     //#warning FIXME This maybe needs to be more UTF8 aware now...?
     //#endif /*__GNUC__*/
-    while (*str == format_char() && *++str && *str != format_char()) {
-      switch (*str++) {
-      case 'l': case 'L': tsize = 24; break;
-      case 'm': case 'M': tsize = 18; break;
-      case 's': tsize = 11; break;
-      case 'b': font = (Fl_Font)(font|FL_BOLD); break;
-      case 'i': font = (Fl_Font)(font|FL_ITALIC); break;
-      case 'f': case 't': font = FL_COURIER; break;
-      case 'c': talign = FL_ALIGN_CENTER; break;
-      case 'r': talign = FL_ALIGN_RIGHT; break;
-      case 'B': 
-	if (!(l->flags & SELECTED)) {
-	  fl_color((Fl_Color)strtol(str, &str, 10));
-	  fl_rectf(X, Y, w1, H);
-	} else while (isdigit(*str & 255)) str++; // skip digits
-        break;
-      case 'C':
-	lcol = (Fl_Color)strtol(str, &str, 10);
-	break;
-      case 'F':
-	font = (Fl_Font)strtol(str, &str, 10);
-	break;
-      case 'N':
-	lcol = FL_INACTIVE_COLOR;
-	break;
-      case 'S':
-	tsize = strtol(str, &str, 10);
-	break;
-      case '-':
-	fl_color(FL_DARK3);
-	fl_line(X+3, Y+H/2, X+w1-3, Y+H/2);
-	fl_color(FL_LIGHT3);
-	fl_line(X+3, Y+H/2+1, X+w1-3, Y+H/2+1);
-	break;
-      case 'u':
-      case '_':
-	fl_color(lcol);
-	fl_line(X+3, Y+H-1, X+w1-3, Y+H-1);
-	break;
-      case '.':
-	goto BREAK;
-      case '@':
-	str--; goto BREAK;
+    if ( format_char() ) {	// can be NULL
+      while (*str == format_char() && *++str && *str != format_char()) {
+	switch (*str++) {
+	case 'l': case 'L': tsize = 24; break;
+	case 'm': case 'M': tsize = 18; break;
+	case 's': tsize = 11; break;
+	case 'b': font = (Fl_Font)(font|FL_BOLD); break;
+	case 'i': font = (Fl_Font)(font|FL_ITALIC); break;
+	case 'f': case 't': font = FL_COURIER; break;
+	case 'c': talign = FL_ALIGN_CENTER; break;
+	case 'r': talign = FL_ALIGN_RIGHT; break;
+	case 'B': 
+	  if (!(l->flags & SELECTED)) {
+	    fl_color((Fl_Color)strtoul(str, &str, 10));
+	    fl_rectf(X, Y, w1, H);
+	  } else while (isdigit(*str & 255)) str++; // skip digits
+	  break;
+	case 'C':
+	  lcol = (Fl_Color)strtoul(str, &str, 10);
+	  break;
+	case 'F':
+	  font = (Fl_Font)strtol(str, &str, 10);
+	  break;
+	case 'N':
+	  lcol = FL_INACTIVE_COLOR;
+	  break;
+	case 'S':
+	  tsize = strtol(str, &str, 10);
+	  break;
+	case '-':
+	  fl_color(FL_DARK3);
+	  fl_line(X+3, Y+H/2, X+w1-3, Y+H/2);
+	  fl_color(FL_LIGHT3);
+	  fl_line(X+3, Y+H/2+1, X+w1-3, Y+H/2+1);
+	  break;
+	case 'u':
+	case '_':
+	  fl_color(lcol);
+	  fl_line(X+3, Y+H-1, X+w1-3, Y+H-1);
+	  break;
+	case '.':
+	  goto BREAK;
+	case '@':
+	  str--; goto BREAK;
+	}
       }
     }
   BREAK:
@@ -632,7 +639,6 @@ Fl_Browser::~Fl_Browser() {
   	free(column_widths_owned_);
   }
 }
-
 /**
   Updates the browser so that \p line is shown at position \p pos.
   \param[in] line line number. (1 based)
@@ -670,6 +676,34 @@ void Fl_Browser::lineposition(int line, Fl_Line_Position pos) {
 */
 int Fl_Browser::topline() const {
   return lineno(top());
+}
+
+/**
+  Sets the default text size (in pixels) for the lines in the browser to \p newSize.
+
+  This method recalculates all item heights and caches the total height
+  internally for optimization of later item changes. This can be slow
+  if there are many items in the browser.
+
+  It returns immediately (w/o recalculation) if \p newSize equals
+  the current textsize().
+
+  You \e may need to call redraw() to see the effect and to have the
+  scrollbar positions recalculated.
+
+  You should set the text size \e before populating the browser with items
+  unless you really need to \e change the size later.
+*/
+void Fl_Browser::textsize(Fl_Fontsize newSize) {
+  if (newSize == textsize())
+    return; // avoid recalculation
+  Fl_Browser_::textsize(newSize);
+  new_list();
+  full_height_ = 0;
+  if (lines == 0) return;
+  for (FL_BLINE* itm=(FL_BLINE *)item_first(); itm; itm=(FL_BLINE *)item_next(itm)) {
+    full_height_ += item_height(itm);
+  }
 }
 
 /**
@@ -813,7 +847,7 @@ int Fl_Browser::visible(int line) const {
 }
 
 /**
-  Returns the line number of the currently selected line, or 0 if none.
+  Returns the line number of the currently selected line, or 0 if none selected.
   \returns The line number of current selection, or 0 if none selected.
   \see select(), selected(), value(), item_select(), item_selected()
 */
@@ -954,5 +988,5 @@ Fl_Select_Browser::Fl_Select_Browser(int X,int Y,int W,int H,const char *L)
 
 
 //
-// End of "$Id: Fl_Browser.cxx 9637 2012-07-24 04:37:22Z matt $".
+// End of "$Id: Fl_Browser.cxx 12516 2017-10-18 15:48:29Z greg.ercolano $".
 //

@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_Bitmap.H 10110 2014-02-22 14:51:50Z manolo $"
+// "$Id: Fl_Bitmap.H 12433 2017-09-09 12:35:06Z manolo $"
 //
 // Bitmap header file for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2010 by Bill Spitzak and others.
+// Copyright 1998-2017 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -21,46 +21,41 @@
 
 #ifndef Fl_Bitmap_H
 #define Fl_Bitmap_H
-#  include "Fl_Image.H"
+#include "Fl_Image.H"
+#include "Fl_Widget.H" // for fl_uintptr_t
 
 class Fl_Widget;
-class Fl_Menu_Item;
+struct Fl_Menu_Item;
 
 /**
   The Fl_Bitmap class supports caching and drawing of mono-color
   (bitmap) images. Images are drawn using the current color.
 */
 class FL_EXPORT Fl_Bitmap : public Fl_Image {
-  friend class Fl_Quartz_Graphics_Driver;
-  friend class Fl_GDI_Graphics_Driver;
-  friend class Fl_GDI_Printer_Graphics_Driver;
-  friend class Fl_Xlib_Graphics_Driver;
+  friend class Fl_Graphics_Driver;
 public:
-
   /** pointer to raw bitmap data */
   const uchar *array;
   /** Non-zero if array points to bitmap data allocated internally */
   int alloc_array;
   
-  private:
-  int start(int XP, int YP, int WP, int HP, int &cx, int &cy, 
+private:
+  int prepare(int XP, int YP, int WP, int HP, int &cx, int &cy,
 	    int &X, int &Y, int &W, int &H);
-#if defined(__APPLE__) || defined(WIN32)
   /** for internal use */
-  void *id_;
-#else
-  /** for internal use */
-  unsigned id_;
-#endif // __APPLE__ || WIN32
+  fl_uintptr_t id_;
+  float cache_scale_; // graphics scaling value when id_ was computed
+  
+protected:
+  virtual int draw_scaled(int X, int Y, int W, int H);
 
-  public:
-
+public:
   /** The constructors create a new bitmap from the specified bitmap data */
   Fl_Bitmap(const uchar *bits, int W, int H) :
-    Fl_Image(W,H,0), array(bits), alloc_array(0), id_(0) {data((const char **)&array, 1);}
+    Fl_Image(W,H,0), array(bits), alloc_array(0), id_(0), cache_scale_(1) {data((const char **)&array, 1);}
   /** The constructors create a new bitmap from the specified bitmap data */
   Fl_Bitmap(const char *bits, int W, int H) :
-    Fl_Image(W,H,0), array((const uchar *)bits), alloc_array(0), id_(0) {data((const char **)&array, 1);}
+    Fl_Image(W,H,0), array((const uchar *)bits), alloc_array(0), id_(0), cache_scale_(1) {data((const char **)&array, 1);}
   virtual ~Fl_Bitmap();
   virtual Fl_Image *copy(int W, int H);
   Fl_Image *copy() { return copy(w(), h()); }
@@ -69,12 +64,11 @@ public:
   virtual void label(Fl_Widget*w);
   virtual void label(Fl_Menu_Item*m);
   virtual void uncache();
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Bitmap, Fl_Image)
 };
 
 #endif
 
 //
-// End of "$Id: Fl_Bitmap.H 10110 2014-02-22 14:51:50Z manolo $".
+// End of "$Id: Fl_Bitmap.H 12433 2017-09-09 12:35:06Z manolo $".
 //

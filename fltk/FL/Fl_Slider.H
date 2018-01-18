@@ -102,7 +102,6 @@ public:
 
   /** Sets the slider box type. */
   void slider(Fl_Boxtype c) {slider_ = c;}
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Slider, Fl_Valuator)
 };
 

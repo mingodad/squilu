@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_Gl_Window.cxx 10095 2014-02-07 00:09:52Z AlbrechtS $"
+// "$Id: Fl_Gl_Window.cxx 12594 2017-12-18 08:52:55Z manolo $"
 //
 // OpenGL window code for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2010 by Bill Spitzak and others.
+// Copyright 1998-2017 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -16,23 +16,30 @@
 //     http://www.fltk.org/str.php
 //
 
-#include "flstring.h"
+#include "config_lib.h"
 #if HAVE_GL
 
 extern int fl_gl_load_plugin;
-#ifdef __APPLE__
-extern void gl_texture_reset();
-#endif
 
-#include <FL/Fl.H>
-#include <FL/x.H>
-#ifdef __APPLE__
 #include <FL/gl.h>
-#endif
-#include "Fl_Gl_Choice.H"
 #include <FL/Fl_Gl_Window.H>
+#include <FL/Fl_Gl_Window_Driver.H>
+#include <FL/Fl_Window_Driver.H>
+#include <FL/Fl_Graphics_Driver.H>
 #include <stdlib.h>
 #include <FL/fl_utf8.h>
+#  if (HAVE_DLSYM && HAVE_DLFCN_H)
+#    include <dlfcn.h>
+#  endif // (HAVE_DLSYM && HAVE_DLFCN_H)
+#  ifdef HAVE_GLXGETPROCADDRESSARB
+#    define GLX_GLXEXT_LEGACY
+#    include <GL/glx.h>
+#  endif // HAVE_GLXGETPROCADDRESSARB
+
+
+#ifdef FL_CFG_GFX_OPENGL
+#include "drivers/OpenGL/Fl_OpenGL_Display_Device.H"
+#endif
 
 ////////////////////////////////////////////////////////////////
 
@@ -61,19 +68,16 @@ static char SWAP_TYPE = 0 ; // 0 = determine it from environment variable
 
 /**  Returns non-zero if the hardware supports the given or current OpenGL  mode. */
 int Fl_Gl_Window::can_do(int a, const int *b) {
-  return Fl_Gl_Choice::find(a,b) != 0;
+  return Fl_Gl_Window_Driver::global()->find(a,b) != 0;
 }
 
 void Fl_Gl_Window::show() {
-#if defined(__APPLE__)
   int need_redraw = 0;
-#endif
   if (!shown()) {
     if (!g) {
-      g = Fl_Gl_Choice::find(mode_,alist);
-
+      g = pGlWindowDriver->find(mode_,alist);
       if (!g && (mode_ & FL_DOUBLE) == FL_SINGLE) {
-        g = Fl_Gl_Choice::find(mode_ | FL_DOUBLE,alist);
+        g = pGlWindowDriver->find(mode_ | FL_DOUBLE,alist);
 	if (g) mode_ |= FL_FAKE_SINGLE;
       }
 
@@ -82,20 +86,12 @@ void Fl_Gl_Window::show() {
 	return;
       }
     }
-#if !defined(WIN32) && !defined(__APPLE__)
-    Fl_X::make_xid(this, g->vis, g->colormap);
-    if (overlay && overlay != this) ((Fl_Gl_Window*)overlay)->show();
-#elif defined(__APPLE__)
-	if( ! parent() ) need_redraw=1;
-#endif
+    pGlWindowDriver->before_show(need_redraw);
   }
   Fl_Window::show();
-
-#ifdef __APPLE__
-  set_visible();
-  if(need_redraw) redraw();//necessary only after creation of a top-level GL window
-#endif /* __APPLE__ */
+  pGlWindowDriver->after_show(need_redraw);
 }
+
 
 /**
   The invalidate() method turns off valid() and is
@@ -104,51 +100,12 @@ void Fl_Gl_Window::show() {
 void Fl_Gl_Window::invalidate() {
   valid(0);
   context_valid(0);
-#ifndef WIN32
-  if (overlay) {
-    ((Fl_Gl_Window*)overlay)->valid(0);
-    ((Fl_Gl_Window*)overlay)->context_valid(0);
-  }
-#endif
+  pGlWindowDriver->invalidate();
 }
 
-/**
-  See const int Fl_Gl_Window::mode() const 
-*/
 int Fl_Gl_Window::mode(int m, const int *a) {
   if (m == mode_ && a == alist) return 0;
-#ifndef __APPLE__
-  int oldmode = mode_;
-#endif // !__APPLE__
-#if !defined(WIN32) && !defined(__APPLE__)
-  Fl_Gl_Choice* oldg = g;
-#endif // !WIN32 && !__APPLE__
-  context(0);
-  mode_ = m; alist = a;
-  if (shown()) {
-    g = Fl_Gl_Choice::find(m, a);
-
-#if defined(USE_X11)
-    // under X, if the visual changes we must make a new X window (yuck!):
-    if (!g || g->vis->visualid!=oldg->vis->visualid || (oldmode^m)&FL_DOUBLE) {
-      hide();
-      show();
-    }
-#elif defined(WIN32)
-    if (!g || (oldmode^m)&(FL_DOUBLE|FL_STEREO)) {
-      hide();
-      show();
-    }
-#elif defined(__APPLE_QUARTZ__)
-    // warning: the Quartz version should probably use Core GL (CGL) instead of AGL
-    redraw();
-#else
-#  error unsupported platform
-#endif
-  } else {
-    g = 0;
-  }
-  return 1;
+  return pGlWindowDriver->mode_(m, a);
 }
 
 #define NON_LOCAL_CONTEXT 0x80000000
@@ -163,48 +120,15 @@ int Fl_Gl_Window::mode(int m, const int *a) {
 void Fl_Gl_Window::make_current() {
 //  puts("Fl_Gl_Window::make_current()");
 //  printf("make_current: context_=%p\n", context_);
+  pGlWindowDriver->make_current_before();
   if (!context_) {
     mode_ &= ~NON_LOCAL_CONTEXT;
-    context_ = fl_create_gl_context(this, g);
+    context_ = pGlWindowDriver->create_gl_context(this, g);
     valid(0);
     context_valid(0);
-#ifdef __APPLE__
-    // resets the pile of string textures used to draw strings
-    gl_texture_reset();
-#endif
   }
-  fl_set_gl_context(this, context_);
-
-#ifdef __APPLE__
-  // Set the buffer rectangle here, since in resize() we won't have the
-  // correct parent window size to work with...
-  GLint xywh[4];
-
-  if (window()) {
-    int xoff,yoff;
-    const Fl_Window *win = top_window_offset(xoff, yoff);	// STR #2944 [2]
-    xywh[0] = xoff;
-    xywh[1] = win->h() - yoff - h();
-  } else {
-    xywh[0] = 0;
-    xywh[1] = 0;
-  }
-
-  xywh[2] = w();
-  xywh[3] = h();
-
-  aglSetInteger(context_, AGL_BUFFER_RECT, xywh);
-  aglEnable(context_, AGL_BUFFER_RECT);
-//  printf("make_current: xywh=[%d %d %d %d]\n", xywh[0], xywh[1], xywh[2], xywh[3]);
-#endif // __APPLE__
-
-#if defined(WIN32) && USE_COLORMAP
-  if (fl_palette) {
-    fl_GetDC(fl_xid(this));
-    SelectPalette(fl_gc, fl_palette, FALSE);
-    RealizePalette(fl_gc);
-  }
-#endif // USE_COLORMAP
+  pGlWindowDriver->set_gl_context(this, context_);
+  pGlWindowDriver->make_current_after();
   if (mode_ & FL_FAKE_SINGLE) {
     glDrawBuffer(GL_FRONT);
     glReadBuffer(GL_FRONT);
@@ -227,8 +151,8 @@ void Fl_Gl_Window::ortho() {
   GLint v[2];
   glGetIntegerv(GL_MAX_VIEWPORT_DIMS, v);
   glLoadIdentity();
-  glViewport(w()-v[0], h()-v[1], v[0], v[1]);
-  glOrtho(w()-v[0], w(), h()-v[1], h(), -1, 1);
+  glViewport(pixel_w()-v[0], pixel_h()-v[1], v[0], v[1]);
+  glOrtho(pixel_w()-v[0], pixel_w(), pixel_h()-v[1], pixel_h(), -1, 1);
 #endif
 }
 
@@ -237,110 +161,13 @@ void Fl_Gl_Window::ortho() {
   It is called automatically after the draw() method is called.
 */
 void Fl_Gl_Window::swap_buffers() {
-#if defined(USE_X11)
-  glXSwapBuffers(fl_display, fl_xid(this));
-#elif defined(WIN32)
-#  if HAVE_GL_OVERLAY
-  // Do not swap the overlay, to match GLX:
-  BOOL ret = wglSwapLayerBuffers(Fl_X::i(this)->private_dc, WGL_SWAP_MAIN_PLANE);
-  DWORD err = GetLastError();;
-#  else
-  SwapBuffers(Fl_X::i(this)->private_dc);
-#  endif
-#elif defined(__APPLE_QUARTZ__)
-  if(overlay != NULL) {
-    // STR# 2944 [1]
-    //    Save matrixmode/proj/modelview/rasterpos before doing overlay.
-    //
-    int wo=w(), ho=h();
-    GLint matrixmode;
-    GLfloat pos[4];
-    glGetIntegerv(GL_MATRIX_MODE, &matrixmode);
-    glGetFloatv(GL_CURRENT_RASTER_POSITION, pos);       // save original glRasterPos
-    glMatrixMode(GL_PROJECTION);			// save proj/model matrices
-    glPushMatrix();
-      glLoadIdentity();
-      glMatrixMode(GL_MODELVIEW);
-      glPushMatrix();
-        glLoadIdentity();
-        glScalef(2.0f/wo, 2.0f/ho, 1.0f);
-        glTranslatef(-wo/2.0f, -ho/2.0f, 0.0f);         // set transform so 0,0 is bottom/left of Gl_Window
-        glRasterPos2i(0,0);                             // set glRasterPos to bottom left corner
-        {
-          // Emulate overlay by doing copypixels
-          glReadBuffer(GL_BACK);
-          glDrawBuffer(GL_FRONT);
-          glCopyPixels(0, 0, wo, ho, GL_COLOR);         // copy GL_BACK to GL_FRONT
-        }
-        glPopMatrix(); // GL_MODELVIEW                  // restore model/proj matrices
-      glMatrixMode(GL_PROJECTION);
-      glPopMatrix();
-    glMatrixMode(matrixmode);
-    glRasterPos3f(pos[0], pos[1], pos[2]);              // restore original glRasterPos
-  }
-  else
-    aglSwapBuffers((AGLContext)context_);
-#else
-# error unsupported platform
-#endif
+  pGlWindowDriver->swap_buffers();
 }
-
-#if HAVE_GL_OVERLAY && defined(WIN32)
-uchar fl_overlay; // changes how fl_color() works
-int fl_overlay_depth = 0;
-#endif
-
 
 void Fl_Gl_Window::flush() {
   if (!shown()) return;
   uchar save_valid = valid_f_ & 1;
-#if HAVE_GL_OVERLAY && defined(WIN32)
-  uchar save_valid_f = valid_f_;
-#endif
-
-#if defined(__APPLE_QUARTZ__)
-  // warning: the Quartz version should probably use Core GL (CGL) instead of AGL
-  //: clear previous clipping in this shared port
-#if ! __LP64__
-/*GrafPtr port = GetWindowPort( Fl_X::i(this)->window_ref() );
-  Rect rect; SetRect( &rect, 0, 0, 0x7fff, 0x7fff );
-  GrafPtr old; GetPort( &old );
-  SetPort( port );
-  ClipRect( &rect );
-  SetPort( old );*/
-#endif
-#endif
-
-#if HAVE_GL_OVERLAY && defined(WIN32)
-
-  bool fixcursor = false; // for fixing the SGI 320 bug
-
-  // Draw into hardware overlay planes if they are damaged:
-  if (overlay && overlay != this
-      && (damage()&(FL_DAMAGE_OVERLAY|FL_DAMAGE_EXPOSE) || !save_valid)) {
-    // SGI 320 messes up overlay with user-defined cursors:
-    if (Fl_X::i(this)->cursor && Fl_X::i(this)->cursor != fl_default_cursor) {
-      fixcursor = true; // make it restore cursor later
-      SetCursor(0);
-    }
-    fl_set_gl_context(this, (GLContext)overlay);
-    if (fl_overlay_depth)
-      wglRealizeLayerPalette(Fl_X::i(this)->private_dc, 1, TRUE);
-    glDisable(GL_SCISSOR_TEST);
-    glClear(GL_COLOR_BUFFER_BIT);
-    fl_overlay = 1;
-    draw_overlay();
-    fl_overlay = 0;
-    valid_f_ = save_valid_f;
-    wglSwapLayerBuffers(Fl_X::i(this)->private_dc, WGL_SWAP_OVERLAY1);
-    // if only the overlay was damaged we are done, leave main layer alone:
-    if (damage() == FL_DAMAGE_OVERLAY) {
-      if (fixcursor) SetCursor(Fl_X::i(this)->cursor);
-      return;
-    }
-  }
-#endif
-
+  if (pGlWindowDriver->flush_begin(valid_f_) ) return;
   make_current();
 
   if (mode_ & FL_DOUBLE) {
@@ -348,11 +175,7 @@ void Fl_Gl_Window::flush() {
     glDrawBuffer(GL_BACK);
 
     if (!SWAP_TYPE) {
-#if defined (__APPLE_QUARTZ__) || defined (USE_X11)
-      SWAP_TYPE = COPY;
-#else
-      SWAP_TYPE = UNDEFINED;
-#endif
+      SWAP_TYPE = pGlWindowDriver->swap_type();
       const char* c = fl_getenv("GL_SWAP_TYPE");
       if (c) {
 	if (!strcmp(c,"COPY")) SWAP_TYPE = COPY;
@@ -392,30 +215,30 @@ void Fl_Gl_Window::flush() {
 	static GLContext ortho_context = 0;
 	static Fl_Gl_Window* ortho_window = 0;
 	int orthoinit = !ortho_context;
-	if (orthoinit) ortho_context = fl_create_gl_context(this, g);
-	fl_set_gl_context(this, ortho_context);
+	if (orthoinit) ortho_context = pGlWindowDriver->create_gl_context(this, g);
+	pGlWindowDriver->set_gl_context(this, ortho_context);
 	if (orthoinit || !save_valid || ortho_window != this) {
 	  glDisable(GL_DEPTH_TEST);
 	  glReadBuffer(GL_BACK);
 	  glDrawBuffer(GL_FRONT);
 	  glLoadIdentity();
-	  glViewport(0, 0, w(), h());
-	  glOrtho(0, w(), 0, h(), -1, 1);
+	  glViewport(0, 0, pixel_w(), pixel_h());
+	  glOrtho(0, pixel_w(), 0, pixel_h(), -1, 1);
 	  glRasterPos2i(0,0);
 	  ortho_window = this;
 	}
-	glCopyPixels(0,0,w(),h(),GL_COLOR);
+	glCopyPixels(0,0,pixel_w(),pixel_h(),GL_COLOR);
 	make_current(); // set current context back to draw overlay
 	damage1_ = 0;
 
       } else {
-	damage1_ = damage();
-	clear_damage(0xff); draw();
-	swap_buffers();
+        damage1_ = damage();
+        clear_damage(0xff); draw();
+        swap_buffers();
       }
 
     }
-
+    pGlWindowDriver->flush_context();
     if (overlay==this && SWAP_TYPE != SWAP) { // fake overlay in front buffer
       glDrawBuffer(GL_FRONT);
       draw_overlay();
@@ -431,9 +254,6 @@ void Fl_Gl_Window::flush() {
 
   }
 
-#if HAVE_GL_OVERLAY && defined(WIN32)
-  if (fixcursor) SetCursor(Fl_X::i(this)->cursor);
-#endif
   valid(1);
   context_valid(1);
 }
@@ -442,22 +262,15 @@ void Fl_Gl_Window::resize(int X,int Y,int W,int H) {
 //  printf("Fl_Gl_Window::resize(X=%d, Y=%d, W=%d, H=%d)\n", X, Y, W, H);
 //  printf("current: x()=%d, y()=%d, w()=%d, h()=%d\n", x(), y(), w(), h());
 
-  if (W != w() || H != h()) valid(0);
-
-#ifdef __APPLE__
-  if (X != x() || Y != y() || W != w() || H != h()) aglUpdateContext(context_);
-#elif !defined(WIN32)
-  if ((W != w() || H != h()) && !resizable() && overlay && overlay != this) {
-    ((Fl_Gl_Window*)overlay)->resize(0,0,W,H);
-  }
-#endif
-
+  int is_a_resize = (W != Fl_Widget::w() || H != Fl_Widget::h() || Fl_Window_Driver::is_a_rescale());
+  if (is_a_resize) valid(0);
+  pGlWindowDriver->resize(is_a_resize, W, H);
   Fl_Window::resize(X,Y,W,H);
 }
 
 /**
-  Returns or sets a pointer to the GLContext that this window is
-  using. This is a system-dependent structure, but it is portable to copy
+  Sets a pointer to the GLContext that this window is using.
+  This is a system-dependent structure, but it is portable to copy
   the context from one window to another. You can also set it to NULL,
   which will force FLTK to recreate the context the next time make_current()
   is called, this is useful for getting around bugs in OpenGL implementations.
@@ -466,9 +279,9 @@ void Fl_Gl_Window::resize(int X,int Y,int W,int H) {
   fltk when the window is destroyed, or when the mode() is changed, 
   or the next time context(x) is called.
 */
-void Fl_Gl_Window::context(void* v, int destroy_flag) {
-  if (context_ && !(mode_&NON_LOCAL_CONTEXT)) fl_delete_gl_context(context_);
-  context_ = (GLContext)v;
+void Fl_Gl_Window::context(GLContext v, int destroy_flag) {
+  if (context_ && !(mode_&NON_LOCAL_CONTEXT)) pGlWindowDriver->delete_gl_context(context_);
+  context_ = v;
   if (destroy_flag) mode_ &= ~NON_LOCAL_CONTEXT;
   else mode_ |= NON_LOCAL_CONTEXT;
 }    
@@ -478,12 +291,7 @@ void Fl_Gl_Window::context(void* v, int destroy_flag) {
 */
 void Fl_Gl_Window::hide() {
   context(0);
-#if HAVE_GL_OVERLAY && defined(WIN32)
-  if (overlay && overlay != this) {
-    fl_delete_gl_context((GLContext)overlay);
-    overlay = 0;
-  }
-#endif
+  pGlWindowDriver->hide_overlay(overlay);
   Fl_Window::hide();
 }
 
@@ -494,9 +302,11 @@ void Fl_Gl_Window::hide() {
 Fl_Gl_Window::~Fl_Gl_Window() {
   hide();
 //  delete overlay; this is done by ~Fl_Group
+  delete pGlWindowDriver;
 }
 
 void Fl_Gl_Window::init() {
+  pGlWindowDriver = Fl_Gl_Window_Driver::newGlWindowDriver(this);
   end(); // we probably don't want any children
   box(FL_NO_BOX);
 
@@ -532,9 +342,9 @@ void Fl_Gl_Window::init() {
 */
 void Fl_Gl_Window::draw_overlay() {}
 
-#endif
+#endif // HAVE_GL
 
-  /**
+/** Draws the Fl_Gl_Window.   
   You \e \b must subclass Fl_Gl_Window and provide an implementation for 
   draw().  You may also provide an implementation of draw_overlay()
   if you want to draw into the overlay planes.  You can avoid
@@ -548,9 +358,71 @@ void Fl_Gl_Window::draw_overlay() {}
 
   If double-buffering is enabled in the window, the back and front
   buffers are swapped after this function is completed.
+
+  The following pseudo-code shows how to use "if (!valid())"
+  to initialize the viewport:
+
+  \code
+    void mywindow::draw() {
+     if (!valid()) {
+         glViewport(0,0,pixel_w(),pixel_h());
+         glFrustum(...) or glOrtho(...)
+         ...other initialization...
+     }
+     if (!context_valid()) {
+         ...load textures, etc. ...
+     }
+     // clear screen
+     glClearColor(...);
+     glClear(...);
+     ... draw your geometry here ...
+    }
+  \endcode
+
+  Actual example code to clear screen to black and draw a 2D white "X":
+  \code
+    void mywindow::draw() {
+        if (!valid()) {
+            glLoadIdentity();
+            glViewport(0,0,w(),h());
+            glOrtho(-w(),w(),-h(),h(),-1,1);
+        }
+        // Clear screen
+        glClear(GL_COLOR_BUFFER_BIT);
+        // Draw white 'X'
+        glColor3f(1.0, 1.0, 1.0);
+        glBegin(GL_LINE_STRIP); glVertex2f(w(), h()); glVertex2f(-w(),-h()); glEnd();
+        glBegin(GL_LINE_STRIP); glVertex2f(w(),-h()); glVertex2f(-w(), h()); glEnd();
+    } 
+  \endcode
+
 */
 void Fl_Gl_Window::draw() {
-    Fl::fatal("Fl_Gl_Window::draw() *must* be overriden. Please refer to the documentation.");
+#ifdef FL_CFG_GFX_OPENGL
+  Fl_Surface_Device::push_current( Fl_OpenGL_Display_Device::display_device() );
+  glPushAttrib(GL_ENABLE_BIT);
+  glDisable(GL_DEPTH_TEST);
+  glPushMatrix();
+  glLoadIdentity();
+  GLint viewport[4];
+  glGetIntegerv (GL_VIEWPORT, viewport);
+  if (viewport[2] != pixel_w() || viewport[3] != pixel_h()) {
+    glViewport(0, 0, pixel_w(), pixel_h());
+  }
+  glOrtho(-0.5, w()-0.5, h()-0.5, -0.5, -1, 1);
+//  glOrtho(0, w(), h(), 0, -1, 1);
+  glLineWidth((GLfloat)pixels_per_unit()); // should be 1 or 2 (2 if highres OpenGL)
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // FIXME: push on state stack
+  glEnable(GL_BLEND); // FIXME: push on state stack
+  
+  Fl_Window::draw();
+
+  glPopMatrix();
+  glPopAttrib();
+  Fl_Surface_Device::pop_current();
+#else
+  Fl::fatal("Fl_Gl_Window::draw() *must* be overriden. Please refer to the documentation.");
+#endif
 }
 
 
@@ -559,18 +431,6 @@ void Fl_Gl_Window::draw() {
  */
 int Fl_Gl_Window::handle(int event) 
 {
-#ifdef __APPLE_QUARTZ__
-  if (event==FL_HIDE) {
-    // if we are not hidden, just the parent was hidden, so we must throw away the context
-    if (!visible_r())
-      context(0); // remove context without setting the hidden flags
-  }
-  if (event==FL_SHOW) {
-    // if we are not hidden, just the parent was shown, so we must create a new context
-    if (visible_r())
-      show(); //
-  }
-#endif
   return Fl_Window::handle(event);
 }
 
@@ -579,6 +439,327 @@ int Fl_Gl_Window::gl_plugin_linkage() {
   return fl_gl_load_plugin;
 }
 
+/** The number of pixels per FLTK unit of length for the window.
+ Returns 1, except for a window mapped to
+ an Apple 'retina' display, and if Fl::use_high_res_GL(bool) is set to true,
+ when it returns 2. This method dynamically adjusts its value when the window
+ is moved to/from a retina display. This method is useful, e.g., to convert,
+ in a window's handle() method, the FLTK units returned by Fl::event_x() and
+ Fl::event_y() to the pixel units used by the OpenGL source code.
+ \version 1.3.4
+ */
+float Fl_Gl_Window::pixels_per_unit() {
+  return pGlWindowDriver->pixels_per_unit();
+}
+
+// creates a unique, dummy Fl_Gl_Window_Driver object used when no Fl_Gl_Window is around
+// necessary to support gl_start()/gl_finish()
+Fl_Gl_Window_Driver *Fl_Gl_Window_Driver::global() {
+  static Fl_Gl_Window_Driver *gwd = newGlWindowDriver(NULL);
+  return gwd;
+}
+
+void Fl_Gl_Window_Driver::invalidate() {
+  if (pWindow->overlay) {
+    ((Fl_Gl_Window*)pWindow->overlay)->valid(0);
+    ((Fl_Gl_Window*)pWindow->overlay)->context_valid(0);
+  }
+}
+
+
+char Fl_Gl_Window_Driver::swap_type() {return UNDEFINED;}
+
+
+void* Fl_Gl_Window_Driver::GetProcAddress(const char *procName) {
+#if (HAVE_DLSYM && HAVE_DLFCN_H)
+  char symbol[1024];
+  
+  snprintf(symbol, sizeof(symbol), "_%s", procName);
+  
+#    ifdef RTLD_DEFAULT
+  return dlsym(RTLD_DEFAULT, symbol);
+  
+#    else // No RTLD_DEFAULT support, so open the current a.out symbols...
+  static void *rtld_default = dlopen(0, RTLD_LAZY);
+  
+  if (rtld_default) return dlsym(rtld_default, symbol);
+  else return 0;
+  
+#    endif // RTLD_DEFAULT
+  
+#elif defined(HAVE_GLXGETPROCADDRESSARB)
+  return glXGetProcAddressARB((const GLubyte *)procName);
+  
+#else
+  return 0;
+#endif // HAVE_DLSYM
+}
+
+
+#ifdef FL_CFG_GFX_QUARTZ
+#include <FL/x.H>
+#include <OpenGL/OpenGL.h>
+#include "drivers/Cocoa/Fl_Cocoa_Window_Driver.H"
+
+Fl_Gl_Window_Driver *Fl_Gl_Window_Driver::newGlWindowDriver(Fl_Gl_Window *w)
+{
+  return new Fl_Cocoa_Gl_Window_Driver(w);
+}
+
+void Fl_Cocoa_Gl_Window_Driver::before_show(int& need_redraw) {
+  if( ! pWindow->parent() ) need_redraw=1;
+}
+
+void Fl_Cocoa_Gl_Window_Driver::after_show(int need_redraw) {
+  pWindow->set_visible();
+  if(need_redraw) pWindow->redraw();//necessary only after creation of a top-level GL window
+}
+
+float Fl_Cocoa_Gl_Window_Driver::pixels_per_unit()
+{
+  int retina = (fl_mac_os_version >= 100700 && Fl::use_high_res_GL() && Fl_X::i(pWindow) &&
+          Fl_Cocoa_Window_Driver::driver(pWindow)->mapped_to_retina()) ? 2 : 1;
+  return retina * Fl_Graphics_Driver::default_driver().scale();
+}
+
+int Fl_Cocoa_Gl_Window_Driver::mode_(int m, const int *a) {
+  if (a) { // when the mode is set using the a array of system-dependent values, and if asking for double buffer,
+    // the FL_DOUBLE flag must be set in the mode_ member variable
+    const int *aa = a;
+    while (*aa) {
+      if (*(aa++) ==
+          kCGLPFADoubleBuffer
+          ) { m |= FL_DOUBLE; break; }
+    }
+  }
+  pWindow->context(0);
+  mode( m); alist(a);
+  if (pWindow->shown()) {
+    g( find(m, a) );
+    pWindow->redraw();
+  } else {
+    g(0);
+  }
+  return 1;
+}
+
+void Fl_Cocoa_Gl_Window_Driver::make_current_before() {
+  // detect if the window was moved between low and high resolution displays
+  Fl_Cocoa_Window_Driver *d = Fl_Cocoa_Window_Driver::driver(pWindow);
+  if (d->changed_resolution()){
+    d->changed_resolution(false);
+    invalidate();
+    GLcontext_update(pWindow->context());
+  }
+}
+
+void Fl_Cocoa_Gl_Window_Driver::swap_buffers() {
+  if (overlay() != NULL) {
+    // STR# 2944 [1]
+    //    Save matrixmode/proj/modelview/rasterpos before doing overlay.
+    //
+    int wo = pWindow->pixel_w(), ho = pWindow->pixel_h();
+    GLint matrixmode;
+    GLfloat pos[4];
+    glGetIntegerv(GL_MATRIX_MODE, &matrixmode);
+    glGetFloatv(GL_CURRENT_RASTER_POSITION, pos);       // save original glRasterPos
+    glMatrixMode(GL_PROJECTION);			// save proj/model matrices
+    glPushMatrix();
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    glScalef(2.0f/wo, 2.0f/ho, 1.0f);
+    glTranslatef(-wo/2.0f, -ho/2.0f, 0.0f);         // set transform so 0,0 is bottom/left of Gl_Window
+    glRasterPos2i(0,0);                             // set glRasterPos to bottom left corner
+    {
+      // Emulate overlay by doing copypixels
+      glReadBuffer(GL_BACK);
+      glDrawBuffer(GL_FRONT);
+      glCopyPixels(0, 0, wo, ho, GL_COLOR);         // copy GL_BACK to GL_FRONT
+    }
+    glPopMatrix(); // GL_MODELVIEW                  // restore model/proj matrices
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(matrixmode);
+    glRasterPos3f(pos[0], pos[1], pos[2]);              // restore original glRasterPos
+  }
+  /* // nothing to do here under Cocoa because [NSOpenGLContext -flushBuffer] done later replaces it
+   else
+   aglSwapBuffers((AGLContext)context_);
+   */
+}
+
+void Fl_Cocoa_Gl_Window_Driver::resize(int is_a_resize, int unused, int also) {
+  Fl_X *flx = Fl_X::i(pWindow);
+  Fl_Cocoa_Window_Driver *d = Fl_Cocoa_Window_Driver::driver(pWindow);
+  if (flx && d->in_windowDidResize()) GLcontext_update(pWindow->context());
+}
+
+char Fl_Cocoa_Gl_Window_Driver::swap_type() {return COPY;}
+
+#endif // FL_CFG_GFX_QUARTZ
+
+#if defined(FL_CFG_GFX_GDI)
+#include "drivers/WinAPI/Fl_WinAPI_Window_Driver.H"
+#include <FL/x.H>
+#include <FL/Fl_Graphics_Driver.H>
+#include <FL/Fl_Screen_Driver.H>
+
+Fl_Gl_Window_Driver *Fl_Gl_Window_Driver::newGlWindowDriver(Fl_Gl_Window *w)
+{
+  return new Fl_WinAPI_Gl_Window_Driver(w);
+}
+
+float Fl_WinAPI_Gl_Window_Driver::pixels_per_unit()
+{
+  int ns = pWindow->driver()->screen_num();
+  return Fl::screen_driver()->scale(ns);
+}
+
+
+int Fl_WinAPI_Gl_Window_Driver::mode_(int m, const int *a) {
+  int oldmode = mode();
+  pWindow->context(0);
+  mode( m); alist(a);
+  if (pWindow->shown()) {
+    g( find(m, a) );
+    if (!g() || (oldmode^m)&(FL_DOUBLE|FL_STEREO)) {
+      pWindow->hide();
+      pWindow->show();
+    }
+  } else {
+    g(0);
+  }
+  return 1;
+}
+
+void Fl_WinAPI_Gl_Window_Driver::make_current_after() {
+#if USE_COLORMAP
+  if (fl_palette) {
+    fl_GetDC(fl_xid(pWindow));
+    SelectPalette((HDC)fl_graphics_driver->gc(), fl_palette, FALSE);
+    RealizePalette((HDC)fl_graphics_driver->gc());
+  }
+#endif // USE_COLORMAP
+}
+
+//#define HAVE_GL_OVERLAY 1 //test only
+
+void Fl_WinAPI_Gl_Window_Driver::swap_buffers() {
+#  if HAVE_GL_OVERLAY
+  // Do not swap the overlay, to match GLX:
+  BOOL ret = wglSwapLayerBuffers(Fl_WinAPI_Window_Driver::driver(pWindow)->private_dc, WGL_SWAP_MAIN_PLANE);
+  DWORD err = GetLastError();
+#  else
+  SwapBuffers(Fl_WinAPI_Window_Driver::driver(pWindow)->private_dc);
+#  endif
+}
+
+#if HAVE_GL_OVERLAY
+uchar fl_overlay; // changes how fl_color() works
+int fl_overlay_depth = 0;
+#endif
+
+int Fl_WinAPI_Gl_Window_Driver::flush_begin(char& valid_f_) {
+#if HAVE_GL_OVERLAY
+  char save_valid_f = valid_f_;
+  // Draw into hardware overlay planes if they are damaged:
+  if (overlay() && overlay() != pWindow
+      && (pWindow->damage()&(FL_DAMAGE_OVERLAY|FL_DAMAGE_EXPOSE) || !save_valid_f & 1)) {
+    set_gl_context(pWindow, (GLContext)overlay());
+    if (fl_overlay_depth)
+      wglRealizeLayerPalette(Fl_WinAPI_Window_Driver::driver(pWindow)->private_dc, 1, TRUE);
+    glDisable(GL_SCISSOR_TEST);
+    glClear(GL_COLOR_BUFFER_BIT);
+    fl_overlay = 1;
+    draw_overlay();
+    fl_overlay = 0;
+    valid_f_ = save_valid_f;
+    wglSwapLayerBuffers(Fl_WinAPI_Window_Driver::driver(pWindow)->private_dc, WGL_SWAP_OVERLAY1);
+    // if only the overlay was damaged we are done, leave main layer alone:
+    if (pWindow->damage() == FL_DAMAGE_OVERLAY) {
+      return 1;
+    }
+  }
+#endif
+  return 0;
+}
+
+void* Fl_WinAPI_Gl_Window_Driver::GetProcAddress(const char *procName) {
+  return (void*)wglGetProcAddress((LPCSTR)procName);
+}
+
+#endif // FL_CFG_GFX_GDI
+
+
+#if defined(FL_CFG_GFX_XLIB)
+#include <FL/x.H>
+#include "Fl_Gl_Choice.H"
+#include <FL/Fl_Screen_Driver.H>
+#include <FL/Fl_Window_Driver.H>
+
+Fl_Gl_Window_Driver *Fl_Gl_Window_Driver::newGlWindowDriver(Fl_Gl_Window *w)
+{
+  return new Fl_X11_Gl_Window_Driver(w);
+}
+
+void Fl_X11_Gl_Window_Driver::before_show(int& need_redraw) {
+  Fl_X::make_xid(pWindow, g()->vis, g()->colormap);
+  if (overlay() && overlay() != pWindow) ((Fl_Gl_Window*)overlay())->show();
+}
+
+float Fl_X11_Gl_Window_Driver::pixels_per_unit()
+{
+  int ns = pWindow->driver()->screen_num();
+  return Fl::screen_driver()->scale(ns);
+}
+
+int Fl_X11_Gl_Window_Driver::mode_(int m, const int *a) {
+  int oldmode = mode();
+  if (a) { // when the mode is set using the a array of system-dependent values, and if asking for double buffer,
+    // the FL_DOUBLE flag must be set in the mode_ member variable
+    const int *aa = a;
+    while (*aa) {
+      if (*(aa++) ==
+          GLX_DOUBLEBUFFER
+          ) { m |= FL_DOUBLE; break; }
+    }
+  }
+  Fl_Gl_Choice* oldg = g();
+  pWindow->context(0);
+  mode(m); alist(a);
+  if (pWindow->shown()) {
+    g( find(m, a) );
+    // under X, if the visual changes we must make a new X window (yuck!):
+    if (!g() || g()->vis->visualid != oldg->vis->visualid || (oldmode^m)&FL_DOUBLE) {
+      pWindow->hide();
+      pWindow->show();
+    }
+  } else {
+    g(0);
+  }
+  return 1;
+}
+
+void Fl_X11_Gl_Window_Driver::swap_buffers() {
+  glXSwapBuffers(fl_display, fl_xid(pWindow));
+}
+
+void Fl_X11_Gl_Window_Driver::resize(int is_a_resize, int W, int H) {
+  if (is_a_resize && !pWindow->resizable() && overlay() && overlay() != pWindow) {
+    ((Fl_Gl_Window*)overlay())->resize(0,0,W,H);
+  }
+}
+
+char Fl_X11_Gl_Window_Driver::swap_type() {return COPY;}
+
+void Fl_X11_Gl_Window_Driver::waitGL() {
+  glXWaitGL();
+}
+
+#endif // FL_CFG_GFX_XLIB
+
 //
-// End of "$Id: Fl_Gl_Window.cxx 10095 2014-02-07 00:09:52Z AlbrechtS $".
+// End of "$Id: Fl_Gl_Window.cxx 12594 2017-12-18 08:52:55Z manolo $".
 //

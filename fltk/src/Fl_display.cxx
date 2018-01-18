@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_display.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: Fl_display.cxx 11163 2016-02-13 12:57:00Z matt $"
 //
 // Display function for the Fast Light Tool Kit (FLTK).
 //
@@ -20,32 +20,22 @@
 // Using setenv makes programs that are exec'd use the same display.
 
 #include <FL/Fl.H>
-#include <stdlib.h>
-#include "flstring.h"
+#include <FL/Fl_Screen_Driver.H>
 
 /**
-    Sets the X display to use for all windows.  Actually this just sets
-    the environment variable $DISPLAY to the passed string, so this only
-    works before you show() the first window or otherwise open the display,
-    and does nothing useful under WIN32.
+ \brief Sets the X display to use for all windows.  
+
+ Actually this just sets the environment variable $DISPLAY to the passed string, 
+ so this only works before you show() the first window or otherwise open the 
+ display.
+ 
+ This does nothing on other platforms.
 */
-void Fl::display(const char *d) {
-#if defined(__APPLE__) || defined(WIN32)
-  (void)d;
-#else
-  static char e[1024];
-  strcpy(e,"DISPLAY=");
-  strlcat(e,d,sizeof(e));
-  for (char *c = e+8; *c!=':'; c++) {
-    if (!*c) {
-      strlcat(e,":0.0",sizeof(e));
-      break;
-    }
-  }
-  putenv(e);
-#endif // __APPLE__
+void Fl::display(const char *d)
+{
+  screen_driver()->display(d);
 }
 
 //
-// End of "$Id: Fl_display.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: Fl_display.cxx 11163 2016-02-13 12:57:00Z matt $".
 //

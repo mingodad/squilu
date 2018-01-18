@@ -1,5 +1,5 @@
 //
-// "$Id: filename_ext.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: filename_ext.cxx 11556 2016-04-08 16:00:26Z manolo $"
 //
 // Filename extension routines for the Fast Light Tool Kit (FLTK).
 //
@@ -16,11 +16,10 @@
 //     http://www.fltk.org/str.php
 //
 
-// returns pointer to the last '.' or to the null if none:
+#include <FL/Fl_System_Driver.H>
+#include <FL/Fl.H>
 
-#include <FL/filename.H>
-
-/** Gets the extensions of a filename.
+/** Gets the extension of a filename.
    \code
    #include <FL/filename.H>
    [..]
@@ -32,18 +31,19 @@
    \return a pointer to the extension (including '.') if any or NULL otherwise
  */
 const char *fl_filename_ext(const char *buf) {
+  return Fl::system_driver()->filename_ext(buf);
+}
+
+const char *Fl_System_Driver::filename_ext(const char *buf) {
   const char *q = 0;
   const char *p = buf;
   for (p=buf; *p; p++) {
     if (*p == '/') q = 0;
-#if defined(WIN32) || defined(__EMX__) && !defined(__CYGWIN__)
-    else if (*p == '\\') q = 0;
-#endif
     else if (*p == '.') q = p;
   }
   return q ? q : p;
 }
 
 //
-// End of "$Id: filename_ext.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: filename_ext.cxx 11556 2016-04-08 16:00:26Z manolo $".
 //

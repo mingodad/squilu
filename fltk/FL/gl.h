@@ -1,5 +1,5 @@
 //
-// "$Id: gl.h 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: gl.h 11155 2016-02-11 12:02:36Z matt $"
 //
 // OpenGL header file for the Fast Light Tool Kit (FLTK).
 //
@@ -54,11 +54,11 @@
 #    endif
 #  endif
 
-#  ifdef __APPLE__
+#  ifdef __APPLE__ // PORTME: OpenGL path abstraction
 #    include <OpenGL/gl.h>
 #  else
 #    include <GL/gl.h>
-#  endif
+#  endif  // __APPLE__ // PORTME: OpenGL Path abstraction
 
 FL_EXPORT void gl_start();
 FL_EXPORT void gl_finish();
@@ -89,9 +89,15 @@ FL_EXPORT void gl_draw(const char*, int n, int x, int y);
 FL_EXPORT void gl_draw(const char*, int n, float x, float y);
 FL_EXPORT void gl_draw(const char*, int x, int y, int w, int h, Fl_Align);
 FL_EXPORT void gl_measure(const char*, int& x, int& y);
-#ifdef __APPLE__
+#ifdef __APPLE__ // PORTME: OpenGL platform texture
 extern FL_EXPORT void gl_texture_pile_height(int max);
 extern FL_EXPORT int gl_texture_pile_height();
+#elif defined(WIN32)
+  // not needed
+#elif defined(FL_PORTING)
+#  pragma message "FL_PORTING: define functions to control OpenGL texture pile height if supported"
+#else // X11
+  // not needed
 #endif
 
 FL_EXPORT void gl_draw_image(const uchar *, int x,int y,int w,int h, int d=3, int ld=0);
@@ -99,5 +105,5 @@ FL_EXPORT void gl_draw_image(const uchar *, int x,int y,int w,int h, int d=3, in
 #endif // !FL_gl_H
 
 //
-// End of "$Id: gl.h 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: gl.h 11155 2016-02-11 12:02:36Z matt $".
 //

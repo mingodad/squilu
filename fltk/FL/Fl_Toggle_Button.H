@@ -41,7 +41,6 @@ public:
     <P>The inherited destructor deletes the toggle button.
   */
   Fl_Toggle_Button(int X,int Y,int W,int H,const char *l=0);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Toggle_Button, Fl_Button)
 };
 

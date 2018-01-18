@@ -1,5 +1,5 @@
 //
-// "$Id: fl_images_core.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: fl_images_core.cxx 12500 2017-10-15 12:34:24Z AlbrechtS $"
 //
 // FLTK images library core.
 //
@@ -31,10 +31,15 @@
 #include <FL/Fl_JPEG_Image.H>
 #include <FL/Fl_PNG_Image.H>
 #include <FL/Fl_PNM_Image.H>
+#include <FL/Fl_SVG_Image.H>
+#include <FL/fl_utf8.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "flstring.h"
 
+#if defined(HAVE_LIBZ)
+#include <zlib.h>
+#endif
 
 //
 // Define a simple global image registration function that registers
@@ -63,7 +68,7 @@ void fl_register_images() {
 Fl_Image *					// O - Image, if found
 fl_check_images(const char *name,		// I - Filename
                 uchar      *header,		// I - Header data from file
-		int) {				// I - Amount of data (not used)
+		int headerlen) {		// I - Amount of data
   if (memcmp(header, "GIF87a", 6) == 0 ||
       memcmp(header, "GIF89a", 6) == 0)	// GIF file
     return new Fl_GIF_Image(name);
@@ -88,10 +93,27 @@ fl_check_images(const char *name,		// I - Filename
     return new Fl_JPEG_Image(name);
 #endif // HAVE_LIBJPEG
 
+#ifdef FLTK_USE_NANOSVG
+#  if defined(HAVE_LIBZ)
+  if (header[0] == 0x1f && header[1] == 0x8b) { // denotes gzip'ed data
+    int fd = fl_open_ext(name, 1, 0);
+    if (fd < 0) return NULL;
+    gzFile gzf =  gzdopen(fd, "r");
+    if (gzf) {
+      gzread(gzf, header, headerlen);
+      gzclose(gzf);
+    }
+  }
+#  endif // HAVE_LIBZ
+  if ( (headerlen > 5 && memcmp(header, "<?xml", 5) == 0) ||
+      memcmp(header, "<svg", 4) == 0)
+    return new Fl_SVG_Image(name);
+#endif // FLTK_USE_NANOSVG
+
   return 0;
 }
 
 
 //
-// End of "$Id: fl_images_core.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: fl_images_core.cxx 12500 2017-10-15 12:34:24Z AlbrechtS $".
 //

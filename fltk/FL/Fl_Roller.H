@@ -38,7 +38,6 @@ protected:
 public:
   int handle(int);
   Fl_Roller(int X,int Y,int W,int H,const char* L=0);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Roller, Fl_Valuator)
 };
 

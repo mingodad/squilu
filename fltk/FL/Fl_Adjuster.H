@@ -64,7 +64,6 @@ public:
     one.
   */
   int soft() const {return soft_;}
-
 //DAD Extensios
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Adjuster, Fl_Valuator)
 };

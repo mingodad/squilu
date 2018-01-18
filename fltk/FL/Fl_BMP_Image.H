@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_BMP_Image.H 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: Fl_BMP_Image.H 10732 2015-05-23 23:42:26Z matt $"
 //
 // BMP image header file for the Fast Light Tool Kit (FLTK).
 //
@@ -24,15 +24,14 @@
 #  include "Fl_Image.H"
 
 /**
-  The Fl_BMP_Image class supports loading, caching,
-  and drawing of Windows Bitmap (BMP) image files.
-*/
+ The Fl_BMP_Image class supports loading, caching,
+ and drawing of Windows Bitmap (BMP) image files. 
+ */
 class FL_EXPORT Fl_BMP_Image : public Fl_RGB_Image {
 
   public:
 
   Fl_BMP_Image(const char* filename);
-
 //DAD Extensios
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_BMP_Image, Fl_RGB_Image)
 };
@@ -40,5 +39,5 @@ DECLARE_CLASS_CHEAP_RTTI_2(Fl_BMP_Image, Fl_RGB_Image)
 #endif
 
 //
-// End of "$Id: Fl_BMP_Image.H 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: Fl_BMP_Image.H 10732 2015-05-23 23:42:26Z matt $".
 //

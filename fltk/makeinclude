@@ -1,9 +1,9 @@
 #
-# "$Id: makeinclude.in 9736 2012-12-05 14:53:03Z manolo $"
+# "$Id: makeinclude.in 12173 2017-02-15 20:28:13Z AlbrechtS $"
 #
 # Make include file for the Fast Light Tool Kit (FLTK).
 #
-# Copyright 1998-2010 by Bill Spitzak and others.
+# Copyright 1998-2014 by Bill Spitzak and others.
 #
 # This library is free software. Distribution and use rights are outlined in
 # the file "COPYING" which should have been included with this file.  If this
@@ -16,6 +16,22 @@
 #      http://www.fltk.org/str.php
 #
 
+# FLTK version numbers
+
+FL_MAJOR_VERSION	= 1
+FL_MINOR_VERSION	= 4
+FL_PATCH_VERSION	= 0
+
+FL_DSO_VERSION		= 1.4
+FL_ABI_VERSION		= 1.4.0
+FL_VERSION		= 1.4.0
+
+# FLTK configuration options: BUILD = { WIN | OSX | X11 | XFT }
+
+BUILD		= XFT
+
+# Standard configure variables
+
 prefix		= /usr/local
 exec_prefix	= ${prefix}
 bindir		= ${exec_prefix}/bin
@@ -26,11 +42,10 @@ libdir		= ${exec_prefix}/lib
 mandir		= ${datarootdir}/man
 srcdir		= .
 docdir		= $(datadir)/doc/fltk
-VPATH		= .
-USEMMFILES  = No
+
+
 # programs we use...
-HTMLDOC		= 
-DOXYDOC		= 
+DOXYDOC		= /usr/bin/doxygen
 INSTALL		= /usr/bin/install -c
 LN		= ln -s
 NROFF		= /usr/bin/nroff
@@ -48,10 +63,10 @@ MAKEDEPEND	= $(CXX) -M
 RC		= 
 
 # flags for C++ compiler:
-ARCHFLAGS	= -I../../libharu/include
-OPTIM		=  -Os -Wall -Wunused -Wno-format-y2k  -fno-exceptions -fno-strict-aliasing
-CFLAGS		= $(OPTIM) -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -D_THREAD_SAFE -D_REENTRANT -I/usr/include/freetype2   
-CXXFLAGS	= $(OPTIM) -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -D_THREAD_SAFE -D_REENTRANT -I/usr/include/freetype2  -I/usr/include/freetype2   $(FLTKFLAGS)
+ARCHFLAGS	= 
+OPTIM		=  -Os -Wall -Wunused -Wno-format-y2k  -fno-exceptions -fno-strict-aliasing -ffunction-sections -fdata-sections
+CFLAGS		= $(OPTIM) -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_THREAD_SAFE -D_REENTRANT -I/usr/include/freetype2  -I/usr/include/freetype2 -I/home/mingo/local/include -I/home/mingo/local/include  
+CXXFLAGS	= $(OPTIM) -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_THREAD_SAFE -D_REENTRANT -I/usr/include/freetype2  -I/usr/include/freetype2 -I/home/mingo/dev/SquiLu/libharu/include  $(FLTKFLAGS)
 
 # program to make the archive:
 LIBNAME		= ../lib/libfltk.a
@@ -79,10 +94,10 @@ CAIROLIBBASENAME= libfltk_cairo.a
 AUDIOLIBS	= -lasound
 CAIROLIBS	= 
 CAIROFLAGS	= 
-DSOFLAGS	= -L. -L../../libharu/src -lhpdfs
-LDFLAGS		= $(OPTIM)  
-LDLIBS		= -lXfixes -lXext -lXft -lfontconfig -lXinerama -lpthread -ldl -lm  -lX11 
-GLDLIBS		= -lGLU -lGL -lXfixes -lXext -lXft -lfontconfig -lXinerama -lpthread -ldl -lm  -lX11 
+DSOFLAGS	= -L.   -Wl,-no-undefined -Wl,-Bsymbolic-functions -Wl,-gc-sections
+LDFLAGS		= $(OPTIM)  -L/home/mingo/local/lib -L/home/mingo/local/lib 
+LDLIBS		= -lXrender -lXcursor -lXfixes -lXext -lXft -lfontconfig -lXinerama -lpthread -ldl -lm  -lX11 
+GLDLIBS		= -lGLU -lGL -lXrender -lXcursor -lXfixes -lXext -lXft -lfontconfig -lXinerama -lpthread -ldl -lm  -lX11 
 LINKFLTK	= ../lib/libfltk.a
 LINKFLTKGL	= ../lib/libfltk_gl.a
 LINKFLTKFORMS	= ../lib/libfltk_forms.a ../lib/libfltk.a
@@ -167,5 +182,5 @@ UNINSTALL_DESKTOP = uninstall-linux
 	mv t.z $@
 
 #
-# End of "$Id: makeinclude.in 9736 2012-12-05 14:53:03Z manolo $".
+# End of "$Id: makeinclude.in 12173 2017-02-15 20:28:13Z AlbrechtS $".
 #

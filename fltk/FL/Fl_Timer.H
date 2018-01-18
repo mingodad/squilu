@@ -68,7 +68,6 @@ public:
   /**    Gets or sets whether the timer is suspended.  */
   char suspended() const {return !on;}
   void suspended(char d);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Timer, Fl_Widget)
 };
 

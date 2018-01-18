@@ -37,7 +37,6 @@ public:
     Inherited destructor destroys the widget and any value associated with it.
   */
   Fl_Int_Input(int X,int Y,int W,int H,const char *l = 0);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Int_Input, Fl_Input)
 };
 

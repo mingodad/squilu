@@ -1,4 +1,4 @@
-/* "$Id: $"
+/* "$Id: ucs2fontmap.c.mini 12196 2017-03-13 23:31:38Z AlbrechtS $"
  *
  * Author: Jean-Marc Lienher ( http://oksid.ch )
  * Copyright 2000-2003 by O'ksi'D.
@@ -33,5 +33,5 @@ const char *encoding_name(int num)
 };
 
 /*
- * End of "$Id$".
+ * End of "$Id: ucs2fontmap.c.mini 12196 2017-03-13 23:31:38Z AlbrechtS $".
  */

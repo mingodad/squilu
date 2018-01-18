@@ -1,12 +1,12 @@
 //
-// "$Id: Fl_Radio_Button.H 9637 2012-07-24 04:37:22Z matt $"
+// "$Id: Fl_Radio_Button.H 10386 2014-10-19 20:17:17Z AlbrechtS $"
 //
 // Radio button header file for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2010 by Bill Spitzak and others.
+// Copyright 1998-2014 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
-// the file "COPYING" which should have been included with this file.  If this
+// the file "COPYING" which should have been included with this file. If this
 // file is missing or damaged, see the license at:
 //
 //     http://www.fltk.org/COPYING.php
@@ -27,12 +27,11 @@
 class FL_EXPORT Fl_Radio_Button : public Fl_Button {
 public:
   Fl_Radio_Button(int X,int Y,int W,int H,const char *L=0);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Radio_Button, Fl_Button)
 };
 
 #endif
 
 //
-// End of "$Id: Fl_Radio_Button.H 9637 2012-07-24 04:37:22Z matt $".
+// End of "$Id: Fl_Radio_Button.H 10386 2014-10-19 20:17:17Z AlbrechtS $".
 //

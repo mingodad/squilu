@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_compose.cxx 9966 2013-09-06 09:03:22Z manolo $"
+// "$Id: Fl_compose.cxx 11489 2016-03-31 19:55:03Z manolo $"
 //
 // Character compose processing for the Fast Light Tool Kit (FLTK).
 //
@@ -21,20 +21,13 @@
 Utility functions to support text input.
 */
 
-
 #include <FL/Fl.H>
-#include <FL/x.H>
+#include <FL/Fl_Screen_Driver.H>
 
 #ifndef FL_DOXYGEN
 int Fl::compose_state = 0;
-#ifdef __APPLE__
-int Fl_X::next_marked_length = 0;
-#endif
 #endif
 
-#if !defined(WIN32) && !defined(__APPLE__)
-extern XIC fl_xim_ic;
-#endif
 
 /** Any text editing widget should call this for each FL_KEYBOARD event.
  Use of this function is very simple.
@@ -77,60 +70,8 @@ extern XIC fl_xim_ic;
  other user-interface things to allow characters to be selected.
  */
 int Fl::compose(int& del) {
-  int condition;
-#if defined(__APPLE__)
-  int has_text_key = Fl::compose_state || Fl::e_keysym <= '~' || Fl::e_keysym == FL_Iso_Key ||
-  (Fl::e_keysym >= FL_KP && Fl::e_keysym <= FL_KP_Last && Fl::e_keysym != FL_KP_Enter);
-  condition = Fl::e_state&(FL_META | FL_CTRL) || 
-      (Fl::e_keysym >= FL_Shift_L && Fl::e_keysym <= FL_Alt_R) || // called from flagsChanged
-      !has_text_key ;
-#else
-unsigned char ascii = (unsigned char)e_text[0];
-#if defined(WIN32)
-  condition = (e_state & (FL_ALT | FL_META)) && !(ascii & 128) ;
-#else
-  condition = (e_state & (FL_ALT | FL_META | FL_CTRL)) && !(ascii & 128) ;
-#endif // WIN32
-#endif // __APPLE__
-  if (condition) { del = 0; return 0;} // this stuff is to be treated as a function key
-  del = Fl::compose_state;
-#ifdef __APPLE__
-  Fl::compose_state = Fl_X::next_marked_length;
-#else
-  Fl::compose_state = 0;
-// Only insert non-control characters:
-  if ( (!Fl::compose_state) && ! (ascii & ~31 && ascii!=127)) { return 0; }
-#endif
-  return 1;
+  return Fl::screen_driver()->compose(del);
 }
-
-#ifdef __APPLE__
-static int insertion_point_x = 0;
-static int insertion_point_y = 0;
-static int insertion_point_height = 0;
-static bool insertion_point_location_is_valid = false;
-
-void Fl::reset_marked_text() {
-  Fl::compose_state = 0;
-  Fl_X::next_marked_length = 0;
-  insertion_point_location_is_valid = false;
-  }
-int Fl_X::insertion_point_location(int *px, int *py, int *pheight) 
-// return true if the current coordinates of the insertion point are available
-{
-  if ( ! insertion_point_location_is_valid ) return false;
-  *px = insertion_point_x;
-  *py = insertion_point_y;
-  *pheight = insertion_point_height;
-  return true;
-}
-void Fl::insertion_point_location(int x, int y, int height) {
-  insertion_point_location_is_valid = true;
-  insertion_point_x = x;
-  insertion_point_y = y;
-  insertion_point_height = height;
-}
-#endif // __APPLE__
 
 /**
  If the user moves the cursor, be sure to call Fl::compose_reset().
@@ -140,13 +81,10 @@ void Fl::insertion_point_location(int x, int y, int height) {
  */
 void Fl::compose_reset()
 {
-  Fl::compose_state = 0;
-#if !defined(WIN32) && !defined(__APPLE__)
-  if (fl_xim_ic) XmbResetIC(fl_xim_ic);
-#endif
+  Fl::screen_driver()->compose_reset();
 }
 
 //
-// End of "$Id: Fl_compose.cxx 9966 2013-09-06 09:03:22Z manolo $"
+// End of "$Id: Fl_compose.cxx 11489 2016-03-31 19:55:03Z manolo $"
 //
 

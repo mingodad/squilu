@@ -1,9 +1,9 @@
 //
-// "$Id: print_panel.cxx 9158 2011-10-29 14:50:04Z manolo $"
+// "$Id: print_panel.cxx 12492 2017-10-13 14:58:30Z AlbrechtS $"
 //
 // Print panel for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2010 by Bill Spitzak and others.
+// Copyright 1998-2017 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -111,7 +111,7 @@ static void cb_print_properties_panel(Fl_Double_Window*, void*) {
   print_update_status();
 }
 
-static Fl_Menu_Item menu_print_page_size[] = {
+static const Fl_Menu_Item menu_print_page_size[] = {
   {"Letter", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
   {"A4", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
   {"Legal", 0,  0, 0, 0, FL_NORMAL_LABEL, 0, 14, 0},
@@ -125,7 +125,7 @@ static Fl_Menu_Item menu_print_page_size[] = {
 };
 
 #include <FL/Fl_Pixmap.H>
-static const char *idata_print_color[] = {
+static const char * const idata_print_color[] = {
 "24 24 17 1",
 " \tc None",
 ".\tc #FFFF00",
@@ -171,7 +171,7 @@ static const char *idata_print_color[] = {
 };
 static Fl_Pixmap image_print_color(idata_print_color);
 
-static const char *idata_print_gray[] = {
+static const char * const idata_print_gray[] = {
 "24 24 17 1",
 " \tc None",
 ".\tc #E3E3E3",
@@ -514,10 +514,11 @@ void print_cb(Fl_Return_Button *, void *) {
   print_panel->hide();
 }
 
-void print_load() {
+printing_style print_load() { // return whether SystemV or BSD printing style is used
   FILE *lpstat;
-  char line[1024], name[1024], *nptr, qname[2048], *qptr, defname[1024];
+  char line[1024], name[1024], *nptr, qname[2048], *qptr, defname[1024], *p;
   int i;
+  printing_style style = SystemV;
 
   if (print_choice->size() > 1) {
     for (i = 1; print_choice->text(i); i ++) {
@@ -532,8 +533,8 @@ void print_load() {
   print_start = 0;
 
   defname[0] = '\0';
-
-  if ((lpstat = popen("LC_MESSAGES=C LANG=C lpstat -p -d", "r")) != NULL) {
+// get names of all printers and of default one
+  if ((lpstat = popen("LC_MESSAGES=C LANG=C /bin/sh -c '(lpstat -p -d ) 2>&-'", "r")) != NULL) { // try first with SystemV printing system
     while (fgets(line, sizeof(line), lpstat)) {
       if (!strncmp(line, "printer ", 8) &&
           sscanf(line + 8, "%s", name) == 1) {
@@ -549,18 +550,39 @@ void print_load() {
     }
     pclose(lpstat);
   }
+  
+  if (print_choice->size() == 2 && (lpstat = fopen("/etc/printcap", "r"))) { // try next with BSD printing system
+    while (fgets(line, sizeof(line),lpstat)) { // get names of all known printers
+      if (*line == '#' || (p = strchr(line, '|')) == NULL) continue;
+      *p = 0;
+      print_choice->add(line, 0, 0, (void *)strdup(line), 0);
+      style = BSD;
+      *p = '|';
+      while (1) {
+        p = line + strlen(line) - 1;
+        if (*p == '\n' && p > line) p--;
+        if (*p != '\\') break;
+        if (fgets(line, sizeof(line),lpstat)==0) { /* ignore */ }
+      }
+    }
+    fclose(lpstat);
+    p = fl_getenv("PRINTER"); // get name of default printer
+    if (p == NULL) p = (char*)"lp";
+    strcpy(defname, p);
+  }
 
-  if (defname[0]) {
+  if (print_choice->size() > 2) print_choice->value(1);
+  if (defname[0]) { // select default printer in menu
     for (i = 1; print_choice->text(i); i ++) {
       if (!strcmp((char *)print_choice->menu()[i].user_data(), defname)) {
         print_choice->value(i);
         break;
       }
     }
-  } else if (print_choice->size() > 2) print_choice->value(1);
+  }
 
   print_update_status();
-
+  return style;
 } // print_load()
 
 void print_update_status() {
@@ -569,14 +591,21 @@ void print_update_status() {
   static char status[1024];
   const char *printer = (const char *)print_choice->menu()[print_choice->value()].user_data();
 
+  status[0] = 0;
   if (print_choice->value()) {
-    snprintf(command, sizeof(command), "lpstat -p '%s'", printer);
-    if ((lpstat = popen(command, "r")) != NULL) {
-      if (fgets(status, sizeof(status), lpstat)==0) { /* ignore */ }
-      pclose(lpstat);
-    } else strcpy(status, "printer status unavailable");
-  } else status[0] = '\0';
-
+    strcpy(status, "printer status unavailable");
+    snprintf(command, sizeof(command), "/bin/sh -c \"(lpstat -p '%s' ) 2>&-\" ", printer); // try first with SystemV printing system
+    if ((lpstat = popen(command, "r")) !=  NULL) {
+      if (fgets(status, sizeof(status), lpstat) == 0) { // if no reply
+        pclose(lpstat);
+        snprintf(command, sizeof(command), "lpq -P%s 2>&-", printer); // try next with BSD printing system
+        if ((lpstat = popen(command, "r")) !=  NULL) {
+          if (fgets(status, sizeof(status), lpstat)==0) { /* ignore */ }
+        }
+      }
+    pclose(lpstat);
+    }
+  }
   print_status->label(status);
 
   char name[1024];
@@ -592,5 +621,5 @@ void print_update_status() {
 }
 
 //
-// End of "$Id: print_panel.cxx 9158 2011-10-29 14:50:04Z manolo $".
+// End of "$Id: print_panel.cxx 12492 2017-10-13 14:58:30Z AlbrechtS $".
 //

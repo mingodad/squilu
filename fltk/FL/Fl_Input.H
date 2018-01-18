@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Input.H 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: Fl_Input.H 11544 2016-04-06 19:39:15Z manolo $"
 //
 // Input header file for the Fast Light Tool Kit (FLTK).
 //
@@ -39,16 +39,16 @@
   <TABLE WIDTH=90% BORDER=1 SUMMARY="Fl_Input keyboard and mouse bindings.">
     <CAPTION ALIGN=TOP>Fl_Input keyboard and mouse bindings.</CAPTION>
     <TR><TD NOWRAP="NOWRAP" WIDTH="1%">
-      <B>Mouse button 1</B>
+      <B>Mouse button 1</B> 
     </TD><TD>
-      Moves the cursor to this point.
-      Drag selects characters.
-      Double click selects words.
+      Moves the cursor to this point. 
+      Drag selects characters. 
+      Double click selects words. 
       Triple click selects all line.
       Shift+click extends the selection.
       When you select text it is automatically copied to the selection buffer.
     </TD></TR><TR><TD NOWRAP="NOWRAP">
-      <B>Mouse button 2</B>
+      <B>Mouse button 2</B> 
     </TD><TD>
       Insert the selection buffer at the point clicked.
       You can also select a region and replace it with the selection buffer
@@ -123,7 +123,7 @@
     <TD NOWRAP="NOWRAP"><B> Command-V </B></TD>
     <TD>
       <B>Paste the clipboard.</B> <BR>
-      (Macs keyboards don't have "Insert" keys,
+      (Macs keyboards don't have "Insert" keys, 
       but if they did, Shift-Insert would work)
 
   </TD></TR><TR>
@@ -139,16 +139,16 @@
     <TD NOWRAP="NOWRAP"><B> Command-Z </B></TD>
     <TD>
       <B>Undo.</B> <BR>
-      This is a single-level undo mechanism, but all adjacent
+      This is a single-level undo mechanism, but all adjacent 
       deletions and insertions are concatenated into a single "undo".
-      Often this will undo a lot more than you expected.
+      Often this will undo a lot more than you expected. 
 
   </TD></TR><TR>
     <TD NOWRAP="NOWRAP"><B> Shift-^Z </B></TD>
     <TD NOWRAP="NOWRAP"><B> Shift-Command-Z </B></TD>
     <TD>
       <B>Redo.</B> <BR>
-      Currently same behavior as ^Z.
+      Currently same behavior as ^Z. 
       Reserved for future multilevel undo/redo.
 
   </TD></TR><TR>
@@ -219,6 +219,8 @@
   </TD></TR></TABLE>
   */
 class FL_EXPORT Fl_Input : public Fl_Input_ {
+  friend class Fl_Screen_Driver;
+  friend class Fl_Cocoa_Screen_Driver; // Not ideal, but probably no other platform will use it
   int handle_key();
   int shift_position(int p);
   int shift_up_down_position(int p);
@@ -283,8 +285,8 @@ public:
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Input, Fl_Input_)
 };
 
-#endif
+#endif 
 
 //
-// End of "$Id: Fl_Input.H 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: Fl_Input.H 11544 2016-04-06 19:39:15Z manolo $".
 //

@@ -1,9 +1,9 @@
 //
-// "$Id: fl_encoding_latin1.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: fl_encoding_latin1.cxx 11600 2016-04-13 14:19:13Z manolo $"
 //
 // Convert MSWindows-1252 (Latin-1) encoded text to the local encoding.
 //
-// Copyright 1998-2010 by Bill Spitzak and others.
+// Copyright 1998-2016 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -16,13 +16,17 @@
 //     http://www.fltk.org/str.php
 //
 
+#include "config_lib.h"
 #include <FL/fl_draw.H>
+#include <FL/Fl.H>
+#include <FL/Fl_System_Driver.H>
 #include <FL/Enumerations.H>
 #include <stdlib.h>
 #include "flstring.h"
 
-#ifdef __APPLE__
- 
+#ifdef FL_CFG_WIN_COCOA
+#include "drivers/Darwin/Fl_Darwin_System_Driver.H"
+
 // These function assume a western code page. If you need to support 
 // scripts that are not part of this code page, you might want to
 // take a look at FLTK2, which uses utf8 for text encoding.
@@ -67,7 +71,7 @@ static uchar roman2latin[128] = {
 static char *buf = 0;
 static int n_buf = 0;
 
-const char *fl_latin1_to_local(const char *t, int n)  
+const char *Fl_Darwin_System_Driver::latin1_to_local(const char *t, int n)
 {
   if (n==-1) n = strlen(t);
   if (n<=n_buf) {
@@ -88,7 +92,7 @@ const char *fl_latin1_to_local(const char *t, int n)
   return buf;
 }
 
-const char *fl_local_to_latin1(const char *t, int n)
+const char *Fl_Darwin_System_Driver::local_to_latin1(const char *t, int n)
 {
   if (n==-1) n = strlen(t);
   if (n<=n_buf) {
@@ -109,20 +113,29 @@ const char *fl_local_to_latin1(const char *t, int n)
   return buf;
 }
 
-#else 
-
-const char *fl_latin1_to_local(const char *t, int) 
-{
-  return t;
-}
-
-const char *fl_local_to_latin1(const char *t, int)
-{
-  return t;
-}
-
 #endif
 
+const char *Fl_System_Driver::latin1_to_local(const char *t, int)
+{
+  return t;
+}
+
+const char *Fl_System_Driver::local_to_latin1(const char *t, int)
+{
+  return t;
+}
+
+const char *fl_latin1_to_local(const char *t, int n)
+{
+  return Fl::system_driver()->latin1_to_local(t, n);
+}
+
+const char *fl_local_to_latin1(const char *t, int n)
+{
+  return Fl::system_driver()->local_to_latin1(t, n);
+}
+
+
 //
-// End of "$Id: fl_encoding_latin1.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: fl_encoding_latin1.cxx 11600 2016-04-13 14:19:13Z manolo $".
 //

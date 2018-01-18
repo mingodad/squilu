@@ -44,7 +44,6 @@ public:
   int handle(int);
   Flcc_HueBox(int X, int Y, int W, int H) : Fl_Widget(X,Y,W,H) {
   px = py = 0;}
-
 DECLARE_CLASS_CHEAP_RTTI_2(Flcc_HueBox, Fl_Widget)
 };
 
@@ -58,7 +57,6 @@ public:
   int handle(int);
   Flcc_ValueBox(int X, int Y, int W, int H) : Fl_Widget(X,Y,W,H) {
   py = 0;}
-
 DECLARE_CLASS_CHEAP_RTTI_2(Flcc_ValueBox, Fl_Widget)
 };
 
@@ -67,7 +65,6 @@ class FL_EXPORT Flcc_Value_Input : public Fl_Value_Input {
 public:
   int format(char*);
   Flcc_Value_Input(int X, int Y, int W, int H) : Fl_Value_Input(X,Y,W,H) {}
-
 DECLARE_CLASS_CHEAP_RTTI_2(Flcc_Value_Input, Fl_Value_Input)
 };
 
@@ -184,7 +181,6 @@ public:
   static void rgb2hsv(double R, double G, double B, double& H, double& S, double& V);
 
   Fl_Color_Chooser(int X, int Y, int W, int H, const char *L = 0);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Color_Chooser, Fl_Group)
 };
 

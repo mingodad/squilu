@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Single_Window.cxx 9637 2012-07-24 04:37:22Z matt $"
+// "$Id: Fl_Single_Window.cxx 11359 2016-03-13 22:16:37Z matt $"
 //
 // Single-buffered window for the Fast Light Tool Kit (FLTK).
 //
@@ -31,12 +31,6 @@ void Fl_Single_Window::show()
 }
 
 
-void Fl_Single_Window::flush() 
-{
-  Fl_Window::flush();
-}
-
-
 Fl_Single_Window::Fl_Single_Window(int W, int H, const char *l)
 : Fl_Window(W,H,l) 
 {
@@ -50,5 +44,5 @@ Fl_Single_Window::Fl_Single_Window(int X, int Y, int W, int H, const char *l)
 
 
 //
-// End of "$Id: Fl_Single_Window.cxx 9637 2012-07-24 04:37:22Z matt $".
+// End of "$Id: Fl_Single_Window.cxx 11359 2016-03-13 22:16:37Z matt $".
 //

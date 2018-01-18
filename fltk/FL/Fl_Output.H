@@ -54,7 +54,6 @@ public:
   */
 
     Fl_Output(int X,int Y,int W,int H, const char *l = 0);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Output, Fl_Input)
 };
 

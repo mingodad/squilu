@@ -1,7 +1,7 @@
 /*
- * "$Id: fl_call_main.c 9984 2013-09-22 17:20:48Z greg.ercolano $"
+ * "$Id: fl_call_main.c 11459 2016-03-29 09:29:51Z manolo $"
  *
- * Copyright 1998-2010 by Bill Spitzak and others.
+ * Copyright 1998-2016 by Bill Spitzak and others.
  *
  * fl_call_main() calls main() for you Windows people.  Needs to be done in C
  * because Borland C++ won't let you call main() from C++.
@@ -37,6 +37,12 @@
  * Microsoft(r) Windows(r) that allows for it.
  */
 
+#if defined(WIN32) || defined(__APPLE__) /* PORTME: Fl_System_Driver - platform main() */
+#elif defined(FL_PORTING)
+#  pragma message "FL_PORTING: implement 'main()' here if your platform provides another app entry point"
+#else
+#endif
+
 #if defined(WIN32) && !defined(FL_DLL) && !defined (__GNUC__)
 
 #  include <windows.h>
@@ -54,11 +60,11 @@ extern int main(int, char *[]);
 /* static int mbcs2utf(const char *s, int l, char *dst, unsigned dstlen) */
 static int mbcs2utf(const char *s, int l, char *dst)
 {
-  static xchar *mbwbuf;
+  static wchar_t *mbwbuf;
   unsigned dstlen = 0;
   if (!s) return 0;
   dstlen = (l * 6) + 6;
-  mbwbuf = (xchar*)malloc(dstlen * sizeof(xchar));
+  mbwbuf = (wchar_t*)malloc(dstlen * sizeof(wchar_t));
   l = (int) mbstowcs(mbwbuf, s, l);
 /* l = fl_unicode2utf(mbwbuf, l, dst); */
   l = fl_utf8fromwc(dst, dstlen, mbwbuf, l);
@@ -129,6 +135,6 @@ typedef int dummy;
 #endif /* WIN32 && !FL_DLL && !__GNUC__ */
 
 /*
- * End of "$Id: fl_call_main.c 9984 2013-09-22 17:20:48Z greg.ercolano $".
+ * End of "$Id: fl_call_main.c 11459 2016-03-29 09:29:51Z manolo $".
  */
 

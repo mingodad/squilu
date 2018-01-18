@@ -142,7 +142,6 @@ public:
       \param[in] n non-zero to enable automatic resizing, zero to disable.
      */
     void autosize(uchar n) {autosize_ = n;}
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Chart, Fl_Widget)
 };
 

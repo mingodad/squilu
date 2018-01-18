@@ -102,7 +102,6 @@ public:
     shown.
   */
   void		filetype(int t) { filetype_ = t; };
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_File_Browser, Fl_Browser)
 };
 

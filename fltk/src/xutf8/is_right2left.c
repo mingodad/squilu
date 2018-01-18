@@ -1,4 +1,4 @@
-/* "$Id: $"
+/* "$Id: is_right2left.c 12193 2017-03-12 15:12:35Z AlbrechtS $"
  *
  * Author: Jean-Marc Lienher ( http://oksid.ch )
  * Copyright 2000-2010 by O'ksi'D.
@@ -15,10 +15,12 @@
  */
 
 /*
- * This file is required on all platforms for utf8 support
+ * This file is required on all platforms for UTF-8 support
  */
 
-unsigned short 
+#include "../utf8_internal.h"
+
+unsigned short
 XUtf8IsRightToLeft(unsigned int ucs) {
 
 #if 0
@@ -34,7 +36,7 @@ XUtf8IsRightToLeft(unsigned int ucs) {
     if (ucs >= 0x0591) return 1;
     return 0;
   }
-  
+
   /* ARABIC */
   if (ucs <= 0x06ED) {
     if (ucs >= 0x060C)  return 1;
@@ -56,7 +58,7 @@ XUtf8IsRightToLeft(unsigned int ucs) {
     if (ucs >= 0xFB1E) return 1;
     return 0;
   }
-  
+
   if (ucs <= 0xFDFB) {
     if (ucs >= 0xFB50) return 1;
     return 0;
@@ -71,5 +73,5 @@ XUtf8IsRightToLeft(unsigned int ucs) {
 }
 
 /*
- * End of "$Id$".
+ * End of "$Id: is_right2left.c 12193 2017-03-12 15:12:35Z AlbrechtS $".
  */

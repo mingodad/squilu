@@ -1,9 +1,9 @@
 #
-# "$Id: fltk.spec.in 8864 2011-07-19 04:49:30Z greg.ercolano $"
+# "$Id: fltk.spec.in 10612 2015-03-10 01:41:55Z AlbrechtS $"
 #
 # RPM spec file for FLTK.
 #
-# Copyright 1998-2011 by Bill Spitzak and others.
+# Copyright 1998-2015 by Bill Spitzak and others.
 #
 # This library is free software. Distribution and use rights are outlined in
 # the file "COPYING" which should have been included with this file.  If this
@@ -16,7 +16,7 @@
 #      http://www.fltk.org/str.php
 #
 
-%define version 1.3.2
+%define version 1.4.0
 %define release 1
 %define prefix /usr
 
@@ -132,5 +132,5 @@ rm -rf $RPM_BUILD_ROOT
 %{prefix}/share/icons/hicolor/*/apps/sudoku.png
 
 #
-# End of "$Id: fltk.spec.in 8864 2011-07-19 04:49:30Z greg.ercolano $".
+# End of "$Id: fltk.spec.in 10612 2015-03-10 01:41:55Z AlbrechtS $".
 #

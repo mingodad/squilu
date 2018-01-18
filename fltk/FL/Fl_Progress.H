@@ -63,7 +63,6 @@ class FL_EXPORT Fl_Progress : public Fl_Widget {
   void	value(float v) { value_ = v; redraw(); }
   /** Gets the current value in the progress widget.  */
   float	value() const { return (value_); }
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Progress, Fl_Widget)
 };
 

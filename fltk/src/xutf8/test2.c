@@ -1,4 +1,4 @@
-/* "$Id: $"
+/* "$Id: test2.c 12193 2017-03-12 15:12:35Z AlbrechtS $"
  *
  * Author: Jean-Marc Lienher ( http://oksid.ch )
  * Copyright 2000-2003 by O'ksi'D.
@@ -210,5 +210,5 @@ int main(int argc, char**argv) {
 }
 
 /*
- * End of "$Id$".
+ * End of "$Id: test2.c 12193 2017-03-12 15:12:35Z AlbrechtS $".
  */

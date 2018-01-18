@@ -1,5 +1,5 @@
 /*
- * "$Id: scandir_win32.c 10082 2014-01-25 23:04:36Z AlbrechtS $"
+ * "$Id: scandir_win32.c 11552 2016-04-07 15:29:54Z manolo $"
  *
  * WIN32 scandir function for the Fast Light Tool Kit (FLTK).
  *
@@ -18,8 +18,8 @@
 
 #ifndef __CYGWIN__
 /* Emulation of posix scandir() call */
+#include <FL/platform_types.h>
 #include <FL/fl_utf8.h>
-#include <FL/filename.H>
 #include "flstring.h"
 #include <windows.h>
 #include <stdlib.h>
@@ -122,5 +122,5 @@ int fl_scandir(const char *dirname, struct dirent ***namelist,
 #endif
 
 /*
- * End of "$Id: scandir_win32.c 10082 2014-01-25 23:04:36Z AlbrechtS $".
+ * End of "$Id: scandir_win32.c 11552 2016-04-07 15:29:54Z manolo $".
  */

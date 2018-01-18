@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Table_Row.H 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: Fl_Table_Row.H 12390 2017-08-18 15:16:08Z AlbrechtS $"
 //
 
 #ifndef _FL_TABLE_ROW_H
@@ -22,7 +22,7 @@
 // Please report all bugs and problems to "erco at seriss dot com".
 //
 
-#include "Fl_Table.H"
+#include <FL/Fl_Table.H>
 
 /**
  A table with row selection capabilities.
@@ -49,8 +49,56 @@ public:
     SELECT_MULTI		// multiple row selection (default)
   }; 
 private:
-  Fl_Char_Vector _rowselect;		// selection flag for each row
+  // An STL-ish vector without templates
+  class FL_EXPORT CharVector {
+    char *arr;
+    int _size;
+    void init() {
+      arr = 0;
+      _size = 0;
+    }
+    void copy(char *newarr, int newsize);
+  public:
+    CharVector() {				// CTOR
+      init();
+    }
+    ~CharVector();				// DTOR
+    CharVector(CharVector&o) {			// COPY CTOR
+      init();
+      copy(o.arr, o._size);
+    }
+    CharVector& operator=(CharVector&o) {	// ASSIGN
+      init();
+      copy(o.arr, o._size);
+      return(*this);
+    }
+    char operator[](int x) const {
+      return(arr[x]);
+    }
+    char& operator[](int x) {
+      return(arr[x]);
+    }
+    int size() {
+      return(_size);
+    }
+    void size(int count);
+    char pop_back() {
+      char tmp = arr[_size-1];
+      _size--;
+      return(tmp);
+    }
+    void push_back(char val) {
+      int x = _size;
+      size(_size+1);
+      arr[x] = val;
+    }
+    char back() {
+      return(arr[_size-1]);
+    }
+  };
 
+  CharVector _rowselect;		// selection flag for each row
+  
   // handle() state variables.
   //    Put here instead of local statics in handle(), so more
   //    than one instance can exist without crosstalk between.
@@ -134,12 +182,11 @@ public:
     cols(0);
     Fl_Table::clear();	// clear the table
   }
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Table_Row, Fl_Table)
 };
 
 #endif /*_FL_TABLE_ROW_H*/
 
 //
-// End of "$Id: Fl_Table_Row.H 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: Fl_Table_Row.H 12390 2017-08-18 15:16:08Z AlbrechtS $".
 //

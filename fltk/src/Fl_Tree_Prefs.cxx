@@ -1,11 +1,6 @@
 //
-// "$Id: Fl_Tree_Prefs.cxx 10018 2013-11-10 04:33:44Z greg.ercolano $"
+// "$Id: Fl_Tree_Prefs.cxx 11606 2016-04-14 20:58:20Z manolo $"
 //
-
-#include <FL/Fl.H>
-#include <FL/Fl_Pixmap.H>
-#include <FL/Fl_Tree_Prefs.H>
-#include <string.h>		// strcmp
 
 //////////////////////
 // Fl_Tree_Prefs.cxx
@@ -25,11 +20,24 @@
 //     http://www.fltk.org/str.php
 //
 
+#include "config_lib.h"
+
+#include <FL/Fl_System_Driver.H>
+#include <FL/Fl.H>
+#include <FL/Fl_Pixmap.H>
+#include <FL/Fl_Tree_Prefs.H>
+
+#ifdef FL_CFG_WIN_COCOA
+#include "drivers/Darwin/Fl_Darwin_System_Driver.H"
+#endif
+
 // INTERNAL: BUILT IN OPEN/STOW XPMS
 //    These can be replaced via prefs.openicon()/closeicon()
 //
-static const char *L_open_xpm[] = {
-#ifdef __APPLE__
+
+#ifdef FL_CFG_WIN_COCOA
+
+const char * const Fl_Darwin_System_Driver::tree_open_xpm_darwin[] = {
   "11 11 2 1",
   ".  c None",
   "@  c #000000",
@@ -44,28 +52,9 @@ static const char *L_open_xpm[] = {
   "...@@@.....",
   "...@@......",
   "...@......."
-#else /* __APPLE__ */
-  "11 11 3 1",
-  ".	c #fefefe",
-  "#	c #444444",
-  "@	c #000000",
-  "###########",
-  "#.........#",
-  "#.........#",
-  "#....@....#",
-  "#....@....#",
-  "#..@@@@@..#",
-  "#....@....#",
-  "#....@....#",
-  "#.........#",
-  "#.........#",
-  "###########"
-#endif /* __APPLE__ */
 };
-static Fl_Pixmap L_openpixmap(L_open_xpm);
 
-static const char *L_close_xpm[] = {
-#ifdef __APPLE__
+const char * const Fl_Darwin_System_Driver::tree_close_xpm_darwin[] = {
   "11 11 2 1",
   ".  c None",
   "@  c #000000",
@@ -80,7 +69,25 @@ static const char *L_close_xpm[] = {
   ".....@.....",
   "...........",
   "..........."
-#else /* __APPLE__ */
+};
+
+Fl_Pixmap *Fl_Darwin_System_Driver::tree_openpixmap() {
+  static Fl_Pixmap *pixmap = new Fl_Pixmap(tree_open_xpm_darwin);
+  return pixmap;
+}
+
+Fl_Pixmap *Fl_Darwin_System_Driver::tree_closepixmap() {
+  static Fl_Pixmap *pixmap = new Fl_Pixmap(tree_close_xpm_darwin);
+  return pixmap;
+}
+
+int Fl_Darwin_System_Driver::tree_connector_style() {
+  return FL_TREE_CONNECTOR_NONE;
+}
+
+#endif // FL_CFG_WIN_COCOA
+
+const char * const Fl_System_Driver::tree_open_xpm[] = {
   "11 11 3 1",
   ".	c #fefefe",
   "#	c #444444",
@@ -88,17 +95,49 @@ static const char *L_close_xpm[] = {
   "###########",
   "#.........#",
   "#.........#",
-  "#.........#",
-  "#.........#",
+  "#....@....#",
+  "#....@....#",
   "#..@@@@@..#",
-  "#.........#",
-  "#.........#",
+  "#....@....#",
+  "#....@....#",
   "#.........#",
   "#.........#",
   "###########"
-#endif /* __APPLE__ */
 };
-static Fl_Pixmap L_closepixmap(L_close_xpm);
+
+const char * const Fl_System_Driver::tree_close_xpm[] = {
+"11 11 3 1",
+".	c #fefefe",
+"#	c #444444",
+"@	c #000000",
+"###########",
+"#.........#",
+"#.........#",
+"#.........#",
+"#.........#",
+"#..@@@@@..#",
+"#.........#",
+"#.........#",
+"#.........#",
+"#.........#",
+"###########"
+};
+
+
+Fl_Pixmap *Fl_System_Driver::tree_openpixmap() {
+  static Fl_Pixmap *pixmap = new Fl_Pixmap(tree_open_xpm);
+  return pixmap;
+}
+
+Fl_Pixmap *Fl_System_Driver::tree_closepixmap() {
+  static Fl_Pixmap *pixmap = new Fl_Pixmap(tree_close_xpm);
+  return pixmap;
+}
+
+int Fl_System_Driver::tree_connector_style() {
+  return FL_TREE_CONNECTOR_DOTTED;
+}
+
 
 /// Sets the default icon to be used as the 'open' icon
 /// when items are add()ed to the tree.
@@ -107,7 +146,15 @@ static Fl_Pixmap L_closepixmap(L_close_xpm);
 /// \param[in] val -- The new image, or zero to use the default [+] icon.
 ///
 void Fl_Tree_Prefs::openicon(Fl_Image *val) {
-  _openimage = val ? val : &L_openpixmap;
+  _openimage = val ? val : Fl::system_driver()->tree_openpixmap();
+  // Update deactivated version of icon..
+  if ( _opendeimage ) delete _opendeimage;
+  if ( _openimage ) {
+    _opendeimage = _openimage->copy();
+    _opendeimage->inactive();
+  } else {
+    _opendeimage = 0;
+  }
 }
 
 /// Sets the icon to be used as the 'close' icon.
@@ -116,7 +163,15 @@ void Fl_Tree_Prefs::openicon(Fl_Image *val) {
 /// \param[in] val -- The new image, or zero to use the default [-] icon.
 ///
 void Fl_Tree_Prefs::closeicon(Fl_Image *val) {
-  _closeimage = val ? val : &L_closepixmap;
+  _closeimage = val ? val : Fl::system_driver()->tree_closepixmap();
+  // Update deactivated version of icon..
+  if ( _closedeimage ) delete _closedeimage;
+  if ( _closeimage ) {
+    _closedeimage = _closeimage->copy();
+    _closedeimage->inactive();
+  } else {
+    _closedeimage = 0;
+  }
 }
 
 /// Fl_Tree_Prefs constructor
@@ -125,51 +180,49 @@ Fl_Tree_Prefs::Fl_Tree_Prefs() {
   _labelsize              = FL_NORMAL_SIZE;
   _marginleft             = 6;
   _margintop              = 3;
-#if FLTK_ABI_VERSION >= 10301
   _marginbottom           = 20;
-#endif /*FLTK_ABI_VERSION*/
   _openchild_marginbottom = 0;
   _usericonmarginleft     = 3;
   _labelmarginleft        = 3;
-#if FLTK_ABI_VERSION >= 10301
   _widgetmarginleft       = 3;
-#endif /*FLTK_ABI_VERSION*/
   _linespacing            = 0;
   _labelfgcolor           = FL_BLACK;
   _labelbgcolor           = 0xffffffff;		// we use this as 'transparent'
   _connectorcolor         = Fl_Color(43);
-#ifdef __APPLE__
-  _connectorstyle         = FL_TREE_CONNECTOR_NONE;
-#else /* __APPLE__ */
-  _connectorstyle         = FL_TREE_CONNECTOR_DOTTED;
-#endif /* __APPLE__ */
-  _openimage              = &L_openpixmap;
-  _closeimage             = &L_closepixmap;
+  _connectorstyle         = (Fl_Tree_Connector)Fl::system_driver()->tree_connector_style();
+  _openimage              = Fl::system_driver()->tree_openpixmap();
+  _closeimage             = Fl::system_driver()->tree_closepixmap();
   _userimage              = 0;
+  _opendeimage = _openimage->copy();
+  _opendeimage->inactive();
+  _closedeimage = _closeimage->copy();
+  _closedeimage->inactive();
+  _userdeimage            = 0;
   _showcollapse           = 1;
   _showroot               = 1;
   _connectorwidth         = 17;
   _sortorder              = FL_TREE_SORT_NONE;
   _selectbox              = FL_FLAT_BOX;
   _selectmode             = FL_TREE_SELECT_SINGLE;
-#if FLTK_ABI_VERSION >= 10301
   _itemreselectmode       = FL_TREE_SELECTABLE_ONCE;
   _itemdrawmode           = FL_TREE_ITEM_DRAW_DEFAULT;
-#endif
-#if FLTK_ABI_VERSION >= 10303
   _itemdrawcallback       = 0;
   _itemdrawuserdata       = 0;
-#endif
   // Let fltk's current 'scheme' affect defaults
-  if ( Fl::scheme() ) {
-    if ( strcmp(Fl::scheme(), "gtk+") == 0 ) {
-      _selectbox = _FL_GTK_THIN_UP_BOX;
-    } else if ( strcmp(Fl::scheme(), "plastic") == 0 ) {
-      _selectbox = _FL_PLASTIC_THIN_UP_BOX;
-    }
+  if (Fl::is_scheme("gtk+")) {
+    _selectbox = _FL_GTK_THIN_UP_BOX;
+  } else if (Fl::is_scheme("plastic")) {
+    _selectbox = _FL_PLASTIC_THIN_UP_BOX;
   }
 }
 
+/// Fl_Tree_Prefs destructor
+Fl_Tree_Prefs::~Fl_Tree_Prefs() {
+  if ( _opendeimage )  delete _opendeimage;
+  if ( _closedeimage ) delete _closedeimage;
+  if ( _userdeimage )  delete _userdeimage;
+}
+
 //
-// End of "$Id: Fl_Tree_Prefs.cxx 10018 2013-11-10 04:33:44Z greg.ercolano $".
+// End of "$Id: Fl_Tree_Prefs.cxx 11606 2016-04-14 20:58:20Z manolo $".
 //

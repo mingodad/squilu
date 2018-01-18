@@ -1,5 +1,5 @@
 //
-// "$Id: glu.h 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: glu.h 11155 2016-02-11 12:02:36Z matt $"
 //
 // GLu header file for the Fast Light Tool Kit (FLTK).
 //
@@ -38,7 +38,7 @@
 #    endif
 #  endif
 
-#  ifdef __APPLE__
+#  ifdef __APPLE__  // PORTME: OpenGL Path abstraction
 #    include <OpenGL/glu.h>
 #  else
 #    include <GL/glu.h>
@@ -47,5 +47,5 @@
 #endif // !FL_glu_H
 
 //
-// End of "$Id: glu.h 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: glu.h 11155 2016-02-11 12:02:36Z matt $".
 //

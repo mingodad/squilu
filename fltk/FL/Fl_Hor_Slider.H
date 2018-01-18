@@ -36,7 +36,6 @@ public:
     size, and label string.
   */
   Fl_Hor_Slider(int X,int Y,int W,int H,const char *l=0);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Hor_Slider, Fl_Slider)
 };
 

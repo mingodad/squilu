@@ -22,7 +22,7 @@
 #include <FL/Fl.H>
 
 struct idle_cb {
-  Fl_Idle_Handler cb;
+  void (*cb)(void*);
   void* data;
   idle_cb *next;
 };

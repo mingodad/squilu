@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_Group.H 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: Fl_Group.H 12302 2017-07-07 19:16:40Z AlbrechtS $"
 //
 // Group header file for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2010 by Bill Spitzak and others.
+// Copyright 1998-2017 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -22,9 +22,8 @@
 #ifndef Fl_Group_H
 #define Fl_Group_H
 
-#ifndef Fl_Widget_H
-#include <FL/Fl_Widget.H>
-#endif
+#include "Fl_Widget.H"
+//#include "Fl_Rect.H"
 
 typedef int (*Fl_User_Event_Handler)(Fl_Widget *w, int event);
 
@@ -32,13 +31,17 @@ struct st_widget_sizes {
     int x,y,w,h;
     Fl_Fontsize labelsize, textsize;
 };
-
 /**
   The Fl_Group class is the FLTK container widget. It maintains
   an array of child widgets. These children can themselves be any widget
   including Fl_Group. The most important subclass of Fl_Group
   is Fl_Window, however groups can also be used to control radio buttons
   or to enforce resize behavior.
+
+  The tab and arrow keys are used to move the focus between widgets of
+  this group, and to other groups. The only modifier grabbed is shift
+  (for shift-tab), so that ctrl-tab, alt-up, and such are free
+  for the app to use as shortcuts.
 */
 class FL_EXPORT Fl_Group : public Fl_Widget {
 
@@ -51,13 +54,13 @@ class FL_EXPORT Fl_Group : public Fl_Widget {
   int navigation(int);
   static Fl_Group *current_;
   Fl_User_Event_Handler user_handler_;
-
   // unimplemented copy ctor and assignment operator
   Fl_Group(const Fl_Group&);
   Fl_Group& operator=(const Fl_Group&);
 
-protected:
+public:
   void draw();
+protected:
   void draw_child(Fl_Widget& widget) const;
   void draw_children();
   void draw_outside_label(const Fl_Widget& widget) const ;
@@ -67,10 +70,8 @@ protected:
 public:
 
   int handle(int);
-
   void user_handler(Fl_User_Event_Handler uh) {user_handler_ = uh;};
   Fl_User_Event_Handler user_handler() {return user_handler_;};
-
   void begin();
   void end();
   static Fl_Group *current();
@@ -132,12 +133,14 @@ public:
     In these examples the gray area is the resizable:
 
     \image html resizebox1.png
-    
+
+    <br>
+
     \image html resizebox2.png
-    
+
     \image latex resizebox1.png "before resize"  width=4cm
-    
-    \image latex resizebox2.png "after resize"   width=4cm
+
+    \image latex resizebox2.png "after resize"   width=4.85cm
 
     The resizable may be set to the group itself, in which case all the
     contents are resized. This is the default value for Fl_Group,
@@ -152,7 +155,7 @@ public:
   */
   void resizable(Fl_Widget* o) {resizable_ = o;}
   /**
-    See void Fl_Group::resizable(Fl_Widget *box) 
+    See void Fl_Group::resizable(Fl_Widget *box)
   */
   Fl_Widget* resizable() const {return resizable_;}
   /**
@@ -164,7 +167,7 @@ public:
   /**
     Controls whether the group widget clips the drawing of
     child widgets to its bounding box.
-    
+
     Set \p c to 1 if you want to clip the child widgets to the
     bounding box.
 
@@ -197,7 +200,6 @@ public:
 
   /** This is for forms compatibility only */
   void forms_end();
-
   /** Resize the label and font size of its children */
   void resizefont(float font_scale);
 
@@ -226,7 +228,7 @@ DECLARE_CLASS_CHEAP_RTTI_2(Fl_Group, Fl_Widget)
 /**
   This is a dummy class that allows you to end a Fl_Group in a constructor list of a
   class:
-  \code 
+  \code
    class MyClass {
    Fl_Group group;
    Fl_Button button_in_group;
@@ -239,7 +241,7 @@ DECLARE_CLASS_CHEAP_RTTI_2(Fl_Group, Fl_Widget)
    button_in_group(20,20,60,30),
    end(),
    button_outside_group(10,120,60,30)
-  {} 
+  {}
   \endcode
 */
 class FL_EXPORT Fl_End {
@@ -251,5 +253,5 @@ public:
 #endif
 
 //
-// End of "$Id: Fl_Group.H 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: Fl_Group.H 12302 2017-07-07 19:16:40Z AlbrechtS $".
 //

@@ -85,7 +85,6 @@ public:
   void xstep(double a) {xstep_ = a;}
   /** Sets the stepping value for the Y axis.*/
   void ystep(double a) {ystep_ = a;}
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Positioner, Fl_Widget)
 };
 

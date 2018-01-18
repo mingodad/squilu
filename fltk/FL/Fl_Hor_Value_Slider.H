@@ -27,7 +27,6 @@
 class FL_EXPORT Fl_Hor_Value_Slider : public Fl_Value_Slider {
 public:
   Fl_Hor_Value_Slider(int X,int Y,int W,int H,const char *l=0);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Hor_Value_Slider, Fl_Value_Slider)
 };
 

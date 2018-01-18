@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_Sys_Menu_Bar.H 10102 2014-02-11 17:59:20Z manolo $"
+// "$Id: Fl_Sys_Menu_Bar.H 12596 2017-12-18 15:19:15Z manolo $"
 //
 // MacOS system menu bar header file for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2010 by Bill Spitzak and others.
+// Copyright 1998-2017 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -19,36 +19,57 @@
 #ifndef Fl_Sys_Menu_Bar_H
 #define Fl_Sys_Menu_Bar_H
 
-#include "Fl_Menu_Bar.H"
-#include "x.H"
+#include <FL/Fl_Menu_Bar.H>
 
-#if defined(__APPLE__) || defined(FL_DOXYGEN)
+class Fl_Sys_Menu_Bar_Driver;
 
 /**
-  A class to create, modify and delete menus that appear on Mac OS X in the menu bar at the top of the screen.
+ A class to create and modify menus that appear on Mac OS X in the menu bar at the top of the screen.
+ To use this class, just replace Fl_Menu_Bar by Fl_Sys_Menu_Bar, and, on the Mac platform,
+ a system menu at the top of the screen will be available. This menu will match an array
+ of Fl_Menu_Item's exactly as in all other FLTK menus.
  
   On other than Mac OS X platforms, Fl_Sys_Menu_Bar is a synonym of class Fl_Menu_Bar.
- \n To use this class, just replace Fl_Menu_Bar by Fl_Sys_Menu_Bar, and, on the Mac platform,
- a system menu at the top of the screen will be available. This menu will match an array
- of Fl_Menu_Item's exactly as with standard FLTK menus.
-  \n A few FLTK features are not supported by the Mac System menu:
+ 
+  On the MacOS platform, the system menu bar of any FLTK app begins with the Application
+  menu which the FLTK library automatically constructs. Functions
+  Fl_Mac_App_Menu::custom_application_menu_items() and fl_mac_set_about() can be used to further customize
+  the Application menu. The FLTK library also automatically constructs and handles a Window menu which can be
+  further customized (or even removed) calling
+  Fl_Sys_Menu_Bar::window_menu_style(window_menu_style_enum style).
+  Other member functions of this class allow the app to generate the rest of the system menu bar.
+  It is recommended to localize the system menu bar using the standard Mac OS X localization procedure
+  (see \ref osissues_localize).
+ 
+ Changes to the menu state are immediately visible in the menubar when they are made
+ using member functions of the Fl_Sys_Menu_Bar class. Other changes (e.g., by a call to
+ Fl_Menu_Item::set()) should be followed by a call to update() to be
+ visible in the menubar across all platforms.
+ 
+ A few FLTK menu features are not supported by the Mac System menu:
   \li no symbolic labels
   \li no embossed labels
   \li no font sizes
- 
-  You can configure a callback for the 'About' menu item to invoke your own code with fl_mac_set_about().
- */
+  */
 class FL_EXPORT Fl_Sys_Menu_Bar : public Fl_Menu_Bar {
 protected:
-  void update();
-  void draw();
+  virtual void draw();
 public:
+  /** Possible styles of the Window menu in the system menu bar */
+  typedef enum {
+    no_window_menu = 0,     ///< No Window menu in the system menu bar
+    tabbing_mode_none,      ///< No tabbed windows, but the system menu bar contains a Window menu
+    tabbing_mode_automatic, ///< Windows are created by themselves but can be tabbed later
+    tabbing_mode_preferred  ///< Windows are tabbed when created
+  } window_menu_style_enum;
   Fl_Sys_Menu_Bar(int x,int y,int w,int h,const char *l=0);
-  ~Fl_Sys_Menu_Bar();
-  /** Return the system menu's array of Fl_Menu_Item's 
+  virtual ~Fl_Sys_Menu_Bar();
+  static Fl_Sys_Menu_Bar_Driver *driver();
+  /** Return the system menu's array of Fl_Menu_Item's
    */
   const Fl_Menu_Item *menu() const {return Fl_Menu_::menu();}
   void menu(const Fl_Menu_Item *m);
+  virtual void update();
   int add(const char* label, int shortcut, Fl_Callback*, void *user_data=0, int flags=0);
   /** Adds a new menu item. 
    \see Fl_Menu_::add(const char* label, int shortcut, Fl_Callback*, void *user_data=0, int flags=0)
@@ -65,40 +86,33 @@ public:
     return insert(index, label, fl_old_shortcut(shortcut), cb, user_data, flags);
     }
   void remove(int n);
-  void replace(int rank, const char *name);
-  /** Set the Fl_Menu_Item array pointer to null, indicating a zero-length menu. 
-   \see Fl_Menu_::clear()
-   */
+  void replace(int index, const char *name);
   void clear();
-  /** Clears the specified submenu pointed to by index of all menu items.
-   \see Fl_Menu_::clear_submenu(int index)
-   */
   int clear_submenu(int index);
-  /** Make the shortcuts for this menu work no matter what window has the focus when you type it.
-   */
-  void global() {};
-  /** Sets the flags of item i
-   \see Fl_Menu_::mode(int i, int fl) */
-  void 	mode (int i, int fl) {
-    Fl_Menu_::mode(i, fl);
-    update();
-    }
+  void 	mode (int i, int fl);
   /** Gets the flags of item i.
    */
   int mode(int i) const { return Fl_Menu_::mode(i); }
-  /** Changes the shortcut of item i to n.
-   */
-  void shortcut (int i, int s) { Fl_Menu_::shortcut(i, s); update(); };
+  void shortcut (int i, int s);
+  void setonly (Fl_Menu_Item *item);
+  static void about(Fl_Callback *cb, void *data);
+  
+  static window_menu_style_enum window_menu_style();
+  static void window_menu_style(window_menu_style_enum style);
+  static void create_window_menu();
 };
 
-#else
+extern Fl_Sys_Menu_Bar *fl_sys_menu_bar;
 
-typedef Fl_Menu_Bar Fl_Sys_Menu_Bar;
+/**
+ *  Attaches a callback to the "About myprog" item of the system application menu.
+ For back-compatibility. Equivalent to Fl_Sys_Menu_Bar::about(cb, user_data).
+ */
+inline void fl_mac_set_about(Fl_Callback *cb, void *user_data, int shortcut = 0) { Fl_Sys_Menu_Bar::about(cb, user_data);}
 
-#endif // defined(__APPLE__) || defined(FL_DOXYGEN)
 
 #endif // Fl_Sys_Menu_Bar_H
 
 //
-// End of "$Id: Fl_Sys_Menu_Bar.H 10102 2014-02-11 17:59:20Z manolo $".
+// End of "$Id: Fl_Sys_Menu_Bar.H 12596 2017-12-18 15:19:15Z manolo $".
 //

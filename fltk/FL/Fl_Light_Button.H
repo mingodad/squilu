@@ -41,7 +41,6 @@ protected:
 public:
     virtual int handle(int);
     Fl_Light_Button(int x,int y,int w,int h,const char *l = 0);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Light_Button, Fl_Button)
 };
 

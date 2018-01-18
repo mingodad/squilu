@@ -38,7 +38,6 @@ public:
   static int encode(Fl_Image *img, unsigned char **outbuffer, int &outlen);
 private:
   void load_png_(const char *name_png, const unsigned char *buffer_png, int datasize);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_PNG_Image, Fl_RGB_Image)
 };
 

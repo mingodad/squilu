@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_JPEG_Image.H 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: Fl_JPEG_Image.H 10732 2015-05-23 23:42:26Z matt $"
 //
 // JPEG image header file for the Fast Light Tool Kit (FLTK).
 //
@@ -24,11 +24,11 @@
 #  include "Fl_Image.H"
 
 /**
-  The Fl_JPEG_Image class supports loading, caching,
-  and drawing of Joint Photographic Experts Group (JPEG) File
-  Interchange Format (JFIF) images. The class supports grayscale
-  and color (RGB) JPEG image files.
-*/
+ The Fl_JPEG_Image class supports loading, caching,
+ and drawing of Joint Photographic Experts Group (JPEG) File
+ Interchange Format (JFIF) images. The class supports grayscale
+ and color (RGB) JPEG image files.
+ */
 class FL_EXPORT Fl_JPEG_Image : public Fl_RGB_Image {
 
 public:
@@ -36,12 +36,11 @@ public:
   Fl_JPEG_Image(const char *filename);
   Fl_JPEG_Image(const char *name, const unsigned char *data);
   static int encode(Fl_Image *img, int quality, unsigned char **outbuffer, int &outlen);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_JPEG_Image, Fl_RGB_Image)
 };
 
 #endif
 
 //
-// End of "$Id: Fl_JPEG_Image.H 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: Fl_JPEG_Image.H 10732 2015-05-23 23:42:26Z matt $".
 //

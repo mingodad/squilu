@@ -75,13 +75,9 @@ int Fl_Value_Input::handle(int event) {
   case FL_DRAG:
     if (!step()) goto DEFAULT;
     delta = mx-ix;
-    if(Fl::event_ctrl()) {
-        delta /= 5;
-    } else {
-        if (delta > 5) delta -= 5;
-        else if (delta < -5) delta += 5;
-        else delta = 0;
-    }
+    if (delta > 5) delta -= 5;
+    else if (delta < -5) delta += 5;
+    else delta = 0;
     switch (drag) {
     case 3: v = increment(previous_value(), delta*100); break;
     case 2: v = increment(previous_value(), delta*10); break;

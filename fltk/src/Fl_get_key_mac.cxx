@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_get_key_mac.cxx 9952 2013-07-23 16:02:44Z manolo $"
+// "$Id: Fl_get_key_mac.cxx 11545 2016-04-06 20:30:28Z manolo $"
 //
 // MacOS keyboard state routines for the Fast Light Tool Kit (FLTK).
 //
@@ -22,7 +22,7 @@
 
 #include <FL/Fl.H>
 #include <FL/x.H>
-#include <config.h>
+#include "drivers/Darwin/Fl_Darwin_System_Driver.H"
 
 // The list of Mac OS virtual keycodes appears with OS 10.5 in
 // ...../Carbon.framework/Frameworks/HIToolbox.framework/Headers/Events.h
@@ -237,14 +237,14 @@ static int fltk2mac(int fltk) {
 }
 
 //: returns true, if that key was pressed during the last event
-int Fl::event_key(int k) {
+int Fl_Darwin_System_Driver::event_key(int k) {
   return get_key(k);
 }
 
 //: returns true, if that key is pressed right now
-int Fl::get_key(int k) {
+int Fl_Darwin_System_Driver::get_key(int k) {
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
-  if(CGEventSourceKeyState != NULL) {
+  if (&CGEventSourceKeyState != NULL) {
     return (int)CGEventSourceKeyState(kCGEventSourceStateCombinedSessionState, fltk2mac(k) );
     }
   else 
@@ -255,7 +255,7 @@ int Fl::get_key(int k) {
   // use the GetKeys Carbon function
   typedef void (*keymap_f)(fl_KeyMap);
   static keymap_f f = NULL;
-  if (!f) f = ( keymap_f )Fl_X::get_carbon_function("GetKeys");
+    if (!f) f = ( keymap_f )Fl_Darwin_System_Driver::get_carbon_function("GetKeys");
   (*f)(foo);
 #ifdef MAC_TEST_FOR_KEYCODES
  static int cnt = 0;
@@ -275,5 +275,5 @@ int Fl::get_key(int k) {
 }
 
 //
-// End of "$Id: Fl_get_key_mac.cxx 9952 2013-07-23 16:02:44Z manolo $".
+// End of "$Id: Fl_get_key_mac.cxx 11545 2016-04-06 20:30:28Z manolo $".
 //

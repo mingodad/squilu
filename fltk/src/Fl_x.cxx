@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_x.cxx 10190 2014-06-11 14:09:28Z ossman $"
+// "$Id: Fl_x.cxx 12497 2017-10-15 10:37:29Z AlbrechtS $"
 //
 // X specific code for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2012 by Bill Spitzak and others.
+// Copyright 1998-2017 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -16,11 +16,7 @@
 //     http://www.fltk.org/str.php
 //
 
-#ifdef WIN32
-//#  include "Fl_win32.cxx"
-#elif defined(__APPLE__)
-//#  include "Fl_mac.cxx"	// now Fl_cocoa.mm
-#elif !defined(FL_DOXYGEN)
+#if !defined(FL_DOXYGEN)
 
 #  define CONSOLIDATE_MOTION 1
 /**** Define this if your keyboard lacks a backspace key... ****/
@@ -29,6 +25,7 @@
 #  include <config.h>
 #  include <FL/Fl.H>
 #  include <FL/x.H>
+#  include <FL/Fl_Window_Driver.H>
 #  include <FL/Fl_Window.H>
 #  include <FL/fl_utf8.h>
 #  include <FL/Fl_Tooltip.H>
@@ -36,16 +33,23 @@
 #  include <FL/Fl_Paged_Device.H>
 #  include <FL/Fl_Shared_Image.H>
 #  include <FL/fl_ask.H>
+#  include <FL/filename.H>
 #  include <stdio.h>
 #  include <stdlib.h>
 #  include "flstring.h"
+#  include "drivers/X11/Fl_X11_Screen_Driver.H"
+#  include "drivers/X11/Fl_X11_Window_Driver.H"
+#  include "drivers/X11/Fl_X11_System_Driver.H"
+#  include "drivers/Xlib/Fl_Xlib_Graphics_Driver.H"
 #  include <unistd.h>
 #  include <time.h>
 #  include <sys/time.h>
+#  include <math.h>
 #  include <X11/Xmd.h>
 #  include <X11/Xlocale.h>
 #  include <X11/Xlib.h>
 #  include <X11/keysym.h>
+#  include "Xutf8.h"
 #define USE_XRANDR (HAVE_DLSYM && HAVE_DLFCN_H) // means attempt to dynamically load libXrandr.so
 #if USE_XRANDR
 #include <dlfcn.h>
@@ -62,9 +66,16 @@ static int xfixes_event_base = 0;
 static bool have_xfixes = false;
 #  endif
 
-static Fl_Xlib_Graphics_Driver fl_xlib_driver;
-static Fl_Display_Device fl_xlib_display(&fl_xlib_driver);
-Fl_Display_Device *Fl_Display_Device::_display = &fl_xlib_display;// the platform display
+#  include <X11/cursorfont.h>
+
+#  if HAVE_XCURSOR
+#    include <X11/Xcursor/Xcursor.h>
+#  endif
+#  if HAVE_XRENDER
+#    include <X11/extensions/Xrender.h>
+#  endif
+
+extern Fl_Widget *fl_selection_requestor;
 
 ////////////////////////////////////////////////////////////////
 // interface to poll/select call:
@@ -103,7 +114,7 @@ struct FD {
 
 static FD *fd = 0;
 
-void Fl::add_fd(int n, int events, void (*cb)(int, void*), void *v) {
+void Fl_X11_System_Driver::add_fd(int n, int events, void (*cb)(int, void*), void *v) {
   remove_fd(n,events);
   int i = nfds++;
   if (i >= fd_array_size) {
@@ -141,11 +152,11 @@ void Fl::add_fd(int n, int events, void (*cb)(int, void*), void *v) {
 #  endif
 }
 
-void Fl::add_fd(int n, void (*cb)(int, void*), void* v) {
-  Fl::add_fd(n, POLLIN, cb, v);
+void Fl_X11_System_Driver::add_fd(int n, void (*cb)(int, void*), void* v) {
+  add_fd(n, POLLIN, cb, v);
 }
 
-void Fl::remove_fd(int n, int events) {
+void Fl_X11_System_Driver::remove_fd(int n, int events) {
   int i,j;
 # if !USE_POLL
   maxfd = -1; // recalculate maxfd on the fly
@@ -182,9 +193,11 @@ void Fl::remove_fd(int n, int events) {
 #  endif
 }
 
-void Fl::remove_fd(int n) {
+void Fl_X11_System_Driver::remove_fd(int n) {
   remove_fd(n, -1);
 }
+
+extern int fl_send_system_handlers(void *e);
 
 #if CONSOLIDATE_MOTION
 static Fl_Window* send_motion;
@@ -196,6 +209,8 @@ static void do_queued_events() {
   while (XEventsQueued(fl_display,QueuedAfterReading)) {
     XEvent xevent;
     XNextEvent(fl_display, &xevent);
+    if (fl_send_system_handlers(&xevent))
+      continue;
     fl_handle(xevent);
   }
   // we send FL_LEAVE only if the mouse did not enter some other window:
@@ -216,7 +231,7 @@ void (*fl_unlock_function)() = nothing;
 // This is never called with time_to_wait < 0.0:
 // It should return negative on error, 0 if nothing happens before
 // timeout, and >0 if any callbacks were done.
-int fl_wait(double time_to_wait) {
+int Fl_X11_Screen_Driver::poll_or_select_with_delay(double time_to_wait) {
 
   // OpenGL and other broken libraries call XEventsQueued
   // unnecessarily and thus cause the file descriptor to not be ready,
@@ -269,8 +284,8 @@ int fl_wait(double time_to_wait) {
   return n;
 }
 
-// fl_ready() is just like fl_wait(0.0) except no callbacks are done:
-int fl_ready() {
+// just like Fl_X11_Screen_Driver::poll_or_select_with_delay(0.0) except no callbacks are done:
+int Fl_X11_Screen_Driver::poll_or_select() {
   if (XQLength(fl_display)) return 1;
   if (!nfds) return 0; // nothing to select or poll
 #  if USE_POLL
@@ -305,8 +320,9 @@ Window fl_message_window = 0;
 int fl_screen;
 XVisualInfo *fl_visual;
 Colormap fl_colormap;
-XIM fl_xim_im = 0;
+static XIM fl_xim_im = 0;
 XIC fl_xim_ic = 0;
+Window fl_xim_win = 0;
 char fl_is_over_the_spot = 0;
 static XRectangle status_area;
 
@@ -330,23 +346,26 @@ Atom fl_XdndActionCopy;
 Atom fl_XdndFinished;
 //Atom fl_XdndProxy;
 Atom fl_XdndURIList;
-Atom fl_Xatextplainutf;
-Atom fl_Xatextplainutf2;		// STR#2930 
-Atom fl_Xatextplain;
+static Atom fl_Xatextplainutf;
+static Atom fl_Xatextplainutf2;		// STR#2930 
+static Atom fl_Xatextplain;
 static Atom fl_XaText;
-Atom fl_XaCompoundText;
+static Atom fl_XaCompoundText;
 Atom fl_XaUtf8String;
-Atom fl_XaTextUriList;
-Atom fl_XaImageBmp;
-Atom fl_XaImagePNG;
-Atom fl_INCR;
-Atom fl_NET_WM_NAME;			// utf8 aware window label
-Atom fl_NET_WM_ICON_NAME;		// utf8 aware window icon name
-Atom fl_NET_SUPPORTING_WM_CHECK;
-Atom fl_NET_WM_STATE;
-Atom fl_NET_WM_STATE_FULLSCREEN;
-Atom fl_NET_WM_FULLSCREEN_MONITORS;
+static Atom fl_XaTextUriList;
+static Atom fl_XaImageBmp;
+static Atom fl_XaImagePNG;
+static Atom fl_INCR;
+static Atom fl_NET_WM_PID;
+static Atom fl_NET_WM_NAME;			// utf8 aware window label
+static Atom fl_NET_WM_ICON_NAME;		// utf8 aware window icon name
+static Atom fl_NET_SUPPORTING_WM_CHECK;
+static Atom fl_NET_WM_STATE;
+static Atom fl_NET_WM_STATE_FULLSCREEN;
+static Atom fl_NET_WM_FULLSCREEN_MONITORS;
 Atom fl_NET_WORKAREA;
+static Atom fl_NET_WM_ICON;
+static Atom fl_NET_ACTIVE_WINDOW;
 
 /*
   X defines 32-bit-entities to have a format value of max. 32,
@@ -378,14 +397,14 @@ extern "C" {
 
 extern char *fl_get_font_xfld(int fnum, int size);
 
-void fl_new_ic()
+static void fl_new_ic()
 {
   XVaNestedList preedit_attr = NULL;
   XVaNestedList status_attr = NULL;
   static XFontSet fs = NULL;
   char *fnt;
-  char **missing_list;
-  int missing_count;
+  char **missing_list = 0;
+  int missing_count = 0;
   char *def_string;
   static XRectangle spot;
   int predit = 0;
@@ -413,6 +432,9 @@ void fl_new_ic()
     if (must_free_fnt) free(fnt);
   }
 #endif
+
+  if (missing_list) XFreeStringList(missing_list);
+
   preedit_attr = XVaCreateNestedList(0,
                                      XNSpotLocation, &spot,
                                      XNFontSet, fs, NULL);
@@ -468,79 +490,6 @@ void fl_new_ic()
 }
 
 
-static XRectangle    spot;
-static int spotf = -1;
-static int spots = -1;
-
-void fl_reset_spot(void)
-{
-  spot.x = -1;
-  spot.y = -1;
-  //if (fl_xim_ic) XUnsetICFocus(fl_xim_ic);
-}
-
-void fl_set_spot(int font, int size, int X, int Y, int W, int H, Fl_Window *win)
-{
-  int change = 0;
-  XVaNestedList preedit_attr;
-  static XFontSet fs = NULL;
-  char **missing_list;
-  int missing_count;
-  char *def_string;
-  char *fnt = NULL;
-  bool must_free_fnt =true;
-
-  static XIC ic = NULL;
-
-  if (!fl_xim_ic || !fl_is_over_the_spot) return;
-  //XSetICFocus(fl_xim_ic);
-  if (X != spot.x || Y != spot.y) {
-    spot.x = X;
-    spot.y = Y;
-    spot.height = H;
-    spot.width = W;
-    change = 1;
-  }
-  if (font != spotf || size != spots) {
-    spotf = font;
-    spots = size;
-    change = 1;
-    if (fs) {
-      XFreeFontSet(fl_display, fs);
-    }
-#if USE_XFT
-
-#if defined(__GNUC__)
-// FIXME: warning XFT support here
-#endif /*__GNUC__*/
-
-    fnt = NULL; // fl_get_font_xfld(font, size);
-    if (!fnt) {fnt = (char*)"-misc-fixed-*";must_free_fnt=false;}
-    fs = XCreateFontSet(fl_display, fnt, &missing_list,
-                        &missing_count, &def_string);
-#else
-    fnt = fl_get_font_xfld(font, size);
-    if (!fnt) {fnt = (char*)"-misc-fixed-*";must_free_fnt=false;}
-    fs = XCreateFontSet(fl_display, fnt, &missing_list,
-                        &missing_count, &def_string);
-#endif
-  }
-  if (fl_xim_ic != ic) {
-    ic = fl_xim_ic;
-    change = 1;
-  }
-
-  if (fnt && must_free_fnt) free(fnt);
-  if (!change) return;
-
-
-  preedit_attr = XVaCreateNestedList(0,
-                                     XNSpotLocation, &spot,
-                                     XNFontSet, fs, NULL);
-  XSetICValues(fl_xim_ic, XNPreeditAttributes, preedit_attr, NULL);
-  XFree(preedit_attr);
-}
-
 void fl_set_status(int x, int y, int w, int h)
 {
   XVaNestedList status_attr;
@@ -555,7 +504,7 @@ void fl_set_status(int x, int y, int w, int h)
   XFree(status_attr);
 }
 
-void fl_init_xim() {
+static void fl_init_xim() {
   static int xim_warning = 2;
   if (xim_warning > 0) xim_warning--;
 
@@ -600,11 +549,64 @@ void fl_init_xim() {
   if(xim_styles) XFree(xim_styles);
 }
 
-void fl_open_display() {
+void fl_xim_deactivate(void);
+
+extern XRectangle fl_spot;
+extern int fl_spotf;
+extern int fl_spots;
+
+void fl_xim_activate(Window xid) {
+  if (!fl_xim_im)
+    return;
+
+  // If the focused window has changed, then use the brute force method
+  // of completely recreating the input context.
+  if (fl_xim_win != xid) {
+    fl_xim_deactivate();
+
+    fl_new_ic();
+    fl_xim_win = xid;
+
+    XSetICValues(fl_xim_ic,
+                 XNFocusWindow, fl_xim_win,
+                 XNClientWindow, fl_xim_win,
+                 NULL);
+  }
+
+  fl_set_spot(fl_spotf, fl_spots, fl_spot.x, fl_spot.y, fl_spot.width, fl_spot.height);
+}
+
+void fl_xim_deactivate(void) {
+  if (!fl_xim_ic)
+    return;
+
+  XDestroyIC(fl_xim_ic);
+  fl_xim_ic = NULL;
+
+  fl_xim_win = 0;
+}
+
+void Fl_X11_Screen_Driver::enable_im() {
+  Fl_Window *win;
+
+  win = Fl::first_window();
+  if (win && win->shown()) {
+    fl_xim_activate(fl_xid(win));
+    XSetICFocus(fl_xim_ic);
+  } else {
+    fl_new_ic();
+  }
+}
+
+void Fl_X11_Screen_Driver::disable_im() {
+  fl_xim_deactivate();
+}
+
+void Fl_X11_Screen_Driver::open_display_platform() {
   if (fl_display) return;
 
   setlocale(LC_CTYPE, "");
-  XSetLocaleModifiers("");
+  XSetLocaleModifiers("@im=");
 
   XSetIOErrorHandler(io_error_handler);
   XSetErrorHandler(xerror_handler);
@@ -613,6 +615,9 @@ void fl_open_display() {
   if (!d) Fl::fatal("Can't open display: %s",XDisplayName(0));
 
   fl_open_display(d);
+  // the unique GC used by all X windows
+  GC gc = XCreateGC(fl_display, RootWindow(fl_display, fl_screen), 0, 0);
+  Fl_Graphics_Driver::default_driver().gc(gc);
 }
 
 
@@ -650,6 +655,7 @@ void fl_open_display(Display* d) {
   fl_XaImageBmp         = XInternAtom(d, "image/bmp",           0);
   fl_XaImagePNG         = XInternAtom(d, "image/png",           0);
   fl_INCR               = XInternAtom(d, "INCR",                0);
+  fl_NET_WM_PID         = XInternAtom(d, "_NET_WM_PID",         0);
   fl_NET_WM_NAME        = XInternAtom(d, "_NET_WM_NAME",        0);
   fl_NET_WM_ICON_NAME   = XInternAtom(d, "_NET_WM_ICON_NAME",   0);
   fl_NET_SUPPORTING_WM_CHECK = XInternAtom(d, "_NET_SUPPORTING_WM_CHECK", 0);
@@ -657,6 +663,8 @@ void fl_open_display(Display* d) {
   fl_NET_WM_STATE_FULLSCREEN = XInternAtom(d, "_NET_WM_STATE_FULLSCREEN", 0);
   fl_NET_WM_FULLSCREEN_MONITORS = XInternAtom(d, "_NET_WM_FULLSCREEN_MONITORS", 0);
   fl_NET_WORKAREA       = XInternAtom(d, "_NET_WORKAREA",       0);
+  fl_NET_WM_ICON        = XInternAtom(d, "_NET_WM_ICON",        0);
+  fl_NET_ACTIVE_WINDOW  = XInternAtom(d, "_NET_ACTIVE_WINDOW",  0);
 
   if (sizeof(Atom) < 4)
     atom_bits = sizeof(Atom) * 8;
@@ -707,80 +715,36 @@ void fl_open_display(Display* d) {
   XSelectInput(d, RootWindow(d, fl_screen), PropertyChangeMask);
 }
 
-void fl_close_display() {
+void Fl_X11_Screen_Driver::close_display() {
   Fl::remove_fd(ConnectionNumber(fl_display));
   XCloseDisplay(fl_display);
 }
 
-static int fl_workarea_xywh[4] = { -1, -1, -1, -1 };
-
-static void fl_init_workarea() {
-  fl_open_display();
-
-  Atom actual;
-  unsigned long count, remaining;
-  int format;
-  long *xywh = 0;
-
-  /* If there are several screens, the _NET_WORKAREA property 
-   does not give the work area of the main screen, but that of all screens together.
-   Therefore, we use this property only when there is a single screen,
-   and fall back to the main screen full area when there are several screens.
-   */
-  if (Fl::screen_count() > 1 || XGetWindowProperty(fl_display, RootWindow(fl_display, fl_screen),
-			 fl_NET_WORKAREA, 0, 4, False,
-                         XA_CARDINAL, &actual, &format, &count, &remaining,
-                         (unsigned char **)&xywh) || !xywh || !xywh[2] ||
-                         !xywh[3])
-  {
-    Fl::screen_xywh(fl_workarea_xywh[0], 
-		    fl_workarea_xywh[1], 
-		    fl_workarea_xywh[2], 
-		    fl_workarea_xywh[3], 0);
-  }
-  else
-  {
-    fl_workarea_xywh[0] = (int)xywh[0];
-    fl_workarea_xywh[1] = (int)xywh[1];
-    fl_workarea_xywh[2] = (int)xywh[2];
-    fl_workarea_xywh[3] = (int)xywh[3];
-  }
-  if ( xywh ) { XFree(xywh); xywh = 0; }
-}
-
-int Fl::x() {
-  if (fl_workarea_xywh[0] < 0) fl_init_workarea();
-  return fl_workarea_xywh[0];
-}
-
-int Fl::y() {
-  if (fl_workarea_xywh[0] < 0) fl_init_workarea();
-  return fl_workarea_xywh[1];
-}
-
-int Fl::w() {
-  if (fl_workarea_xywh[0] < 0) fl_init_workarea();
-  return fl_workarea_xywh[2];
-}
-
-int Fl::h() {
-  if (fl_workarea_xywh[0] < 0) fl_init_workarea();
-  return fl_workarea_xywh[3];
-}
-
-void Fl::get_mouse(int &xx, int &yy) {
-  fl_open_display();
+int Fl_X11_Screen_Driver::get_mouse_unscaled(int &mx, int &my) {
+  open_display();
   Window root = RootWindow(fl_display, fl_screen);
-  Window c; int mx,my,cx,cy; unsigned int mask;
-  XQueryPointer(fl_display,root,&root,&c,&mx,&my,&cx,&cy,&mask);
-  xx = mx;
-  yy = my;
+  Window c; int cx,cy; unsigned int mask;
+  XQueryPointer(fl_display, root, &root, &c, &mx, &my, &cx, &cy, &mask);
+#if USE_XFT
+  int screen = screen_num_unscaled(mx, my);
+  return screen >= 0 ? screen : 0;
+#else
+  return screen_num(mx, my);
+#endif
+}
+
+
+int Fl_X11_Screen_Driver::get_mouse(int &xx, int &yy) {
+  int snum = get_mouse_unscaled(xx, yy);
+  float s = scale(snum);
+  xx = xx/s;
+  yy = yy/s;
+  return snum;
 }
 
 ////////////////////////////////////////////////////////////////
 // Code used for paste and DnD into the program:
 
-Fl_Widget *fl_selection_requestor;
 char *fl_selection_buffer[2];
 int fl_selection_length[2];
 const char * fl_selection_type[2];
@@ -788,7 +752,7 @@ int fl_selection_buffer_length[2];
 char fl_i_own_selection[2] = {0,0};
 
 // Call this when a "paste" operation happens:
-void Fl::paste(Fl_Widget &receiver, int clipboard, const char *type) {
+void Fl_X11_System_Driver::paste(Fl_Widget &receiver, int clipboard, const char *type) {
   if (fl_i_own_selection[clipboard]) {
     // We already have it, do it quickly without window server.
     // Notice that the text is clobbered if set_selection is
@@ -809,7 +773,7 @@ void Fl::paste(Fl_Widget &receiver, int clipboard, const char *type) {
                     fl_xid(Fl::first_window()), fl_event_time);
 }
 
-int Fl::clipboard_contains(const char *type)
+int Fl_X11_System_Driver::clipboard_contains(const char *type)
 {
   XEvent event;
   Atom actual; int format; unsigned long count, remaining, i = 0;
@@ -823,8 +787,8 @@ int Fl::clipboard_contains(const char *type)
     if (event.type == SelectionNotify && event.xselection.property == None) return 0;
     i++; 
   }
-  while (i < 10 && event.type != SelectionNotify);
-  if (i >= 10) return 0;
+  while (i < 20 && event.type != SelectionNotify);
+  if (i >= 20) return 0;
   XGetWindowProperty(fl_display,
 		     event.xselection.requestor,
 		     event.xselection.property,
@@ -858,11 +822,11 @@ int Fl::clipboard_contains(const char *type)
   return retval;
 }
 
-Window fl_dnd_source_window;
-Atom *fl_dnd_source_types; // null-terminated list of data types being supplied
-Atom fl_dnd_type;
-Atom fl_dnd_source_action;
-Atom fl_dnd_action;
+static Window fl_dnd_source_window;
+static Atom *fl_dnd_source_types; // null-terminated list of data types being supplied
+static Atom fl_dnd_type;
+static Atom fl_dnd_source_action;
+static Atom fl_dnd_action;
 
 void fl_sendClientMessage(Window window, Atom message,
                                  unsigned long d0,
@@ -922,8 +886,15 @@ static int get_xwinprop(Window wnd, Atom prop, long max_length,
 ////////////////////////////////////////////////////////////////
 // Code for copying to clipboard and DnD out of the program:
 
-void Fl::copy(const char *stuff, int len, int clipboard, const char *type) {
+void Fl_X11_System_Driver::copy(const char *stuff, int len, int clipboard, const char *type) {
   if (!stuff || len<0) return;
+
+  if (clipboard >= 2) {
+    copy(stuff, len, 0, type);
+    copy(stuff, len, 1, type);
+    return;
+  }
+
   if (len+1 > fl_selection_buffer_length[clipboard]) {
     delete[] fl_selection_buffer[clipboard];
     fl_selection_buffer[clipboard] = new char[len+100];
@@ -996,14 +967,14 @@ static unsigned char *create_bmp(const unsigned char *data, int W, int H, int *r
   return b;
 }
 
-void Fl::copy_image(const unsigned char *data, int W, int H, int clipboard){
-  if(!data || W<=0 || H<=0) return;
+// takes a raw RGB image and puts it in the copy/paste buffer
+void Fl_X11_Screen_Driver::copy_image(const unsigned char *data, int W, int H, int clipboard){
+  if (!data || W <= 0 || H <= 0) return;
   delete[] fl_selection_buffer[clipboard];
   fl_selection_buffer[clipboard] = (char *) create_bmp(data,W,H,&fl_selection_length[clipboard]);
   fl_selection_buffer_length[clipboard] = fl_selection_length[clipboard];
   fl_i_own_selection[clipboard] = 1;
   fl_selection_type[clipboard] = Fl::clipboard_image;
-
   Atom property = clipboard ? CLIPBOARD : XA_PRIMARY;
   XSetSelectionOwner(fl_display, property, fl_message_window, fl_event_time);
 }
@@ -1090,7 +1061,7 @@ static void handle_clipboard_timestamp(int clipboard, Time time)
   fl_trigger_clipboard_notify(clipboard);
 }
 
-void fl_clipboard_notify_change() {
+void Fl_X11_System_Driver::clipboard_notify_change() {
   // Reset the timestamps if we've going idle so that you don't
   // get a bogus immediate trigger next time they're activated.
   if (fl_clipboard_notify_empty()) {
@@ -1121,14 +1092,18 @@ char fl_key_vector[32]; // used by Fl::get_key()
 static int px, py;
 static ulong ptime;
 
-static void set_event_xy() {
+static void set_event_xy(Fl_Window *win) {
 #  if CONSOLIDATE_MOTION
   send_motion = 0;
 #  endif
-  Fl::e_x_root  = fl_xevent->xbutton.x_root;
-  Fl::e_x       = fl_xevent->xbutton.x;
-  Fl::e_y_root  = fl_xevent->xbutton.y_root;
-  Fl::e_y       = fl_xevent->xbutton.y;
+  float s = 1;
+#if USE_XFT
+  s = Fl::screen_driver()->scale(win->driver()->screen_num());
+#endif
+  Fl::e_x_root  = fl_xevent->xbutton.x_root/s;
+  Fl::e_x       = fl_xevent->xbutton.x/s;
+  Fl::e_y_root  = fl_xevent->xbutton.y_root/s;
+  Fl::e_y       = fl_xevent->xbutton.y/s;
   Fl::e_state   = fl_xevent->xbutton.state << 16;
   fl_event_time = fl_xevent->xbutton.time;
 #  ifdef __sgi
@@ -1184,11 +1159,11 @@ static int wasXExceptionRaised() {
 static bool getNextEvent(XEvent *event_return)
 {
   time_t t = time(NULL);
-  while(!XPending(fl_display))
+  while (!XPending(fl_display))
   {
     if(time(NULL) - t > 10.0)
     {
-      //fprintf(stderr,"Error: The XNextEvent never came...\n");
+      // fprintf(stderr,"Error: The XNextEvent never came...\n");
       return false; 
     }
   }
@@ -1198,7 +1173,7 @@ static bool getNextEvent(XEvent *event_return)
 
 static long getIncrData(uchar* &data, const XSelectionEvent& selevent, long lower_bound)
 {
-//fprintf(stderr,"Incremental transfer starting due to INCR property\n");
+  // fprintf(stderr,"Incremental transfer starting due to INCR property\n");
   size_t total = 0;
   XEvent event;
   XDeleteProperty(fl_display, selevent.requestor, selevent.property);  
@@ -1216,19 +1191,19 @@ static long getIncrData(uchar* &data, const XSelectionEvent& selevent, long lowe
       unsigned char* prop = 0;
       long offset = 0;
       size_t num_bytes;
-      //size_t slice_size = 0;
+      // size_t slice_size = 0;
       do
       {
 	XGetWindowProperty(fl_display, selevent.requestor, selevent.property, offset, 70000, True,
 			   AnyPropertyType, &actual_type, &actual_format, &nitems, &bytes_after, &prop);
 	num_bytes = nitems * (actual_format / 8);
 	offset += num_bytes/4;
-	//slice_size += num_bytes;
+	// slice_size += num_bytes;
 	if (total + num_bytes > (size_t)lower_bound) data = (uchar*)realloc(data, total + num_bytes);
 	memcpy(data + total, prop, num_bytes); total += num_bytes;
 	if (prop) XFree(prop);
       } while (bytes_after != 0);
-//fprintf(stderr,"INCR data size:%ld\n", slice_size);
+      // fprintf(stderr,"INCR data size:%ld\n", slice_size);
       if (num_bytes == 0) break;
     }
     else break;
@@ -1237,16 +1212,22 @@ static long getIncrData(uchar* &data, const XSelectionEvent& selevent, long lowe
   return (long)total;
 }
 
+/* Internal function to reduce "deprecated" warnings for XKeycodeToKeysym().
+   This way we get only one warning. The option to use XkbKeycodeToKeysym()
+   instead would not help much - see STR #2913 for more information.
+*/
+static KeySym fl_KeycodeToKeysym(Display *d, KeyCode k, unsigned i) {
+  return XKeycodeToKeysym(d, k, i);
+}
 
 int fl_handle(const XEvent& thisevent)
 {
   XEvent xevent = thisevent;
   fl_xevent = &thisevent;
   Window xid = xevent.xany.window;
-  static Window xim_win = 0;
 
   if (fl_xim_ic && xevent.type == DestroyNotify &&
-        xid != xim_win && !fl_find(xid))
+        xid != fl_xim_win && !fl_find(xid))
   {
     XIM xim_im;
     xim_im = XOpenIM(fl_display, NULL, NULL, NULL);
@@ -1262,59 +1243,26 @@ int fl_handle(const XEvent& thisevent)
   }
 
   if (fl_xim_ic && (xevent.type == FocusIn))
-  {
-#define POOR_XIM
-#ifdef POOR_XIM
-        if (xim_win != xid)
-        {
-                xim_win  = xid;
-                XDestroyIC(fl_xim_ic);
-                fl_xim_ic = NULL;
-                fl_new_ic();
-                XSetICValues(fl_xim_ic,
-                                XNFocusWindow, xevent.xclient.window,
-                                XNClientWindow, xid,
-                                NULL);
-        }
-        fl_set_spot(spotf, spots, spot.x, spot.y, spot.width, spot.height);
-#else
-    if (Fl::first_window() && Fl::first_window()->modal()) {
-      Window x  = fl_xid(Fl::first_window());
-      if (x != xim_win) {
-        xim_win  = x;
-        XSetICValues(fl_xim_ic,
-                        XNFocusWindow, xim_win,
-                        XNClientWindow, xim_win,
-                        NULL);
-        fl_set_spot(spotf, spots, spot.x, spot.y, spot.width, spot.height);
-      }
-    } else if (xim_win != xid && xid) {
-      xim_win = xid;
-      XSetICValues(fl_xim_ic,
-                        XNFocusWindow, xevent.xclient.window,
-                        XNClientWindow, xid,
-                        //XNFocusWindow, xim_win,
-                        //XNClientWindow, xim_win,
-                        NULL);
-      fl_set_spot(spotf, spots, spot.x, spot.y, spot.width, spot.height);
-    }
-#endif
-  }
+    fl_xim_activate(xid);
 
-  if ( XFilterEvent((XEvent *)&xevent, 0) )
+  if (fl_xim_ic && XFilterEvent((XEvent *)&xevent, 0))
       return(1);
   
 #if USE_XRANDR  
   if( XRRUpdateConfiguration_f && xevent.type == randrEventBase + RRScreenChangeNotify) {
     XRRUpdateConfiguration_f(&xevent);
     Fl::call_screen_init();
-    fl_init_workarea();
+#if USE_XFT
+    float factor = Fl::screen_driver()->desktop_scale_factor();
+    for (int screen = 0; screen <= Fl::screen_count(); screen++)
+      Fl::screen_driver()->rescale_all_windows_from_screen(screen, factor);
+#endif // USE_XFT
     Fl::handle(FL_SCREEN_CONFIGURATION_CHANGED, NULL);
   }
-#endif
+#endif // USE_XRANDR
 
   if (xevent.type == PropertyNotify && xevent.xproperty.atom == fl_NET_WORKAREA) {
-    fl_init_workarea();
+    Fl::screen_driver()->init_workarea();
   }
   
   switch (xevent.type) {
@@ -1359,10 +1307,11 @@ int fl_handle(const XEvent& thisevent)
       }
 
       if (actual == TARGETS || actual == XA_ATOM) {
-/*for (unsigned i = 0; i<count; i++) {
-  fprintf(stderr," %s", XGetAtomName(fl_display, ((Atom*)portion)[i]) );
-  }
-fprintf(stderr,"\n");*/
+	/*for (unsigned i = 0; i<count; i++) {
+	    fprintf(stderr," %s", XGetAtomName(fl_display, ((Atom*)portion)[i]) );
+	  }
+	  fprintf(stderr,"\n");
+	*/
 	Atom t, type = XA_STRING;
 	if (Fl::e_clipboard_type == Fl::clipboard_image) { // searching for image data
 	  for (unsigned i = 0; i<count; i++) { 
@@ -1384,7 +1333,7 @@ fprintf(stderr,"\n");*/
 	    type = t;
 	    break;
 	  }
-	  // rest are only used if no utf-8 available:
+	  // rest are only used if no UTF-8 available:
 	  if (t == fl_XaText ||
 	      t == fl_XaTextUriList ||
 	      t == fl_XaCompoundText) type = t;
@@ -1405,9 +1354,9 @@ fprintf(stderr,"\n");*/
 	  }
 	else {
 	  Fl::e_clipboard_type = Fl::clipboard_plain_text;
-	  //buffer_format = Fl::clipboard_plain_text;
+	  // buffer_format = Fl::clipboard_plain_text;
 	  }
-//fprintf(stderr,"used format=%s\n", buffer_format);
+	  // fprintf(stderr,"used format=%s\n", buffer_format);
 	return true;
       }
 	if (actual == fl_INCR) {
@@ -1432,9 +1381,9 @@ fprintf(stderr,"\n");*/
       sn_buffer[bytesread] = 0;
       convert_crlf(sn_buffer, bytesread);
     }
+    if (!fl_selection_requestor) return 0;
     if (Fl::e_clipboard_type == Fl::clipboard_image) {
       if (bytesread == 0) return 0;
-      Fl_Image *image = 0;
       static char tmp_fname[21];
       static Fl_Shared_Image *shared = 0;
       strcpy(tmp_fname, "/tmp/clipboardXXXXXX");
@@ -1448,20 +1397,25 @@ fprintf(stderr,"\n");*/
       close(fd);
       free(sn_buffer); sn_buffer = 0;
       shared = Fl_Shared_Image::get(tmp_fname);
-      unlink(tmp_fname);
+      fl_unlink(tmp_fname);
       if (!shared) return 0;
-      image = shared->copy();
+      uchar *rgb = new uchar[shared->w() * shared->h() * shared->d()];
+      memcpy(rgb, shared->data()[0], shared->w() * shared->h() * shared->d());
+      Fl_RGB_Image *image = new Fl_RGB_Image(rgb, shared->w(), shared->h(), shared->d());
       shared->release();
+      image->alloc_array = 1;
       Fl::e_clipboard_data = (void*)image;
     }
-    if (!fl_selection_requestor) return 0;
-
-    if (Fl::e_clipboard_type == Fl::clipboard_plain_text) {
+    else if (Fl::e_clipboard_type == Fl::clipboard_plain_text) {
       Fl::e_text = sn_buffer ? (char*)sn_buffer : (char *)"";
       Fl::e_length = bytesread;
       }
     int old_event = Fl::e_number;
-    fl_selection_requestor->handle(Fl::e_number = FL_PASTE);
+    int retval = fl_selection_requestor->handle(Fl::e_number = FL_PASTE);
+    if (!retval && Fl::e_clipboard_type == Fl::clipboard_image) {
+      delete (Fl_RGB_Image*)Fl::e_clipboard_data;
+      Fl::e_clipboard_data= NULL;
+    }
     Fl::e_number = old_event;
     // Detect if this paste is due to Xdnd by the property name (I use
     // XA_SECONDARY for that) and send an XdndFinished message. It is not
@@ -1625,7 +1579,7 @@ fprintf(stderr,"\n");*/
           type = t;
           break;
 	}
-        // rest are only used if no utf-8 available:
+        // rest are only used if no UTF-8 available:
         if (t == fl_XaText ||			// "TEXT"
             t == fl_XaTextUriList ||		// "text/uri-list"
             t == fl_XaCompoundText) type = t;	// "COMPOUND_TEXT"
@@ -1700,7 +1654,7 @@ fprintf(stderr,"\n");*/
     break;
 
   case Expose:
-    Fl_X::i(window)->wait_for_expose = 0;
+    window->driver()->wait_for_expose_value = 0;
 #  if 0
     // try to keep windows on top even if WM_TRANSIENT_FOR does not work:
     // opaque move/resize window managers do not like this, so I disabled it.
@@ -1709,8 +1663,17 @@ fprintf(stderr,"\n");*/
 #  endif
 
   case GraphicsExpose:
-    window->damage(FL_DAMAGE_EXPOSE, xevent.xexpose.x, xevent.xexpose.y,
-                   xevent.xexpose.width, xevent.xexpose.height);
+    {
+#if USE_XFT
+      int ns = window->driver()->screen_num();
+      float s = Fl::screen_driver()->scale(ns);
+      window->damage(FL_DAMAGE_EXPOSE, xevent.xexpose.x/s, xevent.xexpose.y/s,
+                     xevent.xexpose.width/s + 2, xevent.xexpose.height/s + 2);
+#else
+      window->damage(FL_DAMAGE_EXPOSE, xevent.xexpose.x, xevent.xexpose.y,
+                     xevent.xexpose.width, xevent.xexpose.height);
+#endif
+     }
     return 1;
 
   case FocusIn:
@@ -1754,7 +1717,7 @@ fprintf(stderr,"\n");*/
 	  len = XUtf8LookupString(fl_xim_ic, (XKeyPressedEvent *)&xevent.xkey,
 			     kp_buffer, kp_buffer_len, &keysym, &status);
 	}
-	keysym = XKeycodeToKeysym(fl_display, keycode, 0);
+	keysym = fl_KeycodeToKeysym(fl_display, keycode, 0);
       } else {
         //static XComposeStatus compose;
         len = XLookupString((XKeyEvent*)&(xevent.xkey),
@@ -1766,12 +1729,9 @@ fprintf(stderr,"\n");*/
           if (len < 1) len = 1;
           // ignore all effects of shift on the keysyms, which makes it a lot
           // easier to program shortcuts and is Windoze-compatible:
-          keysym = XKeycodeToKeysym(fl_display, keycode, 0);
+          keysym = fl_KeycodeToKeysym(fl_display, keycode, 0);
         }
       }
-      // MRS: Can't use Fl::event_state(FL_CTRL) since the state is not
-      //      set until set_event_xy() is called later...
-      if ((xevent.xkey.state & ControlMask) && keysym == '-') kp_buffer[0] = 0x1f; // ^_
       kp_buffer[len] = 0;
       Fl::e_text = kp_buffer;
       Fl::e_length = len;
@@ -1812,7 +1772,7 @@ fprintf(stderr,"\n");*/
       event = FL_KEYUP;
       fl_key_vector[keycode/8] &= ~(1 << (keycode%8));
       // keyup events just get the unshifted keysym:
-      keysym = XKeycodeToKeysym(fl_display, keycode, 0);
+      keysym = fl_KeycodeToKeysym(fl_display, keycode, 0);
     }
 #  ifdef __sgi
     // You can plug a microsoft keyboard into an sgi but the extra shift
@@ -1823,7 +1783,7 @@ fprintf(stderr,"\n");*/
     case 149: keysym = FL_Menu; break;
     }
 #  endif
-#  if BACKSPACE_HACK
+#  ifdef BACKSPACE_HACK
     // Attempt to fix keyboards that send "delete" for the key in the
     // upper-right corner of the main keyboard.  But it appears that
     // very few of these remain?
@@ -1905,7 +1865,7 @@ fprintf(stderr,"\n");*/
     if (keysym >= 0xff91 && keysym <= 0xff9f) {
       // Map keypad keysym to character or keysym depending on
       // numlock state...
-      unsigned long keysym1 = XKeycodeToKeysym(fl_display, keycode, 1);
+      unsigned long keysym1 = fl_KeycodeToKeysym(fl_display, keycode, 1);
       if (keysym1 <= 0x7f || (keysym1 > 0xff9f && keysym1 <= FL_KP_Last))
         Fl::e_original_keysym = (int)(keysym1 | FL_KP);
       if ((xevent.xkey.state & Mod2Mask) &&
@@ -1932,13 +1892,13 @@ fprintf(stderr,"\n");*/
     // replace XK_ISO_Left_Tab (Shift-TAB) with FL_Tab (modifier flags are set correctly by X11)
     if (Fl::e_keysym == 0xfe20) Fl::e_keysym = FL_Tab;
 
-    set_event_xy();
+    set_event_xy(window);
     Fl::e_is_click = 0; }
     break;
   
   case ButtonPress:
     Fl::e_keysym = FL_Button + xevent.xbutton.button;
-    set_event_xy();
+    set_event_xy(window);
     Fl::e_dx = Fl::e_dy = 0;
     if (xevent.xbutton.button == Button4) {
       Fl::e_dy = -1; // Up
@@ -1989,7 +1949,7 @@ fprintf(stderr,"\n");*/
     break;
 
   case MotionNotify:
-    set_event_xy();
+    set_event_xy(window);
 #  if CONSOLIDATE_MOTION
     send_motion = fl_xmousewin = window;
     in_a_window = true;
@@ -2003,7 +1963,7 @@ fprintf(stderr,"\n");*/
 
   case ButtonRelease:
     Fl::e_keysym = FL_Button + xevent.xbutton.button;
-    set_event_xy();
+    set_event_xy(window);
     Fl::e_state &= ~(FL_BUTTON1 << (xevent.xbutton.button-1));
     if (xevent.xbutton.button == Button4 ||
         xevent.xbutton.button == Button5) return 0;
@@ -2016,7 +1976,7 @@ fprintf(stderr,"\n");*/
   case EnterNotify:
     if (xevent.xcrossing.detail == NotifyInferior) break;
     // XInstallColormap(fl_display, Fl_X::i(window)->colormap);
-    set_event_xy();
+    set_event_xy(window);
     Fl::e_state = xevent.xcrossing.state << 16;
     event = FL_ENTER;
 
@@ -2032,7 +1992,7 @@ fprintf(stderr,"\n");*/
 
   case LeaveNotify:
     if (xevent.xcrossing.detail == NotifyInferior) break;
-    set_event_xy();
+    set_event_xy(window);
     Fl::e_state = xevent.xcrossing.state << 16;
     fl_xmousewin = 0;
     in_a_window = false; // make do_queued_events produce FL_LEAVE event
@@ -2057,10 +2017,39 @@ fprintf(stderr,"\n");*/
     Window cr; int X, Y, W = actual.width, H = actual.height;
     XTranslateCoordinates(fl_display, fl_xid(window), actual.root,
                           0, 0, &X, &Y, &cr);
+#if USE_XFT // detect when window centre changes screen
+    Fl_X11_Screen_Driver *d = (Fl_X11_Screen_Driver*)Fl::screen_driver();
+    Fl_X11_Window_Driver *wd = Fl_X11_Window_Driver::driver(window);
+    int olds = wd->screen_num();
+    int num = d->screen_num_unscaled(X+ actual.width/2, Y +actual.height/2);
+    if (num == -1) num = olds;
+    float s = d->scale(num);
+    if (num != olds) {
+      if (s != d->scale(olds) &&
+          !Fl_X11_Window_Driver::data_for_resize_window_between_screens_.busy &&
+          window->user_data() != &Fl_X11_Screen_Driver::transient_scale_display) {
+        Fl_X11_Window_Driver::data_for_resize_window_between_screens_.busy = true;
+        Fl_X11_Window_Driver::data_for_resize_window_between_screens_.screen = num;
+        // resize_after_screen_change() works also if called here, but calling it
+        // a second later gives a more pleasant user experience when moving windows between distinct screens
+        Fl::add_timeout(1, Fl_X11_Window_Driver::resize_after_screen_change, window);
+      }
+      wd->screen_num(num);
+    }
+#endif // USE_XFT
 
     // tell Fl_Window about it and set flag to prevent echoing:
     resize_bug_fix = window;
+#if USE_XFT    
+    if (!Fl_X11_Window_Driver::data_for_resize_window_between_screens_.busy &&
+      ( ceil(W/s) != window->w() || ceil(H/s) != window->h() ) ) {
+        window->resize(X/s, Y/s, ceil(W/s), ceil(H/s));
+    } else {
+      window->position(X/s, Y/s);
+    }
+#else
     window->resize(X, Y, W, H);
+#endif
     break; // allow add_handler to do something too
     }
 
@@ -2082,7 +2071,13 @@ fprintf(stderr,"\n");*/
     // tell Fl_Window about it and set flag to prevent echoing:
     if ( !wasXExceptionRaised() ) {
       resize_bug_fix = window;
-      window->position(xpos, ypos);
+#if USE_XFT
+      int ns = window->driver()->screen_num();
+      float s = Fl::screen_driver()->scale(ns);
+#else
+      float s = 1;
+#endif
+      window->position(xpos/s, ypos/s);
     }
     break;
     }
@@ -2112,34 +2107,35 @@ fprintf(stderr,"\n");*/
 
 ////////////////////////////////////////////////////////////////
 
-void Fl_Window::resize(int X,int Y,int W,int H) {
-  int is_a_move = (X != x() || Y != y());
-  int is_a_resize = (W != w() || H != h());
-  int resize_from_program = (this != resize_bug_fix);
+void Fl_X11_Window_Driver::resize(int X,int Y,int W,int H) {
+  int is_a_move = (X != x() || Y != y() || is_a_rescale());
+  int is_a_resize = (W != w() || H != h() || is_a_rescale());
+  int resize_from_program = (pWindow != resize_bug_fix);
   if (!resize_from_program) resize_bug_fix = 0;
-  if (is_a_move && resize_from_program) set_flag(FORCE_POSITION);
+  if (is_a_move && resize_from_program) force_position(1);
   else if (!is_a_resize && !is_a_move) return;
   if (is_a_resize) {
-    Fl_Group::resize(X,Y,W,H);
-    if (shown()) {redraw();}
+    pWindow->Fl_Group::resize(X,Y,W,H);
+    if (shown()) {pWindow->redraw();}
   } else {
     x(X); y(Y);
   }
 
-  if (resize_from_program && is_a_resize && !resizable()) {
-    size_range(w(), h(), w(), h());
+  if (resize_from_program && is_a_resize && !pWindow->resizable()) {
+    pWindow->size_range(w(), h(), w(), h());
   }
 
   if (resize_from_program && shown()) {
+    float s = Fl::screen_driver()->scale(screen_num());
     if (is_a_resize) {
-      if (!resizable()) size_range(w(),h(),w(),h());
+      if (!pWindow->resizable()) pWindow->size_range(w(), h(), w(), h());
       if (is_a_move) {
-        XMoveResizeWindow(fl_display, i->xid, X, Y, W>0 ? W : 1, H>0 ? H : 1);
+        XMoveResizeWindow(fl_display, fl_xid(pWindow), X*s, Y*s, W>0 ? W*s : 1, H>0 ? H*s : 1);
       } else {
-        XResizeWindow(fl_display, i->xid, W>0 ? W : 1, H>0 ? H : 1);
+        XResizeWindow(fl_display, fl_xid(pWindow), W>0 ? W*s : 1, H>0 ? H*s : 1);
       }
     } else
-      XMoveWindow(fl_display, i->xid, X, Y);
+      XMoveWindow(fl_display, fl_xid(pWindow), X*s, Y*s);
   }
 }
 
@@ -2173,10 +2169,11 @@ static void send_wm_state_event(Window wnd, int add, Atom prop) {
                 add ? _NET_WM_STATE_ADD : _NET_WM_STATE_REMOVE, prop);
 }
 
-int Fl_X::ewmh_supported() {
+int Fl_X11_Screen_Driver::ewmh_supported() {
   static int result = -1;
 
   if (result == -1) {
+    fl_open_display();
     result = 0;
     unsigned long nitems;
     unsigned long *words = 0;
@@ -2195,46 +2192,83 @@ int Fl_X::ewmh_supported() {
   return result;
 }
 
+#if HAVE_XRENDER
+static int xrender_supported() {
+  int nop1, nop2;
+  fl_open_display();
+  return XRenderQueryExtension(fl_display, &nop1, &nop2);
+}
+#endif
+
+char Fl_Xlib_Graphics_Driver::can_do_alpha_blending() {
+#if HAVE_XRENDER
+  static char result = (char)xrender_supported();
+  return result;
+#else
+  return 0;
+#endif
+}
+
+extern Fl_Window *fl_xfocus;
+
+void Fl_X11_Window_Driver::activate_window() {
+  Window w = fl_xid(pWindow);
+  if (!Fl_X11_Screen_Driver::ewmh_supported())
+    return;
+
+  Window prev = 0;
+
+  if (fl_xfocus) {
+    Fl_X *x = Fl_X::i(fl_xfocus);
+    if (!x)
+      return;
+    prev = x->xid;
+  }
+
+  send_wm_event(w, fl_NET_ACTIVE_WINDOW, 1 /* application */,
+                0 /* timestamp */, prev /* previously active window */);
+}
+
 /* Change an existing window to fullscreen */
-void Fl_Window::fullscreen_x() {
-  if (Fl_X::ewmh_supported()) {
+void Fl_X11_Window_Driver::fullscreen_on() {
+  if (Fl_X11_Screen_Driver::ewmh_supported()) {
     int top, bottom, left, right;
-
-    top = fullscreen_screen_top;
-    bottom = fullscreen_screen_bottom;
-    left = fullscreen_screen_left;
-    right = fullscreen_screen_right;
-
+    
+    top = fullscreen_screen_top();
+    bottom = fullscreen_screen_bottom();
+    left = fullscreen_screen_left();
+    right = fullscreen_screen_right();
+    
     if ((top < 0) || (bottom < 0) || (left < 0) || (right < 0)) {
-      top = Fl::screen_num(x(), y(), w(), h());
+      top = screen_num();
       bottom = top;
       left = top;
       right = top;
     }
-
-    send_wm_event(fl_xid(this), fl_NET_WM_FULLSCREEN_MONITORS,
+    
+    send_wm_event(fl_xid(pWindow), fl_NET_WM_FULLSCREEN_MONITORS,
                   top, bottom, left, right);
-    send_wm_state_event(fl_xid(this), 1, fl_NET_WM_STATE_FULLSCREEN);
+    send_wm_state_event(fl_xid(pWindow), 1, fl_NET_WM_STATE_FULLSCREEN);
   } else {
-    _set_fullscreen();
+    pWindow->_set_fullscreen();
     hide();
     show();
     /* We want to grab the window, not a widget, so we cannot use Fl::grab */
-    XGrabKeyboard(fl_display, fl_xid(this), 1, GrabModeAsync, GrabModeAsync, fl_event_time);
-    Fl::handle(FL_FULLSCREEN, this);
+    XGrabKeyboard(fl_display, fl_xid(pWindow), 1, GrabModeAsync, GrabModeAsync, fl_event_time);
+    Fl::handle(FL_FULLSCREEN, pWindow);
   }
 }
 
-void Fl_Window::fullscreen_off_x(int X, int Y, int W, int H) {
-  if (Fl_X::ewmh_supported()) {
-    send_wm_state_event(fl_xid(this), 0, fl_NET_WM_STATE_FULLSCREEN);
+void Fl_X11_Window_Driver::fullscreen_off(int X, int Y, int W, int H) {
+  if (Fl_X11_Screen_Driver::ewmh_supported()) {
+    send_wm_state_event(fl_xid(pWindow), 0, fl_NET_WM_STATE_FULLSCREEN);
   } else {
-    _clear_fullscreen();
+    pWindow->_clear_fullscreen();
     /* The grab will be lost when the window is destroyed */
     hide();
     resize(X,Y,W,H);
     show();
-    Fl::handle(FL_FULLSCREEN, this);
+    Fl::handle(FL_FULLSCREEN, pWindow);
   }
 }
 
@@ -2246,14 +2280,16 @@ void Fl_Window::fullscreen_off_x(int X, int Y, int W, int H) {
 void fl_fix_focus(); // in Fl.cxx
 
 Fl_X* Fl_X::set_xid(Fl_Window* win, Window winxid) {
-  Fl_X* xp = new Fl_X;
+  Fl_X *xp = new Fl_X;
   xp->xid = winxid;
-  xp->other_xid = 0;
-  xp->setwindow(win);
+  win->driver()->other_xid = 0;
+  xp->w = win; win->i = xp;
   xp->next = Fl_X::first;
   xp->region = 0;
-  xp->wait_for_expose = 1;
-  xp->backbuffer_bad = 1;
+  win->driver()->wait_for_expose_value = 1;
+#ifdef USE_XDBE
+  Fl_X11_Window_Driver::driver(win)->backbuffer_bad = 1;
+#endif
   Fl_X::first = xp;
   if (win->modal()) {Fl::modal_ = win; fl_fix_focus();}
   return xp;
@@ -2264,7 +2300,6 @@ Fl_X* Fl_X::set_xid(Fl_Window* win, Window winxid) {
 // normally.  The global variables like fl_show_iconic are so that
 // subclasses of *that* class may change the behavior...
 
-char fl_show_iconic;    // hack for iconize()
 int fl_background_pixel = -1; // hack to speed up bg box drawing
 int fl_disable_transient_for; // secret method of removing TRANSIENT_FOR
 
@@ -2368,7 +2403,7 @@ void Fl_X::make_xid(Fl_Window* win, XVisualInfo *visual, Colormap colormap)
   // since we do not want save_under, do not want to turn off the
   // border, and cannot grab without an existing window. Besides, 
   // there is no clear_override(). 
-  if (win->fullscreen_active() && !Fl_X::ewmh_supported()) {
+  if (win->fullscreen_active() && !Fl_X11_Screen_Driver::ewmh_supported()) {
     int sx, sy, sw, sh;
     attr.override_redirect = 1;
     mask |= CWOverrideRedirect;
@@ -2387,17 +2422,43 @@ void Fl_X::make_xid(Fl_Window* win, XVisualInfo *visual, Colormap colormap)
     fl_background_pixel = -1;
     mask |= CWBackPixel;
   }
-
+  float s = 1;
+#if USE_XFT
+  //compute adequate screen where to put the window
+  int nscreen = 0;
+  if (win->parent()) {
+    nscreen = win->top_window()->driver()->screen_num();
+  } else if (win->force_position() && Fl_X11_Window_Driver::driver(win)->screen_num_ >= 0) {
+    nscreen = win->driver()->screen_num();
+  } else {
+    Fl_Window *hint = Fl::first_window();
+    if (hint) {
+      nscreen = hint->top_window()->driver()->screen_num();
+    }
+  }
+  Fl_X11_Window_Driver::driver(win)->screen_num(nscreen);
+  s = Fl::screen_driver()->scale(nscreen);
+//if (!win->parent()) printf("win creation on screen #%d\n", nscreen);
+#endif
   Fl_X* xp =
     set_xid(win, XCreateWindow(fl_display,
                                root,
-                               X, Y, W, H,
+                               X*s, Y*s, W*s, H*s,
                                0, // borderwidth
                                visual->depth,
                                InputOutput,
                                visual->visual,
                                mask, &attr));
   int showit = 1;
+
+  // Set WM_CLIENT_MACHINE and WM_LOCALE_NAME
+  XSetWMProperties(fl_display, xp->xid, NULL, NULL, NULL, 0, NULL, NULL, NULL);
+
+  // Set _NET_WM_PID
+  long pid;
+  pid = getpid();
+  XChangeProperty(fl_display, xp->xid, fl_NET_WM_PID,
+		  XA_CARDINAL, 32, 0, (unsigned char *)&pid, 1);
 
   if (!win->parent() && !attr.override_redirect) {
     // Communicate all kinds 'o junk to the X Window Manager:
@@ -2408,7 +2469,7 @@ void Fl_X::make_xid(Fl_Window* win, XVisualInfo *visual, Colormap colormap)
                     XA_ATOM, 32, 0, (uchar*)&WM_DELETE_WINDOW, 1);
 
     // send size limits and border:
-    xp->sendxjunk();
+    Fl_X11_Window_Driver::driver(win)->sendxjunk();
 
     // set the class property, which controls the icon used:
     if (win->xclass()) {
@@ -2449,7 +2510,7 @@ void Fl_X::make_xid(Fl_Window* win, XVisualInfo *visual, Colormap colormap)
     }
 
     // If asked for, create fullscreen
-    if (win->fullscreen_active() && Fl_X::ewmh_supported()) {
+    if (win->fullscreen_active() && Fl_X11_Screen_Driver::ewmh_supported()) {
       unsigned long data[4];
       data[0] = fullscreen_top;
       data[1] = fullscreen_bottom;
@@ -2469,18 +2530,20 @@ void Fl_X::make_xid(Fl_Window* win, XVisualInfo *visual, Colormap colormap)
     XWMHints *hints = XAllocWMHints();
     hints->input = True;
     hints->flags = InputHint;
-    if (fl_show_iconic) {
+    if (Fl_Window::show_iconic_) {
       hints->flags |= StateHint;
       hints->initial_state = IconicState;
-      fl_show_iconic = 0;
+      Fl_Window::show_iconic_ = 0;
       showit = 0;
     }
-    if (win->icon()) {
-      hints->icon_pixmap = (Pixmap)win->icon();
+    if (Fl_X11_Window_Driver::driver(win)->icon_->legacy_icon) {
+      hints->icon_pixmap = (Pixmap)Fl_X11_Window_Driver::driver(win)->icon_->legacy_icon;
       hints->flags       |= IconPixmapHint;
     }
     XSetWMHints(fl_display, xp->xid, hints);
     XFree(hints);
+
+    Fl_X11_Window_Driver::driver(win)->set_icons();
   }
 
   // set the window type for menu and tooltip windows to avoid animations (compiz)
@@ -2500,6 +2563,9 @@ void Fl_X::make_xid(Fl_Window* win, XVisualInfo *visual, Colormap colormap)
   }
 #endif
 
+  if (win->is_shaped()) {
+    Fl_X11_Window_Driver::driver(win)->combine_mask();
+    }
   XMapWindow(fl_display, xp->xid);
   if (showit) {
     win->set_visible();
@@ -2510,7 +2576,7 @@ void Fl_X::make_xid(Fl_Window* win, XVisualInfo *visual, Colormap colormap)
   }
 
   // non-EWMH fullscreen case, need grab
-  if (win->fullscreen_active() && !Fl_X::ewmh_supported()) {
+  if (win->fullscreen_active() && !Fl_X11_Screen_Driver::ewmh_supported()) {
     XGrabKeyboard(fl_display, xp->xid, 1, GrabModeAsync, GrabModeAsync, fl_event_time);
   }
 
@@ -2519,10 +2585,11 @@ void Fl_X::make_xid(Fl_Window* win, XVisualInfo *visual, Colormap colormap)
 ////////////////////////////////////////////////////////////////
 // Send X window stuff that can be changed over time:
 
-void Fl_X::sendxjunk() {
+void Fl_X11_Window_Driver::sendxjunk() {
+  Fl_Window *w = pWindow;
   if (w->parent() || w->override()) return; // it's not a window manager window!
 
-  if (!w->size_range_set) { // default size_range based on resizable():
+  if (!size_range_set()) { // default size_range based on resizable():
     if (w->resizable()) {
       Fl_Widget *o = w->resizable();
       int minw = o->w(); if (minw > 100) minw = 100;
@@ -2536,12 +2603,20 @@ void Fl_X::sendxjunk() {
 
   XSizeHints *hints = XAllocSizeHints();
   // memset(&hints, 0, sizeof(hints)); jreiser suggestion to fix purify?
-  hints->min_width = w->minw;
-  hints->min_height = w->minh;
-  hints->max_width = w->maxw;
-  hints->max_height = w->maxh;
-  hints->width_inc = w->dw;
-  hints->height_inc = w->dh;
+  float s = Fl::screen_driver()->scale(screen_num());
+
+  hints->min_width = s*minw();
+  hints->min_height = s*minh();
+  hints->max_width = s*maxw();
+  hints->max_height = s*maxh();
+  if (int(s) == s) { // use win size increment value only if scale is an integer. Is it possible to do better?
+    hints->width_inc = s*dw();
+    hints->height_inc = s*dh();
+  } else {
+    hints->width_inc = 0;
+    hints->height_inc = 0;
+  }
+  
   hints->win_gravity = StaticGravity;
 
   // see the file /usr/include/X11/Xm/MwmUtil.h:
@@ -2558,11 +2633,11 @@ void Fl_X::sendxjunk() {
       // unfortunately we can't set just one maximum size.  Guess a
       // value for the other one.  Some window managers will make the
       // window fit on screen when maximized, others will put it off screen:
-      if (hints->max_width < hints->min_width) hints->max_width = Fl::w();
-      if (hints->max_height < hints->min_height) hints->max_height = Fl::h();
+      if (hints->max_width < hints->min_width) hints->max_width = Fl::w()*s;
+      if (hints->max_height < hints->min_height) hints->max_height = Fl::h()*s;
     }
     if (hints->width_inc && hints->height_inc) hints->flags |= PResizeInc;
-    if (w->aspect) {
+    if (aspect()) {
       // stupid X!  It could insist that the corner go on the
       // straight line between min and max...
       hints->min_aspect.x = hints->max_aspect.x = hints->min_width;
@@ -2575,10 +2650,10 @@ void Fl_X::sendxjunk() {
     prop[1] = 1|2|16; // MWM_FUNC_ALL | MWM_FUNC_RESIZE | MWM_FUNC_MAXIMIZE
   }
 
-  if (w->force_position()) {
+  if (force_position()) {
     hints->flags |= USPosition;
-    hints->x = w->x();
-    hints->y = w->y();
+    hints->x = s*w->x();
+    hints->y = s*w->y();
   }
 
   if (!w->border()) {
@@ -2586,40 +2661,259 @@ void Fl_X::sendxjunk() {
     prop[2] = 0; // no decorations
   }
 
-  XSetWMNormalHints(fl_display, xid, hints);
-  XChangeProperty(fl_display, xid,
+  XSetWMNormalHints(fl_display, fl_xid(w), hints);
+  XChangeProperty(fl_display, fl_xid(w),
                   fl_MOTIF_WM_HINTS, fl_MOTIF_WM_HINTS,
                   32, 0, (unsigned char *)prop, 5);
   XFree(hints);
 }
 
-void Fl_Window::size_range_() {
-  size_range_set = 1;
-  if (shown()) i->sendxjunk();
+////////////////////////////////////////////////////////////////
+
+static unsigned long *default_net_wm_icons = 0L;
+static size_t default_net_wm_icons_size = 0;
+
+// Note: icons[] *must* contain at least <count> valid image pointers (!NULL),
+//  but: <count> *may* be 0
+static void icons_to_property(const Fl_RGB_Image *icons[], int count,
+                              unsigned long **property, size_t *len) {
+  size_t sz;
+  unsigned long *data;
+
+  sz = 0;
+  for (int i = 0;i < count;i++)
+    sz += 2 + icons[i]->w() * icons[i]->h();
+
+  // FIXME: Might want to sort the icons
+
+  *property = data = new unsigned long[sz];
+  *len = sz;
+
+  for (int i = 0;i < count;i++) {
+    const Fl_RGB_Image *image;
+
+    image = icons[i];
+
+    data[0] = image->w();
+    data[1] = image->h();
+    data += 2;
+
+    const int extra_data = image->ld() ? (image->ld()-image->w()*image->d()) : 0;
+
+    const uchar *in = (const uchar*)*image->data();
+    for (int y = 0; y < image->h(); y++) {
+      for (int x = 0; x < image->w(); x++) {
+        switch (image->d()) {
+        case 1:
+          *data = ( 0xff<<24) | (in[0]<<16) | (in[0]<<8) | in[0];
+          break;
+        case 2:
+          *data = (in[1]<<24) | (in[0]<<16) | (in[0]<<8) | in[0];
+          break;
+        case 3:
+          *data = ( 0xff<<24) | (in[0]<<16) | (in[1]<<8) | in[2];
+          break;
+        case 4:
+          *data = (in[3]<<24) | (in[0]<<16) | (in[1]<<8) | in[2];
+          break;
+        }
+        in += image->d();
+        data++;
+      }
+      in += extra_data;
+    }
+  }
+}
+
+void Fl_Window_Driver::default_icons(const Fl_RGB_Image *icons[], int count) {
+  if (default_net_wm_icons) {
+    delete [] default_net_wm_icons;
+    default_net_wm_icons = 0L;
+    default_net_wm_icons_size = 0;
+  }
+
+  if (count > 0)
+    icons_to_property(icons, count,
+                      &default_net_wm_icons, &default_net_wm_icons_size);
+}
+
+void Fl_X11_Window_Driver::set_icons() {
+  unsigned long *net_wm_icons;
+  size_t net_wm_icons_size;
+
+  if (icon_->count) {
+    icons_to_property((const Fl_RGB_Image **)icon_->icons, icon_->count,
+                      &net_wm_icons, &net_wm_icons_size);
+  } else {
+    net_wm_icons = default_net_wm_icons;
+    net_wm_icons_size = default_net_wm_icons_size;
+  }
+
+  XChangeProperty (fl_display, fl_xid(pWindow), fl_NET_WM_ICON, XA_CARDINAL, 32,
+      PropModeReplace, (unsigned char*) net_wm_icons, net_wm_icons_size);
+
+  if (icon_->count) {
+    delete [] net_wm_icons;
+    net_wm_icons = 0L;
+    net_wm_icons_size = 0;
+  }
+}
+
+////////////////////////////////////////////////////////////////
+
+int Fl_X11_Window_Driver::set_cursor(Fl_Cursor c) {
+
+  /* The cursors are cached, because creating one takes 0.5ms including
+     opening, reading, and closing theme files. They are kept until program
+     exit by design, which valgrind will note as reachable. */
+  static Cursor xc_arrow = None;
+  static Cursor xc_cross = None;
+  static Cursor xc_wait = None;
+  static Cursor xc_insert = None;
+  static Cursor xc_hand = None;
+  static Cursor xc_help = None;
+  static Cursor xc_move = None;
+  static Cursor xc_ns = None;
+  static Cursor xc_we = None;
+  static Cursor xc_ne = None;
+  static Cursor xc_n = None;
+  static Cursor xc_nw = None;
+  static Cursor xc_e = None;
+  static Cursor xc_w = None;
+  static Cursor xc_se = None;
+  static Cursor xc_s = None;
+  static Cursor xc_sw = None;
+
+  Cursor xc;
+
+#define cache_cursor(name, var) if (var == None) { \
+                                  var = XCreateFontCursor(fl_display, name); \
+                                } \
+                                xc = var
+
+  switch (c) {
+  case FL_CURSOR_ARROW:   cache_cursor(XC_left_ptr, xc_arrow); break;
+  case FL_CURSOR_CROSS:   cache_cursor(XC_tcross, xc_cross); break;
+  case FL_CURSOR_WAIT:    cache_cursor(XC_watch, xc_wait); break;
+  case FL_CURSOR_INSERT:  cache_cursor(XC_xterm, xc_insert); break;
+  case FL_CURSOR_HAND:    cache_cursor(XC_hand2, xc_hand); break;
+  case FL_CURSOR_HELP:    cache_cursor(XC_question_arrow, xc_help); break;
+  case FL_CURSOR_MOVE:    cache_cursor(XC_fleur, xc_move); break;
+  case FL_CURSOR_NS:      cache_cursor(XC_sb_v_double_arrow, xc_ns); break;
+  case FL_CURSOR_WE:      cache_cursor(XC_sb_h_double_arrow, xc_we); break;
+  case FL_CURSOR_NE:      cache_cursor(XC_top_right_corner, xc_ne); break;
+  case FL_CURSOR_N:       cache_cursor(XC_top_side, xc_n); break;
+  case FL_CURSOR_NW:      cache_cursor(XC_top_left_corner, xc_nw); break;
+  case FL_CURSOR_E:       cache_cursor(XC_right_side, xc_e); break;
+  case FL_CURSOR_W:       cache_cursor(XC_left_side, xc_w); break;
+  case FL_CURSOR_SE:      cache_cursor(XC_bottom_right_corner, xc_se); break;
+  case FL_CURSOR_S:       cache_cursor(XC_bottom_side, xc_s); break;
+  case FL_CURSOR_SW:      cache_cursor(XC_bottom_left_corner, xc_sw); break;
+  default:
+    return 0;
+  }
+
+#undef cache_cursor
+
+  XDefineCursor(fl_display, fl_xid(pWindow), xc);
+  current_cursor_ = xc;
+
+  return 1;
+}
+
+int Fl_X11_Window_Driver::set_cursor(const Fl_RGB_Image *image, int hotx, int hoty) {
+#if ! HAVE_XCURSOR
+  return 0;
+#else
+  XcursorImage *cursor;
+  Cursor xc;
+
+  if ((hotx < 0) || (hotx >= image->w()))
+    return 0;
+  if ((hoty < 0) || (hoty >= image->h()))
+    return 0;
+
+  cursor = XcursorImageCreate(image->w(), image->h());
+  if (!cursor)
+    return 0;
+
+  const int extra_data = image->ld() ? (image->ld()-image->w()*image->d()) : 0;
+  const uchar *i = (const uchar*)*image->data();
+  XcursorPixel *o = cursor->pixels;
+  for (int y = 0;y < image->h();y++) {
+    for (int x = 0;x < image->w();x++) {
+      uchar r, g, b, a;
+      switch (image->d()) {
+      case 1:
+        r = g = b = i[0];
+        a = 0xff;
+        break;
+      case 2:
+        r = g = b = i[0];
+        a = i[1];
+        break;
+      case 3:
+        r = i[0];
+        g = i[1];
+        b = i[2];
+        a = 0xff;
+        break;
+      case 4:
+        r = i[0];
+        g = i[1];
+        b = i[2];
+        a = i[3];
+        break;
+      default:
+        return 0;
+      }
+      // Alpha needs to be pre-multiplied for X11
+      r = (uchar)((unsigned)r * a / 255);
+      g = (uchar)((unsigned)g * a / 255);
+      b = (uchar)((unsigned)b * a / 255);
+
+      *o = (a<<24) | (r<<16) | (g<<8) | b;
+      i += image->d();
+      o++;
+    }
+    i += extra_data;
+  }
+
+  cursor->xhot = hotx;
+  cursor->yhot = hoty;
+
+  xc = XcursorImageLoadCursor(fl_display, cursor);
+  XDefineCursor(fl_display, fl_xid(pWindow), xc);
+  current_cursor_ = xc;
+  XFreeCursor(fl_display, xc);
+
+  XcursorImageDestroy(cursor);
+
+  return 1;
+#endif
 }
 
 ////////////////////////////////////////////////////////////////
 
 // returns pointer to the filename, or null if name ends with '/'
-const char *fl_filename_name(const char *name) {
+const char *Fl_X11_System_Driver::filename_name(const char *name) {
   const char *p,*q;
   if (!name) return (0);
   for (p=q=name; *p;) if (*p++ == '/') q = p;
   return q;
 }
 
-void Fl_Window::label(const char *name,const char *iname) {
-  Fl_Widget::label(name);
-  iconlabel_ = iname;
+void Fl_X11_Window_Driver::label(const char *name, const char *iname) {
   if (shown() && !parent()) {
     if (!name) name = "";
     int namelen = strlen(name);
     if (!iname) iname = fl_filename_name(name);
     int inamelen = strlen(iname);
-    XChangeProperty(fl_display, i->xid, fl_NET_WM_NAME,      fl_XaUtf8String, 8, 0, (uchar*)name,  namelen);	// utf8
-    XChangeProperty(fl_display, i->xid, XA_WM_NAME,          XA_STRING,       8, 0, (uchar*)name,  namelen);	// non-utf8
-    XChangeProperty(fl_display, i->xid, fl_NET_WM_ICON_NAME, fl_XaUtf8String, 8, 0, (uchar*)iname, inamelen);	// utf8
-    XChangeProperty(fl_display, i->xid, XA_WM_ICON_NAME,     XA_STRING,       8, 0, (uchar*)iname, inamelen);	// non-utf8
+    Window win = fl_xid(pWindow);
+    XChangeProperty(fl_display, win, fl_NET_WM_NAME,      fl_XaUtf8String, 8, 0, (uchar*)name,  namelen);	// utf8
+    XChangeProperty(fl_display, win, XA_WM_NAME,          XA_STRING,       8, 0, (uchar*)name,  namelen);	// non-utf8
+    XChangeProperty(fl_display, win, fl_NET_WM_ICON_NAME, fl_XaUtf8String, 8, 0, (uchar*)iname, inamelen);	// utf8
+    XChangeProperty(fl_display, win, XA_WM_ICON_NAME,     XA_STRING,       8, 0, (uchar*)iname, inamelen);	// non-utf8
   }
 }
 
@@ -2638,146 +2932,27 @@ void Fl_Window::label(const char *name,const char *iname) {
 // Fl_Window *fl_boxcheat;
 static inline int can_boxcheat(uchar b) {return (b==1 || ((b&2) && b<=15));}
 
-void Fl_Window::show() {
-  image(Fl::scheme_bg_);
-  if (Fl::scheme_bg_) {
-    labeltype(FL_NORMAL_LABEL);
-    align(FL_ALIGN_CENTER | FL_ALIGN_INSIDE | FL_ALIGN_CLIP);
-  } else {
-    labeltype(FL_NO_LABEL);
-  }
-  Fl_Tooltip::exit(this);
+void Fl_X11_Window_Driver::show() {
   if (!shown()) {
     fl_open_display();
     // Don't set background pixel for double-buffered windows...
-    if (type() == FL_WINDOW && can_boxcheat(box())) {
-      fl_background_pixel = int(fl_xpixel(color()));
+    if (pWindow->type() != FL_DOUBLE_WINDOW && can_boxcheat(pWindow->box())) {
+      fl_background_pixel = int(fl_xpixel(pWindow->color()));
     }
-    Fl_X::make_xid(this);
+    makeWindow();
   } else {
-    XMapRaised(fl_display, i->xid);
+    XMapRaised(fl_display, fl_xid(pWindow));
   }
+}
+
+
+//#define USE_PRINT_BUTTON 1
 #ifdef USE_PRINT_BUTTON
-void preparePrintFront(void);
-preparePrintFront();
-#endif
-}
 
-Window fl_window;
-Fl_Window *Fl_Window::current_;
-GC fl_gc;
-
-// make X drawing go into this window (called by subclass flush() impl.)
-void Fl_Window::make_current() {
-  static GC gc; // the GC used by all X windows
-  if (!shown()) {
-    fl_alert("Fl_Window::make_current(), but window is not shown().");
-    Fl::fatal("Fl_Window::make_current(), but window is not shown().");
-  }
-  if (!gc) gc = XCreateGC(fl_display, i->xid, 0, 0);
-  fl_window = i->xid;
-  fl_gc = gc;
-  current_ = this;
-  fl_clip_region(0);
-
-#ifdef FLTK_USE_CAIRO
-  // update the cairo_t context
-  if (Fl::cairo_autolink_context()) Fl::cairo_make_current(this);
-#endif
-}
-
-Window fl_xid_(const Fl_Window *w) {
-  Fl_X *temp = Fl_X::i(w);
-  return temp ? temp->xid : 0;
-}
-
-static void decorated_win_size(Fl_Window *win, int &w, int &h)
-{
-  w = win->w();
-  h = win->h();
-  if (!win->shown() || win->parent() || !win->border() || !win->visible()) return;
-  Window root, parent, *children;
-  unsigned n = 0;
-  Status status = XQueryTree(fl_display, Fl_X::i(win)->xid, &root, &parent, &children, &n); 
-  if (status != 0 && n) XFree(children);
-  // when compiz is used, root and parent are the same window 
-  // and I don't know where to find the window decoration
-  if (status == 0 || root == parent) return; 
-  XWindowAttributes attributes;
-  XGetWindowAttributes(fl_display, parent, &attributes);
-  w = attributes.width;
-  h = attributes.height;
-}
-
-int Fl_Window::decorated_h()
-{
-  int w, h;
-  decorated_win_size(this, w, h);
-  return h;
-}
-
-int Fl_Window::decorated_w()
-{
-  int w, h;
-  decorated_win_size(this, w, h);
-  return w;
-}
-
-void Fl_Paged_Device::print_window(Fl_Window *win, int x_offset, int y_offset)
-{
-  if (!win->shown() || win->parent() || !win->border() || !win->visible()) {
-    this->print_widget(win, x_offset, y_offset);
-    return;
-  }
-  Fl_Display_Device::display_device()->set_current();
-  win->show();
-  Fl::check();
-  win->make_current();
-  Window root, parent, *children, child_win, from;
-  unsigned n = 0;
-  int bx, bt, do_it;
-  from = fl_window;
-  do_it = (XQueryTree(fl_display, fl_window, &root, &parent, &children, &n) != 0 && 
-	   XTranslateCoordinates(fl_display, fl_window, parent, 0, 0, &bx, &bt, &child_win) == True);
-  if (n) XFree(children);
-  // hack to bypass STR #2648: when compiz is used, root and parent are the same window 
-  // and I don't know where to find the window decoration
-  if (do_it && root == parent) do_it = 0; 
-  if (!do_it) {
-    this->set_current();
-    this->print_widget(win, x_offset, y_offset);
-    return;
-  }
-  fl_window = parent;
-  uchar *top_image = 0, *left_image = 0, *right_image = 0, *bottom_image = 0;
-  top_image = fl_read_image(NULL, 0, 0, - (win->w() + 2 * bx), bt);
-  if (bx) {
-    left_image = fl_read_image(NULL, 0, bt, -bx, win->h() + bx);
-    right_image = fl_read_image(NULL, win->w() + bx, bt, -bx, win->h() + bx);
-    bottom_image = fl_read_image(NULL, 0, bt + win->h(), -(win->w() + 2*bx), bx);
-  }
-  fl_window = from;
-  this->set_current();
-  if (top_image) {
-    fl_draw_image(top_image, x_offset, y_offset, win->w() + 2 * bx, bt, 3);
-    delete[] top_image;
-  }
-  if (bx) {
-    if (left_image) fl_draw_image(left_image, x_offset, y_offset + bt, bx, win->h() + bx, 3);
-    if (right_image) fl_draw_image(right_image, x_offset + win->w() + bx, y_offset + bt, bx, win->h() + bx, 3);
-    if (bottom_image) fl_draw_image(bottom_image, x_offset, y_offset + bt + win->h(), win->w() + 2*bx, bx, 3);
-    if (left_image) delete[] left_image;
-    if (right_image) delete[] right_image;
-    if (bottom_image) delete[] bottom_image;
-  }
-  this->print_widget( win, x_offset + bx, y_offset + bt );
-}
-
-#ifdef USE_PRINT_BUTTON
 // to test the Fl_Printer class creating a "Print front window" button in a separate window
-// contains also preparePrintFront call above
 #include <FL/Fl_Printer.H>
 #include <FL/Fl_Button.H>
+
 void printFront(Fl_Widget *o, void *data)
 {
   Fl_Printer printer;
@@ -2808,6 +2983,7 @@ void printFront(Fl_Widget *o, void *data)
   //printer.print_window_part( win, 0,0, win->w(), win->h(), - win->w()/2, - win->h()/2 );
 #else  
   printer.print_window(win);
+  //printer.print_window_part( win, 0,0, win->w(), win->h(), 0,0 );
 #endif
 
   printer.end_page();
@@ -2815,21 +2991,37 @@ void printFront(Fl_Widget *o, void *data)
   o->window()->show();
 }
 
-void preparePrintFront(void)
+#include <FL/Fl_Copy_Surface.H>
+void copyFront(Fl_Widget *o, void *data)
 {
-  static int first=1;
-  if(!first) return;
-  first=0;
-  static Fl_Window w(0,0,150,30);
-  static Fl_Button b(0,0,w.w(),w.h(), "Print front window");
-  b.callback(printFront);
+  o->window()->hide();
+  Fl_Window *win = Fl::first_window();
+  if (!win) return;
+  Fl_Copy_Surface *surf = new Fl_Copy_Surface(win->decorated_w(), win->decorated_h());
+  Fl_Surface_Device::push_current(surf);
+  surf->draw_decorated_window(win); // draw the window content
+  Fl_Surface_Device::pop_current();
+  delete surf; // put the window on the clipboard
+  o->window()->show();
+}
+
+static int prepare_print_button() {
+  static Fl_Window w(0,0,140,60);
+  static Fl_Button bp(0,0,w.w(),30, "Print front window");
+  bp.callback(printFront);
+  static Fl_Button bc(0,30,w.w(),30, "Copy front window");
+  bc.callback(copyFront);
   w.end();
   w.show();
+  return 0;
 }
+
+static int unused = prepare_print_button();
+
 #endif // USE_PRINT_BUTTON
 
-#endif
+#endif // !defined(FL_DOXYGEN)
 
 //
-// End of "$Id: Fl_x.cxx 10190 2014-06-11 14:09:28Z ossman $".
+// End of "$Id: Fl_x.cxx 12497 2017-10-15 10:37:29Z AlbrechtS $".
 //

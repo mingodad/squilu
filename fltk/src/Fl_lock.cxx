@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_lock.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: Fl_lock.cxx 12137 2016-12-06 18:49:22Z AlbrechtS $"
 //
 // Multi-threading support code for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2010 by Bill Spitzak and others.
+// Copyright 1998-2016 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -16,11 +16,19 @@
 //     http://www.fltk.org/str.php
 //
 
-
+#include "config_lib.h"
 #include <FL/Fl.H>
-#include <config.h>
+#include <FL/Fl_System_Driver.H>
 
 #include <stdlib.h>
+
+// FIXME: why do we need the lines below?
+#if defined(FL_CFG_SYS_POSIX)
+#include "drivers/Posix/Fl_Posix_System_Driver.H"
+#elif defined(FL_CFG_SYS_WIN32)
+#include "drivers/WinAPI/Fl_WinAPI_System_Driver.H"
+#endif
+
 
 /*
    From Bill:
@@ -70,7 +78,6 @@ static const int AWAKE_RING_SIZE = 1024;
 static void lock_ring();
 static void unlock_ring();
 
-
 /** Adds an awake handler for use in awake(). */
 int Fl::add_awake_handler_(Fl_Awake_Handler func, void *data)
 {
@@ -80,33 +87,43 @@ int Fl::add_awake_handler_(Fl_Awake_Handler func, void *data)
     awake_ring_size_ = AWAKE_RING_SIZE;
     awake_ring_ = (Fl_Awake_Handler*)malloc(awake_ring_size_*sizeof(Fl_Awake_Handler));
     awake_data_ = (void**)malloc(awake_ring_size_*sizeof(void*));
+    // explicitly initialize the head and tail indices
+    awake_ring_head_= awake_ring_tail_ = 0;
   }
-  if (awake_ring_head_==awake_ring_tail_-1 || awake_ring_head_+1==awake_ring_tail_) {
-    // ring is full. Return -1 as an error indicator.
+  // The next head index we will want (not the current index):
+  // We use this to check if the ring-buffer is full or not
+  // (and to update awake_ring_head_ if we do use the current index.)
+  int next_head = awake_ring_head_ + 1;
+  if (next_head >= awake_ring_size_) {
+    next_head = 0;
+  }
+  // check that the ring buffer is not full, and that it exists
+  if ((!awake_ring_) || (next_head == awake_ring_tail_)) {
+    // ring is non-existent or full. Return -1 as an error indicator.
     ret = -1;
   } else {
     awake_ring_[awake_ring_head_] = func;
     awake_data_[awake_ring_head_] = data;
-    ++awake_ring_head_;
-    if (awake_ring_head_ == awake_ring_size_)
-      awake_ring_head_ = 0;
+    awake_ring_head_ = next_head;
   }
   unlock_ring();
   return ret;
 }
+
 /** Gets the last stored awake handler for use in awake(). */
 int Fl::get_awake_handler_(Fl_Awake_Handler &func, void *&data)
 {
   int ret = 0;
   lock_ring();
-  if (!awake_ring_ || awake_ring_head_ == awake_ring_tail_) {
+  if ((!awake_ring_) || (awake_ring_head_ == awake_ring_tail_)) {
     ret = -1;
   } else {
     func = awake_ring_[awake_ring_tail_];
     data = awake_data_[awake_ring_tail_];
     ++awake_ring_tail_;
-    if (awake_ring_tail_ == awake_ring_size_)
+    if (awake_ring_tail_ >= awake_ring_size_) {
       awake_ring_tail_ = 0;
+    }
   }
   unlock_ring();
   return ret;
@@ -128,8 +145,6 @@ int Fl::awake(Fl_Awake_Handler func, void *data) {
   return ret;
 }
 
-////////////////////////////////////////////////////////////////
-// Windows threading...
 /** \fn int Fl::lock()
     The lock() method blocks the current thread until it
     can safely access FLTK widgets and data. Child threads should
@@ -179,7 +194,9 @@ int Fl::awake(Fl_Awake_Handler func, void *data) {
     
     See also: \ref advanced_multithreading
 */
-#ifdef WIN32
+#if defined(FL_CFG_SYS_WIN32)
+////////////////////////////////////////////////////////////////
+// Windows threading...
 #  include <windows.h>
 #  include <process.h>
 #  include <FL/x.H>
@@ -223,7 +240,7 @@ static void lock_function() {
   EnterCriticalSection(&cs);
 }
 
-int Fl::lock() {
+int Fl_WinAPI_System_Driver::lock() {
   if (!main_thread) InitializeCriticalSection(&cs);
 
   lock_function();
@@ -236,17 +253,21 @@ int Fl::lock() {
   return 0;
 }
 
-void Fl::unlock() {
+void Fl_WinAPI_System_Driver::unlock() {
   unlock_function();
 }
 
-void Fl::awake(void* msg) {
+void Fl_WinAPI_System_Driver::awake(void* msg) {
   PostThreadMessage( main_thread, fl_wake_msg, (WPARAM)msg, 0);
 }
+#endif // FL_CFG_SYS_WIN32
+
+
+#if defined(FL_CFG_SYS_POSIX) && !defined(FL_DOXYGEN)
 
 ////////////////////////////////////////////////////////////////
 // POSIX threading...
-#elif HAVE_PTHREAD
+#if defined(HAVE_PTHREAD)
 #  include <unistd.h>
 #  include <fcntl.h>
 #  include <pthread.h>
@@ -297,12 +318,12 @@ static void unlock_function_rec() {
 }
 #  endif // PTHREAD_MUTEX_RECURSIVE
 
-void Fl::awake(void* msg) {
+void Fl_Posix_System_Driver::awake(void* msg) {
   if (write(thread_filedes[1], &msg, sizeof(void*))==0) { /* ignore */ }
 }
 
 static void* thread_message_;
-void* Fl::thread_message() {
+void* Fl_Posix_System_Driver::thread_message() {
   void* r = thread_message_;
   thread_message_ = 0;
   return r;
@@ -323,7 +344,7 @@ static void thread_awake_cb(int fd, void*) {
 extern void (*fl_lock_function)();
 extern void (*fl_unlock_function)();
 
-int Fl::lock() {
+int Fl_Posix_System_Driver::lock() {
   if (!thread_filedes[1]) {
     // Initialize thread communication pipe to let threads awake FLTK
     // from Fl::wait()
@@ -361,7 +382,7 @@ int Fl::lock() {
   return 0;
 }
 
-void Fl::unlock() {
+void Fl_Posix_System_Driver::unlock() {
   fl_unlock_function();
 }
 
@@ -380,30 +401,38 @@ void lock_ring() {
   pthread_mutex_lock(ring_mutex);
 }
 
-#else
+#else // ! HAVE_PTHREAD
 
-void unlock_ring() {
-}
+void Fl_Posix_System_Driver::awake(void*) {}
+int Fl_Posix_System_Driver::lock() { return 1; }
+void Fl_Posix_System_Driver::unlock() {}
+void* Fl_Posix_System_Driver::thread_message() { return NULL; }
 
-void lock_ring() {
-}
+void lock_ring() {}
+void unlock_ring() {}
 
-void Fl::awake(void*) {
-}
+#endif // HAVE_PTHREAD
 
-int Fl::lock() {
-  return 1;
-}
 
-void Fl::unlock() {
+#endif // FL_CFG_SYS_POSIX
+
+
+void Fl::awake(void *v) {
+  Fl::system_driver()->awake(v);
 }
 
 void* Fl::thread_message() {
-  return NULL;
+  return Fl::system_driver()->thread_message();
 }
 
-#endif // WIN32
+int Fl::lock() {
+  return Fl::system_driver()->lock();
+}
+
+void Fl::unlock() {
+  Fl::system_driver()->unlock();
+}
 
 //
-// End of "$Id: Fl_lock.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: Fl_lock.cxx 12137 2016-12-06 18:49:22Z AlbrechtS $".
 //

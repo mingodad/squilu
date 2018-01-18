@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_Image_Surface.cxx 10171 2014-05-24 16:19:30Z manolo $"
+// "$Id: Fl_Image_Surface.cxx 12605 2017-12-26 16:07:51Z manolo $"
 //
 // Draw-to-image code for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2014 by Bill Spitzak and others.
+// Copyright 1998-2017 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -17,142 +17,197 @@
 //
 
 #include <FL/Fl_Image_Surface.H>
-#include <FL/Fl_Printer.H>
-#include <FL/Fl.H>
+#include <FL/Fl_Device.H>
 
-
-const char *Fl_Image_Surface::class_id = "Fl_Image_Surface";
-
-/** The constructor.
- \param w and \param h give the size in pixels of the resulting image.
- */
-Fl_Image_Surface::Fl_Image_Surface(int w, int h) : Fl_Surface_Device(NULL) {
-  width = w;
-  height = h;
-#if !(defined(__APPLE__) || defined(WIN32))
-  gc = 0;
-  if (!fl_display) { // allows use of this class before any window is shown
-    fl_open_display();
-    gc = XCreateGC(fl_display, RootWindow(fl_display, fl_screen), 0, 0);
-    fl_gc = gc;
-    }
-#endif
-  offscreen = fl_create_offscreen(w, h);
-#ifdef __APPLE__
-  helper = new Fl_Quartz_Flipped_Surface_(width, height);
-  driver(helper->driver());
-#elif defined(WIN32)
-  helper = new Fl_GDI_Surface_();
-  driver(helper->driver());
-#else
-  helper = new Fl_Xlib_Surface_();
-  driver(helper->driver());
-#endif
-}
-
-/** The destructor.
- */
-Fl_Image_Surface::~Fl_Image_Surface() {
-  fl_delete_offscreen(offscreen);
-#ifdef __APPLE__
-  delete (Fl_Quartz_Flipped_Surface_*)helper;
-#elif defined(WIN32)
-  delete (Fl_GDI_Surface_*)helper;
-#else
-  if (gc) { XFreeGC(fl_display, gc); fl_gc = 0; }
-  delete (Fl_Xlib_Surface_*)helper;
-#endif
-}
-
-/** Returns the image made of all drawings sent to the Fl_Image_Surface object.
- The returned object can be safely cast to Fl_RGB_Image* and contains its own copy
- of the RGB data.
- */
-Fl_Image* Fl_Image_Surface::image()
+#if defined(FL_PORTING)
+# pragma message "FL_PORTING: optionally implement class Fl_XXX_Image_Surface_Driver for your platform"
+Fl_Image_Surface_Driver *Fl_Image_Surface_Driver::newImageSurfaceDriver(int w, int h, int high_res, Fl_Offscreen)
 {
-  unsigned char *data;
-#ifdef __APPLE__
-  CGContextFlush(offscreen);
-  data = fl_read_image(NULL, 0, 0, width, height, 0);
-  fl_end_offscreen();
-#elif defined(WIN32)
-  fl_pop_clip(); 
-  data = fl_read_image(NULL, 0, 0, width, height, 0);
-  RestoreDC(fl_gc, _savedc); 
-  DeleteDC(fl_gc); 
-  _ss->set_current(); 
-  fl_window=_sw; 
-  fl_gc = _sgc;
-#else
-  fl_pop_clip(); 
-  data = fl_read_image(NULL, 0, 0, width, height, 0);
-  fl_window = pre_window; 
-  previous->set_current();
-#endif
-  Fl_RGB_Image *image = new Fl_RGB_Image(data, width, height);
-  image->alloc_array = 1;
-  return image;
+  return NULL;
 }
+#endif
 
-/** Draws a widget in the image surface
+
+/** Constructor with optional high resolution.
+ \param w and \param h set the size of the resulting image. The value of the \p high_res
+ parameter controls whether \p w and \p h are interpreted as pixel or drawing units.
  
- \param widget any FLTK widget (e.g., standard, custom, window, GL view) to draw in the image
- \param delta_x and \param delta_y give 
- the position in the image of the top-left corner of the widget
+ \param high_res If zero, the created image surface is sized at \p w x \p h pixels.
+ If non-zero, the pixel size of the created image surface follows
+ the value of the display scaling factor (see Fl_Graphics_Driver::scale()). This gives
+ the created image surface the same number of pixels as an area of the display of size 
+ \p w x \p h expressed in drawing units. On the Mac OS platform, the image surface pixel 
+ size is always twice as high and wide as \p w and \p h.
+ If \p highres is non-zero, always use Fl_Image_Surface::highres_image() to get the image data.
+
+ \param pixmap Is used internally by FLTK; applications just use its default value.
+ \version 1.3.4 (1.3.3 without the \p highres parameter)
  */
-void Fl_Image_Surface::draw(Fl_Widget *widget, int delta_x, int delta_y)
+Fl_Image_Surface::Fl_Image_Surface(int w, int h, int high_res, Fl_Offscreen pixmap) : Fl_Widget_Surface(NULL) {
+  platform_surface = Fl_Image_Surface_Driver::newImageSurfaceDriver(w, h, high_res, pixmap);
+  if (platform_surface) driver(platform_surface->driver());
+}
+
+
+/** The destructor. */
+Fl_Image_Surface::~Fl_Image_Surface() { delete platform_surface; }
+
+void Fl_Image_Surface::origin(int x, int y) {platform_surface->origin(x, y);}
+
+void Fl_Image_Surface::origin(int *x, int *y) {
+  if (platform_surface) platform_surface->origin(x, y);
+}
+
+void Fl_Image_Surface::set_current() {
+  if (platform_surface) platform_surface->set_current();
+}
+
+void Fl_Image_Surface::translate(int x, int y) {
+  if (platform_surface) platform_surface->translate(x, y);
+}
+
+void Fl_Image_Surface::untranslate() {
+  if (platform_surface) platform_surface->untranslate();
+}
+
+/** Returns the Fl_Offscreen object associated to the image surface.
+ The returned Fl_Offscreen object is deleted when the Fl_Image_Surface object is deleted.
+ */
+Fl_Offscreen Fl_Image_Surface::offscreen() { 
+  return platform_surface ? platform_surface->offscreen : (Fl_Offscreen)0;
+}
+
+int Fl_Image_Surface::printable_rect(int *w, int *h)  {return platform_surface->printable_rect(w, h);}
+
+
+/** Returns an image made of all drawings sent to the Fl_Image_Surface object.
+ The returned object contains its own copy of the RGB data.
+ The caller is responsible for deleting the image.
+ */
+Fl_RGB_Image *Fl_Image_Surface::image() {
+  bool need_push = (Fl_Surface_Device::surface() != platform_surface);
+  if (need_push) Fl_Surface_Device::push_current(platform_surface);
+  Fl_RGB_Image *img = platform_surface->image();
+  if (need_push) Fl_Surface_Device::pop_current();
+  return img;
+}
+
+/** Returns a possibly high resolution image made of all drawings sent to the Fl_Image_Surface object.
+ The Fl_Image_Surface object should have been constructed with Fl_Image_Surface(W, H, 1).
+ The returned Fl_Shared_Image object is scaled to a size of WxH drawing units and may have a 
+ pixel size larger than these values.
+ The returned object should be deallocated with Fl_Shared_Image::release() after use.
+ \version 1.3.4
+ */
+Fl_Shared_Image* Fl_Image_Surface::highres_image()
 {
-  helper->print_widget(widget, delta_x, delta_y);
+  if (!platform_surface) return NULL;
+  Fl_Shared_Image *s_img = Fl_Shared_Image::get(image());
+  int width, height;
+  platform_surface->printable_rect(&width, &height);
+  s_img->scale(width, height, 1, 1);
+  return s_img;
 }
 
-
-void Fl_Image_Surface::set_current()
-{
-#if defined(__APPLE__)
-  fl_begin_offscreen(offscreen);
-  fl_pop_clip();
-  Fl_Surface_Device::set_current(); 
-  fl_push_no_clip();
-#elif defined(WIN32)
-  _sgc=fl_gc; 
-  _sw=fl_window;
-  _ss = Fl_Surface_Device::surface(); 
-  Fl_Surface_Device::set_current();
-  fl_gc = fl_makeDC(offscreen); 
-   _savedc = SaveDC(fl_gc); 
-  fl_window=(HWND)offscreen; 
-  fl_push_no_clip();
-#else
-  pre_window = fl_window; 
-  fl_window = offscreen; 
-  previous = Fl_Surface_Device::surface(); 
-  Fl_Surface_Device::set_current();
-  fl_push_no_clip();
-#endif
+/** Allows to delete the Fl_Image_Surface object while keeping its underlying Fl_Offscreen.
+ This member function is intended for internal use by the FLTK library.
+ */
+Fl_Offscreen Fl_Image_Surface::get_offscreen_before_delete() {
+  Fl_Offscreen keep = platform_surface->offscreen;
+  platform_surface->offscreen = 0;
+  return keep;
 }
 
-#if defined(__APPLE__)
+// implementation of the fl_XXX_offscreen() functions
 
-Fl_Quartz_Flipped_Surface_::Fl_Quartz_Flipped_Surface_(int w, int h) : Fl_Quartz_Surface_(w, h) {
+static Fl_Image_Surface **offscreen_api_surface = NULL;
+static int count_offscreens = 0;
+
+static int find_slot(void) { // return an available slot to memorize an Fl_Image_Surface object
+  static int max = 0;
+  for (int num = 0; num < count_offscreens; num++) {
+    if (!offscreen_api_surface[num]) return num;
+  }
+  if (count_offscreens >= max) {
+    max += 20;
+    offscreen_api_surface = (Fl_Image_Surface**)realloc(offscreen_api_surface, max * sizeof(void *));
+  }
+  return count_offscreens++;
 }
 
-void Fl_Quartz_Flipped_Surface_::translate(int x, int y) {
-  CGContextRestoreGState(fl_gc);
-  CGContextSaveGState(fl_gc);
-  CGContextTranslateCTM(fl_gc, x, -y);
-  CGContextSaveGState(fl_gc);
-  CGContextTranslateCTM(fl_gc, 0, height);
-  CGContextScaleCTM(fl_gc, 1.0f, -1.0f);
+/** \addtogroup fl_drawings
+   @{
+   */
+
+/**
+   Creation of an offscreen graphics buffer.
+   \param w,h     width and height in pixels of the buffer.
+   \return    the created graphics buffer.
+   */
+Fl_Offscreen fl_create_offscreen(int w, int h) {
+  int rank = find_slot();
+  offscreen_api_surface[rank] = new Fl_Image_Surface(w, h, 1/*high_res*/);
+  return offscreen_api_surface[rank]->offscreen();
 }
 
-void Fl_Quartz_Flipped_Surface_::untranslate() {
-  CGContextRestoreGState(fl_gc);
+/**  Deletion of an offscreen graphics buffer.
+   \param ctx     the buffer to be deleted.
+   \note The \p ctx argument must have been created by fl_create_offscreen().
+   */
+void fl_delete_offscreen(Fl_Offscreen ctx) {
+  if (!ctx) return;
+  for (int i = 0; i < count_offscreens; i++) {
+    if (offscreen_api_surface[i] && offscreen_api_surface[i]->offscreen() == ctx) {
+      delete offscreen_api_surface[i];
+      offscreen_api_surface[i] = NULL;
+      return;
+    }
+  }
 }
 
-const char *Fl_Quartz_Flipped_Surface_::class_id = "Fl_Quartz_Flipped_Surface_";
+/**  Send all subsequent drawing commands to this offscreen buffer.
+   \param ctx     the offscreen buffer.
+   */
+void fl_begin_offscreen(Fl_Offscreen ctx) {
+  for (int i = 0; i < count_offscreens; i++) {
+    if (offscreen_api_surface[i] && offscreen_api_surface[i]->offscreen() == ctx) {
+      Fl_Surface_Device::push_current(offscreen_api_surface[i]);
+      return;
+    }
+  }
+}
 
-#endif // __APPLE__
+/** Quit sending drawing commands to the current offscreen buffer.
+   */
+void fl_end_offscreen() {
+  Fl_Surface_Device::pop_current();
+}
+
+/** Adapts an offscreen buffer to a changed value of the graphical scaling factor.
+ The \p ctx argument must have been created by fl_create_offscreen()
+ and the calling context must not be between fl_begin_offscreen() and fl_end_offscreen().
+ */
+void fl_scale_offscreen(Fl_Offscreen &ctx) {
+  int i, w, h;
+  for (i = 0; i < count_offscreens; i++) {
+    if (offscreen_api_surface[i] && offscreen_api_surface[i]->offscreen() == ctx) {
+      break;
+    }
+  }
+  if (i >= count_offscreens) return;
+  Fl_Shared_Image *shared = offscreen_api_surface[i]->highres_image();
+  offscreen_api_surface[i]->printable_rect(&w, &h);
+  fl_delete_offscreen(ctx);
+  ctx = fl_create_offscreen(w, h);
+  fl_begin_offscreen(ctx);
+  shared->draw(0, 0);
+  fl_end_offscreen();
+  shared->release();
+}
+
+/** @} */
+
 
 //
-// End of "$Id: Fl_Image_Surface.cxx 10171 2014-05-24 16:19:30Z manolo $".
+// End of "$Id: Fl_Image_Surface.cxx 12605 2017-12-26 16:07:51Z manolo $".
 //

@@ -1,9 +1,9 @@
 //
-// "$Id: fl_dnd_win32.cxx 9677 2012-08-18 11:32:50Z AlbrechtS $"
+// "$Id: fl_dnd_win32.cxx 12317 2017-07-14 06:56:20Z manolo $"
 //
 // Drag & Drop code for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2010 by Bill Spitzak and others.
+// Copyright 1998-2017 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -23,7 +23,9 @@
 #include <FL/Fl.H>
 #include <FL/x.H>
 #include <FL/Fl_Window.H>
+#include <FL/Fl_Window_Driver.H>
 #include <FL/fl_utf8.h>
+#include "drivers/WinAPI/Fl_WinAPI_Screen_Driver.H"
 #include "flstring.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -82,12 +84,28 @@ public:
     if( !pDataObj ) return E_INVALIDARG;
     // set e_modifiers here from grfKeyState, set e_x and e_root_x
     // check if FLTK handles this drag and return if it can't (i.e. BMP drag without filename)
+/* Tricky point here: Not DPI–aware applications use different units for the 'POINTL pt' argument
+of the DragEnter, DragOver, and Drop member functions.
+DragEnter receives the mouse coordinates in unscaled screen units,
+whereas DragOver and Drop receive the mouse coordinates in scaled units.
+ 
+DPI–aware applications transmit unscaled screen units to all 3 member functions.
+These coordinates should be divided by the window's scale to get FLTK units.
+*/
+#ifndef FLTK_HIDPI_SUPPORT
+    POINT mp;
+    GetCursorPos(&mp); // bypass Windows bug that gives mouse coordinates in unscaled screen units
+    pt.x = mp.x; pt.y = mp.y;
+#endif
     POINT ppt;
     Fl::e_x_root = ppt.x = pt.x;
     Fl::e_y_root = ppt.y = pt.y;
     HWND hWnd = WindowFromPoint( ppt );
     Fl_Window *target = fl_find( hWnd );
     if (target) {
+      float s = Fl::screen_driver()->scale(target->driver()->screen_num());
+      Fl::e_x_root /= s;
+      Fl::e_y_root /= s;
       Fl::e_x = Fl::e_x_root-target->x();
       Fl::e_y = Fl::e_y_root-target->y();
     }
@@ -120,6 +138,9 @@ public:
     Fl::e_x_root = pt.x;
     Fl::e_y_root = pt.y;
     if (fl_dnd_target_window) {
+      float s = Fl::screen_driver()->scale(fl_dnd_target_window->driver()->screen_num());
+      Fl::e_x_root /= s;
+      Fl::e_y_root /= s;
       Fl::e_x = Fl::e_x_root-fl_dnd_target_window->x();
       Fl::e_y = Fl::e_y_root-fl_dnd_target_window->y();
     }
@@ -134,6 +155,8 @@ public:
     }
     px = pt.x; py = pt.y;
     lastEffect = *pdwEffect;
+    // show insert position if dnd'ing in the same window/process (STR #3209)
+    Fl::flush();
     return S_OK;
   }
   HRESULT STDMETHODCALLTYPE DragLeave() {
@@ -152,6 +175,9 @@ public:
     fl_dnd_target_window = 0;
     Fl::e_x_root = pt.x;
     Fl::e_y_root = pt.y;
+    float s = Fl::screen_driver()->scale(target->driver()->screen_num());
+    Fl::e_x_root /= s;
+    Fl::e_y_root /= s;
     if (target) {
       Fl::e_x = Fl::e_x_root-target->x();
       Fl::e_y = Fl::e_y_root-target->y();
@@ -272,8 +298,8 @@ private:
       int i, n, nn = 0, nf = DragQueryFileW( hdrop, (UINT)-1, 0, 0 );
         for ( i=0; i<nf; i++ ) nn += DragQueryFileW( hdrop, i, 0, 0 );
       nn += nf;
-        xchar *dst = (xchar *)malloc(nn * sizeof(xchar));
-        xchar *bu = dst;
+        wchar_t *dst = (wchar_t *)malloc(nn * sizeof(wchar_t));
+        wchar_t *bu = dst;
       for ( i=0; i<nf; i++ ) {
           n = DragQueryFileW( hdrop, i, (WCHAR*)dst, nn );
           dst += n;
@@ -334,7 +360,7 @@ public:
       delete this;
     return nTemp;
   }
-  STDMETHODIMP GiveFeedback( ulong ) { return DRAGDROP_S_USEDEFAULTCURSORS; }
+  STDMETHODIMP GiveFeedback( DWORD ) { return DRAGDROP_S_USEDEFAULTCURSORS; }
   STDMETHODIMP QueryContinueDrag( BOOL esc, DWORD keyState ) {
     if ( esc )
       return DRAGDROP_S_CANCEL;
@@ -477,7 +503,7 @@ public:
 //
 //        df->fWide = TRUE;
 //        l = fl_utf2unicode((unsigned char*)fl_selection_buffer[0],
-//                             fl_selection_length[0], (xchar*)(((char*)pMem)
+//                             fl_selection_length[0], (wchar_t*)(((char*)pMem)
 //                              + sizeof(DROPFILES)));
 //
 //      pMem[l * sizeof(WCHAR) + sizeof(DROPFILES)] = 0;
@@ -518,7 +544,7 @@ public:
 };
 
 
-int Fl::dnd()
+int Fl_WinAPI_Screen_Driver::dnd(int unused)
 {
   DWORD dropEffect;
   ReleaseCapture();
@@ -546,5 +572,5 @@ int Fl::dnd()
 }
 
 //
-// End of "$Id: fl_dnd_win32.cxx 9677 2012-08-18 11:32:50Z AlbrechtS $".
+// End of "$Id: fl_dnd_win32.cxx 12317 2017-07-14 06:56:20Z manolo $".
 //

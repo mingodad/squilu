@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_get_key.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: Fl_get_key.cxx 11683 2016-04-23 06:48:14Z manolo $"
 //
 // Keyboard state routines for the Fast Light Tool Kit (FLTK).
 //
@@ -16,22 +16,20 @@
 //     http://www.fltk.org/str.php
 //
 
-#ifdef WIN32
-#  include "Fl_get_key_win32.cxx"
-#elif defined(__APPLE__)
-#  include "Fl_get_key_mac.cxx"
-#else
+#include "config_lib.h"
+#if defined(FL_CFG_SYS_POSIX) && !defined(FL_DOXYGEN)
 
 // Return the current state of a key.  This is the X version.  I identify
 // keys (mostly) by the X keysym.  So this turns the keysym into a keycode
 // and looks it up in the X key bit vector, which Fl_x.cxx keeps track of.
 
-#  include <FL/Fl.H>
-#  include <FL/x.H>
+#include <FL/Fl.H>
+#include "drivers/X11/Fl_X11_System_Driver.H"
+#include <FL/x.H> // for fl_display
 
 extern char fl_key_vector[32]; // in Fl_x.cxx
 
-int Fl::event_key(int k) {
+int Fl_X11_System_Driver::event_key(int k) {
   if (k > FL_Button && k <= FL_Button+8)
     return Fl::event_state(8<<(k-FL_Button));
   int i;
@@ -47,14 +45,14 @@ int Fl::event_key(int k) {
   return fl_key_vector[i/8] & (1 << (i%8));
 }
 
-int Fl::get_key(int k) {
+int Fl_X11_System_Driver::get_key(int k) {
   fl_open_display();
   XQueryKeymap(fl_display, fl_key_vector);
   return event_key(k);
 }
 
-#endif
+#endif // FL_CFG_SYS_POSIX
 
 //
-// End of "$Id: Fl_get_key.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: Fl_get_key.cxx 11683 2016-04-23 06:48:14Z manolo $".
 //

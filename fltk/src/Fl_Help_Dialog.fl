@@ -1,13 +1,13 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0108 
-header_name {../FL/Fl_Help_Dialog.H} 
+version 1.0400
+header_name {../FL/Fl_Help_Dialog.H}
 code_name {.cxx}
 comment {//
-// "$Id: Fl_Help_Dialog.fl 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: Fl_Help_Dialog.fl 11088 2016-01-30 00:56:42Z AlbrechtS $"
 //
 // Fl_Help_Dialog dialog for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2010 by Bill Spitzak and others.
+// Copyright 1998-2015 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -19,25 +19,39 @@ comment {//
 //
 //     http://www.fltk.org/str.php
 //
+// ========================================================================
+//  DO NOT EDIT FL/Fl_Help_Dialog.H and src/Fl_Help_Dialog.cxx !!!
+// ========================================================================
+//  Please use fluid to change src/Fl_Help_Dialog.fl interactively
+//  and then use fluid to "write code" or edit and use fluid -c .
+// ========================================================================
+//
 } {in_source in_header
-} 
+}
 
-decl {\#include "flstring.h"} {} 
+decl {\#include "flstring.h"} {private local
+}
 
-decl {\#include <FL/fl_ask.H>} {} 
+decl {\#include <FL/fl_ask.H>} {private local
+}
 
 class FL_EXPORT Fl_Help_Dialog {open
 } {
-  decl {int index_;} {}
-  decl {int max_;} {}
-  decl {int line_[100];} {}
-  decl {char file_[100][256];} {}
-  decl {int find_pos_;} {}
+  decl {int index_;} {private local
+  }
+  decl {int max_;} {private local
+  }
+  decl {int line_[100];                 // FIXME: we must remove those static numbers} {private local
+  }
+  decl {char file_[100][FL_PATH_MAX];   // FIXME: we must remove those static numbers} {private local
+  }
+  decl {int find_pos_;} {private local
+  }
   Function {Fl_Help_Dialog()} {open
   } {
     Fl_Window window_ {
       label {Help Dialog} open
-      private xywh {398 64 530 385} type Double resizable size_range {260 150 0 0} visible
+      private xywh {398 64 530 385} type Double hide resizable size_range {260 150 0 0}
     } {
       Fl_Group {} {open selected
         xywh {10 10 511 25}
@@ -247,10 +261,10 @@ window_->label(view_->title());} {}
   } {
     code {return (window_->y());} {}
   }
-} 
+}
 
 comment {
 //
-// End of "$Id: Fl_Help_Dialog.fl 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: Fl_Help_Dialog.fl 11088 2016-01-30 00:56:42Z AlbrechtS $".
 //} {in_source in_header
-} 
+}

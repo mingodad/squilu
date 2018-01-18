@@ -27,7 +27,6 @@
 class FL_EXPORT Fl_Line_Dial : public Fl_Dial {
 public:
   Fl_Line_Dial(int X,int Y,int W,int H, const char *L = 0);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Line_Dial, Fl_Dial)
 };
 

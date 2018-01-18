@@ -1,9 +1,9 @@
 //
-// "$Id: fl_draw.H 9937 2013-06-22 12:01:11Z greg.ercolano $"
+// "$Id: fl_draw.H 12543 2017-11-05 04:18:44Z greg.ercolano $"
 //
 // Portable drawing function header file for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2011 by Bill Spitzak and others.
+// Copyright 1998-2017 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -24,13 +24,12 @@
 #ifndef fl_draw_H
 #define fl_draw_H
 
-#include <FL/x.H>	      // for Fl_Region
 #include <FL/Enumerations.H>  // for the color names
-#include <FL/Fl_Window.H>     // for fl_set_spot()
-#include <FL/Fl_Device.H>     // for fl_graphics_driver
+#include <FL/Fl_Graphics_Driver.H>     // for fl_graphics_driver + Fl_Region
 
 // Image class...
 class Fl_Image;
+class Fl_Window;
 
 // Label flags...
 FL_EXPORT extern char fl_draw_shortcut;
@@ -200,6 +199,10 @@ enum {
  */
 inline void fl_rect(int x, int y, int w, int h) { fl_graphics_driver->rect(x,y,w,h); }
 
+/**
+ Draw a dotted rectangle, used to indicate keyboard focus on a widget.
+ */
+inline void fl_focus_rect(int x, int y, int w, int h) { fl_graphics_driver->focus_rect(x, y, w, h); }
 /** Draws with passed color a 1-pixel border \e inside the given bounding box */
 inline void fl_rect(int x, int y, int w, int h, Fl_Color c) {fl_color(c); fl_rect(x,y,w,h);}
 /** Colors with current color a rectangle that exactly fills the given bounding box */
@@ -332,12 +335,16 @@ inline void fl_pop_matrix() { fl_graphics_driver->pop_matrix(); }
  Concatenates scaling transformation onto the current one.
  \param[in] x,y scale factors in x-direction and y-direction
  */
-inline void fl_scale(double x, double y) { fl_graphics_driver->scale(x, y); }
+inline void fl_scale(double x, double y) {
+  fl_graphics_driver->mult_matrix(x,0,0,y,0,0);
+}
 /**
  Concatenates scaling transformation onto the current one.
  \param[in] x scale factor in both x-direction and y-direction
  */
-inline void fl_scale(double x) { fl_graphics_driver->scale(x, x); }
+inline void fl_scale(double x) {
+  fl_graphics_driver->mult_matrix(x,0,0,x,0,0);
+}
 /**
  Concatenates translation transformation onto the current one.
  \param[in] x,y translation factor in x-direction and y-direction
@@ -490,6 +497,23 @@ inline double fl_transform_dy(double x, double y) {return fl_graphics_driver->tr
  \param[in] xf,yf transformed coordinate
  */
 inline void fl_transformed_vertex(double xf, double yf) {fl_graphics_driver->transformed_vertex(xf,yf); }
+
+/** Copy a rectangular area of the given offscreen buffer into the current drawing destination.
+   \param x,y	position where to draw the copied rectangle
+   \param w,h	size of the copied rectangle
+   \param pixmap  offscreen buffer containing the rectangle to copy
+   \param srcx,srcy origin in offscreen buffer of rectangle to copy
+   */
+inline void fl_copy_offscreen(int x, int y, int w, int h, Fl_Offscreen pixmap, int srcx, int srcy) {
+    fl_graphics_driver->copy_offscreen(x, y, w, h, pixmap, srcx, srcy);
+}
+
+FL_EXPORT Fl_Offscreen fl_create_offscreen(int w, int h);
+FL_EXPORT void fl_begin_offscreen(Fl_Offscreen b);
+FL_EXPORT void fl_end_offscreen(void);
+FL_EXPORT void fl_delete_offscreen(Fl_Offscreen bitmap);
+FL_EXPORT void fl_scale_offscreen(Fl_Offscreen &ctx);
+
 /** @} */
 
 /** \addtogroup  fl_attributes
@@ -531,26 +555,45 @@ FL_EXPORT int fl_height(int font, int size);
   draw the text at so it looks centered vertically in that box.
 */
 inline int  fl_descent() {return fl_graphics_driver->descent();}
-/** Returns the typographical width of a nul-terminated string */
+/** Returns the typographical width of a nul-terminated string
+    using the current font face and size. */
 FL_EXPORT double fl_width(const char* txt);
-/** Returns the typographical width of a sequence of \p n characters */
+/** Returns the typographical width of a sequence of \p n characters
+    using the current font face and size. */
 inline double fl_width(const char* txt, int n) {return fl_graphics_driver->width(txt, n);}
-/** Returns the typographical width of a single character.
+/** Returns the typographical width of a single character
+    using the current font face and size.
     \note if a valid fl_gc is NOT found then it uses the first window gc,
     or the screen gc if no fltk window is available when called. */
 inline double fl_width(unsigned int c)  {return fl_graphics_driver->width(c);}
-/** Determines the minimum pixel dimensions of a nul-terminated string.
+/** Determines the minimum pixel dimensions of a nul-terminated string 
+    using the current fl_font().
 
   Usage: given a string "txt" drawn using fl_draw(txt, x, y) you would determine
   its pixel extents on the display using fl_text_extents(txt, dx, dy, wo, ho)
   such that a bounding box that exactly fits around the text could be drawn with
   fl_rect(x+dx, y+dy, wo, ho). Note the dx, dy values hold the offset of the first
   "colored in" pixel of the string, from the draw origin.
+  Note the desired font and font size must be set with fl_font() before calling
+  this function.
+
+  This differs slightly from fl_measure() in that the dx/dy values are also
+  returned.
 
   No FLTK symbol expansion will be performed.
+  Example use:
+  \code
+  :
+  int dx,dy,W,H;
+  fl_font(FL_HELVETICA, 12);               // set font face+size first
+  fl_text_extents("Some text",dx,dy,W,H);  // get width and height of string
+  printf("text's width=%d, height=%d\n", W,H);
+  :
+  \endcode
 */
 FL_EXPORT void fl_text_extents(const char*, int& dx, int& dy, int& w, int& h); // NO fltk symbol expansion will be performed
-/** Determines the minimum pixel dimensions of a sequence of \p n characters.
+/** Determines the minimum pixel dimensions of a sequence of \p n characters
+    using the current fl_font().
 \see fl_text_extents(const char*, int& dx, int& dy, int& w, int& h)
 */
 inline void fl_text_extents(const char *t, int n, int& dx, int& dy, int& w, int& h)
@@ -602,8 +645,8 @@ FL_EXPORT const char *fl_local_to_mac_roman(const char *t, int n=-1);
 */
 FL_EXPORT void fl_draw(const char* str, int x, int y);
 /**
-  Draws a nul-terminated UTF-8 string starting at the given \p x, \p y location and 
-  rotating \p angle degrees counter-clockwise.
+  Draws a nul-terminated UTF-8 string starting at the given \p x, \p y
+  location and rotating \p angle degrees counter-clockwise.
   This version of fl_draw provides direct access to the text drawing
   function of the underlying OS and is supported by Xft, Win32 and MacOS
   fltk subsets.
@@ -614,8 +657,13 @@ FL_EXPORT void fl_draw(int angle, const char* str, int x, int y);
 */
 inline void fl_draw(const char* str, int n, int x, int y) {fl_graphics_driver->draw(str,n,x,y); }
 /**
-  Draws at the given \p x, \p y location a UTF-8 string of length \p n bytes 
+  Draws at the given \p x, \p y location a UTF-8 string of length \p n bytes
   rotating \p angle degrees counter-clockwise.
+
+  \note When using X11 (Unix, Linux, Cygwin et al.) this needs Xft to work.
+	Under plain X11 (w/o Xft) rotated text is not supported by FLTK.
+	A warning will be issued to stderr at runtime (only once) if you
+	use this method with an angle other than 0.
 */
 inline void fl_draw(int angle, const char* str, int n, int x, int y) {fl_graphics_driver->draw(angle,str,n,x,y); }
 /**
@@ -732,27 +780,8 @@ inline void fl_draw_image_mono(Fl_Draw_Image_Cb cb, void* data, int X,int Y,int 
   \returns 1 if true alpha blending supported by platform
   \returns 0 not supported so FLTK will use screen door transparency
   */
-/* note: doxygen comment here to avoid triplication in os-speciic files */
-FL_EXPORT char fl_can_do_alpha_blending();
+inline char fl_can_do_alpha_blending() {return Fl_Graphics_Driver::default_driver().can_do_alpha_blending();}
 
-/**
-  Reads an RGB(A) image from the current window or off-screen buffer.
-  \param[in] p     pixel buffer, or NULL to allocate one
-  \param[in] X,Y   position of top-left of image to read
-  \param[in] W,H   width and height of image to read
-  \param[in] alpha alpha value for image (0 for none)
-  \returns pointer to pixel buffer, or NULL if allocation failed.
-
-  The \p p argument points to a buffer that can hold the image and must
-  be at least \p W*H*3 bytes when reading RGB images, or \p W*H*4 bytes
-  when reading RGBA images. If NULL, fl_read_image() will create an
-  array of the proper size which can be freed using <tt>delete[]</tt>.
-
-  The \p alpha parameter controls whether an alpha channel is created
-  and the value that is placed in the alpha channel. If 0, no alpha
-  channel is generated.
-  */
-/* note: doxygen comment here to avoid triplication in os-speciic files */
 FL_EXPORT uchar *fl_read_image(uchar *p,int X,int Y,int W,int H,int alpha=0);
 
 // pixmaps:
@@ -769,7 +798,8 @@ FL_EXPORT const char* fl_shortcut_label(unsigned int shortcut, const char **eom)
 FL_EXPORT unsigned int fl_old_shortcut(const char* s);
 FL_EXPORT void fl_overlay_rect(int x,int y,int w,int h);
 FL_EXPORT void fl_overlay_clear();
-FL_EXPORT void fl_cursor(Fl_Cursor, Fl_Color fg=FL_BLACK, Fl_Color bg=FL_WHITE);
+FL_EXPORT void fl_cursor(Fl_Cursor);
+FL_EXPORT void fl_cursor(Fl_Cursor, Fl_Color fg, Fl_Color bg=FL_WHITE);
 FL_EXPORT const char* fl_expand_text(const char* from, char* buf, int maxbuf,
                                      double maxw, int& n, double &width,
                                      int wrap, int draw_symbols = 0);
@@ -792,5 +822,5 @@ FL_EXPORT int fl_add_symbol(const char* name, void (*drawit)(Fl_Color), int scal
 #endif
 
 //
-// End of "$Id: fl_draw.H 9937 2013-06-22 12:01:11Z greg.ercolano $".
+// End of "$Id: fl_draw.H 12543 2017-11-05 04:18:44Z greg.ercolano $".
 //

@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_Browser_.H 9846 2013-03-23 21:24:18Z greg.ercolano $"
+// "$Id: Fl_Browser_.H 12459 2017-09-14 00:50:36Z greg.ercolano $"
 //
 // Common browser header file for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2010 by Bill Spitzak and others.
+// Copyright 1998-2016 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -55,8 +55,9 @@
   accessing image data or doing stat() on a file or doing some
   other slow operation.
 
-  Keyboard navigation of browser items
-  ------------------------------------
+Keyboard navigation of browser items
+------------------------------------
+
   The keyboard navigation of browser items is only possible if
   visible_focus() is enabled. If disabled, the widget rejects keyboard focus;
   Tab and Shift-Tab focus navigation will skip the widget.
@@ -319,7 +320,7 @@ public:
     If this value is zero (default), this widget will use the 
     Fl::scrollbar_size() value as the scrollbar's width.
   
-    \returns Scrollbar size in pixels, or 0 if the global Fl::scrollsize() is being used.
+    \returns Scrollbar size in pixels, or 0 if the global Fl::scrollbar_size() is being used.
     \see Fl::scrollbar_size(int)
   */
   int scrollbar_size() const {
@@ -379,12 +380,11 @@ public:
   */
   void scrollbar_left() { scrollbar.align(FL_ALIGN_LEFT); }
   void sort(int flags=0);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Browser_, Fl_Group)
 };
 
 #endif
 
 //
-// End of "$Id: Fl_Browser_.H 9846 2013-03-23 21:24:18Z greg.ercolano $".
+// End of "$Id: Fl_Browser_.H 12459 2017-09-14 00:50:36Z greg.ercolano $".
 //

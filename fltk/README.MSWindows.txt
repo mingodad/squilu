@@ -1,5 +1,5 @@
-README.MSWindows.txt - 2010-10-25 - Building FLTK under Microsoft Windows
--------------------------------------------------------------------------
+ README.MSWindows.txt - Building FLTK under Microsoft Windows
+--------------------------------------------------------------
 
 
 
@@ -25,7 +25,7 @@ README.MSWindows.txt - 2010-10-25 - Building FLTK under Microsoft Windows
     3.5   Testing FLTK
     3.6   Installing FLTK
     3.7   Creating new Projects
-  4   HOW TO BUILD FLTK USING VISUAL STUDIO 2010
+  4   HOW TO BUILD FLTK USING VISUAL STUDIO 2010 OR LATER
     4.1   Prerequisites
     4.2   Downloading and Unpacking
     4.3   Configuring FLTK
@@ -44,19 +44,27 @@ README.MSWindows.txt - 2010-10-25 - Building FLTK under Microsoft Windows
 FLTK 1.3 and later is officially supported on Windows (2000,) 2003,
 XP, and later.  Older Windows versions are not officially supported,
 but may still work.  The main reason is that the OS version needs
-to support UTF-8. FLTK 1.3 is known to work on Windows 7 and Vista.
+to support UTF-8. FLTK 1.3 is known to work on Windows Vista, Windows 7,
+Windows 8/8.1, and Windows 10.
 
 FLTK currently supports the following development
 environments on the Windows platform:
 
-    - Free Microsoft Visual C++ 2008 Express and Visual
-      C++ 2010 Express using the supplied workspace and
-      project files. Older and the commercial versions can
-      be used as well, if they can open the project files.
-      Be sure to get your service packs!
+    - Free Microsoft "Visual C++ 2008 Express" or later or "Visual Studio
+      Community 2013" or later. The Visual Studio project files must be
+      generated using CMake. Visual Studio 2017 includes CMake support:
 
-      The project files can be found in the ide/ directory.
-      Please read ide/README.IDE for more info about this.
+      "Visual Studio 2017 introduces built-in support for handling CMake
+      projects. This makes it a lot simpler to develop C++ projects built
+      with CMake without the need to generate VS projects and solutions
+      from the command line. This post gives you an overview of the CMake
+      support, how to easily get started and stay productive in Visual Studio."
+
+      Citation from:
+      https://blogs.msdn.microsoft.com/vcblog/2016/10/05/cmake-support-in-visual-studio/
+
+      As of this writing (07/2017) the FLTK team did not yet test and
+      verify the functionality of Microsoft's included CMake features.
 
     - GNU toolsets (Cygwin or MinGW) hosted on Windows.
 
@@ -83,28 +91,21 @@ the "BASH" Bourne-compatible shell and all of the standard
 Unix file utilities (ls, cat, grep, etc.).
 
 Cygwin is developed by Cygnus (now part of RedHat, Inc).
-Although provided for free download under the GPL,
-distributing programs that require the Cygwin DLL under a
-license other than the GPL requires a commercial license for
-the Cygwin DLL.  Native Windows programs that do not require
-the Cygwin DLL (compiled and linked with the "-mno-cygwin"
-option) may be released under any license freely.
+Although provided for free download under the GPL, distributing
+programs that require the Cygwin DLL under a license other than
+the GPL requires a commercial license for the Cygwin DLL.
 
-Note: Since December 2009, there is a new gcc 4.x compiler
-that doesn't support the -mno-cygwin option anymore. You
-must use the older gcc-3 compiler instead.
+Native Windows programs that do not require the Cygwin DLL
+(cross-compiled and linked with the MinGW gcc/g++ cross compilers
+supplied with Cygwin) may be released under any license freely.
 
-An alternative is to install the new (since about Oct. 2010)
-mingw cross tools that support newer gcc compilers for building
-native Windows applications (like -mno-cygwin above).
 Currently you would have to install mingw64-i686-gcc-g++ for
 32-bit Windows applications (despite its name!), and/or
 mingw64-x86_64-gcc-g++ for 64-bit applications. You may also
 need to install the corresponding '-headers' packages as well.
-Currently these tools support gcc 4.5.x or newer, but the
-setup for FLTK is somewhat more complicated and not yet
-completely supported automatically (you may need to edit
-some lines in the generated makeinclude file).
+Currently these tools support gcc 4.5 or newer. The setup for
+FLTK is somewhat more complicated because you must configure
+this as a cross compiler, but it works well.
 
 The MinGW distribution (Minimalist GNU for Windows) provides
 a similar toolset but geared solely towards native Windows
@@ -127,17 +128,18 @@ check out their license conditions carefully before use.
 There are currently three main configurations supported by
 FLTK with the GNU tools:
 
-    1. Cygwin: Built using the Cygwin toolset and using the
-       Unix-like POSIX compatibility layer provided by the
-       Cygwin DLL.
+    1. Cygwin: Built using the Cygwin toolset and using the Unix-like
+       POSIX compatibility layer provided by the Cygwin DLL.
+       License: GPL or non-free commercial license (ask Redhat).
 
-    2. Cygwin using the "-mno-cygwin" option: Built using
-       the Cygwin toolset but not using the Cygwin DLL.
+    2. Cygwin using the MinGW cross compiler suite: Built using
+       the Cygwin tools but not using the Cygwin DLL.
+       License: freely distributable on all Windows systems.
 
-    3. MinGW: Built using the MinGW utilities, compiler and
-       tools. This is, in many aspects, analogous to the
-       Cygwin "-mno-cygwin" option. This is the recommended
+    3. MinGW: Built using the MinGW utilities, compiler and tools. This
+       is, in many aspects, analogous to (2.). This is the recommended
        one if you want to build native Windows programs only.
+       License: freely distributable on all Windows systems.
 
 
  Recommended Command Line Build Environment
@@ -148,23 +150,18 @@ Our recommendation is to:
     1. Get the current Cygwin toolset.
 
        This can either produce executables that do or do not
-       rely on the Cygwin DLL (check licensing) at your
-       choice.
+       rely on the Cygwin DLL (check licensing) at your choice.
 
-    2. Get the latest MinGW toolset. It is recommended that
-       you also get the MSYS shell and the msysDTK developer
-       toolset.
+    2. Get the latest MinGW toolset. It is recommended that you
+       also get the MSYS shell and the msysDTK developer toolset.
 
-       This will only produce normal Windows native
-       executables without any Unix or POSIX compatibility
-       layer.
+       This will only produce normal Windows native executables
+       without any Unix or POSIX compatibility layer.
 
+    See the links section below for more information.
 
-       See the links section below for more information.
-
-Either option can generate windows-native executables and
-option 1 can provide a Unix-like POSIX portability layer that
-is reliant on a GPLed library.
+Either option can generate Windows native executables and option 1 can
+provide a Unix-like POSIX portability layer that is reliant on a GPLed library.
 
 See the later sections for detailed information about using
 one of these configurations.
@@ -241,6 +238,24 @@ linking:
 :END_ADVANCED
 
 
+Known Problems:
+
+  There is a known incompatibility with some Windows subversion tools that
+  may not set the correct line endings for autoconf. If you get strange
+  error messages when running ./configure or make, you may need to convert
+  configh.in to "Unix line endings" (LF-only). These error messages are
+  unspecific, e.g. compilation errors like:
+
+     error: 'U32' does not name a type
+     error: 'bmibuffer' was not declared in this scope
+
+  You can fix the line endings with the MinGW/msys tool 'unix2dos' (u2d)
+  or with your favorite editor, if it allows to change the line endings,
+  then run autoconf and ./configure again.
+  For further information see this bug report:
+     http://www.fltk.org/newsgroups.php?gfltk.bugs+v:10197
+
+
  Building FLTK
 ---------------
 
@@ -250,12 +265,6 @@ Now this is easy. Stay in your FLTK source-code directory and type:
 
 The entire FLTK toolkit including many test programs will be built for you.
 No warnings should appear.
-
-(actually, as of Oct 25 2010, quite a lot of warnings related to suggested
-parentheses and others will appear, this is normal and will be fixed. The
-linker will also spit out a bunch of warnings for every program linked. This
-needs to be fixed. Lastly, there is no generator for man pages in a default
-MinGW installation, but you can install man and groff to fix this.)
 
 
  Testing FLTK
@@ -295,25 +304,40 @@ I recommend that you add it to the command search path.
 
 
 
- HOW TO BUILD FLTK USING VISUAL STUDIO 2008
-============================================
+ HOW TO BUILD FLTK USING MICROSOFT VISUAL STUDIO
+================================================
 
 
  Prerequisites
 ---------------
 
-In order to build FLTK from within VisualStudio 2008, you need to install the
-VisualC developer environment from the Microsoft web site. The Express edition
-is free of charge and sufficient to develop FLTK applications:
+In order to build FLTK from within Visual Studio, you need to install the
+Visual C++ developer environment from the Microsoft web site. The "Express"
+or "Community" edition is free of charge and sufficient to develop FLTK
+applications:
 
-  http://www.microsoft.com/express/Downloads/
+  https://www.visualstudio.com/vs/visual-studio-express/
 
-You must make sure that at least VisualStudio 2008 Service Pack 1 is installed
-or building FLTK on a multicore CPU will be very painful!
+If you intend to use an older (maybe commercial) version you need at least
+a version that is supported by the version of CMake you are using to generate
+the project files. You should make sure that all available service packs are
+installed or building FLTK may fail.
+
+As of this writing (07/2017) the FLTK team recommends at least Visual
+Studio 2008 with current service packs. Visual Studio 2008, 2010, 2013,
+2015, and 2017 are known to work with FLTK 1.4.0 (svn, 07/2017).
+
+You also need to install CMake (cmake-gui) from:
+
+  https://cmake.org/download/
+
+Visual Studio 2017 has internal CMake support (so you may not need to
+install CMake separately), but this has not yet been tested thoroughly
+by the FLTK team.
 
 
- Downloading and Unpacking
----------------------------
+ Downloading and Unpacking FLTK
+--------------------------------
 
 Download FLTK from here:
 
@@ -331,9 +355,16 @@ my projects.
  Configuring FLTK
 ------------------
 
-Launch VisualStudio. Open the project file in
+Note: Configuration with Visual Studio 2017's internal CMake support is
+not yet included here. You may try yourself...
 
-  ...\fltk-1.3.xxxx\ide\VisualC2008\fltk.sln
+Please refer to README.CMake.txt for how to configure FLTK with CMake.
+
+Once you have followed the instructions you should have created a new
+build directory with the Visual Studio Solution (project files) for FLTK.
+
+Launch Visual Studio and open the project file (FLTK.sln) or double-click
+on FLTK.sln in the Windows Explorer.
 
 Choose "Debug" or "Release" mode from the "Solution Configurations" menu.
 
@@ -344,13 +375,6 @@ Choose "Debug" or "Release" mode from the "Solution Configurations" menu.
 Use the context menu of the "demo" project to "Set as StartUp Project". Then
 select "Build Solution" from the "Build" menu or press F7 to build all
 libraries.
-
-VisualC 2008 has a bug that messes up building a Solution on multicore CPUs.
-Make sure that Visual Studio 2008 Service Pack 1 is installed or, as a
-workaround, set the "maximum number of parallel project builds" to 1 (Tools >
-Options > Projects and Solutions > Build and Run > maximum number of parallel
-project builds). Also, repeating the build command two or three times may
-clear unresolved reference errors.
 
 
  Testing FLTK
@@ -363,6 +387,10 @@ Demo program. Use "Demo" to explore all test programs.
  Installing FLTK
 -----------------
 
+********************************************************************************
+   The information in this chapter is NO LONGER RECOMMENDED by the FLTK team.
+********************************************************************************
+
 The default location for VisualC 2008 libraries and headers is here:
 
   C:\Program Files\Microsoft Visual Studio 9.0\VC\
@@ -372,6 +400,9 @@ respective subdirectories, so that they are available for future development
 without adding link and include paths to the solution.
 
   copy the entire FL directory into the include path
+
+  add all files from ide\VisualC2008\FL to the FL directory copied above
+    (this is currently only one file: abi-version.h)
 
   copy all .lib files from the fltk lib directory to the VC lib directory
 
@@ -385,7 +416,11 @@ conflicts. Use the static .lib libraries instead.
  Creating new Projects
 -----------------------
 
-This chapter assumes that libraries and headers are copied into
+********************************************************************************
+   The information in this chapter is NO LONGER RECOMMENDED by the FLTK team.
+********************************************************************************
+
+This chapter assumes that libraries and headers were copied into
 
   C:\Program Files\Microsoft Visual Studio 9.0\VC\
 
@@ -416,63 +451,45 @@ is changed, the corresponding .cxx file will be recompiled.
 
 
 
- HOW TO BUILD FLTK USING VISUAL STUDIO 2010
-============================================
+ HOW TO BUILD FLTK USING VISUAL STUDIO 2010 OR LATER
+====================================================
 
 
  Prerequisites
 ---------------
 
-In order to build FLTK from within VisualStudio 2010, you need to install the
-VisualC developer environment from the Microsoft web site. The Express edition
-is free of charge and sufficient to develop FLTK applications:
-
-  http://www.microsoft.com/express/Downloads/
+See previous chapter "HOW TO BUILD FLTK USING MICROSOFT VISUAL STUDIO".
 
 
  Downloading and Unpacking
 ---------------------------
 
-Download FLTK from here:
-
-  http://www.fltk.org/software.php
-
-If you are familiar with "subversion" and like to stay current with your
-version, you will find the subversion access parameters at the bottom of
-that page.
-
-Unpack FLTK by using an appropriate unpacker and copy the new folder into a
-convenient location. I have set up a "dev" folder in my home folder for all
-my projects.
+See previous chapter "HOW TO BUILD FLTK USING MICROSOFT VISUAL STUDIO".
 
 
  Configuring FLTK
 ------------------
 
-Launch VisualStudio. Open the project file in
-
-  .../fltk-1.3.xxxx/ide/VisualC2010/fltk.sln
-
-Choose "Debug" or "Release" mode from the "Solution Configurations" menu.
+See previous chapter "HOW TO BUILD FLTK USING MICROSOFT VISUAL STUDIO".
 
 
  Building FLTK
 ---------------
 
-Use the context menu of the "demo" project to "Set as StartUp Project". Then
-select "Build Solution" from the "Build" menu or press F7 to build all
-libraries.
-
+See previous chapter "HOW TO BUILD FLTK USING MICROSOFT VISUAL STUDIO".
 
  Testing FLTK
 --------------
 
-Select "Start Debugging" from the "Debug" menu or just press F5 to run the
-Demo program. Use "Demo" to explore all test programs.
+See previous chapter "HOW TO BUILD FLTK USING MICROSOFT VISUAL STUDIO".
 
 
  Installing FLTK
 -----------------
+
+********************************************************************************
+   The information in this chapter is NO LONGER RECOMMENDED by the FLTK team.
+********************************************************************************
 
 The default location for VisualC 2010 libraries and headers is here:
 
@@ -483,6 +500,9 @@ respective subdirectories, so that they are available for future development
 without adding link and include paths to the solution.
 
   copy the entire FL directory into the include path
+
+  add all files from ide\VisualC2010\FL to the FL directory copied above
+    (this is currently only one file: abi-version.h)
 
   copy all .lib files from the fltk lib directory to the VC lib directory
 
@@ -495,6 +515,10 @@ conflicts. Use the static .lib libraries instead.
 
  Creating new Projects
 -----------------------
+
+********************************************************************************
+   The information in this chapter is NO LONGER RECOMMENDED by the FLTK team.
+********************************************************************************
 
 This chapter assumes that libraries and headers are copied into
 
@@ -537,7 +561,7 @@ is changed, the corresponding .cxx file will be recompiled.
 
 Windows has a flag that determines whether an application
 runs in the foreground with a console or in the background
-without a console. 
+without a console.
 
 If you're using gcc (i.e. MinGW or Cygwin), then use the
 linker option "-mwindows" to make your application run in
@@ -586,20 +610,19 @@ The following links may be of use:
 
 1. Main Cygwin homepage:
 
-       http://www.cygwin.com/
+	http://www.cygwin.com/
 
-2. Main Mingw homepage:
+2. Main MinGW homepage:
 
-       http://www.mingw.org/
+	http://www.mingw.org/
 
    In particular look for the MinGW FAQ at this link for
-   a lot of useful Mingw-native development
-   documentation.
+   a lot of useful Mingw-native development documentation.
 
 
 3. Check out the FLTK newsgroups at the FLTK homepage:
 
-       http://www.fltk.org/
+	http://www.fltk.org/
 
    Its archival search facilities are EXTREMELY useful
    to check back through previous problems with this
@@ -607,11 +630,15 @@ The following links may be of use:
 
 4. GNU Compiler Collection (GCC) compiler homepage:
 
-       http://gcc.gnu.org/
+	http://gcc.gnu.org/
 
 5. OpenGL page - for OpenGL and GLUT libs
 
-       http://www.opengl.org/
+	http://www.opengl.org/
+
+6. CMake homepage:
+
+	https://cmake.org/
 
 
 
@@ -620,5 +647,6 @@ The following links may be of use:
 
 Oct 25 2010 - matt: restructured entire document and verified instructions
 Dec 20 2010 - matt: merged with README.win32
-Dec 22 2010 - AlbrechtS: added newer Cygwin (cross/mingw-w64) options
-Feb 24 2012 - AlbrechtS: clarified console window FAQ
+Dec 22 2010 - Albrecht: added newer Cygwin (cross/mingw-w64) options
+Feb 24 2012 - Albrecht: clarified console window FAQ
+Jul 05 2017 - Albrecht: several updates, particularly on Visual Studio usage

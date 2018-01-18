@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_Browser_.cxx 9737 2012-12-05 17:17:31Z greg.ercolano $"
+// "$Id: Fl_Browser_.cxx 12457 2017-09-13 21:56:49Z greg.ercolano $"
 //
 // Base Browser widget class for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2010 by Bill Spitzak and others.
+// Copyright 1998-2016 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -113,6 +113,7 @@ void Fl_Browser_::resize(int X, int Y, int W, int H) {
   hscrollbar.resize(
 	X, scrollbar.align()&FL_ALIGN_TOP ? Y-scrollsize : Y+H,
 	W, scrollsize);
+  max_width = 0;
 }
 
 // Cause minimal update to redraw the given item:
@@ -600,7 +601,7 @@ void* Fl_Browser_::find_item(int ypos) {
 
   \param[in] item The item whose selection state is to be changed
   \param[in] val The new selection state (1=select, 0=de-select)
-  \param[in] docallbacks If 1, invokes widget callback if item changed.\n
+  \param[in] docallbacks If non-zero, invokes widget callback if item changed.\n
                          If 0, doesn't do callback (default).
   \returns 1 if state was changed, 0 if not.
 */
@@ -643,7 +644,7 @@ int Fl_Browser_::select(void* item, int val, int docallbacks) {
   If the optional \p docallbacks parameter is non-zero, deselect tries
   to call the callback function for the widget.
 
-  \param[in] docallbacks If 1, invokes widget callback if item changed.\n
+  \param[in] docallbacks If non-zero, invokes widget callback if item changed.\n
                          If 0, doesn't do callback (default).
 */
 int Fl_Browser_::deselect(int docallbacks) {
@@ -665,7 +666,7 @@ int Fl_Browser_::deselect(int docallbacks) {
   Selects \p item and returns 1 if the state changed or 0 if it did not.
   Any other items in the list are deselected.
   \param[in] item The \p item to select.
-  \param[in] docallbacks If 1, invokes widget callback if item changed.\n
+  \param[in] docallbacks If non-zero, invokes widget callback if item changed.\n
                          If 0, doesn't do callback (default).
 */
 int Fl_Browser_::select_only(void* item, int docallbacks) {
@@ -710,23 +711,12 @@ int Fl_Browser_::handle(int event) {
     void* l1 = selection_;
     void* l = l1; if (!l) l = top_; if (!l) l = item_first();
     if (l) {
-        switch (Fl::event_key()) {
-        	case FL_Enter:
-        	case FL_KP_Enter:
-          		select_only(l, when() & ~FL_WHEN_ENTER_KEY);
-	  			if (wp.deleted()) return 1;
-	  			if (when() & FL_WHEN_ENTER_KEY) {
-	    			set_changed();
-	    			do_callback();
-	  			}
-          		return 1;
-		}
-
       if (type()==FL_HOLD_BROWSER) {
         switch (Fl::event_key()) {
         case FL_Down:
-          while ((l = item_next(l)))
+	  while ((l = item_next(l))) {
             if (item_height(l)>0) {select_only(l, when()); break;}
+	  }
             return 1;
         case FL_Up:
           while ((l = item_prev(l))) {
@@ -739,6 +729,15 @@ int Fl_Browser_::handle(int event) {
         } 
       } else  {
         switch (Fl::event_key()) {
+        case FL_Enter:
+        case FL_KP_Enter:
+          select_only(l, when() & ~FL_WHEN_ENTER_KEY);
+	  if (wp.deleted()) return 1;
+	  if (when() & FL_WHEN_ENTER_KEY) {
+	    set_changed();
+	    do_callback();
+	  }
+          return 1;
         case ' ':
           selection_ = l;
           select(l, !item_selected(l), when() & ~FL_WHEN_ENTER_KEY);
@@ -816,7 +815,7 @@ J1:
     } else {
       void* l = find_item(my);
       whichway = 1;
-      if (Fl::event_state(FL_CTRL)) { // toggle selection:
+      if (Fl::event_state(FL_COMMAND)) { // toggle selection:
       TOGGLE:
 	if (l) {
 	  whichway = !item_selected(l);
@@ -1099,5 +1098,5 @@ void Fl_Browser_::item_select(void *item, int val) {}
 int Fl_Browser_::item_selected(void* item) const { return item==selection_ ? 1 : 0; }
 
 //
-// End of "$Id: Fl_Browser_.cxx 9737 2012-12-05 17:17:31Z greg.ercolano $".
+// End of "$Id: Fl_Browser_.cxx 12457 2017-09-13 21:56:49Z greg.ercolano $".
 //

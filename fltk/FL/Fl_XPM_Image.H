@@ -33,7 +33,6 @@ class FL_EXPORT Fl_XPM_Image : public Fl_Pixmap {
   public:
 
   Fl_XPM_Image(const char* filename);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_XPM_Image, Fl_Pixmap)
 };
 

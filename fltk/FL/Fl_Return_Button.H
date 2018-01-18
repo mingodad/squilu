@@ -41,7 +41,6 @@ public:
     <P> The inherited destructor deletes the button.
   */
   Fl_Return_Button(int X, int Y, int W, int H,const char *l=0);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Return_Button, Fl_Button)
 };
 

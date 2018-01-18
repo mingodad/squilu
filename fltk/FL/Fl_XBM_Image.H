@@ -32,7 +32,6 @@ class FL_EXPORT Fl_XBM_Image : public Fl_Bitmap {
   public:
 
   Fl_XBM_Image(const char* filename);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_XBM_Image, Fl_Bitmap)
 };
 

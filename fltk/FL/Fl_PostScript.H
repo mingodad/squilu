@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_PostScript.H 9993 2013-09-25 08:55:01Z manolo $"
+// "$Id: Fl_PostScript.H 11690 2016-04-24 16:22:38Z manolo $"
 //
 // Support for graphics output to PostScript file for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 2010-2011 by Bill Spitzak and others.
+// Copyright 2010-2016 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -25,6 +25,12 @@
 
 #include <FL/Fl_Paged_Device.H>
 #include <FL/fl_draw.H>
+#include <stdarg.h>
+
+/* Signature of Fl_PostScript::close_command() functions passed as parameters. */
+extern "C" {
+  typedef int (Fl_PostScript_Close_Command)(FILE *);
+}
 
 /**
  \brief PostScript graphical backend.
@@ -52,16 +58,19 @@
  <br> All other unicode characters or all other fonts (FL_FREE_FONT and above) are output as a bitmap.
  <br> FLTK standard fonts are output using the corresponding PostScript standard fonts.
  */
-
-/** Signature of Fl_PostScript::close_command() functions passed as parameters. */
-extern "C" {
-  typedef int (Fl_PostScript_Close_Command)(FILE *);
-}
-
 class FL_EXPORT Fl_PostScript_Graphics_Driver : public Fl_Graphics_Driver {
-public: 
-  static const char *class_id;
-  const char *class_name() {return class_id;};
+private:
+  void transformed_draw_extra(const char* str, int n, double x, double y, int w, bool rtl);
+  void *prepare_rle85();
+  void write_rle85(uchar b, void *data);
+  void close_rle85(void *data);
+  void *prepare85();
+  void write85(void *data, const uchar *p, int len);
+  void close85(void *data);
+protected:
+  uchar **mask_bitmap() {return &mask;}
+  void mask_bitmap(uchar **value) { }
+public:
   Fl_PostScript_Graphics_Driver();
 #ifndef FL_DOXYGEN
   enum SHAPE{NONE=0, LINE, LOOP, POLYGON, POINTS};
@@ -191,9 +200,7 @@ class Clip {
   void draw_image_mono(Fl_Draw_Image_Cb call, void* data, int x,int y, int w, int h, int delta=1);
       
   void draw(const char* s, int nBytes, int x, int y) {transformed_draw(s,nBytes,x,y); };
-#ifdef __APPLE__
   void draw(const char* s, int nBytes, float x, float y) {transformed_draw(s,nBytes,x,y); };
-#endif
   void draw(int angle, const char *str, int n, int x, int y);
   void rtl_draw(const char* s, int n, int x, int y);
   void font(int face, int size);
@@ -205,26 +212,65 @@ class Clip {
   void draw(Fl_Pixmap * pxm,int XP, int YP, int WP, int HP, int cx, int cy);
   void draw(Fl_Bitmap * bitmap,int XP, int YP, int WP, int HP, int cx, int cy);
   void draw(Fl_RGB_Image * rgb,int XP, int YP, int WP, int HP, int cx, int cy);
+  int draw_scaled(Fl_Image *img, int XP, int YP, int WP, int HP);
+  /** Shields output PostScript data from modifications of the current locale.
+   It typically avoids PostScript errors caused if the current locale uses comma instead of dot
+   as "decimal point".
+   \param format  directives controlling output PostScript data
+   \return value returned by vfprintf() call
+   */
+  int clocale_printf(const char *format, ...);
   ~Fl_PostScript_Graphics_Driver();
+  // ---
+  Fl_Bitmask create_bitmask(int w, int h, const uchar *array) { return 0L; }
+  void delete_bitmask(Fl_Bitmask bm) { };
+  virtual int has_feature(driver_feature mask) { return mask & PRINTER; }
 };
 
 /**
- \brief To send graphical output to a PostScript file.
+ To send graphical output to a PostScript file.
+ This class is used exactly as the Fl_Printer class except for the start_job() call,
+ two variants of which are usable and allow to specify what page format and layout are desired.
  */
 class FL_EXPORT Fl_PostScript_File_Device : public Fl_Paged_Device {
-#ifdef __APPLE__
-  CGContextRef gc;
-#endif
 protected:
+  /**
+   \brief Returns the PostScript driver of this drawing surface.
+   */
   Fl_PostScript_Graphics_Driver *driver();
 public:
-  static const char *class_id;
-  const char *class_name() {return class_id;};
+  /**
+   @brief The constructor.
+   */
   Fl_PostScript_File_Device();
+  /**
+   @brief The destructor.
+   */
   ~Fl_PostScript_File_Device();
-  int start_job(int pagecount, enum Fl_Paged_Device::Page_Format format = Fl_Paged_Device::A4, 
+  /** Don't use with this class. */
+  int start_job(int pagecount, int* from, int* to);
+  /**
+   @brief Begins the session where all graphics requests will go to a local PostScript file.
+   *
+   Opens a file dialog entitled with Fl_PostScript_File_Device::file_chooser_title to select an output PostScript file.
+   @param pagecount The total number of pages to be created. Use 0 if this number is unknown when this function is called.
+   @param format Desired page format.
+   @param layout Desired page layout.
+   @return 0 if OK, 1 if user cancelled the file dialog, 2 if fopen failed on user-selected output file.
+   */
+  int start_job(int pagecount, enum Fl_Paged_Device::Page_Format format = Fl_Paged_Device::A4,
 		enum Fl_Paged_Device::Page_Layout layout = Fl_Paged_Device::PORTRAIT);
-  int start_job(FILE *ps_output, int pagecount, enum Fl_Paged_Device::Page_Format format = Fl_Paged_Device::A4, 
+  /**
+   @brief Begins the session where all graphics requests will go to FILE pointer.
+   *
+   @param ps_output A writable FILE pointer that will receive PostScript output and that should not be closed
+   until after end_job() has been called.
+   @param pagecount The total number of pages to be created. Use 0 if this number is unknown when this function is called.
+   @param format Desired page format.
+   @param layout Desired page layout.
+   @return always 0.
+   */
+  int start_job(FILE *ps_output, int pagecount, enum Fl_Paged_Device::Page_Format format = Fl_Paged_Device::A4,
 		enum Fl_Paged_Device::Page_Layout layout = Fl_Paged_Device::PORTRAIT);
   int start_page (void);
   int printable_rect(int *w, int *h);
@@ -236,16 +282,13 @@ public:
   void translate(int x, int y);
   void untranslate(void);
   int end_page (void);    
-  void end_job(void);
-#ifdef __APPLE__
-  void set_current() { fl_gc = gc; Fl_Paged_Device::set_current(); }
-#endif
-  
-  static const char *file_chooser_title; 
+  void end_job(void);  
+  /** \brief Label of the PostScript file chooser window */
+  static const char *file_chooser_title;
 };
 
 #endif // Fl_PostScript_H
 
 //
-// End of "$Id: Fl_PostScript.H 9993 2013-09-25 08:55:01Z manolo $"
+// End of "$Id: Fl_PostScript.H 11690 2016-04-24 16:22:38Z manolo $"
 //

@@ -103,7 +103,6 @@ class FL_EXPORT Fl_Check_Browser : public Fl_Browser_ {
   protected:
 
   int handle(int);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Check_Browser, Fl_Browser_)
 };
 

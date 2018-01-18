@@ -45,7 +45,6 @@ public:
     Fl::remove_timeout(repeat_callback,this);
     Fl_Button::deactivate();
   }
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Repeat_Button, Fl_Button)
 };
 

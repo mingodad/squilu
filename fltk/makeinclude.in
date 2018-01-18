@@ -1,9 +1,9 @@
 #
-# "$Id: makeinclude.in 9736 2012-12-05 14:53:03Z manolo $"
+# "$Id: makeinclude.in 12173 2017-02-15 20:28:13Z AlbrechtS $"
 #
 # Make include file for the Fast Light Tool Kit (FLTK).
 #
-# Copyright 1998-2010 by Bill Spitzak and others.
+# Copyright 1998-2014 by Bill Spitzak and others.
 #
 # This library is free software. Distribution and use rights are outlined in
 # the file "COPYING" which should have been included with this file.  If this
@@ -16,6 +16,22 @@
 #      http://www.fltk.org/str.php
 #
 
+# FLTK version numbers
+
+FL_MAJOR_VERSION	= @FL_MAJOR_VERSION@
+FL_MINOR_VERSION	= @FL_MINOR_VERSION@
+FL_PATCH_VERSION	= @FL_PATCH_VERSION@
+
+FL_DSO_VERSION		= @FL_DSO_VERSION@
+FL_ABI_VERSION		= @FL_ABI_VERSION@
+FL_VERSION		= @FL_VERSION@
+
+# FLTK configuration options: BUILD = { WIN | OSX | X11 | XFT }
+
+BUILD		= @BUILD@
+
+# Standard configure variables
+
 prefix		= @prefix@
 exec_prefix	= @exec_prefix@
 bindir		= @bindir@
@@ -27,9 +43,8 @@ mandir		= @mandir@
 srcdir		= @srcdir@
 docdir		= $(datadir)/doc/fltk
 VPATH		= @srcdir@
-USEMMFILES  = @USEMMFILES@
+
 # programs we use...
-HTMLDOC		= @HTMLDOC@
 DOXYDOC		= @DOXYDOC@
 INSTALL		= @INSTALL@
 LN		= ln -s
@@ -167,5 +182,5 @@ UNINSTALL_DESKTOP = @UNINSTALL_DESKTOP@
 	mv t.z $@
 
 #
-# End of "$Id: makeinclude.in 9736 2012-12-05 14:53:03Z manolo $".
+# End of "$Id: makeinclude.in 12173 2017-02-15 20:28:13Z AlbrechtS $".
 #

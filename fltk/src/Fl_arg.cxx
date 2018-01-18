@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_arg.cxx 10145 2014-05-04 13:46:09Z manolo $"
+// "$Id: Fl_arg.cxx 11988 2016-09-26 19:35:20Z manolo $"
 //
 // Optional argument initialization code for the Fast Light Tool Kit (FLTK).
 //
@@ -20,25 +20,14 @@
 // You do not need to call this!  Feel free to make up your own switches.
 
 #include <FL/Fl.H>
-#include <FL/x.H>
 #include <FL/Fl_Window.H>
+#include <FL/Fl_Window_Driver.H>
+#include <FL/Fl_System_Driver.H>
 #include <FL/Fl_Tooltip.H>
 #include <FL/filename.H>
 #include <FL/fl_draw.H>
 #include <ctype.h>
 #include "flstring.h"
-
-#if defined(WIN32) || defined(__APPLE__)
-int XParseGeometry(const char*, int*, int*, unsigned int*, unsigned int*);
-#  define NoValue	0x0000
-#  define XValue  	0x0001
-#  define YValue	0x0002
-#  define WidthValue  	0x0004
-#  define HeightValue  	0x0008
-#  define AllValues 	0x000F
-#  define XNegative 	0x0010
-#  define YNegative 	0x0020
-#endif
 
 static int fl_match(const char *a, const char *s, int atleast = 1) {
   const char *b = s;
@@ -47,7 +36,6 @@ static int fl_match(const char *a, const char *s, int atleast = 1) {
 }
 
 // flags set by previously parsed arguments:
-extern char fl_show_iconic; // in Fl_x.cxx
 static char arg_called;
 static char return_i;
 static const char *name;
@@ -142,7 +130,7 @@ int Fl::arg(int argc, char **argv, int &i) {
   s++; // point after the dash
 
   if (fl_match(s, "iconic")) {
-    fl_show_iconic = 1;
+    Fl_Window::show_iconic_ = 1;
     i++;
     return 1;
   } else if (fl_match(s, "kbd")) {
@@ -169,19 +157,10 @@ int Fl::arg(int argc, char **argv, int &i) {
     Fl_Tooltip::disable();
     i++;
     return 1;
-  }
-#ifdef __APPLE__
-  // The Finder application in MacOS X passes the "-psn_N_NNNNN" option
-  // to all apps...
-  else if (strcmp(s, "NSDocumentRevisionsDebugMode") == 0) {
-    i++;
-    if (argv[i]) i++;
-    return 1;
-  } else if (strncmp(s, "psn_", 4) == 0) {
+  } else if (Fl::system_driver()->single_arg(s)) {
     i++;
     return 1;
   }
-#endif // __APPLE__
 
   const char *v = argv[i+1];
   if (i >= argc-1 || !v)
@@ -190,14 +169,15 @@ int Fl::arg(int argc, char **argv, int &i) {
   if (fl_match(s, "geometry")) {
 
     int flags, gx, gy; unsigned int gw, gh;
-    flags = XParseGeometry(v, &gx, &gy, &gw, &gh);
+    flags = Fl::system_driver()->XParseGeometry(v, &gx, &gy, &gw, &gh);
     if (!flags) return 0;
     geometry = v;
 
-#if !defined(WIN32) && !defined(__APPLE__)
   } else if (fl_match(s, "display", 2)) {
-    Fl::display(v);
-#endif
+    Fl::system_driver()->display_arg(v);
+
+  } else if (Fl::system_driver()->arg_and_value(s, v)) {
+    // nothing to do
 
   } else if (fl_match(s, "title", 2)) {
     title = v;
@@ -217,7 +197,9 @@ int Fl::arg(int argc, char **argv, int &i) {
   } else if (fl_match(s, "scheme", 1)) {
     Fl::scheme(v);
 
-  } else return 0; // unrecognized
+  } else {
+    return 0; // unrecognized
+  }
 
   i += 2;
   return 2;
@@ -295,44 +277,23 @@ void Fl_Window::show(int argc, char **argv) {
 
   Fl::get_system_colors();
 
-#if !defined(WIN32) && !defined(__APPLE__)
-  // Get defaults for drag-n-drop and focus...
-  const char *key = 0, *val;
-
-  if (Fl::first_window()) key = Fl::first_window()->xclass();
-  if (!key) key = "fltk";
-
-  val = XGetDefault(fl_display, key, "dndTextOps");
-  if (val) Fl::dnd_text_ops(strcasecmp(val, "true") == 0 ||
-                            strcasecmp(val, "on") == 0 ||
-                            strcasecmp(val, "yes") == 0);
-
-  val = XGetDefault(fl_display, key, "tooltips");
-  if (val) Fl_Tooltip::enable(strcasecmp(val, "true") == 0 ||
-                              strcasecmp(val, "on") == 0 ||
-                              strcasecmp(val, "yes") == 0);
-
-  val = XGetDefault(fl_display, key, "visibleFocus");
-  if (val) Fl::visible_focus(strcasecmp(val, "true") == 0 ||
-                             strcasecmp(val, "on") == 0 ||
-                             strcasecmp(val, "yes") == 0);
-#endif // !WIN32 && !__APPLE__
+  pWindowDriver->show_with_args_begin();
 
   // set colors first, so background_pixel is correct:
   static char beenhere;
   if (!beenhere) {
     if (geometry) {
       int fl = 0, gx = x(), gy = y(); unsigned int gw = w(), gh = h();
-      fl = XParseGeometry(geometry, &gx, &gy, &gw, &gh);
-      if (fl & XNegative) gx = Fl::w()-w()+gx;
-      if (fl & YNegative) gy = Fl::h()-h()+gy;
+      fl = Fl::system_driver()->XParseGeometry(geometry, &gx, &gy, &gw, &gh);
+      if (fl & Fl_System_Driver::fl_XNegative) gx = Fl::w()-w()+gx;
+      if (fl & Fl_System_Driver::fl_YNegative) gy = Fl::h()-h()+gy;
       //  int mw,mh; minsize(mw,mh);
       //  if (mw > gw) gw = mw;
       //  if (mh > gh) gh = mh;
       Fl_Widget *r = resizable();
       if (!r) resizable(this);
       // for WIN32 we assume window is not mapped yet:
-      if (fl & (XValue | YValue))
+      if (fl & (Fl_System_Driver::fl_XValue | Fl_System_Driver::fl_YValue))
 	x(-1), resize(gx,gy,gw,gh);
       else
 	size(gw,gh);
@@ -355,17 +316,7 @@ void Fl_Window::show(int argc, char **argv) {
   // Show the window AFTER we have set the colors and scheme.
   show();
 
-#if !defined(WIN32) && !defined(__APPLE__)
-  // set the command string, used by state-saving window managers:
-  int j;
-  int n=0; for (j=0; j<argc; j++) n += strlen(argv[j])+1;
-  char *buffer = new char[n];
-  char *p = buffer;
-  for (j=0; j<argc; j++) for (const char *q = argv[j]; (*p++ = *q++););
-  XChangeProperty(fl_display, fl_xid(this), XA_WM_COMMAND, XA_STRING, 8, 0,
-		  (unsigned char *)buffer, p-buffer-1);
-  delete[] buffer;
-#endif // !WIN32 && !__APPLE__
+  pWindowDriver->show_with_args_end(argc, argv);
 }
 
 // Calls useful for simple demo programs, with automatic help message:
@@ -402,144 +353,6 @@ void Fl::args(int argc, char **argv) {
   int i; if (Fl::args(argc,argv,i) < argc) Fl::error(helpmsg);
 }
 
-#if defined(WIN32) || defined(__APPLE__)
-
-/* the following function was stolen from the X sources as indicated. */
-
-/* Copyright 	Massachusetts Institute of Technology  1985, 1986, 1987 */
-/* $XConsortium: XParseGeom.c,v 11.18 91/02/21 17:23:05 rws Exp $ */
-
-/*
-Permission to use, copy, modify, distribute, and sell this software and its
-documentation for any purpose is hereby granted without fee, provided that
-the above copyright notice appear in all copies and that both that
-copyright notice and this permission notice appear in supporting
-documentation, and that the name of M.I.T. not be used in advertising or
-publicity pertaining to distribution of the software without specific,
-written prior permission.  M.I.T. makes no representations about the
-suitability of this software for any purpose.  It is provided "as is"
-without express or implied warranty.
-*/
-
-/*
- *    XParseGeometry parses strings of the form
- *   "=<width>x<height>{+-}<xoffset>{+-}<yoffset>", where
- *   width, height, xoffset, and yoffset are unsigned integers.
- *   Example:  "=80x24+300-49"
- *   The equal sign is optional.
- *   It returns a bitmask that indicates which of the four values
- *   were actually found in the string.  For each value found,
- *   the corresponding argument is updated;  for each value
- *   not found, the corresponding argument is left unchanged. 
- */
-
-static int ReadInteger(char* string, char** NextString)
-{
-  int Result = 0;
-  int Sign = 1;
-    
-  if (*string == '+')
-    string++;
-  else if (*string == '-') {
-    string++;
-    Sign = -1;
-  }
-  for (; (*string >= '0') && (*string <= '9'); string++) {
-    Result = (Result * 10) + (*string - '0');
-  }
-  *NextString = string;
-  if (Sign >= 0)
-    return (Result);
-  else
-    return (-Result);
-}
-
-int XParseGeometry(const char* string, int* x, int* y,
-		   unsigned int* width, unsigned int* height)
-{
-  int mask = NoValue;
-  char *strind;
-  unsigned int tempWidth = 0, tempHeight = 0;
-  int tempX = 0, tempY = 0;
-  char *nextCharacter;
-
-  if ( (string == NULL) || (*string == '\0')) return(mask);
-  if (*string == '=')
-    string++;  /* ignore possible '=' at beg of geometry spec */
-
-  strind = (char *)string;
-  if (*strind != '+' && *strind != '-' && *strind != 'x') {
-    tempWidth = ReadInteger(strind, &nextCharacter);
-    if (strind == nextCharacter) 
-      return (0);
-    strind = nextCharacter;
-    mask |= WidthValue;
-  }
-
-  if (*strind == 'x' || *strind == 'X') {	
-    strind++;
-    tempHeight = ReadInteger(strind, &nextCharacter);
-    if (strind == nextCharacter)
-      return (0);
-    strind = nextCharacter;
-    mask |= HeightValue;
-  }
-
-  if ((*strind == '+') || (*strind == '-')) {
-    if (*strind == '-') {
-      strind++;
-      tempX = -ReadInteger(strind, &nextCharacter);
-      if (strind == nextCharacter)
-	return (0);
-      strind = nextCharacter;
-      mask |= XNegative;
-
-    } else {
-      strind++;
-      tempX = ReadInteger(strind, &nextCharacter);
-      if (strind == nextCharacter)
-	return(0);
-      strind = nextCharacter;
-      }
-    mask |= XValue;
-    if ((*strind == '+') || (*strind == '-')) {
-      if (*strind == '-') {
-	strind++;
-	tempY = -ReadInteger(strind, &nextCharacter);
-	if (strind == nextCharacter)
-	  return(0);
-	strind = nextCharacter;
-	mask |= YNegative;
-
-      } else {
-	strind++;
-	tempY = ReadInteger(strind, &nextCharacter);
-	if (strind == nextCharacter)
-	  return(0);
-	strind = nextCharacter;
-      }
-      mask |= YValue;
-    }
-  }
-	
-  /* If strind isn't at the end of the string the it's an invalid
-     geometry specification. */
-
-  if (*strind != '\0') return (0);
-
-  if (mask & XValue)
-    *x = tempX;
-  if (mask & YValue)
-    *y = tempY;
-  if (mask & WidthValue)
-    *width = tempWidth;
-  if (mask & HeightValue)
-    *height = tempHeight;
-  return (mask);
-}
-
-#endif // ifdef WIN32
-
 //
-// End of "$Id: Fl_arg.cxx 10145 2014-05-04 13:46:09Z manolo $".
+// End of "$Id: Fl_arg.cxx 11988 2016-09-26 19:35:20Z manolo $".
 //

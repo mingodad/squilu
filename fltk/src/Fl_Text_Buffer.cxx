@@ -1,7 +1,7 @@
 //
-// "$Id: Fl_Text_Buffer.cxx 10083 2014-01-25 23:47:44Z AlbrechtS $"
+// "$Id: Fl_Text_Buffer.cxx 12483 2017-10-08 20:38:36Z greg.ercolano $"
 //
-// Copyright 2001-2010 by Bill Spitzak and others.
+// Copyright 2001-2017 by Bill Spitzak and others.
 // Original code Copyright Mark Edel.  Permission to distribute under
 // the LGPL for the FLTK library granted by Mark Edel.
 //
@@ -108,7 +108,7 @@ Fl_Text_Buffer::Fl_Text_Buffer(int requestedSize, int preferredGapSize)
   mPreferredGapSize = preferredGapSize;
   mBuf = (char *) malloc(requestedSize + mPreferredGapSize);
   mGapStart = 0;
-  mGapEnd = mPreferredGapSize;
+  mGapEnd = requestedSize + mPreferredGapSize;
   mTabDist = 8;
   mPrimary.mSelected = 0;
   mPrimary.mStart = mPrimary.mEnd = 0;
@@ -164,7 +164,6 @@ char *Fl_Text_Buffer::text() const {
  */
 void Fl_Text_Buffer::text(const char *t)
 {
-  if(!t) t = "";
   IS_UTF8_ALIGNED(t)
 
   // if t is null then substitute it with an empty string
@@ -293,6 +292,48 @@ void Fl_Text_Buffer::insert(int pos, const char *text)
 }
 
 
+/**
+ Can be used by subclasses that need their own printf() style functionality.
+ e.g. Fl_Simple_Terminal::printf() would wrap around this method.
+ \note The expanded string is currently limited to 1024 characters. 
+ \param[in] fmt is a printf format string for the message text.
+ \param[in] ap is a va_list created by va_start() and closed with va_end(),
+               which the caller is responsible for handling.
+*/
+void Fl_Text_Buffer::vprintf(const char *fmt, va_list ap) {
+  char buffer[1024];    // XXX: 1024 should be user configurable
+  ::vsnprintf(buffer, 1024, fmt, ap);
+  buffer[1024-1] = 0;	// XXX: MICROSOFT
+  append(buffer);
+}
+
+
+/**
+ Appends printf formatted messages to the end of the buffer.
+ Example:
+ \code
+ #include <FL/Fl_Text_Display.H>
+ int main(..) {
+     :
+     // Create a text display widget and assign it a text buffer
+     Fl_Text_Display *tdsp = new Fl_Text_Display(..);
+     Fl_Text_Buffer *tbuf = new Fl_Text_Buffer();
+     tdsp->buffer(tbuf);
+     :
+     // Append three lines of formatted text to the buffer
+     tbuf->printf("The current date is: %s.\nThe time is: %s\n", date_str, time_str);
+     tbuf->printf("The current PID is %ld.\n", (long)getpid());
+     :
+ \endcode
+ \note The expanded string is currently limited to 1024 characters. 
+ \param[in] fmt is a printf format string for the message text.
+*/
+void Fl_Text_Buffer::printf(const char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  Fl_Text_Buffer::vprintf(fmt,ap);
+  va_end(ap);
+}
 /*
  Replace a range of text with new text.
  Start and end must be at a character boundary.
@@ -771,7 +812,6 @@ void Fl_Text_Buffer::remove_predelete_callback(Fl_Text_Predelete_Cb bufPreDelete
   /* Allocate new lists for remaining callback procs and args (if any are left) */
   mNPredeleteProcs--;
   if (mNPredeleteProcs == 0) {
-    mNPredeleteProcs = 0;
     delete[]mPredeleteProcs;
     mPredeleteProcs = NULL;
     delete[]mPredeleteCbArgs;
@@ -827,17 +867,29 @@ int Fl_Text_Buffer::line_end(int pos) const {
 } 
 
 
+/** Returns whether character at position \p pos is a word separator.
+ Pos must be at a character boundary.
+ */
+bool Fl_Text_Buffer::is_word_separator(int pos) const {
+  int c = char_at(pos);
+  if (c < 128) {
+    return !(isalnum(c) || c == '_');  // non alphanumeric ASCII
+  }
+  return (c == 0xA0 ||                 // NO-BREAK SPACE
+          (c >= 0x3000 && c <= 0x301F) // IDEOGRAPHIC punctuation
+         );
+}
+
+
 /*
  Find the beginning of a word.
- NOT UNICODE SAFE.
  */
 int Fl_Text_Buffer::word_start(int pos) const {
-  // FIXME: character is ucs-4
-  while (pos>0 && (isalnum(char_at(pos)) || char_at(pos) == '_')) {
+  while (pos > 0 && !is_word_separator(pos))
+  {
     pos = prev_char(pos);
-  } 
-  // FIXME: character is ucs-4
-  if (!(isalnum(char_at(pos)) || char_at(pos) == '_'))
+  }
+  if (is_word_separator(pos))
     pos = next_char(pos);
   return pos;
 }
@@ -845,11 +897,9 @@ int Fl_Text_Buffer::word_start(int pos) const {
 
 /*
  Find the end of a word.
- NOT UNICODE SAFE.
  */
 int Fl_Text_Buffer::word_end(int pos) const {
-  // FIXME: character is ucs-4
-  while (pos < length() && (isalnum(char_at(pos)) || char_at(pos) == '_'))
+  while (pos < length() && !is_word_separator(pos))
   {
     pos = next_char(pos);
   }
@@ -1206,36 +1256,66 @@ void Fl_Text_Buffer::remove_(int start, int end)
 }
 
   
-/*
- simple setter.
- Unicode safe. Start and end must be at a character boundary.
- */
+/**
+ \brief Sets the selection range.
+
+  \p startpos and \p endpos must be at a character boundary.
+
+  If \p startpos != \p endpos selected() is set to true, else to false.
+
+  If \p startpos is greater than \p endpos they are swapped so that
+  \p startpos \<= \p endpos.
+
+  \param[in] startpos  byte offset to first selected character
+  \param[in] endpos    byte offset pointing after last selected character
+*/
 void Fl_Text_Selection::set(int startpos, int endpos)
 {
-  mSelected = startpos != endpos;
+  mSelected = (startpos != endpos);
   mStart = min(startpos, endpos);
   mEnd = max(startpos, endpos);
 }
 
 
-/*
- simple getter.
- Unicode safe. Start and end will be at a character boundary.
- */
+/**
+  \brief Returns the status and the positions of this selection.
+
+  This method returns the same as \p selected() as an \p int (0 or 1)
+  in its return value and the offsets to the start of the selection
+  in \p startpos and to the byte after the last selected character
+  in \p endpos, if selected() is \p true.
+
+  If selected() is \p false, both offsets are set to 0.
+
+  \note In FLTK 1.3.x \p startpos and \p endpos were \b not \b modified
+    if selected() was false.
+
+  \param startpos  return byte offset to first selected character
+  \param endpos    return byte offset pointing after last selected character
+
+  \return whether the selection is active (selected()) or not
+  \retval 0 if not selected
+  \retval 1 if selected
+
+  \see selected(), start(), end()
+*/
 int Fl_Text_Selection::position(int *startpos, int *endpos) const {
-  if (!mSelected)
+  if (!mSelected) {
+    *startpos = 0;
+    *endpos = 0;
     return 0;
+  }
   *startpos = mStart;
   *endpos = mEnd;
-  
   return 1;
 } 
 
 
-/*
- Return if a position is inside the selected area.
- Unicode safe. Pos must be at a character boundary.
- */
+/**
+  Returns true if position \p pos is in the Fl_Text_Selection.
+
+  \p pos must be at a character boundary.
+*/
 int Fl_Text_Selection::includes(int pos) const {
   return (selected() && pos >= start() && pos < end() );
 }
@@ -1423,7 +1503,7 @@ void Fl_Text_Buffer::reallocate_with_gap(int newGapStart, int newGapLen)
   mBuf = newBuf;
   mGapStart = newGapStart;
   mGapEnd = newGapEnd;
-  }
+}
 
 
 /*
@@ -1439,7 +1519,17 @@ void Fl_Text_Buffer::update_selections(int pos, int nDeleted,
 }
 
 
+/**
+  \brief Updates a selection after text was modified.
+
+  Updates an individual selection for changes in the corresponding text.
+
+  \param pos byte offset into text buffer at which the change occurred
+  \param nDeleted number of bytes deleted from the buffer
+  \param nInserted number of bytes inserted into the buffer
+*/
 // unicode safe, assuming the arguments are on character boundaries
+
 void Fl_Text_Selection::update(int pos, int nDeleted, int nInserted)
 {
   if (!mSelected || pos > mEnd)
@@ -1571,7 +1661,7 @@ static int general_input_filter(char *buffer, int buflen,
       if (r == 0) return q - buffer;
       p = line;
     }
-    if (q + 4 /*max width of utf-8 char*/ > buffer + buflen) {
+    if (q + 4 /*max width of UTF-8 char*/ > buffer + buflen) {
       memmove(line, p, endline - p);
       endline -= (p - line);
       return q - buffer;
@@ -1804,5 +1894,5 @@ int Fl_Text_Buffer::utf8_align(int pos) const
 }
 
 //
-// End of "$Id: Fl_Text_Buffer.cxx 10083 2014-01-25 23:47:44Z AlbrechtS $".
+// End of "$Id: Fl_Text_Buffer.cxx 12483 2017-10-08 20:38:36Z greg.ercolano $".
 //

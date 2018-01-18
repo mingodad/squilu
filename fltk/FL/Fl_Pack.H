@@ -66,7 +66,6 @@ public:
   void spacing(int i) {spacing_ = i;}
   /** Same as Fl_Group::type() */
   uchar horizontal() const {return type();}
-
   int with_label() { return with_label_;};
   void with_label(int abool) {with_label_ = abool;};
 

@@ -1,5 +1,5 @@
 /*
- * "$Id: scandir_posix.c 9832 2013-03-06 22:15:01Z ianmacarthur $"
+ * "$Id: scandir_posix.c 12193 2017-03-12 15:12:35Z AlbrechtS $"
  *
  * This implementation of 'scandir()' is intended to be POSIX.1-2008 compliant.
  * A POSIX.1-1990 compliant system is required as minimum base.
@@ -26,11 +26,14 @@
  * The POSIX.1c-1995 extension is required if 'HAVE_PTHREAD' is defined.
  *
  * Note:
- * In theory, a system that provide threads should also provide 'readdir_r()',
+ * In theory, a system that provides threads should also provide 'readdir_r()',
  * a thread-safe version of 'readdir()'. In reality this is not always the case.
  * In addition there may be a race condition that can lead to a buffer overflow:
  * http://womble.decadent.org.uk/readdir_r-advisory.html
  */
+
+#include <config.h>
+#if defined(USE_X11) && !defined(HAVE_SCANDIR)
 
 #ifndef HAVE_PTHREAD
    /* Switch system headers into POSIX.1-1990 mode */
@@ -66,16 +69,16 @@ static pthread_mutex_t scandir_mutex = PTHREAD_MUTEX_INITIALIZER;
 /* ========================================================================== */
 /*
  * This function reads the next entry from the directory referenced by 'dirp',
- * allocate a buffer for the entry and copy it into this buffer.
- * A pointer to this buffer is written to 'entryp' and the size of the buffer is
- * written to 'len'.
+ * allocates a buffer for the entry and copies it into this buffer.
+ * A pointer to this buffer is written to 'entryp' and the size of the buffer
+ * is written to 'len'.
  * Success and a NULL pointer is returned for 'entryp' if there are no more
  * entries in the directory.
- * On sucess zero is returned and the caller is responsible for 'free()'ing the
- * buffer after use.
+ * On success zero is returned and the caller is responsible for 'free()'ing
+ * the buffer after use.
  * On error the return value is nonzero, 'entryp' and 'len' are invalid.
  *
- * Should be declared as 'static inline' if the compiler support that.
+ * Should be declared as 'static inline' if the compiler supports that.
  */
 static int
 readentry(DIR *dirp, struct dirent **entryp, size_t *len)
@@ -86,7 +89,7 @@ readentry(DIR *dirp, struct dirent **entryp, size_t *len)
 #ifdef HAVE_PTHREAD
   if (!pthread_mutex_lock(&scandir_mutex))
   {
-    /* Ensure that there is no code path that bypass the '_unlock()' call! */
+    /* Ensure that there is no code path that bypasses the '_unlock()' call! */
 #endif  /* HAVE_PTHREAD */
     errno = 0;
     e = readdir(dirp);
@@ -115,7 +118,7 @@ readentry(DIR *dirp, struct dirent **entryp, size_t *len)
     }
 #ifdef HAVE_PTHREAD
     /*
-     * In a multithreading environment the systems dirent buffer may be shared
+     * In a multithreading environment the system's dirent buffer may be shared
      * between all threads. Therefore the mutex must stay locked until we have
      * copied the data to our thread local buffer.
      */
@@ -174,10 +177,10 @@ fl_scandir(const char *dir, struct dirent ***namelist,
       }
       closedir(dirp);
       /*
-       * A standard compliant 'closedir()' is allowed to fail with 'EINTR', but
-       * the state of the directory structure is undefined in this case.
+       * A standard compliant 'closedir()' is allowed to fail with 'EINTR',
+       * but the state of the directory structure is undefined in this case.
        * Therefore we ignore the return value because we can't call 'closedir()'
-       * again and must hope that the system has released all ressources.
+       * again and must hope that the system has released all resources.
        */
     }
     /* Sort entries in array if there is a compare function provided */
@@ -200,6 +203,15 @@ fl_scandir(const char *dir, struct dirent ***namelist,
   return result;
 }
 
+#else /* defined(USE_X11) && !defined(HAVE_SCANDIR) */
+
+/* avoid (gcc) compiler warning [-Wpedantic]
+   "ISO C forbids an empty translation unit" */
+
+typedef int dummy;
+
+#endif /* defined(USE_X11) && !defined(HAVE_SCANDIR) */
+
 /*
- * End of "$Id: scandir_posix.c 9832 2013-03-06 22:15:01Z ianmacarthur $".
+ * End of "$Id: scandir_posix.c 12193 2017-03-12 15:12:35Z AlbrechtS $".
  */

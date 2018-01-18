@@ -1,9 +1,9 @@
 //
-// "$Id: glut.H 9373 2012-04-22 02:45:09Z fabien $"
+// "$Id: glut.H 12151 2016-12-20 23:27:29Z greg.ercolano $"
 //
 // GLUT emulation header file for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2011 by Bill Spitzak and others.
+// Copyright 1998-2015 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -39,7 +39,7 @@
 
 /** 
   GLUT is emulated using this window class and these static variables
-  (plus several more static variables hidden in glut_compatability.cxx):
+  (plus several more static variables hidden in glut_compatibility.cxx):
 */
 class FL_EXPORT Fl_Glut_Window : public Fl_Gl_Window {
   void _init();
@@ -62,8 +62,8 @@ public: // so the inline functions work
   void (*entry)(int);
   void (*visibility)(int);
   void (*special)(int, int x, int y);
-  Fl_Glut_Window(int w, int h, const char *);
-  Fl_Glut_Window(int x, int y, int w, int h, const char *);
+  Fl_Glut_Window(int w, int h, const char *t=0);
+  Fl_Glut_Window(int x, int y, int w, int h, const char *t=0);
   ~Fl_Glut_Window();
 };
 
@@ -231,13 +231,8 @@ enum {GLUT_NOT_VISIBLE, GLUT_VISIBLE};
 
 FL_EXPORT void glutIdleFunc(void (*f)());
 
-// Warning: this cast may not work on all machines:
 inline void glutTimerFunc(unsigned int msec, void (*f)(int), int value) {
-#if defined(__LP64__)
-  Fl::add_timeout(msec*.001, (void (*)(void *))f, (void *) (long long) value);
-#else
-  Fl::add_timeout(msec*.001, (void (*)(void *))f, (void *)value);
-#endif
+  Fl::add_timeout(msec*.001, (void (*)(void *))f, (void *)(fl_intptr_t)value);
 }
 
 inline void glutMenuStateFunc(void (*f)(int state)) {
@@ -482,5 +477,5 @@ FL_EXPORT void glutSolidIcosahedron();
 #endif // !Fl_glut_H
 
 //
-// End of "$Id: glut.H 9373 2012-04-22 02:45:09Z fabien $".
+// End of "$Id: glut.H 12151 2016-12-20 23:27:29Z greg.ercolano $".
 //

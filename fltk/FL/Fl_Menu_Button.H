@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Menu_Button.H 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: Fl_Menu_Button.H 10513 2015-01-10 22:05:15Z greg.ercolano $"
 //
 // Menu button header file for the Fast Light Tool Kit (FLTK).
 //
@@ -26,15 +26,15 @@
 
 /**
   This is a button that when pushed pops up a menu (or hierarchy of
-  menus) defined by an array of
+  menus) defined by an array of 
   Fl_Menu_Item objects.
   <P ALIGN=CENTER>\image html  menu_button.png</P>
   \image latex  menu_button.png " menu_button" width=5cm
   <P>Normally any mouse button will pop up a menu and it is lined up
   below the button as shown in the picture.  However an Fl_Menu_Button
   may also control a pop-up menu.  This is done by setting the type().
-  If type() is zero a normal menu button is produced.
-  If it is nonzero then this is a pop-up menu. The bits in type() indicate
+  If type() is zero a normal menu button is produced. 
+  If it is nonzero then this is a pop-up menu. The bits in type() indicate 
   what mouse buttons pop up the menu (see Fl_Menu_Button::popup_buttons). </P>
   <P>The menu will also pop up in response to shortcuts indicated by
   putting a '&' character in the label(). </P>
@@ -42,10 +42,18 @@
   callbacks exactly the same as when you pick the item with the mouse.
   The '&' character in menu item names are only looked at when the menu is
   popped up, however. </P>
-  <P>When the user picks an item off the menu, the item's callback is
-  done with the menu_button as the Fl_Widget* argument.  If the
-  item does not have a callback the menu_button's callback is done
-  instead.
+
+  When the user clicks a menu item, value() is set to that item
+  and then:
+
+      - The item's callback is done if one has been set; the
+        Fl_Menu_Button is passed as the Fl_Widget* argument, 
+        along with any userdata configured for the callback.
+
+      - If the item does not have a callback, the Fl_Menu_Button's callback
+        is done instead, along with any userdata configured for it.
+        The callback can determine which item was picked using
+        value(), mvalue(), item_pathname(), etc.
 */
 class FL_EXPORT Fl_Menu_Button : public Fl_Menu_ {
 protected:
@@ -53,10 +61,10 @@ protected:
 public:
   /**
    \brief indicate what mouse buttons pop up the menu.
-
-   Values for type() used to indicate what mouse buttons pop up the menu.
+   
+   Values for type() used to indicate what mouse buttons pop up the menu. 
    Fl_Menu_Button::POPUP3 is usually what you want.
-   */
+   */  
   enum popup_buttons {POPUP1 = 1, /**< pops up with the mouse 1st button. */
     POPUP2,  /**< pops up with the mouse 2nd button. */
     POPUP12, /**< pops up with the mouse 1st or 2nd buttons. */
@@ -69,12 +77,11 @@ public:
   const Fl_Menu_Item* popup();
   const Fl_Menu_Item* popup(int x, int y);
   Fl_Menu_Button(int,int,int,int,const char * =0);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Menu_Button, Fl_Menu_)
 };
 
 #endif
 
 //
-// End of "$Id: Fl_Menu_Button.H 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: Fl_Menu_Button.H 10513 2015-01-10 22:05:15Z greg.ercolano $".
 //

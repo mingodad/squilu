@@ -34,7 +34,6 @@ class FL_EXPORT Fl_PNM_Image : public Fl_RGB_Image {
   public:
 
   Fl_PNM_Image(const char* filename);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_PNM_Image, Fl_RGB_Image)
 };
 

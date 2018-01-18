@@ -266,7 +266,7 @@ static unsigned short const keysym_to_unicode_20a0_20ac[] = {
     0x20a8, 0x20a9, 0x20aa, 0x20ab, 0x20ac                          /* 0x20a8-0x20af */
 };
 
-unsigned int
+static unsigned int
 KeySymToUcs4(KeySym keysym)
 {
     /* 'Unicode keysym' */
@@ -320,5 +320,5 @@ KeySymToUcs4(KeySym keysym)
 }
 
 /*
- * End of "$Id$".
+ * End of "$Id: imKStoUCS.c 12193 2017-03-12 15:12:35Z AlbrechtS $".
  */

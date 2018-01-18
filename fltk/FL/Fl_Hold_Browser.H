@@ -42,9 +42,7 @@ public:
     The destructor destroys the widget and frees all memory that has been allocated.
  */
   Fl_Hold_Browser(int X,int Y,int W,int H,const char *L=0);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Hold_Browser, Fl_Browser)
-
 };
 
 #endif

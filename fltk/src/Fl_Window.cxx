@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_Window.cxx 9876 2013-04-12 18:40:00Z greg.ercolano $"
+// "$Id: Fl_Window.cxx 12263 2017-06-16 15:07:53Z manolo $"
 //
 // Window widget class for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2010 by Bill Spitzak and others.
+// Copyright 1998-2016 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -20,20 +20,27 @@
 // This is the system-independent portions.  The huge amount of 
 // crap you need to do to communicate with X is in Fl_x.cxx, the
 // equivalent (but totally different) crap for MSWindows is in Fl_win32.cxx
+
 #include <config.h>
 #include <FL/Fl.H>
 #include <FL/x.H>
+#include <FL/Fl_Window_Driver.H>
+#include <FL/Fl_RGB_Image.H>
 #include <FL/Fl_Window.H>
+#include <FL/Fl_Tooltip.H>
+#include <FL/fl_draw.H>
 #include <stdlib.h>
 #include "flstring.h"
 
-#ifdef __APPLE_QUARTZ__
-#include <FL/fl_draw.H>
-#endif
 
 char *Fl_Window::default_xclass_ = 0L;
 
+char Fl_Window::show_iconic_ = 0;
+
+Fl_Window *Fl_Window::current_;
+
 void Fl_Window::_Fl_Window() {
+  cursor_default = FL_CURSOR_DEFAULT;
   type(FL_WINDOW);
   box(FL_FLAT_BOX);
   if (Fl::scheme_bg_) {
@@ -45,40 +52,48 @@ void Fl_Window::_Fl_Window() {
   }
   i = 0;
   xclass_ = 0;
-  icon_ = 0;
   iconlabel_ = 0;
   resizable(0);
   size_range_set = 0;
   minw = maxw = minh = maxh = 0;
-#if FLTK_ABI_VERSION >= 10301
   no_fullscreen_x = 0;
   no_fullscreen_y = 0;
   no_fullscreen_w = w();
   no_fullscreen_h = h();
-#endif
+  fullscreen_screen_top = -1;
+  fullscreen_screen_bottom = -1;
+  fullscreen_screen_left = -1;
+  fullscreen_screen_right = -1;
   callback((Fl_Callback*)default_callback);
 }
 
-Fl_Window::Fl_Window(int X,int Y,int W, int H, const char *l)
-: Fl_Group(X, Y, W, H, l) {
-  cursor_default = FL_CURSOR_DEFAULT;
-  cursor_fg      = FL_BLACK;
-  cursor_bg      = FL_WHITE;
-
+Fl_Window::Fl_Window(int X,int Y,int W, int H, const char *l) :
+  Fl_Group(X, Y, W, H, l),
+  pWindowDriver(Fl_Window_Driver::newWindowDriver(this))
+{
   _Fl_Window();
   set_flag(FORCE_POSITION);
 }
 
-Fl_Window::Fl_Window(int W, int H, const char *l)
-// fix common user error of a missing end() with current(0):
-  : Fl_Group((Fl_Group::current(0),0), 0, W, H, l) {
-  cursor_default = FL_CURSOR_DEFAULT;
-  cursor_fg      = FL_BLACK;
-  cursor_bg      = FL_WHITE;
 
+Fl_Window::Fl_Window(int W, int H, const char *l) :
+// fix common user error of a missing end() with current(0):
+Fl_Group((Fl_Group::current(0),0), 0, W, H, l),
+pWindowDriver(Fl_Window_Driver::newWindowDriver(this))
+{
   _Fl_Window();
   clear_visible();
 }
+
+Fl_Window::~Fl_Window() {
+  hide();
+  if (xclass_) {
+    free(xclass_);
+  }
+  free_icons();
+  delete pWindowDriver;
+}
+
 
 /** Returns a pointer to the nearest parent window up the widget hierarchy.
     This will return sub-windows if there are any, or the parent window if there's no sub-windows.
@@ -135,50 +150,11 @@ int Fl_Window::y_root() const {
   return y();
 }
 
-void Fl_Window::draw() {
-
-  // The following is similar to Fl_Group::draw(), but ...
-  //  - we draw the box with x=0 and y=0 instead of x() and y()
-  //  - we don't draw a label
-
-  if (damage() & ~FL_DAMAGE_CHILD) {	 // draw the entire thing
-    draw_box(box(),0,0,w(),h(),color()); // draw box with x/y = 0
-  }
-  draw_children();
-
-#ifdef __APPLE_QUARTZ__
-  // on OS X, windows have no frame. Before OS X 10.7, to resize a window, we drag the lower right
-  // corner. This code draws a little ribbed triangle for dragging.
-  if (fl_mac_os_version < 100700 && fl_gc && !parent() && resizable() && 
-      (!size_range_set || minh!=maxh || minw!=maxw)) {
-    int dx = Fl::box_dw(box())-Fl::box_dx(box());
-    int dy = Fl::box_dh(box())-Fl::box_dy(box());
-    if (dx<=0) dx = 1;
-    if (dy<=0) dy = 1;
-    int x1 = w()-dx-1, x2 = x1, y1 = h()-dx-1, y2 = y1;
-    Fl_Color c[4] = {
-      color(),
-      fl_color_average(color(), FL_WHITE, 0.7f),
-      fl_color_average(color(), FL_BLACK, 0.6f),
-      fl_color_average(color(), FL_BLACK, 0.8f),
-    };
-    int i;
-    for (i=dx; i<12; i++) {
-      fl_color(c[i&3]);
-      fl_line(x1--, y1, x2, y2--);
-    }
-  }
-#endif
-
-# if defined(FLTK_USE_CAIRO)
-  Fl::cairo_make_current(this); // checkout if an update is necessary
-# endif
-}
-
 void Fl_Window::label(const char *name) {
   label(name, iconlabel());	// platform dependent
 }
 
+/** Sets the window titlebar label to a copy of a character string */
 void Fl_Window::copy_label(const char *a) {
   Fl_Widget::copy_label(a);
   label(label(), iconlabel());	// platform dependent
@@ -305,16 +281,356 @@ const char *Fl_Window::xclass() const
   }
 }
 
-/** Gets the current icon window target dependent data. */
-const void *Fl_Window::icon() const {
-  return icon_;
+/** Sets a single default window icon.
+
+  If \p icon is NULL the current default icons are removed.
+
+  \param[in] icon default icon for all windows subsequently created or NULL
+
+  \see Fl_Window::default_icons(const Fl_RGB_Image *[], int)
+  \see Fl_Window::icon(const Fl_RGB_Image *)
+  \see Fl_Window::icons(const Fl_RGB_Image *[], int)
+ */
+void Fl_Window::default_icon(const Fl_RGB_Image *icon) {
+  if (icon)
+    default_icons(&icon, 1);
+  else
+    default_icons(&icon, 0);
 }
 
-/** Sets the current icon window target dependent data. */
+/** Sets the default window icons.
+
+  The default icons are used for all windows that don't have their
+  own icons set before show() is called. You can change the default
+  icons whenever you want, but this only affects windows that are
+  created (and shown) after this call.
+
+  The given images in \p icons are copied. You can use a local
+  variable or free the images immediately after this call.
+
+  \param[in] icons default icons for all windows subsequently created
+  \param[in] count number of images in \p icons. Set to 0 to remove
+                   the current default icons
+
+  \see Fl_Window::default_icon(const Fl_RGB_Image *)
+  \see Fl_Window::icon(const Fl_RGB_Image *)
+  \see Fl_Window::icons(const Fl_RGB_Image *[], int)
+ */
+void Fl_Window::default_icons(const Fl_RGB_Image *icons[], int count) {
+  Fl_Window_Driver::default_icons(icons, count);
+}
+
+/** Sets or resets a single window icon.
+
+  A window icon \e can be changed while the window is shown, but this
+  \e may be platform and/or window manager dependent. To be sure that
+  the window displays the correct window icon you should always set the
+  icon before the window is shown.
+
+  If a window icon has not been set for a particular window, then the
+  default window icon (see links below) or the system default icon will
+  be used.
+
+  \param[in] icon icon for this window, NULL to reset window icon.
+
+  \see Fl_Window::default_icon(const Fl_RGB_Image *)
+  \see Fl_Window::default_icons(const Fl_RGB_Image *[], int)
+  \see Fl_Window::icons(const Fl_RGB_Image *[], int)
+ */
+void Fl_Window::icon(const Fl_RGB_Image *icon) {
+  if (icon)
+    icons(&icon, 1);
+  else
+    icons(&icon, 0);
+}
+
+/** Sets the window icons.
+
+  You may set multiple window icons with different sizes. Dependent on
+  the platform and system settings the best (or the first) icon will be
+  chosen.
+
+  The given images in \p icons are copied. You can use a local
+  variable or free the images immediately after this call.
+
+  If \p count is zero, current icons are removed. If \p count is greater than
+  zero (must not be negative), then \p icons[] must contain at least \p count
+  valid image pointers (not NULL). Otherwise the behavior is undefined.
+
+  \param[in] icons icons for this window
+  \param[in] count number of images in \p icons. Set to 0 to remove
+                   the current icons
+
+  \see Fl_Window::default_icon(const Fl_RGB_Image *)
+  \see Fl_Window::default_icons(const Fl_RGB_Image *[], int)
+  \see Fl_Window::icon(const Fl_RGB_Image *)
+ */
+void Fl_Window::icons(const Fl_RGB_Image *icons[], int count) {
+  pWindowDriver->icons(icons, count);
+}
+
+/** Gets the current icon window target dependent data.
+  \deprecated in 1.3.3
+ */
+const void *Fl_Window::icon() const {
+  return pWindowDriver->icon();
+}
+
+/** Sets the current icon window target dependent data.
+  \deprecated in 1.3.3
+ */
 void Fl_Window::icon(const void * ic) {
-  icon_ = ic;
+  pWindowDriver->icon(ic);
+}
+
+/** Deletes all icons previously attached to the window.
+ \see Fl_Window::icons(const Fl_RGB_Image *icons[], int count)
+ */
+void Fl_Window::free_icons() {
+  pWindowDriver->free_icons();
+}
+
+/**
+  Waits for the window to be displayed after calling show().
+
+  Fl_Window::show() is not guaranteed to show and draw the window on
+  all platforms immediately. Instead this is done in the background;
+  particularly on X11 it will take a few messages (client server
+  roundtrips) to display the window. Usually this small delay doesn't
+  matter, but in some cases you may want to have the window instantiated
+  and displayed synchronously.
+
+  Currently (as of FLTK 1.3.4) this method has an effect on X11 and Mac OS.
+  On Windows, show() is always synchronous. The effect of show() varies with
+  versions of Mac OS X: early versions have the window appear on the screen
+  when show() returns, later versions don't.
+  If you want to write portable code and need this synchronous show() feature,
+  add win->wait_for_expose() on all platforms, and FLTK will just do the
+  right thing.
+
+  This method can be used for displaying splash screens before
+  calling Fl::run() or for having exact control over which window
+  has the focus after calling show().
+
+  If the window is not shown(), this method does nothing.
+
+  \note Depending on the platform and window manager wait_for_expose()
+    may not guarantee that the window is fully drawn when it is called.
+    Under X11 it may only make sure that the window is \b mapped, i.e.
+    the internal (OS dependent) window object was created (and maybe
+    shown on the desktop as an empty frame or something like that).
+    You may need to call Fl::flush() after wait_for_expose() to make
+    sure the window and all its widgets are drawn and thus visible.
+
+  \note FLTK does the best it can do to make sure that all widgets
+    get drawn if you call wait_for_expose() and Fl::flush(). However,
+    dependent on the window manager it can not be guaranteed that this
+    does always happen synchronously. The only guaranteed behavior that
+    all widgets are eventually drawn is if the FLTK event loop is run
+    continuously, for instance with Fl::run().
+
+  \see virtual void Fl_Window::show()
+
+  Example code for displaying a window before calling Fl::run()
+
+  \code
+    Fl_Double_Window win = new Fl_Double_Window(...);
+
+    // do more window initialization here ...
+
+    win->show();                // show window
+    win->wait_for_expose();     // wait, until displayed
+    Fl::flush();                // make sure everything gets drawn
+
+    // do more initialization work that needs some time here ...
+
+    Fl::run();                  // start FLTK event loop
+  \endcode
+
+  Note that the window will not be responsive until the event loop
+  is started with Fl::run().
+*/
+void Fl_Window::wait_for_expose() {
+  pWindowDriver->wait_for_expose();
+}
+
+
+int Fl_Window::decorated_w() const
+{
+  return pWindowDriver->decorated_w();
+}
+
+
+int Fl_Window::decorated_h() const
+{
+  return pWindowDriver->decorated_h();
+}
+
+
+void Fl_Window::flush()
+{
+  if (!shown()) return;
+  make_current();
+  fl_clip_region(i->region);
+  i->region = 0;
+  draw();
+}
+
+
+void Fl_Window::draw()
+{
+  pWindowDriver->draw_begin();
+
+  // The following is similar to Fl_Group::draw(), but ...
+  //
+  //  - draws the box at (0,0), i.e. with x=0 and y=0 instead of x() and y()
+  //  - does NOT draw the label (text)
+  //  - draws the image only if FL_ALIGN_INSIDE is set
+  //
+  // Note: The label (text) of top level windows is drawn in the title bar.
+  //   Other windows do not draw their labels at all, unless drawn by their
+  //   parent widgets or by special draw() methods (derived classes).
+
+  if (damage() & ~FL_DAMAGE_CHILD) {	 // draw the entire thing
+    draw_box(box(),0,0,w(),h(),color()); // draw box with x/y = 0
+
+    if (image() && (align() & FL_ALIGN_INSIDE)) { // draw the image only
+      Fl_Label l1;
+      memset(&l1,0,sizeof(l1));
+      l1.align_ = align();
+      l1.image = image();
+      if (!active_r() && l1.image && l1.deimage) l1.image = l1.deimage;
+      l1.type = labeltype();
+      l1.draw(0,0,w(),h(),align());
+    }
+  }
+  draw_children();
+
+  pWindowDriver->draw_end();
+# if defined(FLTK_USE_CAIRO)
+  Fl::cairo_make_current(this); // checkout if an update is necessary
+# endif
+}
+
+void Fl_Window::make_current()
+{
+  pWindowDriver->make_current();
+  current_ = this;
+}
+
+void Fl_Window::label(const char *name, const char *mininame) {
+  Fl_Widget::label(name);
+  iconlabel_ = mininame;
+  pWindowDriver->label(name, mininame);
+}
+
+void Fl_Window::show() {
+  image(Fl::scheme_bg_);
+  if (Fl::scheme_bg_) {
+    labeltype(FL_NORMAL_LABEL);
+    align(FL_ALIGN_CENTER | FL_ALIGN_INSIDE | FL_ALIGN_CLIP);
+  } else {
+    labeltype(FL_NO_LABEL);
+  }
+  Fl_Tooltip::exit(this);
+  pWindowDriver->show();
+}
+
+void Fl_Window::resize(int X,int Y,int W,int H) {
+  pWindowDriver->resize(X, Y, W, H);
+}
+
+void Fl_Window::hide() {
+  pWindowDriver->hide();
+}
+
+
+// FL_SHOW and FL_HIDE are called whenever the visibility of this widget
+// or any parent changes.  We must correctly map/unmap the system's window.
+
+// For top-level windows it is assumed the window has already been
+// mapped or unmapped!!!  This is because this should only happen when
+// Fl_Window::show() or Fl_Window::hide() is called, or in response to
+// iconize/deiconize events from the system.
+int Fl_Window::handle(int ev)
+{
+  if (parent()) {
+    switch (ev) {
+      case FL_SHOW:
+        if (!shown()) show();
+        else {
+          pWindowDriver->map();
+        }
+        break;
+      case FL_HIDE:
+        if (shown()) {
+          // Find what really turned invisible, if it was a parent window
+          // we do nothing.  We need to avoid unnecessary unmap calls
+          // because they cause the display to blink when the parent is
+          // remapped.  However if this or any intermediate non-window
+          // widget has really had hide() called directly on it, we must
+          // unmap because when the parent window is remapped we don't
+          // want to reappear.
+          if (visible()) {
+            Fl_Widget* p = parent(); for (;p->visible();p = p->parent()) {}
+            if (p->type() >= FL_WINDOW) break; // don't do the unmap
+          }
+          pWindowDriver->unmap();
+        }
+        break;
+    }
+  }
+  
+  return Fl_Group::handle(ev);
+}
+
+/**
+ Sets the allowable range the user can resize this window to.
+ This only works for top-level windows.
+ <UL>
+ <LI>\p minw and \p minh are the smallest the window can be.
+	Either value must be greater than 0.</LI>
+ <LI>\p maxw and \p maxh are the largest the window can be. If either is
+	<I>equal</I> to the minimum then you cannot resize in that direction.
+	If either is zero  then FLTK picks a maximum size in that direction
+	such that the window will fill the screen.</LI>
+ <LI>\p dw and \p dh are size increments.  The  window will be constrained
+	to widths of minw + N * dw,  where N is any non-negative integer.
+	If these are less or equal to 1 they are ignored (this is ignored
+	on WIN32).</LI>
+ <LI>\p aspect is a flag that indicates that the window should preserve its
+	aspect ratio.  This only works if both the maximum and minimum have
+	the same aspect ratio (ignored on WIN32 and by many X window managers).
+	</LI>
+ </UL>
+ 
+ If this function is not called, FLTK tries to figure out the range
+ from the setting of resizable():
+ <UL>
+ <LI>If resizable() is NULL (this is the  default) then the window cannot
+	be resized and the resize border and max-size control will not be
+	displayed for the window.</LI>
+ <LI>If either dimension of resizable() is less than 100, then that is
+	considered the minimum size.  Otherwise the resizable() has a minimum
+	size of 100.</LI>
+ <LI>If either dimension of resizable() is zero, then that is also the
+	maximum size (so the window cannot resize in that direction).</LI>
+ </UL>
+ 
+ It is undefined what happens if the current size does not fit in the
+ constraints passed to size_range().
+ */
+void Fl_Window::size_range(int minw, int minh, int maxw, int maxh, int dw, int dh, int aspect) {
+  this->minw   = minw;
+  this->minh   = minh;
+  this->maxw   = maxw;
+  this->maxh   = maxh;
+  this->dw     = dw;
+  this->dh     = dh;
+  this->aspect = aspect;
+  pWindowDriver->size_range();
 }
 
 //
-// End of "$Id: Fl_Window.cxx 9876 2013-04-12 18:40:00Z greg.ercolano $".
+// End of "$Id: Fl_Window.cxx 12263 2017-06-16 15:07:53Z manolo $".
 //

@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_Window_fullscreen.cxx 10189 2014-06-11 09:10:53Z ossman $"
+// "$Id: Fl_Window_fullscreen.cxx 11409 2016-03-23 16:14:35Z manolo $"
 //
 // Fullscreen window support for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2010 by Bill Spitzak and others.
+// Copyright 1998-2015 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -16,31 +16,8 @@
 //     http://www.fltk.org/str.php
 //
 
-// Turning the border on/off by changing the motif_wm_hints property
-// works on Irix 4DWM.  Does not appear to work for any other window
-// manager.  Fullscreen still works on some window managers (fvwm is one)
-// because they allow the border to be placed off-screen.
-
-// Unfortunately most X window managers ignore changes to the border
-// and refuse to position the border off-screen, so attempting to make
-// the window full screen will lose the size of the border off the
-// bottom and right.
-
-#include <FL/Fl.H>
-#include <FL/x.H>
-
-#include <config.h>
-
-#if FLTK_ABI_VERSION < 10301
-int Fl_Window::no_fullscreen_x = 0;
-int Fl_Window::no_fullscreen_y = 0;
-int Fl_Window::no_fullscreen_w = 0;
-int Fl_Window::no_fullscreen_h = 0;
-int Fl_Window::fullscreen_screen_top = -1;
-int Fl_Window::fullscreen_screen_bottom = -1;
-int Fl_Window::fullscreen_screen_left = -1;
-int Fl_Window::fullscreen_screen_right = -1;
-#endif
+#include <FL/Fl_Window.H>
+#include <FL/Fl_Window_Driver.H>
 
 void Fl_Window::border(int b) {
   if (b) {
@@ -50,16 +27,7 @@ void Fl_Window::border(int b) {
     if (!border()) return;
     set_flag(NOBORDER);
   }
-#if defined(USE_X11)
-  if (shown()) Fl_X::i(this)->sendxjunk();
-#elif defined(WIN32)
-  // not yet implemented, but it's possible
-  // for full fullscreen we have to make the window topmost as well
-#elif defined(__APPLE_QUARTZ__)
-  // warning: not implemented in Quartz/Carbon
-#else
-# error unsupported platform
-#endif
+  pWindowDriver->use_border();
 }
 
 /* Note: The previous implementation toggled border(). With this new
@@ -75,7 +43,7 @@ void Fl_Window::fullscreen() {
   no_fullscreen_w = w();
   no_fullscreen_h = h();
   if (shown() && !(flags() & Fl_Widget::FULLSCREEN)) {
-    fullscreen_x();
+    pWindowDriver->fullscreen_on();
   } else {
     set_flag(FULLSCREEN);
   }
@@ -83,7 +51,7 @@ void Fl_Window::fullscreen() {
 
 void Fl_Window::fullscreen_off(int X,int Y,int W,int H) {
   if (shown() && (flags() & Fl_Widget::FULLSCREEN)) {
-    fullscreen_off_x(X, Y, W, H);
+    pWindowDriver->fullscreen_off(X, Y, W, H);
   } else {
     clear_flag(FULLSCREEN);
   }
@@ -113,10 +81,9 @@ void Fl_Window::fullscreen_screens(int top, int bottom, int left, int right) {
   }
 
   if (shown() && fullscreen_active())
-    fullscreen_x();
+    pWindowDriver->fullscreen_on();
 }
 
-
 //
-// End of "$Id: Fl_Window_fullscreen.cxx 10189 2014-06-11 09:10:53Z ossman $".
+// End of "$Id: Fl_Window_fullscreen.cxx 11409 2016-03-23 16:14:35Z manolo $".
 //

@@ -1,5 +1,5 @@
 //
-// "$Id: fl_labeltype.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: fl_labeltype.cxx 12181 2017-02-27 17:00:41Z AlbrechtS $"
 //
 // Label drawing routines for the Fast Light Tool Kit (FLTK).
 //
@@ -42,8 +42,16 @@ fl_normal_measure(const Fl_Label* o, int& W, int& H) {
   fl_font(o->font, o->size);
   fl_measure(o->value, W, H);
   if (o->image) {
-    if (o->image->w() > W) W = o->image->w();
-    H += o->image->h();
+    int iw = o->image->w(), ih = o->image->h();
+    if (o->align_ & FL_ALIGN_IMAGE_BACKDROP) {		// backdrop: ignore
+      // ignore backdrop image for calculation
+    } else if (o->align_ & FL_ALIGN_IMAGE_NEXT_TO_TEXT) { // text and image side by side
+      W += iw;
+      if (ih > H) H = ih;
+    } else {
+      if (iw > W) W = iw;
+      H += ih;
+    }
   }
 }
 
@@ -69,11 +77,6 @@ static Fl_Label_Measure_F* measure[MAX_LABELTYPE];
 void Fl::set_labeltype(Fl_Labeltype t,Fl_Label_Draw_F* f,Fl_Label_Measure_F*m) 
 {
   table[t] = f; measure[t] = m;
-}
-
-void Fl::get_labeltype(Fl_Labeltype t,Fl_Label_Draw_F** f,Fl_Label_Measure_F **m) 
-{
-  *f = table[t]; *m = measure[t];
 }
 
 ////////////////////////////////////////////////////////////////
@@ -136,5 +139,5 @@ void Fl_Widget::draw_label(int X, int Y, int W, int H, Fl_Align a) const {
 #include <FL/Fl_Input_.H>
 
 //
-// End of "$Id: fl_labeltype.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: fl_labeltype.cxx 12181 2017-02-27 17:00:41Z AlbrechtS $".
 //

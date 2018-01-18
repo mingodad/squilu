@@ -42,7 +42,6 @@ public:
   */
   Fl_Secret_Input(int X,int Y,int W,int H,const char *l = 0);
   int handle(int);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Secret_Input, Fl_Input)
 };
 

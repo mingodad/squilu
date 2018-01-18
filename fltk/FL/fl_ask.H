@@ -1,5 +1,5 @@
 //
-// "$Id: fl_ask.H 9748 2012-12-11 17:06:41Z manolo $"
+// "$Id: fl_ask.H 11676 2016-04-20 07:19:19Z manolo $"
 //
 // Standard dialog header file for the Fast Light Tool Kit (FLTK).
 //
@@ -39,6 +39,8 @@ enum Fl_Beep {
 };
 
 #  ifdef __GNUC__
+/* the GNUC-specific attribute appearing below in prototypes with a variable list of arguments
+ helps detection of mismatches between format string and argument list at compilation time */
 #    define __fl_attr(x) __attribute__ (x)
 #  else
 #    define __fl_attr(x)
@@ -67,7 +69,7 @@ FL_EXPORT int fl_message_hotspot(void);
 FL_EXPORT void fl_message_title(const char *title);
 FL_EXPORT void fl_message_title_default(const char *title);
 
-// pointers you can use to change FLTK to a foreign language:
+// pointers you can use to change FLTK to another language:
 extern FL_EXPORT const char* fl_no;
 extern FL_EXPORT const char* fl_yes;
 extern FL_EXPORT const char* fl_ok;
@@ -76,5 +78,5 @@ extern FL_EXPORT const char* fl_close;
 #endif // !fl_ask_H
 
 //
-// End of "$Id: fl_ask.H 9748 2012-12-11 17:06:41Z manolo $".
+// End of "$Id: fl_ask.H 11676 2016-04-20 07:19:19Z manolo $".
 //

@@ -87,7 +87,6 @@ public:
     and is valid only until the next event is handled.
   */
   const char	*value() { return Fl_Input_::value(); }
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_File_Input, Fl_Input)
 };
 

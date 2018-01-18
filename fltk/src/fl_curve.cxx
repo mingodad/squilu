@@ -1,5 +1,5 @@
 //
-// "$Id: fl_curve.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: fl_curve.cxx 11689 2016-04-24 08:38:11Z manolo $"
 //
 // Bezier curve functions for the Fast Light Tool Kit (FLTK).
 //
@@ -29,6 +29,7 @@
 #include <FL/fl_draw.H>
 #include <math.h>
 
+/** see fl_curve() */
 void Fl_Graphics_Driver::curve(double X0, double Y0,
 	      double X1, double Y1,
 	      double X2, double Y2,
@@ -97,5 +98,5 @@ void Fl_Graphics_Driver::curve(double X0, double Y0,
 }
 
 //
-// End of "$Id: fl_curve.cxx 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: fl_curve.cxx 11689 2016-04-24 08:38:11Z manolo $".
 //

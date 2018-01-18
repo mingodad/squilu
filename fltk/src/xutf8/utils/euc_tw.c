@@ -54,5 +54,5 @@ int main(int argc, char **argv) {
 }
 
 /*
- * End of "$Id$".
+ * End of "$Id: euc_tw.c 12193 2017-03-12 15:12:35Z AlbrechtS $".
  */

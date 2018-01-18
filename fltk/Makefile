@@ -1,5 +1,5 @@
 #
-# "$Id: Makefile 9990 2013-09-24 09:10:04Z ossman $"
+# "$Id: Makefile 11998 2016-09-30 21:09:59Z AlbrechtS $"
 #
 # Top-level makefile for the Fast Light Tool Kit (FLTK).
 #
@@ -18,7 +18,7 @@
 
 include makeinclude
 
-DIRS	=	$(IMAGEDIRS) src fluid
+DIRS = $(IMAGEDIRS) src $(CAIRODIR) fluid test documentation
 
 all: makeinclude fltk-config
 	for dir in $(DIRS); do\
@@ -60,7 +60,7 @@ depend: makeinclude
 
 clean:
 	-$(RM) core *.o
-	for dir in $(DIRS); do\
+	for dir in examples $(DIRS); do\
 		echo "=== cleaning $$dir ===";\
 		(cd $$dir; $(MAKE) $(MFLAGS) clean) || exit 1;\
 	done
@@ -70,6 +70,7 @@ distclean: clean
 	$(RM) fltk-config fltk.list makeinclude
 	$(RM) fltk.spec
 	$(RM) FL/Makefile
+	$(RM) FL/abi-version.h
 	$(RM) documentation/*.$(CAT1EXT)
 	$(RM) documentation/*.$(CAT3EXT)
 	$(RM) documentation/*.$(CAT6EXT)
@@ -100,7 +101,7 @@ makeinclude: configure configh.in makeinclude.in config.guess config.sub
 	touch config.h
 	chmod +x fltk-config
 
-configure: configure.in
+configure: configure.ac
 	autoconf
 
 config.guess config.sub:
@@ -131,5 +132,5 @@ clang-changes:
 
 
 #
-# End of "$Id: Makefile 9990 2013-09-24 09:10:04Z ossman $".
+# End of "$Id: Makefile 11998 2016-09-30 21:09:59Z AlbrechtS $".
 #

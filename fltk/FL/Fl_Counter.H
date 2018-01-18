@@ -56,6 +56,7 @@ class FL_EXPORT Fl_Counter : public Fl_Valuator {
   int calc_mouseobj();
   void increment_cb();
 
+
 public:
 
   int handle(int);

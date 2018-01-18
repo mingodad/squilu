@@ -1,9 +1,9 @@
 //
-// "$Id: fl_shortcut.cxx 10076 2014-01-21 14:00:43Z AlbrechtS $"
+// "$Id: fl_shortcut.cxx 12587 2017-12-08 12:26:50Z AlbrechtS $"
 //
 // Shortcut support routines for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2011 by Bill Spitzak and others.
+// Copyright 1998-2017 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -32,15 +32,16 @@
 // This allows punctuation shortcuts like "#" to work (rather than
 // calling it "shift+3" on a US keyboard)
 
+#include "config_lib.h"
 #include <FL/Fl.H>
 #include <FL/Fl_Widget.H>
 #include <FL/Fl_Button.H>
+#include <FL/Fl.H>
+#include <FL/Fl_System_Driver.H>
 #include <FL/fl_draw.H>
+#include <stdlib.h>
 #include <ctype.h>
 #include "flstring.h"
-#if !defined(WIN32) && !defined(__APPLE__)
-#include <FL/x.H>
-#endif
 
 /**
   Tests the current event, which must be an FL_KEYBOARD or
@@ -81,79 +82,6 @@ int Fl::test_shortcut(unsigned int shortcut) {
   return 0;
 }
 
-// This table must be in numeric order by fltk (X) keysym number:
-struct Keyname {unsigned int key; const char* name;};
-#if defined(WIN32)
-static Keyname table[] = {
-  {' ', "Space"},
-  {FL_BackSpace, "Backspace"},
-  {FL_Tab,	"Tab"},
-  {0xff0b/*XK_Clear*/, "Clear"},
-  {FL_Enter,	"Enter"}, // X says "Enter"
-  {FL_Pause,	"Pause"},
-  {FL_Scroll_Lock, "Scroll_Lock"},
-  {FL_Escape,	"Escape"},
-  {FL_Home,	"Home"},
-  {FL_Left,	"Left"},
-  {FL_Up,	"Up"},
-  {FL_Right,	"Right"},
-  {FL_Down,	"Down"},
-  {FL_Page_Up,	"Page_Up"}, // X says "Prior"
-  {FL_Page_Down,"Page_Down"}, // X says "Next"
-  {FL_End,	"End"},
-  {FL_Print,	"Print"},
-  {FL_Insert,	"Insert"},
-  {FL_Menu,	"Menu"},
-  {FL_Num_Lock,	"Num_Lock"},
-  {FL_KP_Enter,	"KP_Enter"},
-  {FL_Shift_L,	"Shift_L"},
-  {FL_Shift_R,	"Shift_R"},
-  {FL_Control_L,"Control_L"},
-  {FL_Control_R,"Control_R"},
-  {FL_Caps_Lock,"Caps_Lock"},
-  {FL_Meta_L,	"Meta_L"},
-  {FL_Meta_R,	"Meta_R"},
-  {FL_Alt_L,	"Alt_L"},
-  {FL_Alt_R,	"Alt_R"},
-  {FL_Delete,	"Delete"}
-};
-#elif defined(__APPLE__) 
-static Keyname table[] = {
-                                 // v - this column contains UTF-8 characters
-  {' ', "Space"},
-  {FL_BackSpace,"\xe2\x8c\xab"}, // erase to the left
-  {FL_Tab,	"\xe2\x87\xa5"}, // rightwards arrow to bar
-  {0xff0b,      "\xe2\x8c\xa6"}, // erase to the right
-  {FL_Enter,	"\xe2\x86\xa9"}, // leftwards arrow with hook
-  {FL_Pause,	"Pause"},
-  {FL_Scroll_Lock, "Scroll_Lock"},
-  {FL_Escape,	"\xe2\x90\x9b"},
-  {FL_Home,	"\xe2\x86\x96"}, // north west arrow
-  {FL_Left,	"\xe2\x86\x90"}, // leftwards arrow
-  {FL_Up,	"\xe2\x86\x91"}, // upwards arrow
-  {FL_Right,	"\xe2\x86\x92"}, // rightwards arrow
-  {FL_Down,	"\xe2\x86\x93"}, // downwards arrow
-  {FL_Page_Up,	"\xe2\x87\x9e"}, // upwards arrow with double stroke
-  {FL_Page_Down,"\xe2\x87\x9f"}, // downwards arrow with double stroke
-  {FL_End,	"\xe2\x86\x98"}, // south east arrow
-  {FL_Print,	"Print"},
-  {FL_Insert,	"Insert"},
-  {FL_Menu,	"Menu"},
-  {FL_Num_Lock,	"Num_Lock"},
-  {FL_KP_Enter,	"\xe2\x8c\xa4"}, // up arrow head between two horizontal bars
-  {FL_Shift_L,	"Shift_L"},
-  {FL_Shift_R,	"Shift_R"},
-  {FL_Control_L,"Control_L"},
-  {FL_Control_R,"Control_R"},
-  {FL_Caps_Lock,"\xe2\x87\xaa"}, // upwards white arrow from bar
-  {FL_Meta_L,	"Meta_L"},
-  {FL_Meta_R,	"Meta_R"},
-  {FL_Alt_L,	"Alt_L"},
-  {FL_Alt_R,	"Alt_R"},
-  {FL_Delete,	"\xe2\x8c\xa7"}  // x in a rectangle box
-};
-#endif
-
 /**
   Get a human-readable string from a shortcut value.
 
@@ -163,109 +91,125 @@ static Keyname table[] = {
   zero then an empty string is returned. The return value points at
   a static buffer that is overwritten with each call.
 
-  \param [in] shortcut the integer value containing the ascii character or extended keystroke plus modifiers
+  \since FLTK 1.3.4 modifier key names can be localized, but key names
+    can not yet be localized. This may be added to a future FLTK version.
+
+  Modifier key names (human-readable shortcut names) can be defined
+  with the following global const char * pointer variables:
+
+   - fl_local_ctrl  => name of FL_CTRL
+   - fl_local_alt   => name of FL_ALT
+   - fl_local_shift => name of FL_SHIFT
+   - fl_local_meta  => name of FL_META
+
+  \code
+    fl_local_ctrl = "Strg";      // German for "Ctrl"
+    fl_local_shift = "Umschalt"; // German for "Shift"
+  \endcode
+  \note Due to \b random static initialization order this should always
+    be done from code in main() or called by main() as opposed to static
+    initialization since the default strings in the FLTK library are set by
+    static initializers. Otherwise this \b might result in the wrong order
+    so FLTK's internal initialization overwrites your strings.
+
+  The shortcut name will be constructed by adding all modifier names in the
+  order defined above plus the name of the key. A '+' character is added to
+  each modifier name unless it has a trailing '\' or a trailing '+'.
+
+  Example:
+
+    Ctrl+Alt+Shift+Meta+F12
+
+  The default values for modifier key names are as given above for all
+  platforms except macOS. macOS uses graphical characters that represent
+  the typical macOS modifier names in menus, e.g. cloverleaf, saucepan, etc.
+  You may, however, redefine macOS modifier names as well.
+
+  \param [in] shortcut the integer value containing the ASCII character or extended keystroke plus modifiers
   \return a pointer to a static buffer containing human readable text for the shortcut
   */
 const char* fl_shortcut_label(unsigned int shortcut) {
   return fl_shortcut_label(shortcut, 0L);
 }
 
-/** 
+/*
+  This static function adds a modifier key name to a character
+  buffer and returns the pointer behind the modifier name and a
+  trailing '+' character.
+
+  Exceptions:
+   (1) Last character = '\' : remove it, done (don't add '+')
+   (2) Last character = '+' : user added '+', don't add another one
+
+  In case of buffer overflow the modifier key name is replaced with "..."
+  if that fits or not added at all. This should rarely (never) happen.
+*/
+
+static char *add_modifier_key(char *p, const char *end, const char *name) {
+  int ln = strlen(name);
+  if (p+ln > end) {		// string too long
+    if (p+4 <= end) {		// can replace with "..." ?
+      strcpy(p,"...");
+      p += 3;
+    } else
+      return p;
+  } else {
+    strcpy(p,name);
+    p += ln;
+  }
+  if (p[-1] == '\\')		// remove (last) '\' character
+    p--;
+  else if (p[-1] == '+')	// don't add another '+' character
+    {/*empty*/}
+  else				// not a '\' or '+'
+    *p++ = '+';			// add a '+' character
+  return p;
+}
+
+/**
   Get a human-readable string from a shortcut value.
 
-  \param [in] shortcut the integer value containing the ascii character or extended keystroke plus modifiers
+  \param [in] shortcut the integer value containing the ASCII character or extended keystroke plus modifiers
   \param [in] eom if this pointer is set, it will receive a pointer to the end of the modifier text
   \return a pointer to a static buffer containing human readable text for the shortcut
+
   \see fl_shortcut_label(unsigned int shortcut)
-  */
+*/
+
 const char* fl_shortcut_label(unsigned int shortcut, const char **eom) {
-  static char buf[20];
+  static char buf[80];
   char *p = buf;
+  char *end = &buf[sizeof(buf)-20]; // account for key name (max. ~10 + x)
   if (eom) *eom = p;
   if (!shortcut) {*p = 0; return buf;}
   // fix upper case shortcuts
-  unsigned int v = shortcut & FL_KEY_MASK;
-  if (((unsigned)fl_tolower(v))!=v) {
+  unsigned int key = shortcut & FL_KEY_MASK;
+  if (((unsigned)fl_tolower(key)) != key) {
     shortcut |= FL_SHIFT;
   }
-#ifdef __APPLE__
-  //   this column contains utf8 characters - v
-  if (shortcut & FL_SHIFT) {strcpy(p,"\xe2\x87\xa7"); p += 3;}  // U+21E7 (upwards white arrow)
-  if (shortcut & FL_CTRL)  {strcpy(p,"\xe2\x8c\x83"); p += 3;}  // U+2303 (up arrowhead)
-  if (shortcut & FL_ALT)   {strcpy(p,"\xe2\x8c\xa5"); p += 3;}  // U+2325 (option key)
-  if (shortcut & FL_META)  {strcpy(p,"\xe2\x8c\x98"); p += 3;}  // U+2318 (place of interest sign)
-#else
-  if (shortcut & FL_META) {strcpy(p,"Meta+"); p += 5;}
-  if (shortcut & FL_ALT) {strcpy(p,"Alt+"); p += 4;}
-  if (shortcut & FL_SHIFT) {strcpy(p,"Shift+"); p += 6;}
-  if (shortcut & FL_CTRL) {strcpy(p,"Ctrl+"); p += 5;}
-#endif // __APPLE__
+
+  // Add modifier key names.
+  // Note: if necessary we could change the order here depending on the platform.
+  // However, as discussed in fltk.development, the order appears to be the
+  // same on all platforms, with exceptions in _some_ Linux applications.
+
+  if (shortcut & FL_CTRL)  {p = add_modifier_key(p, end, fl_local_ctrl);}
+  if (shortcut & FL_ALT)   {p = add_modifier_key(p, end, fl_local_alt);}
+  if (shortcut & FL_SHIFT) {p = add_modifier_key(p, end, fl_local_shift);}
+  if (shortcut & FL_META)  {p = add_modifier_key(p, end, fl_local_meta);}
   if (eom) *eom = p;
-  unsigned int key = shortcut & FL_KEY_MASK;
-#if defined(WIN32) || defined(__APPLE__) // if not X
-  if (key >= FL_F && key <= FL_F_Last) {
-    *p++ = 'F';
-    if (key > FL_F+9) *p++ = (key-FL_F)/10+'0';
-    *p++ = (key-FL_F)%10 + '0';
-  } else {
-    // binary search the table for a match:
-    int a = 0;
-    int b = sizeof(table)/sizeof(*table);
-    while (a < b) {
-      int c = (a+b)/2;
-      if (table[c].key == key) {
-        if (p > buf) {
-          strcpy(p,table[c].name); 
-          return buf;
-        } else {
-          const char *sp = table[c].name;
-          if (eom) *eom = sp;
-          return sp;
-        }
-      }
-      if (table[c].key < key) a = c+1;
-      else b = c;
-    }
-    if (key >= FL_KP && key <= FL_KP_Last) {
-      // mark keypad keys with KP_ prefix
-      strcpy(p,"KP_"); p += 3;
-      *p++ = uchar(key & 127);
-    } else {
-      // if none found, use the keystroke as a match:
-      p += fl_utf8encode(fl_toupper(key), p); 
-    }
-  }
-  *p = 0;
-  return buf;
-#else
-  const char* q;
-  if (key == FL_Enter || key == '\r') q="Enter";  // don't use Xlib's "Return":
-  else if (key > 32 && key < 0x100) q = 0;
-  else q = XKeysymToString(key);
-  if (!q) {
-    p += fl_utf8encode(fl_toupper(key), p); 
-    *p = 0; 
-    return buf;
-  }
-  if (p > buf) {
-    strcpy(p,q); 
-    return buf;
-  } else {
-    if (eom) *eom = q;
-    return q;
-  }
-#endif
+
+  // add key name
+  return Fl::system_driver()->shortcut_add_key_name(key, p, buf, eom);
 }
 
-// Emulation of XForms named shortcuts
-#include <stdlib.h>
 /**
   Emulation of XForms named shortcuts.
 
-  Converts ascii shortcut specifications (eg. "^c") 
+  Converts ASCII shortcut specifications (eg. "^c")
   into the FLTK integer equivalent (eg. FL_CTRL+'c')
 
-  These ascii characters are used to specify the various keyboard modifier keys:
+  These ASCII characters are used to specify the various keyboard modifier keys:
   \verbatim
    # - Alt
    + - Shift
@@ -389,25 +333,22 @@ unsigned int Fl_Widget::label_shortcut(const char *t) {
   \note Internal use only.
 */
 int Fl_Widget::test_shortcut(const char *t, const bool require_alt) {
+  static int extra_test = Fl::system_driver()->need_test_shortcut_extra();
   if (!t) return 0;
   // for menubars etc. shortcuts must work only if the Alt modifier is pressed
   if (require_alt && Fl::event_state(FL_ALT)==0) return 0;
   unsigned int c = fl_utf8decode(Fl::event_text(), Fl::event_text()+Fl::event_length(), 0);
-#ifdef __APPLE__
-  // this line makes underline shortcuts work the same way they do on MSWindow
-  // and Linux. 
-  if (c && Fl::event_state(FL_ALT)) 
+  // this line makes underline shortcuts work the same way they do on Windows
+  // and Linux.
+  if (extra_test && c && Fl::event_state(FL_ALT))
     c = Fl::event_key();
-#endif
   if (!c) return 0;
   unsigned int ls = label_shortcut(t);
   if (c == ls)
     return 1;
-#ifdef __APPLE__
-  // On OS X, we need to simulate the upper case keystroke as well
-  if (Fl::event_state(FL_ALT) && c<128 && isalpha(c) && (unsigned)toupper(c)==ls)
+  // On macOS, we need to simulate the upper case keystroke as well
+  if (extra_test && Fl::event_state(FL_ALT) && c<128 && isalpha(c) && (unsigned)toupper(c)==ls)
     return 1;
-#endif
   return 0;
 }
 
@@ -431,6 +372,146 @@ int Fl_Widget::test_shortcut() {
   return test_shortcut(label());
 }
 
+#if defined(FL_CFG_GFX_GDI) || defined(FL_PORTING)
+// This table must be in numeric order by fltk (X) keysym number:
+Fl_System_Driver::Keyname Fl_System_Driver::table[] = {
+  {' ', "Space"},
+  {FL_BackSpace, "Backspace"},
+  {FL_Tab,	"Tab"},
+  {0xff0b/*XK_Clear*/, "Clear"},
+  {FL_Enter,	"Enter"}, // X says "Enter"
+  {FL_Pause,	"Pause"},
+  {FL_Scroll_Lock, "Scroll_Lock"},
+  {FL_Escape,	"Escape"},
+  {FL_Home,	"Home"},
+  {FL_Left,	"Left"},
+  {FL_Up,	"Up"},
+  {FL_Right,	"Right"},
+  {FL_Down,	"Down"},
+  {FL_Page_Up,	"Page_Up"}, // X says "Prior"
+  {FL_Page_Down,"Page_Down"}, // X says "Next"
+  {FL_End,	"End"},
+  {FL_Print,	"Print"},
+  {FL_Insert,	"Insert"},
+  {FL_Menu,	"Menu"},
+  {FL_Num_Lock,	"Num_Lock"},
+  {FL_KP_Enter,	"KP_Enter"},
+  {FL_Shift_L,	"Shift_L"},
+  {FL_Shift_R,	"Shift_R"},
+  {FL_Control_L,"Control_L"},
+  {FL_Control_R,"Control_R"},
+  {FL_Caps_Lock,"Caps_Lock"},
+  {FL_Meta_L,	"Meta_L"},
+  {FL_Meta_R,	"Meta_R"},
+  {FL_Alt_L,	"Alt_L"},
+  {FL_Alt_R,	"Alt_R"},
+  {FL_Delete,	"Delete"}
+};
+#endif
+
+#if defined(FL_CFG_GFX_QUARTZ)
+// This table must be in numeric order by fltk (X) keysym number:
+Fl_System_Driver::Keyname Fl_System_Driver::table[] = {
+  //             v - this column may contain UTF-8 characters
+  {' ',         "Space"},
+  {FL_BackSpace,"\xe2\x8c\xab"}, // erase to the left
+  {FL_Tab,	"\xe2\x87\xa5"}, // rightwards arrow to bar
+  {0xff0b,      "\xe2\x8c\xa6"}, // erase to the right
+  {FL_Enter,	"\xe2\x86\xa9"}, // leftwards arrow with hook
+  {FL_Pause,	"Pause"},
+  {FL_Scroll_Lock, "Scroll_Lock"},
+  {FL_Escape,	"\xe2\x90\x9b"},
+  {FL_Home,	"\xe2\x86\x96"}, // north west arrow
+  {FL_Left,	"\xe2\x86\x90"}, // leftwards arrow
+  {FL_Up,	"\xe2\x86\x91"}, // upwards arrow
+  {FL_Right,	"\xe2\x86\x92"}, // rightwards arrow
+  {FL_Down,	"\xe2\x86\x93"}, // downwards arrow
+  {FL_Page_Up,	"\xe2\x87\x9e"}, // upwards arrow with double stroke
+  {FL_Page_Down,"\xe2\x87\x9f"}, // downwards arrow with double stroke
+  {FL_End,	"\xe2\x86\x98"}, // south east arrow
+  {FL_Print,	"Print"},
+  {FL_Insert,	"Insert"},
+  {FL_Menu,	"Menu"},
+  {FL_Num_Lock,	"Num_Lock"},
+  {FL_KP_Enter,	"\xe2\x8c\xa4"}, // up arrow head between two horizontal bars
+  {FL_Shift_L,	"Shift_L"},
+  {FL_Shift_R,	"Shift_R"},
+  {FL_Control_L,"Control_L"},
+  {FL_Control_R,"Control_R"},
+  {FL_Caps_Lock,"\xe2\x87\xaa"}, // upwards white arrow from bar
+  {FL_Meta_L,	"Meta_L"},
+  {FL_Meta_R,	"Meta_R"},
+  {FL_Alt_L,	"Alt_L"},
+  {FL_Alt_R,	"Alt_R"},
+  {FL_Delete,	"\xe2\x8c\xa7"}  // x in a rectangle box
+};
+#endif
+
+#if defined(FL_CFG_GFX_XLIB) && !defined(FL_DOXYGEN)
+#include "drivers/X11/Fl_X11_System_Driver.H"
+#include <X11/Xlib.h>
+
+Fl_System_Driver::Keyname Fl_System_Driver::table[] = {};
+
+const char *Fl_X11_System_Driver::shortcut_add_key_name(unsigned key, char *p, char *buf, const char **eom)
+{
+  const char* q;
+  if (key == FL_Enter || key == '\r') q="Enter";  // don't use Xlib's "Return":
+  else if (key > 32 && key < 0x100) q = 0;
+  else q = XKeysymToString(key);
+  if (!q) {
+    p += fl_utf8encode(fl_toupper(key), p);
+    *p = 0;
+    return buf;
+  }
+  if (p > buf) {
+    strcpy(p,q);
+    return buf;
+  } else {
+    if (eom) *eom = q;
+    return q;
+  }
+}
+#endif
+
+const char *Fl_System_Driver::shortcut_add_key_name(unsigned key, char *p, char *buf, const char **eom)
+{
+  if (key >= FL_F && key <= FL_F_Last) {
+    *p++ = 'F';
+    if (key > FL_F+9) *p++ = (key-FL_F)/10+'0';
+    *p++ = (key-FL_F)%10 + '0';
+  } else {
+    // binary search the table for a match:
+    int a = 0;
+    int b = sizeof(table)/sizeof(*table);
+    while (a < b) {
+      int c = (a+b)/2;
+      if (table[c].key == key) {
+        if (p > buf) {
+          strcpy(p,table[c].name);
+          return buf;
+        } else {
+          const char *sp = table[c].name;
+          if (eom) *eom = sp;
+          return sp;
+        }
+      }
+      if (table[c].key < key) a = c+1;
+      else b = c;
+    }
+    if (key >= FL_KP && key <= FL_KP_Last) {
+      // mark keypad keys with KP_ prefix
+      strcpy(p,"KP_"); p += 3;
+      *p++ = uchar(key & 127);
+    } else {
+      // if none found, use the keystroke as a match:
+      p += fl_utf8encode(fl_toupper(key), p);
+    }
+  }
+  *p = 0;
+  return buf;
+}
+
 //
-// End of "$Id: fl_shortcut.cxx 10076 2014-01-21 14:00:43Z AlbrechtS $".
+// End of "$Id: fl_shortcut.cxx 12587 2017-12-08 12:26:50Z AlbrechtS $".
 //

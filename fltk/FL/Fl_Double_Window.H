@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Double_Window.H 9637 2012-07-24 04:37:22Z matt $"
+// "$Id: Fl_Double_Window.H 11359 2016-03-13 22:16:37Z matt $"
 //
 // Double-buffered window header file for the Fast Light Tool Kit (FLTK).
 //
@@ -37,20 +37,18 @@
   This makes sure you can use Xdbe on servers where double buffering
   does not exist for every visual.
 */
-class FL_EXPORT Fl_Double_Window : public Fl_Window {
-protected:
-  void flush(int eraseoverlay);
-  /**
-    Force double buffering, even if the OS already buffers windows
-    (overlays need that on MacOS and Windows2000)
-  */
-  char force_doublebuffering_;
+class FL_EXPORT Fl_Double_Window : public Fl_Window
+{
 public:
+  /**
+    Return non-null if this is an Fl_Overlay_Window object.
+  */
+  virtual Fl_Double_Window *as_double_window() {return this; }
   void show();
   void show(int a, char **b) {Fl_Window::show(a,b);}
-  void flush();
   void resize(int,int,int,int);
   void hide();
+  void flush();
   ~Fl_Double_Window();
   
   /**
@@ -70,5 +68,5 @@ DECLARE_CLASS_CHEAP_RTTI_2(Fl_Double_Window, Fl_Window)
 #endif
 
 //
-// End of "$Id: Fl_Double_Window.H 9637 2012-07-24 04:37:22Z matt $".
+// End of "$Id: Fl_Double_Window.H 11359 2016-03-13 22:16:37Z matt $".
 //

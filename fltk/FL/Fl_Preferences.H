@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_Preferences.H 9978 2013-09-16 20:25:14Z greg.ercolano $"
+// "$Id: Fl_Preferences.H 12305 2017-07-07 21:00:17Z matt $"
 //
 // Preferences .
 //
@@ -27,7 +27,7 @@
 
 /**
    \brief Fl_Preferences provides methods to store user
-   settings between application starts. 
+   settings between application starts.
 
    It is similar to the
    Registry on WIN32 and Preferences on MacOS, and provides a
@@ -226,6 +226,7 @@ public:  // older Sun compilers need this (public definition of the following cl
     RootNode *findRoot();
     char remove();
     char dirty();
+    void clearDirtyFlags();
     void deleteAllChildren();
     // entry methods
     int nChildren();
@@ -265,5 +266,5 @@ protected:
 #endif // !Fl_Preferences_H
 
 //
-// End of "$Id: Fl_Preferences.H 9978 2013-09-16 20:25:14Z greg.ercolano $".
+// End of "$Id: Fl_Preferences.H 12305 2017-07-07 21:00:17Z matt $".
 //

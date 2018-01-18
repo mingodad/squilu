@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_Gl_Choice.H 8864 2011-07-19 04:49:30Z greg.ercolano $"
+// "$Id: Fl_Gl_Choice.H 11733 2016-05-13 06:45:40Z manolo $"
 //
 // OpenGL definitions for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2010 by Bill Spitzak and others.
+// Copyright 1998-2016 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -22,94 +22,68 @@
 // necessary to create a window (on X) and to create an OpenGL "context"
 // (on both X and Win32).
 //
-// fl_create_gl_context takes a window (necessary only on Win32) and an
+// create_gl_context takes a window (necessary only on Win32) and an
 // Fl_Gl_Choice and returns a new OpenGL context. All contexts share
 // display lists with each other.
 //
-// On X another fl_create_gl_context is provided to create it for any
+// On X another create_gl_context is provided to create it for any
 // X visual.
 //
-// fl_set_gl_context makes the given OpenGL context current and makes
+// set_gl_context makes the given OpenGL context current and makes
 // it draw into the passed window. It tracks the current one context
 // to avoid calling the context switching code when the same context
 // is used, though it is a mystery to me why the GLX/WGL libraries
 // don't do this themselves...
 //
-// fl_no_gl_context clears that cache so the next fl_set_gl_context is
-// guaranteed to work.
-//
-// fl_delete_gl_context destroys the context.
+// delete_gl_context destroys the context.
 //
 // This code is used by Fl_Gl_Window, gl_start(), and gl_visual()
 
 #ifndef Fl_Gl_Choice_H
 #define Fl_Gl_Choice_H
 
-// Warning: whatever GLContext is defined to must take exactly the same
-// space in a structure as a void*!!!
-#ifdef WIN32
-#  include <FL/gl.h>
-#  define GLContext HGLRC
-#elif defined(__APPLE_QUARTZ__)
-// warning: the Quartz version should probably use Core GL (CGL) instead of AGL
+#ifdef FL_CFG_GFX_QUARTZ
 #  include <OpenGL/gl.h>
-#  include <AGL/agl.h>
-#  define GLContext AGLContext
-#else
+#  define FL_GL_CHOICE_PLATFORM_SPECIFIC_MEMBERS  void* pixelformat;
+#endif // FL_CFG_GFX_QUARTZ
+
+
+#ifdef FL_CFG_GFX_XLIB
 #  include <GL/glx.h>
-#  define GLContext GLXContext
+#  define FL_GL_CHOICE_PLATFORM_SPECIFIC_MEMBERS  \
+      XVisualInfo *vis; /* the visual to use */ \
+      Colormap colormap; // a colormap for that visual
+#endif // FL_CFG_GFX_XLIB*/
+
+
+#ifdef FL_CFG_GFX_GDI
+#  include <FL/gl.h>
+#  define FL_GL_CHOICE_PLATFORM_SPECIFIC_MEMBERS  \
+      int pixelformat;	     /* the visual to use */ \
+      PIXELFORMATDESCRIPTOR pfd; // some wgl calls need this thing
+#endif // FL_CFG_GFX_GDI
+
+
+#if defined(FL_PORTING) && !defined(FL_GL_CHOICE_PLATFORM_SPECIFIC_MEMBERS)
+#  pragma message "Define platform-specific members of the Fl_Gl_Choice class"
+#  define FL_GL_CHOICE_PLATFORM_SPECIFIC_MEMBERS
 #endif
 
 // Describes crap needed to create a GLContext.
 class Fl_Gl_Choice {
+  friend class Fl_Gl_Window_Driver;
   int mode;
   const int *alist;
   Fl_Gl_Choice *next;
 public:
-#ifdef WIN32
-  int pixelformat;	// the visual to use
-  PIXELFORMATDESCRIPTOR pfd; // some wgl calls need this thing
-#elif defined(__APPLE_QUARTZ__)
-  // warning: the Quartz version should probably use Core GL (CGL) instead of AGL
-  AGLPixelFormat pixelformat;
-#else
-  XVisualInfo *vis;	// the visual to use
-  Colormap colormap;	// a colormap for that visual
-#endif
-  // Return one of these structures for a given gl mode.
-  // The second argument is a glX attribute list, and is used if mode is
-  // zero.  This is not supported on Win32:
-  static Fl_Gl_Choice *find(int mode, const int *);
+  Fl_Gl_Choice(int m, const int *alistp, Fl_Gl_Choice *n) : mode(m), alist(alistp), next(n) {}
+  FL_GL_CHOICE_PLATFORM_SPECIFIC_MEMBERS
 };
 
-class Fl_Window;
+#undef FL_GL_CHOICE_PLATFORM_SPECIFIC_MEMBERS
 
-#ifdef WIN32
-
-GLContext fl_create_gl_context(Fl_Window*, const Fl_Gl_Choice*, int layer=0);
-
-#elif defined(__APPLE_QUARTZ__)
-// warning: the Quartz version should probably use Core GL (CGL) instead of AGL
-
-GLContext fl_create_gl_context(Fl_Window*, const Fl_Gl_Choice*, int layer=0);
-
-#else
-
-GLContext fl_create_gl_context(XVisualInfo* vis);
-
-static inline
-GLContext fl_create_gl_context(Fl_Window*, const Fl_Gl_Choice* g) {
-  return fl_create_gl_context(g->vis);
-}
-
-#endif
-
-void fl_set_gl_context(Fl_Window*, GLContext);
-void fl_no_gl_context();
-void fl_delete_gl_context(GLContext);
-
-#endif
+#endif // Fl_Gl_Choice_H
 
 //
-// End of "$Id: Fl_Gl_Choice.H 8864 2011-07-19 04:49:30Z greg.ercolano $".
+// End of "$Id: Fl_Gl_Choice.H 11733 2016-05-13 06:45:40Z manolo $".
 //

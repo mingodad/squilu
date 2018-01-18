@@ -1,5 +1,5 @@
 #
-# "$Id: fltk.list.in 8864 2011-07-19 04:49:30Z greg.ercolano $"
+# "$Id: fltk.list.in 10653 2015-03-25 20:06:54Z AlbrechtS $"
 #
 # EPM product list file for the Fast Light Tool Kit (FLTK).
 #
@@ -23,7 +23,7 @@
 %vendor FLTK Development Team
 %license COPYING
 %readme README
-%version 1.3.2
+%version 1.4.0
 %description The Fast Light Tool Kit ("FLTK", pronounced "fulltick") is a
 %description cross-platform C++ GUI toolkit for UNIX(r)/Linux(r) (X11),
 %description Microsoft(r) Windows(r), and MacOS(r) X.  FLTK provides modern
@@ -51,38 +51,38 @@ $GLDSONAME=
 $GLLIBNAME=../lib/libfltk_gl.a
 $FLUID=fluid
 $JPEG=jpeg
-$PNG=
-$ZLIB=
+$PNG=png
+$ZLIB=zlib
 
 %if DSONAME
 %system aix
 f 0555 root sys $libdir/libfltk_s.a src/libfltk_s.a nostrip()
 %system hpux
-f 0555 root sys $libdir/libfltk.sl.1.3 src/libfltk.sl.1.3 nostrip()
+f 0555 root sys $libdir/libfltk.sl.1.4 src/libfltk.sl.1.4 nostrip()
 %system darwin
-f 0555 root sys $libdir/libfltk.1.3.dylib src/libfltk.1.3.dylib nostrip()
+f 0555 root sys $libdir/libfltk.1.4.dylib src/libfltk.1.4.dylib nostrip()
 %system !aix !darwin !hpux
-f 0555 root sys $libdir/libfltk.so.1.3 src/libfltk.so.1.3 nostrip()
+f 0555 root sys $libdir/libfltk.so.1.4 src/libfltk.so.1.4 nostrip()
 %system all
 
 %system aix
 f 0555 root sys $libdir/libfltk_forms_s.a src/libfltk_forms_s.a nostrip()
 %system hpux
-f 0555 root sys $libdir/libfltk_forms.sl.1.3 src/libfltk_forms.sl.1.3 nostrip()
+f 0555 root sys $libdir/libfltk_forms.sl.1.4 src/libfltk_forms.sl.1.4 nostrip()
 %system darwin
-f 0555 root sys $libdir/libfltk_forms.1.3.dylib src/libfltk_forms.1.3.dylib nostrip()
+f 0555 root sys $libdir/libfltk_forms.1.4.dylib src/libfltk_forms.1.4.dylib nostrip()
 %system !aix !darwin !hpux
-f 0555 root sys $libdir/libfltk_forms.so.1.3 src/libfltk_forms.so.1.3 nostrip()
+f 0555 root sys $libdir/libfltk_forms.so.1.4 src/libfltk_forms.so.1.4 nostrip()
 %system all
 
 %system aix
 f 0555 root sys $libdir/libfltk_images_s.a src/libfltk_images_s.a nostrip()
 %system hpux
-f 0555 root sys $libdir/libfltk_images.sl.1.3 src/libfltk_images.sl.1.3 nostrip()
+f 0555 root sys $libdir/libfltk_images.sl.1.4 src/libfltk_images.sl.1.4 nostrip()
 %system darwin
-f 0555 root sys $libdir/libfltk_images.1.3.dylib src/libfltk_images.1.3.dylib nostrip()
+f 0555 root sys $libdir/libfltk_images.1.4.dylib src/libfltk_images.1.4.dylib nostrip()
 %system !aix !darwin !hpux
-f 0555 root sys $libdir/libfltk_images.so.1.3 src/libfltk_images.so.1.3 nostrip()
+f 0555 root sys $libdir/libfltk_images.so.1.4 src/libfltk_images.so.1.4 nostrip()
 %system all
 %endif
 
@@ -90,11 +90,11 @@ f 0555 root sys $libdir/libfltk_images.so.1.3 src/libfltk_images.so.1.3 nostrip(
 %system aix
 f 0555 root sys $libdir/libfltk_gl_s.a src/libfltk_gl_s.a nostrip()
 %system hpux
-f 0555 root sys $libdir/libfltk_gl.sl.1.3 src/libfltk_gl.sl.1.3 nostrip()
+f 0555 root sys $libdir/libfltk_gl.sl.1.4 src/libfltk_gl.sl.1.4 nostrip()
 %system darwin
-f 0555 root sys $libdir/libfltk_gl.1.3.dylib src/libfltk_gl.1.3.dylib nostrip()
+f 0555 root sys $libdir/libfltk_gl.1.4.dylib src/libfltk_gl.1.4.dylib nostrip()
 %system !aix !darwin !hpux
-f 0555 root sys $libdir/libfltk_gl.so.1.3 src/libfltk_gl.so.1.3 nostrip()
+f 0555 root sys $libdir/libfltk_gl.so.1.4 src/libfltk_gl.so.1.4 nostrip()
 %system all
 %endif
 
@@ -162,37 +162,37 @@ f 0444 root sys $libdir/libfltk_z.a lib/libfltk_z.a
 
 %if DSONAME
 %system hpux
-l 0000 root sys $libdir/libfltk.sl libfltk.sl.1.3
+l 0000 root sys $libdir/libfltk.sl libfltk.sl.1.4
 %system darwin
-l 0000 root sys $libdir/libfltk.dylib libfltk.1.3.dylib
+l 0000 root sys $libdir/libfltk.dylib libfltk.1.4.dylib
 %system !aix !darwin !hpux
-l 0000 root sys $libdir/libfltk.so libfltk.so.1.3
+l 0000 root sys $libdir/libfltk.so libfltk.so.1.4
 %system all
 
 %system hpux
-l 0000 root sys $libdir/libfltk_forms.sl libfltk_forms.sl.1.3
+l 0000 root sys $libdir/libfltk_forms.sl libfltk_forms.sl.1.4
 %system darwin
-l 0000 root sys $libdir/libfltk_forms.dylib libfltk_forms.1.3.dylib
+l 0000 root sys $libdir/libfltk_forms.dylib libfltk_forms.1.4.dylib
 %system !aix !darwin !hpux
-l 0000 root sys $libdir/libfltk_forms.so libfltk_forms.so.1.3
+l 0000 root sys $libdir/libfltk_forms.so libfltk_forms.so.1.4
 %system all
 
 %system hpux
-l 0000 root sys $libdir/libfltk_images.sl libfltk_images.sl.1.3
+l 0000 root sys $libdir/libfltk_images.sl libfltk_images.sl.1.4
 %system darwin
-l 0000 root sys $libdir/libfltk_images.dylib libfltk_images.1.3.dylib
+l 0000 root sys $libdir/libfltk_images.dylib libfltk_images.1.4.dylib
 %system !aix !darwin !hpux
-l 0000 root sys $libdir/libfltk_images.so libfltk_images.so.1.3
+l 0000 root sys $libdir/libfltk_images.so libfltk_images.so.1.4
 %system all
 %endif
 
 %if GLDSONAME
 %system hpux
-l 0000 root sys $libdir/libfltk_gl.sl libfltk_gl.sl.1.3
+l 0000 root sys $libdir/libfltk_gl.sl libfltk_gl.sl.1.4
 %system darwin
-l 0000 root sys $libdir/libfltk_gl.dylib libfltk_gl.1.3.dylib
+l 0000 root sys $libdir/libfltk_gl.dylib libfltk_gl.1.4.dylib
 %system !aix !darwin !hpux
-l 0000 root sys $libdir/libfltk_gl.so libfltk_gl.so.1.3
+l 0000 root sys $libdir/libfltk_gl.so libfltk_gl.so.1.4
 %system all
 %endif
 
@@ -429,5 +429,5 @@ f 0444 root sys $mandir/man6/checkers.6 documentation/src/checkers.man
 f 0444 root sys $mandir/man6/sudoku.6 documentation/src/sudoku.man
 
 #
-# End of "$Id: fltk.list.in 8864 2011-07-19 04:49:30Z greg.ercolano $".
+# End of "$Id: fltk.list.in 10653 2015-03-25 20:06:54Z AlbrechtS $".
 #

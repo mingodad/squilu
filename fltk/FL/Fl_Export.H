@@ -1,5 +1,5 @@
 /*
- * "$Id: Fl_Export.H 8864 2011-07-19 04:49:30Z greg.ercolano $"
+ * "$Id: Fl_Export.H 10236 2014-08-21 12:29:48Z cand $"
  *
  * WIN32 DLL export .
  *
@@ -29,6 +29,8 @@
 #    else
 #      define FL_EXPORT	__declspec(dllimport)
 #    endif /* FL_LIBRARY */
+#  elif __GNUC__ >= 4
+#    define FL_EXPORT __attribute__ ((visibility ("default")))
 #  else
 #    define FL_EXPORT
 #  endif /* FL_DLL */
@@ -36,5 +38,5 @@
 #endif /* !Fl_Export_H */
 
 /*
- * End of "$Id: Fl_Export.H 8864 2011-07-19 04:49:30Z greg.ercolano $".
+ * End of "$Id: Fl_Export.H 10236 2014-08-21 12:29:48Z cand $".
  */

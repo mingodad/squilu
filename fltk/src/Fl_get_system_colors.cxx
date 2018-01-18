@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_get_system_colors.cxx 10126 2014-04-19 14:55:15Z greg.ercolano $"
+// "$Id: Fl_get_system_colors.cxx 11577 2016-04-10 19:37:18Z manolo $"
 //
 // System color support for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2010 by Bill Spitzak and others.
+// Copyright 1998-2015 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -17,6 +17,8 @@
 //
 
 #include <FL/Fl.H>
+#include <FL/Fl_Screen_Driver.H>
+#include <FL/Fl_System_Driver.H>
 #include <FL/fl_draw.H>
 #include <FL/x.H>
 #include <FL/math.h>
@@ -28,16 +30,6 @@
 #include <FL/Fl_Tiled_Image.H>
 #include "tile.xpm"
 
-#if defined(WIN32) && !defined(__CYGWIN__) && !defined(__WATCOMC__)
-// Visual C++ 2005 incorrectly displays a warning about the use of POSIX APIs
-// on Windows, which is supposed to be POSIX compliant...
-#  define putenv _putenv
-#endif // WIN32 && !__CYGWIN__
-
-static char	fl_bg_set = 0;
-static char	fl_bg2_set = 0;
-static char	fl_fg_set = 0;
-
 /**
     Changes fl_color(FL_BACKGROUND_COLOR) to the given color, 
     and changes the gray ramp from 32 to 56 to black to white.  These are 
@@ -45,7 +37,7 @@ static char	fl_fg_set = 0;
     the edges of all the boxtypes.
 */
 void Fl::background(uchar r, uchar g, uchar b) {
-  fl_bg_set = 1;
+  Fl_Screen_Driver::bg_set = 1;
 
   // replace the gray ramp so that FL_GRAY is this color
   if (!r) r = 1; else if (r==255) r = 254;
@@ -62,12 +54,15 @@ void Fl::background(uchar r, uchar g, uchar b) {
 		  uchar(pow(gray,powb)*255+.5));
   }
 }
+
+
 /** Changes fl_color(FL_FOREGROUND_COLOR). */
 void Fl::foreground(uchar r, uchar g, uchar b) {
-  fl_fg_set = 1;
+  Fl_Screen_Driver::fg_set = 1;
 
   Fl::set_color(FL_FOREGROUND_COLOR,r,g,b);
 }
+
 
 /**
     Changes the alternative background color. This color is used as a 
@@ -76,162 +71,41 @@ void Fl::foreground(uchar r, uchar g, uchar b) {
     does not provide sufficient contrast to FL_BACKGROUND2_COLOR.
 */
 void Fl::background2(uchar r, uchar g, uchar b) {
-  fl_bg2_set = 1;
+  Fl_Screen_Driver::bg2_set = 1;
 
   Fl::set_color(FL_BACKGROUND2_COLOR,r,g,b);
   Fl::set_color(FL_FOREGROUND_COLOR,
                 get_color(fl_contrast(FL_FOREGROUND_COLOR,FL_BACKGROUND2_COLOR)));
 }
 
+
 // these are set by Fl::args() and override any system colors:
 const char *fl_fg = NULL;
 const char *fl_bg = NULL;
 const char *fl_bg2 = NULL;
 
-static void set_selection_color(uchar r, uchar g, uchar b) {
-  Fl::set_color(FL_SELECTION_COLOR,r,g,b);
+
+int fl_parse_color(const char* p, uchar& r, uchar& g, uchar& b) {
+  return Fl::screen_driver()->parse_color(p, r, g, b);
 }
 
-#if defined(WIN32) || defined(__APPLE__)
 
-#  include <stdio.h>
-// simulation of XParseColor:
-int fl_parse_color(const char* p, uchar& r, uchar& g, uchar& b) {
-  if (*p == '#') p++;
-  size_t n = strlen(p);
-  size_t m = n/3;
-  const char *pattern = 0;
-  switch(m) {
-  case 1: pattern = "%1x%1x%1x"; break;
-  case 2: pattern = "%2x%2x%2x"; break;
-  case 3: pattern = "%3x%3x%3x"; break;
-  case 4: pattern = "%4x%4x%4x"; break;
-  default: return 0;
-  }
-  int R,G,B; if (sscanf(p,pattern,&R,&G,&B) != 3) return 0;
-  switch(m) {
-  case 1: R *= 0x11; G *= 0x11; B *= 0x11; break;
-  case 3: R >>= 4; G >>= 4; B >>= 4; break;
-  case 4: R >>= 8; G >>= 8; B >>= 8; break;
-  }
-  r = (uchar)R; g = (uchar)G; b = (uchar)B;
-  return 1;
-}
-#else
-// Wrapper around XParseColor...
-int fl_parse_color(const char* p, uchar& r, uchar& g, uchar& b) {
-  XColor x;
-  if (!fl_display) fl_open_display();
-  if (XParseColor(fl_display, fl_colormap, p, &x)) {
-    r = (uchar)(x.red>>8);
-    g = (uchar)(x.green>>8);
-    b = (uchar)(x.blue>>8);
-    return 1;
-  } else return 0;
-}
-#endif // WIN32 || __APPLE__
 /** \fn Fl::get_system_colors()
     Read the user preference colors from the system and use them to call
-    Fl::foreground(), Fl::background(), and 
-    Fl::background2().  This is done by
-    Fl_Window::show(argc,argv) before applying the -fg and -bg
-    switches.
+    Fl::foreground(), Fl::background(), and Fl::background2().
+
+    This is done by Fl_Window::show(argc,argv) before applying
+    the -fg and -bg switches.
     
-    <P>On X this reads some common values from the Xdefaults database.
+    On X this reads some common values from the Xdefaults database.
     KDE users can set these values by running the "krdb" program, and
     newer versions of KDE set this automatically if you check the "apply
     style to other X programs" switch in their control panel.
 */
-#if defined(WIN32)
-static void
-getsyscolor(int what, const char* arg, void (*func)(uchar,uchar,uchar))
-{
-  if (arg) {
-    uchar r,g,b;
-    if (!fl_parse_color(arg, r,g,b))
-      Fl::error("Unknown color: %s", arg);
-    else
-      func(r,g,b);
-  } else {
-    DWORD x = GetSysColor(what);
-    func(uchar(x&255), uchar(x>>8), uchar(x>>16));
-  }
-}
-
-void Fl::get_system_colors() {
-  if (!fl_bg2_set) getsyscolor(COLOR_WINDOW,	fl_bg2,Fl::background2);
-  if (!fl_fg_set) getsyscolor(COLOR_WINDOWTEXT,	fl_fg, Fl::foreground);
-  if (!fl_bg_set) getsyscolor(COLOR_BTNFACE,	fl_bg, Fl::background);
-  getsyscolor(COLOR_HIGHLIGHT,	0,     set_selection_color);
-}
-
-#elif defined(__APPLE__)
-// MacOS X currently supports two color schemes - Blue and Graphite.
-// Since we aren't emulating the Aqua interface (even if Apple would
-// let us), we use some defaults that are similar to both.  The
-// Fl::scheme("plastic") color/box scheme provides a usable Aqua-like
-// look-n-feel...
 void Fl::get_system_colors()
 {
-  fl_open_display();
-
-  if (!fl_bg2_set) background2(0xff, 0xff, 0xff);
-  if (!fl_fg_set) foreground(0, 0, 0);
-  if (!fl_bg_set) background(0xd8, 0xd8, 0xd8);
-  
-#if 0 
-  // this would be the correct code, but it does not run on all versions
-  // of OS X. Also, setting a bright selection color would require 
-  // some updates in Fl_Adjuster and Fl_Help_Browser
-  OSStatus err;
-  RGBColor c;
-  err = GetThemeBrushAsColor(kThemeBrushPrimaryHighlightColor, 24, true, &c);
-  if (err)
-    set_selection_color(0x00, 0x00, 0x80);
-  else
-    set_selection_color(c.red, c.green, c.blue);
-#else
-  set_selection_color(0x00, 0x00, 0x80);
-#endif
+  Fl::screen_driver()->get_system_colors();
 }
-#else
-
-// Read colors that KDE writes to the xrdb database.
-
-// XGetDefault does not do the expected thing: it does not like
-// periods in either word. Therefore it cannot match class.Text.background.
-// However *.Text.background is matched by pretending the program is "Text".
-// But this will also match *.background if there is no *.Text.background
-// entry, requiring users to put in both (unless they want the text fields
-// the same color as the windows).
-
-static void
-getsyscolor(const char *key1, const char* key2, const char *arg, const char *defarg, void (*func)(uchar,uchar,uchar))
-{
-  if (!arg) {
-    arg = XGetDefault(fl_display, key1, key2);
-    if (!arg) arg = defarg;
-  }
-  XColor x;
-  if (!XParseColor(fl_display, fl_colormap, arg, &x))
-    Fl::error("Unknown color: %s", arg);
-  else
-    func(x.red>>8, x.green>>8, x.blue>>8);
-}
-
-void Fl::get_system_colors()
-{
-  fl_open_display();
-  const char* key1 = 0;
-  if (Fl::first_window()) key1 = Fl::first_window()->xclass();
-  if (!key1) key1 = "fltk";
-  if (!fl_bg2_set) getsyscolor("Text","background",	fl_bg2,	"#ffffff", Fl::background2);
-  if (!fl_fg_set) getsyscolor(key1,  "foreground",	fl_fg,	"#000000", Fl::foreground);
-  if (!fl_bg_set) getsyscolor(key1,  "background",	fl_bg,	"#e4e4e4", Fl::background);
-  getsyscolor("Text", "selectBackground", 0, "#3465a4", set_selection_color);
-}
-
-#endif
 
 
 //// Simple implementation of 2.0 Fl::scheme() interface...
@@ -257,6 +131,7 @@ Fl_Image	*Fl::scheme_bg_ = (Fl_Image *)0;    // current background image for the
 
 static Fl_Pixmap	tile(tile_xpm);
 
+
 /**
     Sets the current widget scheme. NULL will use the scheme defined
     in the FLTK_SCHEME environment variable or the scheme resource
@@ -280,18 +155,12 @@ static Fl_Pixmap	tile(tile_xpm);
 
     If the resulting scheme name is not defined, the default scheme will
     be used and Fl::scheme() will return NULL.
+
+    \see Fl::is_scheme()
 */
 int Fl::scheme(const char *s) {
   if (!s) {
-    if ((s = getenv("FLTK_SCHEME")) == NULL) {
-#if !defined(WIN32) && !defined(__APPLE__)
-      const char* key = 0;
-      if (Fl::first_window()) key = Fl::first_window()->xclass();
-      if (!key) key = "fltk";
-      fl_open_display();
-      s = XGetDefault(fl_display, key, "scheme");
-#endif // !WIN32 && !__APPLE__
-    }
+    s = screen_driver()->get_system_scheme();
   }
 
   if (s) {
@@ -309,11 +178,12 @@ int Fl::scheme(const char *s) {
   static char e[1024];
   strcpy(e,"FLTK_SCHEME=");
   if (s) strlcat(e,s,sizeof(e));
-  putenv(e);
+  Fl::system_driver()->putenv(e);
 
   // Load the scheme...
   return reload_scheme();
 }
+
 
 int Fl::reload_scheme() {
   Fl_Window *win;
@@ -347,7 +217,7 @@ int Fl::reload_scheme() {
 
     tile.uncache();
 
-    if (!scheme_bg_) scheme_bg_ = new Fl_Tiled_Image(&tile, w(), h());
+    if (!scheme_bg_) scheme_bg_ = new Fl_Tiled_Image(&tile, 0, 0);
 
     // Load plastic buttons, etc...
     set_boxtype(FL_UP_FRAME,        FL_PLASTIC_UP_FRAME);
@@ -430,6 +300,18 @@ int Fl::reload_scheme() {
   }
 
   // Set (or clear) the background tile for all windows...
+
+  // FIXME: This makes it impossible to assign a background image
+  // and/or a label to a window. IMHO we should be able to assign a
+  // background image to a window. Currently (as of FLTK 1.3.3) there
+  // is the workaround to use a group inside the window to achieve this.
+  // See also STR #3075.
+  // AlbrechtS, 01 Mar 2015
+  //
+  // If there is already an image assigned that is not the scheme_bg_,
+  // then don't change the labeltype or assign another image. Will that
+  // fix it?
+
   for (win = first_window(); win; win = next_window(win)) {
     win->labeltype(scheme_bg_ ? FL_NORMAL_LABEL : FL_NO_LABEL);
     win->align(FL_ALIGN_CENTER | FL_ALIGN_INSIDE | FL_ALIGN_CLIP);
@@ -442,5 +324,5 @@ int Fl::reload_scheme() {
 
 
 //
-// End of "$Id: Fl_get_system_colors.cxx 10126 2014-04-19 14:55:15Z greg.ercolano $".
+// End of "$Id: Fl_get_system_colors.cxx 11577 2016-04-10 19:37:18Z manolo $".
 //

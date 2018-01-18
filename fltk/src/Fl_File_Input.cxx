@@ -1,5 +1,5 @@
 //
-// "$Id: Fl_File_Input.cxx 9325 2012-04-05 05:12:30Z fabien $"
+// "$Id: Fl_File_Input.cxx 11575 2016-04-10 18:36:47Z manolo $"
 //
 // File_Input header file for the Fast Light Tool Kit (FLTK).
 //
@@ -18,6 +18,7 @@
 //
 
 #include <FL/Fl.H>
+#include <FL/Fl_System_Driver.H>
 #include <FL/Fl_File_Input.H>
 #include <FL/Fl_Window.H>
 #include <FL/fl_draw.H>
@@ -112,10 +113,7 @@ void Fl_File_Input::update_buttons() {
        start && i < (int)(sizeof(buttons_) / sizeof(buttons_[0]) - 1);
        start = end, i ++) {
 //    printf("    start = \"%s\"\n", start);
-    if ((end = strchr(start, '/')) == NULL)
-#if defined(WIN32) || defined(__EMX__)
-      if ((end = strchr(start, '\\')) == NULL)
-#endif // WIN32 || __EMX__
+    if ((end = Fl::system_driver()->next_dir_sep(start)) == NULL)
       break;
 
     end ++;
@@ -261,10 +259,7 @@ Fl_File_Input::handle_button(int event)		// I - Event
 
   for (start = newvalue, end = start; start && i >= 0; start = end, i --) {
 //    printf("    start = \"%s\"\n", start);
-    if ((end = strchr(start, '/')) == NULL)
-#if defined(WIN32) || defined(__EMX__)
-      if ((end = strchr(start, '\\')) == NULL)
-#endif // WIN32 || __EMX__
+    if ((end = (char*)Fl::system_driver()->next_dir_sep(start)) == NULL)
       break;
 
     end ++;
@@ -285,5 +280,5 @@ Fl_File_Input::handle_button(int event)		// I - Event
 
 
 //
-// End of "$Id: Fl_File_Input.cxx 9325 2012-04-05 05:12:30Z fabien $".
+// End of "$Id: Fl_File_Input.cxx 11575 2016-04-10 18:36:47Z manolo $".
 //

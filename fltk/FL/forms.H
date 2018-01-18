@@ -1,5 +1,5 @@
 //
-// "$Id: forms.H 9325 2012-04-05 05:12:30Z fabien $"
+// "$Id: forms.H 10410 2014-10-29 20:17:38Z cand $"
 //
 // Forms emulation header file for the Fast Light Tool Kit (FLTK).
 //
@@ -819,7 +819,7 @@ inline double fl_get_timer(Fl_Widget* o) {return ((Fl_Timer*)o)->value();}
 inline void fl_suspend_timer(Fl_Widget* o) {((Fl_Timer*)o)->suspended(1);}
 inline void fl_resume_timer(Fl_Widget* o) {((Fl_Timer*)o)->suspended(0);}
 inline void fl_set_timer_countup(Fl_Widget* o,char d) {((Fl_Timer*)o)->direction(d);}
-void fl_gettime(long* sec, long* usec);
+void FL_EXPORT fl_gettime(long* sec, long* usec);
 
 // Fl_XYPlot nyi
 
@@ -832,5 +832,5 @@ inline void fl_draw() {Fl::flush();}
 #endif	/* define __FORMS_H__ */
 
 //
-// End of "$Id: forms.H 9325 2012-04-05 05:12:30Z fabien $".
+// End of "$Id: forms.H 10410 2014-10-29 20:17:38Z cand $".
 //

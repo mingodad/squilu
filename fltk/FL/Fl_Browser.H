@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_Browser.H 9682 2012-09-17 22:44:54Z greg.ercolano $"
+// "$Id: Fl_Browser.H 11465 2016-03-29 11:54:44Z AlbrechtS $"
 //
 // Browser header file for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2011 by Bill Spitzak and others.
+// Copyright 1998-2016 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -36,7 +36,7 @@ struct FL_BLINE;
   lines, and manages all the storage for the text.  This is not a text
   editor or spreadsheet!  But it is useful for showing a vertical list of
   named objects to the user.
-
+  
   Each line in the browser is identified by number. <I>The numbers
   start at one</I> (this is so that zero can be reserved for "no line" in
   the selective browsers). <I>Unless otherwise noted, the methods do not
@@ -49,9 +49,9 @@ struct FL_BLINE;
   describes.
 
   The base class does nothing when the user clicks on it.  The
-  subclasses
-  Fl_Select_Browser,
-  Fl_Hold_Browser, and
+  subclasses 
+  Fl_Select_Browser, 
+  Fl_Hold_Browser, and 
   Fl_Multi_Browser react to user clicks to select lines in
   the browser and do callbacks.
 
@@ -142,6 +142,17 @@ public:
   int size() const { return lines; }
   void size(int W, int H) { Fl_Widget::size(W, H); }
 
+  /**
+    Gets the default text size (in pixels) for the lines in the browser.
+  */
+  Fl_Fontsize textsize() const { return Fl_Browser_::textsize(); }
+
+  /*
+    Sets the default text size for the lines in the browser to newSize.
+    Defined and documented in Fl_Browser.cxx
+  */
+  void textsize(Fl_Fontsize newSize);
+
   int topline() const ;
   /** For internal use only? */
   enum Fl_Line_Position { TOP, BOTTOM, MIDDLE };
@@ -201,7 +212,7 @@ public:
     Gets the current format code prefix character, which by default is '\@'.
     A string of formatting codes at the start of each column are stripped off
     and used to modify how the rest of the line is printed:
-
+    
     \li <tt>'\@.'</tt> Print rest of line, don't look for more '\@' signs
     \li <tt>'\@\@'</tt> Print rest of line starting with '\@'
     \li <tt>'\@l'</tt> Use a LARGE (24 point) font
@@ -222,7 +233,7 @@ public:
     \li <tt>'\@-'</tt> draw an engraved line through the middle.
 
     Notice that the '\@.' command can be used to reliably
-    terminate the parsing.  To print a random string in a random color, use
+    terminate the parsing.  To print a random string in a random color, use 
     <tt>sprintf("@C%d@.%s", color, string)</tt> and it will work even if the
     string starts with a digit or has the format character in it.
   */
@@ -310,12 +321,11 @@ public:
   /** For back compatibility only. */
   void replace(int a, const char* b) { text(a, b); }
   void display(int line, int val=1);
-
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Browser, Fl_Browser_)
 };
 
 #endif
 
 //
-// End of "$Id: Fl_Browser.H 9682 2012-09-17 22:44:54Z greg.ercolano $".
+// End of "$Id: Fl_Browser.H 11465 2016-03-29 11:54:44Z AlbrechtS $".
 //

@@ -1,4 +1,4 @@
-/* "$Id: $"
+/* "$Id: ucs2fontmap.c 11531 2016-04-05 15:08:21Z manolo $"
  *
  * Author: Jean-Marc Lienher ( http://oksid.ch )
  * Copyright 2000-2003 by O'ksi'D.
@@ -57,13 +57,12 @@ typedef struct {
 /*************** conv_gen.c ************/
 
 /*const*/
-int ucs2fontmap(char *s, unsigned int ucs, int enc) {
+static int ucs2fontmap(char *s, unsigned int ucs, int enc) {
   switch(enc) {
   case 0:	/* iso10646-1 */
     s[0] = (char) ((ucs & 0xFF00) >> 8);
     s[1] = (char) (ucs & 0xFF);
     return 0;
-    break;
   case 1:	/* iso8859-1 */
     if (ucs <= 0x00FF) {
       if (ucs >= 0x0001) {
@@ -299,7 +298,7 @@ int ucs2fontmap(char *s, unsigned int ucs, int enc) {
 }
 
 /*const*/
-int encoding_number(const char *enc) {
+static int encoding_number(const char *enc) {
   if (!enc || !strncmp(enc, "iso10646-1", 10)) {
     return 0;
   } else if (!strcmp(enc, "iso8859-1")) {
@@ -367,5 +366,5 @@ int encoding_number(const char *enc) {
 }
 
 /*
- * End of "$Id$".
+ * End of "$Id: ucs2fontmap.c 11531 2016-04-05 15:08:21Z manolo $".
  */

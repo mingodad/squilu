@@ -1,5 +1,5 @@
 /*
- * "$Id: $"
+ * "$Id: case.c 12193 2017-03-12 15:12:35Z AlbrechtS $"
  *
  * Author: Jean-Marc Lienher ( http://oksid.ch )
  * Copyright 2000-2010 by O'ksi'D.
@@ -16,13 +16,16 @@
  */
 
 /*
- * This file is required on all platforms for utf8 support
+ * This file is required on all platforms for UTF-8 support
  */
 
-#include "headers/case.h"
+#include "../utf8_internal.h"
 #include <stdlib.h>
 
-int 
+/* include UCS tables */
+#include "headers/case.h"
+
+int
 XUtf8Tolower(int ucs) {
   int ret;
   if (ucs <= 0x02B6) {
@@ -113,5 +116,5 @@ XUtf8Toupper(int ucs) {
 }
 
 /*
-* End of "$Id$".
+* End of "$Id: case.c 12193 2017-03-12 15:12:35Z AlbrechtS $".
 */

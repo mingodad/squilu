@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_Window.H 10189 2014-06-11 09:10:53Z ossman $"
+// "$Id: Fl_Window.H 12615 2017-12-29 07:45:27Z manolo $"
 //
 // Window header file for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2012 by Bill Spitzak and others.
+// Copyright 1998-2016 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -16,18 +16,24 @@
 //     http://www.fltk.org/str.php
 //
 
-/* \file
+/** \file
    Fl_Window widget . */
 
 #ifndef Fl_Window_H
 #define Fl_Window_H
 
-#include "Fl_Group.H"
+#include <FL/Fl.H>
+#include <FL/Fl_Group.H>
+#include <FL/Fl_Bitmap.H>
+#include <stdlib.h>
 
 #define FL_WINDOW 0xF0		///< window type id all subclasses have type() >= this
 #define FL_DOUBLE_WINDOW 0xF1   ///< double window type id
 
 class Fl_X;
+class Fl_Window_Driver;
+class Fl_RGB_Image;
+class Fl_Double_Window;
 
 /**
   This widget produces an actual window.  This can either be a main
@@ -48,60 +54,41 @@ class Fl_X;
 */
 class FL_EXPORT Fl_Window : public Fl_Group {
 
+  friend int Fl::arg(int argc, char **argv, int &i);
+  friend class Fl_X;
+  friend class Fl_Window_Driver;
+private:
   static char *default_xclass_;
-  // Note: we must use separate statements for each of the following 4 variables,
-  // with the static attribute, otherwise MS VC++ 2008/2010 complains :-(
-  // AlbrechtS 04/2012
-#if FLTK_ABI_VERSION < 10301
-  static // when these members are static, ABI compatibility with 1.3.0 is respected
-#endif
+  static char show_iconic_; // 1 means create next window in iconic form
+
   int no_fullscreen_x;
-#if FLTK_ABI_VERSION < 10301
-  static // when these members are static, ABI compatibility with 1.3.0 is respected
-#endif
   int no_fullscreen_y;
-#if FLTK_ABI_VERSION < 10301
-  static // when these members are static, ABI compatibility with 1.3.0 is respected
-#endif
   int no_fullscreen_w;
-#if FLTK_ABI_VERSION < 10301
-  static // when these members are static, ABI compatibility with 1.3.0 is respected
-#endif
   int no_fullscreen_h;
-#if FLTK_ABI_VERSION < 10303
-  static // when these members are static, ABI compatibility with 1.3.2 is respected
-#endif
   int fullscreen_screen_top;
-#if FLTK_ABI_VERSION < 10303
-  static // when these members are static, ABI compatibility with 1.3.2 is respected
-#endif
   int fullscreen_screen_bottom;
-#if FLTK_ABI_VERSION < 10303
-  static // when these members are static, ABI compatibility with 1.3.2 is respected
-#endif
   int fullscreen_screen_left;
-#if FLTK_ABI_VERSION < 10303
-  static // when these members are static, ABI compatibility with 1.3.2 is respected
-#endif
   int fullscreen_screen_right;
 
+  friend int Fl::arg(int argc, char **argv, int &i);
   friend class Fl_X;
-  Fl_X *i; // points at the system-specific stuff
+  friend class Fl_Window_Driver;
+  friend class Fl_PicoAndroid_Window_Driver;
+  friend class Fl_PicoSDL_Window_Driver;
+  Fl_X *i; // points at the system-specific stuff, but exists only after the window is mapped
+  Fl_Window_Driver *pWindowDriver; // points at the system-specific stuff at window creation time
 
   const char* iconlabel_;
   char* xclass_;
-  const void* icon_;
   // size_range stuff:
   int minw, minh, maxw, maxh;
   int dw, dh, aspect;
   uchar size_range_set;
   // cursor stuff
   Fl_Cursor cursor_default;
-  Fl_Color cursor_fg, cursor_bg;
-  void size_range_();
+  
+
   void _Fl_Window(); // constructor innards
-  void fullscreen_x(); // platform-specific part of sending a window to full screen
-  void fullscreen_off_x(int X, int Y, int W, int H);// platform-specific part of leaving full screen
 
   // unimplemented copy ctor and assignment operator
   Fl_Window(const Fl_Window&);
@@ -111,7 +98,7 @@ protected:
 
   /** Stores the last window that was made current. See current() const */
   static Fl_Window *current_;
-  virtual void draw();
+  void draw();
   /** Forces the window to be drawn, this window is also made current and calls draw(). */
   virtual void flush();
 
@@ -136,6 +123,8 @@ protected:
     \see force_position(int)
   */
   int force_position() const { return ((flags() & FORCE_POSITION)?1:0); }
+
+  void free_icons();
 
 public:
 
@@ -243,6 +232,45 @@ public:
   unsigned int non_modal() const {return flags() & (NON_MODAL|MODAL);}
 
   /**
+    Clears the "modal" flags and converts a "modal" or "non-modal"
+    window back into a "normal" window.
+
+    Note that there are <I>three</I> states for a window: modal,
+    non-modal, and normal.
+
+    You can not change the "modality" of a window whilst
+    it is shown, so it is necessary to first hide() the window,
+    change its "modality" as required, then re-show the window
+    for the new state to take effect.
+
+    This method can also be used to change a "modal" window into a
+    "non-modal" one. On several supported platforms, the "modal" state
+    over-rides the "non-modal" state, so the "modal" state must be
+    cleared before the window can be set into the "non-modal"
+    state.
+    In general, the following sequence should work:
+
+    \code
+    win->hide();
+    win->clear_modal_states();
+    //Set win to new state as desired, or leave "normal", e.g...
+    win->set_non_modal();
+    win->show();
+    \endcode
+
+    \note Under some window managers, the sequence of hiding the
+    window and changing its modality will often cause it to be
+    re-displayed at a different position when it is subsequently
+    shown. This is an irritating feature but appears to be
+    unavoidable at present.
+    As a result we would advise to use this method only when
+    absolutely necessary.
+
+    \see void set_modal(), void set_non_modal()
+  */
+  void clear_modal_states() {clear_flag(NON_MODAL | MODAL);}
+
+  /**
     Marks the window as a menu window.
 
     This is intended for internal use, but it can also be used if you
@@ -259,7 +287,7 @@ public:
 
   /**  Returns true if this window is a menu window. */
   unsigned int menu_window() const {return flags() & MENU_WINDOW;}
-
+  
   /**
     Marks the window as a tooltip window.
 
@@ -303,52 +331,7 @@ public:
     \deprecated please use force_position(0) instead
   */
   void free_position()	{clear_flag(FORCE_POSITION);}
-  /**
-    Sets the allowable range the user can resize this window to.
-    This only works for top-level windows.
-    <UL>
-    <LI>\p minw and \p minh are the smallest the window can be.
-	Either value must be greater than 0.</LI>
-    <LI>\p maxw and \p maxh are the largest the window can be. If either is
-	<I>equal</I> to the minimum then you cannot resize in that direction.
-	If either is zero  then FLTK picks a maximum size in that direction
-	such that the window will fill the screen.</LI>
-    <LI>\p dw and \p dh are size increments.  The  window will be constrained
-	to widths of minw + N * dw,  where N is any non-negative integer.
-	If these are less or equal to 1 they are ignored (this is ignored
-	on WIN32).</LI>
-    <LI>\p aspect is a flag that indicates that the window should preserve its
-	aspect ratio.  This only works if both the maximum and minimum have
-	the same aspect ratio (ignored on WIN32 and by many X window managers).
-	</LI>
-    </UL>
-
-    If this function is not called, FLTK tries to figure out the range
-    from the setting of resizable():
-    <UL>
-    <LI>If resizable() is NULL (this is the  default) then the window cannot
-	be resized and the resize border and max-size control will not be
-	displayed for the window.</LI>
-    <LI>If either dimension of resizable() is less than 100, then that is
-	considered the minimum size.  Otherwise the resizable() has a minimum
-	size of 100.</LI>
-    <LI>If either dimension of resizable() is zero, then that is also the
-	maximum size (so the window cannot resize in that direction).</LI>
-    </UL>
-
-    It is undefined what happens if the current size does not fit in the
-    constraints passed to size_range().
-  */
-  void size_range(int minw, int minh, int maxw=0, int maxh=0, int dw=0, int dh=0, int aspect=0) {
-    this->minw   = minw;
-    this->minh   = minh;
-    this->maxw   = maxw;
-    this->maxh   = maxh;
-    this->dw     = dw;
-    this->dh     = dh;
-    this->aspect = aspect;
-    size_range_();
-  }
+  void size_range(int minw, int minh, int maxw=0, int maxh=0, int dw=0, int dh=0, int aspect=0);
 
   /** See void Fl_Window::label(const char*)   */
   const char* label() const	{return Fl_Widget::label();}
@@ -366,6 +349,21 @@ public:
   static const char *default_xclass();
   const char* xclass() const;
   void xclass(const char* c);
+
+  static void default_icon(const Fl_RGB_Image*);
+  static void default_icons(const Fl_RGB_Image*[], int);
+  void icon(const Fl_RGB_Image*);
+  void icons(const Fl_RGB_Image*[], int);
+
+#if defined(WIN32) && !defined(FL_DOXYGEN)
+  typedef struct HICON__* HICON;
+  // These 2 member functions break the driver model but are kept for back compatibility.
+  // They are implemented in Fl_win32.cxx
+  static void default_icons(HICON big_icon, HICON small_icon);
+  void icons(HICON big_icon, HICON small_icon);
+#endif
+
+  /* for legacy compatibility */
   const void* icon() const;
   void icon(const void * ic);
 
@@ -383,11 +381,22 @@ public:
     top.  This is really convenient because your program can call show()
     at any time, even if the window is already up.  It also means that
     show() serves the purpose of raise() in other toolkits.
-    
+
     Fl_Window::show(int argc, char **argv) is used for top-level
     windows and allows standard arguments to be parsed from the
     command-line.
-    
+
+    \note For some obscure reasons Fl_Window::show() resets the current
+    group by calling Fl_Group::current(0). The comments in the code
+    say "get rid of very common user bug: forgot end()". Although
+    this is true it may have unwanted side effects if you show() an
+    unrelated window (maybe for an error message or warning) while
+    building a window or any other group widget.
+
+    \todo Check if we can remove resetting the current group in a later
+    FLTK version (after 1.3.x). This may break "already broken" programs
+    though if they rely on this "feature".
+
     \see Fl_Window::show(int argc, char **argv)
   */
   virtual void show();
@@ -417,6 +426,10 @@ public:
     \see virtual void Fl_Window::show()
   */
   void show(int argc, char **argv);
+
+  // Enables synchronous show(), docs in Fl_Window.cxx
+  void wait_for_expose();
+
   /**
     Makes the window completely fill one or more screens, without any
     window manager border visible.  You must use fullscreen_off() to
@@ -485,9 +498,6 @@ public:
   */
   void make_current();
 
-  // Note: Doxygen docs in Fl_Widget.H to avoid redundancy.
-  virtual Fl_Window* as_window() { return this; }
-
   /**
     Changes the cursor for this window.  This always calls the system, if
     you are changing the cursor a lot you may want to keep track of how
@@ -495,27 +505,50 @@ public:
     is different.
 
     The type Fl_Cursor is an enumeration defined in <FL/Enumerations.H>.
-    (Under X you can get any XC_cursor value by passing 
-    Fl_Cursor((XC_foo/2)+1)).  The colors only work on X, they are
-    not implemented on WIN32.
 
-    For back compatibility only.
+    \see cursor(const Fl_RGB_Image*, int, int), default_cursor()
   */
-  void cursor(Fl_Cursor, Fl_Color=FL_BLACK, Fl_Color=FL_WHITE); // platform dependent
-  void default_cursor(Fl_Cursor, Fl_Color=FL_BLACK, Fl_Color=FL_WHITE);
+  void cursor(Fl_Cursor);
+  void cursor(const Fl_RGB_Image*, int, int);
+  void default_cursor(Fl_Cursor);
+
+  /* for legacy compatibility */
+  void cursor(Fl_Cursor c, Fl_Color, Fl_Color=FL_WHITE);
+  void default_cursor(Fl_Cursor c, Fl_Color, Fl_Color=FL_WHITE);
+
   static void default_callback(Fl_Window*, void* v);
   
   /** Returns the window width including any frame added by the window manager.
    
    Same as w() if applied to a subwindow.
    */
-  int decorated_w();
+  int decorated_w() const;
+
   /** Returns the window height including any window title bar and any frame 
    added by the window manager.
    
    Same as h() if applied to a subwindow.
    */
-  int decorated_h();
+  int decorated_h() const;
+
+  Fl_Window_Driver *driver() const { return pWindowDriver; }
+
+  // Note: Doxygen docs in Fl_Widget.H to avoid redundancy.
+  virtual Fl_Window* as_window() { return this; }
+
+  /**
+   Return non-null if this is an Fl_Overlay_Window object.
+   */
+  virtual class Fl_Overlay_Window *as_overlay_window() {return 0L; }
+
+  /**
+   Return non-null if this is an Fl_Double_Window object.
+   */
+  virtual class Fl_Double_Window *as_double_window() {return 0L;}
+  
+  void shape(const Fl_Image* img);
+  void shape(const Fl_Image& b) ;
+  int is_shaped();
 
 DECLARE_CLASS_CHEAP_RTTI_2(Fl_Window, Fl_Group)
 };
@@ -523,5 +556,5 @@ DECLARE_CLASS_CHEAP_RTTI_2(Fl_Window, Fl_Group)
 #endif
 
 //
-// End of "$Id: Fl_Window.H 10189 2014-06-11 09:10:53Z ossman $".
+// End of "$Id: Fl_Window.H 12615 2017-12-29 07:45:27Z manolo $".
 //

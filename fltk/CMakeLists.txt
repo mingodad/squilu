@@ -1,10 +1,10 @@
 #
-# "$Id: CMakeLists.txt 10098 2014-02-09 18:41:29Z AlbrechtS $"
+# "$Id: CMakeLists.txt 12630 2018-01-10 20:49:03Z AlbrechtS $"
 #
 # Main CMakeLists.txt to build the FLTK project using CMake (www.cmake.org)
 # Written by Michael Surette
 #
-# Copyright 1998-2010 by Bill Spitzak and others.
+# Copyright 1998-2018 by Bill Spitzak and others.
 #
 # This library is free software. Distribution and use rights are outlined in
 # the file "COPYING" which should have been included with this file.  If this
@@ -17,8 +17,17 @@
 #     http://www.fltk.org/str.php
 #
 
+# Prevent annoying warning under Cygwin; this must be before project().
+# Remove when CMake >= 2.8.4 is required
+set(CMAKE_LEGACY_CYGWIN_WIN32 0)
+
 project(FLTK)
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.6.3)
+
+#######################################################################
+# define some macros
+#######################################################################
+include(CMake/macros.cmake)
 
 #######################################################################
 # basic setup
@@ -36,12 +45,26 @@ include(CMake/resources.cmake)
 include(CMake/options.cmake)
 
 #######################################################################
+# variables shared by export and install
+# export.cmake creates configuration files for direct use in a built but uninstalled FLTK
+# install.cmake creates these files for an installed FLTK
+# these two would only differ in paths, so common variables are set here
+#######################################################################
+include(CMake/variables.cmake)
+
+#######################################################################
 # final config and export
 #######################################################################
 include(CMake/export.cmake)
 
+configure_file(
+ ${CMAKE_CURRENT_SOURCE_DIR}/abi-version.cmake.in
+ ${CMAKE_CURRENT_BINARY_DIR}/FL/abi-version.h
+ @ONLY
+ )
+
 #######################################################################
-# build examples - these have to be after fluid is built/imported
+# build examples - these have to be built after fluid is built/imported
 #######################################################################
 if(OPTION_BUILD_EXAMPLES)
    add_subdirectory(test)

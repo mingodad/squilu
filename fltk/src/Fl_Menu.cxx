@@ -1,9 +1,9 @@
 //
-// "$Id: Fl_Menu.cxx 9738 2012-12-07 16:29:49Z AlbrechtS $"
+// "$Id: Fl_Menu.cxx 11644 2016-04-17 17:45:44Z matt $"
 //
 // Menu code for the Fast Light Tool Kit (FLTK).
 //
-// Copyright 1998-2010 by Bill Spitzak and others.
+// Copyright 1998-2015 by Bill Spitzak and others.
 //
 // This library is free software. Distribution and use rights are outlined in
 // the file "COPYING" which should have been included with this file.  If this
@@ -23,13 +23,39 @@
 // Fl_Menu_ widget.
 
 #include <FL/Fl.H>
+#include <FL/Fl_System_Driver.H>
 #include <FL/Fl_Menu_Window.H>
 #include <FL/Fl_Menu_.H>
 #include <FL/fl_draw.H>
 #include <stdio.h>
 #include "flstring.h"
 
-/** Size of the menu starting from this menu item */
+/** Size of the menu starting from this menu item.
+
+  This method counts all menu items starting with \p this menu item,
+  including all menu items in the same (sub)menu level, all nested
+  submenus, \b and the terminating empty (0) menu item.
+
+  It does \b not count menu items referred to by FL_SUBMENU_POINTER
+  menu items (except the single menu item with FL_SUBMENU_POINTER).
+
+  All menu items counted are consecutive in memory (one array).
+
+  Example:
+
+  \code
+    schemechoice = new Fl_Choice(X+125,Y,140,25,"FLTK Scheme");
+    schemechoice->add("none");
+    schemechoice->add("plastic");
+    schemechoice->add("gtk+");
+    schemechoice->add("gleam");
+    printf("schemechoice->menu()->size() = %d\n", schemechoice->menu()->size());
+  \endcode
+
+  Output:
+
+  schemechoice->menu()->%size() = 5
+*/
 int Fl_Menu_Item::size() const {
   const Fl_Menu_Item* m = this;
   int nest = 0;
@@ -94,12 +120,11 @@ public:
 class menuwindow : public Fl_Menu_Window {
   void draw();
   void drawentry(const Fl_Menu_Item*, int i, int erase);
+  int handle_part1(int);
+  int handle_part2(int e, int ret);
 public:
   menutitle* title;
   int handle(int);
-#if defined (__APPLE__) || defined (USE_X11)
-  int early_hide_handle(int);
-#endif
   int itemheight;	// zero == menubar
   int numitems;
   int selected;
@@ -189,13 +214,11 @@ void Fl_Menu_Item::draw(int x, int y, int w, int h, const Fl_Menu_* m,
 	int tW = (W - Fl::box_dw(FL_ROUND_DOWN_BOX)) / 2 + 1;
 	if ((W - tW) & 1) tW++;	// Make sure difference is even to center
 	int td = (W - tW) / 2;
-        if (Fl::scheme()) {
-	  if (!strcmp(Fl::scheme(), "gtk+")) {
-	    fl_color(FL_SELECTION_COLOR);
-	    tW --;
-	    fl_pie(x + td + 1, y + d + td - 1, tW + 3, tW + 3, 0.0, 360.0);
-	    fl_color(fl_color_average(FL_WHITE, FL_SELECTION_COLOR, 0.2f));
-	  } else fl_color(labelcolor_);
+        if (Fl::is_scheme("gtk+")) {
+	  fl_color(FL_SELECTION_COLOR);
+	  tW --;
+	  fl_pie(x + td + 1, y + d + td - 1, tW + 3, tW + 3, 0.0, 360.0);
+	  fl_color(fl_color_average(FL_WHITE, FL_SELECTION_COLOR, 0.2f));
 	} else fl_color(labelcolor_);
 
 	switch (tW) {
@@ -224,7 +247,7 @@ void Fl_Menu_Item::draw(int x, int y, int w, int h, const Fl_Menu_* m,
 	    break;
 	}
 
-	if (Fl::scheme() && !strcmp(Fl::scheme(), "gtk+")) {
+	if (Fl::is_scheme("gtk+")) {
 	  fl_color(fl_color_average(FL_WHITE, FL_SELECTION_COLOR, 0.5));
 	  fl_arc(x + td + 2, y + d + td, tW + 1, tW + 1, 60.0, 180.0);
 	}
@@ -232,7 +255,7 @@ void Fl_Menu_Item::draw(int x, int y, int w, int h, const Fl_Menu_* m,
     } else {
       fl_draw_box(FL_DOWN_BOX, x+2, y+d, W, W, FL_BACKGROUND2_COLOR);
       if (value()) {
-	if (Fl::scheme() && !strcmp(Fl::scheme(), "gtk+")) {
+	if (Fl::is_scheme("gtk+")) {
 	  fl_color(FL_SELECTION_COLOR);
 	} else {
 	  fl_color(labelcolor_);
@@ -327,7 +350,7 @@ menuwindow::menuwindow(const Fl_Menu_Item* m, int X, int Y, int Wp, int Hp,
     if (w1 > W) W = w1;
     // calculate the maximum width of all shortcuts
     if (m->shortcut_) {
-      // s is a pointerto the utf8 string for the entire shortcut
+      // s is a pointer to the UTF-8 string for the entire shortcut
       // k points only to the key part (minus the modifier keys)
       const char *k, *s = fl_shortcut_label(m->shortcut_, &k);
       if (fl_utf_nb_char((const unsigned char*)k, (int) strlen(k))<=4) {
@@ -353,7 +376,11 @@ menuwindow::menuwindow(const Fl_Menu_Item* m, int X, int Y, int Wp, int Hp,
   if (Wp > W) W = Wp;
   if (Wtitle > W) W = Wtitle;
 
-  if (X < scr_x) X = scr_x; if (X > scr_x+scr_w-W) X = right_edge-W;
+  if (X < scr_x) X = scr_x; 
+  // this change improves popup submenu positioning at right screen edge, 
+  // but it makes right_edge argument useless
+  //if (X > scr_x+scr_w-W) X = right_edge-W;
+  if (X > scr_x+scr_w-W) X = scr_x+scr_w-W;
   x(X); w(W);
   h((numitems ? itemheight*numitems-LEADING : 0)+2*BW+3);
   if (selected >= 0) {
@@ -455,10 +482,12 @@ void menuwindow::drawentry(const Fl_Menu_Item* m, int n, int eraseit) {
                    button ? button->textsize() : FL_NORMAL_SIZE);
     const char *k, *s = fl_shortcut_label(m->shortcut_, &k);
     if (fl_utf_nb_char((const unsigned char*)k, (int) strlen(k))<=4) {
-      // righ-align the modifiers and left-align the key
-      char buf[32]; strcpy(buf, s); buf[k-s] = 0;
+      // right-align the modifiers and left-align the key
+      char *buf = (char*)malloc(k-s+1);
+      memcpy(buf, s, k-s); buf[k-s] = 0;
       fl_draw(buf, xx, yy, ww-shortcutWidth, hh, FL_ALIGN_RIGHT);
       fl_draw(  k, xx+ww-shortcutWidth, yy, shortcutWidth, hh, FL_ALIGN_LEFT);
+      free(buf);
     } else {
       // right-align to the menu
       fl_draw(s, xx, yy, ww-4, hh, FL_ALIGN_RIGHT);
@@ -626,12 +655,41 @@ static int backward(int menu) { // previous item in menu menu if possible
 }
 
 int menuwindow::handle(int e) {
-#if defined (__APPLE__) || defined (USE_X11)
-  // This off-route takes care of the "detached menu" bug on OS X.
+  /* In FLTK 1.3.4, the equivalent of handle_part2() is called for the Mac OS and X11 platforms
+   and "svn blame" shows it is here to fix STR #449.
+   But this STR is Mac OS-specific.
+   So, it is unclear why handle_part2() is called also for X11.
+   
+   Furthermore, calling handle_part2() for X11 renders the
+   fix for STR #2619 below necessary. If handle_part2() is not called under X11,
+   then STR #2619 does not occur. need_menu_handle_part1_extra() activates this fix.
+   
+   FLTK 1.3.4 behavior:
+    Fl::system_driver()->need_menu_handle_part2() returns true on Mac + X11
+    Fl::system_driver()->need_menu_handle_part1_extra() returns true on X11
+   
+   Alternative behavior that seems equally correct:
+    Fl::system_driver()->need_menu_handle_part2() returns true on Mac
+    need_menu_handle_part1_extra() does not exist
+   
+   Other alternative:
+    Neither need_menu_handle_part2() nor need_menu_handle_part1_extra() exist
+    --> the menuwindow code is entirely cross-platform and simpler.
+    It makes a small difference with Mac OS when resizing a window with a menu on:
+    the menu disappears after the end of the resize rather than at its beginning.
+    Apple applications do close popups at the beginning of resizes.
+   */
+  static int use_part2 = Fl::system_driver()->need_menu_handle_part2();
+  int ret = handle_part1(e);
+  if (use_part2) ret = handle_part2(e, ret);
+  return ret;
+}
+
+int menuwindow::handle_part2(int e, int ret) {
+  // This off-route takes care of the "detached menu" bug on OS X (STR #449).
   // Apple event handler requires that we hide all menu windows right
   // now, so that Carbon can continue undisturbed with handling window
   // manager events, like dragging the application window.
-  int ret = early_hide_handle(e);
   menustate &pp = *p;
   if (pp.state == DONE_STATE) {
     hide();
@@ -653,8 +711,7 @@ int menuwindow::handle(int e) {
   return ret;
 }
 
-int menuwindow::early_hide_handle(int e) {
-#endif
+int menuwindow::handle_part1(int e) {
   menustate &pp = *p;
   switch (e) {
   case FL_KEYBOARD:
@@ -718,13 +775,13 @@ int menuwindow::early_hide_handle(int e) {
       }
     }
     break;
-    case FL_MOVE:
-#if ! (defined(WIN32) || defined(__APPLE__))
-      if (pp.state == DONE_STATE) {
-	return 1; // Fix for STR #2619
-      }
+  case FL_MOVE: {
+    static int use_part1_extra = Fl::system_driver()->need_menu_handle_part1_extra();
+    if (use_part1_extra && pp.state == DONE_STATE) {
+      return 1; // Fix for STR #2619
+    }
+  }
       /* FALLTHROUGH */
-#endif
   case FL_ENTER:
   case FL_PUSH:
   case FL_DRAG:
@@ -916,10 +973,12 @@ const Fl_Menu_Item* Fl_Menu_Item::pulldown(
 	if (n->selected>=0) {
 	  int dy = n->y()-nY;
 	  int dx = n->x()-nX;
+	  int waX, waY, waW, waH;
+	  Fl::screen_work_area(waX, waY, waW, waH, X, Y);
 	  for (int menu = 0; menu <= pp.menu_number; menu++) {
 	    menuwindow* tt = pp.p[menu];
-	    int nx = tt->x()+dx; if (nx < 0) {nx = 0; dx = -tt->x();}
-	    int ny = tt->y()+dy; if (ny < 0) {ny = 0; dy = -tt->y();}
+	    int nx = tt->x()+dx; if (nx < waX) {nx = waX; dx = -tt->x() + waX;}
+	    int ny = tt->y()+dy; if (ny < waY) {ny = waY; dy = -tt->y() + waY;}
 	    tt->position(nx, ny);
 	  }
 	  setitem(pp.nummenus-1, n->selected);
@@ -1046,5 +1105,5 @@ const Fl_Menu_Item* Fl_Menu_Item::test_shortcut() const {
 }
 
 //
-// End of "$Id: Fl_Menu.cxx 9738 2012-12-07 16:29:49Z AlbrechtS $".
+// End of "$Id: Fl_Menu.cxx 11644 2016-04-17 17:45:44Z matt $".
 //
