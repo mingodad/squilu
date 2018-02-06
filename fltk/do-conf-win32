@@ -1,0 +1,2 @@
+CXXFLAGS="-I$HOME/dev/SquiLu/libharu/include" \
+    ./configure --enable-localjpeg --enable-localzlib --enable-localpng
