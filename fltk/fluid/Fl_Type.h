@@ -27,6 +27,7 @@
 
 #include <FL/Fl_Widget.H>
 #include <FL/Fl_Menu.H>
+#include <FL/Fl_Window.H>
 #include <FL/Fl_Plugin.H>
 #include "Fluid_Image.h"
 #include <FL/fl_draw.H>
