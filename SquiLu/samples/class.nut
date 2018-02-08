@@ -46,4 +46,28 @@ class FakeNamespace.Utils.SuperClass {
 	}
 }
 
+class FakeNamespace::Utils::SuperClass2 {
+	constructor()
+	{
+		::print("FakeNamespace::Utils::SuperClass2")
+	}
+}
+
 local testy = FakeNamespace.Utils.SuperClass();
+
+local testy2 = FakeNamespace::Utils::SuperClass2();
+
+class Base_Window /*extends Fl_Window*/ {
+}
+
+local mw = new Base_Window();
+
+class MainWindow extends Base_Window {
+}
+
+mw = new MainWindow();
+
+class MyMainWindow extends MainWindow {
+}
+
+mw = new MyMainWindow();

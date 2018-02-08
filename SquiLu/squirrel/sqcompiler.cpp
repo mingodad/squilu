@@ -1473,6 +1473,7 @@ start_again:
         {
             switch(_token)
             {
+            case TK_DOUBLE_COLON: //C++ style namespace
             case _SC('.'):
                 pos = -1;
                 Lex();
@@ -1898,11 +1899,12 @@ start_again:
             //Warning("Keyword ignored \"%s\" at line %d:%d\n", _lex.Tok2Str(_token),
             //        _lex.data->currentline, _lex.data->currentcolumn);
             Lex();
-            Factor();
+            return Factor();
             break;
         default:
             Error(_SC("expression expected"));
         }
+        _es.etype = EXPR;
         return -1;
     }
     void EmitLoadConstInt(SQInteger value,SQInteger target)
@@ -1969,7 +1971,7 @@ start_again:
             }
             break;
         }
-        return (!_es.donot_get || ( _es.donot_get && (_token == _SC('.') || _token == _SC('['))));
+        return (!_es.donot_get || ( _es.donot_get && (_token == _SC('.') || _token == _SC('[') || _token == TK_DOUBLE_COLON)));
     }
     void FunctionCallArgs(bool rawcall = false)
     {
@@ -2782,9 +2784,17 @@ lbl_commaexpr:
         Lex();
         if(_token == TK_IDENTIFIER)
         {
-            class_name = SQString::Create(_ss(_vm), _lex.data->svalue);
-            CheckGlobalName(class_name, true);
-            CheckTypeName(class_name, true); //to allow C/C++ style instance declarations
+            SQInteger lhtk = _lex.LookaheadLex();
+            switch(lhtk)
+            {
+            case TK_DOUBLE_COLON: //C++ style namespace
+            case _SC('.'):
+            break;
+            default:
+                class_name = SQString::Create(_ss(_vm), _lex.data->svalue);
+                CheckGlobalName(class_name, true);
+                CheckTypeName(class_name, true); //to allow C/C++ style instance declarations
+            }
         }
         es = _es;
         _es.donot_get = true;

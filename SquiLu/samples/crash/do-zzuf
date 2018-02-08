@@ -1,0 +1,8 @@
+#zzuf-env zzuf -s 0:10000 -c -C 0 -q -T 3 squilu fibo.nut
+#zzuf-env zzuf -s 0:10000 -c -C 0 -q -T 3 squilu test-bitwise.nut
+#zzuf-env zzuf -s 0:10000 -c -C 0 -q -T 3 squilu test-re.nut
+#zzuf-env zzuf -s 0:100000 -c -C 0 -q -T 3 squilu test-re2.nut
+#zzuf-env zzuf -s 0:10000 -c -C 0 -q -T 3 squilu csv-lib.nut
+zzuf-env zzuf -s 0:10000 -c -C 0 -q -T 3 squilu squilu-test.nut
+
+

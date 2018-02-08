@@ -1,0 +1,7 @@
+#!/bin/sh
+srcPath="/home/mingo/dev/squilu-git/SquiLu/samples/test-*.nut"
+for fn in $srcPath
+do
+    echo $fn
+    zzuf-env zzuf -s 0:1000 -c -C 0 -q -T 3 squilu $fn
+done

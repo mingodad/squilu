@@ -1,0 +1,6 @@
+#zzuf-env zzuf -r 0.004 -s 1878 < fibo.nut > crash.nut
+zzuf-env zzuf -r 0.004 -s 121 < /home/mingo/dev/squilu-git/SquiLu/samples/test-class-destructor.nut > crash2.nut
+zzuf-env zzuf -r 0.004 -s 635 < /home/mingo/dev/squilu-git/SquiLu/samples/test-class-destructor.nut > crash3.nut
+zzuf-env zzuf -r 0.004 -s 121 < /home/mingo/dev/squilu-git/SquiLu/samples/test-class-name-resolution.nut > crash4.nut
+zzuf-env zzuf -r 0.004 -s 273 < /home/mingo/dev/squilu-git/SquiLu/samples/test-class-static.nut > crash5.nut
+
