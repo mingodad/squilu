@@ -81,10 +81,16 @@ class Lexer {
         var _process_number = function()
         {
             var endpos = this.pos + 1;
-            while (endpos < this.buflen &&
-                    _isdigit(this.buf[endpos]))
+	    var hasDot = false;
+            while (endpos < this.buflen)
             {
-                endpos++;
+		var ch = this.buf[endpos];
+                if(!_isdigit(ch))
+		{
+			if(!hasDot && (ch == '.')) hasDot = true;
+			else break;
+		}
+		endpos++;
             }
 
             var tok = {
@@ -236,11 +242,13 @@ class Lexer {
     }
 }
 
-var txt = "var lex = new Lexer(23, \"dad\");";
+var txt = "var lex = new Lexer(26.389, \"dad\");";
 var lex = new Lexer();
+/*
 var fd = file("lexer.nut", "r");
 txt = fd.read(fd.len());
 fd.close();
+*/
 
 lex.input(txt);
 var tok =  lex.token();

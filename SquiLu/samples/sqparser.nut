@@ -2335,7 +2335,7 @@ error:
 };
 
 string_t txt = readfile("test-raii.nut")
-               var lex = new SQLexer(txt, true /*we want comments*/);
+var lex = new SQLexer(txt, true /*we want comments*/);
 
 var first_enum_token = lex.first_enum_token();
 var last_enum_token = lex.last_enum_token();
