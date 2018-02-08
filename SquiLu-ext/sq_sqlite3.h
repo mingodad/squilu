@@ -50,6 +50,8 @@ struct sq_sqlite3_sdb
     HSQOBJECT authorizer_hook_udata;
 
     HSQOBJECT null_value;
+
+    int nested_transaction_count;
 };
 
 extern const SQChar *SQLite3_TAG;

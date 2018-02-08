@@ -1492,6 +1492,147 @@ static SQRegFunction sq_sqlite3_stmt_methods[] =
 };
 #undef _DECL_FUNC
 
+//Statement scope reset
+static const SQChar *SQLite3_StmtScopeReset_TAG = "SQLite3StmtScopeReset";
+
+static SQRESULT sq_sqlite3_stmt_scope_reset_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
+{
+    sqlite3_stmt *stmt = ((sqlite3_stmt *)p);
+    if(stmt) sqlite3_reset(stmt);
+    return 0;
+}
+
+static SQRESULT sq_sqlite3_stmt_scope_reset_constructor(HSQUIRRELVM v)
+{
+    SQRESULT _rc_ = SQ_ERROR;
+    GET_sqlite3_stmt_INSTANCE_AT(2, stmt);
+    sq_setinstanceup(v, 1, stmt); //replace self for this instance with this new sqlite3_stmt
+    sq_setreleasehook(v,1, sq_sqlite3_stmt_scope_reset_releasehook);
+    return 1;
+}
+
+#define _DECL_FUNC(name,nparams,tycheck, isStatic) {_SC(#name),  sq_sqlite3_stmt_scope_reset_##name,nparams,tycheck, isStatic}
+static SQRegFunction sq_sqlite3_stmt_scope_reset_methods[] =
+{
+    _DECL_FUNC(constructor, 2, _SC("xx"), SQFalse),
+    {0,0}
+};
+#undef _DECL_FUNC
+
+//Transaction Class
+
+static const SQChar *SQLite3_Transaction_TAG = "SQLite3Transaction";
+
+static SQRESULT get_sqlite3_transaction_instance(HSQUIRRELVM v, SQInteger idx, sq_sqlite3_sdb **sdb)
+{
+    SQRESULT _rc_;
+    if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)sdb,(void*)SQLite3_Transaction_TAG)) < 0) return _rc_;
+    if(!*sdb) return sq_throwerror(v, _SC("transaction is closed"));
+    return _rc_;
+}
+
+#define GET_sqlite3_transaction_INSTANCE_AT(idx, var_name)  \
+	sq_sqlite3_sdb *var_name=NULL; \
+	if((_rc_ = get_sqlite3_transaction_instance(v,idx,&var_name)) < 0) return _rc_;
+#define GET_sqlite3_transaction_INSTANCE() GET_sqlite3_transaction_INSTANCE_AT(1, self)
+
+enum db_transaction_op {e_transaction_begin = 1, e_transaction_commit, e_transaction_rollback};
+
+static SQRESULT sq_sqlite3_transaction_exec_sq(sq_sqlite3_sdb *sdb, const char *sql)
+{
+    char *errmsg;
+    if(sqlite3_exec(sdb->db, sql, NULL, NULL, &errmsg) != SQLITE_OK){
+        sq_throwerror(sdb->v, errmsg);
+        sqlite3_free(errmsg);
+        return SQ_ERROR;
+    }
+    return SQ_OK;
+}
+
+static SQRESULT sq_sqlite3_transaction_exec(sq_sqlite3_sdb *sdb, db_transaction_op op)
+{
+    if(sdb)
+    {
+        SQRESULT rc;
+        //printf("Now doing %d : %d\n", op, sdb->nested_transaction_count);
+        switch(op)
+        {
+            case e_transaction_begin:
+            if(sdb->nested_transaction_count++ == 0)
+            {
+                return sq_sqlite3_transaction_exec_sq(sdb, "begin");
+            }
+            return SQ_OK;
+            break;
+
+            case e_transaction_commit:
+            if(sdb->nested_transaction_count > 0)
+            {
+                 rc = sq_sqlite3_transaction_exec_sq(sdb, "commit");
+                if(rc == SQ_OK) --sdb->nested_transaction_count;
+                return rc;
+            }
+            break;
+
+            case e_transaction_rollback:
+            if(sdb->nested_transaction_count > 0)
+            {
+                 rc = sq_sqlite3_transaction_exec_sq(sdb, "rollback");
+                if(rc == SQ_OK) sdb->nested_transaction_count = 0;
+                return rc;
+            }
+            break;
+        }
+        return sq_throwerror(sdb->v, _SC("no transaction active"));
+    }
+    return SQ_ERROR;
+}
+
+
+static SQRESULT sq_sqlite3_transaction_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
+{
+    sq_sqlite3_sdb *sdb = ((sq_sqlite3_sdb *)p);
+    return sq_sqlite3_transaction_exec(sdb, e_transaction_rollback);
+}
+
+static SQRESULT sq_sqlite3_transaction_constructor(HSQUIRRELVM v)
+{
+    SQRESULT _rc_ = SQ_ERROR;
+    GET_sqlite3_INSTANCE_AT(2);
+    _rc_ = sq_sqlite3_transaction_exec(sdb, e_transaction_begin);
+    if(_rc_ != SQ_OK) return SQ_ERROR;
+    sq_setinstanceup(v, 1, sdb); //replace self for this instance with this new sqlite3_stmt
+    sq_setreleasehook(v,1, sq_sqlite3_transaction_releasehook);
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_transaction_commit(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_transaction_INSTANCE();
+    _rc_ = sq_sqlite3_transaction_exec(self, e_transaction_commit);
+    sq_setinstanceup(v, 1, NULL); //avoid reuse it
+    return _rc_;
+}
+
+static SQRESULT sq_sqlite3_transaction_rollback(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_transaction_INSTANCE();
+    _rc_ = sq_sqlite3_transaction_exec(self, e_transaction_rollback);
+    sq_setinstanceup(v, 1, NULL); //avoid reuse it
+    return _rc_;
+}
+
+#define _DECL_FUNC(name,nparams,tycheck, isStatic) {_SC(#name),  sq_sqlite3_transaction_##name,nparams,tycheck, isStatic}
+static SQRegFunction sq_sqlite3_transaction_methods[] =
+{
+    _DECL_FUNC(constructor, 2, _SC("xx"), SQFalse),
+    _DECL_FUNC(commit,  1, _SC("x"), SQFalse),
+    _DECL_FUNC(rollback, 1, _SC("x"), SQFalse),
+    {0,0}
+};
+#undef _DECL_FUNC
 #ifdef SQLITE_ENABLE_SESSION
 
 static const SQChar *SQLite3_Session_TAG = "SQLite3Session";
@@ -2186,6 +2327,30 @@ static SQRESULT sq_sqlite3_prepare(HSQUIRRELVM v)
     sq_push(v, 1);
     sq_push(v, 2);
     if(sq_call(v, 3, SQTrue, SQFalse) != SQ_OK) return SQ_ERROR;
+    return 1;
+}
+
+/* stmt_rest * prepare( stmt *p  ) */
+static SQRESULT sq_sqlite3_stmt_scope_reset(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_stmt_INSTANCE_AT(2, stmt);
+    sq_pushstring(v, SQLite3_StmtScopeReset_TAG, -1);
+    if(sq_getonroottable(v) == SQ_ERROR) return SQ_ERROR;
+    sq_pushroottable(v);
+    sq_push(v, 2);
+    if(sq_call(v, 2, SQTrue, SQFalse) != SQ_OK) return SQ_ERROR;
+    return 1;
+}
+
+/* transaction */
+static SQRESULT sq_sqlite3_transaction(HSQUIRRELVM v)
+{
+    sq_pushstring(v, SQLite3_Transaction_TAG, -1);
+    if(sq_getonroottable(v) == SQ_ERROR) return SQ_ERROR;
+    sq_pushroottable(v);
+    sq_push(v, 1);
+    if(sq_call(v, 2, SQTrue, SQFalse) != SQ_OK) return SQ_ERROR;
     return 1;
 }
 
@@ -3527,6 +3692,8 @@ static SQRegFunction sq_sqlite3_methods[] =
     _DECL_FUNC(get_db_name,  1, _SC("x")),
     _DECL_FUNC(last_row_id,  1, _SC("x")),
     _DECL_FUNC(prepare,  2, _SC("xs")),
+    _DECL_FUNC(stmt_scope_reset,  2, _SC("xx")),
+    _DECL_FUNC(transaction,  1, _SC("x")),
     _DECL_FUNC(blob_open, -5, _SC("xsssii")),
     _DECL_FUNC(set_busy_timeout,  -1, _SC("xi")),
     _DECL_FUNC(total_changes,  1, _SC("x")),
@@ -3683,7 +3850,7 @@ extern "C" {
         sq_pushobject(v, sqlite3_NULL);
         sq_newslot(v,-3,SQTrue);
 
-        sq_newslot(v,-3,SQTrue);
+        sq_newslot(v,-3,SQTrue);  //insert SQLite3 on root table
 
 #ifdef SQLITE_ENABLE_SESSION
         sq_pushstring(v, SQLite3_Session_TAG,-1);
@@ -3698,7 +3865,7 @@ extern "C" {
         sq_settypetag(v,-1,(SQUserPointer)SQLite3_Session_Iterator_TAG);
         sq_insert_reg_funcs(v, sq_sqlite3_session_iterator_methods);
 
-        sq_newslot(v,-3,SQTrue);
+        sq_newslot(v,-3,SQTrue); //insert SQLiteSession in root table
 #endif // SQLITE_ENABLE_SESSION
 
         sq_pushstring(v, SQLite3_Stmt_TAG,-1);
@@ -3725,8 +3892,21 @@ extern "C" {
         sq_pushobject(v, sqlite3_NULL);
         sq_newslot(v,-3,SQTrue);
 
-        sq_newslot(v,-3,SQTrue);
-        return 1;
+        sq_newslot(v,-3,SQTrue); //insert SQLiteStatement in root table
+
+        sq_pushstring(v,SQLite3_Transaction_TAG,-1);
+        sq_newclass(v,SQFalse);
+        sq_settypetag(v,-1,(SQUserPointer)SQLite3_Transaction_TAG);
+        sq_insert_reg_funcs(v, sq_sqlite3_transaction_methods);
+        sq_newslot(v,-3,SQTrue);//insert SQLiteTransactio in root table
+
+        sq_pushstring(v,SQLite3_StmtScopeReset_TAG,-1);
+        sq_newclass(v,SQFalse);
+        sq_settypetag(v,-1,(SQUserPointer)SQLite3_StmtScopeReset_TAG);
+        sq_insert_reg_funcs(v, sq_sqlite3_stmt_scope_reset_methods);
+        sq_newslot(v,-3,SQTrue);//insert SQLiteStmtScopeReset in root table
+
+        return 0;
     }
 
 #ifdef __cplusplus
