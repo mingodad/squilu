@@ -790,35 +790,62 @@ try_again:
 	return TK_STRING_LITERAL;
 }
 
-void LexHexadecimal(const SQChar *s,SQUnsignedInteger *res)
-{
-	*res = 0;
-	while(*s != 0)
-	{
-		if(scisdigit(*s)) *res = (*res)*16+((*s++)-_SC('0'));
-		else if(scisxdigit(*s)) *res = (*res)*16+(toupper(*s++)-_SC('A')+10);
-		else { assert(0); }
-	}
+#define MAXBY10		(SQUnsignedInteger)(SQ_INT_MAX / 10)
+#define MAXLASTD	(SQUnsignedInteger)(SQ_INT_MAX % 10)
+
+static int isneg (const SQChar **s) {
+  if (**s == _SC('-')) { (*s)++; return 1; }
+  else if (**s == _SC('+')) (*s)++;
+  return 0;
 }
 
-void LexInteger(const SQChar *s,SQUnsignedInteger *res)
+#define ADD_CHECK_DIGIT(dig, base) \
+	    if (a >= MAXBY10 && (a > MAXBY10 || a > MAXLASTD + neg))  /* overflow? */ \
+            return false;  /* do not accept it (as integer) */ \
+		a = a*base+dig;
+
+
+bool LexHexadecimal(const SQChar *s,SQUnsignedInteger *res)
 {
-	*res = 0;
+	SQUnsignedInteger a = 0;
+	int d = 0, neg = isneg(&s);
 	while(*s != 0)
 	{
-		*res = (*res)*10+((*s++)-_SC('0'));
+		if(scisdigit(*s)) d = (*s++)-_SC('0');
+		else if(scisxdigit(*s)) d = toupper(*s++)-_SC('A')+10;
+		else { assert(0); }
+		ADD_CHECK_DIGIT(d, 16);
 	}
+	*res = a;
+	return true;
+}
+
+bool LexInteger(const SQChar *s,SQUnsignedInteger *res)
+{
+	SQUnsignedInteger a = 0;
+	int d = 0, neg = isneg(&s);
+	while(*s != 0)
+	{
+	    d = (*s++)-_SC('0');
+		ADD_CHECK_DIGIT(d, 10);
+	}
+	*res = neg ? (((SQUnsignedInteger)0)-a) : a;
+	return true;
 }
 
 
-void LexOctal(const SQChar *s,SQUnsignedInteger *res)
+bool LexOctal(const SQChar *s,SQUnsignedInteger *res)
 {
-	*res = 0;
+	SQUnsignedInteger a = 0;
+	int d = 0, neg = isneg(&s);
 	while(*s != 0)
 	{
-		if(scisodigit(*s)) *res = (*res)*8+((*s++)-_SC('0'));
+		if(scisodigit(*s)) d = (*s++)-_SC('0');
 		else { assert(0); }
+		ADD_CHECK_DIGIT(d, 8);
 	}
+	*res = neg ? (((SQUnsignedInteger)0)-a) : a;
+	return true;
 }
 
 SQInteger isexponent(SQInteger c) { return c == _SC('e') || c==_SC('E'); }
@@ -877,21 +904,23 @@ SQInteger SQLexer::ReadNumber()
 		}
 	}
 	TERMINATE_BUFFER();
+	bool okNumber = true;
 	switch(type) {
+	case TINT:
+		okNumber = LexInteger(&data->longstr[0],&itmp);
+		if(okNumber) break;
 	case TSCIENTIFIC:
 	case TFLOAT:
 		data->fvalue = (SQFloat)scstrtod(&data->longstr[0],&sTemp);
 		return TK_FLOAT;
-	case TINT:
-		LexInteger(&data->longstr[0],&itmp);
-		break;
 	case THEX:
-		LexHexadecimal(&data->longstr[0],&itmp);
+		okNumber = LexHexadecimal(&data->longstr[0],&itmp);
 		break;
 	case TOCTAL:
-		LexOctal(&data->longstr[0],&itmp);
+		okNumber = LexOctal(&data->longstr[0],&itmp);
 		break;
 	}
+	if(!okNumber) Error(_SC("integer overflow %s"), &data->longstr[0]);
 	rtype = TK_INTEGER;
 	switch(type) {
 	case TINT:
