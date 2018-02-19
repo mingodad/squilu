@@ -27,6 +27,7 @@ typedef void* (WINAPI*cPtrFuncVarArg)(...);
 typedef void*(*cPtrFuncVarArg)(...);
 #endif
 
+struct pascal_string_t {size_t len; char *data;};
 static const SQChar *FFI_LIB_TAG = _SC("FFI_LIB");
 static const SQChar *FFI_LIB_LIB_TAG = _SC("FFI_LIB_LIB");
 static const SQChar *FFI_LIB_FUNC_TAG = _SC("FFI_LIB_FUNC");
@@ -101,6 +102,7 @@ static ffi_type *char2ffi_type(char c)
     case 'P':
     case 'A':
     case 's':
+    case 'S':
         return &ffi_type_pointer;
     case 'v':
         return &ffi_type_void;
@@ -231,6 +233,11 @@ static void return_ffi_value(HSQUIRRELVM v, ptrdiff_t val, char type)
     switch (type) {
     case 's':
         sq_pushstring(v, (char*)val, -1);
+        break;
+    case 'S': {
+        pascal_string_t *ps = (pascal_string_t*)val;
+        sq_pushstring(v, ps->data, ps->len);
+        }
         break;
     case 'i':
     case 'I':
@@ -432,7 +439,7 @@ SQRESULT sqext_register_ffi(HSQUIRRELVM v)
 {
     int saved_top = sq_gettop(v);
     //add a namespace ffi
-	sq_pushstring(v,_SC("ffi"),-1);
+    sq_pushstring(v,_SC("ffi"),-1);
     sq_newclass(v,SQFalse);
     sq_settypetag(v,-1,(void*)FFI_LIB_TAG);
     sq_insert_reg_funcs(v, sq_ffi_methods);
