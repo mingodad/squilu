@@ -1,4 +1,4 @@
-//#ifdef USE_LMDB
+#ifdef SQ_USE_LMDB
 
 #ifdef __cplusplus
 extern "C" {
@@ -233,23 +233,20 @@ static SQRESULT sq_LmDB_Env_txn_begin(HSQUIRRELVM v){
 	return 0;
 }
 
-static SQRESULT sq_LmDB_strerror(HSQUIRRELVM v){
+static SQRESULT sq_LmDB_Env_strerror(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
-	GET_LmDB_INSTANCE();
 
 	SQ_GET_INTEGER(v, 2, int_error);
 //	char *mdb_strerror(int err)
-    sq_pushstring(v, mdb_strerror(int_error), -1);
+	sq_pushstring(v, mdb_strerror(int_error), -1);
 	return 1;
 }
 
-static SQRESULT sq_LmDB_version(HSQUIRRELVM v){
-	SQ_FUNC_VARS_NO_TOP(v);
-	GET_LmDB_INSTANCE();
+static SQRESULT sq_LmDB_Env_version(HSQUIRRELVM v){
 
 //	char *mdb_version(int *major, int *minor, int *patch)
-    int major, minor, patch;
-    sq_pushstring(v, mdb_version(&major, &minot, &patch), -1);
+	int major, minor, patch;
+	sq_pushstring(v, mdb_version(&major, &minor, &patch), -1);
 	return 1;
 }
 
@@ -271,8 +268,8 @@ static SQRegFunction LmDB_Env_obj_funcs[]={
 	_DECL_LMDB_ENV_FUNC(stat, 1, _SC("x")),
 	_DECL_LMDB_ENV_FUNC(sync, 2, _SC("xi")),
 	_DECL_LMDB_ENV_FUNC(txn_begin, 1, _SC("x")),
-	_DECL_LMDB_FUNC(strerror, 2, _SC(".i")),
-	_DECL_LMDB_FUNC(version, 1, _SC(".")),
+	_DECL_LMDB_ENV_FUNC(strerror, 2, _SC(".i")),
+	_DECL_LMDB_ENV_FUNC(version, 1, _SC(".")),
 	{0,0}
 };
 #undef _DECL_LMDB_ENV_FUNC
@@ -441,12 +438,12 @@ static SQRESULT sq_LmDB_Transaction_put(HSQUIRRELVM v){
 	pop_val(v, 3, &value);
 	SQ_GET_INTEGER(v, 4, int_flags);
 
+//	int  mdb_put(MDB_txn *txn, MDB_dbi dbi, MDB_val *key, MDB_val *data, unsigned int flags)
 	sq_pushinteger(v, mdb_put(self, &key, &value, int_flags));
 	return 1;
 	SQ_GET_STRING(v, 2, key);
 	SQ_GET_STRING(v, 3, value);
 	SQ_GET_INTEGER(v, 4, int_flags);
-//	int  mdb_put(MDB_txn *txn, MDB_dbi dbi, MDB_val *key, MDB_val *data, unsigned int flags)
 
 	return 0;
 }
@@ -534,7 +531,6 @@ static SQRESULT LmDB_Cursor_constructor(HSQUIRRELVM v, MDB_cursor *lmdb_Cursor, 
 
 static SQRESULT sq_LmDB_Cursor_constructor(HSQUIRRELVM v){
 	// if(!load_library()) return sq_throwerror(v, _SC("Failed to load libcurl !"));
-	
 	//int  mdb_cursor_open(MDB_txn *txn, MDB_dbi dbi, MDB_cursor **cursor);
 	MDB_cursor *lmdb_Cursor = NULL;
 	int rc = mdb_cursor_open(txn, dbi, &lmdb_Cursor);
@@ -706,4 +702,4 @@ SQRESULT sqext_register_LmDB (HSQUIRRELVM v) {
 }
 #endif
 
-#endif //USE_LMDB
+#endif //SQ_USE_LMDB
