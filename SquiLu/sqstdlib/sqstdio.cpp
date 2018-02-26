@@ -98,7 +98,7 @@ static SQRESULT _popen__typeof(HSQUIRRELVM v)
 static SQRESULT _popen_releasehook(SQUserPointer p, SQInteger /*size*/, void */*ep*/)
 {
 	SQPopen *self = (SQPopen*)p;
-	self->~SQPopen();
+	self->~SQPopen(); //on osx it doesn't seem to work
 	sq_free(self,sizeof(SQFile));
 	return 1;
 }
