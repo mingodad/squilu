@@ -58,6 +58,7 @@ void errorfunc(HSQUIRRELVM v,const SQChar *s,...)
 	va_start(vl, s);
 	scvprintf(stderr, s, vl);
 	va_end(vl);
+	(void)v; /* UNUSED */
 }
 
 void PrintVersionInfos()
