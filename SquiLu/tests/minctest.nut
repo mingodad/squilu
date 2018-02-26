@@ -59,14 +59,16 @@ function minctest()
 
 	local ltests = 0;
 	local lfails = 0;
+	local start_clock = os.clock();
 
 
 	self.results <- function()
 	{
+	    local total_time = math.floor((os.clock() - start_clock) * 1000) + "ms";
 	    if (lfails == 0)
-		print("ALL TESTS PASSED (" + ltests + "/" + ltests + ")");
+		print("ALL TESTS PASSED (" + ltests + "/" + ltests + ") " + total_time);
 	    else
-		print("SOME TESTS FAILED (" + (ltests-lfails) + "/" + ltests + ")");
+		print("SOME TESTS FAILED (" + (ltests-lfails) + "/" + ltests + ") " + total_time);
 
 	    return lfails != 0;
 	}
@@ -76,13 +78,13 @@ function minctest()
 	{
 	    local ts = ltests;
 	    local fs = lfails;
-	    local clock = os.clock();
+	    local lclock = os.clock();
 	    local msg = format("\t%-24s", name);
 	    stdout.write(msg);
 	    testfunc();
 	    msg = format("pass: %2d   fail: %2d   %4dms\n",
 		(ltests-ts)-(lfails-fs), lfails-fs,
-		math.floor((os.clock() - clock) * 1000));
+		math.floor((os.clock() - lclock) * 1000));
             if(lfails) stdout.write("\n");
 	    stdout.write(msg);
 	}
