@@ -9,3 +9,11 @@ void *sq_vm_realloc(void *p, SQUnsignedInteger SQ_UNUSED_ARG(oldsize), SQUnsigne
 
 void sq_vm_free(void *p, SQUnsignedInteger SQ_UNUSED_ARG(size)){ free(p); }
 #endif
+
+#ifdef CUSTOM_DELETE_OPERATOR
+void operator delete(void *p, unsigned long len)
+{
+	printf("DELETE SHOULD NOT BE CALLED %p : %d\n", p, (int)len);
+	assert(0);
+}
+#endif
