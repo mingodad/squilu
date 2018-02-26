@@ -790,7 +790,7 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
             case _OP_AND:
             case _OP_OR:
                         SafeWriteFmt(v,write,up,"\t\t/* %s(stk_at_arg2[%d]) {stk_at_arg0[%d] = stk[%d]; goto[%d]} */",
-                                     _OP_OR ? "IsTrue" : "IsFalse",
+                                     ((inst.op == _OP_OR) ? "IsTrue" : "IsFalse"),
                                      inst._arg2, inst._arg0, inst._arg2, i + inst._arg1 + 1);
             break;
             case _OP_JZ:
