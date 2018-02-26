@@ -3,7 +3,7 @@ SQUIRREL= ..
 
 OUT= $(SQUIRREL)/lib/libsquirrel.a
 INCZ= -I$(SQUIRREL)/include -I. -Iinclude -I$(SQUIRREL)/sqstdlib
-DEFS= -DSQ_ENABLE_INCLUDES -DSQ_SUBLATIN -DNEED_SUBLATIN_C -DSQUSEDOUBLE
+DEFS= $(CC_EXTRA_FLAGS)
 LIB=	
 
 OBJS= \
@@ -52,5 +52,6 @@ sqprof:
 
 sq64:
 	$(CC) -O2 -m64 -D_SQ64 -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ) $(DEFS)
+#	$(CC) -g -m64 -D_SQ64 -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ) $(DEFS)
 	ar rc $(OUT) *.o
 	rm *.o
