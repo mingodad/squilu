@@ -84,11 +84,6 @@ enum SQMetaMethod{
 
 #define MINPOWER2 4
 
-#ifndef NO_ABSTRACT_METHOD
-#define ABSTRACT_METHOD(m, i) m =0
-#else
-#define ABSTRACT_METHOD(m, i) m i
-#endif
 struct SQRefCounted
 {
 	SQUnsignedInteger _uiRef;

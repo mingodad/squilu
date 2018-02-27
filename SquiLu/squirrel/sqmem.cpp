@@ -16,4 +16,9 @@ void operator delete(void *p, unsigned long len)
 	printf("DELETE SHOULD NOT BE CALLED %p : %d\n", p, (int)len);
 	assert(0);
 }
+void operator delete(void *p)
+{
+	printf("DELETE SHOULD NOT BE CALLED %p\n", p);
+	assert(0);
+}
 #endif

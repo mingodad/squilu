@@ -8,15 +8,15 @@
 
 struct SQStream {
     virtual ~SQStream() {}
-	virtual SQInteger Read(void *buffer, SQInteger size) = 0;
-	virtual SQInteger Gets(char *buffer, SQInteger size) = 0;
-	virtual SQInteger Write(const void *buffer, SQInteger size) = 0;
-	virtual SQInteger Flush() = 0;
-	virtual SQInteger Tell() = 0;
-	virtual SQInteger Len() = 0;
-	virtual SQInteger Seek(SQInteger offset, SQInteger origin) = 0;
-	virtual bool IsValid() = 0;
-	virtual bool EOS() = 0;
+	ABSTRACT_METHOD(virtual SQInteger Read(void *buffer, SQInteger size), {return 0;});
+	ABSTRACT_METHOD(virtual SQInteger Gets(char *buffer, SQInteger size), {return 0;});
+	ABSTRACT_METHOD(virtual SQInteger Write(const void *buffer, SQInteger size), {return 0;});
+	ABSTRACT_METHOD(virtual SQInteger Flush(), {return 0;});
+	ABSTRACT_METHOD(virtual SQInteger Tell(), {return 0;});
+	ABSTRACT_METHOD(virtual SQInteger Len(), {return 0;});
+	ABSTRACT_METHOD(virtual SQInteger Seek(SQInteger offset, SQInteger origin), {return 0;});
+	ABSTRACT_METHOD(virtual bool IsValid(), {return false;});
+	ABSTRACT_METHOD(virtual bool EOS(), {return true;});
 };
 
 extern "C" {

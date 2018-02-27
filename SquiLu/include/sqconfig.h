@@ -1,3 +1,8 @@
+#ifndef NO_ABSTRACT_METHOD
+#define ABSTRACT_METHOD(m, i) m =0
+#else
+#define ABSTRACT_METHOD(m, i) m i
+#endif
 
 #ifdef _SQ64
 
