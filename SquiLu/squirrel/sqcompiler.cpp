@@ -2973,6 +2973,11 @@ error:
         Expect(TK_CATCH);
         Expect(_SC('('));
         exid = Expect(TK_IDENTIFIER);
+        if(CheckTypeName(exid)) //C/C++ type declaration;
+        {
+           //for now just accept the type and do nothing with it
+           exid = Expect(TK_IDENTIFIER);
+        }
         Expect(_SC(')'));
         {
             BEGIN_SCOPE();
