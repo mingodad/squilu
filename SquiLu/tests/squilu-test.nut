@@ -1130,6 +1130,7 @@ bar]==] == "foo\nbar");
 
 sqt.run("number", function(){
 
+	sqt.ok(0.0f == 0.0); //C/C++ notation
 //adapetd from pike https://github.com/pikelang/Pike
 	sqt.ok(1e1 == 10.0);
 	sqt.ok(1E1 == 10.0);

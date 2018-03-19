@@ -912,6 +912,7 @@ SQInteger SQLexer::ReadNumber()
 	case TSCIENTIFIC:
 	case TFLOAT:
 		data->fvalue = (SQFloat)scstrtod(&data->longstr[0],&sTemp);
+		if(CUR_CHAR == _SC('f')) NEXT(); //0.0f C/C++ notation
 		return TK_FLOAT;
 	case THEX:
 		okNumber = LexHexadecimal(&data->longstr[0],&itmp);
