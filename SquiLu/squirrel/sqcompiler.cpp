@@ -546,6 +546,11 @@ public:
             //do not call Lex() since next token can try search for id defined in the include
             //and then go global instead of local, we'll call it after including
             id = Expect(TK_STRING_LITERAL, false);
+            if(_ifdef_exclude)
+            {
+                Lex();
+                return;
+            }
             //Warning(_SC("%s:%d:%d warning pragma include %s\n"),
             //        _stringval(_sourcename), line, column, _stringval(id));
 
@@ -589,12 +594,14 @@ public:
                 SQInteger saved_curdata = _lex.data->currdata;
                 SQInteger saved_prevtoken = _lex.data->prevtoken;
                 SQInteger saved_token = _token;
+                SQInteger saved__inside_ifdef = _inside_ifdef;
                 SQObjectPtr saved_source_name = _sourcename;
 
                 //set new source file
                 _fs->_sourcename = id;
                 _sourcename = id;
                 _lex.ResetReader(compilerReadFunc, fp, 1);
+                _inside_ifdef = 0;
 
                 //compile the include file
                 Lex();
@@ -619,6 +626,7 @@ public:
                 _lex._up = saved_up;
 
                 --_nested_includes_count;
+                _inside_ifdef = saved__inside_ifdef;
                 //done let's continue working
 
                 //Now we do the Lex() call skiped before compile the include file

@@ -116,6 +116,9 @@ void SQSharedState::Init()
 	sq_new(_systemstrings,SQObjectPtrVec);
 	sq_new(_types,SQObjectPtrVec);
 	_defined_names = SQTable::Create(this,0);
+	_define_squilu = SQString::Create(this,_SC("__SQUILU__"));
+	SQObjectPtr value(true);
+	_table(_defined_names)->NewSlot(_define_squilu, value);
 	_metamethodsmap = SQTable::Create(this,MT_LAST-1);
 	//adding type strings to avoid memory trashing
 	//types names
@@ -176,6 +179,7 @@ SQSharedState::~SQSharedState()
     if(_releasehook) { _releasehook(_foreignptr,0,0); _releasehook = NULL; }
 	_constructoridx.Null();
 	_destructoridx.Null();
+	_define_squilu.Null();
 	_table(_registry)->Finalize();
 	_table(_consts)->Finalize();
 	_table(_metamethodsmap)->Finalize();

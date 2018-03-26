@@ -93,6 +93,7 @@ public:
 	SQObjectPtr _consts;
 	SQObjectPtr _constructoridx;
 	SQObjectPtr _destructoridx;
+	SQObjectPtr _define_squilu;
 #ifndef NO_GARBAGE_COLLECTOR
 	SQCollectable *_gc_chain;
 #endif
