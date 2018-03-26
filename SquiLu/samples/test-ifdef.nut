@@ -1,4 +1,7 @@
-//#include "test-ifdef.nut"
+#define NESTED_INCLUDE
+#ifdef NESTED_INCLUDE
+#include "test-array.nut"
+#endif
 
 # define DEBUG
 
