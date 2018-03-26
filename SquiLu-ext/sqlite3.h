@@ -125,7 +125,7 @@ extern "C" {
 */
 #define SQLITE_VERSION        "3.23.0"
 #define SQLITE_VERSION_NUMBER 3023000
-#define SQLITE_SOURCE_ID      "2018-02-26 15:27:31 a983fa857048c748112c2f805f13aadeae43b43b3d27fa55433a3699b51calt1"
+#define SQLITE_SOURCE_ID      "2018-03-24 23:16:05 ccf734f7d2bf8f99f3c55124b05c1835e4371bc269f27700f40afc26e7c1alt1"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -2056,11 +2056,13 @@ struct sqlite3_mem_methods {
 ** connections at all to the database. If so, it performs a checkpoint 
 ** operation before closing the connection. This option may be used to
 ** override this behaviour. The first parameter passed to this operation
-** is an integer - non-zero to disable checkpoints-on-close, or zero (the
-** default) to enable them. The second parameter is a pointer to an integer
+** is an integer - positive to disable checkpoints-on-close, or zero (the
+** default) to enable them, and negative to leave the setting unchanged.
+** The second parameter is a pointer to an integer
 ** into which is written 0 or 1 to indicate whether checkpoints-on-close
 ** have been disabled - 0 if they are not disabled, 1 if they are.
 ** </dd>
+**
 ** <dt>SQLITE_DBCONFIG_ENABLE_QPSG</dt>
 ** <dd>^(The SQLITE_DBCONFIG_ENABLE_QPSG option activates or deactivates
 ** the [query planner stability guarantee] (QPSG).  When the QPSG is active,
@@ -2070,13 +2072,20 @@ struct sqlite3_mem_methods {
 ** slower.  But the QPSG has the advantage of more predictable behavior.  With
 ** the QPSG active, SQLite will always use the same query plan in the field as
 ** was used during testing in the lab.
+** The first argument to this setting is an integer which is 0 to disable 
+** the QPSG, positive to enable QPSG, or negative to leave the setting
+** unchanged. The second parameter is a pointer to an integer into which
+** is written 0 or 1 to indicate whether the QPSG is disabled or enabled
+** following this call.
 ** </dd>
+**
 ** <dt>SQLITE_DBCONFIG_TRIGGER_EQP</dt>
 ** <dd> By default, the output of EXPLAIN QUERY PLAN commands does not 
 ** include output for any operations performed by trigger programs. This
 ** option is used to set or clear (the default) a flag that governs this
 ** behavior. The first parameter passed to this operation is an integer -
-** non-zero to enable output for trigger programs, or zero to disable it.
+** positive to enable output for trigger programs, or zero to disable it,
+** or negative to leave the setting unchanged.
 ** The second parameter is a pointer to an integer into which is written 
 ** 0 or 1 to indicate whether output-for-triggers has been disabled - 0 if 
 ** it is not disabled, 1 if it is.  
@@ -7250,6 +7259,15 @@ SQLITE_API int sqlite3_db_status(sqlite3*, int op, int *pCur, int *pHiwtr, int r
 ** highwater mark associated with SQLITE_DBSTATUS_CACHE_WRITE is always 0.
 ** </dd>
 **
+** [[SQLITE_DBSTATUS_CACHE_SPILL]] ^(<dt>SQLITE_DBSTATUS_CACHE_SPILL</dt>
+** <dd>This parameter returns the number of dirty cache entries that have
+** been written to disk in the middle of a transaction due to the page
+** cache overflowing. Transactions are more efficient if they are written
+** to disk all at once. When pages spill mid-transaction, that introduces
+** additional overhead. This parameter can be used help identify
+** inefficiencies that can be resolve by increasing the cache size.
+** </dd>
+**
 ** [[SQLITE_DBSTATUS_DEFERRED_FKS]] ^(<dt>SQLITE_DBSTATUS_DEFERRED_FKS</dt>
 ** <dd>This parameter returns zero for the current value if and only if
 ** all foreign key constraints (deferred or immediate) have been
@@ -7269,7 +7287,8 @@ SQLITE_API int sqlite3_db_status(sqlite3*, int op, int *pCur, int *pHiwtr, int r
 #define SQLITE_DBSTATUS_CACHE_WRITE          9
 #define SQLITE_DBSTATUS_DEFERRED_FKS        10
 #define SQLITE_DBSTATUS_CACHE_USED_SHARED   11
-#define SQLITE_DBSTATUS_MAX                 11   /* Largest defined DBSTATUS */
+#define SQLITE_DBSTATUS_CACHE_SPILL         12
+#define SQLITE_DBSTATUS_MAX                 12   /* Largest defined DBSTATUS */
 
 
 /*
@@ -8750,6 +8769,128 @@ SQLITE_API SQLITE_EXPERIMENTAL int sqlite3_snapshot_cmp(
 SQLITE_API SQLITE_EXPERIMENTAL int sqlite3_snapshot_recover(sqlite3 *db, const char *zDb);
 
 /*
+** CAPI3REF: Serialize a database
+**
+** The sqlite3_serialize(D,S,P,F) interface returns a pointer to memory
+** that is a serialization of the S database on [database connection] D.
+** If P is not a NULL pointer, then the size of the database in bytes
+** is written into *P.
+**
+** For an ordinary on-disk database file, the serialization is just a
+** copy of the disk file.  For an in-memory database or a "TEMP" database,
+** the serialization is the same sequence of bytes which would be written
+** to disk if that database where backed up to disk.
+**
+** The usual case is that sqlite3_serialize() copies the serialization of
+** the database into memory obtained from [sqlite3_malloc64()] and returns
+** a pointer to that memory.  The caller is responsible for freeing the
+** returned value to avoid a memory leak.  However, if the F argument
+** contains the SQLITE_SERIALIZE_NOCOPY bit, then no memory allocations
+** are made, and the sqlite3_serialize() function will return a pointer
+** to the contiguous memory representation of the database that SQLite
+** is currently using for that database, or NULL if the no such contiguous
+** memory representation of the database exists.  A contiguous memory
+** representation of the database will usually only exist if there has
+** been a prior call to [sqlite3_deserialize(D,S,...)] with the same
+** values of D and S.
+** The size of the database is written into *P even if the 
+** SQLITE_SERIALIZE_NOCOPY bit is set but no contigious copy
+** of the database exists.
+**
+** A call to sqlite3_serialize(D,S,P,F) might return NULL even if the
+** SQLITE_SERIALIZE_NOCOPY bit is omitted from argument F if a memory
+** allocation error occurs.
+**
+** This interface is only available if SQLite is compiled with the
+** [SQLITE_ENABLE_DESERIALIZE] option.
+*/
+SQLITE_API unsigned char *sqlite3_serialize(
+  sqlite3 *db,           /* The database connection */
+  const char *zSchema,   /* Which DB to serialize. ex: "main", "temp", ... */
+  sqlite3_int64 *piSize, /* Write size of the DB here, if not NULL */
+  unsigned int mFlags    /* Zero or more SQLITE_SERIALIZE_* flags */
+);
+
+/*
+** CAPI3REF: Flags for sqlite3_serialize
+**
+** Zero or more of the following constants can be OR-ed together for
+** the F argument to [sqlite3_serialize(D,S,P,F)].
+**
+** SQLITE_SERIALIZE_NOCOPY means that [sqlite3_serialize()] will return
+** a pointer to contiguous in-memory database that it is currently using,
+** without making a copy of the database.  If SQLite is not currently using
+** a contiguous in-memory database, then this option causes
+** [sqlite3_serialize()] to return a NULL pointer.  SQLite will only be
+** using a contiguous in-memory database if it has been initialized by a
+** prior call to [sqlite3_deserialize()].
+*/
+#define SQLITE_SERIALIZE_NOCOPY 0x001   /* Do no memory allocations */
+
+/*
+** CAPI3REF: Deserialize a database
+**
+** The sqlite3_deserialize(D,S,P,N,M,F) interface causes the 
+** [database connection] D to disconnect from database S and then
+** reopen S as an in-memory database based on the serialization contained
+** in P.  The serialized database P is N bytes in size.  M is the size of
+** the buffer P, which might be larger than N.  If M is larger than N, and
+** the SQLITE_DESERIALIZE_READONLY bit is not set in F, then SQLite is
+** permitted to add content to the in-memory database as long as the total
+** size does not exceed M bytes.
+**
+** If the SQLITE_DESERIALIZE_FREEONCLOSE bit is set in F, then SQLite will
+** invoke sqlite3_free() on the serialization buffer when the database
+** connection closes.  If the SQLITE_DESERIALIZE_RESIZEABLE bit is set, then
+** SQLite will try to increase the buffer size using sqlite3_realloc64()
+** if writes on the database cause it to grow larger than M bytes.
+**
+** The sqlite3_deserialize() interface will fail with SQLITE_BUSY if the
+** database is currently in a read transaction or is involved in a backup
+** operation.
+**
+** If sqlite3_deserialize(D,S,P,N,M,F) fails for any reason and if the 
+** SQLITE_DESERIALIZE_FREEONCLOSE bit is set in argument F, then
+** [sqlite3_free()] is invoked on argument P prior to returning.
+**
+** This interface is only available if SQLite is compiled with the
+** [SQLITE_ENABLE_DESERIALIZE] option.
+*/
+SQLITE_API int sqlite3_deserialize(
+  sqlite3 *db,            /* The database connection */
+  const char *zSchema,    /* Which DB to reopen with the deserialization */
+  unsigned char *pData,   /* The serialized database content */
+  sqlite3_int64 szDb,     /* Number bytes in the deserialization */
+  sqlite3_int64 szBuf,    /* Total size of buffer pData[] */
+  unsigned mFlags         /* Zero or more SQLITE_DESERIALIZE_* flags */
+);
+
+/*
+** CAPI3REF: Flags for sqlite3_deserialize()
+**
+** The following are allowed values for 6th argument (the F argument) to
+** the [sqlite3_deserialize(D,S,P,N,M,F)] interface.
+**
+** The SQLITE_DESERIALIZE_FREEONCLOSE means that the database serialization
+** in the P argument is held in memory obtained from [sqlite3_malloc64()]
+** and that SQLite should take ownership of this memory and automatically
+** free it when it has finished using it.  Without this flag, the caller
+** is resposible for freeing any dynamically allocated memory.
+**
+** The SQLITE_DESERIALIZE_RESIZEABLE flag means that SQLite is allowed to
+** grow the size of the database using calls to [sqlite3_realloc64()].  This
+** flag should only be used if SQLITE_DESERIALIZE_FREEONCLOSE is also used.
+** Without this flag, the deserialized database cannot increase in size beyond
+** the number of bytes specified by the M parameter.
+**
+** The SQLITE_DESERIALIZE_READONLY flag means that the deserialized database
+** should be treated as read-only.
+*/
+#define SQLITE_DESERIALIZE_FREEONCLOSE 1 /* Call sqlite3_free() on close */
+#define SQLITE_DESERIALIZE_RESIZEABLE  2 /* Resize using sqlite3_realloc64() */
+#define SQLITE_DESERIALIZE_READONLY    4 /* Database is read-only */
+
+/*
 ** Undo the hack that converts floating point types to integer for
 ** builds on processors without floating point support.
 */
@@ -8896,16 +9037,23 @@ extern "C" {
 
 /*
 ** CAPI3REF: Session Object Handle
+**
+** An instance of this object is a [session] that can be used to
+** record changes to a database.
 */
 typedef struct sqlite3_session sqlite3_session;
 
 /*
 ** CAPI3REF: Changeset Iterator Handle
+**
+** An instance of this object acts as a cursor for iterating
+** over the elements of a [changeset] or [patchset].
 */
 typedef struct sqlite3_changeset_iter sqlite3_changeset_iter;
 
 /*
 ** CAPI3REF: Create A New Session Object
+** CONSTRUCTOR: sqlite3_session
 **
 ** Create a new session object attached to database handle db. If successful,
 ** a pointer to the new object is written to *ppSession and SQLITE_OK is
@@ -8942,6 +9090,7 @@ SQLITE_API int sqlite3session_create(
 
 /*
 ** CAPI3REF: Delete A Session Object
+** DESTRUCTOR: sqlite3_session
 **
 ** Delete a session object previously allocated using 
 ** [sqlite3session_create()]. Once a session object has been deleted, the
@@ -8957,6 +9106,7 @@ SQLITE_API void sqlite3session_delete(sqlite3_session *pSession);
 
 /*
 ** CAPI3REF: Enable Or Disable A Session Object
+** METHOD: sqlite3_session
 **
 ** Enable or disable the recording of changes by a session object. When
 ** enabled, a session object records changes made to the database. When
@@ -8976,6 +9126,7 @@ SQLITE_API int sqlite3session_enable(sqlite3_session *pSession, int bEnable);
 
 /*
 ** CAPI3REF: Set Or Clear the Indirect Change Flag
+** METHOD: sqlite3_session
 **
 ** Each change recorded by a session object is marked as either direct or
 ** indirect. A change is marked as indirect if either:
@@ -9005,6 +9156,7 @@ SQLITE_API int sqlite3session_indirect(sqlite3_session *pSession, int bIndirect)
 
 /*
 ** CAPI3REF: Attach A Table To A Session Object
+** METHOD: sqlite3_session
 **
 ** If argument zTab is not NULL, then it is the name of a table to attach
 ** to the session object passed as the first argument. All subsequent changes 
@@ -9067,6 +9219,7 @@ SQLITE_API int sqlite3session_attach(
 
 /*
 ** CAPI3REF: Set a table filter on a Session Object.
+** METHOD: sqlite3_session
 **
 ** The second argument (xFilter) is the "filter callback". For changes to rows 
 ** in tables that are not attached to the Session object, the filter is called
@@ -9085,6 +9238,7 @@ SQLITE_API void sqlite3session_table_filter(
 
 /*
 ** CAPI3REF: Generate A Changeset From A Session Object
+** METHOD: sqlite3_session
 **
 ** Obtain a changeset containing changes to the tables attached to the 
 ** session object passed as the first argument. If successful, 
@@ -9194,7 +9348,8 @@ SQLITE_API int sqlite3session_changeset(
 );
 
 /*
-** CAPI3REF: Load The Difference Between Tables Into A Session 
+** CAPI3REF: Load The Difference Between Tables Into A Session
+** METHOD: sqlite3_session
 **
 ** If it is not already attached to the session object passed as the first
 ** argument, this function attaches table zTbl in the same manner as the
@@ -9259,6 +9414,7 @@ SQLITE_API int sqlite3session_diff(
 
 /*
 ** CAPI3REF: Generate A Patchset From A Session Object
+** METHOD: sqlite3_session
 **
 ** The differences between a patchset and a changeset are that:
 **
@@ -9310,6 +9466,7 @@ SQLITE_API int sqlite3session_isempty(sqlite3_session *pSession);
 
 /*
 ** CAPI3REF: Create An Iterator To Traverse A Changeset 
+** CONSTRUCTOR: sqlite3_changeset_iter
 **
 ** Create an iterator used to iterate through the contents of a changeset.
 ** If successful, *pp is set to point to the iterator handle and SQLITE_OK
@@ -9350,6 +9507,7 @@ SQLITE_API int sqlite3changeset_start(
 
 /*
 ** CAPI3REF: Advance A Changeset Iterator
+** METHOD: sqlite3_changeset_iter
 **
 ** This function may only be used with iterators created by function
 ** [sqlite3changeset_start()]. If it is called on an iterator passed to
@@ -9374,6 +9532,7 @@ SQLITE_API int sqlite3changeset_next(sqlite3_changeset_iter *pIter);
 
 /*
 ** CAPI3REF: Obtain The Current Operation From A Changeset Iterator
+** METHOD: sqlite3_changeset_iter
 **
 ** The pIter argument passed to this function may either be an iterator
 ** passed to a conflict-handler by [sqlite3changeset_apply()], or an iterator
@@ -9408,6 +9567,7 @@ SQLITE_API int sqlite3changeset_op(
 
 /*
 ** CAPI3REF: Obtain The Primary Key Definition Of A Table
+** METHOD: sqlite3_changeset_iter
 **
 ** For each modified table, a changeset includes the following:
 **
@@ -9439,6 +9599,7 @@ SQLITE_API int sqlite3changeset_pk(
 
 /*
 ** CAPI3REF: Obtain old.* Values From A Changeset Iterator
+** METHOD: sqlite3_changeset_iter
 **
 ** The pIter argument passed to this function may either be an iterator
 ** passed to a conflict-handler by [sqlite3changeset_apply()], or an iterator
@@ -9469,6 +9630,7 @@ SQLITE_API int sqlite3changeset_old(
 
 /*
 ** CAPI3REF: Obtain new.* Values From A Changeset Iterator
+** METHOD: sqlite3_changeset_iter
 **
 ** The pIter argument passed to this function may either be an iterator
 ** passed to a conflict-handler by [sqlite3changeset_apply()], or an iterator
@@ -9502,6 +9664,7 @@ SQLITE_API int sqlite3changeset_new(
 
 /*
 ** CAPI3REF: Obtain Conflicting Row Values From A Changeset Iterator
+** METHOD: sqlite3_changeset_iter
 **
 ** This function should only be used with iterator objects passed to a
 ** conflict-handler callback by [sqlite3changeset_apply()] with either
@@ -9529,6 +9692,7 @@ SQLITE_API int sqlite3changeset_conflict(
 
 /*
 ** CAPI3REF: Determine The Number Of Foreign Key Constraint Violations
+** METHOD: sqlite3_changeset_iter
 **
 ** This function may only be called with an iterator passed to an
 ** SQLITE_CHANGESET_FOREIGN_KEY conflict handler callback. In this case
@@ -9545,6 +9709,7 @@ SQLITE_API int sqlite3changeset_fk_conflicts(
 
 /*
 ** CAPI3REF: Finalize A Changeset Iterator
+** METHOD: sqlite3_changeset_iter
 **
 ** This function is used to finalize an iterator allocated with
 ** [sqlite3changeset_start()].
@@ -9561,6 +9726,7 @@ SQLITE_API int sqlite3changeset_fk_conflicts(
 ** to that error is returned by this function. Otherwise, SQLITE_OK is
 ** returned. This is to allow the following pattern (pseudo-code):
 **
+** <pre>
 **   sqlite3changeset_start();
 **   while( SQLITE_ROW==sqlite3changeset_next() ){
 **     // Do something with change.
@@ -9569,6 +9735,7 @@ SQLITE_API int sqlite3changeset_fk_conflicts(
 **   if( rc!=SQLITE_OK ){
 **     // An error has occurred 
 **   }
+** </pre>
 */
 SQLITE_API int sqlite3changeset_finalize(sqlite3_changeset_iter *pIter);
 
@@ -9616,6 +9783,7 @@ SQLITE_API int sqlite3changeset_invert(
 ** sqlite3_changegroup object. Calling it produces similar results as the
 ** following code fragment:
 **
+** <pre>
 **   sqlite3_changegroup *pGrp;
 **   rc = sqlite3_changegroup_new(&pGrp);
 **   if( rc==SQLITE_OK ) rc = sqlite3changegroup_add(pGrp, nA, pA);
@@ -9626,6 +9794,7 @@ SQLITE_API int sqlite3changeset_invert(
 **     *ppOut = 0;
 **     *pnOut = 0;
 **   }
+** </pre>
 **
 ** Refer to the sqlite3_changegroup documentation below for details.
 */
@@ -9641,11 +9810,15 @@ SQLITE_API int sqlite3changeset_concat(
 
 /*
 ** CAPI3REF: Changegroup Handle
+**
+** A changegroup is an object used to combine two or more 
+** [changesets] or [patchsets]
 */
 typedef struct sqlite3_changegroup sqlite3_changegroup;
 
 /*
 ** CAPI3REF: Create A New Changegroup Object
+** CONSTRUCTOR: sqlite3_changegroup
 **
 ** An sqlite3_changegroup object is used to combine two or more changesets
 ** (or patchsets) into a single changeset (or patchset). A single changegroup
@@ -9683,6 +9856,7 @@ SQLITE_API int sqlite3changegroup_new(sqlite3_changegroup **pp);
 
 /*
 ** CAPI3REF: Add A Changeset To A Changegroup
+** METHOD: sqlite3_changegroup
 **
 ** Add all changes within the changeset (or patchset) in buffer pData (size
 ** nData bytes) to the changegroup. 
@@ -9760,6 +9934,7 @@ SQLITE_API int sqlite3changegroup_add(sqlite3_changegroup*, int nData, const voi
 
 /*
 ** CAPI3REF: Obtain A Composite Changeset From A Changegroup
+** METHOD: sqlite3_changegroup
 **
 ** Obtain a buffer containing a changeset (or patchset) representing the
 ** current contents of the changegroup. If the inputs to the changegroup
@@ -9790,25 +9965,25 @@ SQLITE_API int sqlite3changegroup_output(
 
 /*
 ** CAPI3REF: Delete A Changegroup Object
+** DESTRUCTOR: sqlite3_changegroup
 */
 SQLITE_API void sqlite3changegroup_delete(sqlite3_changegroup*);
 
 /*
 ** CAPI3REF: Apply A Changeset To A Database
 **
-** Apply a changeset to a database. This function attempts to update the
-** "main" database attached to handle db with the changes found in the
-** changeset passed via the second and third arguments.
+** Apply a changeset or patchset to a database. These functions attempt to
+** update the "main" database attached to handle db with the changes found in
+** the changeset passed via the second and third arguments. 
 **
-** The fourth argument (xFilter) passed to this function is the "filter
+** The fourth argument (xFilter) passed to these functions is the "filter
 ** callback". If it is not NULL, then for each table affected by at least one
 ** change in the changeset, the filter callback is invoked with
 ** the table name as the second argument, and a copy of the context pointer
-** passed as the sixth argument to this function as the first. If the "filter
-** callback" returns zero, then no attempt is made to apply any changes to 
-** the table. Otherwise, if the return value is non-zero or the xFilter
-** argument to this function is NULL, all changes related to the table are
-** attempted.
+** passed as the sixth argument as the first. If the "filter callback"
+** returns zero, then no attempt is made to apply any changes to the table.
+** Otherwise, if the return value is non-zero or the xFilter argument to
+** is NULL, all changes related to the table are attempted.
 **
 ** For each table that is not excluded by the filter callback, this function 
 ** tests that the target database contains a compatible table. A table is 
@@ -9853,7 +10028,7 @@ SQLITE_API void sqlite3changegroup_delete(sqlite3_changegroup*);
 **
 ** <dl>
 ** <dt>DELETE Changes<dd>
-**   For each DELETE change, this function checks if the target database 
+**   For each DELETE change, the function checks if the target database 
 **   contains a row with the same primary key value (or values) as the 
 **   original row values stored in the changeset. If it does, and the values 
 **   stored in all non-primary key columns also match the values stored in 
@@ -9898,7 +10073,7 @@ SQLITE_API void sqlite3changegroup_delete(sqlite3_changegroup*);
 **   [SQLITE_CHANGESET_REPLACE].
 **
 ** <dt>UPDATE Changes<dd>
-**   For each UPDATE change, this function checks if the target database 
+**   For each UPDATE change, the function checks if the target database 
 **   contains a row with the same primary key value (or values) as the 
 **   original row values stored in the changeset. If it does, and the values 
 **   stored in all modified non-primary key columns also match the values
@@ -9929,11 +10104,21 @@ SQLITE_API void sqlite3changegroup_delete(sqlite3_changegroup*);
 ** This can be used to further customize the applications conflict
 ** resolution strategy.
 **
-** All changes made by this function are enclosed in a savepoint transaction.
+** All changes made by these functions are enclosed in a savepoint transaction.
 ** If any other error (aside from a constraint failure when attempting to
 ** write to the target database) occurs, then the savepoint transaction is
 ** rolled back, restoring the target database to its original state, and an 
 ** SQLite error code returned.
+**
+** If the output parameters (ppRebase) and (pnRebase) are non-NULL and
+** the input is a changeset (not a patchset), then sqlite3changeset_apply_v2()
+** may set (*ppRebase) to point to a "rebase" that may be used with the 
+** sqlite3_rebaser APIs buffer before returning. In this case (*pnRebase)
+** is set to the size of the buffer in bytes. It is the responsibility of the
+** caller to eventually free any such buffer using sqlite3_free(). The buffer
+** is only allocated and populated if one or more conflicts were encountered
+** while applying the patchset. See comments surrounding the sqlite3_rebaser
+** APIs for further details.
 */
 SQLITE_API int sqlite3changeset_apply(
   sqlite3 *db,                    /* Apply change to "main" db of this handle */
@@ -9949,6 +10134,22 @@ SQLITE_API int sqlite3changeset_apply(
     sqlite3_changeset_iter *p     /* Handle describing change and conflict */
   ),
   void *pCtx                      /* First argument passed to xConflict */
+);
+SQLITE_API int sqlite3changeset_apply_v2(
+  sqlite3 *db,                    /* Apply change to "main" db of this handle */
+  int nChangeset,                 /* Size of changeset in bytes */
+  void *pChangeset,               /* Changeset blob */
+  int(*xFilter)(
+    void *pCtx,                   /* Copy of sixth arg to _apply() */
+    const char *zTab              /* Table name */
+  ),
+  int(*xConflict)(
+    void *pCtx,                   /* Copy of sixth arg to _apply() */
+    int eConflict,                /* DATA, MISSING, CONFLICT, CONSTRAINT */
+    sqlite3_changeset_iter *p     /* Handle describing change and conflict */
+  ),
+  void *pCtx,                     /* First argument passed to xConflict */
+  void **ppRebase, int *pnRebase
 );
 
 /* 
@@ -10046,6 +10247,161 @@ SQLITE_API int sqlite3changeset_apply(
 #define SQLITE_CHANGESET_OMIT       0
 #define SQLITE_CHANGESET_REPLACE    1
 #define SQLITE_CHANGESET_ABORT      2
+
+/* 
+** CAPI3REF: Rebasing changesets
+** EXPERIMENTAL
+**
+** Suppose there is a site hosting a database in state S0. And that
+** modifications are made that move that database to state S1 and a
+** changeset recorded (the "local" changeset). Then, a changeset based
+** on S0 is received from another site (the "remote" changeset) and 
+** applied to the database. The database is then in state 
+** (S1+"remote"), where the exact state depends on any conflict
+** resolution decisions (OMIT or REPLACE) made while applying "remote".
+** Rebasing a changeset is to update it to take those conflict 
+** resolution decisions into account, so that the same conflicts
+** do not have to be resolved elsewhere in the network. 
+**
+** For example, if both the local and remote changesets contain an
+** INSERT of the same key on "CREATE TABLE t1(a PRIMARY KEY, b)":
+**
+**   local:  INSERT INTO t1 VALUES(1, 'v1');
+**   remote: INSERT INTO t1 VALUES(1, 'v2');
+**
+** and the conflict resolution is REPLACE, then the INSERT change is
+** removed from the local changeset (it was overridden). Or, if the
+** conflict resolution was "OMIT", then the local changeset is modified
+** to instead contain:
+**
+**           UPDATE t1 SET b = 'v2' WHERE a=1;
+**
+** Changes within the local changeset are rebased as follows:
+**
+** <dl>
+** <dt>Local INSERT<dd>
+**   This may only conflict with a remote INSERT. If the conflict 
+**   resolution was OMIT, then add an UPDATE change to the rebased
+**   changeset. Or, if the conflict resolution was REPLACE, add
+**   nothing to the rebased changeset.
+**
+** <dt>Local DELETE<dd>
+**   This may conflict with a remote UPDATE or DELETE. In both cases the
+**   only possible resolution is OMIT. If the remote operation was a
+**   DELETE, then add no change to the rebased changeset. If the remote
+**   operation was an UPDATE, then the old.* fields of change are updated
+**   to reflect the new.* values in the UPDATE.
+**
+** <dt>Local UPDATE<dd>
+**   This may conflict with a remote UPDATE or DELETE. If it conflicts
+**   with a DELETE, and the conflict resolution was OMIT, then the update
+**   is changed into an INSERT. Any undefined values in the new.* record
+**   from the update change are filled in using the old.* values from
+**   the conflicting DELETE. Or, if the conflict resolution was REPLACE,
+**   the UPDATE change is simply omitted from the rebased changeset.
+**
+**   If conflict is with a remote UPDATE and the resolution is OMIT, then
+**   the old.* values are rebased using the new.* values in the remote
+**   change. Or, if the resolution is REPLACE, then the change is copied
+**   into the rebased changeset with updates to columns also updated by
+**   the conflicting remote UPDATE removed. If this means no columns would 
+**   be updated, the change is omitted.
+** </dl>
+**
+** A local change may be rebased against multiple remote changes 
+** simultaneously. If a single key is modified by multiple remote 
+** changesets, they are combined as follows before the local changeset
+** is rebased:
+**
+** <ul>
+**    <li> If there has been one or more REPLACE resolutions on a
+**         key, it is rebased according to a REPLACE.
+**
+**    <li> If there have been no REPLACE resolutions on a key, then
+**         the local changeset is rebased according to the most recent
+**         of the OMIT resolutions.
+** </ul>
+**
+** Note that conflict resolutions from multiple remote changesets are 
+** combined on a per-field basis, not per-row. This means that in the 
+** case of multiple remote UPDATE operations, some fields of a single 
+** local change may be rebased for REPLACE while others are rebased for 
+** OMIT.
+**
+** In order to rebase a local changeset, the remote changeset must first
+** be applied to the local database using sqlite3changeset_apply_v2() and
+** the buffer of rebase information captured. Then:
+**
+** <ol>
+**   <li> An sqlite3_rebaser object is created by calling 
+**        sqlite3rebaser_create().
+**   <li> The new object is configured with the rebase buffer obtained from
+**        sqlite3changeset_apply_v2() by calling sqlite3rebaser_configure().
+**        If the local changeset is to be rebased against multiple remote
+**        changesets, then sqlite3rebaser_configure() should be called
+**        multiple times, in the same order that the multiple
+**        sqlite3changeset_apply_v2() calls were made.
+**   <li> Each local changeset is rebased by calling sqlite3rebaser_rebase().
+**   <li> The sqlite3_rebaser object is deleted by calling
+**        sqlite3rebaser_delete().
+** </ol>
+*/
+typedef struct sqlite3_rebaser sqlite3_rebaser;
+
+/*
+** CAPI3REF: Create a changeset rebaser object.
+** EXPERIMENTAL
+**
+** Allocate a new changeset rebaser object. If successful, set (*ppNew) to
+** point to the new object and return SQLITE_OK. Otherwise, if an error
+** occurs, return an SQLite error code (e.g. SQLITE_NOMEM) and set (*ppNew) 
+** to NULL. 
+*/
+SQLITE_API int sqlite3rebaser_create(sqlite3_rebaser **ppNew);
+
+/*
+** CAPI3REF: Configure a changeset rebaser object.
+** EXPERIMENTAL
+**
+** Configure the changeset rebaser object to rebase changesets according
+** to the conflict resolutions described by buffer pRebase (size nRebase
+** bytes), which must have been obtained from a previous call to
+** sqlite3changeset_apply_v2().
+*/
+SQLITE_API int sqlite3rebaser_configure(
+  sqlite3_rebaser*, 
+  int nRebase, const void *pRebase
+); 
+
+/*
+** CAPI3REF: Rebase a changeset
+** EXPERIMENTAL
+**
+** Argument pIn must point to a buffer containing a changeset nIn bytes
+** in size. This function allocates and populates a buffer with a copy
+** of the changeset rebased rebased according to the configuration of the
+** rebaser object passed as the first argument. If successful, (*ppOut)
+** is set to point to the new buffer containing the rebased changset and 
+** (*pnOut) to its size in bytes and SQLITE_OK returned. It is the
+** responsibility of the caller to eventually free the new buffer using
+** sqlite3_free(). Otherwise, if an error occurs, (*ppOut) and (*pnOut)
+** are set to zero and an SQLite error code returned.
+*/
+SQLITE_API int sqlite3rebaser_rebase(
+  sqlite3_rebaser*,
+  int nIn, const void *pIn, 
+  int *pnOut, void **ppOut 
+);
+
+/*
+** CAPI3REF: Delete a changeset rebaser object.
+** EXPERIMENTAL
+**
+** Delete the changeset rebaser object and all associated resources. There
+** should be one call to this function for each successful invocation
+** of sqlite3rebaser_create().
+*/
+SQLITE_API void sqlite3rebaser_delete(sqlite3_rebaser *p); 
 
 /*
 ** CAPI3REF: Streaming Versions of API functions.
@@ -10151,6 +10507,22 @@ SQLITE_API int sqlite3changeset_apply_strm(
   ),
   void *pCtx                      /* First argument passed to xConflict */
 );
+SQLITE_API int sqlite3changeset_apply_v2_strm(
+  sqlite3 *db,                    /* Apply change to "main" db of this handle */
+  int (*xInput)(void *pIn, void *pData, int *pnData), /* Input function */
+  void *pIn,                                          /* First arg for xInput */
+  int(*xFilter)(
+    void *pCtx,                   /* Copy of sixth arg to _apply() */
+    const char *zTab              /* Table name */
+  ),
+  int(*xConflict)(
+    void *pCtx,                   /* Copy of sixth arg to _apply() */
+    int eConflict,                /* DATA, MISSING, CONFLICT, CONSTRAINT */
+    sqlite3_changeset_iter *p     /* Handle describing change and conflict */
+  ),
+  void *pCtx,                     /* First argument passed to xConflict */
+  void **ppRebase, int *pnRebase
+);
 SQLITE_API int sqlite3changeset_concat_strm(
   int (*xInputA)(void *pIn, void *pData, int *pnData),
   void *pInA,
@@ -10187,6 +10559,13 @@ SQLITE_API int sqlite3changegroup_add_strm(sqlite3_changegroup*,
 SQLITE_API int sqlite3changegroup_output_strm(sqlite3_changegroup*,
     int (*xOutput)(void *pOut, const void *pData, int nData), 
     void *pOut
+);
+SQLITE_API int sqlite3rebaser_rebase_strm(
+  sqlite3_rebaser *pRebaser,
+  int (*xInput)(void *pIn, void *pData, int *pnData),
+  void *pIn,
+  int (*xOutput)(void *pOut, const void *pData, int nData),
+  void *pOut
 );
 
 
