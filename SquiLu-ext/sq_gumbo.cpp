@@ -93,6 +93,13 @@ static SQRESULT build_element(HSQUIRRELVM v, GumboElement *element) {
     sq_newarray(v, element->children.length);
     if(add_children(v, &element->children) == SQ_ERROR) return SQ_ERROR;
     sq_rawset(v, -3);
+    sq_pushliteral(v, _SC("start_pos"));
+    sq_pushinteger(v, element->start_pos.offset);
+    sq_rawset(v, -3);
+
+    sq_pushliteral(v, _SC("end_pos"));
+    sq_pushinteger(v, element->end_pos.offset);
+    sq_rawset(v, -3);
     return SQ_OK;
 }
 
