@@ -708,6 +708,8 @@ try_again:
                             goto try_again;
 					    }
 					    break;
+					case _SC('/'): APPEND_CHAR(CUR_CHAR); NEXT(); break;
+					    break;
 					default:
 						return Error(_SC("unrecognised escaper char"));
 					break;
