@@ -17,7 +17,7 @@ static const SQChar sq_miniz_ziparchive_TAG[] = _SC("sq_miniz_ziparchive_tag");
     if(!Var) return sq_throwerror(v, _SC("miniz_ziparchive already destroyed"));
 #define GET_miniz_ziparchive_INSTANCE() GET_miniz_ziparchive_INSTANCE_VAR_AT(1, self)
 
-static SQRESULT sq_miniz_ziparchive_releasehook(SQUserPointer p, SQInteger size, HSQUIRRELVM v)
+static SQRESULT sq_miniz_ziparchive_releasehook(SQUserPointer p, SQInteger size, void *v)
 {
 	mz_zip_archive *self = ((mz_zip_archive *)p);
 	if(self) {
