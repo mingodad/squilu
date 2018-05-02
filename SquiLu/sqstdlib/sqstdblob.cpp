@@ -16,7 +16,7 @@ static const SQChar  SQSTD_BLOB_TYPE_TAG[] = _SC("std_stream_blob");
 
 SQUserPointer SQBlob::SQBlob_TAG = (SQUserPointer)SQSTD_BLOB_TYPE_TAG;
 
-SQBlob::SQBlob(SQInteger size, SQInteger allocated) {
+void SQBlob::init(SQInteger size, SQInteger allocated) {
     _size = size;
     _allocated = allocated > size ? allocated : size;
     _buf = (unsigned char *)sq_malloc(_allocated);

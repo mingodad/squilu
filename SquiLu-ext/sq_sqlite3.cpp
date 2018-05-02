@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include "lua-regex.h"
+#include "squtils.h"
 
 SQ_OPT_STRING_STRLEN();
 
@@ -25,7 +26,9 @@ static SQRESULT getOptionalBlob(HSQUIRRELVM v, SQInteger idx, SQBlob **blob)
         if(!(*blob) || !(*blob)->IsValid())
             return sq_throwerror(v,_SC("the blob is invalid"));
     } else {
-        *blob = new SQBlob(0, 8192);
+        SQBlob *nblob;
+        sq_new(nblob, SQBlob);
+        *blob = nblob;
         return 0;
     }
     return 1;
@@ -1063,7 +1066,7 @@ static SQRESULT sq_sqlite3_stmt_asJsonArray(HSQUIRRELVM v)
 
     if(has_blob) return 0;
     sq_pushstring(v, (const SQChar*)json->GetBuf(), json->Len());
-    delete json;
+    if(json) sq_delete(json, SQBlob);
 
     return 1;
 }
@@ -1115,7 +1118,7 @@ static SQRESULT sq_sqlite3_stmt_asJsonObject(HSQUIRRELVM v)
     if(has_blob) return 0;
     if(record_count) sq_pushstring(v, (const SQChar*)json->GetBuf(), json->Len());
     else sq_pushnull(v);
-    delete json;
+    if(json) sq_delete(json, SQBlob);
 
     return 1;
 }
@@ -1402,7 +1405,7 @@ static SQRESULT sq_sqlite3_stmt_asSleArray(HSQUIRRELVM v)
 
     if(has_blob) return 0;
     sq_pushstring(v, (const SQChar*)sle->GetBuf(), sle->Len());
-    delete sle;
+    if(sle) sq_delete(sle, SQBlob);
     return 1;
 }
 

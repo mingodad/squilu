@@ -6,6 +6,7 @@
 
 #include "squirrel.h"
 #include "sqstdblobimpl.h"
+#include "squtils.h"
 SQ_OPT_STRING_STRLEN();
 
 #ifdef USE_SQ_SQLITE3
@@ -161,7 +162,8 @@ sq_http_request_read(HSQUIRRELVM v)
         if(!blob || !blob->IsValid())
             return sq_throwerror(v,_SC("the blob is invalid"));
     } else {
-        blob = new SQBlob(0, rlen);
+        sq_new(blob, SQBlob);
+		blob->Reserve(rlen);
     }
 
     if (((ssize_t)rlen) > n) rlen = n;  /* cannot read more than asked */
@@ -175,7 +177,7 @@ sq_http_request_read(HSQUIRRELVM v)
 
     if(_top_ <= 2) {
         sq_pushstring(v, (const SQChar *)blob->GetBuf(), blob->Len());  /* close buffer */
-        delete blob;
+        if(blob) sq_delete(blob, SQBlob);
         return 1;
     }
     return 0;

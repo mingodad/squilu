@@ -152,6 +152,7 @@ EXP_FUNC int STDCALL getdomainname(char *buf, int buf_size);
 
 #else   /* Not Win32 */
 
+#include <alloca.h>
 #include <unistd.h>
 #include <pwd.h>
 #include <netdb.h>

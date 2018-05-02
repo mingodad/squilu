@@ -7,7 +7,8 @@
 
 struct SQBlob : public SQStream
 {
-	SQBlob(SQInteger size, SQInteger allocated=0);
+	SQBlob() {init(0, 8192);};
+	SQBlob(SQInteger size, SQInteger allocated=0){init(size, allocated);};
 	virtual ~SQBlob();
 	SQInteger Write(const void *buffer, SQInteger size);
 	SQInteger WriteZstr(const char *zStr);
@@ -35,6 +36,7 @@ struct SQBlob : public SQStream
 	bool SetLen(SQInteger len);
 	static SQUserPointer SQBlob_TAG;
 private:
+	void init(SQInteger size, SQInteger allocated);
 	SQInteger _size;
 	SQInteger _allocated;
 	SQInteger _ptr;

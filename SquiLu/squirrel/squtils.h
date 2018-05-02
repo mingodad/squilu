@@ -2,9 +2,18 @@
 #ifndef _SQUTILS_H_
 #define _SQUTILS_H_
 
+#include <new>
+
+#ifndef SQ_EXCLUDE_DEFAULT_MEMFUNCTIONS
 void *sq_vm_malloc(SQUnsignedInteger size);
 void *sq_vm_realloc(void *p,SQUnsignedInteger oldsize,SQUnsignedInteger size);
 void sq_vm_free(void *p,SQUnsignedInteger size);
+#else
+#include <stdlib.h>
+#define sq_vm_malloc(x) malloc(x)
+#define sq_vm_realloc(a, b, c) realloc(a, c)
+#define sq_vm_free(x, y) free(x)
+#endif
 
 #define sq_new(__ptr,__type) {__ptr=(__type *)sq_vm_malloc(sizeof(__type));new (__ptr) __type;}
 #define sq_delete(__ptr,__type) {__ptr->~__type();sq_vm_free(__ptr,sizeof(__type));}

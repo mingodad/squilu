@@ -616,6 +616,7 @@ SQRESULT sqext_register_pcre2(HSQUIRRELVM v);
 SQRESULT sqext_register_freetype(HSQUIRRELVM v);
 SQRESULT sqext_register_tre(HSQUIRRELVM v);
 SQRESULT sqext_register_hunspell(HSQUIRRELVM v);
+SQRESULT sqext_register_fossil (HSQUIRRELVM sqvm);
 
 static sq_modules_preload_st modules_preload[] = {
     {"blob", sqstd_register_bloblib},
@@ -628,7 +629,9 @@ static sq_modules_preload_st modules_preload[] = {
     {"sqlexer", sqext_register_SQLexer},
     {"gumbo", sqext_register_gumbo},
     {"base64", sqext_register_base64},
+#ifndef NO_SQ_PDF
     {"fpdf", sqext_register_Sq_Fpdf},
+#endif
     {"sqlite3", sqext_register_SQLite3},
     {"bitvector", sqext_register_BitVector}, //depends on sqlite3
     //{"xdj1", sqext_register_xjd1},
@@ -638,6 +641,7 @@ static sq_modules_preload_st modules_preload[] = {
     {"socket", sqext_register_sq_socket},
     {"tweetnacl", sqext_register_tweetnacl},
     {"pack", sqext_register_pack},
+    {"sqfossil", sqext_register_fossil},
 #if !defined(TARGET_IOS)
 #ifdef SQ_USE_PCRE
     {"sqpcre", sqext_register_pcre},
@@ -671,7 +675,9 @@ static sq_modules_preload_st modules_preload[] = {
     //{"miniz", sqext_register_sq_miniz},
     {"mongoose", sqext_register_mongoose},
     {"importlib", sqrat_register_importlib},
+#ifndef NO_TINYXML2
     {"tinyxml2", sqext_register_tinyxml2},
+#endif
 #ifndef _WIN32_WCE
 #ifdef WITH_MPDECIMAL
     {"decimal", sqext_register_decimal},
@@ -702,7 +708,7 @@ static sq_modules_preload_st modules_preload[] = {
 #ifdef WITH_MYSQL
     {"mysql", sqext_register_MySQL},
 #endif
-#ifndef ANDROID_BUILD
+#if !defined(ANDROID_BUILD) && !defined(NO_RS232) 
     {"rs232", sqext_register_rs232},
 #endif
 #ifdef WITH_FLTK
