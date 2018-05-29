@@ -116,9 +116,13 @@ static SQChar sqstd_rex_escapechar(SQRex *exp)
 		case 't': exp->_p++; return '\t';
 		case 'r': exp->_p++; return '\r';
 		case 'f': exp->_p++; return '\f';
+		case 'z': exp->_p++; return '0';
 		default: return (*exp->_p++);
 		}
-	} else if(!scisprint(*exp->_p)) sqstd_rex_error(exp,_SC("letter expected"));
+	}
+#ifdef SQ_REXPATTERN_ONLY_PRINTABLE
+	else if(!scisprint(*exp->_p)) sqstd_rex_error(exp,_SC("letter expected"));
+#endif
 	return (*exp->_p++);
 }
 
@@ -174,10 +178,12 @@ static SQInteger sqstd_rex_charnode(SQRex *exp,SQBool isclass)
 		}
 	}
 	//else if(!scisprint(*exp->_p)) {
+#ifdef SQ_REXPATTERN_ONLY_PRINTABLE
 	else if(((SQUChar)*exp->_p) < ' ') {
 
 		sqstd_rex_error(exp,_SC("letter expected"));
 	}
+#endif
 	t = *exp->_p; exp->_p++;
 	return sqstd_rex_newnode(exp,t);
 }
