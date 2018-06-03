@@ -2343,8 +2343,7 @@ function_params_decl:
             SQInteger old_pos = _fs->GetCurrentPos(); //save current instructions position
             _fs->PushLocalVariable(varname, _scope.nested, _VAR_CLOSURE); //add function name to find it as outer var if needed
             if(sq_type(type_name) == OT_STRING) _fs->AddParameterTypeName(type_name);
-            //-1 to compensate default parameters when relocating
-            CreateFunction(varname, eFunctionType_local, -1, declType);
+            CreateFunction(varname, eFunctionType_local, declType);
             if(_is_parsing_extern)
             {
                 if(_token == _SC(';')) //to parse thinscript
@@ -2360,7 +2359,8 @@ function_params_decl:
             for(int i=old_pos+1, curr_pos = _fs->GetCurrentPos(); i <= curr_pos; ++i)
             {
                 SQInstruction & inst = _fs->GetInstruction(i);
-                _fs->SetIntructionParam(i, 0, inst._arg0 -1);
+                //printf("%d: %s\n", inst.op, SQGetOpName(inst.op));
+                if(inst.op == _OP_CLOSURE) _fs->SetIntructionParam(i, 0, inst._arg0 -1);
             }
             _fs->PopTarget();
 #else
@@ -3090,7 +3090,7 @@ error:
         }
         _es = es;
     }
-    void CreateFunction(SQObject &name, int ftype, int stack_offset=0, int fdeclType=0)
+    void CreateFunction(SQObject &name, int ftype, int fdeclType=0)
     {
         SQFuncState *funcstate = _fs->PushChildState(_ss(_vm));
         funcstate->_name = name;
@@ -3159,7 +3159,7 @@ error:
                     if(_token == _SC('[') || _token == _SC('{')) Error(_SC("default parameter with array/table values not supported"));
                     Expression();
                     //stack_offset to compensate for local functions been relocated to allow recursion
-                    funcstate->AddDefaultParam(_fs->TopTarget()+stack_offset);
+                    funcstate->AddDefaultParam(_fs->TopTarget());
                     defparams++;
                 }
                 else if(_token == _SC(':'))

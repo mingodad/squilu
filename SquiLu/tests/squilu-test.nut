@@ -271,6 +271,45 @@ sqt.run("calls", function(){
 	try { assert(false); sqt.ok(false);} catch(e) {sqt.ok(true);};
 	try { assert(false, "opt msg"); sqt.ok(false);} catch(e) {sqt.ok(e == "opt msg");};
 
+	local function bugRecursionLocal(str, num=666, car=777){
+		if(str == "recurse")  return bugRecursionLocal("recurring with recurse", 5);
+		return str + num;
+	}
+
+	sqt.ok(bugRecursionLocal("dad") == "dad666");
+	sqt.ok(bugRecursionLocal("recurse") == "recurring with recurse5");
+
+	local function f1(){ return "f1";}
+	local function f2(){ return "f2";}
+	local function f3(f=f2){ return "f3" + f();}
+
+	sqt.ok(f3() == "f3f2");
+
+	local function f4(f=f2){ return "f4" + type(f);}
+
+	sqt.ok(f4() == "f4function");
+
+	local ary = ["blue"]
+	local function f5(s, f=ary){ return "f5" + s + type(f);}
+
+	sqt.ok(f5("ded") == "f5dedarray");
+
+	local ncount = 0;
+	local function nested(p=88, q=66)
+	{
+		++ncount;
+		local result = ncount + ":" + p + ":" + q;
+		local function ni(x=99)
+		{
+			result += ":" + x;
+		}
+		ni();
+		if(p==88) result += "::" + nested(22);
+		return result;
+	}
+
+	sqt.ok(nested() == "1:88:66:99::2:22:66:99");
+	sqt.ok(nested("n") == "3:n:66:99");
 });
 
 sqt.run("sort", function(){
@@ -820,7 +859,7 @@ sqt.run("regexp", function(){
 	//sqt.ok(re_match("a?+", "") == RE_E_OK);
 	//sqt.ok(re_match("a+?b", "b") == RE_E_OK);
 	sqt.ok(re_match("a\\rb", "a\rb") == RE_E_OK);
-	sqt.ok(re_match("a+\n+b+", "aa\n\nbb") == RE_E_SYNTAX);
+	sqt.ok(re_match("a+\n+b+", "aa\n\nbb") == RE_E_OK);
 	sqt.ok(re_match("a+\\n+b+", "aa\n\nbb") == RE_E_OK);
 	//sqt.ok(re_match("a+\\5+b+", "aa\n\nbb") == RE_E_SYNTAX);
 	sqt.ok(re_match("a+\\(+b+", "aa((bb") == RE_E_OK);
