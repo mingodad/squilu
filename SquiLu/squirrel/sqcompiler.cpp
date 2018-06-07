@@ -892,6 +892,18 @@ start_again:
         case TK_CONST:
         {
             Lex();
+            if(_token == _SC(':'))
+            {
+                //string const
+                Lex();
+		id = Expect(TK_IDENTIFIER);
+		SQObjectPtr strongid = id;
+		CheckLocalNameScope(id, _scope.nested);
+		//CheckConstsExists(strongid);
+		OptionalSemicolon();
+		ConstsNewSlot(strongid,SQObjectPtr(id));
+		break;
+            }
             if(_token == TK_IDENTIFIER)
             {
                 id = _fs->CreateString(_lex.data->svalue);
