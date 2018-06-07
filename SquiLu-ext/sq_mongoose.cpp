@@ -1100,7 +1100,9 @@ static sq_modules_preload_st modules_preload[] = {
     {"sys", sqstd_register_systemlib},
     {"string", sqstd_register_stringlib},
     {"base64", sqext_register_base64},
+#ifndef NO_SQ_PDF
     {"fpdf", sqext_register_Sq_Fpdf},
+#endif
     {"sqlite3", sqext_register_SQLite3},
     {"zlib", sqext_register_sq_zlib},
     {"markdown", sqext_register_markdown},
