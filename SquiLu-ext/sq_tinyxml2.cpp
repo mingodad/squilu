@@ -608,19 +608,11 @@ static SQRESULT sq_XMLDocument_ErrorID(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQRESULT sq_XMLDocument_GetErrorStr1(HSQUIRRELVM v)
+static SQRESULT sq_XMLDocument_ErrorStr(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_XMLDocument_INSTANCE(v, 1);
-    sq_pushstring(v, doc->GetErrorStr1(), -1);
-	return 1;
-}
-
-static SQRESULT sq_XMLDocument_GetErrorStr2(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS_NO_TOP(v);
-    GET_XMLDocument_INSTANCE(v, 1);
-    sq_pushstring(v, doc->GetErrorStr2(), -1);
+    sq_pushstring(v, doc->ErrorStr(), -1);
 	return 1;
 }
 
@@ -668,8 +660,7 @@ static SQRegFunction XMLDocument_methods[] =
     _DECL_FUNC(DeleteNode,2,_SC("xx")),
     _DECL_FUNC(Error,1,_SC("x")),
     _DECL_FUNC(ErrorID,1,_SC("x")),
-    _DECL_FUNC(GetErrorStr1,1,_SC("x")),
-    _DECL_FUNC(GetErrorStr2,1,_SC("x")),
+    _DECL_FUNC(ErrorStr,1,_SC("x")),
     _DECL_FUNC(ProcessEntities,1,_SC("x")),
     _DECL_FUNC(WhitespaceMode,1,_SC("x")),
     _DECL_FUNC(tostring,1,_SC("x")),
@@ -835,10 +826,8 @@ SQRESULT sqext_register_tinyxml2(HSQUIRRELVM v)
     CONST_INT(XML_ERROR_FILE_NOT_FOUND);
     CONST_INT(XML_ERROR_FILE_COULD_NOT_BE_OPENED);
     CONST_INT(XML_ERROR_FILE_READ_ERROR);
-    CONST_INT(XML_ERROR_ELEMENT_MISMATCH);
     CONST_INT(XML_ERROR_PARSING_ELEMENT);
     CONST_INT(XML_ERROR_PARSING_ATTRIBUTE);
-    CONST_INT(XML_ERROR_IDENTIFYING_TAG);
     CONST_INT(XML_ERROR_PARSING_TEXT);
     CONST_INT(XML_ERROR_PARSING_CDATA);
     CONST_INT(XML_ERROR_PARSING_COMMENT);

@@ -47,15 +47,15 @@ distribution.
 */
 /*
 	gcc:
-        g++ -Wall -DDEBUG tinyxml2.cpp xmltest.cpp -o gccxmltest.exe
+        g++ -Wall -DTINYXML2_DEBUG tinyxml2.cpp xmltest.cpp -o gccxmltest.exe
 
     Formatting, Artistic Style:
         AStyle.exe --style=1tbs --indent-switches --break-closing-brackets --indent-preprocessor tinyxml2.cpp tinyxml2.h
 */
 
-#if defined( _DEBUG ) || defined( DEBUG ) || defined (__DEBUG__)
-#   ifndef DEBUG
-#       define DEBUG
+#if defined( _DEBUG ) || defined (__DEBUG__)
+#   ifndef TINYXML2_DEBUG
+#       define TINYXML2_DEBUG
 #   endif
 #endif
 
@@ -79,7 +79,7 @@ distribution.
 #endif
 
 
-#if defined(DEBUG)
+#if defined(TINYXML2_DEBUG)
 #   if defined(_MSC_VER)
 #       // "(void)0," is for suppressing C4127 warning in "assert(false)", "assert(true)" and the like
 #       define TIXMLASSERT( x )           if ( !((void)0,(x))) { __debugbreak(); }
@@ -98,9 +98,20 @@ distribution.
 /* Versioning, past 1.0.14:
 	http://semver.org/
 */
-static const int TIXML2_MAJOR_VERSION = 4;
-static const int TIXML2_MINOR_VERSION = 0;
-static const int TIXML2_PATCH_VERSION = 1;
+static const int TIXML2_MAJOR_VERSION = 6;
+static const int TIXML2_MINOR_VERSION = 2;
+static const int TIXML2_PATCH_VERSION = 0;
+
+#define TINYXML2_MAJOR_VERSION 6
+#define TINYXML2_MINOR_VERSION 2
+#define TINYXML2_PATCH_VERSION 0
+
+// A fixed element depth limit is problematic. There needs to be a 
+// limit to avoid a stack overflow. However, that limit varies per 
+// system, and the capacity of the stack. On the other hand, it's a trivial 
+// attack that can result from ill, malicious, or even correctly formed XML, 
+// so there needs to be a limit in place.
+static const int TINYXML2_MAX_ELEMENT_DEPTH = 100;
 
 namespace tinyxml2
 {
@@ -127,18 +138,20 @@ public:
         NEEDS_NEWLINE_NORMALIZATION		= 0x02,
         NEEDS_WHITESPACE_COLLAPSING     = 0x04,
 
-        TEXT_ELEMENT		            	= NEEDS_ENTITY_PROCESSING | NEEDS_NEWLINE_NORMALIZATION,
+        TEXT_ELEMENT		            = NEEDS_ENTITY_PROCESSING | NEEDS_NEWLINE_NORMALIZATION,
         TEXT_ELEMENT_LEAVE_ENTITIES		= NEEDS_NEWLINE_NORMALIZATION,
-        ATTRIBUTE_NAME		            	= 0,
-        ATTRIBUTE_VALUE		            	= NEEDS_ENTITY_PROCESSING | NEEDS_NEWLINE_NORMALIZATION,
-        ATTRIBUTE_VALUE_LEAVE_ENTITIES  	= NEEDS_NEWLINE_NORMALIZATION,
-        COMMENT				        = NEEDS_NEWLINE_NORMALIZATION
+        ATTRIBUTE_NAME		            = 0,
+        ATTRIBUTE_VALUE		            = NEEDS_ENTITY_PROCESSING | NEEDS_NEWLINE_NORMALIZATION,
+        ATTRIBUTE_VALUE_LEAVE_ENTITIES  = NEEDS_NEWLINE_NORMALIZATION,
+        COMMENT							= NEEDS_NEWLINE_NORMALIZATION
     };
 
     StrPair() : _flags( 0 ), _start( 0 ), _end( 0 ) {}
     ~StrPair();
 
     void Set( char* start, char* end, int flags ) {
+        TIXMLASSERT( start );
+        TIXMLASSERT( end );
         Reset();
         _start  = start;
         _end    = end;
@@ -158,13 +171,13 @@ public:
 
     void SetStr( const char* str, int flags=0 );
 
-    char* ParseText( char* in, const char* endTag, int strFlags );
+    char* ParseText( char* in, const char* endTag, int strFlags, int* curLineNumPtr );
     char* ParseName( char* in );
 
     void TransferTo( StrPair* other );
+	void Reset();
 
 private:
-    void Reset();
     void CollapseWhitespace();
 
     enum {
@@ -190,10 +203,11 @@ template <class T, int INITIAL_SIZE>
 class DynArray
 {
 public:
-    DynArray() {
-        _mem = _pool;
-        _allocated = INITIAL_SIZE;
-        _size = 0;
+    DynArray() :
+        _mem( _pool ),
+        _allocated( INITIAL_SIZE ),
+        _size( 0 )
+    {
     }
 
     ~DynArray() {
@@ -209,7 +223,8 @@ public:
     void Push( T t ) {
         TIXMLASSERT( _size < INT_MAX );
         EnsureCapacity( _size+1 );
-        _mem[_size++] = t;
+        _mem[_size] = t;
+        ++_size;
     }
 
     T* PushArr( int count ) {
@@ -223,7 +238,8 @@ public:
 
     T Pop() {
         TIXMLASSERT( _size > 0 );
-        return _mem[--_size];
+        --_size;
+        return _mem[_size];
     }
 
     void PopArr( int count ) {
@@ -260,6 +276,12 @@ public:
         return _allocated;
     }
 
+	void SwapRemove(int i) {
+		TIXMLASSERT(i >= 0 && i < _size);
+		TIXMLASSERT(_size > 0);
+		_mem[i] = _mem[_size - 1];
+		--_size;
+	}
     const T* Mem() const				{
         TIXMLASSERT( _mem );
         return _mem;
@@ -280,6 +302,7 @@ private:
             TIXMLASSERT( cap <= INT_MAX / 2 );
             int newAllocated = cap * 2;
             T* newMem = new T[newAllocated];
+            TIXMLASSERT( newAllocated >= _size );
             memcpy( newMem, _mem, sizeof(T)*_size );	// warning: not using constructors, only works for PODs
             if ( _mem != _pool ) {
                 delete [] _mem;
@@ -321,7 +344,7 @@ template< int ITEM_SIZE >
 class MemPoolT : public MemPool
 {
 public:
-    MemPoolT() : _root(0), _currentAllocs(0), _nAllocs(0), _maxAllocs(0), _nUntracked(0)	{}
+    MemPoolT() : _blockPtrs(), _root(0), _currentAllocs(0), _nAllocs(0), _maxAllocs(0), _nUntracked(0)	{}
     ~MemPoolT() {
         Clear();
     }
@@ -329,8 +352,8 @@ public:
     void Clear() {
         // Delete the blocks.
         while( !_blockPtrs.Empty()) {
-            Block* b  = _blockPtrs.Pop();
-            delete b;
+            Block* lastBlock = _blockPtrs.Pop();
+            delete lastBlock;
         }
         _root = 0;
         _currentAllocs = 0;
@@ -367,8 +390,8 @@ public:
         if ( _currentAllocs > _maxAllocs ) {
             _maxAllocs = _currentAllocs;
         }
-        _nAllocs++;
-        _nUntracked++;
+        ++_nAllocs;
+        ++_nUntracked;
         return result;
     }
     
@@ -378,7 +401,7 @@ public:
         }
         --_currentAllocs;
         Item* item = static_cast<Item*>( mem );
-#ifdef DEBUG
+#ifdef TINYXML2_DEBUG
         memset( item, 0xfe, sizeof( *item ) );
 #endif
         item->next = _root;
@@ -391,7 +414,7 @@ public:
     }
 
     void SetTracked() {
-        _nUntracked--;
+        --_nUntracked;
     }
 
     int Untracked() const {
@@ -501,10 +524,10 @@ enum XMLError {
     XML_ERROR_FILE_NOT_FOUND,
     XML_ERROR_FILE_COULD_NOT_BE_OPENED,
     XML_ERROR_FILE_READ_ERROR,
-    XML_ERROR_ELEMENT_MISMATCH,
+    UNUSED_XML_ERROR_ELEMENT_MISMATCH,	// remove at next major version
     XML_ERROR_PARSING_ELEMENT,
     XML_ERROR_PARSING_ATTRIBUTE,
-    XML_ERROR_IDENTIFYING_TAG,
+    UNUSED_XML_ERROR_IDENTIFYING_TAG,	// remove at next major version
     XML_ERROR_PARSING_TEXT,
     XML_ERROR_PARSING_CDATA,
     XML_ERROR_PARSING_COMMENT,
@@ -515,6 +538,7 @@ enum XMLError {
     XML_ERROR_PARSING,
     XML_CAN_NOT_CONVERT_TEXT,
     XML_NO_TEXT_NODE,
+	XML_ELEMENT_DEPTH_EXCEEDED,
 
 	XML_ERROR_COUNT
 };
@@ -523,19 +547,22 @@ enum XMLError {
 /*
 	Utility functionality.
 */
-class XMLUtil
+class TINYXML2_LIB XMLUtil
 {
 public:
-    static const char* SkipWhiteSpace( const char* p )	{
+    static const char* SkipWhiteSpace( const char* p, int* curLineNumPtr )	{
         TIXMLASSERT( p );
         while( IsWhiteSpace(*p) ) {
+            if (curLineNumPtr && *p == '\n') {
+                ++(*curLineNumPtr);
+            }
             ++p;
         }
         TIXMLASSERT( p );
         return p;
     }
-    static char* SkipWhiteSpace( char* p )				{
-        return const_cast<char*>( SkipWhiteSpace( const_cast<const char*>(p) ) );
+    static char* SkipWhiteSpace( char* p, int* curLineNumPtr )				{
+        return const_cast<char*>( SkipWhiteSpace( const_cast<const char*>(p), curLineNumPtr ) );
     }
 
     // Anything in the high order range of UTF-8 is assumed to not be whitespace. This isn't
@@ -566,6 +593,9 @@ public:
         if ( p == q ) {
             return true;
         }
+        TIXMLASSERT( p );
+        TIXMLASSERT( q );
+        TIXMLASSERT( nChar >= 0 );
         return strncmp( p, q, nChar ) == 0;
     }
     
@@ -594,6 +624,16 @@ public:
     static bool	ToFloat( const char* str, float* value );
     static bool ToDouble( const char* str, double* value );
 	static bool ToInt64(const char* str, int64_t* value);
+	// Changes what is serialized for a boolean value.
+	// Default to "true" and "false". Shouldn't be changed
+	// unless you have a special testing or compatibility need.
+	// Be careful: static, global, & not thread safe.
+	// Be sure to set static const memory as parameters.
+	static void SetBoolSerialization(const char* writeTrue, const char* writeFalse);
+
+private:
+	static const char* writeBoolTrue;
+	static const char* writeBoolFalse;
 };
 
 
@@ -699,6 +739,8 @@ public:
     */
     void SetValue( const char* val, bool staticMem=false );
 
+    /// Gets the line number the node is in, if the document was parsed from a file.
+    int GetLineNum() const { return _parseLineNum; }
     /// Get the parent of this node on the DOM.
     const XMLNode*	Parent() const			{
         return _parent;
@@ -832,6 +874,20 @@ public:
     */
     virtual XMLNode* ShallowClone( XMLDocument* document ) const = 0;
 
+	/**
+		Make a copy of this node and all its children.
+
+		If the 'target' is null, then the nodes will
+		be allocated in the current document. If 'target' 
+        is specified, the memory will be allocated is the 
+        specified XMLDocument.
+
+		NOTE: This is probably not the correct tool to 
+		copy a document, since XMLDocuments can have multiple
+		top level XMLNodes. You probably want to use
+        XMLDocument::DeepCopy()
+	*/
+	XMLNode* DeepClone( XMLDocument* target ) const;
     /**
     	Test if 2 nodes are the same, but don't test children.
     	The 2 nodes do not need to be in the same Document.
@@ -882,11 +938,12 @@ protected:
     XMLNode( XMLDocument* );
     virtual ~XMLNode();
 
-    virtual char* ParseDeep( char*, StrPair* );
+    virtual char* ParseDeep( char* p, StrPair* parentEndTag, int* curLineNumPtr);
 
     XMLDocument*	_document;
     XMLNode*		_parent;
     mutable StrPair	_value;
+    int             _parseLineNum;
 
     XMLNode*		_firstChild;
     XMLNode*		_lastChild;
@@ -901,6 +958,7 @@ private:
     void Unlink( XMLNode* child );
     static void DeleteNode( XMLNode* node );
     void InsertChildPreamble( XMLNode* insertThis ) const;
+    const XMLElement* ToElementWithName( const char* name ) const;
 
     XMLNode( const XMLNode& );	// not supported
     XMLNode& operator=( const XMLNode& );	// not supported
@@ -921,7 +979,6 @@ private:
 */
 class TINYXML2_LIB XMLText : public XMLNode
 {
-    friend class XMLBase;
     friend class XMLDocument;
 public:
     virtual bool Accept( XMLVisitor* visitor ) const;
@@ -949,7 +1006,7 @@ protected:
     XMLText( XMLDocument* doc )	: XMLNode( doc ), _isCData( false )	{}
     virtual ~XMLText()												{}
 
-    char* ParseDeep( char*, StrPair* endTag );
+    char* ParseDeep( char* p, StrPair* parentEndTag, int* curLineNumPtr );
 
 private:
     bool _isCData;
@@ -980,7 +1037,7 @@ protected:
     XMLComment( XMLDocument* doc );
     virtual ~XMLComment();
 
-    char* ParseDeep( char*, StrPair* endTag );
+    char* ParseDeep( char* p, StrPair* parentEndTag, int* curLineNumPtr);
 
 private:
     XMLComment( const XMLComment& );	// not supported
@@ -1019,7 +1076,7 @@ protected:
     XMLDeclaration( XMLDocument* doc );
     virtual ~XMLDeclaration();
 
-    char* ParseDeep( char*, StrPair* endTag );
+    char* ParseDeep( char* p, StrPair* parentEndTag, int* curLineNumPtr );
 
 private:
     XMLDeclaration( const XMLDeclaration& );	// not supported
@@ -1054,7 +1111,7 @@ protected:
     XMLUnknown( XMLDocument* doc );
     virtual ~XMLUnknown();
 
-    char* ParseDeep( char*, StrPair* endTag );
+    char* ParseDeep( char* p, StrPair* parentEndTag, int* curLineNumPtr );
 
 private:
     XMLUnknown( const XMLUnknown& );	// not supported
@@ -1079,6 +1136,8 @@ public:
     /// The value of the attribute.
     const char* Value() const;
 
+    /// Gets the line number the attribute is in, if the document was parsed from a file.
+    int GetLineNum() const { return _parseLineNum; }
     /// The next attribute in the list.
     const XMLAttribute* Next() const {
         return _next;
@@ -1126,7 +1185,7 @@ public:
     }
 
     /** QueryIntValue interprets the attribute as an integer, and returns the value
-    	in the provided parameter. The function will return XML_NO_ERROR on success,
+    	in the provided parameter. The function will return XML_SUCCESS on success,
     	and XML_WRONG_ATTRIBUTE_TYPE if the conversion is not successful.
     */
     XMLError QueryIntValue( int* value ) const;
@@ -1159,17 +1218,18 @@ public:
 private:
     enum { BUF_SIZE = 200 };
 
-    XMLAttribute() : _next( 0 ), _memPool( 0 ) {}
+    XMLAttribute() : _name(), _value(),_parseLineNum( 0 ), _next( 0 ), _memPool( 0 ) {}
     virtual ~XMLAttribute()	{}
 
     XMLAttribute( const XMLAttribute& );	// not supported
     void operator=( const XMLAttribute& );	// not supported
     void SetName( const char* name );
 
-    char* ParseDeep( char* p, bool processEntities );
+    char* ParseDeep( char* p, bool processEntities, int* curLineNumPtr );
 
     mutable StrPair _name;
     mutable StrPair _value;
+    int             _parseLineNum;
     XMLAttribute*   _next;
     MemPool*        _memPool;
 };
@@ -1181,7 +1241,6 @@ private:
 */
 class TINYXML2_LIB XMLElement : public XMLNode
 {
-    friend class XMLBase;
     friend class XMLDocument;
 public:
     /// Get the name of an element (which is the Value() of the node.)
@@ -1227,51 +1286,28 @@ public:
     const char* Attribute( const char* name, const char* value=0 ) const;
 
     /** Given an attribute name, IntAttribute() returns the value
-    	of the attribute interpreted as an integer. 0 will be
-    	returned if there is an error. For a method with error
-    	checking, see QueryIntAttribute()
+    	of the attribute interpreted as an integer. The default
+        value will be returned if the attribute isn't present,
+        or if there is an error. (For a method with error
+    	checking, see QueryIntAttribute()).
     */
-    int		 IntAttribute( const char* name ) const		{
-        int i=0;
-        QueryIntAttribute( name, &i );
-        return i;
-    }
+	int IntAttribute(const char* name, int defaultValue = 0) const;
 
     /// See IntAttribute()
-    unsigned UnsignedAttribute( const char* name ) const {
-        unsigned i=0;
-        QueryUnsignedAttribute( name, &i );
-        return i;
-    }
+	unsigned UnsignedAttribute(const char* name, unsigned defaultValue = 0) const;
 
 	/// See IntAttribute()
-	int64_t Int64Attribute(const char* name) const {
-		int64_t i = 0;
-		QueryInt64Attribute(name, &i);
-		return i;
-	}
+	int64_t Int64Attribute(const char* name, int64_t defaultValue = 0) const;
 
 	/// See IntAttribute()
-    bool BoolAttribute( const char* name ) const	{
-        bool b=false;
-        QueryBoolAttribute( name, &b );
-        return b;
-    }
+	bool BoolAttribute(const char* name, bool defaultValue = false) const;
     /// See IntAttribute()
-    double DoubleAttribute( const char* name ) const	{
-        double d=0;
-        QueryDoubleAttribute( name, &d );
-        return d;
-    }
+	double DoubleAttribute(const char* name, double defaultValue = 0) const;
     /// See IntAttribute()
-    float FloatAttribute( const char* name ) const	{
-        float f=0;
-        QueryFloatAttribute( name, &f );
-        return f;
-    }
+	float FloatAttribute(const char* name, float defaultValue = 0) const;
 
     /** Given an attribute name, QueryIntAttribute() returns
-    	XML_NO_ERROR, XML_WRONG_ATTRIBUTE_TYPE if the conversion
+    	XML_SUCCESS, XML_WRONG_ATTRIBUTE_TYPE if the conversion
     	can't be performed, or XML_NO_ATTRIBUTE if the attribute
     	doesn't exist. If successful, the result of the conversion
     	will be written to 'value'. If not successful, nothing will
@@ -1334,9 +1370,18 @@ public:
         return a->QueryFloatValue( value );
     }
 
+	/// See QueryIntAttribute()
+	XMLError QueryStringAttribute(const char* name, const char** value) const {
+		const XMLAttribute* a = FindAttribute(name);
+		if (!a) {
+			return XML_NO_ATTRIBUTE;
+		}
+		*value = a->Value();
+		return XML_SUCCESS;
+	}
 	
     /** Given an attribute name, QueryAttribute() returns
-    	XML_NO_ERROR, XML_WRONG_ATTRIBUTE_TYPE if the conversion
+    	XML_SUCCESS, XML_WRONG_ATTRIBUTE_TYPE if the conversion
     	can't be performed, or XML_NO_ATTRIBUTE if the attribute
     	doesn't exist. It is overloaded for the primitive types,
 		and is a generally more convenient replacement of
@@ -1542,20 +1587,32 @@ public:
     /// See QueryIntText()
     XMLError QueryFloatText( float* fval ) const;
 
+	int IntText(int defaultValue = 0) const;
+
+	/// See QueryIntText()
+	unsigned UnsignedText(unsigned defaultValue = 0) const;
+	/// See QueryIntText()
+	int64_t Int64Text(int64_t defaultValue = 0) const;
+	/// See QueryIntText()
+	bool BoolText(bool defaultValue = false) const;
+	/// See QueryIntText()
+	double DoubleText(double defaultValue = 0) const;
+	/// See QueryIntText()
+	float FloatText(float defaultValue = 0) const;
     // internal:
-    enum {
+    enum ElementClosingType {
         OPEN,		// <foo>
         CLOSED,		// <foo/>
         CLOSING		// </foo>
     };
-    int ClosingType() const {
+    ElementClosingType ClosingType() const {
         return _closingType;
     }
     virtual XMLNode* ShallowClone( XMLDocument* document ) const;
     virtual bool ShallowEqual( const XMLNode* compare ) const;
 
 protected:
-    char* ParseDeep( char* p, StrPair* endTag );
+    char* ParseDeep( char* p, StrPair* parentEndTag, int* curLineNumPtr );
 
 private:
     XMLElement( XMLDocument* doc );
@@ -1568,11 +1625,12 @@ private:
     }
     XMLAttribute* FindOrCreateAttribute( const char* name );
     //void LinkAttribute( XMLAttribute* attrib );
-    char* ParseAttributes( char* p );
+    char* ParseAttributes( char* p, int* curLineNumPtr );
     static void DeleteAttribute( XMLAttribute* attribute );
+    XMLAttribute* CreateAttribute();
 
     enum { BUF_SIZE = 200 };
-    int _closingType;
+    ElementClosingType _closingType;
     // The attribute list is ordered; there is no 'lastAttribute'
     // because the list needs to be scanned for dupes before adding
     // a new attribute.
@@ -1594,9 +1652,16 @@ enum Whitespace {
 class TINYXML2_LIB XMLDocument : public XMLNode
 {
     friend class XMLElement;
+    // Gives access to SetError and Push/PopDepth, but over-access for everything else.
+    // Wishing C++ had "internal" scope.
+    friend class XMLNode;       
+    friend class XMLText;
+    friend class XMLComment;
+    friend class XMLDeclaration;
+    friend class XMLUnknown;
 public:
     /// constructor
-    XMLDocument( bool processEntities = true, Whitespace = PRESERVE_WHITESPACE );
+    XMLDocument( bool processEntities = true, Whitespace whitespaceMode = PRESERVE_WHITESPACE );
     ~XMLDocument();
 
     virtual XMLDocument* ToDocument()				{
@@ -1610,7 +1675,7 @@ public:
 
     /**
     	Parse an XML file from a character string.
-    	Returns XML_NO_ERROR (0) on success, or
+    	Returns XML_SUCCESS (0) on success, or
     	an errorID.
 
     	You may optionally pass in the 'nBytes', which is
@@ -1622,7 +1687,7 @@ public:
 
     /**
     	Load an XML file from disk.
-    	Returns XML_NO_ERROR (0) on success, or
+    	Returns XML_SUCCESS (0) on success, or
     	an errorID.
     */
     XMLError LoadFile( const char* filename );
@@ -1635,14 +1700,14 @@ public:
         not text in order for TinyXML-2 to correctly
         do newline normalization.
 
-    	Returns XML_NO_ERROR (0) on success, or
+    	Returns XML_SUCCESS (0) on success, or
     	an errorID.
     */
     XMLError LoadFile( FILE* );
 
     /**
     	Save the XML file to disk.
-    	Returns XML_NO_ERROR (0) on success, or
+    	Returns XML_SUCCESS (0) on success, or
     	an errorID.
     */
     XMLError SaveFile( const char* filename, bool compact = false );
@@ -1651,7 +1716,7 @@ public:
     	Save the XML file to disk. You are responsible
     	for providing and closing the FILE*.
 
-    	Returns XML_NO_ERROR (0) on success, or
+    	Returns XML_SUCCESS (0) on success, or
     	an errorID.
     */
     XMLError SaveFile( FILE* fp, bool compact = false );
@@ -1660,7 +1725,7 @@ public:
         return _processEntities;
     }
     Whitespace WhitespaceMode() const	{
-        return _whitespace;
+        return _whitespaceMode;
     }
 
     /**
@@ -1745,7 +1810,9 @@ public:
     */
     void DeleteNode( XMLNode* node );
 
-    void SetError( XMLError error, const char* str1, const char* str2 );
+    void ClearError() {
+        SetError(XML_SUCCESS, 0, 0);
+    }
 
     /// Return true if there was an error parsing the document.
     bool Error() const {
@@ -1756,24 +1823,38 @@ public:
         return _errorID;
     }
 	const char* ErrorName() const;
+    static const char* ErrorIDToName(XMLError errorID);
 
-    /// Return a possibly helpful diagnostic location or string.
-    const char* GetErrorStr1() const {
-        return _errorStr1;
-    }
-    /// Return a possibly helpful secondary diagnostic location or string.
-    const char* GetErrorStr2() const {
-        return _errorStr2;
-    }
-    /// If there is an error, print it to stdout.
+    /** Returns a "long form" error description. A hopefully helpful 
+        diagnostic with location, line number, and/or additional info.
+    */
+	const char* ErrorStr() const;
+
+    /// A (trivial) utility function that prints the ErrorStr() to stdout.
     void PrintError() const;
+    /// Return the line where the error occured, or zero if unknown.
+    int ErrorLineNum() const
+    {
+        return _errorLineNum;
+    }
     
     /// Clear the document, resetting it to the initial state.
     void Clear();
 
-    // internal
+	/**
+		Copies this document to a target document.
+		The target will be completely cleared before the copy.
+		If you want to copy a sub-tree, see XMLNode::DeepClone().
+
+		NOTE: that the 'target' must be non-null.
+	*/
+	void DeepCopy(XMLDocument* target) const;
+
+	// internal
     char* Identify( char* p, XMLNode** node );
 
+	// internal
+	void MarkInUse(XMLNode*);
     virtual XMLNode* ShallowClone( XMLDocument* /*document*/ ) const	{
         return 0;
     }
@@ -1785,13 +1866,22 @@ private:
     XMLDocument( const XMLDocument& );	// not supported
     void operator=( const XMLDocument& );	// not supported
 
-    bool        _writeBOM;
-    bool        _processEntities;
-    XMLError    _errorID;
-    Whitespace  _whitespace;
-    const char* _errorStr1;
-    const char* _errorStr2;
-    char*       _charBuffer;
+    bool			_writeBOM;
+    bool			_processEntities;
+    XMLError		_errorID;
+    Whitespace		_whitespaceMode;
+    mutable StrPair	_errorStr;
+    int             _errorLineNum;
+    char*			_charBuffer;
+    int				_parseCurLineNum;
+	int				_parsingDepth;
+	// Memory tracking does add some overhead.
+	// However, the code assumes that you don't
+	// have a bunch of unlinked nodes around.
+	// Therefore it takes less memory to track
+	// in the document vs. a linked list in the XMLNode,
+	// and the performance is the same.
+	DynArray<XMLNode*, 10> _unlinked;
 
     MemPoolT< sizeof(XMLElement) >	 _elementPool;
     MemPoolT< sizeof(XMLAttribute) > _attributePool;
@@ -1801,8 +1891,42 @@ private:
 	static const char* _errorNames[XML_ERROR_COUNT];
 
     void Parse();
+    void SetError( XMLError error, int lineNum, const char* format, ... );
+
+	// Something of an obvious security hole, once it was discovered.
+	// Either an ill-formed XML or an excessively deep one can overflow
+	// the stack. Track stack depth, and error out if needed.
+	class DepthTracker {
+	public:
+		DepthTracker(XMLDocument * document) { 
+			this->_document = document; 
+			document->PushDepth();
+		}
+		~DepthTracker() {
+			_document->PopDepth();
+		}
+	private:
+		XMLDocument * _document;
+	};
+	void PushDepth();
+	void PopDepth();
+
+    template<class NodeType, int PoolElementSize>
+    NodeType* CreateUnlinkedNode( MemPoolT<PoolElementSize>& pool );
 };
 
+template<class NodeType, int PoolElementSize>
+inline NodeType* XMLDocument::CreateUnlinkedNode( MemPoolT<PoolElementSize>& pool )
+{
+    TIXMLASSERT( sizeof( NodeType ) == PoolElementSize );
+    TIXMLASSERT( sizeof( NodeType ) == pool.ItemSize() );
+    NodeType* returnNode = new (pool.Alloc()) NodeType( this );
+    TIXMLASSERT( returnNode );
+    returnNode->_memPool = &pool;
+
+	_unlinked.Push(returnNode);
+    return returnNode;
+}
 
 /**
 	A XMLHandle is a class that wraps a node pointer with null checks; this is
@@ -1863,16 +1987,13 @@ class TINYXML2_LIB XMLHandle
 {
 public:
     /// Create a handle from any node (at any depth of the tree.) This can be a null pointer.
-    XMLHandle( XMLNode* node )												{
-        _node = node;
+    XMLHandle( XMLNode* node ) : _node( node ) {
     }
     /// Create a handle from a node.
-    XMLHandle( XMLNode& node )												{
-        _node = &node;
+    XMLHandle( XMLNode& node ) : _node( &node ) {
     }
     /// Copy constructor
-    XMLHandle( const XMLHandle& ref )										{
-        _node = ref._node;
+    XMLHandle( const XMLHandle& ref ) : _node( ref._node ) {
     }
     /// Assignment
     XMLHandle& operator=( const XMLHandle& ref )							{
@@ -1919,19 +2040,19 @@ public:
     }
     /// Safe cast to XMLElement. This can return null.
     XMLElement* ToElement() 					{
-        return ( ( _node == 0 ) ? 0 : _node->ToElement() );
+        return ( _node ? _node->ToElement() : 0 );
     }
     /// Safe cast to XMLText. This can return null.
     XMLText* ToText() 							{
-        return ( ( _node == 0 ) ? 0 : _node->ToText() );
+        return ( _node ? _node->ToText() : 0 );
     }
     /// Safe cast to XMLUnknown. This can return null.
     XMLUnknown* ToUnknown() 					{
-        return ( ( _node == 0 ) ? 0 : _node->ToUnknown() );
+        return ( _node ? _node->ToUnknown() : 0 );
     }
     /// Safe cast to XMLDeclaration. This can return null.
     XMLDeclaration* ToDeclaration() 			{
-        return ( ( _node == 0 ) ? 0 : _node->ToDeclaration() );
+        return ( _node ? _node->ToDeclaration() : 0 );
     }
 
 private:
@@ -1946,14 +2067,11 @@ private:
 class TINYXML2_LIB XMLConstHandle
 {
 public:
-    XMLConstHandle( const XMLNode* node )											{
-        _node = node;
+    XMLConstHandle( const XMLNode* node ) : _node( node ) {
     }
-    XMLConstHandle( const XMLNode& node )											{
-        _node = &node;
+    XMLConstHandle( const XMLNode& node ) : _node( &node ) {
     }
-    XMLConstHandle( const XMLConstHandle& ref )										{
-        _node = ref._node;
+    XMLConstHandle( const XMLConstHandle& ref ) : _node( ref._node ) {
     }
 
     XMLConstHandle& operator=( const XMLConstHandle& ref )							{
@@ -1991,16 +2109,16 @@ public:
         return _node;
     }
     const XMLElement* ToElement() const			{
-        return ( ( _node == 0 ) ? 0 : _node->ToElement() );
+        return ( _node ? _node->ToElement() : 0 );
     }
     const XMLText* ToText() const				{
-        return ( ( _node == 0 ) ? 0 : _node->ToText() );
+        return ( _node ? _node->ToText() : 0 );
     }
     const XMLUnknown* ToUnknown() const			{
-        return ( ( _node == 0 ) ? 0 : _node->ToUnknown() );
+        return ( _node ? _node->ToUnknown() : 0 );
     }
     const XMLDeclaration* ToDeclaration() const	{
-        return ( ( _node == 0 ) ? 0 : _node->ToDeclaration() );
+        return ( _node ? _node->ToDeclaration() : 0 );
     }
 
 private:
@@ -2134,6 +2252,7 @@ public:
     void ClearBuffer() {
         _buffer.Clear();
         _buffer.Push(0);
+		_firstElement = true;
     }
 
 protected:
@@ -2144,6 +2263,9 @@ protected:
 	*/
     virtual void PrintSpace( int depth );
     void Print( const char* format, ... );
+    void Write( const char* data, size_t size );
+    inline void Write( const char* data )           { Write( data, strlen( data ) ); }
+    void Putc( char ch );
 
     void SealElementIfJustOpened();
     bool _elementJustOpened;
@@ -2167,6 +2289,9 @@ private:
     bool _restrictedEntityFlag[ENTITY_RANGE];
 
     DynArray< char, 20 > _buffer;
+    // Prohibit cloning, intentionally not implemented
+    XMLPrinter( const XMLPrinter& );
+    XMLPrinter& operator=( const XMLPrinter& );
 };
 
 
