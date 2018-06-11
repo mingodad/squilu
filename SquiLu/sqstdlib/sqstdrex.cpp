@@ -40,14 +40,14 @@ static const SQChar *g_nnames[] =
 #define OP_MB           (MAX_CHAR+14) //match balanced
 #define OP_EMPTY        (MAX_CHAR+15) //match position
 
-#define SQREX_SYMBOL_ANY_CHAR ('.')
-#define SQREX_SYMBOL_GREEDY_ONE_OR_MORE ('+')
-#define SQREX_SYMBOL_GREEDY_ZERO_OR_MORE ('*')
-#define SQREX_SYMBOL_GREEDY_ZERO_OR_ONE ('?')
-#define SQREX_SYMBOL_BRANCH ('|')
-#define SQREX_SYMBOL_END_OF_STRING ('$')
-#define SQREX_SYMBOL_BEGINNING_OF_STRING ('^')
-#define SQREX_SYMBOL_ESCAPE_CHAR ('\\')
+#define SQREX_SYMBOL_ANY_CHAR (_SC('.'))
+#define SQREX_SYMBOL_GREEDY_ONE_OR_MORE (_SC('+'))
+#define SQREX_SYMBOL_GREEDY_ZERO_OR_MORE (_SC('*'))
+#define SQREX_SYMBOL_GREEDY_ZERO_OR_ONE (_SC('?'))
+#define SQREX_SYMBOL_BRANCH (_SC('|'))
+#define SQREX_SYMBOL_END_OF_STRING (_SC('$'))
+#define SQREX_SYMBOL_BEGINNING_OF_STRING (_SC('^'))
+#define SQREX_SYMBOL_ESCAPE_CHAR (_SC('\\'))
 
 
 typedef int SQRexNodeType;
@@ -111,12 +111,12 @@ static SQChar sqstd_rex_escapechar(SQRex *exp)
 	if(*exp->_p == SQREX_SYMBOL_ESCAPE_CHAR){
 		exp->_p++;
 		switch(*exp->_p) {
-		case 'v': exp->_p++; return '\v';
-		case 'n': exp->_p++; return '\n';
-		case 't': exp->_p++; return '\t';
-		case 'r': exp->_p++; return '\r';
-		case 'f': exp->_p++; return '\f';
-		case 'z': exp->_p++; return '0';
+		case _SC('v'): exp->_p++; return _SC('\v');
+		case _SC('n'): exp->_p++; return _SC('\n');
+		case _SC('t'): exp->_p++; return _SC('\t');
+		case _SC('r'): exp->_p++; return _SC('\r');
+		case _SC('f'): exp->_p++; return _SC('\f');
+		case _SC('z'): exp->_p++; return _SC('0');
 		default: return (*exp->_p++);
 		}
 	}
@@ -139,22 +139,22 @@ static SQInteger sqstd_rex_charnode(SQRex *exp,SQBool isclass)
 	if(*exp->_p == SQREX_SYMBOL_ESCAPE_CHAR) {
 		exp->_p++;
 		switch(*exp->_p) {
-			case 'n': exp->_p++; return sqstd_rex_newnode(exp,'\n');
-			case 't': exp->_p++; return sqstd_rex_newnode(exp,'\t');
-			case 'r': exp->_p++; return sqstd_rex_newnode(exp,'\r');
-			case 'f': exp->_p++; return sqstd_rex_newnode(exp,'\f');
-			case 'v': exp->_p++; return sqstd_rex_newnode(exp,'\v');
-			case 'a': case 'A': case 'w': case 'W': case 's': case 'S':
-			case 'd': case 'D': case 'x': case 'X': case 'c': case 'C':
-			case 'p': case 'P': case 'l': case 'u':
+			case _SC('n'): exp->_p++; return sqstd_rex_newnode(exp,_SC('\n'));
+			case _SC('t'): exp->_p++; return sqstd_rex_newnode(exp,_SC('\t'));
+			case _SC('r'): exp->_p++; return sqstd_rex_newnode(exp,_SC('\r'));
+			case _SC('f'): exp->_p++; return sqstd_rex_newnode(exp,_SC('\f'));
+			case _SC('v'): exp->_p++; return sqstd_rex_newnode(exp,_SC('\v'));
+			case _SC('a'): case _SC('A'): case _SC('w'): case _SC('W'): case _SC('s'): case _SC('S'):
+			case _SC('d'): case _SC('D'): case _SC('x'): case _SC('X'): case _SC('c'): case _SC('C'):
+			case _SC('p'): case _SC('P'): case _SC('l'): case _SC('u'):
 				{
 				t = *exp->_p; exp->_p++;
 				return sqstd_rex_charclass(exp,t);
 				}
-            case 'm':
+            case _SC('m'):
                 {
                      SQChar cb, ce; //cb = character begin match ce = character end match
-                     cb = *++exp->_p; //skip 'm'
+                     cb = *++exp->_p; //skip _SC('m')
                      ce = *++exp->_p;
                      exp->_p++; //points to the next char to be parsed
                      if ((!cb) || (!ce)) sqstd_rex_error(exp,_SC("balanced chars expected"));
@@ -164,8 +164,8 @@ static SQInteger sqstd_rex_charnode(SQRex *exp,SQBool isclass)
                      exp->_nodes[node].right = ce;
                      return node;
                 }
-			case 'b':
-			case 'B':
+			case _SC('b'):
+			case _SC('B'):
 				if(!isclass) {
 					SQInteger node = sqstd_rex_newnode(exp,OP_WB);
 					exp->_nodes[node].left = *exp->_p;
@@ -179,7 +179,7 @@ static SQInteger sqstd_rex_charnode(SQRex *exp,SQBool isclass)
 	}
 	//else if(!scisprint(*exp->_p)) {
 #ifdef SQ_REXPATTERN_ONLY_PRINTABLE
-	else if(((SQUChar)*exp->_p) < ' ') {
+	else if(((SQUChar)*exp->_p) < _SC(' ')) {
 
 		sqstd_rex_error(exp,_SC("letter expected"));
 	}
@@ -196,12 +196,12 @@ static SQInteger sqstd_rex_class(SQRex *exp)
 		exp->_p++;
 	}else ret = sqstd_rex_newnode(exp,OP_CLASS);
 
-	if(*exp->_p == ']') sqstd_rex_error(exp,_SC("empty class"));
+	if(*exp->_p == _SC(']')) sqstd_rex_error(exp,_SC("empty class"));
 	chain = ret;
-	while(*exp->_p != ']' && exp->_p != exp->_eol) {
-		if(*exp->_p == '-' && first != -1){
+	while(*exp->_p != _SC(']') && exp->_p != exp->_eol) {
+		if(*exp->_p == _SC('-') && first != -1){
 			SQInteger r;
-			if(*exp->_p++ == ']') sqstd_rex_error(exp,_SC("unfinished range"));
+			if(*exp->_p++ == _SC(']')) sqstd_rex_error(exp,_SC("unfinished range"));
 			r = sqstd_rex_newnode(exp,OP_RANGE);
 			if(exp->_nodes[first].type>*exp->_p) sqstd_rex_error(exp,_SC("invalid range"));
 			if(exp->_nodes[first].type == OP_CCLASS) sqstd_rex_error(exp,_SC("cannot use character classes in ranges"));
@@ -236,11 +236,11 @@ static SQInteger sqstd_rex_class(SQRex *exp)
 
 static SQInteger sqstd_rex_parsenumber(SQRex *exp)
 {
-	SQInteger ret = *exp->_p-'0';
+	SQInteger ret = *exp->_p-_SC('0');
 	SQInteger positions = 10;
 	exp->_p++;
 	while(isdigit(*exp->_p)) {
-		ret = ret*10+(*exp->_p++-'0');
+		ret = ret*10+(*exp->_p++-_SC('0'));
 		if(positions==1000000000) sqstd_rex_error(exp,_SC("overflow in numeric constant"));
 		positions *= 10;
 	};
@@ -252,21 +252,21 @@ static SQInteger sqstd_rex_element(SQRex *exp)
 	SQInteger ret = -1;
 	switch(*exp->_p)
 	{
-	case '(': {
+	case _SC('('): {
 		SQInteger expr;
 		exp->_p++;
 
 
-		if(*exp->_p =='?') {
+		if(*exp->_p ==_SC('?')) {
 			exp->_p++;
-			sqstd_rex_expect(exp,':');
+			sqstd_rex_expect(exp,_SC(':'));
 			expr = sqstd_rex_newnode(exp,OP_NOCAPEXPR);
 		}
-		else if(*exp->_p ==')')
+		else if(*exp->_p ==_SC(')'))
         {
             exp->_p++;
 			expr = sqstd_rex_newnode(exp,OP_EMPTY);
-			if(*exp->_p !='\0')
+			if(*exp->_p !=_SC('\0'))
             {
                 SQInteger newn = sqstd_rex_list(exp);
                 exp->_nodes[expr].next = newn;
@@ -279,13 +279,13 @@ static SQInteger sqstd_rex_element(SQRex *exp)
             SQInteger newn = sqstd_rex_list(exp);
             exp->_nodes[expr].left = newn;
             ret = expr;
-            sqstd_rex_expect(exp,')');
+            sqstd_rex_expect(exp,_SC(')'));
         }
         break;
-	case '[':
+	case _SC('['):
 		exp->_p++;
 		ret = sqstd_rex_class(exp);
-		sqstd_rex_expect(exp,']');
+		sqstd_rex_expect(exp,_SC(']'));
 		break;
 	case SQREX_SYMBOL_END_OF_STRING: exp->_p++; ret = sqstd_rex_newnode(exp,OP_EOL);break;
 	case SQREX_SYMBOL_ANY_CHAR: exp->_p++; ret = sqstd_rex_newnode(exp,OP_DOT);break;
@@ -301,22 +301,22 @@ static SQInteger sqstd_rex_element(SQRex *exp)
 		case SQREX_SYMBOL_GREEDY_ZERO_OR_MORE: p0 = 0; p1 = 0xFFFF; exp->_p++; isgreedy = SQTrue; break;
 		case SQREX_SYMBOL_GREEDY_ONE_OR_MORE: p0 = 1; p1 = 0xFFFF; exp->_p++; isgreedy = SQTrue; break;
 		case SQREX_SYMBOL_GREEDY_ZERO_OR_ONE: p0 = 0; p1 = 1; exp->_p++; isgreedy = SQTrue; break;
-		case '{':
+		case _SC('{'):
 			exp->_p++;
 			if(!isdigit(*exp->_p)) sqstd_rex_error(exp,_SC("number expected"));
 			p0 = (unsigned short)sqstd_rex_parsenumber(exp);
 			/*******************************/
 			switch(*exp->_p) {
-                case '}':
+                case _SC('}'):
                     p1 = p0; exp->_p++;
                     break;
-                case ',':
+                case _SC(','):
                     exp->_p++;
                     p1 = 0xFFFF;
                     if(isdigit(*exp->_p)){
                         p1 = (unsigned short)sqstd_rex_parsenumber(exp);
                     }
-                    sqstd_rex_expect(exp,'}');
+                    sqstd_rex_expect(exp,_SC('}'));
                     break;
                 default:
                     sqstd_rex_error(exp,_SC(", or } expected"));
@@ -333,7 +333,7 @@ static SQInteger sqstd_rex_element(SQRex *exp)
 		ret = nnode;
 	}
 
-	if((*exp->_p != SQREX_SYMBOL_BRANCH) && (*exp->_p != ')') && (*exp->_p != SQREX_SYMBOL_GREEDY_ZERO_OR_MORE) && (*exp->_p != SQREX_SYMBOL_GREEDY_ONE_OR_MORE) && (*exp->_p != '\0')) {
+	if((*exp->_p != SQREX_SYMBOL_BRANCH) && (*exp->_p != _SC(')')) && (*exp->_p != SQREX_SYMBOL_GREEDY_ZERO_OR_MORE) && (*exp->_p != SQREX_SYMBOL_GREEDY_ONE_OR_MORE) && (*exp->_p != _SC('\0'))) {
 		SQInteger nnode = sqstd_rex_element(exp);
 		exp->_nodes[ret].next = nnode;
 	}
@@ -368,27 +368,27 @@ static SQInteger sqstd_rex_list(SQRex *exp)
 
 static inline bool isChClassWord(int c)
 {
-    return (isalnum(c) || c == '_');
+    return (isalnum(c) || c == _SC('_'));
 }
 static SQBool sqstd_rex_matchcclass(SQInteger cclass,SQChar c)
 {
 	switch(cclass) {
-	case 'a': return isalpha(c)?SQTrue:SQFalse;
-	case 'A': return !isalpha(c)?SQTrue:SQFalse;
-	case 'w': return isChClassWord(c)?SQTrue:SQFalse;
-	case 'W': return !isChClassWord(c)?SQTrue:SQFalse;
-	case 's': return isspace(c)?SQTrue:SQFalse;
-	case 'S': return !isspace(c)?SQTrue:SQFalse;
-	case 'd': return isdigit(c)?SQTrue:SQFalse;
-	case 'D': return !isdigit(c)?SQTrue:SQFalse;
-	case 'x': return isxdigit(c)?SQTrue:SQFalse;
-	case 'X': return !isxdigit(c)?SQTrue:SQFalse;
-	case 'c': return iscntrl(c)?SQTrue:SQFalse;
-	case 'C': return !iscntrl(c)?SQTrue:SQFalse;
-	case 'p': return ispunct(c)?SQTrue:SQFalse;
-	case 'P': return !ispunct(c)?SQTrue:SQFalse;
-	case 'l': return islower(c)?SQTrue:SQFalse;
-	case 'u': return isupper(c)?SQTrue:SQFalse;
+	case _SC('a'): return isalpha(c)?SQTrue:SQFalse;
+	case _SC('A'): return !isalpha(c)?SQTrue:SQFalse;
+	case _SC('w'): return isChClassWord(c)?SQTrue:SQFalse;
+	case _SC('W'): return !isChClassWord(c)?SQTrue:SQFalse;
+	case _SC('s'): return isspace(c)?SQTrue:SQFalse;
+	case _SC('S'): return !isspace(c)?SQTrue:SQFalse;
+	case _SC('d'): return isdigit(c)?SQTrue:SQFalse;
+	case _SC('D'): return !isdigit(c)?SQTrue:SQFalse;
+	case _SC('x'): return isxdigit(c)?SQTrue:SQFalse;
+	case _SC('X'): return !isxdigit(c)?SQTrue:SQFalse;
+	case _SC('c'): return iscntrl(c)?SQTrue:SQFalse;
+	case _SC('C'): return !iscntrl(c)?SQTrue:SQFalse;
+	case _SC('p'): return ispunct(c)?SQTrue:SQFalse;
+	case _SC('P'): return !ispunct(c)?SQTrue:SQFalse;
+	case _SC('l'): return islower(c)?SQTrue:SQFalse;
+	case _SC('u'): return isupper(c)?SQTrue:SQFalse;
 	}
 	return SQFalse; /*cannot happen*/
 }
@@ -443,7 +443,7 @@ static const SQChar *sqstd_rex_matchnode(SQRex* exp,SQRexNode *node,const SQChar
 			good=s;
 			if(greedystop && !sqstd_rex_matchclass(exp,&exp->_nodes[node->left],*s)) {
 				//checks that 0 matches satisfy the expression(if so skips)
-				//if not would always stop(for instance if is a '?')
+				//if not would always stop(for instance if is a _SC('?'))
 				if(greedystop->type != OP_GREEDY ||
 				(greedystop->type == OP_GREEDY && ((greedystop->right >> 16)&0x0000FFFF) != 0))
 				{
@@ -533,9 +533,9 @@ static const SQChar *sqstd_rex_matchnode(SQRex* exp,SQRexNode *node,const SQChar
 		if((str == exp->_bol && isChClassWord(*str))
 		 || (str == exp->_eol && isChClassWord(*(str-1)))
 		 || (isChClassWord(*str) != isChClassWord(*(str-1))) ) {
-			return (node->left == 'b')?str:NULL;
+			return (node->left == _SC('b'))?str:NULL;
 		}
-		return (node->left == 'b')?NULL:str;
+		return (node->left == _SC('b'))?NULL:str;
 	case OP_BOL:
 		if(str == exp->_bol) return str;
 		return NULL;
@@ -611,7 +611,7 @@ SQRex *sqstd_rex_compile(const SQChar *pattern,const SQChar **error)
 	if(setjmp(*((jmp_buf*)exp->_jmpbuf)) == 0) {
 		SQInteger res = sqstd_rex_list(exp);
 		exp->_nodes[exp->_first].left = res;
-		if(*exp->_p!='\0')
+		if(*exp->_p!=_SC('\0'))
 			sqstd_rex_error(exp,_SC("unexpected character"));
 #ifdef _DEBUG
 		{
