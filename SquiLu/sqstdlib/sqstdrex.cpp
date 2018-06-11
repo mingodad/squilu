@@ -598,8 +598,8 @@ SQRex *sqstd_rex_compile(const SQChar *pattern,const SQChar **error)
         return NULL;
     }
 	SQRex * volatile exp = (SQRex *)sq_malloc(sizeof(SQRex)); // "volatile" is needed for setjmp()
-	exp->_eol = exp->_bol = NULL;
-	exp->_p = pattern;
+	exp->_bol = exp->_p = pattern;
+	exp->_eol = exp->_bol + plen;
 	exp->_nallocated = plen;
 	exp->_nodes = (SQRexNode *)sq_malloc(exp->_nallocated * sizeof(SQRexNode));
 	exp->_nsize = 0;
