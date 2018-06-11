@@ -405,6 +405,13 @@ public:
         return _table(_ss(_vm)->_consts)->Get(key,val);
     }
 
+    void CompileTimeCheckConstsGet(const SQObjectPtr &key,SQObjectPtr &val)
+    {
+        if(!ConstsGet(key, val))
+        {
+            Error(_SC("compile time checked constant fail \"%s\""), _stringval(key));
+        }
+    }
     bool ConstsNewSlot(const SQObjectPtr &key, const SQObjectPtr &val)
     {
         if(_scope.nested) return _table(_scope_consts[_scope.nested-1])->NewSlot(key,val);
@@ -892,17 +899,17 @@ start_again:
         case TK_CONST:
         {
             Lex();
-            if(_token == _SC(':'))
+            if(_token == _SC('$'))
             {
                 //string const
                 Lex();
-		id = Expect(TK_IDENTIFIER);
-		SQObjectPtr strongid = id;
-		CheckLocalNameScope(id, _scope.nested);
-		//CheckConstsExists(strongid);
-		OptionalSemicolon();
-		ConstsNewSlot(strongid,SQObjectPtr(id));
-		break;
+                id = Expect(TK_IDENTIFIER);
+                SQObjectPtr strongid = id;
+                CheckLocalNameScope(id, _scope.nested);
+                //CheckConstsExists(strongid);
+                OptionalSemicolon();
+                ConstsNewSlot(strongid,SQObjectPtr(id));
+                break;
             }
             if(_token == TK_IDENTIFIER)
             {
@@ -1618,6 +1625,7 @@ start_again:
     SQInteger Factor()
     {
         _es.etype = EXPR;
+        bool compileTimeCheckedContant = false;
         switch(_token)
         {
         case TK_STRING_LITERAL:
@@ -1652,6 +1660,11 @@ start_again:
             _es.epos   = _fs->TopTarget();
             return (_es.epos);
             break;
+        case _SC('$'): //compile time checked constant
+            Lex();
+            ErrorIfNotToken(TK_IDENTIFIER);
+            compileTimeCheckedContant = true;
+            //fallthrough to TK_IDENTIFIER
         case TK_IDENTIFIER:
         case TK_CONSTRUCTOR:
         case TK_DESTRUCTOR:
@@ -1664,6 +1677,11 @@ start_again:
             {
             case TK_IDENTIFIER:
                 id = _fs->CreateString(_lex.data->svalue);
+                if(compileTimeCheckedContant)
+                {
+                    SQObjectPtr val;
+                    CompileTimeCheckConstsGet(id, val);
+                }
                 break;
             case TK_THIS:
                 id = _fs->CreateString(_SC("this"), 4);
@@ -2057,6 +2075,7 @@ start_again:
             bool cppDestructor = false;
             //bool isvirtual = false;
             //bool isprivate = false;
+            bool compileTimeCheckedContant = false;
             const SQChar *membertypename = 0;
             SQInteger member_type_token = 0;
             //check if is an attribute
@@ -2134,6 +2153,11 @@ function_params_decl:
                 Expression();
                 break;
 
+            case _SC('$'): //compile time checked constant
+                Lex();
+                ErrorIfNotToken(TK_IDENTIFIER);
+                compileTimeCheckedContant = true;
+                //fallthrough to TK_IDENTIFIER
             case TK_STRING_LITERAL: //JSON
                 if(isClass)
                 {
@@ -2142,6 +2166,12 @@ function_params_decl:
             case TK_IDENTIFIER:  //JSON
             {
                 obj_id = GetTokenObject(_token);
+                if(compileTimeCheckedContant)
+                {
+                    SQObjectPtr val;
+                    CompileTimeCheckConstsGet(obj_id, val);
+                    obj_id = val;
+                }
                 SQInteger next_token = _SC('=');
                 if(isClass)
                 {
