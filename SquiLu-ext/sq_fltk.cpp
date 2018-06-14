@@ -41,6 +41,7 @@
 #include <FL/Fl_JPEG_Image.H>
 #include <FL/Fl_SVG_Image.H>
 #include <FL/Fl_Shared_Image.H>
+#include <FL/Fl_Image_Surface.H>
 
 #include <FL/Fl_Help_View.H>
 #include <FL/Fl_Browser_.H>
@@ -117,6 +118,7 @@ CREATE_TAG(Fl_RGB_Image);
 CREATE_TAG(Fl_PNG_Image);
 CREATE_TAG(Fl_JPEG_Image);
 CREATE_TAG(Fl_SVG_Image);
+CREATE_TAG(Fl_Image_Surface);
 
 CREATE_TAG(Fl_Device);
 CREATE_TAG(Fl_Surface_Device);
@@ -3121,6 +3123,45 @@ static SQRegFunction fl_svg_image_obj_funcs[]={
 	{0,0}
 };
 #undef _DECL_FUNC
+#define SETUP_FL_IMAGE_DEVICE(v) SETUP_FL_KLASS(v, Fl_Image_Surface)
+
+static SQRESULT _Fl_Image_Surface_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
+{
+	Fl_Image_Surface *self = ((Fl_Image_Surface *)p);
+	delete self;
+	return 0;
+}
+
+static SQRESULT _Fl_Image_Surface_constructor(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS(v);
+    SQ_GET_INTEGER(v, 2, iw);
+    SQ_GET_INTEGER(v, 3, ih);
+    SQ_OPT_INTEGER(v, 4, high_res, 0);
+    SQ_OPT_INTEGER(v, 5, offscreen, 0);
+	Fl_Image_Surface *self = new Fl_Image_Surface(iw, ih, high_res, offscreen);
+    //do_register_object_and_instance(v, 1, cptr);
+    sq_setinstanceup(v, 1, self);
+    sq_setreleasehook(v,1, _Fl_Image_Surface_releasehook);
+	return 1;
+}
+
+static SQRESULT _Fl_Image_Surface_image(HSQUIRRELVM v)
+{
+    SETUP_FL_IMAGE_DEVICE(v);
+    Fl_RGB_Image *img = self->image();
+    if(img) return fltk_pushinstance(v, FLTK_TAG(Fl_RGB_Image), self->image());
+    sq_pushnull(v);
+    return 1;
+}
+
+#define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Image_Surface_##name,nparams,pmask,isStatic}
+static SQRegFunction fl_image_surface_obj_funcs[]={
+	_DECL_FUNC(constructor,-3,_SC("xiiii"),SQFalse),
+	_DECL_FUNC(image,1,_SC("x"), SQTrue),
+	{0,0}
+};
+#undef _DECL_FUNC
 static SQRESULT _Fl_Text_Buffer_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	Fl_Text_Buffer *self = ((Fl_Text_Buffer *)p);
@@ -5286,6 +5327,7 @@ SQRESULT sqext_register_fltklib(HSQUIRRELVM v)
     PUSH_FL_CLASS(Fl_Paged_Device, Fl_Surface_Device, fl_paged_device_obj_funcs);
     PUSH_FL_CLASS(Fl_Pdf_File_Device, Fl_Paged_Device, fl_pdf_file_device_obj_funcs);
     PUSH_FL_CLASS(Fl_PostScript_File_Device, Fl_Paged_Device, fl_postscript_file_device_obj_funcs);
+    PUSH_FL_CLASS(Fl_Image_Surface, Fl_Surface_Device, fl_image_surface_obj_funcs);
 
     sq_pushconsttable(v);
     /* add constants to global table */
