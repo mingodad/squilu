@@ -310,7 +310,7 @@ int Fl_PNG_Image::encode(Fl_Image *img, unsigned char **outbuffer, int &outlen){
            PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
            PNG_FILTER_TYPE_DEFAULT);
     png_set_sRGB(pp, info, PNG_sRGB_INTENT_PERCEPTUAL);
-    png_set_sRGB_gAMA_and_cHRM(pp, info, PNG_INFO_sRGB);
+    //png_set_sRGB_gAMA_and_cHRM(pp, info, PNG_INFO_sRGB);
 
     png_write_info(pp, info);
 
