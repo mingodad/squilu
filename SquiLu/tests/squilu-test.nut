@@ -1555,4 +1555,20 @@ sqt.run("enum", function(){
 	sqt.ok(e3.ten == 10);
 });
 
+sqt.run("constants", function(){
+	const ONE = 1;
+	const STR = "string";
+	const $CTCC;
+	
+	sqt.ok(ONE == 1);
+	sqt.ok(STR == "string");
+	sqt.ok(CTCC == "CTCC");
+
+	sqt.ok($ONE == 1);
+	sqt.ok($STR == "string");
+	sqt.ok($CTCC == "CTCC");
+	
+	//print(dostring("return $CTC == \"CTC\";"));
+});
+
 return sqt.results();           //show results
