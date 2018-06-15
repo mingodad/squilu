@@ -5,10 +5,58 @@
 #include <stdlib.h>
 #include <sqstdmath.h>
 
-#ifndef M_PI
-#define M_PI (3.14159265358979323846)
+/* Some useful constants.  */
+
+#ifndef M_E
+# define M_E		2.7182818284590452354	/* e */
 #endif
 
+#ifndef M_LOG2E
+# define M_LOG2E	1.4426950408889634074	/* log_2 e */
+#endif
+
+#ifndef M_LOG10E
+# define M_LOG10E	0.43429448190325182765	/* log_10 e */
+#endif
+
+#ifndef M_LN2
+# define M_LN2		0.69314718055994530942	/* log_e 2 */
+#endif
+
+#ifndef M_LN10
+# define M_LN10		(2.30258509299404568402)	/* log_e 10 */
+#endif
+#ifndef M_PI
+# define M_PI		(3.14159265358979323846)	/* pi */
+#endif
+
+#ifndef M_PI_2
+# define M_PI_2		(1.57079632679489661923)	/* pi/2 */
+#endif
+
+#ifndef M_PI_4
+# define M_PI_4		(0.78539816339744830962)	/* pi/4 */
+#endif
+
+#ifndef M_1_PI
+# define M_1_PI		(0.31830988618379067154)	/* 1/pi */
+#endif
+
+#ifndef M_2_PI
+# define M_2_PI		(0.63661977236758134308)	/* 2/pi */
+#endif
+
+#ifndef M_2_SQRTPI
+# define M_2_SQRTPI	(1.12837916709551257390)	/* 2/sqrt(pi) */
+#endif
+
+#ifndef M_SQRT2
+# define M_SQRT2	(1.41421356237309504880)	/* sqrt(2) */
+#endif
+
+#ifndef M_SQRT1_2
+# define M_SQRT1_2	(0.70710678118654752440)	/* 1/sqrt(2) */
+#endif
 
 #define SINGLE_ARG_FUNC(_funcname) static SQRESULT math_##_funcname(HSQUIRRELVM v){ \
 	SQFloat f; \
@@ -49,20 +97,31 @@ static SQRESULT math_rand(HSQUIRRELVM v)
 
 static SQRESULT math_random(HSQUIRRELVM v) {
   SQ_FUNC_VARS(v);
-  /* the `%' avoids the (rare) case of r==1, and is needed also because on
-     some systems (SunOS!) `rand()' may return a value larger than RAND_MAX */
-  SQFloat r = (SQFloat)(rand()%RAND_MAX) / (SQFloat)RAND_MAX;
-  if (_top_==1) {	/* no arguments: range [0,1) */
-    sq_pushfloat(v, r);
-  } else if (_top_<=3) {	/* int range [1,u] or [l,u] */
-    SQ_GET_INTEGER(v, 2, u);
-    SQ_OPT_INTEGER(v, 3, l, 1);
-    SQFloat d;
-    if(l<=u) return sq_throwerror(v, _SC("interval is empty"));
-    d= floor(r*(u-l+1));
-    int tmp = d;
-    sq_pushinteger(v, l+tmp);
-  } else return sq_throwerror(v, _SC("wrong number of arguments"));
+  SQInteger low, up;
+  SQFloat r = (SQFloat)rand() * (1.0 / ((SQFloat)RAND_MAX + 1.0));
+  switch (_top_) {  /* check number of arguments */
+    case 1: {  /* no arguments */
+      sq_pushfloat(v, r);  /* Number between 0 and 1 */
+      return 1;
+    }
+    case 2: {  /* only upper limit */
+      low = 1;
+      SQ_GET_INTEGER_NVD(v, 2, up);
+      break;
+    }
+    case 3: {  /* lower and upper limits */
+      SQ_GET_INTEGER_NVD(v, 2, low);
+      SQ_GET_INTEGER_NVD(v, 3, up);
+      break;
+    }
+    default: return sq_throwerror(v, _SC("wrong number of arguments"));
+  }
+  /* random integer in the interval [low, up] */
+  if(low >= up) return sq_throwerror(v, _SC("interval is empty"));
+  if(low <= 0 && up >= SQ_INT_MAX + low)
+    return sq_throwerror(v, _SC("interval too large"));
+  r *= (SQFloat)(up - low) + 1.0;
+  sq_pushinteger(v, (SQInteger)r + low);
   return 1;
 }
 
@@ -77,8 +136,8 @@ static SQRESULT math_abs(HSQUIRRELVM v)
 SINGLE_ARG_FUNC(sqrt)
 SINGLE_ARG_FUNC(fabs)
 SINGLE_ARG_FUNC(sin)
-SINGLE_ARG_FUNC(cos)
 SINGLE_ARG_FUNC(asin)
+SINGLE_ARG_FUNC(cos)
 SINGLE_ARG_FUNC(acos)
 SINGLE_ARG_FUNC(log)
 SINGLE_ARG_FUNC(log10)
@@ -90,6 +149,10 @@ SINGLE_ARG_FUNC(floor)
 SINGLE_ARG_FUNC(ceil)
 SINGLE_ARG_FUNC(exp)
 
+SINGLE_ARG_FUNC(acosh)
+SINGLE_ARG_FUNC(asinh)
+SINGLE_ARG_FUNC(tanh)
+SINGLE_ARG_FUNC(atanh)
 BOOL_SINGLE_ARG_FUNC(isnan);
 BOOL_SINGLE_ARG_FUNC(isfinite);
 
@@ -396,10 +459,20 @@ static const SQRegFunction mathlib_funcs[] = {
 	_DECL_FUNC(max,-3,_SC(".nn")),
 	_DECL_FUNC(rad,2,_SC(".n")),
 	_DECL_FUNC(deg,2,_SC(".n")),
+	_DECL_FUNC(asinh,2,_SC(".n")),
+	_DECL_FUNC(acosh,2,_SC(".n")),
+	_DECL_FUNC(tanh,2,_SC(".n")),
+	_DECL_FUNC(atanh,2,_SC(".n")),
 	{NULL,(SQFUNCTION)0,0,NULL}
 };
 #undef _DECL_FUNC
 
+static void installFloatConst(HSQUIRRELVM v, const SQChar *skey, SQFloat fv)
+{
+	sq_pushstring(v,skey,-1);
+	sq_pushfloat(v,fv);
+	sq_newslot(v,-3,SQFalse);
+}
 SQRESULT sqstd_register_mathlib(HSQUIRRELVM v)
 {
     sq_pushstring(v,_SC("math"),-1);
@@ -417,12 +490,24 @@ SQRESULT sqstd_register_mathlib(HSQUIRRELVM v)
 	sq_pushstring(v,_SC("RAND_MAX"),-1);
 	sq_pushinteger(v,RAND_MAX);
 	sq_newslot(v,-3,SQFalse);
-	sq_pushstring(v,_SC("PI"),-1);
-	sq_pushfloat(v,(SQFloat)M_PI);
-	sq_newslot(v,-3,SQFalse);
-	sq_pushstring(v,_SC("HUGE"),-1);
-	sq_pushfloat(v,(SQFloat)HUGE_VAL);
-	sq_newslot(v,-3,SQFalse);
+	installFloatConst(v, _SC("E"), (SQFloat)M_E);
+	installFloatConst(v, _SC("LOG2E"), (SQFloat)M_LOG2E);
+	installFloatConst(v, _SC("LOG10E"), (SQFloat)M_LOG10E);
+	installFloatConst(v, _SC("LN2"), (SQFloat)M_LN2);
+	installFloatConst(v, _SC("LN10"), (SQFloat)M_LN10);
+	installFloatConst(v, _SC("PI"), (SQFloat)M_PI);
+	installFloatConst(v, _SC("PI_2"), (SQFloat)M_PI_2);
+	installFloatConst(v, _SC("PI_4"), (SQFloat)M_PI_4);
+	installFloatConst(v, _SC("1_PI"), (SQFloat)M_1_PI);
+	installFloatConst(v, _SC("2_PI"), (SQFloat)M_2_PI);
+	installFloatConst(v, _SC("2_SQRTPI"), (SQFloat)M_2_SQRTPI);
+	installFloatConst(v, _SC("SQRT2"), (SQFloat)M_SQRT2);
+	installFloatConst(v, _SC("SQRT1_2"), (SQFloat)M_SQRT1_2);
+	installFloatConst(v, _SC("HUGE"), (SQFloat)HUGE_VAL);
+/*
+	installFloatConst(v, SC("DBL_MAX"), (SQFloat)DBL_MAX);
+	installFloatConst(v, SC("DBL_MIN"), (SQFloat)DBL_MIN);
+*/
 	sq_pushstring(v,_SC("INT_MAX"),-1);
 	sq_pushinteger(v,SQ_INT_MAX);
 	sq_newslot(v,-3,SQFalse);
