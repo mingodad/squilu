@@ -269,55 +269,79 @@ typedef struct {
 #define SQ_GET_INSTANCE(v, idx, Klass, Klass_tag) SQ_GET_INSTANCE_VAR(v, idx, Klass, self, Klass_tag)
 #define SQ_GET_INSTANCE2(v, idx, Var, Klass, Klass_tag) SQ_GET_INSTANCE_VAR(v, idx, Klass, Var, Klass_tag)
 
+#define SQ_GET_STRING_NVD(v, idx, var)\
+    if((_rc_ = sq_getstr_and_size(v,idx, &var, &var##_size)) < 0) return _rc_;
 #define SQ_GET_STRING(v, idx, var)\
     const SQChar *var;\
     SQInteger var##_size;\
-    if((_rc_ = sq_getstr_and_size(v,idx, &var, &var##_size)) < 0) return _rc_;
+    SQ_GET_STRING_NVD(v, idx, var)
 
 #define SQ_OPT_STRING_STRLEN() static inline size_t sq_opt_strlen(const SQChar *v) {return v ? scstrlen(v) : 0;}
 
-#define SQ_OPT_STRING(v, idx, var, dflt)\
-    const SQChar *var;\
-    SQInteger var##_size;\
+#define SQ_OPT_STRING_NVD(v, idx, var, dflt)\
     if(_top_ >= idx)\
         {if((_rc_ = sq_getstr_and_size(v,idx, &var, &var##_size)) < 0) return _rc_;}\
     else {var=dflt; var##_size = sq_opt_strlen(dflt);}
 
-#define SQ_GET_BOOL(v, idx, var)\
-    SQBool var;\
+#define SQ_OPT_STRING(v, idx, var, dflt)\
+    const SQChar *var;\
+    SQInteger var##_size;\
+    SQ_OPT_STRING_NVD(v, idx, var, dflt)
+
+#define SQ_GET_BOOL_NVD(v, idx, var)\
     if((_rc_ = sq_getbool(v,idx, &var)) < 0) return _rc_;
 
-#define SQ_OPT_BOOL(v, idx, var, dflt)\
+#define SQ_GET_BOOL(v, idx, var)\
     SQBool var;\
+    SQ_GET_BOOL_NVD(v, idx, var)
+
+#define SQ_OPT_BOOL_NVD(v, idx, var, dflt)\
     if(_top_ >= idx)\
         {if((_rc_ = sq_getbool(v,idx, &var)) < 0) return _rc_;}\
     else {var=dflt;}
 
-#define SQ_GET_INTEGER(v, idx, var)\
-    SQInteger var;\
+#define SQ_OPT_BOOL(v, idx, var, dflt)\
+    SQBool var;\
+    SQ_OPT_BOOL_NVD(v, idx, var, dflt)
+
+#define SQ_GET_INTEGER_NVD(v, idx, var)\
     if((_rc_ = sq_getinteger(v,idx, &var)) < 0) return _rc_;
 
-#define SQ_OPT_INTEGER(v, idx, var, dflt)\
+#define SQ_GET_INTEGER(v, idx, var)\
     SQInteger var;\
+    SQ_GET_INTEGER_NVD(v, idx, var)
+
+#define SQ_OPT_INTEGER_NVD(v, idx, var, dflt)\
     if(_top_ >= idx)\
         {if((_rc_ = sq_getinteger(v,idx, &var)) < 0) return _rc_;}\
     else {var=dflt;}
 
-#define SQ_GET_FLOAT(v, idx, var)\
-    SQFloat var;\
+#define SQ_OPT_INTEGER(v, idx, var, dflt)\
+    SQInteger var;\
+    SQ_OPT_INTEGER_NVD(v, idx, var, dflt)
+
+#define SQ_GET_FLOAT_NVD(v, idx, var)\
     if((_rc_ = sq_getfloat(v,idx, &var)) < 0) return _rc_;
 
-#define SQ_OPT_FLOAT(v, idx, var, dflt)\
+#define SQ_GET_FLOAT(v, idx, var)\
     SQFloat var;\
+    SQ_GET_FLOAT_NVD(v, idx, var)
+
+#define SQ_OPT_FLOAT_NVD(v, idx, var, dflt)\
     if(_top_ >= idx)\
         {if((_rc_ = sq_getfloat(v,idx, &var)) < 0) return _rc_;}\
     else {var=dflt;}
 
+#define SQ_OPT_FLOAT(v, idx, var, dflt)\
+    SQFloat var;\
+    SQ_OPT_FLOAT_NVD(v, idx, var, dflt)
 #define sq_pushliteral(v, str) sq_pushstring(v, str, sizeof(str)-1)
+#define SQ_GET_USERPOINTER_NVD(v, idx, var)\
+    if((_rc_ = sq_getuserpointer(v,idx, &var)) < 0) return _rc_;
 
 #define SQ_GET_USERPOINTER(v, idx, var)\
     SQUserPointer var;\
-    if((_rc_ = sq_getuserpointer(v,idx, &var)) < 0) return _rc_;
+    SQ_GET_USERPOINTER_NVD(v, idx, var)
 
 #define SQ_CHECK_TYPE(v, idx, tp) if(sq_gettype(v, idx) != OT_##tp) return sq_throwerror(v, _SC( #tp " expected for parameter (%d)"), idx-1);
 #define SQ_CHECK_ARRAY(v, idx) SQ_CHECK_TYPE(v, idx, ARRAY)
