@@ -2981,7 +2981,7 @@ error:
             {
                 Lex();
                 val = ExpectScalar();
-                nval = _integer(val)+1;
+                if(sq_type(val) == OT_INTEGER) nval = _integer(val)+1;
             }
             else
             {
