@@ -3139,7 +3139,7 @@ static SQRESULT _Fl_Image_Surface_constructor(HSQUIRRELVM v)
     SQ_GET_INTEGER(v, 3, ih);
     SQ_OPT_INTEGER(v, 4, high_res, 0);
     SQ_OPT_INTEGER(v, 5, offscreen, 0);
-	Fl_Image_Surface *self = new Fl_Image_Surface(iw, ih, high_res, offscreen);
+	Fl_Image_Surface *self = new Fl_Image_Surface(iw, ih, high_res, (Fl_Offscreen)offscreen);
     //do_register_object_and_instance(v, 1, cptr);
     sq_setinstanceup(v, 1, self);
     sq_setreleasehook(v,1, _Fl_Image_Surface_releasehook);
