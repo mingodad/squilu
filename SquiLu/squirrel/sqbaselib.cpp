@@ -596,7 +596,7 @@ static SQRegFunction base_funcs[]={
 	{_SC("table_setdelegate"),bf_table_setdelegate,3, _SC(".t t|o")},
 	{_SC("table_getdelegate"),bf_table_getdelegate,2, _SC(".t")},
 	{_SC("table_getdelegate_squirrel"),bf_table_getdelegate_squirrel,1, _SC(".")},
-	{_SC("obj_clone"),bf_obj_clone,2, _SC(". t|a|x")},
+	{_SC("obj_clone"),bf_obj_clone,2, _SC(". t|a|x|i|f|s")},
 	{NULL,(SQFUNCTION)0,0,NULL}
 };
 
@@ -1022,7 +1022,7 @@ static SQRESULT array_find(HSQUIRRELVM v)
 	SQObjectPtr temp;
 	for(SQInteger n = 0; n < size; n++) {
 		a->Get(n,temp);
-		if(SQVM::IsEqual(temp,val)) {
+		if(v->IsEqual(temp,val)) {
 			v->Push(n);
 			return 1;
 		}

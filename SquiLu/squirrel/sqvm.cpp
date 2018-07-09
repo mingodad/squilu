@@ -715,6 +715,16 @@ bool SQVM::CLASS_OP(SQObjectPtr &target,SQInteger baseclass,SQInteger attributes
 	return true;
 }
 
+bool SQVM::IsEqualDeep(const SQObjectPtr &o1,const SQObjectPtr &o2)
+{
+	if(sq_type(o1) == sq_type(o2)) {
+		if(_rawval(o1) == _rawval(o2)) return true;
+        SQInteger rc;
+        if(ObjCmp(o1, o2, rc) && (rc == 0)) return true;
+        return false;
+	}
+	return IsEqual(o1, o2);
+}
 bool SQVM::IsEqual(const SQObjectPtr &o1,const SQObjectPtr &o2)
 {
 	bool res = false;
@@ -1071,7 +1081,7 @@ exception_restore:
 				_Swap(TARGET,temp_reg);//TARGET = temp_reg;
 				continue;}
 			OPCODE_TARGET(EQ) {
-				TARGET = IsEqual(STK(arg2),COND_LITERAL)?true:false;
+				TARGET = IsEqualDeep(STK(arg2),COND_LITERAL)?true:false;
 				continue;}
 			OPCODE_TARGET(EQI) {
 				TARGET = IsEqualIdentity(STK(arg2),COND_LITERAL)?true:false;
@@ -1691,6 +1701,11 @@ cloned_mt:
 		return true;
 	case OT_ARRAY:
 		target = _array(self)->Clone();
+		return true;
+	case OT_INTEGER:
+	case OT_FLOAT:
+	case OT_STRING:
+		target = self;
 		return true;
 	default:
 		Raise_Error(_SC("cloning a %s"), GetTypeName(self));

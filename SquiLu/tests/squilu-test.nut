@@ -150,6 +150,8 @@ sqt.run("closures", function(){
 sqt.run("calls", function(){
 
 	// get the opportunity to test "type" too ;)
+	local Klass = class {};
+	local aklass = Klass();
 
 	sqt.ok(type(1<2) == "bool")
 	sqt.ok(type(true) == "bool" && type(false) == "bool")
@@ -159,6 +161,8 @@ sqt.run("calls", function(){
 	sqt.ok(type("x") == "string")
 	sqt.ok(type({}) == "table")
 	sqt.ok(type(type) == "function")
+	sqt.ok(type(Klass) == "class")
+	sqt.ok(type(aklass) == "instance")
 
 	sqt.ok(type(sqt.ok) == type(print))
 	local f = null
@@ -1569,6 +1573,50 @@ sqt.run("constants", function(){
 	sqt.ok($CTCC == "CTCC");
 	
 	//print(dostring("return $CTC == \"CTC\";"));
+});
+
+sqt.run("class", function(){
+
+	class Comparable {
+		constructor(n)
+		{
+			name = n;
+		}
+
+		function _typeof() {return "Comparable";};
+
+		function _cmp(other)
+		{
+			if(name<other.name) return -1;
+			if(name>other.name) return 1;
+			return 0;
+		}
+		static function st() {return "st";};
+		name = null;
+		id = 0;
+		static count = 0;
+	}
+	local a = Comparable("Alberto");
+	local b = Comparable("Wouter");
+	local c = Comparable("Alberto");
+	sqt.ok(a < b);
+	sqt.ok(b > a);
+	sqt.ok(a.id == 0);
+	sqt.ok(Comparable.count == 0);
+	sqt.ok(a.count == 0);
+	sqt.ok(Comparable.st() == "st");
+	sqt.ok(a.st() == "st");
+	sqt.ok(typeof(a) == "Comparable");
+	sqt.ok( c == a );
+	sqt.ok( c !== a );
+
+});
+
+sqt.run("globals", function(){
+
+	sqt.ok( obj_clone(3) == 3 );
+	sqt.ok( obj_clone(3.4) == 3.4 );
+	sqt.ok( obj_clone("str") == "str" );
 });
 
 return sqt.results();           //show results
