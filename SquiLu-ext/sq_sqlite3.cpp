@@ -1456,9 +1456,9 @@ static SQRegFunction sq_sqlite3_stmt_methods[] =
     _DECL_FUNC(bind_blob,  3, _SC("xis|u"), SQFalse),
     _DECL_FUNC(bind_zeroblob,  3, _SC("xii"), SQFalse),
     _DECL_FUNC(bind_values,  -2, _SC("x s|n|b|o|u"), SQFalse),
-    _DECL_FUNC(bind_exec,  -2, _SC("x s|n|b|o|u"), SQFalse),
-    _DECL_FUNC(bind_exec_get_one,  -2, _SC("x s|n|b|o|u"), SQFalse),
-    _DECL_FUNC(bind_exec_get_first_row,  -2, _SC("x s|n|b|o|u"), SQFalse),
+    _DECL_FUNC(bind_exec,  -1, _SC("x s|n|b|o|u"), SQFalse),
+    _DECL_FUNC(bind_exec_get_one,  -1, _SC("x s|n|b|o|u"), SQFalse),
+    _DECL_FUNC(bind_exec_get_first_row,  -1, _SC("x s|n|b|o|u"), SQFalse),
     _DECL_FUNC(bind_names,  2, _SC("x t|a"), SQFalse),
     _DECL_FUNC(bind_parameter_index,  2, _SC("xs"), SQFalse),
     _DECL_FUNC(bind_parameter_count,  1, _SC("x"), SQFalse),
@@ -3407,16 +3407,21 @@ static void db_sql_finalize_function(sqlite3_context *context)
 ** Params of step: context, params
 ** Params of finalize: context
 */
-static SQRESULT db_register_function(HSQUIRRELVM v, int aggregate)
+#define CREATE_FUNCTION_SIMPLE 0
+#define CREATE_FUNCTION_AGGREGATE 1
+#define CREATE_FUNCTION_WINDOW 2
+
+static SQRESULT db_register_function(HSQUIRRELVM v, int fcreate_type)
 {
     SQ_FUNC_VARS(v);
     SQInteger ftype = 0;
+    SQBool isAggregate = fcreate_type == CREATE_FUNCTION_AGGREGATE;
     GET_sqlite3_INSTANCE();
     SQ_GET_STRING(v, 2, name);
     SQ_GET_INTEGER(v, 3, nargs);
     if(sq_gettype(v, 4) != OT_CLOSURE)
         return sq_throwerror(v, "invalid parameter 3 expected closure");
-    if (aggregate)
+    if (isAggregate)
     {
         if(sq_gettype(v,5) != OT_CLOSURE)
             return sq_throwerror(v, "invalid parameter 4 expected closure");
@@ -3431,9 +3436,9 @@ static SQRESULT db_register_function(HSQUIRRELVM v, int aggregate)
     _rc_ = sqlite3_create_function(
                self, name, nargs, SQLITE_UTF8 | (ftype == SQLITE_DETERMINISTIC ? ftype : 0),
                 func,
-               aggregate ? NULL : db_sql_normal_function,
-               aggregate ? db_sql_normal_function : NULL,
-               aggregate ? db_sql_finalize_function : NULL
+               isAggregate ? NULL : db_sql_normal_function,
+               isAggregate ? db_sql_normal_function : NULL,
+               isAggregate ? db_sql_finalize_function : NULL
            );
 
     if (_rc_ == SQLITE_OK)
@@ -3449,7 +3454,7 @@ static SQRESULT db_register_function(HSQUIRRELVM v, int aggregate)
         sq_addref(v, &func->fn_step);
         /* save the finalize function callback */
         sq_resetobject(&func->fn_finalize);
-        if (aggregate)
+        if (isAggregate)
         {
             sq_getstackobj(v, 5, &func->fn_finalize);
             sq_addref(v, &func->fn_finalize);
@@ -3457,7 +3462,7 @@ static SQRESULT db_register_function(HSQUIRRELVM v, int aggregate)
 
         /* save user data */
         sq_resetobject(&func->udata);
-        int udata_idx = aggregate ? 6 : 5;
+        int udata_idx = isAggregate ? 6 : 5;
         if(_top_ >= udata_idx)
         {
             sq_getstackobj(v, udata_idx, &func->udata);
@@ -3477,14 +3482,20 @@ static SQRESULT db_register_function(HSQUIRRELVM v, int aggregate)
 
 static SQRESULT sq_sqlite3_create_function(HSQUIRRELVM v)
 {
-    return db_register_function(v, 0);
+    return db_register_function(v, CREATE_FUNCTION_SIMPLE);
 }
 
 static SQRESULT sq_sqlite3_create_aggregate(HSQUIRRELVM v)
 {
-    return db_register_function(v, 1);
+    return db_register_function(v, CREATE_FUNCTION_AGGREGATE);
 }
 
+/*
+static SQRESULT sq_sqlite3_create_window_function(HSQUIRRELVM v)
+{
+    return db_register_function(v, CREATE_FUNCTION_WINDOW);
+}
+*/
 static SQRESULT sq_sqlite3_backup(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
@@ -3681,6 +3692,7 @@ static SQRegFunction sq_sqlite3_methods[] =
     _DECL_FUNC(busy_timeout,  2, _SC("xi")),
     _DECL_FUNC(create_function,  -4, _SC("xsic.")),
     _DECL_FUNC(create_aggregate,  -5, _SC("xsicc.")),
+   // _DECL_FUNC(create_window_function,  -6, _SC("xsiccc.")),
 #ifndef WIN32
     _DECL_FUNC(temp_directory,  2, _SC("xs")),
 #endif
