@@ -1,6 +1,8 @@
 MYSDKPREFIX=$(HOME)/local/theos/sdks/iPhoneOS5.1.sdk/usr
 
-INC = -Iinclude -Isqstdlib  -Isquirrel -I../SquiLu-ext -I../myaxtls -I../mpdecimal-ios -I../md4c/md4c -I../md4c/md2html -I../gumbo -I.. -I../minizip -I$(MYSDKPREFIX)/include -I$(MYSDKPREFIX)/include/c++/4.2.1 
+INC = -Iinclude -Isqstdlib  -Isquirrel -I../SquiLu-ext -I../myaxtls -I../mpdecimal-ios \
+	-I../md4c/md4c -I../md4c/md2html -I../gumbo -I.. -I../minizip \
+	-I$(MYSDKPREFIX)/include -I$(MYSDKPREFIX)/include/c++/4.2.1 
 
 CFLAGS = $(INC) -O3 -Wall -fno-strict-aliasing  \
     -D_DEBUG_DUMP33=1 \
@@ -54,7 +56,8 @@ CFLAGS = $(INC) -O3 -Wall -fno-strict-aliasing  \
     -DSQ_USE_MKSTEMP=1 \
     -DSQ_USE_LOCALTIME_R=1 \
     -DSQ_ENABLE_INCLUDES=1 \
-    -DSLAVE_VM_WITH_OS_THREADS=1
+    -DSLAVE_VM_WITH_OS_THREADS=1 \
+    -DSQLITE_ENABLE_SORTER_REFERENCES=1
 
 RESINC = 
 LIBDIR = -L$(MYSDKPREFIX)/lib -L$(MYSDKPREFIX)/lib/system -Llib
@@ -111,6 +114,8 @@ SOURCES= sq/sq.c  \
     ../SquiLu-ext/randombytes.c \
     ../SquiLu-ext/sq_fossil.cpp \
     ../SquiLu-ext/fossil-delta.c \
+    ../SquiLu-ext/sq_nn.cpp \
+    ../SquiLu-ext/nn.c \
     squirrel/lua-regex.c  \
     squirrel/sqapi.cpp  \
     squirrel/sqbaselib.cpp  \
