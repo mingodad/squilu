@@ -814,7 +814,7 @@ SQRESULT sqext_register_EasyCurl (HSQUIRRELVM v) {
 
 #ifdef __cplusplus
 }
+#endif
 
 #endif //USE_EASYCURL
 
-#endif
