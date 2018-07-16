@@ -2609,7 +2609,7 @@ static int db_progress_callback(void *udata)
     SQInteger result = 1; /* abort by default */
     sq_sqlite3_sdb *sdb = (sq_sqlite3_sdb*)udata;
     HSQUIRRELVM v = sdb->v;
-    int top = sq_gettop(v);
+    SQInteger top = sq_gettop(v);
 
     sq_pushobject(v, sdb->progress_cb);
     sq_pushroottable(v); //this
@@ -2680,7 +2680,7 @@ static void db_trace_callback(void *udata, const char *sql)
 {
     sq_sqlite3_sdb *sdb = (sq_sqlite3_sdb*)udata;
     HSQUIRRELVM v = sdb->v;
-    int top = sq_gettop(v);
+    SQInteger top = sq_gettop(v);
 
     /* setup squirrel callback call */
     sq_pushobject(v, sdb->trace_cb);
@@ -2748,7 +2748,7 @@ static void db_update_hook_callback(void *udata, int update_type,
 {
     sq_sqlite3_sdb *sdb = (sq_sqlite3_sdb*)udata;
     HSQUIRRELVM v = sdb->v;
-    int top = sq_gettop(v);
+    SQInteger top = sq_gettop(v);
 
     /* setup squirrel callback call */
     sq_pushobject(v, sdb->update_hook_cb);
@@ -2851,7 +2851,7 @@ static int db_authorizer_hook_callback(void *udata, int action_code,
 {
     sq_sqlite3_sdb *sdb = (sq_sqlite3_sdb*)udata;
     HSQUIRRELVM v = sdb->v;
-    int top = sq_gettop(v);
+    SQInteger top = sq_gettop(v);
     SQInteger result = SQLITE_OK;
 
     /* setup squirrel callback call */
@@ -2921,7 +2921,7 @@ static int db_busy_callback(void *udata, int tries)
     SQBool retry = SQFalse; /* abort by default */
     sq_sqlite3_sdb *sdb = (sq_sqlite3_sdb*)udata;
     HSQUIRRELVM v = sdb->v;
-    int top = sq_gettop(v);
+    SQInteger top = sq_gettop(v);
 
     sq_pushobject(v, sdb->busy_cb);
     sq_pushroottable(v);
@@ -3290,7 +3290,7 @@ static SQRESULT new_context_instance(HSQUIRRELVM v, sq_sqlite3_context_st **ctx)
 {
     sq_pushregistrytable(v);
     sq_pushstring(v, sq_sqlite3_context_TAG,-1);
-    int rc = sq_rawget(v, -2);
+    SQInteger rc = sq_rawget(v, -2);
     sq_remove(v, -2); //remove registrytable
     sq_pushroottable(v);
     rc = sq_call(v, 1, SQTrue, SQFalse);
@@ -3307,7 +3307,7 @@ static void db_sql_normal_function(sqlite3_context *context, int argc, sqlite3_v
 
     int n;
     sq_sqlite3_context_st *ctx;
-    int top = sq_gettop(v);
+    SQInteger top = sq_gettop(v);
 
     /* ensure there is enough space in the stack */
     sq_reservestack(v, argc + 5);
@@ -3363,7 +3363,7 @@ static void db_sql_finalize_function(sqlite3_context *context)
     HSQUIRRELVM v = func->sdb->v;
     void *p = sqlite3_aggregate_context(context, 1); /* minimal mem usage */
     sq_sqlite3_context_st *ctx;
-    int top = sq_gettop(v);
+    SQInteger top = sq_gettop(v);
 
     sq_pushobject(v, func->fn_finalize);
     sq_pushroottable(v);
