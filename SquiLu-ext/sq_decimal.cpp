@@ -37,117 +37,30 @@ static SQRESULT sq_DecimalCtx_constructor (HSQUIRRELVM v) {
     return 1;
 }
 
-static SQRESULT sq_DecimalCtx_prec(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS(v);
-    GET_DecimalCtx_INSTANCE(v, 1);
-    if(_top_ > 1){
-        SQ_GET_INTEGER(v, 2, prec);
-        if(prec < 0) return sq_throwerror(v, _SC("invalid precision (%d)"), prec);
-        mpd_qsetprec(ctx, prec);
-        return 0;
-    }
-    else sq_pushinteger(v, mpd_getprec(ctx));
-	return 1;
+#define SQ_DECIMAL_FUNC_GETSET(sqfn)\
+static SQRESULT sq_DecimalCtx_##sqfn(HSQUIRRELVM v)\
+{\
+    SQ_FUNC_VARS(v);\
+    GET_DecimalCtx_INSTANCE(v, 1);\
+    if(_top_ > 1){\
+        SQ_GET_INTEGER(v, 2, sqfn);\
+        if(sqfn < 0) return sq_throwerror(v, _SC("invalid " #sqfn " (%d)"), sqfn);\
+        mpd_qset##sqfn(ctx, sqfn);\
+        return 0;\
+    }\
+    else sq_pushinteger(v, mpd_get##sqfn(ctx));\
+	return 1;\
 }
 
-static SQRESULT sq_DecimalCtx_emax(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS(v);
-    GET_DecimalCtx_INSTANCE(v, 1);
-    if(_top_ > 1){
-        SQ_GET_INTEGER(v, 2, emax);
-        if(emax < 0) return sq_throwerror(v, _SC("invalid emax (%d)"), emax);
-        mpd_qsetemax(ctx, emax);
-        return 0;
-    }
-    else sq_pushinteger(v, mpd_getemax(ctx));
-	return 1;
-}
+SQ_DECIMAL_FUNC_GETSET(prec);
+SQ_DECIMAL_FUNC_GETSET(emax);
+SQ_DECIMAL_FUNC_GETSET(emin);
+SQ_DECIMAL_FUNC_GETSET(round);
+SQ_DECIMAL_FUNC_GETSET(traps);
+SQ_DECIMAL_FUNC_GETSET(status);
+SQ_DECIMAL_FUNC_GETSET(clamp);
+SQ_DECIMAL_FUNC_GETSET(cr);
 
-static SQRESULT sq_DecimalCtx_emin(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS(v);
-    GET_DecimalCtx_INSTANCE(v, 1);
-    if(_top_ > 1){
-        SQ_GET_INTEGER(v, 2, emin);
-        if(emin < 0) return sq_throwerror(v, _SC("invalid emin (%d)"), emin);
-        mpd_qsetemin(ctx, emin);
-        return 0;
-    }
-    else sq_pushinteger(v, mpd_getemin(ctx));
-	return 1;
-}
-
-static SQRESULT sq_DecimalCtx_round(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS(v);
-    GET_DecimalCtx_INSTANCE(v, 1);
-    if(_top_ > 1){
-        SQ_GET_INTEGER(v, 2, round);
-        if(round < 0) return sq_throwerror(v, _SC("invalid round (%d)"), round);
-        mpd_qsetround(ctx, round);
-        return 0;
-    }
-    else sq_pushinteger(v, mpd_getround(ctx));
-	return 1;
-}
-
-static SQRESULT sq_DecimalCtx_traps(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS(v);
-    GET_DecimalCtx_INSTANCE(v, 1);
-    if(_top_ > 1){
-        SQ_GET_INTEGER(v, 2, flags);
-        if(flags < 0) return sq_throwerror(v, _SC("invalid traps (%d)"), flags);
-        mpd_qsettraps(ctx, flags);
-        return 0;
-    }
-    else sq_pushinteger(v, mpd_gettraps(ctx));
-	return 1;
-}
-
-static SQRESULT sq_DecimalCtx_status(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS(v);
-    GET_DecimalCtx_INSTANCE(v, 1);
-    if(_top_ > 1){
-        SQ_GET_INTEGER(v, 2, status);
-        if(status < 0) return sq_throwerror(v, _SC("invalid status (%d)"), status);
-        mpd_qsetstatus(ctx, status);
-        return 0;
-    }
-    else sq_pushinteger(v, mpd_getstatus(ctx));
-	return 1;
-}
-
-static SQRESULT sq_DecimalCtx_clamp(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS(v);
-    GET_DecimalCtx_INSTANCE(v, 1);
-    if(_top_ > 1){
-        SQ_GET_INTEGER(v, 2, clamp);
-        if(clamp < 0) return sq_throwerror(v, _SC("invalid clamp (%d)"), clamp);
-        mpd_qsetclamp(ctx, clamp);
-        return 0;
-    }
-    else sq_pushinteger(v, mpd_getclamp(ctx));
-	return 1;
-}
-
-static SQRESULT sq_DecimalCtx_cr(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS(v);
-    GET_DecimalCtx_INSTANCE(v, 1);
-    if(_top_ > 1){
-        SQ_GET_INTEGER(v, 2, cr);
-        if(cr < 0) return sq_throwerror(v, _SC("invalid cr (%d)"), cr);
-        mpd_qsetcr(ctx, cr);
-        return 0;
-    }
-    else sq_pushinteger(v, mpd_getcr(ctx));
-	return 1;
-}
 
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),sq_DecimalCtx_##name,nparams,tycheck}
 static SQRegFunction DecimalCtx_methods[] =
@@ -311,76 +224,53 @@ static SQRESULT sq_Decimal_tostring(HSQUIRRELVM v)
 	return 1;
 }
 
-static SQRESULT sq_Decimal__add(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS_NO_TOP(v);
-    GET_Decimal_INSTANCE(v, 1);
-    GET_Decimal_INSTANCE2(v, 2);
-    mpd_context_t *ctx = sq_get_global_ctx(v, 1);
-    mpd_t *result = mpd_new(ctx);
-    uint32_t status = 0;
-    mpd_qadd(result, dec, dec2, ctx, &status);
-	return sq_Decimal_new_for_dec(v, result, ctx, status);
+#define SQ_DECIMAL_FUNC2(sqfn, decfn)\
+static SQRESULT sq_Decimal_##sqfn(HSQUIRRELVM v)\
+{\
+    SQ_FUNC_VARS_NO_TOP(v);\
+    GET_Decimal_INSTANCE(v, 1);\
+    GET_Decimal_INSTANCE2(v, 2);\
+    mpd_context_t *ctx = sq_get_global_ctx(v, 1);\
+    mpd_t *result = mpd_new(ctx);\
+    uint32_t status = 0;\
+    decfn(result, dec, dec2, ctx, &status);\
+	return sq_Decimal_new_for_dec(v, result, ctx, status);\
 }
 
-static SQRESULT sq_Decimal__sub(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS_NO_TOP(v);
-    GET_Decimal_INSTANCE(v, 1);
-    GET_Decimal_INSTANCE2(v, 2);
-    mpd_context_t *ctx = sq_get_global_ctx(v, 1);
-    mpd_t *result = mpd_new(ctx);
-    uint32_t status = 0;
-    mpd_qsub(result, dec, dec2, ctx, &status);
-	return sq_Decimal_new_for_dec(v, result, ctx, status);
+SQ_DECIMAL_FUNC2(_add, mpd_qadd);
+SQ_DECIMAL_FUNC2(_sub, mpd_qsub);
+SQ_DECIMAL_FUNC2(_mul, mpd_qmul);
+SQ_DECIMAL_FUNC2(_div, mpd_qdiv);
+SQ_DECIMAL_FUNC2(_modulo, mpd_qrem);
+SQ_DECIMAL_FUNC2(max, mpd_qmax);
+SQ_DECIMAL_FUNC2(min, mpd_qmin);
+SQ_DECIMAL_FUNC2(pow, mpd_qpow);
+SQ_DECIMAL_FUNC2(next_toward, mpd_qnext_toward);
+
+#define SQ_DECIMAL_FUNC1(sqfn, decfn)\
+static SQRESULT sq_Decimal_##sqfn(HSQUIRRELVM v)\
+{\
+    SQ_FUNC_VARS_NO_TOP(v);\
+    GET_Decimal_INSTANCE(v, 1);\
+    mpd_context_t *ctx = sq_get_global_ctx(v, 1);\
+    mpd_t *result = mpd_new(ctx);\
+    uint32_t status = 0;\
+    decfn(result, dec, ctx, &status);\
+	return sq_Decimal_new_for_dec(v, result, ctx, status);\
 }
 
-static SQRESULT sq_Decimal__mul(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS_NO_TOP(v);
-    GET_Decimal_INSTANCE(v, 1);
-    GET_Decimal_INSTANCE2(v, 2);
-    mpd_context_t *ctx = sq_get_global_ctx(v, 1);
-    mpd_t *result = mpd_new(ctx);
-    uint32_t status = 0;
-    mpd_qmul(result, dec, dec2, ctx, &status);
-	return sq_Decimal_new_for_dec(v, result, ctx, status);
-}
-
-static SQRESULT sq_Decimal__div(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS_NO_TOP(v);
-    GET_Decimal_INSTANCE(v, 1);
-    GET_Decimal_INSTANCE2(v, 2);
-    mpd_context_t *ctx = sq_get_global_ctx(v, 1);
-    mpd_t *result = mpd_new(ctx);
-    uint32_t status = 0;
-    mpd_qdiv(result, dec, dec2, ctx, &status);
-	return sq_Decimal_new_for_dec(v, result, ctx, status);
-}
-
-static SQRESULT sq_Decimal__modulo(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS_NO_TOP(v);
-    GET_Decimal_INSTANCE(v, 1);
-    GET_Decimal_INSTANCE2(v, 2);
-    mpd_context_t *ctx = sq_get_global_ctx(v, 1);
-    mpd_t *result = mpd_new(ctx);
-    uint32_t status = 0;
-    mpd_qrem(result, dec, dec2, ctx, &status);
-	return sq_Decimal_new_for_dec(v, result, ctx, status);
-}
-
-static SQRESULT sq_Decimal__unm(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS_NO_TOP(v);
-    GET_Decimal_INSTANCE(v, 1);
-    mpd_context_t *ctx = sq_get_global_ctx(v, 1);
-    mpd_t *result = mpd_new(ctx);
-    uint32_t status = 0;
-    mpd_qminus(result, dec, ctx, &status);
-	return sq_Decimal_new_for_dec(v, result, ctx, status);
-}
+SQ_DECIMAL_FUNC1(_unm, mpd_qminus);
+SQ_DECIMAL_FUNC1(next_minus, mpd_qnext_minus);
+SQ_DECIMAL_FUNC1(next_plus, mpd_qnext_plus);
+SQ_DECIMAL_FUNC1(abs, mpd_qabs);
+SQ_DECIMAL_FUNC1(sqrt, mpd_qsqrt);
+SQ_DECIMAL_FUNC1(exp, mpd_qexp);
+SQ_DECIMAL_FUNC1(ln, mpd_qln);
+SQ_DECIMAL_FUNC1(log10, mpd_qlog10);
+SQ_DECIMAL_FUNC1(invroot, mpd_qinvroot);
+SQ_DECIMAL_FUNC1(floor, mpd_qfloor);
+SQ_DECIMAL_FUNC1(ceil, mpd_qceil);
+SQ_DECIMAL_FUNC1(trunc, mpd_qtrunc);
 
 static SQRESULT sq_Decimal__cmp(HSQUIRRELVM v)
 {
@@ -390,75 +280,6 @@ static SQRESULT sq_Decimal__cmp(HSQUIRRELVM v)
     mpd_context_t *ctx = sq_get_global_ctx(v, 1);
     sq_pushinteger(v, mpd_cmp(dec, dec2, ctx));
 	return 1;
-}
-
-static SQRESULT sq_Decimal_abs(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS_NO_TOP(v);
-    GET_Decimal_INSTANCE(v, 1);
-    mpd_context_t *ctx = sq_get_global_ctx(v, 1);
-    mpd_t *result = mpd_new(ctx);
-    uint32_t status = 0;
-    mpd_qabs(result, dec, ctx, &status);
-	return sq_Decimal_new_for_dec(v, result, ctx, status);
-}
-
-static SQRESULT sq_Decimal_max(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS_NO_TOP(v);
-    GET_Decimal_INSTANCE(v, 1);
-    GET_Decimal_INSTANCE2(v, 2);
-    mpd_context_t *ctx = sq_get_global_ctx(v, 1);
-    mpd_t *result = mpd_new(ctx);
-    uint32_t status = 0;
-    mpd_qmax(result, dec, dec2, ctx, &status);
-	return sq_Decimal_new_for_dec(v, result, ctx, status);
-}
-
-static SQRESULT sq_Decimal_min(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS_NO_TOP(v);
-    GET_Decimal_INSTANCE(v, 1);
-    GET_Decimal_INSTANCE2(v, 2);
-    mpd_context_t *ctx = sq_get_global_ctx(v, 1);
-    mpd_t *result = mpd_new(ctx);
-    uint32_t status = 0;
-    mpd_qmin(result, dec, dec2, ctx, &status);
-	return sq_Decimal_new_for_dec(v, result, ctx, status);
-}
-
-static SQRESULT sq_Decimal_next_minus(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS_NO_TOP(v);
-    GET_Decimal_INSTANCE(v, 1);
-    mpd_context_t *ctx = sq_get_global_ctx(v, 1);
-    mpd_t *result = mpd_new(ctx);
-    uint32_t status = 0;
-    mpd_qnext_minus(result, dec, ctx, &status);
-	return sq_Decimal_new_for_dec(v, result, ctx, status);
-}
-
-static SQRESULT sq_Decimal_next_plus(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS_NO_TOP(v);
-    GET_Decimal_INSTANCE(v, 1);
-    mpd_context_t *ctx = sq_get_global_ctx(v, 1);
-    mpd_t *result = mpd_new(ctx);
-    uint32_t status = 0;
-    mpd_qnext_plus(result, dec, ctx, &status);
-	return sq_Decimal_new_for_dec(v, result, ctx, status);
-}
-
-static SQRESULT sq_Decimal_next_toward(HSQUIRRELVM v)
-{
-    SQ_FUNC_VARS_NO_TOP(v);
-    GET_Decimal_INSTANCE(v, 1);
-    GET_Decimal_INSTANCE2(v, 2);
-    mpd_context_t *ctx = sq_get_global_ctx(v, 1);
-    mpd_t *result = mpd_new(ctx);
-    uint32_t status = 0;
-    mpd_qnext_toward(result, dec, dec2, ctx, &status);
-	return sq_Decimal_new_for_dec(v, result, ctx, status);
 }
 
 #define DECIMAL_IS(fn) \
@@ -496,11 +317,20 @@ static SQRegFunction Decimal_methods[] =
     _DECL_FUNC(_mul, 2,_SC("xx")),
     _DECL_FUNC(_div, 2,_SC("xx")),
     _DECL_FUNC(_modulo, 2,_SC("xx")),
-    _DECL_FUNC(_unm, 1,_SC("x")),
     _DECL_FUNC(_cmp, 2,_SC("xx")),
-    _DECL_FUNC(abs, 1,_SC("x")),
     _DECL_FUNC(max, 2,_SC("xx")),
     _DECL_FUNC(min, 2,_SC("xx")),
+    _DECL_FUNC(pow, 2,_SC("xx")),
+    _DECL_FUNC(abs, 1,_SC("x")),
+    _DECL_FUNC(_unm, 1,_SC("x")),
+    _DECL_FUNC(sqrt, 1,_SC("x")),
+    _DECL_FUNC(exp, 1,_SC("x")),
+    _DECL_FUNC(ln, 1,_SC("x")),
+    _DECL_FUNC(log10, 1,_SC("x")),
+    _DECL_FUNC(floor, 1,_SC("x")),
+    _DECL_FUNC(ceil, 1,_SC("x")),
+    _DECL_FUNC(trunc, 1,_SC("x")),
+    _DECL_FUNC(invroot, 1,_SC("x")),
     _DECL_FUNC(next_minus, 1,_SC("x")),
     _DECL_FUNC(next_plus, 1,_SC("x")),
     _DECL_FUNC(next_toward, 2,_SC("xx")),
