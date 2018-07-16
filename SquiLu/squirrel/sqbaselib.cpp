@@ -1619,7 +1619,11 @@ SQRESULT string_gmatch_base(HSQUIRRELVM v, int isGmatch, const SQChar *src, SQIn
     if(ms.error) return sq_throwerror(v, ms.error);
     if(_rc_ < 0) sq_pushnull(v);
     else if(ms.level){
-        if(ms.level == 1) sq_pushstring(v, ms.capture[0].init, ms.capture[0].len);
+        if(ms.level == 1)
+        {
+            if(ms.capture[0].len == CAP_POSITION) sq_pushinteger(v, ms.capture[0].init - ms.src_init);
+            else sq_pushstring(v, ms.capture[0].init, ms.capture[0].len);
+        }
         else {
             sq_newarray(v, ms.level);
             for(int i=0; i < ms.level; ++i){

@@ -705,6 +705,13 @@ sqt.run("pattern matching", function(){
 
 	sqt.ok(a.len() == 0)
 
+	local src_str = "abcdef";
+	local re_str = "c()";
+	sqt.ok(src_str.match(re_str) == 3);
+
+	re = regexp(re_str);
+	sqt.ok(re.match(src_str) == 3);
+
 });
 
 sqt.run("regexp", function(){
@@ -1538,6 +1545,8 @@ sqt.run("number", function(){
 
 	sqt.ok((5 * 3) == 15);
 	sqt.ok((12.34 * 0.3) == 3.702);
+	
+	sqt.ok(format("%.17g", 1e16 + 2.9999) == "10000000000000002");
 
 });
 
