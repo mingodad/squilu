@@ -708,9 +708,8 @@ static SQRESULT obj_delegate_weakref(HSQUIRRELVM v)
 
 static SQRESULT obj_clear(HSQUIRRELVM v)
 {
-	return sq_clear(v,-1);
+	return SQ_SUCCEEDED(sq_clear(v,-1)) ? 1 : SQ_ERROR;
 }
-
 
 static SQRESULT number_delegate_tochar(HSQUIRRELVM v)
 {
@@ -745,7 +744,7 @@ static SQRESULT container_rawexists(HSQUIRRELVM v)
 
 static SQRESULT container_rawset(HSQUIRRELVM v)
 {
-	return sq_rawset(v,-3);
+	return SQ_SUCCEEDED(sq_rawset(v,-3)) ? 1 : SQ_ERROR;
 }
 
 static SQRESULT container_rawget(HSQUIRRELVM v)
@@ -813,18 +812,19 @@ SQRegFunction SQSharedState::_table_default_delegate_funcz[]={
 
 static SQRESULT array_append(HSQUIRRELVM v)
 {
-	return sq_arrayappend(v,-2);
+	return SQ_SUCCEEDED(sq_arrayappend(v,-2)) ? 1 : SQ_ERROR;
 }
 
 static SQRESULT array_extend(HSQUIRRELVM v)
 {
 	_array(stack_get(v,1))->Extend(_array(stack_get(v,2)));
-	return 0;
+	sq_pop(v,1);
+	return 1;
 }
 
 static SQRESULT array_reverse(HSQUIRRELVM v)
 {
-	return sq_arrayreverse(v,-1);
+	return SQ_SUCCEEDED(sq_arrayreverse(v,-1)) ? 1 : SQ_ERROR;
 }
 
 static SQRESULT array_pop(HSQUIRRELVM v)
@@ -849,7 +849,8 @@ static SQRESULT array_insert(HSQUIRRELVM v)
 	SQObject &val=stack_get(v,3);
 	if(!_array(o)->Insert(tointeger(idx),val))
 		return sq_throwerror(v,_SC("index out of range"));
-	return 0;
+	sq_pop(v,2);
+	return 1;
 }
 
 static SQRESULT array_set(HSQUIRRELVM v)
@@ -900,6 +901,8 @@ static inline SQRESULT array_resize_base(HSQUIRRELVM v, e_array_op_type opType)
             if(sq_gettop(v) > 2)
                 fill = stack_get(v, 3);
             _array(o)->Resize(tointeger(nsize),fill);
+            sq_settop(v, 1);
+            return 1;
         }
 		return SQ_OK;
 	}
@@ -958,7 +961,8 @@ static SQRESULT array_apply(HSQUIRRELVM v)
 	SQObject &o = stack_get(v,1);
 	if(SQ_FAILED(__map_array(_array(o),_array(o),v)))
 		return SQ_ERROR;
-	return 0;
+	sq_pop(v,1);
+	return 1;
 }
 
 static SQRESULT array_reduce(HSQUIRRELVM v)
@@ -1159,7 +1163,8 @@ static SQRESULT array_sort(HSQUIRRELVM v)
 			return SQ_ERROR;
 
 	}
-	return 0;
+	sq_settop(v,1);
+	return 1;
 }
 
 static SQRESULT array_slice(HSQUIRRELVM v)
@@ -1210,6 +1215,7 @@ static SQRESULT array_concat0 (HSQUIRRELVM v, int allowAll) {
       sq_pushstring(v, "", 0);
       return 1;
   }
+
   SQBlob blob(0, 8192);
 
   for (int i=opt_first; i <= opt_last; ++i) {
@@ -1950,6 +1956,55 @@ static SQRESULT string_getdelegate(HSQUIRRELVM v)
 	return SQ_SUCCEEDED(sq_getdefaultdelegate(v,OT_STRING))?1:SQ_ERROR;
 }
 
+// Based on utf8_check.c by Markus Kuhn, 2005
+// https://www.cl.cam.ac.uk/~mgk25/ucs/utf8_check.c
+// Optimized for predominantly 7-bit content by Alex Hultman, 2016
+// Licensed as Zlib, like the rest of this project
+static bool isValidUtf8(const unsigned char *s, size_t length)
+{
+    for (const unsigned char *e = s + length; s != e; ) {
+        if (s + 4 <= e && ((*(SQUnsignedInteger32 *) s) & 0x80808080) == 0) {
+            s += 4;
+        } else {
+            while (!(*s & 0x80)) {
+                if (++s == e) {
+                    return true;
+                }
+            }
+
+            if ((s[0] & 0x60) == 0x40) {
+                if (s + 1 >= e || (s[1] & 0xc0) != 0x80 || (s[0] & 0xfe) == 0xc0) {
+                    return false;
+                }
+                s += 2;
+            } else if ((s[0] & 0xf0) == 0xe0) {
+                if (s + 2 >= e || (s[1] & 0xc0) != 0x80 || (s[2] & 0xc0) != 0x80 ||
+                        (s[0] == 0xe0 && (s[1] & 0xe0) == 0x80) || (s[0] == 0xed && (s[1] & 0xe0) == 0xa0)) {
+                    return false;
+                }
+                s += 3;
+            } else if ((s[0] & 0xf8) == 0xf0) {
+                if (s + 3 >= e || (s[1] & 0xc0) != 0x80 || (s[2] & 0xc0) != 0x80 || (s[3] & 0xc0) != 0x80 ||
+                        (s[0] == 0xf0 && (s[1] & 0xf0) == 0x80) || (s[0] == 0xf4 && s[1] > 0x8f) || s[0] > 0xf4) {
+                    return false;
+                }
+                s += 4;
+            } else {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+static SQRESULT string_isvalidutf8(HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, src);
+
+    sq_pushbool(v, isValidUtf8((const unsigned char*)src, src_size));
+    return 1;
+}
+
 //DAD end
 
 static void __strip_l(const SQChar *str,const SQChar **start)
@@ -2386,6 +2441,7 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("edit_distance"),string_edit_distance,-2, _SC("ssi")},
 	{_SC("mod_97_10"),string_mod_97_10,1, _SC("s")},
 	{_SC("iso88959_to_utf8"),string_iso88959_to_utf8,1, _SC("s")},
+	{_SC("isvalidutf8"),string_isvalidutf8,1, _SC("s")},
 #ifdef SQ_SUBLATIN
 	{_SC("sl_len"),string_sl_len,1, _SC("s")},
 	{_SC("sl_lower"),string_sl_lower,1, _SC("s")},
