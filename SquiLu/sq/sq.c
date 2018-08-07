@@ -617,6 +617,13 @@ SQRESULT sqext_register_freetype(HSQUIRRELVM v);
 SQRESULT sqext_register_tre(HSQUIRRELVM v);
 SQRESULT sqext_register_hunspell(HSQUIRRELVM v);
 SQRESULT sqext_register_fossil (HSQUIRRELVM sqvm);
+SQRESULT sqext_register_sqpeg (HSQUIRRELVM sqvm);
+SQRESULT sqext_register_LmDB (HSQUIRRELVM v);
+SQRESULT sqext_register_fuzzy_hash (HSQUIRRELVM sqvm);
+SQRESULT sqext_register_nn (HSQUIRRELVM v);
+SQRESULT sqext_register_lapack (HSQUIRRELVM v);
+SQRESULT sqext_register_numarray (HSQUIRRELVM v);
+SQRESULT sqext_register_fann (HSQUIRRELVM v);
 
 static sq_modules_preload_st modules_preload[] = {
     {"blob", sqstd_register_bloblib},
@@ -632,6 +639,13 @@ static sq_modules_preload_st modules_preload[] = {
 #ifndef NO_SQ_PDF
     {"fpdf", sqext_register_Sq_Fpdf},
 #endif
+#ifdef SQ_USE_NUMARRAY
+    {"numarray", sqext_register_numarray},
+#endif
+#ifdef SQ_USE_SQFANN
+    {"SQFann", sqext_register_fann},
+#endif
+    {"AnnRprop", sqext_register_nn},
     {"sqlite3", sqext_register_SQLite3},
     {"bitvector", sqext_register_BitVector}, //depends on sqlite3
     //{"xdj1", sqext_register_xjd1},
@@ -661,6 +675,9 @@ static sq_modules_preload_st modules_preload[] = {
 #ifdef SQ_USE_BLOSC
     {"blosc", sqext_register_sq_blosc},
 #endif // SQ_USE_BLOSC
+#ifdef SQ_USE_LAPACK
+    {"lapack", sqext_register_lapack},
+#endif // SQ_USE_LAPACK
 #endif
 #ifdef USE_AXTLS
     {"axtls", sqext_register_axtls},
@@ -708,7 +725,7 @@ static sq_modules_preload_st modules_preload[] = {
 #ifdef WITH_MYSQL
     {"mysql", sqext_register_MySQL},
 #endif
-#if !defined(ANDROID_BUILD) && !defined(NO_RS232) 
+#if !defined(ANDROID_BUILD) && !defined(NO_RS232)
     {"rs232", sqext_register_rs232},
 #endif
 #ifdef WITH_FLTK
@@ -720,6 +737,15 @@ static sq_modules_preload_st modules_preload[] = {
 
 #endif //SQUILU_ALONE
 #endif // WITH_DAD_EXTRAS
+#if defined(SQ_USE_SQLEG)
+    {"sqleg", sqext_register_sqpeg},
+#endif // SQ_USE_PCRE2
+#if defined(SQ_USE_LMDB)
+    {"sqlmdb", sqext_register_LmDB},
+#endif // SQ_USE_LMDB
+#ifdef SQ_USE_FUZZY_HASH
+    {"sqfuzzy_hash", sqext_register_fuzzy_hash},
+#endif // SQ_USE_FUZZY_HASH
     {NULL, NULL}
 };
 
