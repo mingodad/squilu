@@ -521,14 +521,14 @@ void sq_newclosure(HSQUIRRELVM v,SQFUNCTION func,SQUnsignedInteger nfreevars)
 	v->Push(SQObjectPtr(nc));
 }
 
-SQRESULT sq_getclosureinfo(HSQUIRRELVM v,SQInteger idx,SQUnsignedInteger *nparams,SQUnsignedInteger *nfreevars)
+SQRESULT sq_getclosureinfo(HSQUIRRELVM v,SQInteger idx,SQInteger *nparams,SQInteger *nfreevars)
 {
 	SQObjectPtr &o = stack_get(v, idx);
 	if(sq_type(o) == OT_CLOSURE) {
 		SQClosure *c = _closure(o);
 		SQFunctionProto *proto = c->_function;
-		*nparams = (SQUnsignedInteger)proto->_nparameters;
-		*nfreevars = (SQUnsignedInteger)proto->_noutervalues;
+		*nparams = (SQInteger)proto->_nparameters;
+		*nfreevars = (SQInteger)proto->_noutervalues;
 		return SQ_OK;
 	}
 	else if(sq_type(o) == OT_NATIVECLOSURE)

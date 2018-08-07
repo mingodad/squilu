@@ -106,7 +106,7 @@ SQUIRREL_API_FUNC(void, setreleasehook, (HSQUIRRELVM v,SQInteger idx,SQRELEASEHO
 SQUIRREL_API_FUNC(SQRELEASEHOOK, getreleasehook, (HSQUIRRELVM v,SQInteger idx))
 SQUIRREL_API_FUNC(SQChar*, getscratchpad, (HSQUIRRELVM v,SQInteger minsize))
 SQUIRREL_API_FUNC(SQRESULT, getfunctioninfo, (HSQUIRRELVM v,SQInteger level,SQFunctionInfo *fi))
-SQUIRREL_API_FUNC(SQRESULT, getclosureinfo, (HSQUIRRELVM v,SQInteger idx,SQUnsignedInteger *nparams,SQUnsignedInteger *nfreevars))
+SQUIRREL_API_FUNC(SQRESULT, getclosureinfo, (HSQUIRRELVM v,SQInteger idx,SQInteger *nparams,SQInteger *nfreevars))
 SQUIRREL_API_FUNC(SQRESULT, getclosurename, (HSQUIRRELVM v,SQInteger idx))
 SQUIRREL_API_FUNC(SQRESULT, setnativeclosurename, (HSQUIRRELVM v,SQInteger idx,const SQChar *name))
 SQUIRREL_API_FUNC(SQRESULT, setinstanceup, (HSQUIRRELVM v, SQInteger idx, SQUserPointer p))

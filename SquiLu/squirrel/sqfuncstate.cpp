@@ -168,7 +168,7 @@ SQInteger SQFuncState::GetConstant(const SQObject &cons)
 	return _integer(val);
 }
 
-void SQFuncState::SetIntructionParams(SQInteger pos,SQInteger arg0,SQInteger arg1,SQInteger arg2,SQInteger arg3)
+void SQFuncState::SetInstructionParams(SQInteger pos,SQInteger arg0,SQInteger arg1,SQInteger arg2,SQInteger arg3)
 {
 	_instructions[pos]._arg0=(unsigned char)*((SQUnsignedInteger *)&arg0);
 	_instructions[pos]._arg1=(SQInt32)*((SQUnsignedInteger *)&arg1);
@@ -176,7 +176,7 @@ void SQFuncState::SetIntructionParams(SQInteger pos,SQInteger arg0,SQInteger arg
 	_instructions[pos]._arg3=(unsigned char)*((SQUnsignedInteger *)&arg3);
 }
 
-void SQFuncState::SetIntructionParam(SQInteger pos,SQInteger arg,SQInteger val)
+void SQFuncState::SetInstructionParam(SQInteger pos,SQInteger arg,SQInteger val)
 {
 	switch(arg){
 		case 0:_instructions[pos]._arg0=(unsigned char)*((SQUnsignedInteger *)&val);break;
@@ -375,6 +375,7 @@ void SQFuncState::SetReturnTypeName(const SQChar *type_name)
 {
 	if(type_name) _return_type = CreateString(type_name, scstrlen(type_name));
 }
+
 SQInteger SQFuncState::FindGotoTarget(const SQObject &name)
 {
 	for(size_t i=0, len=_gototargets.size(); i < len; ++i){
