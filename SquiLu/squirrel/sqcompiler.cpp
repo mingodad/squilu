@@ -2452,7 +2452,7 @@ function_params_decl:
                 declType = _token;
                 type_name = ExpectTypeToken(); //ignore for now
             }
-            if(is_void_declaration)
+            if(is_void_declaration && !is_pointer_declaration)
             {
                 Error(_SC("void type is invalid here"));
             }
