@@ -2363,7 +2363,10 @@ function_params_decl:
         }
         return declType;
     }
-#define CHECK_REF_DECLARATION(tk) if(tk == _SC('&')){is_reference_declaration = true;Lex();}
+#define CHECK_REF_DECLARATION(tk) \
+    if(tk == _SC('&')){is_reference_declaration = true;Lex();}\
+    else if(tk == _SC('*')){is_pointer_declaration = true;Lex();}
+
     void LocalDeclStatement()
     {
         SQObject varname;
@@ -2372,6 +2375,7 @@ function_params_decl:
         bool is_void_declaration = _token == TK_VOID;
         bool is_const_declaration = _token == TK_CONST;
         bool is_reference_declaration = false;
+        bool is_pointer_declaration = false;
         //bool is_instance_declaration = _token == TK_IDENTIFIER;
         SQInteger declType = _token;
         Lex();
@@ -2487,7 +2491,9 @@ function_params_decl:
             {
                 _fs->PopTarget();
                 _fs->PushLocalVariable(varname, _scope.nested, (is_const_declaration ? _VAR_CONST : declType)
-                                       | (is_reference_declaration ? _VAR_REFERENCE : 0));
+                                       | (is_reference_declaration ? _VAR_REFERENCE : 0)
+                                       | (is_pointer_declaration ? _VAR_POINTER : 0)
+                                       );
                 if(sq_type(type_name) == OT_STRING) _fs->AddParameterTypeName(type_name);
             }
             if(_token == _SC(',')) Lex();
@@ -3145,6 +3151,7 @@ error:
         funcstate->_sourcename = _sourcename;
         SQInteger defparams = 0;
         bool is_reference_declaration = 0;
+        bool is_pointer_declaration = false;
         const SQChar *param_type_name = 0;
         bool isVoid = false;
         if(fdeclType)
@@ -3193,7 +3200,8 @@ error:
                     EatTemplateInitialization();
                     paramname = Expect(TK_IDENTIFIER);
                 }
-                funcstate->AddParameter(paramname, _scope.nested+1, is_reference_declaration ? _VAR_REFERENCE : _VAR_ANY);
+                funcstate->AddParameter(paramname, _scope.nested+1, is_reference_declaration ? _VAR_REFERENCE :
+                                            (is_pointer_declaration ? _VAR_POINTER : _VAR_ANY));
                 if(param_type_name)
                 {
                     funcstate->AddParameterTypeName(param_type_name);

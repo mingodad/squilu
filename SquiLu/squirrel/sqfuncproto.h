@@ -41,6 +41,7 @@ struct SQOuterVar
 #define _VAR_CLASS			0x00000100
 #define _VAR_REFERENCE  	0x00000200
 #define _VAR_CONST  		0x00000400
+#define _VAR_POINTER  		0x00001000
 
 struct SQLocalVarInfo
 {
