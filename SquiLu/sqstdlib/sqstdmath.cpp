@@ -26,6 +26,7 @@
 #ifndef M_LN10
 # define M_LN10		(2.30258509299404568402)	/* log_e 10 */
 #endif
+
 #ifndef M_PI
 # define M_PI		(3.14159265358979323846)	/* pi */
 #endif
@@ -133,13 +134,30 @@ static SQRESULT math_abs(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT math_log(HSQUIRRELVM v) {
+  SQ_FUNC_VARS(v);
+  SQ_GET_FLOAT(v, 2, num);
+  switch (_top_) {  /* check number of arguments */
+    case 2: {  /* only num */
+      sq_pushfloat(v,log(num));
+      break;
+    }
+    case 3: {  /* num and base */
+      SQ_GET_FLOAT(v, 3, base);
+      sq_pushfloat(v,log(num)/log(base));
+      break;
+    }
+  }
+  return 1;
+}
+
 SINGLE_ARG_FUNC(sqrt)
 SINGLE_ARG_FUNC(fabs)
 SINGLE_ARG_FUNC(sin)
 SINGLE_ARG_FUNC(asin)
 SINGLE_ARG_FUNC(cos)
 SINGLE_ARG_FUNC(acos)
-SINGLE_ARG_FUNC(log)
+//SINGLE_ARG_FUNC(log)
 SINGLE_ARG_FUNC(log10)
 SINGLE_ARG_FUNC(tan)
 SINGLE_ARG_FUNC(atan)
@@ -153,6 +171,7 @@ SINGLE_ARG_FUNC(acosh)
 SINGLE_ARG_FUNC(asinh)
 SINGLE_ARG_FUNC(tanh)
 SINGLE_ARG_FUNC(atanh)
+
 BOOL_SINGLE_ARG_FUNC(isnan);
 BOOL_SINGLE_ARG_FUNC(isfinite);
 
@@ -431,7 +450,7 @@ static const SQRegFunction mathlib_funcs[] = {
 	_DECL_FUNC(cos,2,_SC(".n")),
 	_DECL_FUNC(asin,2,_SC(".n")),
 	_DECL_FUNC(acos,2,_SC(".n")),
-	_DECL_FUNC(log,2,_SC(".n")),
+	_DECL_FUNC(log,-2,_SC(".nn")),
 	_DECL_FUNC(log10,2,_SC(".n")),
 	_DECL_FUNC(tan,2,_SC(".n")),
 	_DECL_FUNC(atan,2,_SC(".n")),
@@ -459,10 +478,12 @@ static const SQRegFunction mathlib_funcs[] = {
 	_DECL_FUNC(max,-3,_SC(".nn")),
 	_DECL_FUNC(rad,2,_SC(".n")),
 	_DECL_FUNC(deg,2,_SC(".n")),
+
 	_DECL_FUNC(asinh,2,_SC(".n")),
 	_DECL_FUNC(acosh,2,_SC(".n")),
 	_DECL_FUNC(tanh,2,_SC(".n")),
 	_DECL_FUNC(atanh,2,_SC(".n")),
+
 	{NULL,(SQFUNCTION)0,0,NULL}
 };
 #undef _DECL_FUNC
@@ -473,6 +494,7 @@ static void installFloatConst(HSQUIRRELVM v, const SQChar *skey, SQFloat fv)
 	sq_pushfloat(v,fv);
 	sq_newslot(v,-3,SQFalse);
 }
+
 SQRESULT sqstd_register_mathlib(HSQUIRRELVM v)
 {
     sq_pushstring(v,_SC("math"),-1);
