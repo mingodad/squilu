@@ -419,6 +419,7 @@ static SQRESULT base_getincludepath(HSQUIRRELVM v)
     else sq_pushnull(v);
 	return 1;
 }
+
 /////////////////////////////////////////////////////////////////
 //TABLE BASE FUNCTIONS
 
@@ -485,6 +486,7 @@ static SQRESULT bf_obj_clone(HSQUIRRELVM v)
 	 if(rc != SQ_OK) return rc;
     return 1;
 }
+
 static SQRESULT bf_table_len(HSQUIRRELVM v)
 {
 	v->Push(SQInteger(sq_getsize(v,2)));
@@ -1070,7 +1072,7 @@ static SQRESULT array_bsearch(HSQUIRRELVM v)
 }
 
 
-bool _sort_compare(HSQUIRRELVM v,SQObjectPtr &a,SQObjectPtr &b,SQInteger func,SQInteger &ret)
+static bool _sort_compare(HSQUIRRELVM v,SQObjectPtr &a,SQObjectPtr &b,SQInteger func,SQInteger &ret)
 {
 	if(func < 0) {
 		if(!v->ObjCmp(a,b,ret)) return false;
@@ -1096,76 +1098,96 @@ bool _sort_compare(HSQUIRRELVM v,SQObjectPtr &a,SQObjectPtr &b,SQInteger func,SQ
 	return true;
 }
 
-bool _hsort_sift_down(HSQUIRRELVM v,SQArray *arr, SQInteger root, SQInteger bottom, SQInteger func)
-{
-	SQInteger maxChild;
-	SQInteger done = 0;
-	SQInteger ret;
-	SQInteger root2;
-	while (((root2 = root * 2) <= bottom) && (!done))
-	{
-		if (root2 == bottom) {
-			maxChild = root2;
-		}
-		else {
-			if(!_sort_compare(v,arr->_values[root2],arr->_values[root2 + 1],func,ret))
-				return false;
-			if (ret > 0) {
-				maxChild = root2;
-			}
-			else {
-				maxChild = root2 + 1;
-			}
-		}
+/*
+** The lua_auxsort code is adapted from from lua 5.1.5
+** {======================================================
+** Quicksort
+** (based on 'Algorithms in MODULA-3', Robert Sedgewick;
+**  Addison-Wesley, 1993.)
+** =======================================================
+*/
 
-		if(!_sort_compare(v,arr->_values[root],arr->_values[maxChild],func,ret))
-			return false;
-		if (ret < 0) {
-			if (root == maxChild) {
-                v->Raise_Error(_SC("inconsistent compare function"));
-                return false; // We'd be swapping ourselve. The compare function is incorrect
-            }
-
-			_Swap(arr->_values[root],arr->_values[maxChild]);
-			root = maxChild;
-		}
-		else {
-			done = 1;
-		}
-	}
-	return true;
+static bool lua_auxsort (HSQUIRRELVM v, SQArray *arr, SQInteger l, SQInteger u,
+                                   SQInteger func) {
+  while (l < u) {  /* for tail recursion */
+    SQInteger i, j, ret;
+    bool rc;
+    /* sort elements a[l], a[(l+u)/2] and a[u] */
+    if(!_sort_compare(v,arr->_values[u],arr->_values[l],func,ret))
+        return false;
+    if (ret < 0)  /* a[u] < a[l]? */
+      _Swap(arr->_values[l],arr->_values[u]);  /* swap a[l] - a[u] */
+    if (u-l == 1) break;  /* only 2 elements */
+    i = (l+u)/2;
+    if(!_sort_compare(v,arr->_values[i],arr->_values[l],func,ret))
+        return false;
+    if (ret < 0)  /* a[i]<a[l]? */
+      _Swap(arr->_values[i],arr->_values[l]);
+    else {
+      if(!_sort_compare(v,arr->_values[u],arr->_values[i],func,ret))
+        return false;
+      if (ret < 0)  /* a[u]<a[i]? */
+        _Swap(arr->_values[i],arr->_values[u]);
+    }
+    if (u-l == 2) break;  /* only 3 elements */
+    SQObjectPtr P = arr->_values[i];  /* Pivot */
+    _Swap(arr->_values[i],arr->_values[u-1]);
+    /* a[l] <= P == a[u-1] <= a[u], only need to sort from l+1 to u-2 */
+    i = l; j = u-1;
+    for (;;) {  /* invariant: a[l..i] <= P <= a[j..u] */
+      /* repeat ++i until a[i] >= P */
+      while ((rc = _sort_compare(v,arr->_values[++i],P,func,ret)) && (ret < 0)) {
+        if (i>u)
+        {
+            sq_throwerror(v, _SC("invalid order function for sorting"));
+            return false;
+        }
+      }
+      if(!rc) return false;
+      /* repeat --j until a[j] <= P */
+      while ((rc = _sort_compare(v,P, arr->_values[--j],func,ret)) && (ret < 0)) {
+        if (j<l)
+        {
+            sq_throwerror(v, _SC("invalid order function for sorting"));
+            return false;
+        }
+      }
+      if(!rc) return false;
+      if (j<i) {
+        break;
+      }
+      _Swap(arr->_values[i],arr->_values[j]);
+    }
+    _Swap(arr->_values[u-1],arr->_values[i]);  /* swap pivot (a[u-1]) with a[i] */
+    /* a[l..i-1] <= a[i] == P <= a[i+1..u] */
+    /* adjust so that smaller half is in [j..i] and larger one in [l..u] */
+    if (i-l < u-i) {
+      j=l; i=i-1; l=i+2;
+    }
+    else {
+      j=i+1; i=u; u=j-2;
+    }
+    if(!lua_auxsort(v, arr, j, i, func))  /* call recursively for upper interval */
+        return false;
+  }  /* repeat the routine for the larger one */
+  return true;
 }
 
-bool _hsort(HSQUIRRELVM v,SQObjectPtr &arr, SQInteger /*l*/, SQInteger /*r*/,SQInteger func)
-{
-	SQArray *a = _array(arr);
-	SQInteger i;
-	SQInteger array_size = a->Size();
-	for (i = (array_size / 2); i >= 0; i--) {
-		if(!_hsort_sift_down(v,a, i, array_size - 1,func)) return false;
-	}
-
-	for (i = array_size-1; i >= 1; i--)
-	{
-		_Swap(a->_values[0],a->_values[i]);
-		if(!_hsort_sift_down(v,a, 0, i-1,func)) return false;
-	}
-	return true;
-}
-
-static SQRESULT array_sort(HSQUIRRELVM v)
-{
+static SQRESULT array_sort(HSQUIRRELVM v) {
 	SQInteger func = -1;
 	SQObjectPtr &o = stack_get(v,1);
-	if(_array(o)->Size() > 1) {
+	SQArray *arr = _array(o);
+	if(arr->Size() > 1) {
 		if(sq_gettop(v) == 2) func = 2;
-		if(!_hsort(v, o, 0, _array(o)->Size()-1, func))
+		if(!lua_auxsort(v, arr, 0, arr->Size()-1, func))
 			return SQ_ERROR;
 
 	}
 	sq_settop(v,1);
 	return 1;
 }
+
+/* }====================================================== */
 
 static SQRESULT array_slice(HSQUIRRELVM v)
 {
@@ -1422,6 +1444,7 @@ static inline void push_match_capture(HSQUIRRELVM v, int i, LuaMatchState *ms)
     if(len == CAP_POSITION) sq_pushinteger(v, ms->capture[i].init - ms->src_init);
     else sq_pushstring(v, ms->capture[i].init, ms->capture[i].len);
 }
+
 
 //on 64 bits there is an error SQRESULT/int
 static int process_string_gsub(LuaMatchState *ms, void *udata, lua_char_buffer_st **b) {
@@ -1885,6 +1908,7 @@ static SQRESULT string_strncmp(HSQUIRRELVM v) {
     sq_pushinteger(v, scstrncmp(str1+offset, str2, str2_size));
     return 1;
 }
+
 static SQRESULT string_countchr(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, src);
@@ -2190,6 +2214,7 @@ static SQRESULT string_ushort(HSQUIRRELVM v)
 	sq_pushinteger(v, (((SQUnsignedInt16*)str)[char_idx]));
 	return 1;
 }
+
 
 #define MMIN(a,b) (((a)<(b))?(a):(b))
 static SQRESULT string_edit_distance (HSQUIRRELVM v) {
