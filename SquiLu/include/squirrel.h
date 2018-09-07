@@ -45,7 +45,14 @@ extern "C" {
 
 struct SQVM;
 struct SQTable;
+struct SQArrayBase;
 struct SQArray;
+struct SQFloat64Array;
+struct SQFloat32Array;
+struct SQInt64Array;
+struct SQInt32Array;
+struct SQInt16Array;
+struct SQInt8Array;
 struct SQString;
 struct SQClosure;
 struct SQGenerator;
@@ -132,7 +139,14 @@ typedef enum tagSQObjectType{
 typedef union tagSQObjectValue
 {
 	struct SQTable *pTable;
+	struct SQArrayBase *pArrayBase;
 	struct SQArray *pArray;
+	struct SQFloat64Array *pFloat64Array;
+	struct SQFloat32Array *pFloat32Array;
+	struct SQInt64Array *pInt64Array;
+	struct SQInt32Array *pInt32Array;
+	struct SQInt16Array *pInt16Array;
+	struct SQInt8Array *pInt8Array;
 	struct SQClosure *pClosure;
 	struct SQOuter *pOuter;
 	struct SQGenerator *pGenerator;
@@ -271,6 +285,7 @@ typedef struct {
 
 #define SQ_GET_STRING_NVD(v, idx, var)\
     if((_rc_ = sq_getstr_and_size(v,idx, &var, &var##_size)) < 0) return _rc_;
+
 #define SQ_GET_STRING(v, idx, var)\
     const SQChar *var;\
     SQInteger var##_size;\
@@ -335,7 +350,9 @@ typedef struct {
 #define SQ_OPT_FLOAT(v, idx, var, dflt)\
     SQFloat var;\
     SQ_OPT_FLOAT_NVD(v, idx, var, dflt)
+
 #define sq_pushliteral(v, str) sq_pushstring(v, str, sizeof(str)-1)
+
 #define SQ_GET_USERPOINTER_NVD(v, idx, var)\
     if((_rc_ = sq_getuserpointer(v,idx, &var)) < 0) return _rc_;
 

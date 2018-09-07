@@ -175,6 +175,7 @@ SQBool sq_exists_define_name(HSQUIRRELVM v, const SQChar *define_name)
 {
 	return v->IsDefined(define_name);
 }
+
 SQRESULT sq_compile(HSQUIRRELVM v,SQLEXREADFUNC read,SQUserPointer p,const SQChar *sourcename
                     ,SQBool raiseerror, SQBool show_warnings, SQInteger max_nested_includes)
 {
@@ -418,8 +419,10 @@ SQBool sq_instanceof(HSQUIRRELVM v)
 SQRESULT sq_arrayappend(HSQUIRRELVM v,SQInteger idx)
 {
     CHECK_ARRAY_AT(2, arr);
-	_array(arr)->Append(v->GetUp(-1));
+    bool rc = _array(arr)->Append(v->GetUp(-1));
 	v->Pop();
+	if(!rc)
+        return sq_throwerror(v, _SC("appending error"));
 	return SQ_OK;
 }
 
@@ -427,14 +430,19 @@ SQRESULT sq_arraypop(HSQUIRRELVM v,SQInteger idx,SQBool pushval)
 {
     CHECK_ARRAY_AT(1, arr);
 	if(_array(arr)->Size() > 0) {
-        if(pushval != 0){ v->Push(_array(arr)->Top()); }
+        if(pushval != 0){
+            v->PushNull();
+            SQObjectPtr &o = stack_get(v, -1);
+            _array(arr)->Top(o);
+            //v->Push(_array(arr)->Top());
+        }
 		_array(arr)->Pop();
 		return SQ_OK;
 	}
 	return sq_throwerror(v, _SC("empty array"));
 }
 
-static inline SQRESULT sq_arrayresize_base(HSQUIRRELVM v,SQArray *arr,SQInteger newsize)
+static inline SQRESULT sq_arrayresize_base(HSQUIRRELVM v,SQArrayBase *arr,SQInteger newsize)
 {
 	if(newsize >= 0) {
 		arr->Resize(newsize);
@@ -443,13 +451,13 @@ static inline SQRESULT sq_arrayresize_base(HSQUIRRELVM v,SQArray *arr,SQInteger 
 	return sq_throwerror(v,_SC("negative size"));
 }
 
-SQRESULT sq_arrayresize(HSQUIRRELVM v,SQInteger idx,SQInteger newsize)
+SQRESULT sq_arrayresize(HSQUIRRELVM v,SQInteger idx,SQUnsignedInteger newsize)
 {
     CHECK_ARRAY_AT(1, arr);
     return sq_arrayresize_base(v, _array(arr), newsize);
 }
 
-SQRESULT sq_arrayminsize(HSQUIRRELVM v,SQInteger idx,SQInteger minsize)
+SQRESULT sq_arrayminsize(HSQUIRRELVM v,SQInteger idx,SQUnsignedInteger minsize)
 {
     CHECK_ARRAY_AT(1, arr);
 	if(_array(arr)->Size() < minsize) {
@@ -461,16 +469,12 @@ SQRESULT sq_arrayminsize(HSQUIRRELVM v,SQInteger idx,SQInteger minsize)
 SQRESULT sq_arrayreverse(HSQUIRRELVM v,SQInteger idx)
 {
     CHECK_ARRAY_AT(1, o);
-	SQArray *arr = _array(o);
+	SQArrayBase *arr = _array(o);
 	if(arr->Size() > 0) {
 		SQObjectPtr t;
 		SQInteger size = arr->Size();
 		SQInteger n = size >> 1; size -= 1;
-		for(SQInteger i = 0; i < n; i++) {
-			t = arr->_values[i];
-			arr->_values[i] = arr->_values[size-i];
-			arr->_values[size-i] = t;
-		}
+		for(SQInteger i = 0; i < n; i++) arr->_swap(i, size-i);
 		return SQ_OK;
 	}
 	return SQ_OK;
@@ -510,6 +514,13 @@ SQRESULT sq_arrayget(HSQUIRRELVM v,SQInteger idx,SQInteger pos)
 	return SQ_OK;
 }
 
+SQRESULT sq_arraygetsizeof(HSQUIRRELVM v,SQInteger idx)
+{
+    CHECK_ARRAY_AT(idx, arr);
+    sq_pushinteger(v, _array(arr)->SizeOf());
+	return SQ_OK;
+}
+
 void sq_newclosure(HSQUIRRELVM v,SQFUNCTION func,SQUnsignedInteger nfreevars)
 {
 	SQNativeClosure *nc = SQNativeClosure::Create(_ss(v), func,nfreevars);
@@ -534,7 +545,7 @@ SQRESULT sq_getclosureinfo(HSQUIRRELVM v,SQInteger idx,SQInteger *nparams,SQInte
 	else if(sq_type(o) == OT_NATIVECLOSURE)
 	{
 		SQNativeClosure *c = _nativeclosure(o);
-		*nparams = (SQUnsignedInteger)c->_nparamscheck;
+		*nparams = (SQInteger)c->_nparamscheck;
 		*nfreevars = c->_noutervalues;
 		return SQ_OK;
 	}

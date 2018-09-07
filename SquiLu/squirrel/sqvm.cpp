@@ -274,6 +274,7 @@ static int sq_l_strcmp (const SQObjectPtr &ls,const SQObjectPtr &rs) {
     }
   }
 }
+
 #define _RET_SUCCEED(exp) { result = (exp); return true; }
 bool SQVM::ObjCmp(const SQObjectPtr &o1,const SQObjectPtr &o2,SQInteger &result)
 {
@@ -464,7 +465,7 @@ bool SQVM::StartCall(SQClosure *closure,SQInteger target,SQInteger args,SQIntege
 		SQArray *arr = SQArray::Create(_ss(this),nvargs);
 		SQInteger pbase = stackbase+paramssize;
 		for(SQInteger n = 0; n < nvargs; n++) {
-			arr->_values[n] = _stack._vals[pbase];
+			arr->_set(n, _stack._vals[pbase]);
 			_stack._vals[pbase].Null();
 			pbase++;
 
@@ -725,6 +726,7 @@ bool SQVM::IsEqualDeep(const SQObjectPtr &o1,const SQObjectPtr &o2)
 	}
 	return IsEqual(o1, o2);
 }
+
 bool SQVM::IsEqual(const SQObjectPtr &o1,const SQObjectPtr &o2)
 {
 	bool res = false;
@@ -952,12 +954,21 @@ exception_restore:
 			OPCODE_TARGET(LINE) { if (_debughook) CallDebugHook(_SC('l'),arg1); continue;}
 			OPCODE_TARGET(LOAD) { TARGET = ci->_literals[arg1]; continue;}
 			OPCODE_TARGET(LOADINT) {
-#ifndef _SQ64
-				TARGET = (SQInteger)arg1; continue;}
+#ifdef _SQ64
+				TARGET = (SQInteger)((SQUnsignedInteger32)arg1);
 #else
-				TARGET = (SQInteger)((SQUnsignedInteger32)arg1); continue;}
+				TARGET = (SQInteger)arg1;
 #endif
-			OPCODE_TARGET(LOADFLOAT) { TARGET = *((SQFloat *)&arg1); continue;}
+                continue;
+            }
+			OPCODE_TARGET(LOADFLOAT) {
+#ifdef _SQ64
+			    TARGET = *((SQFloat32*)&arg1);
+#else
+			    TARGET = *((SQFloat32*)&arg1);
+#endif
+                continue;
+            }
 			OPCODE_TARGET(DLOAD) { TARGET = ci->_literals[arg1]; STK(arg2) = ci->_literals[arg3];continue;}
 			OPCODE_TARGET(TAILCALL) {
 				SQObjectPtr &t = STK(arg1);
@@ -1154,15 +1165,19 @@ exception_restore:
 					val = ci->_literals[arg1]; break;
 				case AAT_INT:
 					val._type = OT_INTEGER;
-#ifndef _SQ64
-					val._unVal.nInteger = (SQInteger)arg1;
-#else
+#ifdef _SQ64
 					val._unVal.nInteger = (SQInteger)((SQUnsignedInteger32)arg1);
+#else
+					val._unVal.nInteger = (SQInteger)arg1;
 #endif
 					break;
 				case AAT_FLOAT:
 					val._type = OT_FLOAT;
+#ifdef _SQ64
+					val._unVal.fFloat = *((SQFloat32 *)&arg1);
+#else
 					val._unVal.fFloat = *((SQFloat *)&arg1);
+#endif
 					break;
 				case AAT_BOOL:
 					val._type = OT_BOOL;
@@ -1171,7 +1186,9 @@ exception_restore:
 				default: assert(0); break;
 
 				}
-				_array(STK(arg0))->Append(val);	continue;
+				if(!_array(STK(arg0))->Append(val))
+                    			{Raise_Error(_SC("error appending")); SQ_THROW();}
+				continue;
 				}}
 			OPCODE_TARGET(COMPARITH) {
 				SQInteger selfidx = (((SQUnsignedInteger)arg1&0xFFFF0000)>>16);

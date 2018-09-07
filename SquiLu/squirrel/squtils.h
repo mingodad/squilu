@@ -77,6 +77,7 @@ public:
 	void shrinktofit() { if(_size > 4) { _realloc(_size); } }
 	T& top() const { return _vals[_size - 1]; }
 	inline SQUnsignedInteger size() const { return _size; }
+	inline SQUnsignedInteger sizeOf() const { return sizeof(T); }
 	bool empty() const { return (_size <= 0); }
 	inline T &push_back(const T& val = T())
 	{
@@ -88,21 +89,27 @@ public:
 	{
 		_size--; _vals[_size].~T();
 	}
-	void insert(SQUnsignedInteger idx, const T& val)
+	bool insert(SQUnsignedInteger idx, const T& val)
 	{
+	    if(idx > _size) return false;
 		resize(_size + 1);
 		for(SQUnsignedInteger i = _size - 1; i > idx; i--) {
 			_vals[i] = _vals[i - 1];
 		}
     	_vals[idx] = val;
+    	return true;
 	}
-	void remove(SQUnsignedInteger idx)
+	bool remove(SQUnsignedInteger idx)
 	{
-		_vals[idx].~T();
-		if(idx < (_size - 1)) {
-			memmove(&_vals[idx], &_vals[idx+1], sizeof(T) * (_size - idx - 1));
-		}
-		_size--;
+	    if(idx < _size){
+            _vals[idx].~T();
+            if(idx < (_size - 1)) {
+                memmove(&_vals[idx], &_vals[idx+1], sizeof(T) * (_size - idx - 1));
+            }
+            _size--;
+            return true;
+	    }
+		return false;
 	}
 	void removeFromBegining(SQUnsignedInteger count)
 	{
@@ -116,6 +123,8 @@ public:
 	}
 	SQUnsignedInteger capacity() { return _allocated; }
 	inline T &back() const { return _vals[_size - 1]; }
+	inline T get(SQUnsignedInteger pos) const{ return _vals[pos]; }
+	inline void set(SQUnsignedInteger pos, T val) const{ _vals[pos] = val; }
 	inline T& operator[](SQUnsignedInteger pos) const{ return _vals[pos]; }
 	T* _vals;
 private:

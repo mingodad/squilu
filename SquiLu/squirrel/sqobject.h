@@ -105,6 +105,8 @@ struct SQWeakRef : SQRefCounted
 
 struct SQObjectPtr;
 
+#define __IsLastRefCount(type,unval) (ISREFCOUNTED(type) && (unval.pRefCounted->_uiRef == 1))
+
 #define __AddRefRefCounted(unval) { unval.pRefCounted->_uiRef++; }
 
 #define __AddRef(type,unval) if(ISREFCOUNTED(type))	__AddRefRefCounted(unval)
@@ -136,7 +138,7 @@ struct SQObjectPtr;
 #define _float(obj) ((obj)._unVal.fFloat)
 #define _string(obj) ((obj)._unVal.pString)
 #define _table(obj) ((obj)._unVal.pTable)
-#define _array(obj) ((obj)._unVal.pArray)
+#define _array(obj) ((obj)._unVal.pArrayBase)
 #define _closure(obj) ((obj)._unVal.pClosure)
 #define _generator(obj) ((obj)._unVal.pGenerator)
 #define _nativeclosure(obj) ((obj)._unVal.pNativeClosure)
@@ -235,7 +237,14 @@ struct SQObjectPtr : public SQObject
 	_REF_TYPE_DECL(OT_TABLE,SQTable,Table)
 	_REF_TYPE_DECL(OT_CLASS,SQClass,Class)
 	_REF_TYPE_DECL(OT_INSTANCE,SQInstance,Instance)
+	_REF_TYPE_DECL(OT_ARRAY,SQArrayBase,ArrayBase)
 	_REF_TYPE_DECL(OT_ARRAY,SQArray,Array)
+	_REF_TYPE_DECL(OT_ARRAY,SQFloat64Array,Float64Array)
+	_REF_TYPE_DECL(OT_ARRAY,SQFloat32Array,Float32Array)
+	_REF_TYPE_DECL(OT_ARRAY,SQInt64Array,Int64Array)
+	_REF_TYPE_DECL(OT_ARRAY,SQInt32Array,Int32Array)
+	_REF_TYPE_DECL(OT_ARRAY,SQInt16Array,Int16Array)
+	_REF_TYPE_DECL(OT_ARRAY,SQInt8Array,Int8Array)
 	_REF_TYPE_DECL(OT_CLOSURE,SQClosure,Closure)
 	_REF_TYPE_DECL(OT_NATIVECLOSURE,SQNativeClosure,NativeClosure)
 	_REF_TYPE_DECL(OT_OUTER,SQOuter,Outer)
@@ -362,6 +371,12 @@ struct SQDelegable : public CHAINABLE_OBJ {
 SQUnsignedInteger SQTranslateIndex(const SQObjectPtr &idx);
 typedef sqvector<SQObjectPtr> SQObjectPtrVec;
 typedef sqvector<SQInteger> SQIntVec;
+typedef sqvector<SQFloat> SQFloatVec;
+typedef sqvector<SQInt16> SQInt16Vec;
+typedef sqvector<SQInt32> SQInt32Vec;
+typedef sqvector<SQInt64> SQInt64Vec;
+typedef sqvector<SQFloat32> SQFloat32Vec;
+typedef sqvector<SQFloat64> SQFloat64Vec;
 const SQChar *GetTypeName(const SQObjectPtr &obj1);
 const SQChar *IdType2Name(SQObjectType type);
 

@@ -353,19 +353,55 @@ static SQRESULT base_suspend(HSQUIRRELVM v)
 	return sq_suspendvm(v);
 }
 
-static SQRESULT base_array(HSQUIRRELVM v)
+template <typename T>
+static SQRESULT base_array_base(HSQUIRRELVM v)
 {
-	SQArray *a;
+	T *a;
 	SQObject &size = stack_get(v,2);
 	if(sq_gettop(v) > 2) {
-		a = SQArray::Create(_ss(v),0);
+        a = T::Create(_ss(v),0);
 		a->Resize(tointeger(size),stack_get(v,3));
 	}
 	else {
-		a = SQArray::Create(_ss(v),tointeger(size));
+        a = T::Create(_ss(v),tointeger(size));
 	}
 	v->Push(a);
 	return 1;
+}
+
+static SQRESULT base_array(HSQUIRRELVM v)
+{
+    return base_array_base<SQArray>(v);
+}
+
+static SQRESULT base_array_float64(HSQUIRRELVM v)
+{
+    return base_array_base<SQFloat64Array>(v);
+}
+
+static SQRESULT base_array_float32(HSQUIRRELVM v)
+{
+    return base_array_base<SQFloat32Array>(v);
+}
+
+static SQRESULT base_array_int64(HSQUIRRELVM v)
+{
+    return base_array_base<SQInt64Array>(v);
+}
+
+static SQRESULT base_array_int32(HSQUIRRELVM v)
+{
+    return base_array_base<SQInt32Array>(v);
+}
+
+static SQRESULT base_array_int16(HSQUIRRELVM v)
+{
+    return base_array_base<SQInt16Array>(v);
+}
+
+static SQRESULT base_array_int8(HSQUIRRELVM v)
+{
+    return base_array_base<SQInt8Array>(v);
 }
 
 static SQRESULT base_type(HSQUIRRELVM v)
@@ -566,7 +602,13 @@ static SQRegFunction base_funcs[]={
 	{_SC("compilestring"),base_compilestring,-2, _SC(".ssb")},
 	{_SC("newthread"),base_newthread,2, _SC(".c")},
 	{_SC("suspend"),base_suspend,-1, NULL},
-	{_SC("array"),base_array,-2, _SC(".n")},
+	{_SC("array"),base_array,-2, _SC(".n.")},
+	{_SC("array_float64"),base_array_float64,-2, _SC(".nf")},
+	{_SC("array_float32"),base_array_float32,-2, _SC(".nf")},
+	{_SC("array_int64"),base_array_int64,-2, _SC(".ni")},
+	{_SC("array_int32"),base_array_int32,-2, _SC(".ni")},
+	{_SC("array_int16"),base_array_int16,-2, _SC(".ni")},
+	{_SC("array_int8"),base_array_int8,-2, _SC(".ni")},
 	{_SC("type"),base_type,2, NULL},
 	{_SC("callee"),base_callee,0,NULL},
 	{_SC("dummy"),base_dummy,0,NULL},
@@ -838,7 +880,10 @@ static SQRESULT array_top(HSQUIRRELVM v)
 {
 	SQObject &o=stack_get(v,1);
 	if(_array(o)->Size()>0){
-		v->Push(_array(o)->Top());
+        v->PushNull();
+        SQObjectPtr &ot = stack_get(v, -1);
+        _array(o)->Top(ot);
+		//v->Push(_array(o)->Top());
 		return 1;
 	}
 	else return sq_throwerror(v,_SC("top() on a empty array"));
@@ -884,28 +929,32 @@ static inline SQRESULT array_resize_base(HSQUIRRELVM v, e_array_op_type opType)
 {
 	SQObject &o = stack_get(v, 1);
 	if(opType == e_capacity)
-    {
-        sq_pushinteger(v, _array(o)->Capacity());
-        return 1;
-    }
+	{
+		sq_pushinteger(v, _array(o)->Capacity());
+		return 1;
+	}
 	SQObject &nsize = stack_get(v, 2);
 	SQObjectPtr fill;
 	if(sq_isnumeric(nsize)) {
-        switch(opType)
-        {
-        case e_reserve:
-            _array(o)->Reserve(tointeger(nsize));
-            break;
-        case e_minsize:
-            if(_array(o)->Size() >= tointeger(nsize)) break;
-            //falthrough
-        default:
-            if(sq_gettop(v) > 2)
-                fill = stack_get(v, 3);
-            _array(o)->Resize(tointeger(nsize),fill);
-            sq_settop(v, 1);
-            return 1;
-        }
+		SQInteger sz = tointeger(nsize);
+		if (sz<0)
+		  return sq_throwerror(v, _SC("resizing to negative length"));
+		SQUnsignedInteger usize = sz;
+		switch(opType)
+		{
+		case e_reserve:
+		    _array(o)->Reserve(usize);
+		    break;
+		case e_minsize:
+		    if(_array(o)->Size() >= usize) break;
+		    //falthrough
+		default:
+		    if(sq_gettop(v) > 2)
+			fill = stack_get(v, 3);
+		    _array(o)->Resize(usize,fill);
+		    sq_settop(v, 1);
+		    return 1;
+		}
 		return SQ_OK;
 	}
 	return sq_throwerror(v, _SC("size must be a number"));
@@ -931,7 +980,7 @@ static SQRESULT array_capacity(HSQUIRRELVM v)
     return array_resize_base(v, e_capacity);
 }
 
-static SQRESULT __map_array(SQArray *dest,SQArray *src,HSQUIRRELVM v) {
+static SQRESULT __map_array(SQArrayBase *dest,SQArrayBase *src,HSQUIRRELVM v) {
 	SQObjectPtr temp;
 	SQInteger size = src->Size();
 	for(SQInteger n = 0; n < size; n++) {
@@ -950,8 +999,7 @@ static SQRESULT __map_array(SQArray *dest,SQArray *src,HSQUIRRELVM v) {
 static SQRESULT array_map(HSQUIRRELVM v)
 {
 	SQObject &o = stack_get(v,1);
-	SQInteger size = _array(o)->Size();
-	SQObjectPtr ret = SQArray::Create(_ss(v),size);
+	SQObjectPtr ret = _array(o)->Clone();
 	if(SQ_FAILED(__map_array(_array(ret),_array(o),v)))
 		return SQ_ERROR;
 	v->Push(ret);
@@ -970,7 +1018,7 @@ static SQRESULT array_apply(HSQUIRRELVM v)
 static SQRESULT array_reduce(HSQUIRRELVM v)
 {
 	SQObject &o = stack_get(v,1);
-	SQArray *a = _array(o);
+	SQArrayBase *a = _array(o);
 	SQInteger size = a->Size();
 	if(size == 0) {
 		return 0;
@@ -998,8 +1046,8 @@ static SQRESULT array_reduce(HSQUIRRELVM v)
 static SQRESULT array_filter(HSQUIRRELVM v)
 {
 	SQObject &o = stack_get(v,1);
-	SQArray *a = _array(o);
-	SQObjectPtr ret = SQArray::Create(_ss(v),0);
+	SQArrayBase *a = _array(o);
+	SQObjectPtr ret = a->Clone(false);
 	SQInteger size = a->Size();
 	SQObjectPtr val;
 	for(SQInteger n = 0; n < size; n++) {
@@ -1023,7 +1071,7 @@ static SQRESULT array_find(HSQUIRRELVM v)
 {
 	SQObject &o = stack_get(v,1);
 	SQObjectPtr &val = stack_get(v,2);
-	SQArray *a = _array(o);
+	SQArrayBase *a = _array(o);
 	SQInteger size = a->Size();
 	SQObjectPtr temp;
 	for(SQInteger n = 0; n < size; n++) {
@@ -1041,7 +1089,7 @@ static SQRESULT array_bsearch(HSQUIRRELVM v)
 {
 	SQObject &o = stack_get(v,1);
 	SQObjectPtr &val = stack_get(v,2);
-	SQArray *a = _array(o);
+	SQArrayBase *a = _array(o);
 	SQObjectPtr temp;
 	SQInteger imid = 0, imin = 0, imax = a->Size()-1;
 	while(imax >= imin) {
@@ -1072,7 +1120,7 @@ static SQRESULT array_bsearch(HSQUIRRELVM v)
 }
 
 
-static bool _sort_compare(HSQUIRRELVM v,SQObjectPtr &a,SQObjectPtr &b,SQInteger func,SQInteger &ret)
+static bool _sort_compare(HSQUIRRELVM v,const SQObjectPtr &a,const SQObjectPtr &b,SQInteger func,SQInteger &ret)
 {
 	if(func < 0) {
 		if(!v->ObjCmp(a,b,ret)) return false;
@@ -1107,36 +1155,44 @@ static bool _sort_compare(HSQUIRRELVM v,SQObjectPtr &a,SQObjectPtr &b,SQInteger 
 ** =======================================================
 */
 
-static bool lua_auxsort (HSQUIRRELVM v, SQArray *arr, SQInteger l, SQInteger u,
+static bool lua_auxsort (HSQUIRRELVM v, SQArrayBase *arr, SQInteger l, SQInteger u,
                                    SQInteger func) {
   while (l < u) {  /* for tail recursion */
     SQInteger i, j, ret;
     bool rc;
+    SQObject o1, o2;
     /* sort elements a[l], a[(l+u)/2] and a[u] */
-    if(!_sort_compare(v,arr->_values[u],arr->_values[l],func,ret))
+    arr->_get2(u, o1);
+    arr->_get2(l, o2);
+    if(!_sort_compare(v,o1,o2,func,ret))
         return false;
     if (ret < 0)  /* a[u] < a[l]? */
-      _Swap(arr->_values[l],arr->_values[u]);  /* swap a[l] - a[u] */
+      arr->_swap(l, u);  /* swap a[l] - a[u] */
     if (u-l == 1) break;  /* only 2 elements */
     i = (l+u)/2;
-    if(!_sort_compare(v,arr->_values[i],arr->_values[l],func,ret))
+    arr->_get2(i, o1);
+    arr->_get2(l, o2);
+    if(!_sort_compare(v,o1,o2,func,ret))
         return false;
     if (ret < 0)  /* a[i]<a[l]? */
-      _Swap(arr->_values[i],arr->_values[l]);
+      arr->_swap(i, l);
     else {
-      if(!_sort_compare(v,arr->_values[u],arr->_values[i],func,ret))
+      arr->_get2(u, o1);
+      arr->_get2(i, o2);
+      if(!_sort_compare(v,o1,o2,func,ret))
         return false;
       if (ret < 0)  /* a[u]<a[i]? */
-        _Swap(arr->_values[i],arr->_values[u]);
+        arr->_swap(i, u);
     }
     if (u-l == 2) break;  /* only 3 elements */
-    SQObjectPtr P = arr->_values[i];  /* Pivot */
-    _Swap(arr->_values[i],arr->_values[u-1]);
+    SQObject P;
+    arr->_get2(i, P);  /* Pivot */
+    arr->_swap(i, u-1);
     /* a[l] <= P == a[u-1] <= a[u], only need to sort from l+1 to u-2 */
     i = l; j = u-1;
     for (;;) {  /* invariant: a[l..i] <= P <= a[j..u] */
       /* repeat ++i until a[i] >= P */
-      while ((rc = _sort_compare(v,arr->_values[++i],P,func,ret)) && (ret < 0)) {
+      while (arr->_get2(++i, o1), (rc = _sort_compare(v,o1,P,func,ret)) && (ret < 0)) {
         if (i>u)
         {
             sq_throwerror(v, _SC("invalid order function for sorting"));
@@ -1145,7 +1201,7 @@ static bool lua_auxsort (HSQUIRRELVM v, SQArray *arr, SQInteger l, SQInteger u,
       }
       if(!rc) return false;
       /* repeat --j until a[j] <= P */
-      while ((rc = _sort_compare(v,P, arr->_values[--j],func,ret)) && (ret < 0)) {
+      while (arr->_get2(--j, o2), (rc = _sort_compare(v,P, o2,func,ret)) && (ret < 0)) {
         if (j<l)
         {
             sq_throwerror(v, _SC("invalid order function for sorting"));
@@ -1156,9 +1212,9 @@ static bool lua_auxsort (HSQUIRRELVM v, SQArray *arr, SQInteger l, SQInteger u,
       if (j<i) {
         break;
       }
-      _Swap(arr->_values[i],arr->_values[j]);
+      arr->_swap(i, j);
     }
-    _Swap(arr->_values[u-1],arr->_values[i]);  /* swap pivot (a[u-1]) with a[i] */
+    arr->_swap(u-1, i);  /* swap pivot (a[u-1]) with a[i] */
     /* a[l..i-1] <= a[i] == P <= a[i+1..u] */
     /* adjust so that smaller half is in [j..i] and larger one in [l..u] */
     if (i-l < u-i) {
@@ -1176,7 +1232,7 @@ static bool lua_auxsort (HSQUIRRELVM v, SQArray *arr, SQInteger l, SQInteger u,
 static SQRESULT array_sort(HSQUIRRELVM v) {
 	SQInteger func = -1;
 	SQObjectPtr &o = stack_get(v,1);
-	SQArray *arr = _array(o);
+	SQArrayBase *arr = _array(o);
 	if(arr->Size() > 1) {
 		if(sq_gettop(v) == 2) func = 2;
 		if(!lua_auxsort(v, arr, 0, arr->Size()-1, func))
@@ -1199,7 +1255,8 @@ static SQRESULT array_slice(HSQUIRRELVM v)
 	if(eidx < 0)eidx = alen + eidx;
 	if(eidx < sidx)return sq_throwerror(v,_SC("wrong indexes"));
 	if(eidx > alen || sidx < 0)return sq_throwerror(v, _SC("slice out of range"));
-	SQArray *arr=SQArray::Create(_ss(v),eidx-sidx);
+	SQArrayBase *arr=_array(o)->Clone(false);
+	arr->Resize(eidx-sidx);
 	SQObjectPtr t;
 	SQInteger count=0;
 	for(SQInteger i=sidx;i<eidx;i++){
@@ -1220,8 +1277,9 @@ static SQRESULT array_slice(HSQUIRRELVM v)
 static SQRESULT array_concat0 (HSQUIRRELVM v, int allowAll) {
     SQ_FUNC_VARS(v);
     SQObjectPtr &arobj = stack_get(v,1);
-    SQObjectPtrVec &aryvec = _array(arobj)->_values;
-    SQInteger last = aryvec.size()-1;
+    SQArrayBase *arr = _array(arobj);
+
+    SQInteger last = arr->Size()-1;
     if(last == -1){
         sq_pushstring(v, _SC(""), 0);
         return 1;
@@ -1241,7 +1299,9 @@ static SQRESULT array_concat0 (HSQUIRRELVM v, int allowAll) {
   SQBlob blob(0, 8192);
 
   for (int i=opt_first; i <= opt_last; ++i) {
-      SQObjectPtr str, &o = aryvec[i];
+      SQObject o;
+      SQObjectPtr str;
+      arr->_get2(i, o);
       switch(sq_type(o)){
           case OT_STRING:
               break;
@@ -1297,6 +1357,12 @@ static SQRESULT array_empty(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT array_sizeofelm(HSQUIRRELVM v)
+{
+	sq_arraygetsizeof(v,1);
+	return 1;
+}
+
 //DAD end
 
 SQRegFunction SQSharedState::_array_default_delegate_funcz[]={
@@ -1334,6 +1400,7 @@ SQRegFunction SQSharedState::_array_default_delegate_funcz[]={
 	{_SC("get"),container_rawget, -2, _SC("ai.")},
 	{_SC("set"),array_set, 3, _SC("ai.")},
 	{_SC("isempty"),array_empty, 1, _SC("a")},
+	{_SC("sizeofelm"),array_sizeofelm, 1, _SC("a")},
 	{NULL,(SQFUNCTION)0,0,NULL}
 };
 
@@ -2519,11 +2586,15 @@ static SQRESULT closure_call(HSQUIRRELVM v)
 
 static SQRESULT _closure_acall(HSQUIRRELVM v,SQBool raiseerror, SQBool v2)
 {
-	SQArray *aparams=_array(stack_get(v, v2 ? 3 : 2));
+	SQArrayBase *aparams=_array(stack_get(v, v2 ? 3 : 2));
 	SQInteger nparams=aparams->Size();
 	v->Push(stack_get(v,1));
 	if(v2) v->Push(stack_get(v,2));
-	for(SQInteger i=0;i<nparams;i++)v->Push(aparams->_values[i]);
+	for(SQInteger i=0;i<nparams;i++){
+        v->PushNull();
+        SQObjectPtr &o = stack_get(v, -1);
+        aparams->_get2(i, o);
+	}
 	return SQ_SUCCEEDED(sq_call(v,nparams + (v2 ? 1 : 0),SQTrue,raiseerror))?1:SQ_ERROR;
 }
 

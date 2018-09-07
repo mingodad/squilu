@@ -1,13 +1,20 @@
 #ifndef NO_ABSTRACT_METHOD
-#define ABSTRACT_METHOD(m, i) m =0
+#define ABSTRACT_METHOD(m, i) m =0;
 #else
 #define ABSTRACT_METHOD(m, i) m i
 #endif
 
-#ifdef _SQ64
-
+typedef float SQFloat32;
+typedef double SQFloat64;
+typedef long long SQInt64;
+typedef int SQInt32; /*must be 32 bits(also on 64bits processors)*/
+typedef unsigned int SQUnsignedInteger32; /*must be 32 bits(also on 64bits processors)*/
 typedef short SQInt16;
 typedef unsigned short SQUnsignedInt16;
+typedef char SQInt8;
+
+#ifdef _SQ64
+
 #ifdef _MSC_VER
     #define SQ_INT_MAX _I64_MAX
     #define SQ_INT_MIN _I64_MIN
@@ -29,17 +36,11 @@ typedef long long SQInteger;
 typedef unsigned long long SQUnsignedInteger;
 typedef unsigned long long SQHash; /*should be the same size of a pointer*/
 #endif
-typedef int SQInt32;
-typedef unsigned int SQUnsignedInteger32;
 #else
 #define SQ_INT_MAX INT_MAX
 #define SQ_INT_MIN INT_MIN
 typedef int SQInteger;
 typedef unsigned int SQUnsignedInteger;
-typedef int SQInt32; /*must be 32 bits(also on 64bits processors)*/
-typedef unsigned int SQUnsignedInteger32; /*must be 32 bits(also on 64bits processors)*/
-typedef short SQInt16;
-typedef unsigned short SQUnsignedInt16;
 typedef unsigned int /*ptrdiff_t*/ SQHash; /*should be the same size of a pointer*/
 #endif
 
@@ -212,6 +213,7 @@ typedef unsigned char SQUChar;
 #define scstrftime strftime
 #define scremove remove
 #define screname rename
+
 #define sq_rsl(l) (l)
 #define sq_str_sizeof(p) (sizeof(p))
 

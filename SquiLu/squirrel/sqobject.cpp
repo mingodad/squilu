@@ -224,11 +224,15 @@ bool SQGenerator::Resume(SQVM *v,SQObjectPtr &dest)
 	return true;
 }
 
-void SQArray::Extend(const SQArray *a){
+void SQArrayBase::Extend(SQArrayBase *a){
 	SQInteger xlen;
 	if((xlen=a->Size()))
 		for(SQInteger i=0;i<xlen;i++)
-			Append(a->_values[i]);
+        {
+            SQObject o;
+            a->_get2(i, o);
+			Append(o);
+        }
 }
 
 const SQChar* SQFunctionProto::GetLocal(SQVM *vm,SQUnsignedInteger stackbase,SQUnsignedInteger nseq,SQUnsignedInteger nop)
@@ -620,6 +624,7 @@ const SQChar *SQGetVarTypeName(int it){
     }
 #undef SCASE
 }
+
 const SQChar *SQGetArithOpName(int it){
 #define SCASE(x, z) case x: return _SC(#z); break;
     switch(it){
@@ -759,7 +764,7 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
                                  inst._arg0, inst._arg2, inst.op == _OP_PREPCALLK ? "literals" : "stk", inst._arg1, inst._arg3);
             break;
             case _OP_LOADFLOAT:
-                    SafeWriteFmt(v,write,up,"\t/* %f */", *((SQFloat*)&inst._arg1));
+                    SafeWriteFmt(v,write,up,"\t/* %f */", *((SQFloat32*)&inst._arg1));
             break;
             case _OP_GETOUTER:
                         SafeWriteFmt(v,write,up,"\t/* stk[%d] <- outervalues[%d] == (%s) */",
@@ -984,12 +989,20 @@ void SQVM::Mark(SQCollectable **chain)
 	END_MARK()
 }
 
-void SQArray::Mark(SQCollectable **chain)
+void SQArrayBase::Mark(SQCollectable **chain)
 {
-	START_MARK()
-		SQInteger len = _values.size();
-		for(SQInteger i = 0;i < len; i++) SQSharedState::MarkObject(_values[i], chain);
-	END_MARK()
+    if(isCollectable())
+    {
+        START_MARK()
+            SQInteger len = Size();
+            SQObjectPtr o;
+            for(SQInteger i = 0;i < len; i++){
+              _get2(i, o); //do not trigger refcount
+              SQSharedState::MarkObject(o, chain);
+            }
+            o._type=OT_NULL; //hack to not trigger dereference on this temp var
+        END_MARK()
+    }
 }
 void SQTable::Mark(SQCollectable **chain)
 {
