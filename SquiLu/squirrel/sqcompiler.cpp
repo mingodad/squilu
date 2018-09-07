@@ -1972,14 +1972,12 @@ start_again:
         {
             target = _fs->PushTarget();
         }
-        if(sizeof(SQFloat) == sizeof(SQInt32))
+        SQFloat32 f32 = value;
+        if(f32 == value) //same value no overflow/underflow/infinity
         {
-            _fs->AddInstruction(_OP_LOADFLOAT, target,*((SQInt32 *)&value));
+            _fs->AddInstruction(_OP_LOADFLOAT, target,*((SQInt32 *)&f32));
         }
-        else
-        {
-            _fs->AddInstruction(_OP_LOAD, target, _fs->GetNumericConstant(value));
-        }
+        else _fs->AddInstruction(_OP_LOAD, target, _fs->GetNumericConstant(value));
     }
     void UnaryOP(SQOpcode op)
     {
