@@ -156,6 +156,47 @@ static SQRESULT sq_fann_training_data_set_output_at(HSQUIRRELVM v)
     return 0;
 }
 
+#define SCALE_ALL 0
+#define SCALE_INPUT 1
+#define SCALE_OUTPUT 2
+
+static SQRESULT sq_fann_training_data_scale_iot(HSQUIRRELVM v, int iot)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_FANN_TRAINING_DATA_INSTANCE(v, 1);
+    SQ_GET_FLOAT(v, 2, new_min);
+    SQ_GET_FLOAT(v, 3, new_max);
+
+    switch(iot)
+    {
+        case SCALE_ALL:
+            fann_scale_train_data(self->data, new_min, new_max);
+            break;
+        case SCALE_INPUT:
+            fann_scale_input_train_data(self->data, new_min, new_max);
+            break;
+        case SCALE_OUTPUT:
+            fann_scale_output_train_data(self->data, new_min, new_max);
+            break;
+    }
+    return 0;
+}
+
+static SQRESULT sq_fann_training_data_scale(HSQUIRRELVM v)
+{
+    return sq_fann_training_data_scale_iot(v, SCALE_ALL);
+}
+
+static SQRESULT sq_fann_training_data_scale_input(HSQUIRRELVM v)
+{
+    return sq_fann_training_data_scale_iot(v, SCALE_INPUT);
+}
+
+static SQRESULT sq_fann_training_data_scale_output(HSQUIRRELVM v)
+{
+    return sq_fann_training_data_scale_iot(v, SCALE_OUTPUT);
+}
+
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),sq_fann_training_data_##name,nparams,tycheck}
 static SQRegFunction sq_fann_training_data_methods[] =
 {
@@ -170,6 +211,9 @@ static SQRegFunction sq_fann_training_data_methods[] =
     _DECL_FUNC(save, 2,_SC("xs")),
     _DECL_FUNC(set_input_at, 3,_SC("xia")),
     _DECL_FUNC(set_output_at, 3,_SC("xia")),
+    _DECL_FUNC(scale, 3,_SC("xnn")),
+    _DECL_FUNC(scale_input, 3,_SC("xnn")),
+    _DECL_FUNC(scale_output, 3,_SC("xnn")),
 
     {0,0}
 };
