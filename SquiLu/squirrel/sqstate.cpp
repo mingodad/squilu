@@ -661,7 +661,12 @@ SQString *SQStringTable::Add(const SQChar *news,SQInteger len)
 SQString *SQStringTable::Add(SQString *strBuf)
 {
 	SQHash newhash, h;
+#ifdef SQ_PACKED_STRUCT
+	SQInteger blen = strBuf->_len;
+    SQString *t = Contains(strBuf->_val, blen, newhash, h);
+#else
     SQString *t = Contains(strBuf->_val, strBuf->_len, newhash, h);
+#endif
     if(t) {
         SQ_FREE(strBuf,sizeof(SQString) + rsl(strBuf->_len));
         return t;
