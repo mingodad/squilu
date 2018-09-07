@@ -9,6 +9,19 @@ print(f1+f1+f1-f2);
 local d = Decimal();
 print(d.isnan(), d.iszero(), d.isodd(), d.iseven());
 
+auto saved_prec = Decimal.context.prec();
+print(saved_prec);
+Decimal.context.prec(56);
+print(Decimal(2).sqrt());
+print(Decimal(2).sqrt().pow(Decimal(2)));
+local decpi = Decimal("3.1415926535897932384626433832795028841971693993751058209749445923078164062862090");
+print(decpi.context.prec());
+print("decpi", decpi);
+local decpi2 = Decimal("3.1415926535897932384626433832795028841971693993751058209749445923078164062862090");
+print("decpi2", decpi2);
+print(decpi == decpi2);
+Decimal.context.prec(saved_prec);
+
 local dec1 = Decimal("1.1");
 local dec2 = Decimal("2.2");
 print(dec1, dec2, dec1 + dec2)

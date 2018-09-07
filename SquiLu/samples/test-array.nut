@@ -47,3 +47,34 @@ local sar = ["1","2","3","4","5","6","7","8","9"];
 foreach(v in sar) print(sar.bsearch(v));
 print(sar.bsearch("0"));
 print(sar.bsearch("10"));
+
+local array_size = 1000;
+ar = array(array_size);
+for(local i=0; i < array_size; ++i) ar[i] = i;
+
+local sum, start_time;
+
+start_time = os.clock();
+sum = 0;
+foreach(elm in ar) sum += elm;
+print("Time spent", os.clock() - start_time, sum);
+
+start_time = os.clock();
+sum = 0;
+foreach(elm in ar) sum += ar[elm];
+print("Time spent", os.clock() - start_time, sum);
+
+start_time = os.clock();
+sum = 0;
+foreach(elm in ar) sum += ar.get(elm);
+print("Time spent", os.clock() - start_time, sum);
+
+start_time = os.clock();
+sum = 0;
+for(local i=0; i < array_size; ++i) sum += ar[i];
+print("Time spent", os.clock() - start_time, sum);
+
+start_time = os.clock();
+sum = 0;
+for(local i=0; i < array_size; ++i) sum += ar.get(i);
+print("Time spent", os.clock() - start_time, sum);

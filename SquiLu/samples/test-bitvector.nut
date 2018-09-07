@@ -15,21 +15,21 @@ auto bitSet(bpos)
 {
 	auto cpos = bpos/8;
 	auto b8 = 1 << (bpos%8);
-	sqBitVect[cpos] = sqBitVect[cpos] | b8;
+	sqBitVect[cpos] |= b8;
 }
  
 auto bitClear(bpos)
 {
 	auto cpos = bpos/8;
 	auto b8 = 1 << (bpos%8);
-	sqBitVect[cpos] = sqBitVect[cpos] & (~b8);
+	sqBitVect[cpos] &= (~b8);
 }
  
 auto bitTogle(bpos)
 {
 	auto cpos = bpos/8;
 	auto b8 = 1 << (bpos%8);
-	sqBitVect[cpos] = sqBitVect[cpos] ^ b8;
+	sqBitVect[cpos] ^= b8;
 }
 
 auto bit_pos = 3;
@@ -65,80 +65,70 @@ auto bv = BitVector(bv_size);
 print(bv);
 
 auto start_milli = os.getmillicount();
-
 for(auto i=1; i <= bv_size; i+=step) bv.set(i);
+print("Time spent set bv a", os.getmillicount() - start_milli);
 
-print("Time spent set bv", os.getmillicount() - start_milli);
 start_milli = os.getmillicount();
+for(auto i=1; i <= bv_size; i+=step) bv[i] = false;
+print("Time spent set bv b", os.getmillicount() - start_milli);
 
+start_milli = os.getmillicount();
+for(auto i=1; i <= bv_size; i+=step) bv[i] = true;
+print("Time spent set bv c", os.getmillicount() - start_milli);
+
+start_milli = os.getmillicount();
 for(auto i=1; i <= bv_size; i+=step) bv.test(i);
-
-print("Time spent get bv", os.getmillicount() - start_milli);
+print("Time spent get bv a", os.getmillicount() - start_milli);
 
 start_milli = os.getmillicount();
+for(auto i=1; i <= bv_size; i+=step) bv[i];
+print("Time spent get bv b", os.getmillicount() - start_milli);
 
+start_milli = os.getmillicount();
 for(auto i=0; i < bv_size; i+=step) bitSet(i);
-
 print("Time spent set sq", os.getmillicount() - start_milli);
 
 start_milli = os.getmillicount();
-
 for(auto i=0; i < bv_size; i+=step) bitGet(i);
-
 print("Time spent get sq", os.getmillicount() - start_milli);
 
 start_milli = os.getmillicount();
-
 for(auto i=0; i < bv_size; i+=step) sqBitVect.bitSet(i);
-
 print("Time spent set blob", os.getmillicount() - start_milli);
 
 start_milli = os.getmillicount();
-
 for(auto i=0; i < bv_size; i+=step) sqBitVect.bitGet(i);
-
 print("Time spent get blob", os.getmillicount() - start_milli);
 
-start_milli = os.getmillicount();
 auto cbitSet = sqBitVect.bitSet;
 auto cbitGet = sqBitVect.bitGet;
 
+start_milli = os.getmillicount();
 for(auto i=0; i < bv_size; i+=step) rawcall(cbitSet, sqBitVect, i);
-
 print("Time spent set rawcall blob", os.getmillicount() - start_milli);
 
 start_milli = os.getmillicount();
-
 for(auto i=0; i < bv_size; i+=step) rawcall(cbitGet, sqBitVect, i);
-
 print("Time spent get rawcall blob", os.getmillicount() - start_milli);
 
-start_milli = os.getmillicount();
 cbitSet = BitVector.set;
 cbitGet = BitVector.test;
 print(cbitSet, cbitGet);
 //bv = BitVector(bv_size);
 
+start_milli = os.getmillicount();
 for(auto i=1; i <= bv_size; i+=step) rawcall(cbitSet, bv, i);
-
 print("Time spent set rawcall bv", os.getmillicount() - start_milli);
 
 start_milli = os.getmillicount();
-
 for(auto i=1; i <= bv_size; i+=step) rawcall(cbitGet, bv, i);
-
 print("Time spent get rawcall bv", os.getmillicount() - start_milli);
 
 bv = array(bv_size);
 start_milli = os.getmillicount();
-
 for(auto i=0; i < bv_size; i+=step) bv[i] = true;
-
 print("Time spent set array", os.getmillicount() - start_milli);
 
-
 start_milli = os.getmillicount();
-
 for(auto i=0; i < bv_size; i+=step) bv[i];
-
 print("Time spent get array", os.getmillicount() - start_milli);
