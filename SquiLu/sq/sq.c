@@ -371,9 +371,13 @@ void Interactive(HSQUIRRELVM v)
 		buffer[i] = _SC('\0');
 
 		if(buffer[0]==_SC('=')){
-			scsprintf(sq_getscratchpad(v,MAXINPUT),MAXINPUT,_SC("return (%s)"),&buffer[1]);
+            #define FMT_STR _SC("return (%s)")
+            #define MAX_INPUT_SIZE (MAXINPUT+sizeof(FMT_STR))
+			scsprintf(sq_getscratchpad(v,MAX_INPUT_SIZE),MAX_INPUT_SIZE,FMT_STR,&buffer[1]);
 			memcpy(buffer,sq_getscratchpad(v,-1),(scstrlen(sq_getscratchpad(v,-1))+1)*sizeof(SQChar));
 			retval=1;
+            #undef FMT_STR
+            #undef MAX_INPUT_SIZE
 		}
 		i=scstrlen(buffer);
 		if(i>0){
@@ -735,6 +739,14 @@ static sq_modules_preload_st modules_preload[] = {
     {"dns_sd", sqext_register_DNS_SD},
 #endif
 
+#ifdef SQ_USE_FUZZY_HASH
+    {"sqfuzzy_hash", sqext_register_fuzzy_hash},
+#endif // SQ_USE_FUZZY_HASH
+
+#ifdef SQ_USE_NUMARRAY
+    {"numarray", sqext_register_numarray},
+#endif // SQ_USE_FUZZY_HASH
+
 #endif //SQUILU_ALONE
 #endif // WITH_DAD_EXTRAS
 #if defined(SQ_USE_SQLEG)
@@ -743,9 +755,6 @@ static sq_modules_preload_st modules_preload[] = {
 #if defined(SQ_USE_LMDB)
     {"sqlmdb", sqext_register_LmDB},
 #endif // SQ_USE_LMDB
-#ifdef SQ_USE_FUZZY_HASH
-    {"sqfuzzy_hash", sqext_register_fuzzy_hash},
-#endif // SQ_USE_FUZZY_HASH
     {NULL, NULL}
 };
 
