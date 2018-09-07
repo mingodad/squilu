@@ -430,6 +430,7 @@ static SQRESULT sq_BitVector_constructor(HSQUIRRELVM v){
 
 #define BV_CHECK_RANGE() \
     	if(int_pos < 1 || int_pos > self->iSize) return sq_throwerror(v, _SC("index out of range '%u'"), (u32)int_pos);
+
 static SQRESULT sq_BitVector_clear(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_BitVector_INSTANCE();
@@ -485,6 +486,17 @@ static SQRESULT sq_BitVector_test_not_null(HSQUIRRELVM v){
 	return 1;
 }
 
+static SQRESULT sq_BitVector__set(HSQUIRRELVM v){
+	SQ_FUNC_VARS_NO_TOP(v);
+	SQ_GET_BOOL(v, 3, bval);
+	if(bval) return sq_BitVector_set(v);
+	return sq_BitVector_clear(v);
+}
+
+static SQRESULT sq_BitVector__get(HSQUIRRELVM v){
+	return sq_BitVector_test(v);
+}
+
 #define _DECL_BITVECTOR_FUNC(name,nparams,pmask) {_SC(#name),sq_BitVector_##name,nparams,pmask}
 static SQRegFunction BitVector_obj_funcs[]={
 
@@ -494,6 +506,8 @@ static SQRegFunction BitVector_obj_funcs[]={
 	_DECL_BITVECTOR_FUNC(size, 1, _SC("x")),
 	_DECL_BITVECTOR_FUNC(test, 2, _SC("xi")),
 	_DECL_BITVECTOR_FUNC(test_not_null, 2, _SC("xi")),
+	_DECL_BITVECTOR_FUNC(_set, 3, _SC("xib")),
+	_DECL_BITVECTOR_FUNC(_get, 2, _SC("xi")),
 	{0,0}
 };
 #undef _DECL_BITVECTOR_FUNC
