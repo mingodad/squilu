@@ -2590,11 +2590,7 @@ static SQRESULT _closure_acall(HSQUIRRELVM v,SQBool raiseerror, SQBool v2)
 	SQInteger nparams=aparams->Size();
 	v->Push(stack_get(v,1));
 	if(v2) v->Push(stack_get(v,2));
-	for(SQInteger i=0;i<nparams;i++){
-        v->PushNull();
-        SQObjectPtr &o = stack_get(v, -1);
-        aparams->_get2(i, o);
-	}
+	for(SQInteger i=0;i<nparams;i++) v->Push((*aparams)[i]);
 	return SQ_SUCCEEDED(sq_call(v,nparams + (v2 ? 1 : 0),SQTrue,raiseerror))?1:SQ_ERROR;
 }
 
