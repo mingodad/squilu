@@ -1,8 +1,30 @@
+#ifndef __SQUILU__
+#include <stdio.h>
+#endif
+
+//#ifdef ZERO
+class Dad
+{
+	int_t _n;
+public:
+	Dad(int_t n){ _n = n;}
+	
+	void print() {printf("%d\n", _n);}
+protected:
+	void onlyForFriends(){}
+private:
+	void onlyForUs(){}
+};
+//#endif
+
 #include "minctest.nut"
 local sqt = minctest();
 
 local Is32Bits = _intsize_ == 4;
 //print("Is32Bits", Is32Bits);
+
+local globals = getroottable();
+
 sqt.run("closures", function(){
 
 	local A = 0, B = {g=10}
@@ -314,6 +336,7 @@ sqt.run("calls", function(){
 
 	sqt.ok(nested() == "1:88:66:99::2:22:66:99");
 	sqt.ok(nested("n") == "3:n:66:99");
+
 });
 
 sqt.run("sort", function(){
@@ -330,7 +353,7 @@ sqt.run("sort", function(){
 	check(a)
 
 	limit <- 30000
-	if( table_rawget(getroottable(), "_soft", false) ) limit = 5000
+	if( table_rawget(globals, "_soft", false) ) limit = 5000
 
 	a = []
 	for(local i=0; i < limit; ++i) a.append(math.random())
@@ -491,9 +514,10 @@ sqt.run("pattern matching", function(){
 	local ar = range(0, 255)
 	//print(ar.len())
 
-	ar.insert(0, this)
+	ar.insert(0, "a");
 	local abc = str_from_chars.acall(ar);
 
+	//print("abc.len()", abc.len() , 256);
 	sqt.ok(abc.len() == 256)
 
 	function strset (p)
@@ -553,7 +577,7 @@ sqt.run("pattern matching", function(){
 		    "um (DOIS) tres (QUATRO)")
 
 	{
-	  local function setglobal (n,v) {table_rawset(getroottable(), n, v) }
+	  local function setglobal (n,v) {table_rawset(globals, n, v) }
 	  "ga=roberto,groberto=ga".gsub("(%w+)=(%w%w*)", setglobal)
 	  sqt.ok(ga=="roberto" && groberto=="ga")
 	}
@@ -1004,6 +1028,66 @@ sqt.run("array", function(){
 	sqt.ok(t.len() == 5);
 	sqt.ok(t.capacity() == t.len());
 	
+	if(table_rawget(globals, "array_float32", false))
+	{
+		local function testArray(arr, sz, val)
+		{
+			local val2 = val * 2;
+			local val3 = val * 3;
+			arr.append(val2);
+			arr.append(val);
+			arr.append(val3);
+			sqt.ok(arr.len() == 3 && (arr.get(1) == val));
+			arr.sort();
+			sqt.ok((arr[0] == val) && (arr[1] == val2) && (arr[2] == val3));
+			arr.clear();
+			sqt.ok(arr.len() == 0);
+			sqt.ok(arr.sizeofelm() == sz);
+
+			local asize = 20;
+			arr.resize(asize);
+			for(local i=0; i < asize; ++i) arr[i] = i+asize;
+			local arr2 = obj_clone(arr);
+			for(local i=0; i < asize; ++i) sqt.ok(arr[i] == arr2[i]);
+			sqt.ok(arr.sizeofelm() == arr2.sizeofelm());
+			
+			local arr3 = arr2.slice(2, 18);
+			sqt.ok(arr3.sizeofelm() == arr2.sizeofelm());
+			sqt.ok(arr3[0] == arr2[2]);
+			sqt.ok(arr3.top() == arr2[17]);
+
+			try { arr.resize(-5); sqt.ok(false);} catch(e) {sqt.ok(true);};
+			try { arr.reserve(-5); sqt.ok(false);} catch(e) {sqt.ok(true);};
+		}
+		
+		if(_intsize_ == 8)
+		{
+			t = array_int64(0);
+			testArray(t, 8, 1);
+		}
+
+		if(_floatsize_ == 8)
+		{
+			t = array_float64(0);
+			testArray(t, 8, 1.0);			
+		}
+
+		t = array_float32(0);
+		testArray(t, 4, 1.0);
+		
+		t = array_int32(0);
+		testArray(t, 4, 1);
+
+		t = array_int16(0);
+		testArray(t, 2, 1);
+		
+		t = array_int8(0);
+		testArray(t, 1, 1);
+	}
+	
+	try { t.resize(-5); sqt.ok(false);} catch(e) {sqt.ok(true);};
+	try { t.reserve(-5); sqt.ok(false);} catch(e) {sqt.ok(true);};
+
 });
 
 //	core/string/index_of_start.wren
@@ -1181,6 +1265,7 @@ bar]==] == "foo\nbar");
 sqt.run("number", function(){
 
 	sqt.ok(0.0f == 0.0); //C/C++ notation
+
 //adapetd from pike https://github.com/pikelang/Pike
 	sqt.ok(1e1 == 10.0);
 	sqt.ok(1E1 == 10.0);
@@ -1499,7 +1584,6 @@ sqt.run("number", function(){
 		sqt.ok((0xf0f0f0f0 >> 1) == -126322568);
 		sqt.ok((0xffffffff >> 1) == -1);
 	}
-
 */
 	sqt.ok((0 ^ 0) == 0);
 	sqt.ok((1 ^ 1) == 0);
@@ -1545,9 +1629,12 @@ sqt.run("number", function(){
 
 	sqt.ok((5 * 3) == 15);
 	sqt.ok((12.34 * 0.3) == 3.702);
-	
+	//10000000000000004 < 32BITS
+	//10000000000000002 < 64BITS
+	//print(format("%.17g", 1e16 + 2.9999) , "10000000000000002");
+	//if(_intsize_ == 8) 
 	sqt.ok(format("%.17g", 1e16 + 2.9999) == "10000000000000002");
-
+	//else sqt.ok(format("%.17g", 1e16 + 2.9999) == "10000000000000004");
 });
 
 sqt.run("enum", function(){
@@ -1582,6 +1669,7 @@ sqt.run("constants", function(){
 	sqt.ok($CTCC == "CTCC");
 	
 	//print(dostring("return $CTC == \"CTC\";"));
+
 });
 
 sqt.run("class", function(){
@@ -1626,6 +1714,7 @@ sqt.run("globals", function(){
 	sqt.ok( obj_clone(3) == 3 );
 	sqt.ok( obj_clone(3.4) == 3.4 );
 	sqt.ok( obj_clone("str") == "str" );
+
 });
 
 return sqt.results();           //show results
