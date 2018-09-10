@@ -285,7 +285,7 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
                                 sq_pushinteger(v, callargs);
                                 sq_replace(v, -3);
                                 if(SQ_SUCCEEDED(sq_call(v,3,SQTrue,SQTrue))) {
-                                    SQObjectType type = sq_gettype(v,-1);
+                                    type = sq_gettype(v,-1);
                                     if(type == OT_INTEGER) {
                                         sq_getinteger(v,-1,retval);
                                     }
