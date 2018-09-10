@@ -496,7 +496,7 @@ void SQFuncState::AddInstruction(SQInstruction &i)
 				pi._arg3 = MAX_FUNC_STACKSIZE;
 				return;
 			}
-							  }
+            		}
 			break;
 		case _OP_MOVE:
 			switch(pi.op) {

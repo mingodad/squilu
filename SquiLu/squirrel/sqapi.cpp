@@ -696,7 +696,6 @@ SQRESULT sq_clear(HSQUIRRELVM v,SQInteger idx)
 		case OT_ARRAY: _array(o)->Resize(0); break;
 		default:
 			return sq_throwerror(v, _SC("clear only works on table and array"));
-		break;
 
 	}
 	return SQ_OK;
@@ -1259,12 +1258,12 @@ SQRESULT sq_rawset(HSQUIRRELVM v,SQInteger idx)
 		_table(self)->NewSlot(key, v->GetUp(-1));
 		v->Pop(2);
 		return SQ_OK;
-	break;
+
 	case OT_CLASS:
 		_class(self)->NewSlot(_ss(v), key, v->GetUp(-1),false);
 		v->Pop(2);
 		return SQ_OK;
-	break;
+
 	case OT_INSTANCE:
 		if(_instance(self)->Set(key, v->GetUp(-1))) {
 			v->Pop(2);
@@ -1338,7 +1337,6 @@ SQRESULT sq_setdelegate(HSQUIRRELVM v,SQInteger idx)
 		break;
 	default:
 			return sq_aux_invalidtype(v, type);
-		break;
 	}
 	return SQ_OK;
 }
@@ -1372,7 +1370,7 @@ SQRESULT sq_getdelegate(HSQUIRRELVM v,SQInteger idx)
 		}
 		v->Push(SQObjectPtr(_delegable(self)->_delegate));
 		break;
-	default: return sq_throwerror(v,_SC("wrong type")); break;
+	default: return sq_throwerror(v,_SC("wrong type"));
 	}
 	return SQ_OK;
 

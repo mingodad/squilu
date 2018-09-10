@@ -99,7 +99,7 @@ public:
 	ABSTRACT_METHOD(virtual void _copy(SQInteger idx1, SQInteger idx2),{})
 	ABSTRACT_METHOD(virtual bool _set(SQInteger idx1, SQObjectPtr &val),{return false;})
 	ABSTRACT_METHOD(virtual void _get2(SQInteger idx, SQObject& out),{})
-
+    	ABSTRACT_METHOD(virtual void DummyPinVtable(), {})
 private:
     ABSTRACT_METHOD(virtual void _getObjectPtr(const SQInteger nidx,SQObjectPtr &val),{})
     ABSTRACT_METHOD(virtual void _getRealObjectPtr(const SQInteger nidx,SQObjectPtr &val),{})
@@ -121,7 +121,8 @@ private:
 	    if(withData) anew->_vec_values.copy(_vec_values);\
 	    return anew;\
     }\
-	void Release(){sq_delete(this,atype);}
+	void Release(){sq_delete(this,atype);}\
+	void DummyPinVtable();
 
 struct SQArray : public SQArrayBase
 {
@@ -130,13 +131,12 @@ protected:
     SQArray(SQSharedState *ss,SQInteger nsize):SQArrayBase(ss, nsize){
 	    Resize(nsize);
     }
-    ~SQArray(){}
 
 public:
 #ifndef NO_GARBAGE_COLLECTOR
     virtual bool isCollectable(){return true;}
 #endif
-	DECLARE_CLASS_ARRAY_MEMBERS(SQArray);
+	DECLARE_CLASS_ARRAY_MEMBERS(SQArray)
 	SQUnsignedInteger SizeOf() const {return _vec_values.sizeOf();}
 	SQUnsignedInteger Size() const {return _vec_values.size();}
 	void Reserve(SQUnsignedInteger size) { _vec_values.reserve(size); }
@@ -293,12 +293,12 @@ protected:
 	    return true;
     }
 public:
-    void Top(SQObjectPtr& out){out = SQNumericBaseArray<T>::_vec_values.top();}
+    void Top(SQObjectPtr& out){out = (SQFloat)SQNumericBaseArray<T>::_vec_values.top();}
     virtual void _getObjectPtr(const SQInteger nidx,SQObjectPtr &val){
-        val = SQNumericBaseArray<T>::_vec_values[nidx];
+        val = (SQFloat)SQNumericBaseArray<T>::_vec_values[nidx];
     }
     virtual void _getRealObjectPtr(const SQInteger nidx,SQObjectPtr &val){
-        SQObjectPtr o = SQNumericBaseArray<T>::_vec_values[nidx];
+        SQObjectPtr o = (SQFloat)SQNumericBaseArray<T>::_vec_values[nidx];
         val = _realval(o);
     }
 	void _get2(SQInteger idx, SQObject& val)
@@ -314,7 +314,7 @@ protected:
     SQFloat64Array(SQSharedState *ss,SQInteger nsize):SQFloatBaseArray(ss, nsize){}
 
 public:
-    DECLARE_CLASS_ARRAY_MEMBERS(SQFloat64Array);
+    DECLARE_CLASS_ARRAY_MEMBERS(SQFloat64Array)
 };
 
 struct SQFloat32Array : public SQFloatBaseArray<SQFloat32>
@@ -323,7 +323,7 @@ protected:
     SQFloat32Array(SQSharedState *ss,SQInteger nsize):SQFloatBaseArray(ss, nsize){}
 
 public:
-    DECLARE_CLASS_ARRAY_MEMBERS(SQFloat32Array);
+    DECLARE_CLASS_ARRAY_MEMBERS(SQFloat32Array)
 };
 
 template <typename T>
@@ -367,7 +367,7 @@ protected:
     SQInt64Array(SQSharedState *ss,SQInteger nsize):SQIntegerBaseArray(ss, nsize){}
 
 public:
-    DECLARE_CLASS_ARRAY_MEMBERS(SQInt64Array);
+    DECLARE_CLASS_ARRAY_MEMBERS(SQInt64Array)
 };
 
 struct SQInt32Array : public SQIntegerBaseArray<SQInt32>
@@ -376,7 +376,7 @@ protected:
     SQInt32Array(SQSharedState *ss,SQInteger nsize):SQIntegerBaseArray(ss, nsize){}
 
 public:
-    DECLARE_CLASS_ARRAY_MEMBERS(SQInt32Array);
+    DECLARE_CLASS_ARRAY_MEMBERS(SQInt32Array)
 };
 
 struct SQInt16Array : public SQIntegerBaseArray<SQInt16>
@@ -385,7 +385,7 @@ protected:
     SQInt16Array(SQSharedState *ss,SQInteger nsize):SQIntegerBaseArray(ss, nsize){}
 
 public:
-    DECLARE_CLASS_ARRAY_MEMBERS(SQInt16Array);
+    DECLARE_CLASS_ARRAY_MEMBERS(SQInt16Array)
 };
 
 struct SQInt8Array : public SQIntegerBaseArray<SQInt8>
@@ -394,7 +394,7 @@ protected:
     SQInt8Array(SQSharedState *ss,SQInteger nsize):SQIntegerBaseArray(ss, nsize){}
 
 public:
-    DECLARE_CLASS_ARRAY_MEMBERS(SQInt8Array);
+    DECLARE_CLASS_ARRAY_MEMBERS(SQInt8Array)
 };
 
 #endif //_SQARRAY_H_

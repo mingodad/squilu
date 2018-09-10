@@ -164,6 +164,7 @@ public:
 	bool AddDefined(const SQChar *s);
 	void RemoveDefined(const SQChar *s);
 	bool IsDefined(const SQChar *s);
+
 	SQObjectPtrVec _stack;
 
 	SQInteger _top;
@@ -176,12 +177,7 @@ public:
 	SQObjectPtr _errorhandler;
 	SQObjectPtr _atexithandler;
 
-	bool _debughook;
-	SQDEBUGHOOK _debughook_native;
-	SQObjectPtr _debughook_closure;
-
 	SQObjectPtr temp_reg;
-
 
 	CallInfo* _callsstack;
 	SQInteger _callsstacksize;
@@ -192,7 +188,6 @@ public:
 	CallInfo *ci;
 	SQUserPointer _foreignptr;
 	//VMs sharing the same state
-	SQSharedState *_sharedstate;
 	SQInteger _nnativecalls;
 	SQInteger _nmetamethodscall;
     SQRELEASEHOOK _releasehook;
@@ -209,6 +204,11 @@ public:
 	OpProfileVec _op_profile;
 	HighResolutionTimer _op_profile_timer;
 #endif
+
+	SQDEBUGHOOK _debughook_native;
+	SQObjectPtr _debughook_closure;
+	bool _debughook;
+
 	SQBool _closing;
 };
 

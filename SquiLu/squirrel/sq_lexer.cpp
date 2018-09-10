@@ -14,7 +14,7 @@
 
 static const SQChar SQ_LIBNAME[] = _SC("SQLexer");
 
-SQ_OPT_STRING_STRLEN();
+//SQ_OPT_STRING_STRLEN();
 
 class CustomSQLexer : public SQLexer
 {
@@ -35,7 +35,10 @@ public:
         }
         return SQLexer::GetKeywords();
     }
+    virtual void DummyPinVtable();
 };
+
+void CustomSQLexer::DummyPinVtable(){}
 
 struct sq_lexer_st
 {

@@ -46,7 +46,7 @@ extern "C" {
 
 typedef struct lua_char_buffer_st {
     size_t size, used;
-    char buf[1];
+    char buf[1]; //<FIXME> Not taking in account compiler padding
 } lua_char_buffer_st;
 
 typedef struct LuaCapture {

@@ -51,6 +51,7 @@ struct SQFile : public SQStream {
 	bool IsValid() { return _handle?true:false; }
 	bool EOS() { return Tell()==Len()?true:false;}
 	SQFILE GetHandle() {return _handle;}
+    void DummyPinVtable();
 protected:
 	SQFILE _handle;
 	bool _owns;

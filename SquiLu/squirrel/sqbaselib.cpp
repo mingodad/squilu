@@ -1664,9 +1664,9 @@ static SQRESULT process_string_gmatch_find(LuaMatchState *ms, void *udata, lua_c
     }
     SQObjectType rtype = sq_gettype(v, -1);
     if(rtype == OT_BOOL) {
-        SQBool b;
-        sq_getbool(v, -1, &b);
-        result = b == SQTrue;
+        SQBool bv;
+        sq_getbool(v, -1, &bv);
+        result = bv == SQTrue;
     }
     else result = rtype != OT_NULL;
 
@@ -2054,7 +2054,7 @@ static SQRESULT string_getdelegate(HSQUIRRELVM v)
 static bool isValidUtf8(const unsigned char *s, size_t length)
 {
     for (const unsigned char *e = s + length; s != e; ) {
-        if (s + 4 <= e && ((*(SQUnsignedInteger32 *) s) & 0x80808080) == 0) {
+        if (s + 4 <= e && ((*(const SQUnsignedInteger32 *) s) & 0x80808080) == 0) {
             s += 4;
         } else {
             while (!(*s & 0x80)) {
@@ -2278,7 +2278,7 @@ static SQRESULT string_ushort(HSQUIRRELVM v)
     {
         return sq_throwerror(v, _SC("index out of range"));
     }
-	sq_pushinteger(v, (((SQUnsignedInt16*)str)[char_idx]));
+	sq_pushinteger(v, (((const SQUnsignedInt16*)str)[char_idx]));
 	return 1;
 }
 
@@ -2463,7 +2463,7 @@ static SQRESULT string_iso88959_to_utf8 (HSQUIRRELVM v) {
     SQInteger size = (str_size)+sizeof(SQChar); //'\0' terminator
     SQChar *buf = sq_getscratchpad(v, size*2);
     SQUChar *c = (SQUChar*)buf;
-    SQUChar *s = (SQUChar*)str;
+    const SQUChar *s = (const SQUChar*)str;
     for (; *s; ++s)
     {
         if (*s < 0x80)

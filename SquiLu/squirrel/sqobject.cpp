@@ -235,6 +235,16 @@ void SQArrayBase::Extend(SQArrayBase *a){
         }
 }
 
+//Only here to create a unique vtable
+void SQCollectable::Finalize(){}
+void SQArray::DummyPinVtable(){}
+void SQFloat64Array::DummyPinVtable(){}
+void SQFloat32Array::DummyPinVtable(){}
+void SQInt64Array::DummyPinVtable(){}
+void SQInt32Array::DummyPinVtable(){}
+void SQInt16Array::DummyPinVtable(){}
+void SQInt8Array::DummyPinVtable(){}
+
 const SQChar* SQFunctionProto::GetLocal(SQVM *vm,SQUnsignedInteger stackbase,SQUnsignedInteger nseq,SQUnsignedInteger nop)
 {
 	SQUnsignedInteger nvars=_nlocalvarinfos;
@@ -929,12 +939,12 @@ bool SQFunctionProto::Load(SQVM *v,SQUserPointer up,SQREADFUNC read,SQObjectPtr 
 	_CHECK_IO(CheckTag(v,read,up,SQ_CLOSURESTREAM_PART));
 
 	for(i = 0; i < noutervalues; i++){
-		SQUnsignedInteger type;
-		SQObjectPtr name;
-		_CHECK_IO(SafeRead(v,read,up, &type, sizeof(SQUnsignedInteger)));
+		SQUnsignedInteger itype;
+		SQObjectPtr iname;
+		_CHECK_IO(SafeRead(v,read,up, &itype, sizeof(SQUnsignedInteger)));
 		_CHECK_IO(ReadObject(v, up, read, o));
-		_CHECK_IO(ReadObject(v, up, read, name));
-		f->_outervalues[i] = SQOuterVar(name,o, (SQOuterType)type);
+		_CHECK_IO(ReadObject(v, up, read, iname));
+		f->_outervalues[i] = SQOuterVar(iname,o, (SQOuterType)itype);
 	}
 	_CHECK_IO(CheckTag(v,read,up,SQ_CLOSURESTREAM_PART));
 

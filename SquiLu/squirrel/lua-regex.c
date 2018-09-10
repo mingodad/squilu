@@ -79,6 +79,7 @@ static int check_capture (LuaMatchState *ms, int *l_out) {
   l = *l_out;
   return check_capture_is_closed(ms, l);
 }
+
 static int capture_to_close (LuaMatchState *ms, int *level_out) {
   int level = ms->level;
   for (level--; level>=0; level--)

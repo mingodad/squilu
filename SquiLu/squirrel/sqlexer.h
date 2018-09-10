@@ -11,7 +11,6 @@ typedef	unsigned char LexChar;
 struct SQLexerData
 {
     SQInteger curtoken;
-    SQBool reached_eof;
     SQInteger prevtoken;
     SQInteger currentline;
     SQInteger currentcolumn;
@@ -22,6 +21,7 @@ struct SQLexerData
     SQInteger nvalue;
     SQFloat fvalue;
     LexChar currdata;
+    SQBool reached_eof;
     SQInteger readcount;
     SQChar lasterror[256];
     SQLexerData()

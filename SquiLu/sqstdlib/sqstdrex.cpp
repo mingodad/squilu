@@ -180,7 +180,6 @@ static SQInteger sqstd_rex_charnode(SQRex *exp,SQBool isclass)
 	//else if(!scisprint(*exp->_p)) {
 #ifdef SQ_REXPATTERN_ONLY_PRINTABLE
 	else if(((SQUChar)*exp->_p) < _SC(' ')) {
-
 		sqstd_rex_error(exp,_SC("letter expected"));
 	}
 #endif
@@ -370,6 +369,7 @@ static inline bool isChClassWord(int c)
 {
     return (isalnum(c) || c == _SC('_'));
 }
+
 static SQBool sqstd_rex_matchcclass(SQInteger cclass,SQChar c)
 {
 	switch(cclass) {
@@ -489,7 +489,6 @@ static const SQChar *sqstd_rex_matchnode(SQRex* exp,SQRexNode *node,const SQChar
 					return asd;
 			}
 			return NULL;
-			break;
 	}
 	case OP_EMPTY: //zero length capture
 	case OP_EXPR:

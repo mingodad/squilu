@@ -313,7 +313,6 @@ SQInteger SQLexer::Lex()
                 continue;
             }
             RETURN_TOKEN(TK_PRAGMA);
-            continue;
 		case _SC('/'):
 			NEXT();
 			switch(CUR_CHAR){
@@ -328,11 +327,9 @@ SQInteger SQLexer::Lex()
 			case _SC('='):
 				NEXT();
 				RETURN_TOKEN(TK_DIVEQ);
-				continue;
 			case _SC('>'):
 				NEXT();
 				RETURN_TOKEN(TK_ATTR_CLOSE);
-				continue;
 			default:
 				RETURN_TOKEN('/');
 			}
@@ -558,6 +555,7 @@ SQInteger SQLexer::ProcessStringHexEscape(SQChar *dest, SQInteger maxdigits)
     dest[n] = 0;
     return n;
 }
+
 SQInteger scisodigit(SQInteger c) { return c >= _SC('0') && c <= _SC('7'); }
 
 SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
@@ -835,7 +833,6 @@ bool LexInteger(const SQChar *s,SQUnsignedInteger *res)
 	return true;
 }
 
-
 bool LexOctal(const SQChar *s,SQUnsignedInteger *res)
 {
 	SQUnsignedInteger a = 0;
@@ -923,7 +920,9 @@ SQInteger SQLexer::ReadNumber()
 		okNumber = LexOctal(&data->longstr[0],&itmp);
 		break;
 	}
+
 	if(!okNumber) Error(_SC("integer overflow %s"), &data->longstr[0]);
+
 	rtype = TK_INTEGER;
 	switch(type) {
 	case TINT:

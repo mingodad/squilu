@@ -333,7 +333,7 @@ public:
     SQInteger ExpressionConstant(SQObject id)
     {
         SQObject constant;
-        SQInteger epos;
+        SQInteger epos = 0;
         if(IsConstant(id, constant))
         {
             /* Handle named constant */
@@ -552,6 +552,20 @@ public:
                 Error(_SC("Error: too many nested includes %d %s\n"), nested_count, _stringval(id));
             }
 
+            //C/C++ system includes we do not use it in SquiLu
+            if(_ifdef_exclude && (_token == _SC('<')))
+            {
+                while(_token > 0)
+                {
+                    if(_token == _SC('>'))
+                    {
+                        Lex();
+                        return;
+                    }
+                    Lex();
+                }
+                return;
+            }
             //do not call Lex() since next token can try search for id defined in the include
             //and then go global instead of local, we'll call it after including
             id = Expect(TK_STRING_LITERAL, false);
@@ -2103,16 +2117,19 @@ start_again:
                 else if(_token == TK_PUBLIC)
                 {
                     Lex();
+                    if(_token == _SC(':')) Lex();
                 }
                 else if(_token == TK_PRIVATE)
                 {
                     //isprivate = true;
                     Lex();
+                    if(_token == _SC(':')) Lex();
                 }
                 else if(_token == TK_PROTECTED)
                 {
                     //isprivate = true;
                     Lex();
+                    if(_token == _SC(':')) Lex();
                 }
                 else if(_token == TK_INLINE)
                 {
@@ -2482,7 +2499,7 @@ function_params_decl:
             {
                 if(CheckExternName(varname, true))
                 {
-                    Error(_SC("extern %s already declared"), varname);
+                    Error(_SC("extern %s already declared"), _stringval(varname));
                 }
             }
             else

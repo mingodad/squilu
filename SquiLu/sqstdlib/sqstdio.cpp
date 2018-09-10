@@ -7,6 +7,9 @@
 #include <sqstdfile.h>
 #include "sqstdstream.h"
 
+//only to make the SQFile vtable be generated here
+void SQFile::DummyPinVtable(){}
+
 //#define SQSTD_FILE_TYPE_TAG (SQSTD_STREAM_TYPE_TAG | 0x00000001)
 const SQChar  SQSTD_FILE_TYPE_TAG[] = _SC("std_stream_file");
 const SQChar  SQSTD_FILE_CLASS_TYPE_TAG[] = _SC("std_file");
@@ -87,7 +90,11 @@ struct SQPopen : public SQFile {
 	void Close() {
 	    PClose();
 	}
+	void DummyPinVtable();
 };
+
+//only to make the SQPopen vtable be generated here
+void SQPopen::DummyPinVtable(){}
 
 static SQRESULT _popen__typeof(HSQUIRRELVM v)
 {

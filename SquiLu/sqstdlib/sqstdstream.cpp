@@ -9,6 +9,9 @@
 #include "sqstdstream.h"
 #include "sqstdblobimpl.h"
 
+//only to make the SQStream vtable be generated here
+void SQStream::DummyPinVtable(){}
+
 static const SQChar SQSTD_STREAM_TYPE_TAG[] = _SC("std_stream");
 
 #define SETUP_STREAM(v) \
@@ -208,7 +211,7 @@ SQInteger _stream_write_str(HSQUIRRELVM v)
     SQ_OPT_INTEGER(v, 4, len, str_size - start);
     if(len < 0 || len > (str_size-start)) return sq_throwerror(v, _SC("len value out of range (%d)"), len);
 
-    if(self->Write(((SQChar*)str)+start, len) != len)
+    if(self->Write(((const SQChar*)str)+start, len) != len)
             return sq_throwerror(v,_SC("io error"));
 	sq_pushinteger(v,len);
 	return 1;
@@ -225,7 +228,7 @@ SQInteger _stream_write(HSQUIRRELVM v)
             return sq_throwerror(v,_SC("invalid parameter"));
         sq_getstring(v,-1,&str);
         size = sq_getsize(v,-1);
-        if(self->Write((SQChar*)str,size) != size)
+        if(self->Write((const SQChar*)str,size) != size)
             return sq_throwerror(v,_SC("io error"));
         sq_poptop(v); //remove converted string
         total_size += size;
@@ -252,7 +255,7 @@ SQInteger _stream_write_fmt(HSQUIRRELVM v)
 		return sq_throwerror(v,_SC("invalid parameter"));
     sq_getstring(v,-1,&str);
 	size = sq_getsize(v,-1);
-	if(self->Write((SQChar*)str,size) != size)
+	if(self->Write((const SQChar*)str,size) != size)
 		return sq_throwerror(v,_SC("io error"));
     sq_poptop(v); //remove converted string
 	sq_pushinteger(v,size);

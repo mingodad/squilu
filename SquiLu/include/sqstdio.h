@@ -8,15 +8,16 @@
 
 struct SQStream {
     virtual ~SQStream() {}
-	ABSTRACT_METHOD(virtual SQInteger Read(void *buffer, SQInteger size), {return 0;});
-	ABSTRACT_METHOD(virtual SQInteger Gets(char *buffer, SQInteger size), {return 0;});
-	ABSTRACT_METHOD(virtual SQInteger Write(const void *buffer, SQInteger size), {return 0;});
-	ABSTRACT_METHOD(virtual SQInteger Flush(), {return 0;});
-	ABSTRACT_METHOD(virtual SQInteger Tell(), {return 0;});
-	ABSTRACT_METHOD(virtual SQInteger Len(), {return 0;});
-	ABSTRACT_METHOD(virtual SQInteger Seek(SQInteger offset, SQInteger origin), {return 0;});
-	ABSTRACT_METHOD(virtual bool IsValid(), {return false;});
-	ABSTRACT_METHOD(virtual bool EOS(), {return true;});
+	ABSTRACT_METHOD(virtual SQInteger Read(void *buffer, SQInteger size), {return 0;})
+	ABSTRACT_METHOD(virtual SQInteger Gets(char *buffer, SQInteger size), {return 0;})
+	ABSTRACT_METHOD(virtual SQInteger Write(const void *buffer, SQInteger size), {return 0;})
+	ABSTRACT_METHOD(virtual SQInteger Flush(), {return 0;})
+	ABSTRACT_METHOD(virtual SQInteger Tell(), {return 0;})
+	ABSTRACT_METHOD(virtual SQInteger Len(), {return 0;})
+	ABSTRACT_METHOD(virtual SQInteger Seek(SQInteger offset, SQInteger origin), {return 0;})
+	ABSTRACT_METHOD(virtual bool IsValid(), {return false;})
+	ABSTRACT_METHOD(virtual bool EOS(), {return true;})
+	virtual void DummyPinVtable();
 };
 
 extern "C" {

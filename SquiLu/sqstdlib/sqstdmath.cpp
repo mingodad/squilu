@@ -172,14 +172,14 @@ SINGLE_ARG_FUNC(asinh)
 SINGLE_ARG_FUNC(tanh)
 SINGLE_ARG_FUNC(atanh)
 
-BOOL_SINGLE_ARG_FUNC(isnan);
-BOOL_SINGLE_ARG_FUNC(isfinite);
+BOOL_SINGLE_ARG_FUNC(isnan)
+BOOL_SINGLE_ARG_FUNC(isfinite)
 
 //DAD start
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
-SQ_OPT_STRING_STRLEN();
+SQ_OPT_STRING_STRLEN()
 
 /* mathB_roundf: rounds real value x to the d-th digit; patched Dec 22, 2007 for negative values */
 static SQRESULT math_roundf (HSQUIRRELVM v) {

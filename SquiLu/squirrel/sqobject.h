@@ -91,7 +91,7 @@ struct SQRefCounted
 	SQRefCounted(): _uiRef(0), _weakref(NULL) {}
 	virtual ~SQRefCounted();
 	SQWeakRef *GetWeakRef(SQObjectType type);
-	ABSTRACT_METHOD(virtual void Release(), {});
+	ABSTRACT_METHOD(virtual void Release(), {})
 
 };
 
@@ -340,11 +340,11 @@ struct SQCollectable : public SQRefCounted {
 	SQCollectable *_next;
 	SQCollectable *_prev;
 	SQSharedState *_sharedstate;
-	ABSTRACT_METHOD(virtual SQObjectType GetType(), {return OT_NULL;});
-	ABSTRACT_METHOD(virtual void Release(), {});
-	ABSTRACT_METHOD(virtual void Mark(SQCollectable **chain), {});
+	ABSTRACT_METHOD(virtual SQObjectType GetType(), {return OT_NULL;})
+	ABSTRACT_METHOD(virtual void Release(), {})
+	ABSTRACT_METHOD(virtual void Mark(SQCollectable **chain), {})
 	void UnMark();
-	ABSTRACT_METHOD(virtual void Finalize(), {});
+	virtual void Finalize();
 	static void AddToChain(SQCollectable **chain,SQCollectable *c);
 	static void RemoveFromChain(SQCollectable **chain,SQCollectable *c);
 };

@@ -159,7 +159,7 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
                           SQChar buff[10];
                           int iw;
                           iw = scsprintf(buff, sizeof(buff), _SC("\\x%x"), (int)SQUChar(*ts));
-                          for(int i=0; i< iw; ++i) *ts2++ = buff[i];
+                          for(int bi=0; bi< iw; ++bi) *ts2++ = buff[bi];
                         }
                         else
                             *ts2++ = *ts;
@@ -183,7 +183,7 @@ SQRESULT sqstd_format(HSQUIRRELVM v,SQInteger nformatstringidx,SQInteger *outlen
 				size_t flen = scstrlen(fmt);
 				SQInteger fpos = flen - 1;
 				SQChar f = fmt[fpos];
-				SQChar *prec = (SQChar *)_PRINT_INT_PREC;
+				const SQChar *prec = _PRINT_INT_PREC;
 				while(*prec != _SC('\0')) {
 					fmt[fpos++] = *prec++;
 				}
@@ -338,6 +338,7 @@ static SQRESULT _rexobj_releasehook(SQUserPointer p, SQInteger /*size*/, void */
     if(subject_str_size < 0) return sq_throwerror(v, _SC("str size - start_offset can't be negative")); \
     const SQChar *subject_str = subject + start_offset; \
     if(max_len && (max_len < subject_str_size)) subject_str_size = max_len;
+
 static SQRESULT _regexp_match(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
@@ -406,12 +407,14 @@ static SQRESULT _regexp_gsub(HSQUIRRELVM v)
 	const SQChar *begin,*end;
 	SQBlob blob(0,8192);
 	SQObjectType ptype = sq_gettype(v, 3);
-    const SQChar *replacement;
-    SQInteger replacement_size;
+    const SQChar *replacement = NULL;
+    SQInteger replacement_size = 0;
+
     if(ptype == OT_STRING)
     {
         sq_getstr_and_size(v, 3, &replacement, &replacement_size);
     }
+
 	while(sqstd_rex_searchrange(self,subject, subject+subject_size,&begin,&end)){
 	    blob.Write(subject, begin-subject);
 	    SQInteger n = sqstd_rex_getsubexpcount(self);

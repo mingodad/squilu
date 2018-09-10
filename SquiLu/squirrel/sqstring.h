@@ -24,6 +24,7 @@ public:
 	SQInteger _len;
 	SQHash _hash;
 	SQChar _val[1];
+	//<FIXME> Padding not accounted
 };
 
 

@@ -18,8 +18,7 @@
 #include <unistd.h>
 #endif
 
-
-SQ_OPT_STRING_STRLEN();
+SQ_OPT_STRING_STRLEN()
 
 #ifdef WITH_UUID
 
