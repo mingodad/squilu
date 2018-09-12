@@ -625,6 +625,26 @@ static SQRESULT sq_sqlite3_stmt_next_row(HSQUIRRELVM v)
     return 1;
 }
 
+static SQRESULT sq_sqlite3_stmt__nexti(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_stmt_INSTANCE();
+	if(sq_gettype(v,2) == OT_NULL) {
+		sq_pushinteger(v, 0);
+		return 1;
+	}
+	SQInteger idx;
+	if(SQ_SUCCEEDED(sq_getinteger(v, 2, &idx))) {
+		if(sqlite3_step(self) == SQLITE_ROW) {
+			sq_pushinteger(v, 0); //allays return the first column
+			return 1;
+		}
+		sq_pushnull(v);
+		return 1;
+	}
+	return sq_throwerror(v,_SC("internal error (_nexti) wrong argument type"));
+}
+
 static SQRESULT sq_sqlite3_stmt_col_count(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
@@ -786,6 +806,17 @@ static int get_col_index(HSQUIRRELVM v, sqlite3_stmt *self)
 }
 
 static SQRESULT sq_sqlite3_stmt_col(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    GET_sqlite3_stmt_INSTANCE();
+    int col = get_col_index(v, self);
+    if(col < 0) return col;
+    sqlite3_stmt_push_value(v, self, col, 0);
+
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_stmt__get(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     GET_sqlite3_stmt_INSTANCE();
@@ -1491,6 +1522,8 @@ static SQRegFunction sq_sqlite3_stmt_methods[] =
     _DECL_FUNC(asFloat,  2, _SC("x i|s"), SQFalse),
     _DECL_FUNC(all_blobs_size,  1, _SC("x"), SQFalse),
     _DECL_FUNC(colsSizeAsArray,  1, _SC("x"), SQFalse),
+    _DECL_FUNC(_get,  2, _SC("x i|s"), SQFalse),
+    _DECL_FUNC(_nexti,  2, _SC("x."), SQFalse),
     {0,0}
 };
 #undef _DECL_FUNC
@@ -1636,6 +1669,7 @@ static SQRegFunction sq_sqlite3_transaction_methods[] =
     {0,0}
 };
 #undef _DECL_FUNC
+
 #ifdef SQLITE_ENABLE_SESSION
 
 static const SQChar *SQLite3_Session_TAG = "SQLite3Session";
