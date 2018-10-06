@@ -11,6 +11,10 @@ inline SQHash _hashstr (const SQChar *s, size_t l)
 		return h;
 }
 
+#define SQSTRING_PAD_VAL (sizeof(void*))
+#define SQSTRING_CALCULATED_SIZE(sl) \
+    ((sl >= SQSTRING_PAD_VAL) ? (sizeof(SQString)+(sl-SQSTRING_PAD_VAL+1)) \
+     : (sizeof(SQString)))
 struct SQString : public SQRefCounted
 {
 	SQString(){}
@@ -23,7 +27,7 @@ public:
 	SQString *_next; //chain for the string table
 	SQInteger _len;
 	SQHash _hash;
-	SQChar _val[1];
+	SQChar _val[SQSTRING_PAD_VAL];
 	//<FIXME> Padding not accounted
 };
 

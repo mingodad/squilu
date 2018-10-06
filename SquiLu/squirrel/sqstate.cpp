@@ -668,7 +668,7 @@ SQString *SQStringTable::Add(SQString *strBuf)
     SQString *t = Contains(strBuf->_val, strBuf->_len, newhash, h);
 #endif
     if(t) {
-        SQ_FREE(strBuf,sizeof(SQString) + rsl(strBuf->_len));
+        SQ_FREE(strBuf,SQSTRING_CALCULATED_SIZE(rsl(strBuf->_len)));
         return t;
     }
     return Add(strBuf, newhash, h);
@@ -689,7 +689,8 @@ SQString *SQStringTable::Add(SQString *strBuf, SQHash newhash, SQHash h)
 
 SQString *SQStringTable::NewStrBuf(SQInteger len)
 {
-    SQInteger calculated_size = rsl(len)+sizeof(SQString);
+	//Take in account padding
+	SQInteger calculated_size = SQSTRING_CALCULATED_SIZE(rsl(len));
 	SQString *t = (SQString *)SQ_MALLOC(calculated_size);
 	memset(t, 0, calculated_size);
 	new (t) SQString;
@@ -730,7 +731,8 @@ void SQStringTable::Remove(SQString *bs)
 			_slotused--;
 			SQInteger slen = s->_len;
 			s->~SQString();
-			SQ_FREE(s,sizeof(SQString) + rsl(slen));
+			//printf("Free str %p : %d : %.*s\n", s, (int)SQSTRING_CALCULATED_SIZE(rsl(slen))), (int)slen, s->_val);
+			SQ_FREE(s,SQSTRING_CALCULATED_SIZE(rsl(slen)));
 			return;
 		}
 		prev = s;
