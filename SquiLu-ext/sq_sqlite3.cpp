@@ -2223,6 +2223,9 @@ static SQRESULT sq_sqlite3_releasehook(SQUserPointer p, SQInteger size, void */*
     sq_sqlite3_close_release(0, sdb);
     return 0;
 }
+#ifdef FTS_SNOWBALL_STATIC
+extern "C" int ftsSnowballInit(sqlite3 *db);
+#endif // FTS_SNOWBALL_STATIC
 
 static SQRESULT sq_sqlite3_constructor(HSQUIRRELVM v)
 {
@@ -2234,6 +2237,9 @@ static SQRESULT sq_sqlite3_constructor(HSQUIRRELVM v)
     int rc = sqlite3_open_v2(dbname, &db, flags, 0);
     if(rc != SQLITE_OK) return sq_throwerror(v, "Failed to open database ! %d", rc);
 
+#ifdef FTS_SNOWBALL_STATIC
+    ftsSnowballInit(db);
+#endif // FTS_SNOWBALL_STATIC
     set_sqlite3_lua_regex_func(db);
     sq_sqlite3_sdb *sdb = (sq_sqlite3_sdb *)sq_malloc(sizeof(sq_sqlite3_sdb));
     memset(sdb, 0, sizeof(sq_sqlite3_sdb));
