@@ -20,7 +20,7 @@ SQTable::SQTable(SQSharedState *ss,SQInteger nInitialSize):_usednodes(0)
 void SQTable::Remove(const SQObjectPtr &key)
 {
 
-	_HashNode *n = _Get(key, HashObj(key) & (_numofnodes - 1));
+	_HashNode *n = _Get(key, SQTABLE_HASH_NUMNODES(HashObj(key)));
 	if (n) {
 		n->val.Null();
 		n->key.Null();
@@ -108,7 +108,7 @@ bool SQTable::Get(const SQObjectPtr &key,SQObjectPtr &val)
 {
 	if(sq_type(key) == OT_NULL)
 		return false;
-	_HashNode *n = _Get(key, HashObj(key) & (_numofnodes - 1));
+	_HashNode *n = _Get(key, SQTABLE_HASH_NUMNODES(HashObj(key)));
 	if (n) {
 		val = _realval(n->val);
 		return true;
@@ -119,13 +119,13 @@ bool SQTable::Exists(const SQObjectPtr &key)
 {
 	if(sq_type(key) == OT_NULL)
 		return false;
-	_HashNode *n = _Get(key, HashObj(key) & (_numofnodes - 1));
+	_HashNode *n = _Get(key, SQTABLE_HASH_NUMNODES(HashObj(key)));
 	return n ? true : false;
 }
 bool SQTable::NewSlot(const SQObjectPtr &key,const SQObjectPtr &val)
 {
 	assert(sq_type(key) != OT_NULL);
-	SQHash h = HashObj(key) & (_numofnodes - 1);
+	SQHash h = SQTABLE_HASH_NUMNODES(HashObj(key));
 	_HashNode *n = _Get(key, h);
 	if (n) {
 		n->val = val;
@@ -140,7 +140,7 @@ bool SQTable::NewSlot(const SQObjectPtr &key,const SQObjectPtr &val)
 
 	if(sq_type(mp->key) != OT_NULL) {
 		n = _firstfree;  /* get a free place */
-		SQHash mph = HashObj(mp->key) & (_numofnodes - 1);
+		SQHash mph = SQTABLE_HASH_NUMNODES(HashObj(mp->key));
 		_HashNode *othern;  /* main position of colliding node */
 
 		if (mp > n && (othern = &_nodes[mph]) != mp){
@@ -200,9 +200,31 @@ SQInteger SQTable::Next(bool getweakrefs,const SQObjectPtr &refpos, SQObjectPtr 
 
 bool SQTable::Set(const SQObjectPtr &key, const SQObjectPtr &val)
 {
-	_HashNode *n = _Get(key, HashObj(key) & (_numofnodes - 1));
+	_HashNode *n = _Get(key, SQTABLE_HASH_NUMNODES(HashObj(key)));
 	if (n) {
 		n->val = val;
+		return true;
+	}
+	return false;
+}
+
+bool SQTable::IncNum(const SQObjectPtr &key, const SQObjectPtr &val, bool addMissing)
+{
+	if(sq_isnumeric(val))
+	{
+		_HashNode *n = _Get(key, SQTABLE_HASH_NUMNODES(HashObj(key)));
+		//NewSlot return false if it rehash, a bug ????
+		if(!n) return addMissing ? (NewSlot(key, val), true) : false;
+		if(sq_type(val) == OT_INTEGER)
+		{
+			if(sq_type(n->val) == OT_INTEGER) _integer(n->val) += _integer(val);
+			else if(sq_type(n->val) == OT_FLOAT) _float(n->val) += _integer(val);
+		}
+		else if(sq_type(val) == OT_FLOAT)
+		{
+			if(sq_type(n->val) == OT_INTEGER) _integer(n->val) += _float(val);
+			else if(sq_type(n->val) == OT_FLOAT) _float(n->val) += _float(val);
+		}
 		return true;
 	}
 	return false;

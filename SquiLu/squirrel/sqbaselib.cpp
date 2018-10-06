@@ -516,6 +516,18 @@ static SQRESULT bf_table_clear(HSQUIRRELVM v)
 	return sq_clear(v,-1);
 }
 
+static SQRESULT bf_table_incnum(HSQUIRRELVM v)
+{
+	SQObjectPtr &self = stack_get(v, 2);
+	SQObjectPtr &key = stack_get(v, 3);
+	SQBool addMissing = SQFalse;
+	if(sq_gettop(v) > 4) sq_getbool(v, 5, &addMissing);
+	bool rc = _table(self)->IncNum(key, stack_get(v, 4), addMissing);
+	v->Pop(2);
+	sq_pushbool(v, rc);
+	return 1;
+}
+
 static SQRESULT bf_obj_clone(HSQUIRRELVM v)
 {
     SQRESULT rc = sq_clone(v,-1);
@@ -640,6 +652,7 @@ static SQRegFunction base_funcs[]={
 	{_SC("table_setdelegate"),bf_table_setdelegate,3, _SC(".t t|o")},
 	{_SC("table_getdelegate"),bf_table_getdelegate,2, _SC(".t")},
 	{_SC("table_getdelegate_squirrel"),bf_table_getdelegate_squirrel,1, _SC(".")},
+	{_SC("table_incnum"),bf_table_incnum,-4, _SC(".tsnb")},
 	{_SC("obj_clone"),bf_obj_clone,2, _SC(". t|a|x|i|f|s")},
 	{NULL,(SQFUNCTION)0,0,NULL}
 };
@@ -1156,7 +1169,8 @@ static bool _sort_compare(HSQUIRRELVM v,const SQObjectPtr &a,const SQObjectPtr &
 */
 
 static bool lua_auxsort (HSQUIRRELVM v, SQArrayBase *arr, SQInteger l, SQInteger u,
-                                   SQInteger func) {
+                                   SQInteger func, SQArrayBase *arrMirror) {
+  #define ARR_SWAP(a,b) {arr->_swap(a, b);if(arrMirror) arrMirror->_swap(a, b);}
   while (l < u) {  /* for tail recursion */
     SQInteger i, j, ret;
     bool rc;
@@ -1167,7 +1181,7 @@ static bool lua_auxsort (HSQUIRRELVM v, SQArrayBase *arr, SQInteger l, SQInteger
     if(!_sort_compare(v,o1,o2,func,ret))
         return false;
     if (ret < 0)  /* a[u] < a[l]? */
-      arr->_swap(l, u);  /* swap a[l] - a[u] */
+      ARR_SWAP(l, u)  /* swap a[l] - a[u] */
     if (u-l == 1) break;  /* only 2 elements */
     i = (l+u)/2;
     arr->_get2(i, o1);
@@ -1175,19 +1189,19 @@ static bool lua_auxsort (HSQUIRRELVM v, SQArrayBase *arr, SQInteger l, SQInteger
     if(!_sort_compare(v,o1,o2,func,ret))
         return false;
     if (ret < 0)  /* a[i]<a[l]? */
-      arr->_swap(i, l);
+      ARR_SWAP(i, l)
     else {
       arr->_get2(u, o1);
       arr->_get2(i, o2);
       if(!_sort_compare(v,o1,o2,func,ret))
         return false;
       if (ret < 0)  /* a[u]<a[i]? */
-        arr->_swap(i, u);
+        ARR_SWAP(i, u)
     }
     if (u-l == 2) break;  /* only 3 elements */
     SQObject P;
     arr->_get2(i, P);  /* Pivot */
-    arr->_swap(i, u-1);
+    ARR_SWAP(i, u-1)
     /* a[l] <= P == a[u-1] <= a[u], only need to sort from l+1 to u-2 */
     i = l; j = u-1;
     for (;;) {  /* invariant: a[l..i] <= P <= a[j..u] */
@@ -1212,9 +1226,9 @@ static bool lua_auxsort (HSQUIRRELVM v, SQArrayBase *arr, SQInteger l, SQInteger
       if (j<i) {
         break;
       }
-      arr->_swap(i, j);
+      ARR_SWAP(i, j)
     }
-    arr->_swap(u-1, i);  /* swap pivot (a[u-1]) with a[i] */
+    ARR_SWAP(u-1, i)  /* swap pivot (a[u-1]) with a[i] */
     /* a[l..i-1] <= a[i] == P <= a[i+1..u] */
     /* adjust so that smaller half is in [j..i] and larger one in [l..u] */
     if (i-l < u-i) {
@@ -1223,19 +1237,28 @@ static bool lua_auxsort (HSQUIRRELVM v, SQArrayBase *arr, SQInteger l, SQInteger
     else {
       j=i+1; i=u; u=j-2;
     }
-    if(!lua_auxsort(v, arr, j, i, func))  /* call recursively for upper interval */
+    if(!lua_auxsort(v, arr, j, i, func, arrMirror))  /* call recursively for upper interval */
         return false;
   }  /* repeat the routine for the larger one */
   return true;
+  #undef ARR_SWAP
 }
 
 static SQRESULT array_sort(HSQUIRRELVM v) {
 	SQInteger func = -1;
 	SQObjectPtr &o = stack_get(v,1);
 	SQArrayBase *arr = _array(o);
+	SQArrayBase *arrMirror = NULL;
 	if(arr->Size() > 1) {
-		if(sq_gettop(v) == 2) func = 2;
-		if(!lua_auxsort(v, arr, 0, arr->Size()-1, func))
+		if(sq_gettop(v) > 1){
+            if(sq_gettype(v, 2) == OT_CLOSURE) func = 2;
+		}
+		if(sq_gettop(v) > 2){
+            SQObjectPtr &om = stack_get(v,3);
+            arrMirror = _array(om);
+            if(arr->Size() != arrMirror->Size()) return sq_throwerror(v, _SC("arrays size mismatch"));
+		}
+		if(!lua_auxsort(v, arr, 0, arr->Size()-1, func, arrMirror))
 			return SQ_ERROR;
 
 	}
@@ -1381,7 +1404,7 @@ SQRegFunction SQSharedState::_array_default_delegate_funcz[]={
 	{_SC("reserve"),array_reserve,-2, _SC("an")},
 	{_SC("capacity"),array_capacity,1, _SC("a")},
 	{_SC("reverse"),array_reverse,1, _SC("a")},
-	{_SC("sort"),array_sort,-1, _SC("ac")},
+	{_SC("sort"),array_sort,-1, _SC("a c|o a")},
 	{_SC("slice"),array_slice,-1, _SC("ann")},
 	{_SC("weakref"),obj_delegate_weakref,1, NULL },
 	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},

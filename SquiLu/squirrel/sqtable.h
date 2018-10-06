@@ -22,6 +22,7 @@ inline SQHash HashObj(const SQObjectPtr &key)
 	}
 }
 
+#define SQTABLE_HASH_NUMNODES(h) (h & (_numofnodes - 1))
 struct SQTable : public SQDelegable
 {
 private:
@@ -77,7 +78,7 @@ public:
 	inline bool GetStr(const SQChar* key,SQInteger keylen,SQObjectPtr &val)
 	{
 		SQHash hash = _hashstr(key,keylen);
-		_HashNode *n = &_nodes[hash & (_numofnodes - 1)];
+		_HashNode *n = &_nodes[SQTABLE_HASH_NUMNODES(hash)];
 		_HashNode *res = NULL;
 		do{
 			if(sq_type(n->key) == OT_STRING && (scstrcmp(_stringval(n->key),key) == 0)){
@@ -95,6 +96,7 @@ public:
 	bool Exists(const SQObjectPtr &key);
 	void Remove(const SQObjectPtr &key);
 	bool Set(const SQObjectPtr &key, const SQObjectPtr &val);
+	bool IncNum(const SQObjectPtr &key, const SQObjectPtr &val, bool addMissing=false);
 	//returns true if a new slot has been created false if it was already present
 	bool NewSlot(const SQObjectPtr &key,const SQObjectPtr &val);
 	SQInteger Next(bool getweakrefs,const SQObjectPtr &refpos, SQObjectPtr &outkey, SQObjectPtr &outval);
