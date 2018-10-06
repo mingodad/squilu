@@ -1603,27 +1603,15 @@ SQRESULT sq_resume(HSQUIRRELVM v,SQBool retval,SQBool raiseerror)
 SQRESULT sq_call(HSQUIRRELVM v,SQInteger params,SQBool retval,SQBool raiseerror)
 {
 	SQObjectPtr res;
-	if(v->Call(v->GetUp(-(params+1)),params,v->_top-params,res,raiseerror?true:false)){
-
-		if(!v->_suspended) {
-			v->Pop(params);//pop args
-#ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
-			//collect garbage right after function call if any
-			_ss(v)->CallDelayedReleaseHooks(v);
-#endif // SQ_WITH_DELAYED_RELEASE_HOOKS
-		}
-		if(retval){
-			v->Push(res); return SQ_OK;
-		}
-		return SQ_OK;
-	}
-	else {
-		v->Pop(params);
-		return SQ_ERROR;
+	if(!v->Call(v->GetUp(-(params+1)),params,v->_top-params,res,raiseerror?true:false)){
+        v->Pop(params); //pop args
+		return sq_throwerror(v,_SC("call failed"));
 	}
 	if(!v->_suspended)
-		v->Pop(params);
-	return sq_throwerror(v,_SC("call failed"));
+		v->Pop(params); //pop args
+     if(retval)
+        v->Push(res); // push result
+    return SQ_OK;
 }
 
 SQRESULT sq_tailcall(HSQUIRRELVM v, SQInteger nparams)
