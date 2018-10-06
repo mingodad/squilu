@@ -116,15 +116,18 @@ struct SQScope
 		CASE_TK_LOCAL_INT_TYPES: \
 		case TK_LOCAL_NUMBER_T
 
-#define CASE_TK_LOCAL_TYPES \
+#define CASE_CONST_TYPES \
 		CASE_TK_LOCAL_CHAR_TYPES: \
 		CASE_TK_NUMBER_TYPES: \
 		case TK_LOCAL_BOOL_T: \
+		case TK_LOCAL_VOIDPTR_T
+
+#define CASE_TK_LOCAL_TYPES \
+		CASE_CONST_TYPES: \
 		case TK_LOCAL_TABLE_T: \
 		case TK_LOCAL_ANY_T: \
 		case TK_LOCAL_ARRAY_T: \
 		case TK_VOID: \
-		case TK_LOCAL_VOIDPTR_T: \
 		case TK_LOCAL_WEAKREF_T
 
 #define CASE_TK_INTEGER \
@@ -928,6 +931,14 @@ start_again:
                 ConstsNewSlot(strongid,SQObjectPtr(id));
                 break;
             }
+
+            ////C/C++ type declaration using local types;
+            switch(_token){
+            CASE_CONST_TYPES:
+                Lex(); //ignore for now
+                break;
+            }
+
             if(_token == TK_IDENTIFIER)
             {
                 id = _fs->CreateString(_lex.data->svalue);
@@ -2053,6 +2064,15 @@ start_again:
         SQInteger target = _fs->PushTarget();
         assert(target >= -1);
         assert(target < 255);
+/*
+        const char *fname = _stringval(_fs->_name);
+        SQObjectPtr optr = _fs->_functions[closure];
+        SQFunctionProto *f = _funcproto(optr);
+        for(int i=0; i < f->_nparameters; ++i)
+        {
+            printf("Func %s params %d %d\n", _stringval(f->_name), i, (int)_integer(f->_parameters_type[i]));
+        }
+*/
         _fs->AddInstruction(_OP_CALL, target, closure, stackbase, nargs);
     }
     void AddClassMemberExists(SQObjectPtr &member_names, SQObject &name)
