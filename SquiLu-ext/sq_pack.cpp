@@ -35,7 +35,7 @@
 #include "squirrel.h"
 #include "sqstdblobimpl.h"
 
-SQ_OPT_STRING_STRLEN();
+//SQ_OPT_STRING_STRLEN();
 
 static SQRESULT badcode(HSQUIRRELVM v, int c)
 {
@@ -178,7 +178,6 @@ static SQRESULT sq_unpack(HSQUIRRELVM v) 		/** unpack(s,f,[init]) */
 			break;
 			default:
 				return badcode(v,c);
-			break;
 		}
 	}
 done:
@@ -188,9 +187,9 @@ done:
 		SQInteger arraypos = _top_ +1;
 		sq_newarray(v, nelm);
 		sq_replace(v, arraypos);
-		for(SQInteger i=nelm-1; i >= 0; --i)
+		for(SQInteger ai=nelm-1; ai >= 0; --ai)
 		{
-			sq_arrayset(v, arraypos, i);
+			sq_arrayset(v, arraypos, ai);
 		}
 	}
 	return 1;
@@ -277,7 +276,6 @@ static SQRESULT sq_pack_base(HSQUIRRELVM v, int toUserdata) 		/** pack(f,...) */
 			break;
 			default:
 				return badcode(v,c);
-			break;
 		}
 	}
 	if(toUserdata)
@@ -315,7 +313,7 @@ static SQRESULT sq_getaddress(HSQUIRRELVM v) 		/** getaddress(udata) */
 	return 1;
 }
 
-#define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),sq_##name,nparams,tycheck}
+#define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),sq_##name,nparams,tycheck,false}
 static SQRegFunction sq_pack_methods[] =
 {
     _DECL_FUNC(pack,-3,_SC(".s.")),
