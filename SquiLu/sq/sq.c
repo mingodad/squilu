@@ -276,22 +276,22 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 						//if there is a function called "main" we call it like in C/C++
 						sq_pushliteral(v, _SC("main"));
 						if(sq_getonroottable(v) == SQ_OK)
-                        {
-                            if(sq_gettype(v, -1) == OT_CLOSURE)
-                            {
-                                sq_pushroottable(v);
-                                sq_pushinteger(v, 1);
-                                callargs = push_program_args(v, arg, argc, argv, 1);
-                                sq_pushinteger(v, callargs);
-                                sq_replace(v, -3);
-                                if(SQ_SUCCEEDED(sq_call(v,3,SQTrue,SQTrue))) {
-                                    type = sq_gettype(v,-1);
-                                    if(type == OT_INTEGER) {
-                                        sq_getinteger(v,-1,retval);
-                                    }
-                                }
-                            }
-                        }
+						{
+						    if(sq_gettype(v, -1) == OT_CLOSURE)
+						    {
+							sq_pushroottable(v);
+							sq_pushinteger(v, 1);
+							callargs = push_program_args(v, arg, argc, argv, 1);
+							sq_pushinteger(v, callargs);
+							sq_replace(v, -3);
+							if(SQ_SUCCEEDED(sq_call(v,3,SQTrue,SQTrue))) {
+							    type = sq_gettype(v,-1);
+							    if(type == OT_INTEGER) {
+								sq_getinteger(v,-1,retval);
+							    }
+							}
+						    }
+						}
 						return _DONE;
 					}
 					else{
