@@ -1530,6 +1530,8 @@ start_again:
             switch(_token)
             {
             case TK_DOUBLE_COLON: //C++ style namespace
+                if(IsEndOfStatement()) return;
+                //else fall trough
             case _SC('.'):
                 pos = -1;
                 Lex();
@@ -1654,7 +1656,7 @@ start_again:
     SQInteger Factor()
     {
         _es.etype = EXPR;
-        bool compileTimeCheckedContant = false;
+        bool compileTimeCheckedConstant = false;
         switch(_token)
         {
         case TK_STRING_LITERAL:
@@ -1692,7 +1694,7 @@ start_again:
         case _SC('$'): //compile time checked constant
             Lex();
             ErrorIfNotToken(TK_IDENTIFIER);
-            compileTimeCheckedContant = true;
+            compileTimeCheckedConstant = true;
             //fallthrough to TK_IDENTIFIER
         case TK_IDENTIFIER:
         case TK_CONSTRUCTOR:
@@ -1706,7 +1708,7 @@ start_again:
             {
             case TK_IDENTIFIER:
                 id = _fs->CreateString(_lex.data->svalue);
-                if(compileTimeCheckedContant)
+                if(compileTimeCheckedConstant)
                 {
                     SQObjectPtr val;
                     CompileTimeCheckConstsGet(id, val);
@@ -2111,7 +2113,7 @@ start_again:
             bool cppDestructor = false;
             //bool isvirtual = false;
             //bool isprivate = false;
-            bool compileTimeCheckedContant = false;
+            bool compileTimeCheckedConstant = false;
             const SQChar *membertypename = 0;
             SQInteger member_type_token = 0;
             //check if is an attribute
@@ -2195,7 +2197,7 @@ function_params_decl:
             case _SC('$'): //compile time checked constant
                 Lex();
                 ErrorIfNotToken(TK_IDENTIFIER);
-                compileTimeCheckedContant = true;
+                compileTimeCheckedConstant = true;
                 //fallthrough to TK_IDENTIFIER
             case TK_STRING_LITERAL: //JSON
                 if(isClass)
@@ -2205,7 +2207,7 @@ function_params_decl:
             case TK_IDENTIFIER:  //JSON
             {
                 obj_id = GetTokenObject(_token);
-                if(compileTimeCheckedContant)
+                if(compileTimeCheckedConstant)
                 {
                     SQObjectPtr val;
                     CompileTimeCheckConstsGet(obj_id, val);
