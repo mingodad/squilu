@@ -1605,7 +1605,7 @@ SQRESULT sq_call(HSQUIRRELVM v,SQInteger params,SQBool retval,SQBool raiseerror)
 	SQObjectPtr res;
 	if(!v->Call(v->GetUp(-(params+1)),params,v->_top-params,res,raiseerror?true:false)){
         v->Pop(params); //pop args
-		return sq_throwerror(v,_SC("call failed"));
+		return SQ_ERROR;
 	}
 	if(!v->_suspended)
 		v->Pop(params); //pop args
