@@ -10,6 +10,13 @@
 #include "sqopcodes.h"
 #include "sqfuncstate.h"
 
+#if __cplusplus >= 201103L
+#include <utility>
+#define SQCPPMOVE(x) std::move(x)
+#else
+#define SQCPPMOVE(x) (x)
+#endif
+
 #ifdef _DEBUG_DUMP
 #define ENUM_OP(a,b) {_SC(#a)},
 SQInstructionDesc g_InstrDesc[]={
@@ -563,14 +570,14 @@ SQObject SQFuncState::CreateString(const SQChar *s,SQInteger len)
 {
 	SQObjectPtr ns(SQString::Create(_sharedstate,s,len));
 	_table(_strings)->NewSlot(ns,(SQInteger)1);
-	return ns;
+	return SQCPPMOVE(ns);
 }
 
 SQObject SQFuncState::CreateTable()
 {
 	SQObjectPtr nt(SQTable::Create(_sharedstate,0));
 	_table(_strings)->NewSlot(nt,(SQInteger)1);
-	return nt;
+	return SQCPPMOVE(nt);
 }
 
 SQFunctionProto *SQFuncState::BuildProto()
