@@ -107,9 +107,9 @@ public:
 	SQObjectPtr _attributes;
 	SQUserPointer _typetag;
 	SQRELEASEHOOK _hook;
+	SQInteger _udsize;
 	SQInt16 _constructoridx;
 	SQInt16 _destructoridx;
-	SQInteger _udsize;
 	bool _locked;
 };
 
