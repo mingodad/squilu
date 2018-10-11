@@ -1,21 +1,7 @@
 #ifndef __SQUILU__
 #include <stdio.h>
 #endif
-
-//#ifdef ZERO
-class Dad
-{
-	int_t _n;
-public:
-	Dad(int_t n){ _n = n;}
-	
-	void print() {printf("%d\n", _n);}
-protected:
-	void onlyForFriends(){}
-private:
-	void onlyForUs(){}
-};
-//#endif
+//the above is only for syntax check in SquiLu
 
 #include "minctest.nut"
 local sqt = minctest();
@@ -1278,18 +1264,22 @@ sqt.run("number", function(){
 
 	sqt.ok('Å' == "Å"[0]);
 	//sqt.ok('\7777' == "\7777"[0]);
-	//sqt.ok('\77777777' == "\77777777"[0]);
+	//sqt.ok("\77777777" == "\77777777"[0]);
 	sqt.ok("\x10000" == "\x10000");
 	sqt.ok(0x80000000-0x80000000 ==  0);
-	//if(!Is32Bits) sqt.ok(0xf0000000-0xf0000000 ==  0);
+#ifdef __SQUILU_INT_SZ8__
+	sqt.ok(0xf0000000-0xf0000000 ==  0);
+#endif
 	sqt.ok(0x80000001-0x80000000 ==  1);
 	sqt.ok(0x80000000-0x80000001 == -1);
 	sqt.ok(-2147483648*-1 ==  -2147483648/-1);
-	//if(!Is32Bits) sqt.ok(0x8000000000000000-0x8000000000000000 ==  0);
+#ifdef __SQUILU_INT_SZ8__
+	sqt.ok(0x8000000000000000-0x8000000000000000 ==  0);
 	//sqt.ok(0xf000000000000000-0xf000000000000000 ==  0);
-	//if(!Is32Bits) sqt.ok(0x8000000000000001-0x8000000000000000 ==  1);
-	//if(!Is32Bits) sqt.ok(0x8000000000000000-0x8000000000000001 == -1);
-	//sqt.ok(-9223372036854775808*-1 ==  -9223372036854775808/-1);
+	sqt.ok(0x8000000000000001-0x8000000000000000 ==  1);
+	sqt.ok(0x8000000000000000-0x8000000000000001 == -1);
+	sqt.ok(-9223372036854775808*-1 ==  -9223372036854775808/-1);
+#endif
 // https://github.com/pikelang/Pike
 
 	sqt.ok(15 == "0x0F".tointeger(16));
@@ -1552,8 +1542,8 @@ sqt.run("number", function(){
 
 	sqt.ok((0 & 0) == 0);
 	sqt.ok((0xaaaaaaaa & 0x55555555) == 0);
-	//sqt.ok((0xf0f0f0f0 & 0x3c3c3c3c) == 808464432);
-	//sqt.ok((0xffffffff & 0xffffffff) == 4294967295);
+	sqt.ok((0xf0f0f0f0 & 0x3c3c3c3c) == 808464432);
+	sqt.ok((0xffffffff & 0xffffffff) == 4294967295);
 	
 	try{1 & false, sqt.ok(0)} catch(e) {sqt.ok(1);} // expect runtime error: Right operand must be a number.
 
@@ -1561,37 +1551,34 @@ sqt.run("number", function(){
 	sqt.ok((1 << 0) == 1);
 	sqt.ok((0 << 1) == 0);
 	sqt.ok((1 << 1) == 2);
-	//sqt.ok((0xffffffff << 0) == 4294967295);
+	sqt.ok((0xffffffff << 0) == 4294967295);
 
 	sqt.ok((0 >> 0) == 0);
 	sqt.ok((1 >> 0) == 1);
 	sqt.ok((0 >> 1) == 0);
 	sqt.ok((1 >> 1) == 0);
-/*
-	if(_intsize_ == 8)
-	{
-		sqt.ok((0xaaaaaaaa << 1) == 5726623060);
-		sqt.ok((0xf0f0f0f0 << 1) == 8084644320);
-		sqt.ok((0xaaaaaaaa >> 1) == 1431655765);
-		sqt.ok((0xf0f0f0f0 >> 1) == 2021161080);
-		sqt.ok((0xffffffff >> 1) == 2147483647);
-	}
-	else
-	{
-		sqt.ok((0xaaaaaaaa << 1) == 1431655764);
-		sqt.ok((0xf0f0f0f0 << 1) == -505290272);
-		sqt.ok((0xaaaaaaaa >> 1) == -715827883);
-		sqt.ok((0xf0f0f0f0 >> 1) == -126322568);
-		sqt.ok((0xffffffff >> 1) == -1);
-	}
-*/
+
+#ifdef __SQUILU_INT_SZ8__
+	sqt.ok((0xaaaaaaaa << 1) == 5726623060);
+	sqt.ok((0xf0f0f0f0 << 1) == 8084644320);
+	sqt.ok((0xaaaaaaaa >> 1) == 1431655765);
+	sqt.ok((0xf0f0f0f0 >> 1) == 2021161080);
+	sqt.ok((0xffffffff >> 1) == 2147483647);
+#else
+	sqt.ok((0xaaaaaaaa << 1) == 1431655764);
+	sqt.ok((0xf0f0f0f0 << 1) == -505290272);
+	sqt.ok((0xaaaaaaaa >> 1) == -715827883);
+	sqt.ok((0xf0f0f0f0 >> 1) == -126322568);
+	sqt.ok((0xffffffff >> 1) == -1);
+#endif
+
 	sqt.ok((0 ^ 0) == 0);
 	sqt.ok((1 ^ 1) == 0);
 	sqt.ok((0 ^ 1) == 1);
 	sqt.ok((1 ^ 0) == 1);
-	//sqt.ok((0xaaaaaaaa ^ 0x55555555) == 4294967295);
-	//sqt.ok((0xf0f0f0f0 ^ 0x3c3c3c3c) == 3435973836);
-	//sqt.ok((0xffffffff ^ 0xffffffff) == 0);
+	sqt.ok((0xaaaaaaaa ^ 0x55555555) == 4294967295);
+	sqt.ok((0xf0f0f0f0 ^ 0x3c3c3c3c) == 3435973836);
+	sqt.ok((0xffffffff ^ 0xffffffff) == 0);
 
 	//sqt.ok((~0) == 4294967295);
 	//sqt.ok((~1) == 4294967294);
@@ -1602,9 +1589,9 @@ sqt.run("number", function(){
 	//sqt.ok((~345.67) == 4294966950);
 
 	sqt.ok((0 | 0) == 0);
-	//sqt.ok((0xaaaaaaaa | 0x55555555) == 4294967295);
-	//sqt.ok((0xcccccccc | 0x66666666) == 4008636142);
-	//sqt.ok((0xffffffff | 0xffffffff) == 4294967295);
+	sqt.ok((0xaaaaaaaa | 0x55555555) == 4294967295);
+	sqt.ok((0xcccccccc | 0x66666666) == 4008636142);
+	sqt.ok((0xffffffff | 0xffffffff) == 4294967295);
 
 	local a = 3;
 	sqt.ok((5 - 3) == 2);
@@ -1715,6 +1702,252 @@ sqt.run("globals", function(){
 	sqt.ok( obj_clone(3.4) == 3.4 );
 	sqt.ok( obj_clone("str") == "str" );
 
+});
+
+sqt.run("coroutines", function(){
+
+	local state1, state2, state3;
+
+	state1 = function()
+	{
+		::suspend("state1");
+		return state2();
+	}
+
+	state2 = function()
+	{
+		::suspend("state2");
+		return state3();
+	}
+
+	state3 = function()
+	{
+		::suspend("state3");
+		return state1();
+	}
+
+	local statethread = ::newthread(state1)
+	::table_len(globals)
+	//the above dummy global call with "::" prefix
+	//after a statement ending without ';' terminator
+	//is here to check a bug regression on the compiler
+
+	sqt.ok(statethread.call() == "state1");
+
+	for(local i = 0, j=1; i < 10000; i++)
+	{
+		switch(j++)
+		{
+		case 0: sqt.ok(statethread.wakeup() == "state1"); break;
+		case 1: sqt.ok(statethread.wakeup() == "state2"); break;
+		case 2: 
+			sqt.ok(statethread.wakeup() == "state3");
+			j = 0; //restart
+			break;
+		}
+	}
+});
+
+sqt.run("C/C++ syntax", function(){
+
+	//string line continuation
+	sqt.ok("foo \
+bar" == "foo bar");
+	//adjacent strings
+	sqt.ok("foo "
+"bar" == "foo bar");
+	//C++ multi line string
+	sqt.ok(R"(foo
+bar)" == "foo\nbar");
+
+#ifndef ZEROX
+class Dad
+{
+	int_t _n;
+public:
+	Dad(int_t n){ _n = n;}
+	
+	void print() {printf("%d\n", _n);}
+	int_t getN() {return _n;}
+protected:
+	void onlyForFriends(){}
+private:
+	void onlyForUs(){}
+};
+
+auto dad = Dad(6);
+sqt.ok(dad.getN() == 6);
+#endif
+
+	//SquiLu has several predefined syntax alias for "local"
+	// int8_t, int16_t, int32_t, int64_t, float_t, double_t, string_t, void, void_ptr_t
+
+	extern int_t eadd(int_t a, int_t b);
+	
+	//int_t add(int_t a, int_t b);
+	int_t a = 4;
+	
+	//SquiLu accpet "auto" as an alias for "local"
+	auto b = 5;
+	
+	int_t add(const int_t a, const int_t b) {return a+b;}
+	sqt.ok(add(a,b) == 9);
+
+//SquiLu has limited single pass preprocessor capabilities
+#ifdef __SQUILU__
+	//here squilu definitions /code
+	//we can use typedef to create type aliases
+	typedef T T;
+	const double_t pi = 3.14;
+	sqt.ok(pi == 3.14);
+#else
+	//here C/C++ definitions/code
+#endif
+
+	//SquiLu only accepts the template definition
+	//but doesn't do anything with it right now
+	//although class/struct/function definitions work
+	//because dynamic type values are the default
+	
+	template<typename T>
+	T tadd(const T a, const T b) {return a+b;}
+	sqt.ok(tadd(a,b) == 9);
+	
+
+	class A
+	{
+		int_t _a;
+		
+	public:
+		A(const int_t a){ _a = a;}
+		virtual ~A() {/*ignored in squilu*/}
+		virtual void addIt(const int_t n) {_a += n;}
+		virtual int_t getIt() {return _a;}
+	};
+	
+	auto ca = A(4); //RAII with direct constructor call
+	sqt.ok(ca.getIt() == 4);
+	ca.addIt(5);
+	sqt.ok(ca.getIt() == 9);
+	
+	class B :public A
+	{
+	public:
+		B(const int_t a) {_a = a;}
+		int_t getItPlus(const int_t p)  {return _a + p;}
+	};
+
+	auto cb = B(4); //RAII with direct constructor call
+	sqt.ok(cb.getIt() == 4);
+	cb.addIt(5);
+	sqt.ok(cb.getIt() == 9);
+	sqt.ok(ca.getIt() == cb.getIt());
+	sqt.ok(cb.getItPlus(9) == 18);
+
+	struct S
+	{
+		int_t _a;
+		
+		S(const int_t a){ _a = a;}
+		virtual ~S() {/*ignored in squilu*/}
+		virtual void addIt(const int_t n) {_a += n;}
+		virtual int_t getIt() {return _a;}
+	};
+	
+	auto sa = S(4); //RAII with direct constructor call
+	sqt.ok(sa.getIt() == 4);
+	sa.addIt(5);
+	sqt.ok(sa.getIt() == 9);
+
+	template<typename T>
+	class Ktpl
+	{
+		T _a;
+		
+	public:
+		Ktpl(const T a){ _a = a;}
+		virtual ~Ktpl() {/*ignored in squilu*/}
+		virtual void addIt(const T n) {_a += n;}
+		virtual T getIt() {return _a;}
+		T getItPlus(const T n);
+	};
+	
+	//T Ktpl::getItPlus(const T n) {return _a + n;}
+
+	auto ki = Ktpl<int_t>(4); //RAII with direct constructor call
+	sqt.ok(ki.getIt() == 4);
+	ki.addIt(5);
+	sqt.ok(ki.getIt() == 9);
+
+	auto kf = Ktpl<float_t>(4); //RAII with direct constructor call
+	sqt.ok(kf.getIt() == 4);
+	kf.addIt(5);
+	sqt.ok(kf.getIt() == 9);
+
+	Ktpl<double_t> kd = Ktpl<double_t>(4); //RAII with direct constructor call
+	sqt.ok(kd.getIt() == 4);
+	kd.addIt(5);
+	sqt.ok(kd.getIt() == 9);
+
+/*
+	typedef Ktpl<int64_t> Ktpl_i64;
+	
+	auto ki64 = Ktpl_i64(4); //RAII with direct constructor call
+	sqt.ok(ki64.getIt() == 4);
+	ki64.addIt(5);
+	sqt.ok(ki64.getIt() == 9);
+*/
+
+	auto max_loop = 10;
+	for(auto i=max_loop; i >= 0; --i) sqt.ok(max_loop-- == i);
+	
+	//SquiLu only accept the reference parameter syntax
+	//for int/float/boolean it doesn't do anything, they are still passed by value
+	//instances are passed by reference allways
+	int_t addByRef(const int_t &a, const int_t &b) {return a + b;}
+	sqt.ok(addByRef(a, b) == addByRef(b, a));
+	
+	//SquiLu do not accept '*' pointer notation
+	//but with a dummy typedef we can simulate it
+#ifdef __SQUILU__
+	typedef char_ptr_t char_ptr_t;
+#else
+	typedef char* char_ptr_t;
+#endif
+	char_ptr_t strcopy(const char_ptr_t str) {return str;} //only for syntax test
+	sqt.ok(strcopy("squilu") == "squilu");
+
+});
+
+sqt.run("Javascript syntax", function(){
+
+	//SquiLu accpet "var/let" as an alias for "local"
+	var a = 20;
+	let b = 30;
+	let add = function(a, b) {return a+b;}
+	sqt.ok( add(a,b) == 50 );
+});
+
+sqt.run("Typescript syntax", function(){
+
+	//SquiLu accpet "var/let" as an alias for "local"
+	let Greeting1 : string = "Hello, ";
+	function greeter(person: string) : string {
+		return Greeting1 + person;
+	}
+
+	let user = "Jane User";
+	sqt.ok(greeter(user) == Greeting1 + user);
+	
+	let notSure: any = 4;
+	notSure = "maybe a string instead";
+	notSure = false; // okay, definitely a boolean
+	sqt.ok(!notSure);
+
+	let a : number = 20;
+	let b : number = 30;
+	let add = function(a : number, b : number) : number {return a+b;}
+	sqt.ok( add(a,b) == 50 );
 });
 
 return sqt.results();           //show results
