@@ -685,6 +685,9 @@ void sq_base_register(HSQUIRRELVM v)
 	sq_pushstring(v,_SC("_floatsize_"),-1);
 	sq_pushinteger(v,sizeof(SQFloat));
 	sq_newslot(v,-3, SQFalse);
+	sq_pushstring(v,_SC("_ptrsize_"),-1);
+	sq_pushinteger(v,sizeof(void*));
+	sq_newslot(v,-3, SQFalse);
 	sq_pop(v,1);
 }
 
