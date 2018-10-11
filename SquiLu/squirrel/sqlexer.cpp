@@ -800,7 +800,7 @@ static int isneg (const SQChar **s) {
 }
 
 #define ADD_CHECK_DIGIT(dig, base) \
-	    if (a >= MAXBY10 && (a > MAXBY10 || a > MAXLASTD + neg))  /* overflow? */ \
+	    if (a >= MAXBY10 && (a > MAXBY10 || d > MAXLASTD + neg))  /* overflow? */ \
             return false;  /* do not accept it (as integer) */ \
 		a = a*base+dig;
 
