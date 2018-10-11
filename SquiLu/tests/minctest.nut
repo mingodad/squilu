@@ -82,10 +82,10 @@ function minctest()
 	    local msg = format("\t%-24s", name);
 	    stdout.write(msg);
 	    testfunc();
-	    msg = format("pass: %2d   fail: %2d   %4dms\n",
+	    msg = format("pass: %6d   fail: %6d   %4dms\n",
 		(ltests-ts)-(lfails-fs), lfails-fs,
 		math.floor((os.clock() - lclock) * 1000));
-            if(lfails) stdout.write("\n");
+            if(lfails != fs) stdout.write(format("\n\t%-24s", " "));
 	    stdout.write(msg);
 	}
 
@@ -109,7 +109,7 @@ function minctest()
 	    {
 		++lfails;
 		local stack_info = getstackinfos(2);
-		stdout.write(format("%s:%d (%d != %d)\n",
+		stdout.write(format("\n%s:%d (%d != %d)",
 		    stack_info.src,
 		    stack_info.line,
 		    a, b));
@@ -123,7 +123,7 @@ function minctest()
 	    {
 		++lfails;
 		local stack_info = getstackinfos(2);
-		stdout.write(format("%s:%d (%f != %f)\n",
+		stdout.write(format("\n%s:%d (%f != %f)",
 		    stack_info.src,
 		    stack_info.line,
 		    a, b));
