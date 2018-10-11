@@ -28,6 +28,7 @@ extern "C" {
 #endif
 
 #include <stdarg.h>
+#include <stdint.h>
 
 #ifndef SQUIRREL_API
 #define SQUIRREL_API extern //__attribute__ ((visibility ("default")))

@@ -4,6 +4,7 @@
 #define ABSTRACT_METHOD(m, i) m i
 #endif
 
+typedef uintptr_t SQHash; /*should be the same size of a pointer*/
 typedef float SQFloat32;
 typedef double SQFloat64;
 typedef long long SQInt64;
@@ -34,14 +35,12 @@ typedef unsigned __int64 SQHash; /*should be the same size of a pointer*/
 #define SQ_INT_MIN LLONG_MIN
 typedef long long SQInteger;
 typedef unsigned long long SQUnsignedInteger;
-typedef unsigned long long SQHash; /*should be the same size of a pointer*/
 #endif
 #else
 #define SQ_INT_MAX INT_MAX
 #define SQ_INT_MIN INT_MIN
 typedef int SQInteger;
 typedef unsigned int SQUnsignedInteger;
-typedef unsigned int /*ptrdiff_t*/ SQHash; /*should be the same size of a pointer*/
 #endif
 
 
@@ -224,6 +223,12 @@ typedef unsigned char SQUChar;
 #define _PRINT_INT_FMT _SC("%lld")
 #else
 #define _PRINT_INT_FMT _SC("%d")
+#endif
+
+#if defined(SQUSEDOUBLE)
+#define _PRINT_FLOAT_PREC _SC("%.14g")
+#else
+#define _PRINT_FLOAT_PREC _SC("%.7g")
 #endif
 
 #if !defined(SQUILU_MAX_PATH)
