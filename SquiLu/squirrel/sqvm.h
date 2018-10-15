@@ -97,7 +97,7 @@ public:
 	SQString *PrintObjVal(const SQObjectPtr &o);
 
 
-	void Raise_Error(const SQChar *s, ...);
+	void Raise_Error(const SQChar *s, ...) __attribute__ ((__format__ (__printf__, 2, 3)));
 	void Raise_Error(const SQObjectPtr &desc);
 	void Raise_IdxError(const SQObjectPtr &o);
 	void Raise_CompareError(const SQObject &o1, const SQObject &o2);

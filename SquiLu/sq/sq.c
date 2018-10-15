@@ -23,7 +23,7 @@
 int sq_main_argc = 0;
 char** sq_main_argv = 0;
 
-void PrintVersionInfos();
+void PrintVersionInfos(void);
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 int MemAllocHook( int allocType, void *userData, size_t size, int blockType,
@@ -35,7 +35,7 @@ int MemAllocHook( int allocType, void *userData, size_t size, int blockType,
 #endif
 
 
-SQInteger quit(HSQUIRRELVM v)
+static SQInteger quit(HSQUIRRELVM v)
 {
 	int *done;
 	sq_getuserpointer(v,-1,(SQUserPointer*)&done);
@@ -43,7 +43,8 @@ SQInteger quit(HSQUIRRELVM v)
 	return 0;
 }
 
-void printfunc(HSQUIRRELVM v,const SQChar *s,...)
+//static void printfunc(HSQUIRRELVM v,const SQChar *s,...) __attribute__ ((__format__ (__printf__, 2, 3)));
+static void printfunc(HSQUIRRELVM v,const SQChar *s,...)
 {
 	va_list vl;
 	va_start(vl, s);
@@ -52,7 +53,8 @@ void printfunc(HSQUIRRELVM v,const SQChar *s,...)
 	(void)v; /* UNUSED */
 }
 
-void errorfunc(HSQUIRRELVM v,const SQChar *s,...)
+//static void errorfunc(HSQUIRRELVM v,const SQChar *s,...) __attribute__ ((__format__ (__printf__, 2, 3)));
+static void errorfunc(HSQUIRRELVM v,const SQChar *s,...)
 {
 	va_list vl;
 	va_start(vl, s);
@@ -66,7 +68,7 @@ void PrintVersionInfos()
 	scfprintf(stdout,_SC("%s %s (%d bits)\n"),SQUIRREL_VERSION,SQUIRREL_COPYRIGHT,((int)(sizeof(SQInteger)*8)));
 }
 
-SQInteger push_program_args(HSQUIRRELVM v,SQInteger arg, SQInteger argc, char* argv[], int asArray){
+static SQInteger push_program_args(HSQUIRRELVM v,SQInteger arg, SQInteger argc, char* argv[], int asArray){
     SQInteger i, callargs = 0;
     if(asArray)
     {
@@ -91,7 +93,7 @@ SQInteger push_program_args(HSQUIRRELVM v,SQInteger arg, SQInteger argc, char* a
     return callargs;
 }
 
-void PrintUsage()
+static void PrintUsage()
 {
 	scfprintf(stderr,_SC("usage: sq <options> <scriptpath [args]>.\n")
 		_SC("Available options are:\n")
@@ -106,7 +108,7 @@ void PrintUsage()
 		_SC("   -h              prints help\n"));
 }
 
-void loadDefaultScript(HSQUIRRELVM v, const char *script)
+static void loadDefaultScript(HSQUIRRELVM v, const char *script)
 {
     FILE *fb = scfopen(script, "rb");
     if (!fb) return;
@@ -128,7 +130,7 @@ void loadDefaultScript(HSQUIRRELVM v, const char *script)
 #define _DONE 2
 #define _ERROR 3
 //<<FIXME>> this func is a mess
-int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
+static int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 {
 	int compiles_only = 0;
 	int compiles_as_source_only = 0;
@@ -317,7 +319,7 @@ int getargs(HSQUIRRELVM v,int argc, char* argv[],SQInteger *retval)
 	return _INTERACTIVE;
 }
 
-void Interactive(HSQUIRRELVM v)
+static void Interactive(HSQUIRRELVM v)
 {
 
 	SQChar buffer[MAXINPUT];
@@ -497,12 +499,14 @@ static SQInteger LoadFrozenScript0(HSQUIRRELVM v, const SQChar* filename, int on
 }
 #endif
 
+#ifndef SQUILU_ALONE
 static char *chngChar (char *str, char oldChar, char newChar) {
     char *strPtr = str;
     while ((strPtr = strchr (strPtr, oldChar)) != NULL)
         *strPtr++ = newChar;
     return str;
 }
+#endif
 
 static SQInteger LoadFrozenScript(HSQUIRRELVM v, const SQChar* filename, int only_check)
 {
@@ -628,6 +632,8 @@ SQRESULT sqext_register_nn (HSQUIRRELVM v);
 SQRESULT sqext_register_lapack (HSQUIRRELVM v);
 SQRESULT sqext_register_numarray (HSQUIRRELVM v);
 SQRESULT sqext_register_fann (HSQUIRRELVM v);
+SQRESULT sqext_register_numarray (HSQUIRRELVM v);
+SQRESULT sqext_register_Snowball (HSQUIRRELVM v);
 
 static sq_modules_preload_st modules_preload[] = {
     {"blob", sqstd_register_bloblib},
@@ -728,6 +734,9 @@ static sq_modules_preload_st modules_preload[] = {
 #endif
 #ifdef WITH_MYSQL
     {"mysql", sqext_register_MySQL},
+#endif
+#ifdef USE_SNOWBALL
+    {"snowball", sqext_register_Snowball},
 #endif
 #if !defined(ANDROID_BUILD) && !defined(NO_RS232)
     {"rs232", sqext_register_rs232},

@@ -367,7 +367,7 @@ static int sqftime(struct timeb *tp)
 #endif
 
 
-int GetMilliCount()
+static int GetMilliCount()
 {
   // Something like GetTickCount but portable
   // It rolls over every ~ 12.1 days (0x100000/24/60/60)
@@ -382,7 +382,7 @@ int GetMilliCount()
   return nCount;
 }
 
-int GetMilliSpan( int nTimeStart )
+static int GetMilliSpan( int nTimeStart )
 {
   int nSpan = GetMilliCount() - nTimeStart;
   if ( nSpan < 0 )
@@ -564,7 +564,7 @@ static SQRESULT _system_signal_int2str (HSQUIRRELVM v) {
         sq_pushstring(v, signame, -1);
         return 1;
     }
-    return sq_throwerror(v, _SC("invalid signal (%d)"), sig);
+    return sq_throwerror(v, _SC("invalid signal (%d)"), (int)sig);
 }
 
 static int _get_signal(HSQUIRRELVM v)
@@ -614,7 +614,7 @@ static SQRESULT _system_raise(HSQUIRRELVM v)
 }
 #endif
 
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_system_##name,nparams,pmask}
+#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_system_##name,nparams,pmask,false}
 static SQRegFunction systemlib_funcs[]={
 	_DECL_FUNC(getenv,2,_SC(".s")),
 	_DECL_FUNC(system,2,_SC(".s")),
@@ -643,7 +643,7 @@ static SQRegFunction systemlib_funcs[]={
 	_DECL_FUNC(signal_str2int,2,_SC(".s")),
 	_DECL_FUNC(signal_int2str,2,_SC(".i")),
 #endif
-	{NULL,(SQFUNCTION)0,0,NULL}
+	{NULL,(SQFUNCTION)0,0,NULL,false}
 };
 #undef _DECL_FUNC
 

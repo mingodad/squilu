@@ -78,11 +78,9 @@ SQString *SQVM::PrintObjVal(const SQObjectPtr &o)
     case OT_INTEGER:
         scsprintf(_sp(sq_rsl(NUMBER_MAX_CHAR+1)),sq_rsl(NUMBER_MAX_CHAR), _PRINT_INT_FMT, _integer(o));
         return SQString::Create(_ss(this), _spval);
-        break;
     case OT_FLOAT:
         scsprintf(_sp(sq_rsl(NUMBER_MAX_CHAR+1)), sq_rsl(NUMBER_MAX_CHAR), _SC("%.14g"), _float(o));
         return SQString::Create(_ss(this), _spval);
-        break;
     default:
         return SQString::Create(_ss(this), GetTypeName(o));
     }
@@ -114,5 +112,5 @@ void SQVM::Raise_ParamTypeError(SQInteger nparam,SQInteger typemask,SQInteger ty
 			StringCat(exptypes,SQString::Create(_ss(this), IdType2Name((SQObjectType)mask), -1), exptypes);
 		}
 	}
-	Raise_Error(_SC("parameter %d has an invalid type '%s' ; expected: '%s'"), nparam, IdType2Name((SQObjectType)type), _stringval(exptypes));
+	Raise_Error(_SC("parameter %d has an invalid type '%s' ; expected: '%s'"), (int)nparam, IdType2Name((SQObjectType)type), _stringval(exptypes));
 }

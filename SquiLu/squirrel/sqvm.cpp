@@ -221,7 +221,7 @@ bool SQVM::ArithMetaMethod(SQInteger op,const SQObjectPtr &o1,const SQObjectPtr 
 			return CallMetaMethod(closure,mm,2,dest);
 		}
 	}
-	Raise_Error(_SC("arith op %c on between '%s' and '%s'"),op,GetTypeName(o1),GetTypeName(o2));
+	Raise_Error(_SC("arith op %c on between '%s' and '%s'"),(int)op,GetTypeName(o1),GetTypeName(o2));
 	return false;
 }
 
@@ -1791,7 +1791,8 @@ bool SQVM::NewSlot(const SQObjectPtr &self,const SQObjectPtr &key,const SQObject
 		}
 		Raise_Error(_SC("class instances do not support the new slot operator"));
 		return false;
-		break;}
+		}
+		break;
 	case OT_CLASS:
 		if(!_class(self)->NewSlot(_ss(this),key,val,bstatic)) {
 			if(_class(self)->_locked) {
@@ -1808,7 +1809,6 @@ bool SQVM::NewSlot(const SQObjectPtr &self,const SQObjectPtr &key,const SQObject
 	default:
 		Raise_Error(_SC("indexing %s with %s"),GetTypeName(self),GetTypeName(key));
 		return false;
-		break;
 	}
 	return true;
 }
@@ -1861,12 +1861,10 @@ SQInteger prevstackbase = _stackbase;
 	switch(sq_type(closure)) {
 	case OT_CLOSURE:
 		return Execute(closure, nparams, stackbase, outres, raiseerror);
-		break;
 	case OT_NATIVECLOSURE:{
 		bool dummy;
 		return CallNative(_nativeclosure(closure), nparams, stackbase, outres, -1, dummy, dummy);
-
-						  }
+		}
 		break;
 	case OT_CLASS: {
 		SQObjectPtr constr;
@@ -1878,7 +1876,7 @@ SQInteger prevstackbase = _stackbase;
 			return Call(constr,nparams,stackbase,temp,raiseerror);
 		}
 		return true;
-				   }
+		}
 		break;
 	default:
 		return false;

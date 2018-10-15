@@ -28,7 +28,7 @@ void sqstd_printcallstack(HSQUIRRELVM v)
 			const SQChar *src=_SC("unknown");
 			if(si.funcname)fn=si.funcname;
 			if(si.source)src=si.source;
-			pf(v,_SC("%s:%d:0 *FUNCTION [%s()]\n"),src,si.line,fn);
+			pf(v,_SC("%s:%d:0 *FUNCTION [%s()]\n"),src,(int)si.line,fn);
 			level++;
 		}
 		//level=0;
@@ -46,7 +46,7 @@ void sqstd_printcallstack(HSQUIRRELVM v)
 					break;
 				case OT_INTEGER:
 					sq_getinteger(v,-1,&i);
-					pf(v,_SC("[%s] %d\n"),name,i);
+					pf(v,_SC("[%s] %d\n"),name, (int)i);
 					break;
 				case OT_FLOAT:
 					sq_getfloat(v,-1,&f);
@@ -59,7 +59,7 @@ void sqstd_printcallstack(HSQUIRRELVM v)
 					sq_getstring(v,-1,&s);
 					if(sq_getsize(v, -1) > max_str_size)
 					{
-						pf(v,_SC("[%s] (%d max dump) \"%.*s\"\n"), name, max_str_size, max_str_size, s);
+						pf(v,_SC("[%s] (%d max dump) \"%.*s\"\n"), name, (int)max_str_size, (int)max_str_size, s);
 					}
 					else
 					{
@@ -133,7 +133,7 @@ void _sqstd_compiler_error(HSQUIRRELVM v,const SQChar *sErr,const SQChar *sSourc
 	SQPRINTFUNCTION pf = sq_geterrorfunc(v);
 	if(pf) {
 		//pf(v,_SC("%s line = (%d) column = (%d) : error %s\n"),sSource,line,column,sErr);
-		pf(v,_SC("%s:%d:%d : error %s\n"),sSource,line,column,sErr);
+		pf(v,_SC("%s:%d:%d : error %s\n"),sSource,(int)line,(int)column,sErr);
 	}
 }
 

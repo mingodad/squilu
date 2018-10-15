@@ -71,11 +71,15 @@ typedef sqvector<SQGotoLabelsInfo> SQGotoLabelsInfoVec;
 
 #define _FUNC_SIZE(ni,nl,nparams,nfuncs,nouters,nlineinf,localinf,defparams) \
         (sizeof(SQFunctionProto) \
-		+((ni-1)*sizeof(SQInstruction))+(nl*sizeof(SQObjectPtr)) \
-		+(nparams*sizeof(SQObjectPtr))+(/*param_types*/nparams*sizeof(SQObjectPtr)) \
-        +(nfuncs*sizeof(SQObjectPtr)) \
-		+(nouters*sizeof(SQOuterVar))+(nlineinf*sizeof(SQLineInfo)) \
-		+(localinf*sizeof(SQLocalVarInfo))+(defparams*sizeof(SQInteger)))
+		+((ni-1)*sizeof(SQInstruction)) \
+		+(nl*sizeof(SQObjectPtr)) \
+		+(nparams*sizeof(SQObjectPtr)) \
+		+(/*param_types*/nparams*sizeof(SQObjectPtr)) \
+		+(nfuncs*sizeof(SQObjectPtr)) \
+		+(nouters*sizeof(SQOuterVar)) \
+		+(nlineinf*sizeof(SQLineInfo)) \
+		+(localinf*sizeof(SQLocalVarInfo)) \
+		+(defparams*sizeof(SQInteger)))
 
 
 struct SQFunctionProto : public CHAINABLE_OBJ
@@ -154,7 +158,7 @@ public:
 	SQObjectPtr _sourcename;
 	SQObjectPtr _name;
 	SQObjectPtr _return_type;
-    SQInteger _stacksize;
+	SQInteger _stacksize;
 	bool _bgenerator;
 	SQInteger _varparams;
 

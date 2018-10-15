@@ -37,10 +37,10 @@ struct SQBlob : public SQStream
 	static SQUserPointer SQBlob_TAG;
 private:
 	void init(SQInteger size, SQInteger allocated);
+	unsigned char *_buf;
 	SQInteger _size;
 	SQInteger _allocated;
 	SQInteger _ptr;
-	unsigned char *_buf;
 	bool _owns;
 };
 

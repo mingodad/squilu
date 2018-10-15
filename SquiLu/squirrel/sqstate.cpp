@@ -25,8 +25,8 @@ SQSharedState::SQSharedState()
 	_errorfunc = NULL;
 	_debuginfo = false;
 	_notifyallexceptions = false;
-    _foreignptr = NULL;
-    _releasehook = NULL;
+	_foreignptr = NULL;
+	_releasehook = NULL;
 #ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
 	_already_in_CallDelayedReleaseHooks = false;
 #endif // SQ_WITH_DELAYED_RELEASE_HOOKS
@@ -87,7 +87,7 @@ bool CompileTypemask(SQIntVec &res,const SQChar *typemask)
 	return true;
 }
 
-SQTable *CreateDefaultDelegate(SQSharedState *ss,const SQRegFunction *funcz)
+static SQTable *CreateDefaultDelegate(SQSharedState *ss,const SQRegFunction *funcz)
 {
 	SQInteger i=0;
 	SQTable *t=SQTable::Create(ss,0);
@@ -118,20 +118,12 @@ void SQSharedState::Init()
 	_defined_names = SQTable::Create(this,0);
 #define SQUILU_NAME_BASE "__SQUILU_"
 	_define_squilu = SQString::Create(this,_SC(SQUILU_NAME_BASE "_"));
-	_define_squilu_int_sz = SQString::Create(this,_SC(SQUILU_NAME_BASE
-#ifdef _SQ64
-        "INT_SZ8__"
-#else
-        "INT_SZ4__"
-#endif // _SQ64
-        ));
-	_define_squilu_float_sz = SQString::Create(this,_SC(SQUILU_NAME_BASE
-#ifdef SQUSEDOUBLE
-        "FLOAT_SZ8__"
-#else
-        "FLOAT_SZ4__"
-#endif // _SQ64
-        ));
+	_define_squilu_int_sz = SQString::Create(this,
+        _SC((sizeof(SQInteger) == 8) ? SQUILU_NAME_BASE "INT_SZ8__" :
+            SQUILU_NAME_BASE "INT_SZ4__"));
+	_define_squilu_float_sz = SQString::Create(this,
+        _SC((sizeof(SQFloat) == 8) ? SQUILU_NAME_BASE "FLOAT_SZ8__" :
+            SQUILU_NAME_BASE "FLOAT_SZ4__"));
 	_define_squilu_ptr_sz = SQString::Create(this,
         _SC((sizeof(void *) == 8) ? SQUILU_NAME_BASE "PTR_SZ8__" :
             SQUILU_NAME_BASE "PTR_SZ4__"));

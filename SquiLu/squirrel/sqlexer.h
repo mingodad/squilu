@@ -21,8 +21,8 @@ struct SQLexerData
     SQInteger nvalue;
     SQFloat fvalue;
     LexChar currdata;
-    SQBool reached_eof;
     SQInteger readcount;
+    SQBool reached_eof;
     SQChar lasterror[256];
     SQLexerData()
     {
@@ -77,11 +77,11 @@ struct SQLexer
                 CompilerErrorFunc efunc,void *ed, SQBool want_comments=SQFalse);
 	SQInteger ResetReader(SQLEXREADFUNC rg, SQUserPointer up, SQInteger line);
 	virtual SQTable * GetKeywords();
-	SQInteger Error(const SQChar *err, ...);
+	SQInteger Error(const SQChar *err, ...) __attribute__ ((__format__ (__printf__, 2, 3)));
 	SQInteger Lex();
 	SQInteger LookaheadLex();
 	const SQChar *Tok2Str(SQInteger tok);
-	const SQChar *GetTokenName(int tk_code);
+	const SQChar *GetTokenName(SQInteger tk_code);
 private:
 	SQInteger GetIDType(const SQChar *s,SQInteger len);
 	SQInteger ReadString(SQInteger ndelim,bool verbatim);

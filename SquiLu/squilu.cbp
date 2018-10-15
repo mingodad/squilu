@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="spectralnorm.nut" />
+				<Option parameters="crash4.nut" />
 				<Compiler>
 					<Add option="-g" />
 					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
@@ -76,7 +76,7 @@
 				<Option output="bin/squilu.exe" prefix_auto="1" extension_auto="0" />
 				<Option object_output="obj/Release-win32/" />
 				<Option type="1" />
-				<Option compiler="gcc" />
+				<Option compiler="mingw32_gnu_gcc_compiler" />
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Wall" />
@@ -91,11 +91,13 @@
 					<Add option="-s" />
 					<Add option="-static-libstdc++" />
 					<Add option="-static-libgcc" />
+					<Add option="-static" />
 					<Add library="axtls-win32" />
 					<Add library="ws2_32" />
 					<Add library="mpdecimal-win32" />
 					<Add library="discount-win32" />
 					<Add library="fltk_z" />
+					<Add library="rpcrt4" />
 					<Add directory="../../zeromq-3.2.2" />
 					<Add directory="../fltk/lib" />
 				</Linker>
@@ -192,7 +194,7 @@
 				<Option output="bin/squilu-fltk.exe" prefix_auto="1" extension_auto="0" />
 				<Option object_output="obj/Release-win32/" />
 				<Option type="1" />
-				<Option compiler="gnu_gcc_mingw32_compiler" />
+				<Option compiler="mingw32_gnu_gcc_compiler" />
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Wall" />
@@ -243,7 +245,7 @@
 				<Option output="bin/squilu-fltk-w.exe" prefix_auto="1" extension_auto="0" />
 				<Option object_output="obj/Release-win32/" />
 				<Option type="0" />
-				<Option compiler="gcc" />
+				<Option compiler="mingw32_gnu_gcc_compiler" />
 				<Compiler>
 					<Add option="-O3" />
 					<Add option="-Wall" />
@@ -262,6 +264,7 @@
 					<Add option="-s" />
 					<Add option="-static-libstdc++" />
 					<Add option="-static-libgcc" />
+					<Add option="-static" />
 					<Add library="axtls-win32" />
 					<Add library="ws2_32" />
 					<Add library="mpdecimal-win32" />
@@ -373,9 +376,9 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-fomit-frame-pointer" />
+					<Add option="-fexpensive-optimizations" />
 					<Add option="-O3" />
 					<Add option="-Wall" />
-					<Add option="-fexpensive-optimizations" />
 					<Add option="-DNDEBUG=1" />
 					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
 					<Add option="-D_SQ64=1" />
@@ -422,6 +425,7 @@
 					<Add option="-DWITH_MYSQL=1" />
 					<Add option="-DWITH_POSTGRESQL=1" />
 					<Add option="-DWITH_DNS_SD2=1" />
+					<Add option="-DSQ_USE_SQLEG=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 					<Add directory="../fltk" />
 					<Add directory="../libharu/include" />
@@ -449,6 +453,8 @@
 					<Add library="Xcursor" />
 					<Add library="Xfixes" />
 					<Add library="mkd2html" />
+					<Add library="Xrender" />
+					<Add library="../lpeg-sq/liblpeg-sq.a" />
 					<Add directory="../../zeromq-3.2.2" />
 					<Add directory="../fltk/lib" />
 					<Add directory="../flu" />
@@ -457,11 +463,11 @@
 			</Target>
 			<Target title="Debug 64bits">
 				<Option output="bin/squilu-dbg" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="../../es/zaragoza" />
+				<Option working_dir="samples/prof" />
 				<Option object_output="obj/Debug-no-gui/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="download-facturas.nut" />
+				<Option parameters="test.nut" />
 				<Compiler>
 					<Add option="-Wall" />
 					<Add option="-g" />
@@ -471,6 +477,7 @@
 					<Add option="-DCONFIG_64=1" />
 					<Add option="-DHAS_UNIX_DOMAIN_SOCKETS=1" />
 					<Add option="-DUSE_SIGNAL_HANDLER=1" />
+					<Add option="-DSQ_USE_SQLEG=1" />
 					<Add directory="../../zeromq-3.2.2/include" />
 				</Compiler>
 				<Linker>
@@ -482,6 +489,7 @@
 					<Add library="discount" />
 					<Add library="fltk_z" />
 					<Add library="mkd2html" />
+					<Add library="../lpeg-sq/liblpeg-sq.a" />
 					<Add directory="../../zeromq-3.2.2" />
 					<Add directory="../fltk/lib" />
 				</Linker>
@@ -593,10 +601,10 @@
 				<Option type="2" />
 				<Option compiler="gcc" />
 				<Compiler>
-					<Add option="-O3" />
-					<Add option="-Wall" />
 					<Add option="-fomit-frame-pointer" />
 					<Add option="-fexpensive-optimizations" />
+					<Add option="-O3" />
+					<Add option="-Wall" />
 					<Add option="-DNDEBUG=1" />
 					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
 					<Add option="-D_SQ64=1" />
@@ -670,6 +678,7 @@
 					<Add library="Xcursor" />
 					<Add library="Xfixes" />
 					<Add library="mkd2html" />
+					<Add library="Xrender" />
 					<Add directory="../../zeromq-3.2.2" />
 					<Add directory="../fltk/lib" />
 					<Add directory="../flu" />
@@ -727,6 +736,7 @@
 					<Add library="axtls-dbg" />
 					<Add library="Xcursor" />
 					<Add library="Xfixes" />
+					<Add library="Xrender" />
 					<Add directory="../../zeromq-3.2.2" />
 					<Add directory="../fltk/lib" />
 					<Add directory="../flu" />
@@ -867,6 +877,8 @@
 					<Add library="axtls" />
 					<Add library="Xcursor" />
 					<Add library="Xfixes" />
+					<Add library="mkd2html" />
+					<Add library="Xrender" />
 					<Add directory="../../zeromq-3.2.2" />
 					<Add directory="../fltk/lib" />
 					<Add directory="../flu" />
@@ -886,6 +898,8 @@
 					<Add option="-Wall" />
 					<Add option="-fno-rtti" />
 					<Add option="-fno-exceptions" />
+					<Add option="-DNO_ABSTRACT_METHOD=1" />
+					<Add option="-DCUSTOM_DELETE_OPERATOR=1" />
 					<Add option="-DSQUILU_ALONE=1" />
 					<Add option="-DNEED_SUBLATIN_C=1" />
 					<Add option="-DNDEBUG=1" />
@@ -935,7 +949,7 @@
 				</Linker>
 			</Target>
 			<Target title="Release FLTK 64bits LTO">
-				<Option output="bin/squilu" prefix_auto="1" extension_auto="1" />
+				<Option output="bin/squilu-lto" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release-lto/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -984,10 +998,13 @@
 					<Add library="axtls" />
 					<Add library="Xcursor" />
 					<Add library="Xfixes" />
+					<Add library="Xrender" />
+					<Add library="mkd2html" />
 					<Add directory="../../zeromq-3.2.2" />
 					<Add directory="../fltk/lib" />
 					<Add directory="../flu" />
 					<Add directory="../libharu/src" />
+					<Add directory="../md4c" />
 				</Linker>
 			</Target>
 			<Target title="Release 64bits Alone static library ">
@@ -1190,10 +1207,161 @@
 					<Add directory="../libharu/src" />
 				</Linker>
 			</Target>
+			<Target title="Debug 64bits gcov">
+				<Option output="bin/squilu-dbg" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../lua/lua5.1-tests" />
+				<Option object_output="obj/Debug-no-gui/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters="test-pm.nut" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="-fprofile-arcs" />
+					<Add option="-ftest-coverage" />
+					<Add option="-DNDEBUG2=1" />
+					<Add option="-DWITH_FULL_DAD_EXTRAS=1" />
+					<Add option="-D_SQ64=1" />
+					<Add option="-DCONFIG_64=1" />
+					<Add option="-DHAS_UNIX_DOMAIN_SOCKETS=1" />
+					<Add option="-DUSE_SIGNAL_HANDLER=1" />
+					<Add directory="../../zeromq-3.2.2/include" />
+				</Compiler>
+				<Linker>
+					<Add library="pthread" />
+					<Add library="rt" />
+					<Add library="dl" />
+					<Add library="axtls-dbg" />
+					<Add library="mpdecimal" />
+					<Add library="discount" />
+					<Add library="fltk_z" />
+					<Add library="mkd2html" />
+					<Add library="gcov" />
+					<Add directory="../../zeromq-3.2.2" />
+					<Add directory="../fltk/lib" />
+				</Linker>
+			</Target>
+			<Target title="Release Win64bits Alone">
+				<Option output="bin/squilu-alone-win64.exe" prefix_auto="1" extension_auto="0" />
+				<Option object_output="obj/Release-alone-win64/" />
+				<Option type="1" />
+				<Option compiler="mingw64_gnu_gcc_compiler" />
+				<Option use_console_runner="0" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-fomit-frame-pointer" />
+					<Add option="-O2" />
+					<Add option="-Wall" />
+					<Add option="-fno-rtti" />
+					<Add option="-fno-exceptions" />
+					<Add option="-DSQUILU_ALONE=1" />
+					<Add option="-DNEED_SUBLATIN_C=1" />
+					<Add option="-DNDEBUG=1" />
+					<Add option="-DWITH_FULL_DAD_EXTRAS2=1" />
+					<Add option="-D_SQ64=1" />
+					<Add option="-DCONFIG_64=1" />
+					<Add option="-DHAS_UNIX_DOMAIN_SOCKETS=1" />
+					<Add option="-DUSE_SIGNAL_HANDLER=1" />
+					<Add option="-DWITH_MYSQL2=1" />
+					<Add option="-DWITH_POSTGRESQL2=1" />
+				</Compiler>
+				<Linker>
+					<Add option="-static-libstdc++" />
+					<Add option="-static-libgcc" />
+					<Add option="-static" />
+					<Add library="uuid" />
+					<Add library="m" />
+					<Add library="rpcrt4" />
+				</Linker>
+			</Target>
+			<Target title="Release Win32bits Alone">
+				<Option platforms="Windows;" />
+				<Option output="bin/squilu-alone-win32.exe" prefix_auto="1" extension_auto="0" />
+				<Option object_output="obj/Release-alone-win32/" />
+				<Option type="1" />
+				<Option compiler="mingw32_gnu_gcc_compiler" />
+				<Option use_console_runner="0" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-fomit-frame-pointer" />
+					<Add option="-O2" />
+					<Add option="-Wall" />
+					<Add option="-fno-rtti" />
+					<Add option="-fno-exceptions" />
+					<Add option="-DSQUILU_ALONE=1" />
+					<Add option="-DNEED_SUBLATIN_C=1" />
+					<Add option="-DNDEBUG=1" />
+					<Add option="-DWITH_FULL_DAD_EXTRAS2=1" />
+					<Add option="-D_SQ32=1" />
+					<Add option="-DCONFIG_32=1" />
+					<Add option="-DHAS_UNIX_DOMAIN_SOCKETS=1" />
+					<Add option="-DUSE_SIGNAL_HANDLER=1" />
+					<Add option="-DWITH_MYSQL2=1" />
+					<Add option="-DWITH_POSTGRESQL2=1" />
+				</Compiler>
+				<Linker>
+					<Add option="-static-libstdc++" />
+					<Add option="-static-libgcc" />
+					<Add option="-static" />
+					<Add library="uuid" />
+					<Add library="m" />
+					<Add library="rpcrt4" />
+				</Linker>
+			</Target>
+			<Target title="Debug 64bits Alone">
+				<Option output="bin/squilu-dbg-alone" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="samples/squilu-alone" />
+				<Option object_output="obj/Debug-alone/" />
+				<Option type="1" />
+				<Option compiler="llvm_clang_compiler_7" />
+				<Option use_console_runner="0" />
+				<Option parameters="test-bigint.lua" />
+				<Option projectLinkerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-fomit-frame-pointer" />
+					<Add option="-Weverything" />
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="-fno-rtti" />
+					<Add option="-fno-exceptions" />
+					<Add option="-Wno-reserved-id-macro" />
+					<Add option="-Wno-c++98-compat-pedantic" />
+					<Add option="-Wno-sign-conversion" />
+					<Add option="-Wno-zero-as-null-pointer-constant" />
+					<Add option="-Wno-old-style-cast" />
+					<Add option="-DNO_ABSTRACT_METHOD2=1" />
+					<Add option="-DCUSTOM_DELETE_OPERATOR=1" />
+					<Add option="-DSQUILU_ALONE=1" />
+					<Add option="-DNEED_SUBLATIN_C=1" />
+					<Add option="-DNDEBUG=1" />
+					<Add option="-DWITH_FULL_DAD_EXTRAS2=1" />
+					<Add option="-D_SQ64=1" />
+					<Add option="-DCONFIG_64=1" />
+					<Add option="-DHAS_UNIX_DOMAIN_SOCKETS=1" />
+					<Add option="-DUSE_SIGNAL_HANDLER=1" />
+					<Add option="-DWITH_MYSQL2=1" />
+					<Add option="-DWITH_POSTGRESQL2=1" />
+				</Compiler>
+				<Linker>
+					<Add library="uuid" />
+					<Add library="m" />
+				</Linker>
+			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-fomit-frame-pointer" />
 			<Add option="-Wall" />
 			<Add option="-fno-strict-aliasing" />
+			<Add option="-funroll-loops" />
+			<Add option="-march=native" />
+			<Add option="-DUSE_SNOWBALL=1" />
+			<Add option="-DSQ_USE_SQFANN=1" />
+			<Add option="-DFTS_SNOWBALL_STATIC=1" />
+			<Add option="-DHAS_ANN_MALLOC=1" />
+			<Add option="-DUSE_SSE=1" />
+			<Add option="-DSQ_USE_FUZZY_HASH=1" />
+			<Add option="-DSQ_USE_LMDB2=1" />
+			<Add option="-DSQ_EXCLUDE_DEFAULT_MEMFUNCTIONS2=1" />
 			<Add option="-DSQ_MAX_FUNC_STACKSIZE=2048" />
 			<Add option="-DSQ_OPEN_VM_SIZE=2048" />
 			<Add option="-DSQ_USE_PCRE=1" />
@@ -1241,6 +1409,7 @@
 			<Add option="-DSQLITE_ENABLE_EXPLAIN_COMMENTS=1" />
 			<Add option="-DSQLITE_USE_ATTACHED_DBS2=1" />
 			<Add option="-DSQLITE_USE_ALLOCA=1" />
+			<Add option="-DSQLITE_ENABLE_SORTER_REFERENCES=1" />
 			<Add option="-DUSE_BITVECTOR=1" />
 			<Add option="-DNO_POPEN=1" />
 			<Add option="-DNO_SSL_DL=1" />
@@ -1268,7 +1437,7 @@
 			<Add directory="../discount" />
 			<Add directory="../../../local/postgresql/include" />
 			<Add directory="../../java/jdk/include" />
-			<Add directory="../../../local/clang-3.9/include" />
+			<Add directory="../../../local/clang-7/include" />
 			<Add directory="../SquiLu-ext/threadObject" />
 			<Add directory=".." />
 			<Add directory="../SquiLu-ext" />
@@ -1287,6 +1456,10 @@
 			<Add directory="../../../local/hunspell/include/hunspell" />
 			<Add directory="../md4c/md4c" />
 			<Add directory="../md4c/md2html" />
+			<Add directory="/usr/include/freetype2" />
+			<Add directory="../../c/A_libs/ssdeep" />
+			<Add directory="../../c/A_ai/fann-dad/src/include" />
+			<Add directory="../../c/A_Databases/sqlite-fts/snowball/include" />
 		</Compiler>
 		<Linker>
 			<Add library="m" />
@@ -1298,6 +1471,10 @@
 			<Add library="../../c/A_libs/c-blosc/build/blosc/libblosc.a" />
 			<Add library="../../c/A_libs/pcre2/.libs/libpcre2-8.a" />
 			<Add library="../../c/A_libs/tre/lib/.libs/libtre.a" />
+			<Add library="../../c/A_libs/ssdeep/.libs/libfuzzy.a" />
+			<Add library="../../c/A_ai/fann-dad/build/src/libfloatfann.a" />
+			<Add library="gomp" />
+			<Add library="../../c/A_Databases/sqlite-fts/snowball/libstemmer.a" />
 			<Add directory="lib" />
 			<Add directory="../myaxtls" />
 			<Add directory="../mpdecimal" />
@@ -1307,6 +1484,25 @@
 			<Add directory="../liblmdb" />
 			<Add directory="../md4c" />
 		</Linker>
+		<Unit filename="../../c/A_Databases/sqlite-fts/fts5-snowball/src/fts5stemmer.c">
+			<Option compilerVar="CC" />
+			<Option target="Release 64bits" />
+			<Option target="Release FLTK 64bits" />
+			<Option target="Debug 64bits" />
+			<Option target="Release FLTK 64bits Lib" />
+			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
+			<Option target="Debug FLTK 64bits" />
+			<Option target="Debug FLTK 64bits asan" />
+			<Option target="Debug 64bits static Library" />
+			<Option target="Temp Code FLTK 64bits" />
+			<Option target="AST Debug FLTK 64bits" />
+			<Option target="Release 64bits dynlib" />
+			<Option target="Release FLTK 64bits LTO" />
+			<Option target="Release FLTK 64bits Code Size" />
+			<Option target="GCC 6.1 Release 64bits" />
+			<Option target="Release FLTK 64bits Clang" />
+		</Unit>
 		<Unit filename="../SquiLu-ext/HighResolutionTimer.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
@@ -1334,6 +1530,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/HighResolutionTimer.h">
 			<Option target="Debug" />
@@ -1362,6 +1559,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/celibc.c">
 			<Option compilerVar="CC" />
@@ -1403,6 +1601,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/code_mix_prep.c">
 			<Option compilerVar="CC" />
@@ -1432,6 +1631,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/dad_utils.cpp">
 			<Option target="Debug" />
@@ -1460,6 +1660,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/dynamic_library.cpp">
 			<Option target="Debug" />
@@ -1487,6 +1688,7 @@
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release alone" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/dynamic_library.h">
 			<Option target="Debug" />
@@ -1513,6 +1715,72 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/fossil-delta.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+			<Option target="Release alone" />
+			<Option target="Release alone wince" />
+			<Option target="Release wince" />
+			<Option target="Release 64bits" />
+			<Option target="Release FLTK 64bits" />
+			<Option target="Debug 64bits" />
+			<Option target="Release FLTK 64bits Lib" />
+			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
+			<Option target="Debug FLTK 64bits" />
+			<Option target="Debug FLTK 64bits asan" />
+			<Option target="Debug 64bits static Library" />
+			<Option target="Temp Code FLTK 64bits" />
+			<Option target="AST Debug FLTK 64bits" />
+			<Option target="Release 64bits dynlib" />
+			<Option target="Release FLTK 64bits LTO" />
+			<Option target="Release 64bits Alone static library " />
+			<Option target="Debug 64bits Alone static library " />
+			<Option target="Release FLTK 64bits Code Size" />
+			<Option target="GCC 6.1 Release 64bits" />
+			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/fossil-delta.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+			<Option target="Release alone" />
+			<Option target="Release alone wince" />
+			<Option target="Release wince" />
+			<Option target="Release 64bits" />
+			<Option target="Release FLTK 64bits" />
+			<Option target="Debug 64bits" />
+			<Option target="Release FLTK 64bits Lib" />
+			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
+			<Option target="Debug FLTK 64bits" />
+			<Option target="Debug FLTK 64bits asan" />
+			<Option target="Debug 64bits static Library" />
+			<Option target="Temp Code FLTK 64bits" />
+			<Option target="AST Debug FLTK 64bits" />
+			<Option target="Release 64bits dynlib" />
+			<Option target="Release FLTK 64bits LTO" />
+			<Option target="Release 64bits Alone static library " />
+			<Option target="Debug 64bits Alone static library " />
+			<Option target="Release FLTK 64bits Code Size" />
+			<Option target="GCC 6.1 Release 64bits" />
+			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/fpdf.cpp">
 			<Option target="Debug" />
@@ -1541,6 +1809,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/fpdf.h">
 			<Option target="Debug" />
@@ -1569,6 +1838,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/lua_socket.cpp">
 			<Option target="Debug" />
@@ -1595,6 +1865,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/lua_socket.h">
 			<Option target="Debug" />
@@ -1621,6 +1892,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/mongoose.c">
 			<Option compilerVar="CC" />
@@ -1648,6 +1920,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/mongoose.h">
 			<Option target="Debug" />
@@ -1674,8 +1947,77 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
-		<Unit filename="../SquiLu-ext/monocypher.h" />
+		<Unit filename="../SquiLu-ext/monocypher.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+			<Option target="Release alone" />
+			<Option target="Release alone wince" />
+			<Option target="Release wince" />
+			<Option target="Release 64bits" />
+			<Option target="Release FLTK 64bits" />
+			<Option target="Debug 64bits" />
+			<Option target="Release FLTK 64bits Lib" />
+			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
+			<Option target="Debug FLTK 64bits" />
+			<Option target="Debug FLTK 64bits asan" />
+			<Option target="Debug 64bits static Library" />
+			<Option target="Temp Code FLTK 64bits" />
+			<Option target="AST Debug FLTK 64bits" />
+			<Option target="Release 64bits dynlib" />
+			<Option target="Release FLTK 64bits LTO" />
+			<Option target="Release 64bits Alone static library " />
+			<Option target="Debug 64bits Alone static library " />
+			<Option target="Release FLTK 64bits Code Size" />
+			<Option target="GCC 6.1 Release 64bits" />
+			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/nn.c">
+			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+			<Option target="Release alone" />
+			<Option target="Release alone wince" />
+			<Option target="Release wince" />
+			<Option target="Release 64bits" />
+			<Option target="Release FLTK 64bits" />
+			<Option target="Debug 64bits" />
+			<Option target="Release FLTK 64bits Lib" />
+			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
+			<Option target="Debug FLTK 64bits" />
+			<Option target="Debug FLTK 64bits asan" />
+			<Option target="Debug 64bits static Library" />
+			<Option target="Temp Code FLTK 64bits" />
+			<Option target="AST Debug FLTK 64bits" />
+			<Option target="Release 64bits Alone" />
+			<Option target="Release 64bits dynlib" />
+			<Option target="Release FLTK 64bits LTO" />
+			<Option target="Release 64bits Alone static library " />
+			<Option target="Debug 64bits Alone static library " />
+			<Option target="Release FLTK 64bits Code Size" />
+			<Option target="GCC 6.1 Release 64bits" />
+			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+			<Option target="Release Win64bits Alone" />
+			<Option target="Release Win32bits Alone" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/nn.h" />
 		<Unit filename="../SquiLu-ext/pdf-font.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
@@ -1701,6 +2043,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/pdf-font.h">
 			<Option target="Debug" />
@@ -1727,11 +2070,73 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/randombytes.c">
 			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+			<Option target="Release alone" />
+			<Option target="Release alone wince" />
+			<Option target="Release wince" />
+			<Option target="Release 64bits" />
+			<Option target="Release FLTK 64bits" />
+			<Option target="Debug 64bits" />
+			<Option target="Release FLTK 64bits Lib" />
+			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
+			<Option target="Debug FLTK 64bits" />
+			<Option target="Debug FLTK 64bits asan" />
+			<Option target="Debug 64bits static Library" />
+			<Option target="Temp Code FLTK 64bits" />
+			<Option target="AST Debug FLTK 64bits" />
+			<Option target="Release 64bits dynlib" />
+			<Option target="Release FLTK 64bits LTO" />
+			<Option target="Release 64bits Alone static library " />
+			<Option target="Debug 64bits Alone static library " />
+			<Option target="Release FLTK 64bits Code Size" />
+			<Option target="GCC 6.1 Release 64bits" />
+			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
-		<Unit filename="../SquiLu-ext/randombytes.h" />
+		<Unit filename="../SquiLu-ext/randombytes.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+			<Option target="Release alone" />
+			<Option target="Release alone wince" />
+			<Option target="Release wince" />
+			<Option target="Release 64bits" />
+			<Option target="Release FLTK 64bits" />
+			<Option target="Debug 64bits" />
+			<Option target="Release FLTK 64bits Lib" />
+			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
+			<Option target="Debug FLTK 64bits" />
+			<Option target="Debug FLTK 64bits asan" />
+			<Option target="Debug 64bits static Library" />
+			<Option target="Temp Code FLTK 64bits" />
+			<Option target="AST Debug FLTK 64bits" />
+			<Option target="Release 64bits dynlib" />
+			<Option target="Release FLTK 64bits LTO" />
+			<Option target="Release 64bits Alone static library " />
+			<Option target="Debug 64bits Alone static library " />
+			<Option target="Release FLTK 64bits Code Size" />
+			<Option target="GCC 6.1 Release 64bits" />
+			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+		</Unit>
 		<Unit filename="../SquiLu-ext/sq_axtls.c">
 			<Option compilerVar="CC" />
 			<Option target="Debug" />
@@ -1758,6 +2163,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_base64.cpp">
 			<Option target="Debug" />
@@ -1784,8 +2190,40 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
-		<Unit filename="../SquiLu-ext/sq_bitvector.cpp" />
+		<Unit filename="../SquiLu-ext/sq_bitvector.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+			<Option target="Release alone" />
+			<Option target="Release alone wince" />
+			<Option target="Release wince" />
+			<Option target="Release 64bits" />
+			<Option target="Release FLTK 64bits" />
+			<Option target="Debug 64bits" />
+			<Option target="Release FLTK 64bits Lib" />
+			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
+			<Option target="Debug FLTK 64bits" />
+			<Option target="Debug FLTK 64bits asan" />
+			<Option target="Debug 64bits static Library" />
+			<Option target="Temp Code FLTK 64bits" />
+			<Option target="AST Debug FLTK 64bits" />
+			<Option target="Release 64bits dynlib" />
+			<Option target="Release FLTK 64bits LTO" />
+			<Option target="Release 64bits Alone static library " />
+			<Option target="Debug 64bits Alone static library " />
+			<Option target="Release FLTK 64bits Code Size" />
+			<Option target="GCC 6.1 Release 64bits" />
+			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+		</Unit>
 		<Unit filename="../SquiLu-ext/sq_blosc.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
@@ -1816,6 +2254,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_civetweb.cpp">
 			<Option target="Temp Code FLTK 64bits" />
@@ -1844,6 +2283,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_dns_sd.cpp">
 			<Option target="Debug" />
@@ -1872,6 +2312,42 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sq_fann.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+			<Option target="Release alone" />
+			<Option target="Release alone wince" />
+			<Option target="Release wince" />
+			<Option target="Release 64bits" />
+			<Option target="Release FLTK 64bits" />
+			<Option target="Debug 64bits" />
+			<Option target="Release FLTK 64bits Lib" />
+			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
+			<Option target="Debug FLTK 64bits" />
+			<Option target="Debug FLTK 64bits asan" />
+			<Option target="Debug 64bits static Library" />
+			<Option target="Temp Code FLTK 64bits" />
+			<Option target="AST Debug FLTK 64bits" />
+			<Option target="Release 64bits Alone" />
+			<Option target="Release 64bits dynlib" />
+			<Option target="Release FLTK 64bits LTO" />
+			<Option target="Release 64bits Alone static library " />
+			<Option target="Debug 64bits Alone static library " />
+			<Option target="Release FLTK 64bits Code Size" />
+			<Option target="GCC 6.1 Release 64bits" />
+			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+			<Option target="Release Win64bits Alone" />
+			<Option target="Release Win32bits Alone" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_fastcgi.cpp">
 			<Option target="&lt;{~None~}&gt;" />
@@ -1903,6 +2379,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_fltk.cpp">
 			<Option target="Debug" />
@@ -1929,6 +2406,39 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sq_fossil.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+			<Option target="Release alone" />
+			<Option target="Release alone wince" />
+			<Option target="Release wince" />
+			<Option target="Release 64bits" />
+			<Option target="Release FLTK 64bits" />
+			<Option target="Debug 64bits" />
+			<Option target="Release FLTK 64bits Lib" />
+			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
+			<Option target="Debug FLTK 64bits" />
+			<Option target="Debug FLTK 64bits asan" />
+			<Option target="Debug 64bits static Library" />
+			<Option target="Temp Code FLTK 64bits" />
+			<Option target="AST Debug FLTK 64bits" />
+			<Option target="Release 64bits dynlib" />
+			<Option target="Release FLTK 64bits LTO" />
+			<Option target="Release 64bits Alone static library " />
+			<Option target="Debug 64bits Alone static library " />
+			<Option target="Release FLTK 64bits Code Size" />
+			<Option target="GCC 6.1 Release 64bits" />
+			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_fpdf.cpp">
 			<Option target="Debug" />
@@ -1957,6 +2467,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_freetype.cpp">
 			<Option target="Debug" />
@@ -1988,6 +2499,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_fs.cpp">
 			<Option compilerVar="CC" />
@@ -2015,6 +2527,42 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sq_fuzzy_hash.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+			<Option target="Release alone" />
+			<Option target="Release alone wince" />
+			<Option target="Release wince" />
+			<Option target="Release 64bits" />
+			<Option target="Release FLTK 64bits" />
+			<Option target="Debug 64bits" />
+			<Option target="Release FLTK 64bits Lib" />
+			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
+			<Option target="Debug FLTK 64bits" />
+			<Option target="Debug FLTK 64bits asan" />
+			<Option target="Debug 64bits static Library" />
+			<Option target="Temp Code FLTK 64bits" />
+			<Option target="AST Debug FLTK 64bits" />
+			<Option target="Release 64bits Alone" />
+			<Option target="Release 64bits dynlib" />
+			<Option target="Release FLTK 64bits LTO" />
+			<Option target="Release 64bits Alone static library " />
+			<Option target="Debug 64bits Alone static library " />
+			<Option target="Release FLTK 64bits Code Size" />
+			<Option target="GCC 6.1 Release 64bits" />
+			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+			<Option target="Release Win64bits Alone" />
+			<Option target="Release Win32bits Alone" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_gumbo.cpp">
 			<Option target="Debug" />
@@ -2043,8 +2591,40 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
-		<Unit filename="../SquiLu-ext/sq_hunspell.cpp" />
+		<Unit filename="../SquiLu-ext/sq_hunspell.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+			<Option target="Release alone" />
+			<Option target="Release alone wince" />
+			<Option target="Release wince" />
+			<Option target="Release 64bits" />
+			<Option target="Release FLTK 64bits" />
+			<Option target="Debug 64bits" />
+			<Option target="Release FLTK 64bits Lib" />
+			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
+			<Option target="Debug FLTK 64bits" />
+			<Option target="Debug FLTK 64bits asan" />
+			<Option target="Debug 64bits static Library" />
+			<Option target="Temp Code FLTK 64bits" />
+			<Option target="AST Debug FLTK 64bits" />
+			<Option target="Release 64bits dynlib" />
+			<Option target="Release FLTK 64bits LTO" />
+			<Option target="Release 64bits Alone static library " />
+			<Option target="Debug 64bits Alone static library " />
+			<Option target="Release FLTK 64bits Code Size" />
+			<Option target="GCC 6.1 Release 64bits" />
+			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+		</Unit>
 		<Unit filename="../SquiLu-ext/sq_libclang.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
@@ -2072,6 +2652,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_libcurl.cpp">
 			<Option target="Debug" />
@@ -2100,6 +2681,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_markdown.cpp">
 			<Option target="Debug" />
@@ -2125,6 +2707,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_mix.cpp">
 			<Option target="Debug" />
@@ -2151,6 +2734,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_mongoose.cpp">
 			<Option target="Debug" />
@@ -2177,6 +2761,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_mysql.cpp">
 			<Option target="Debug" />
@@ -2205,6 +2790,77 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sq_nn.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+			<Option target="Release alone" />
+			<Option target="Release alone wince" />
+			<Option target="Release wince" />
+			<Option target="Release 64bits" />
+			<Option target="Release FLTK 64bits" />
+			<Option target="Debug 64bits" />
+			<Option target="Release FLTK 64bits Lib" />
+			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
+			<Option target="Debug FLTK 64bits" />
+			<Option target="Debug FLTK 64bits asan" />
+			<Option target="Debug 64bits static Library" />
+			<Option target="Temp Code FLTK 64bits" />
+			<Option target="AST Debug FLTK 64bits" />
+			<Option target="Release 64bits Alone" />
+			<Option target="Release 64bits dynlib" />
+			<Option target="Release FLTK 64bits LTO" />
+			<Option target="Release 64bits Alone static library " />
+			<Option target="Debug 64bits Alone static library " />
+			<Option target="Release FLTK 64bits Code Size" />
+			<Option target="GCC 6.1 Release 64bits" />
+			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+			<Option target="Release Win64bits Alone" />
+			<Option target="Release Win32bits Alone" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sq_numarray.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+			<Option target="Release alone" />
+			<Option target="Release alone wince" />
+			<Option target="Release wince" />
+			<Option target="Release 64bits" />
+			<Option target="Release FLTK 64bits" />
+			<Option target="Debug 64bits" />
+			<Option target="Release FLTK 64bits Lib" />
+			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
+			<Option target="Debug FLTK 64bits" />
+			<Option target="Debug FLTK 64bits asan" />
+			<Option target="Debug 64bits static Library" />
+			<Option target="Temp Code FLTK 64bits" />
+			<Option target="AST Debug FLTK 64bits" />
+			<Option target="Release 64bits Alone" />
+			<Option target="Release 64bits dynlib" />
+			<Option target="Release FLTK 64bits LTO" />
+			<Option target="Release 64bits Alone static library " />
+			<Option target="Debug 64bits Alone static library " />
+			<Option target="Release FLTK 64bits Code Size" />
+			<Option target="GCC 6.1 Release 64bits" />
+			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+			<Option target="Release Win64bits Alone" />
+			<Option target="Release Win32bits Alone" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_openssl.cpp">
 			<Option compilerVar="CC" />
@@ -2234,6 +2890,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_pack.cpp" />
 		<Unit filename="../SquiLu-ext/sq_parsecsv.cpp">
@@ -2260,6 +2917,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_pcre.cpp">
 			<Option target="Debug" />
@@ -2291,6 +2949,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_pcre2.cpp">
 			<Option target="Debug" />
@@ -2322,6 +2981,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_postgresql.cpp">
 			<Option target="Debug" />
@@ -2347,6 +3007,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_rs232.c">
 			<Option compilerVar="CC" />
@@ -2374,6 +3035,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_slave_vm.cpp">
 			<Option target="Debug" />
@@ -2400,6 +3062,42 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sq_snowball.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+			<Option target="Release alone" />
+			<Option target="Release alone wince" />
+			<Option target="Release wince" />
+			<Option target="Release 64bits" />
+			<Option target="Release FLTK 64bits" />
+			<Option target="Debug 64bits" />
+			<Option target="Release FLTK 64bits Lib" />
+			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
+			<Option target="Debug FLTK 64bits" />
+			<Option target="Debug FLTK 64bits asan" />
+			<Option target="Debug 64bits static Library" />
+			<Option target="Temp Code FLTK 64bits" />
+			<Option target="AST Debug FLTK 64bits" />
+			<Option target="Release 64bits Alone" />
+			<Option target="Release 64bits dynlib" />
+			<Option target="Release FLTK 64bits LTO" />
+			<Option target="Release 64bits Alone static library " />
+			<Option target="Debug 64bits Alone static library " />
+			<Option target="Release FLTK 64bits Code Size" />
+			<Option target="GCC 6.1 Release 64bits" />
+			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+			<Option target="Release Win64bits Alone" />
+			<Option target="Release Win32bits Alone" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_socket.cpp">
 			<Option target="Debug" />
@@ -2426,6 +3124,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_sqlite3.cpp">
 			<Option target="Debug" />
@@ -2452,6 +3151,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_sqlite3.h">
 			<Option target="Debug" />
@@ -2480,6 +3180,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_sys.cpp">
 			<Option target="&lt;{~None~}&gt;" />
@@ -2509,9 +3210,72 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
-		<Unit filename="../SquiLu-ext/sq_tre.cpp" />
-		<Unit filename="../SquiLu-ext/sq_tweetnacl.cpp" />
+		<Unit filename="../SquiLu-ext/sq_tre.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+			<Option target="Release alone" />
+			<Option target="Release alone wince" />
+			<Option target="Release wince" />
+			<Option target="Release 64bits" />
+			<Option target="Release FLTK 64bits" />
+			<Option target="Debug 64bits" />
+			<Option target="Release FLTK 64bits Lib" />
+			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
+			<Option target="Debug FLTK 64bits" />
+			<Option target="Debug FLTK 64bits asan" />
+			<Option target="Debug 64bits static Library" />
+			<Option target="Temp Code FLTK 64bits" />
+			<Option target="AST Debug FLTK 64bits" />
+			<Option target="Release 64bits dynlib" />
+			<Option target="Release FLTK 64bits LTO" />
+			<Option target="Release 64bits Alone static library " />
+			<Option target="Debug 64bits Alone static library " />
+			<Option target="Release FLTK 64bits Code Size" />
+			<Option target="GCC 6.1 Release 64bits" />
+			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+		</Unit>
+		<Unit filename="../SquiLu-ext/sq_tweetnacl.cpp">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+			<Option target="Release alone" />
+			<Option target="Release alone wince" />
+			<Option target="Release wince" />
+			<Option target="Release 64bits" />
+			<Option target="Release FLTK 64bits" />
+			<Option target="Debug 64bits" />
+			<Option target="Release FLTK 64bits Lib" />
+			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
+			<Option target="Debug FLTK 64bits" />
+			<Option target="Debug FLTK 64bits asan" />
+			<Option target="Debug 64bits static Library" />
+			<Option target="Temp Code FLTK 64bits" />
+			<Option target="AST Debug FLTK 64bits" />
+			<Option target="Release 64bits dynlib" />
+			<Option target="Release FLTK 64bits LTO" />
+			<Option target="Release 64bits Alone static library " />
+			<Option target="Debug 64bits Alone static library " />
+			<Option target="Release FLTK 64bits Code Size" />
+			<Option target="GCC 6.1 Release 64bits" />
+			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+		</Unit>
 		<Unit filename="../SquiLu-ext/sq_unql.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />
@@ -2539,6 +3303,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sq_zlib.cpp">
 			<Option target="Debug" />
@@ -2565,6 +3330,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sqlite3.c">
 			<Option compilerVar="CC" />
@@ -2592,6 +3358,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sqlite3.h">
 			<Option target="Debug" />
@@ -2618,6 +3385,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sqmodule.h">
 			<Option target="Debug" />
@@ -2644,6 +3412,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sqratimport.cpp">
 			<Option target="Debug" />
@@ -2670,6 +3439,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/sqratimport.h">
 			<Option target="Debug" />
@@ -2696,6 +3466,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/tinyxml2.cpp">
 			<Option target="Debug" />
@@ -2722,6 +3493,7 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/tinyxml2.h">
 			<Option target="Debug" />
@@ -2748,11 +3520,73 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
 		<Unit filename="../SquiLu-ext/tweetnacl.c">
 			<Option compilerVar="CC" />
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+			<Option target="Release alone" />
+			<Option target="Release alone wince" />
+			<Option target="Release wince" />
+			<Option target="Release 64bits" />
+			<Option target="Release FLTK 64bits" />
+			<Option target="Debug 64bits" />
+			<Option target="Release FLTK 64bits Lib" />
+			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
+			<Option target="Debug FLTK 64bits" />
+			<Option target="Debug FLTK 64bits asan" />
+			<Option target="Debug 64bits static Library" />
+			<Option target="Temp Code FLTK 64bits" />
+			<Option target="AST Debug FLTK 64bits" />
+			<Option target="Release 64bits dynlib" />
+			<Option target="Release FLTK 64bits LTO" />
+			<Option target="Release 64bits Alone static library " />
+			<Option target="Debug 64bits Alone static library " />
+			<Option target="Release FLTK 64bits Code Size" />
+			<Option target="GCC 6.1 Release 64bits" />
+			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
 		</Unit>
-		<Unit filename="../SquiLu-ext/tweetnacl.h" />
+		<Unit filename="../SquiLu-ext/tweetnacl.h">
+			<Option target="Debug" />
+			<Option target="Release" />
+			<Option target="Release clang" />
+			<Option target="Release win32" />
+			<Option target="Release FLTK" />
+			<Option target="Debug FLTK" />
+			<Option target="Release FLTK win32" />
+			<Option target="Release FLTK win32 no console" />
+			<Option target="Release alone" />
+			<Option target="Release alone wince" />
+			<Option target="Release wince" />
+			<Option target="Release 64bits" />
+			<Option target="Release FLTK 64bits" />
+			<Option target="Debug 64bits" />
+			<Option target="Release FLTK 64bits Lib" />
+			<Option target="Release FLTK 64bits Computed Gotos" />
+			<Option target="Release 64bits static Library" />
+			<Option target="Debug FLTK 64bits" />
+			<Option target="Debug FLTK 64bits asan" />
+			<Option target="Debug 64bits static Library" />
+			<Option target="Temp Code FLTK 64bits" />
+			<Option target="AST Debug FLTK 64bits" />
+			<Option target="Release 64bits dynlib" />
+			<Option target="Release FLTK 64bits LTO" />
+			<Option target="Release 64bits Alone static library " />
+			<Option target="Debug 64bits Alone static library " />
+			<Option target="Release FLTK 64bits Code Size" />
+			<Option target="GCC 6.1 Release 64bits" />
+			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+		</Unit>
 		<Unit filename="dadbiz.rc">
 			<Option compilerVar="WINDRES" />
 			<Option target="Release win32" />
@@ -2795,6 +3629,11 @@
 			<Option target="Release FLTK 64bits Code Size" />
 			<Option target="GCC 6.1 Release 64bits" />
 			<Option target="Release FLTK 64bits Clang" />
+			<Option target="Debug 64bits gcov" />
+			<Option target="Release Win64bits Alone" />
+			<Option target="Release Win32bits Alone" />
+			<Option target="Copy of Release 64bits Alone" />
+			<Option target="Debug 64bits Alone" />
 		</Unit>
 		<Unit filename="sqstdlib/sqstdaux.cpp" />
 		<Unit filename="sqstdlib/sqstdblob.cpp" />
@@ -2818,41 +3657,8 @@
 		<Unit filename="squirrel/sqclass.cpp" />
 		<Unit filename="squirrel/sqclass.h" />
 		<Unit filename="squirrel/sqclosure.h" />
-		<Unit filename="squirrel/sqcompiler.cpp">
-			<Option target="Debug" />
-			<Option target="Release" />
-			<Option target="Release clang" />
-			<Option target="Release win32" />
-			<Option target="Release FLTK" />
-			<Option target="Debug FLTK" />
-			<Option target="Release FLTK win32" />
-			<Option target="Release FLTK win32 no console" />
-			<Option target="Release alone" />
-			<Option target="Release alone wince" />
-			<Option target="Release wince" />
-			<Option target="Release 64bits" />
-			<Option target="Release FLTK 64bits" />
-			<Option target="Debug 64bits" />
-			<Option target="Release FLTK 64bits Lib" />
-			<Option target="Release FLTK 64bits Computed Gotos" />
-			<Option target="Release 64bits static Library" />
-			<Option target="Debug FLTK 64bits" />
-			<Option target="Debug FLTK 64bits asan" />
-			<Option target="Debug 64bits static Library" />
-			<Option target="Temp Code FLTK 64bits" />
-			<Option target="Release 64bits Alone" />
-			<Option target="Release 64bits dynlib" />
-			<Option target="Release FLTK 64bits LTO" />
-			<Option target="Release 64bits Alone static library " />
-			<Option target="Debug 64bits Alone static library " />
-			<Option target="Release FLTK 64bits Code Size" />
-			<Option target="GCC 6.1 Release 64bits" />
-			<Option target="Release FLTK 64bits Clang" />
-		</Unit>
+		<Unit filename="squirrel/sqcompiler.cpp" />
 		<Unit filename="squirrel/sqcompiler.h" />
-		<Unit filename="squirrel/sqcompiler2.cpp">
-			<Option target="AST Debug FLTK 64bits" />
-		</Unit>
 		<Unit filename="squirrel/sqdebug.cpp" />
 		<Unit filename="squirrel/sqfuncproto.h" />
 		<Unit filename="squirrel/sqfuncstate.cpp" />

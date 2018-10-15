@@ -131,17 +131,18 @@ public:
 	SQCOMPILERERROR _compilererrorhandler;
 	SQPRINTFUNCTION _printfunc;
 	SQPRINTFUNCTION _errorfunc;
-	bool _debuginfo;
-	bool _notifyallexceptions;
-    SQUserPointer _foreignptr;
-    SQRELEASEHOOK _releasehook;
+	SQUserPointer _foreignptr;
+	SQRELEASEHOOK _releasehook;
 private:
 	SQChar *_scratchpad;
 	SQInteger _scratchpadsize;
 #ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
-    bool _already_in_CallDelayedReleaseHooks;
-    sqvector<SQDelayedReleseHook> _delayed_release_hook;
+	bool _already_in_CallDelayedReleaseHooks;
+	sqvector<SQDelayedReleseHook> _delayed_release_hook;
 #endif // SQ_WITH_DELAYED_RELEASE_HOOKS
+public: //moved here for alignment purposes
+	bool _debuginfo;
+	bool _notifyallexceptions;
 };
 
 #define _sp(s) (_sharedstate->GetScratchPad(s))

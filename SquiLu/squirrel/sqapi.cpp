@@ -14,14 +14,14 @@
 #include "sqclass.h"
 #include <stdarg.h>
 
-void sq_raise_type_error(HSQUIRRELVM v, SQObjectType type,SQObjectPtr &o)
+static void sq_raise_type_error(HSQUIRRELVM v, SQObjectType type,SQObjectPtr &o)
 {
     SQObjectPtr oval = v->PrintObjVal(o);
     v->Raise_Error(_SC("wrong argument type, expected '%s' got '%.50s'"),IdType2Name(type),_stringval(oval));
 }
 #define _CHECK_OBJ_TYPE(v,otype,o) if(sq_type(o) != otype) {sq_raise_type_error(v, otype, o); return SQ_ERROR;}
 
-bool sq_aux_gettypedarg(HSQUIRRELVM v,SQInteger idx,SQObjectType type,SQObjectPtr **o)
+static bool sq_aux_gettypedarg(HSQUIRRELVM v,SQInteger idx,SQObjectType type,SQObjectPtr **o)
 {
 	*o = &stack_get(v,idx);
 	if(sq_type(**o) != type){
@@ -40,7 +40,7 @@ bool sq_aux_gettypedarg(HSQUIRRELVM v,SQInteger idx,SQObjectType type,SQObjectPt
 }
 
 
-SQInteger sq_aux_invalidtype(HSQUIRRELVM v,SQObjectType type)
+static SQInteger sq_aux_invalidtype(HSQUIRRELVM v,SQObjectType type)
 {
 	return sq_throwerror(v, _SC("unexpected type %s"), IdType2Name(type));
 }
@@ -56,11 +56,9 @@ HSQUIRRELVM sq_open(SQInteger initialstacksize)
 	ss->_root_vm = v;
 	if(v->Init(NULL, initialstacksize)) {
 		return v;
-	} else {
-		sq_delete(v, SQVM);
-		return NULL;
 	}
-	return v;
+	sq_delete(v, SQVM);
+	return NULL;
 }
 
 HSQUIRRELVM sq_newthread(HSQUIRRELVM friendvm, SQInteger initialstacksize)
@@ -770,8 +768,8 @@ SQRESULT sq_delete_on_registry_table(HSQUIRRELVM v, SQUserPointer uptr)
 }
 
 SQRESULT sq_preload_modules(HSQUIRRELVM v, const sq_modules_preload_st *modules){
-    int result = 0;
-    int saved_top = sq_gettop(v);
+    SQRESULT result = 0;
+    SQInteger saved_top = sq_gettop(v);
     sq_pushliteral(v, SQ_EXTENSIONS_KEY);
     if(sq_getonregistrytable(v) != SQ_OK){
         //create a table for Extensions
@@ -797,7 +795,7 @@ SQRESULT sq_preload_modules(HSQUIRRELVM v, const sq_modules_preload_st *modules)
 SQFUNCTION sq_get_preload_module_func(HSQUIRRELVM v, const SQChar *module_name)
 {
     SQFUNCTION result = NULL;
-    int saved_top = sq_gettop(v);
+    SQInteger saved_top = sq_gettop(v);
     sq_pushliteral(v, SQ_EXTENSIONS_KEY);
     if(sq_getonregistrytable(v) == SQ_OK){
       sq_pushstring(v, module_name, -1);
@@ -1677,9 +1675,9 @@ SQRELEASEHOOK sq_getreleasehook(HSQUIRRELVM v,SQInteger idx)
     if(sq_gettop(v) >= 1){
         SQObjectPtr &ud=stack_get(v,idx);
         switch( sq_type(ud) ) {
-        case OT_USERDATA:   return _userdata(ud)->_hook;    break;
-        case OT_INSTANCE:   return _instance(ud)->_hook;    break;
-        case OT_CLASS:      return _class(ud)->_hook;       break;
+        case OT_USERDATA:   return _userdata(ud)->_hook;
+        case OT_INSTANCE:   return _instance(ud)->_hook;
+        case OT_CLASS:      return _class(ud)->_hook;
         default: break; //shutup compiler
         }
     }
@@ -2085,7 +2083,7 @@ SQRESULT sq_optinteger(HSQUIRRELVM sqvm, SQInteger idx, SQInteger *value, SQInte
     return SQ_OK;
 }
 
-SQRESULT sq_optstr_and_size(HSQUIRRELVM sqvm, SQInteger idx, const SQChar **value, const SQChar *dflt, SQInteger *size){
+static SQRESULT sq_optstr_and_size(HSQUIRRELVM sqvm, SQInteger idx, const SQChar **value, const SQChar *dflt, SQInteger *size){
     if(sq_gettop(sqvm) >= idx){
         return sq_getstr_and_size(sqvm, idx, value, size);
     }
@@ -2249,5 +2247,5 @@ SQRESULT sq_checkoption (HSQUIRRELVM v, SQInteger narg, const SQChar *def,
   for (i=0; lst[i]; i++)
     if (scstrcmp(lst[i], name) == 0)
       return i;
-  return sq_throwerror(v, _SC("invalid option [%d] [%s]"), narg-1, name);
+  return sq_throwerror(v, _SC("invalid option [%d] [%s]"), (int)narg-1, name);
 }

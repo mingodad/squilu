@@ -13,6 +13,16 @@ sq32:
 	cd sqstdlib; $(MAKE) 
 	cd sq; $(MAKE) 
 
+sq32i64:
+	cd squirrel; $(MAKE) sq32i64
+	cd sqstdlib; $(MAKE) sq32i64
+	cd sq; $(MAKE) sq32i64
+
+sq32dbg:
+	cd squirrel; $(MAKEDBG) $@ 
+	cd sqstdlib; $(MAKEDBG) $@
+	cd sq; $(MAKE) $@
+
 sqprof:
 	cd squirrel; $(MAKE) sqprof
 	cd sqstdlib; $(MAKE) sqprof
@@ -23,6 +33,16 @@ sq64:
 	cd sqstdlib; $(MAKE) sq64
 	cd sq; $(MAKE) sq64
 	
+sq64p:
+	cd squirrel; $(MAKE) sq64p
+	cd sqstdlib; $(MAKE) sq64p
+	cd sq; $(MAKE) sq64p
+	
+sq64dbg:
+	cd squirrel; $(MAKEDBG) $@ 
+	cd sqstdlib; $(MAKEDBG) $@
+	cd sq; $(MAKEDBG) $@
+
 clean:
 	rm lib/*
 	rm bin/*

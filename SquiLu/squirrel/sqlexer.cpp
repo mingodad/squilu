@@ -186,7 +186,7 @@ const SQChar *SQLexer::Tok2Str(SQInteger tok)
 	return NULL;
 }
 
-const SQChar *SQLexer::GetTokenName(int tk_code) {
+const SQChar *SQLexer::GetTokenName(SQInteger tk_code) {
 	const SQChar *str_tk;
 
     switch(tk_code){
@@ -351,7 +351,6 @@ SQInteger SQLexer::Lex()
 					RETURN_TOKEN(TK_3WAYSCMP);
 				}
 				RETURN_TOKEN(TK_LE)
-				break;
 			case _SC('-'): NEXT(); RETURN_TOKEN(TK_NEWSLOT); break;
 			case _SC('<'):
 			    NEXT();
@@ -694,23 +693,22 @@ try_again:
 					case _SC('6'):
 					case _SC('7'):
 					    {
-                            int ndigits = 0;
-                            int octal_char = 0;
-                            while(scisodigit(CUR_CHAR)) {
-                                octal_char = (octal_char)*8+(CUR_CHAR-_SC('0'));
-                                NEXT();
-                                if(++ndigits == 3) break;
-                            }
-                            if(octal_char > 0xff) return Error(_SC("max value of embedded octal digits is \377"));
-                            APPEND_CHAR(octal_char);
-                            goto try_again;
+						int ndigits = 0;
+						int octal_char = 0;
+						while(scisodigit(CUR_CHAR)) {
+							octal_char = (octal_char)*8+(CUR_CHAR-_SC('0'));
+							NEXT();
+							if(++ndigits == 3) break;
+						}
+						if(octal_char > 0xff) return Error(_SC("max value of embedded octal digits is \377"));
+						APPEND_CHAR(octal_char);
+						goto try_again;
 					    }
 					    break;
-					case _SC('/'): APPEND_CHAR(CUR_CHAR); NEXT(); break;
+					case _SC('/'): APPEND_CHAR(CUR_CHAR); NEXT();
 					    break;
 					default:
 						return Error(_SC("unrecognised escaper char"));
-					break;
 					}
 				}
 				break;
@@ -800,12 +798,12 @@ static int isneg (const SQChar **s) {
 }
 
 #define ADD_CHECK_DIGIT(dig, base) \
-	    if (a >= MAXBY10 && (a > MAXBY10 || d > MAXLASTD + neg))  /* overflow? */ \
+	    if (a >= MAXBY10 && (a > MAXBY10 || d > ((int)MAXLASTD + neg)))  /* overflow? */ \
             return false;  /* do not accept it (as integer) */ \
 		a = a*base+dig;
 
 
-bool LexHexadecimal(const SQChar *s,SQUnsignedInteger *res)
+static bool LexHexadecimal(const SQChar *s,SQUnsignedInteger *res)
 {
 	SQUnsignedInteger a = 0;
 	int d = 0, neg = isneg(&s);
@@ -820,7 +818,7 @@ bool LexHexadecimal(const SQChar *s,SQUnsignedInteger *res)
 	return true;
 }
 
-bool LexInteger(const SQChar *s,SQUnsignedInteger *res)
+static bool LexInteger(const SQChar *s,SQUnsignedInteger *res)
 {
 	SQUnsignedInteger a = 0;
 	int d = 0, neg = isneg(&s);
@@ -833,7 +831,7 @@ bool LexInteger(const SQChar *s,SQUnsignedInteger *res)
 	return true;
 }
 
-bool LexOctal(const SQChar *s,SQUnsignedInteger *res)
+static bool LexOctal(const SQChar *s,SQUnsignedInteger *res)
 {
 	SQUnsignedInteger a = 0;
 	int d = 0, neg = isneg(&s);
@@ -847,7 +845,7 @@ bool LexOctal(const SQChar *s,SQUnsignedInteger *res)
 	return true;
 }
 
-SQInteger isexponent(SQInteger c) { return c == _SC('e') || c==_SC('E'); }
+static SQInteger isexponent(SQInteger c) { return c == _SC('e') || c==_SC('E'); }
 
 
 #define MAX_HEX_DIGITS (sizeof(SQInteger)*2)
@@ -908,6 +906,7 @@ SQInteger SQLexer::ReadNumber()
 	case TINT:
 		okNumber = LexInteger(&data->longstr[0],&itmp);
 		if(okNumber) break;
+		//fallthrough
 	case TSCIENTIFIC:
 	case TFLOAT:
 		data->fvalue = (SQFloat)scstrtod(&data->longstr[0],&sTemp);

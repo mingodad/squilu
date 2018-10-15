@@ -254,6 +254,7 @@ static SQRESULT _blob__get(HSQUIRRELVM v)
 {
 	SETUP_BLOB(v);
 	SQInteger idx;
+
 	if ((sq_gettype(v, 2) & SQOBJECT_NUMERIC) == 0)
 	{
 		sq_pushnull(v);
@@ -420,7 +421,6 @@ static SQRESULT _blob_bit_ops(HSQUIRRELVM v, int op)
     case BLOB_BIT_GET:
         sq_pushinteger(v, (BLOB_CH_POS(cpos) & b8));
         return 1;
-        break;
 
     case BLOB_BIT_SET:
         BLOB_CH_POS(cpos) |= b8;
@@ -479,7 +479,7 @@ static SQRESULT _blob_match(HSQUIRRELVM v)
     return string_gmatch_base(v, 0, (const SQChar*)self->GetBuf(), self->Len());
 }
 
-#define _DECL_BLOB_FUNC(name,nparams,typecheck) {_SC(#name),_blob_##name,nparams,typecheck}
+#define _DECL_BLOB_FUNC(name,nparams,typecheck) {_SC(#name),_blob_##name,nparams,typecheck,false}
 static SQRegFunction _blob_methods[] = {
 	_DECL_BLOB_FUNC(constructor,-1,_SC("xnn")),
 	_DECL_BLOB_FUNC(resize,2,_SC("xn")),
@@ -504,7 +504,7 @@ static SQRegFunction _blob_methods[] = {
 	_DECL_BLOB_FUNC(find_lua,-2,_SC("xs a|t|c n b n")),
 	_DECL_BLOB_FUNC(gmatch,-3,_SC("x s c n n")),
 	_DECL_BLOB_FUNC(match,-2,_SC("x s n n")),
-	{NULL,(SQFUNCTION)0,0,NULL}
+	{NULL,(SQFUNCTION)0,0,NULL, false}
 };
 
 
@@ -555,14 +555,14 @@ static SQRESULT _g_blob_swapfloat(HSQUIRRELVM v)
 	return 1;
 }
 
-#define _DECL_GLOBALBLOB_FUNC(name,nparams,typecheck) {_SC(#name),_g_blob_##name,nparams,typecheck}
+#define _DECL_GLOBALBLOB_FUNC(name,nparams,typecheck) {_SC(#name),_g_blob_##name,nparams,typecheck,false}
 static SQRegFunction bloblib_funcs[]={
 	_DECL_GLOBALBLOB_FUNC(casti2f,2,_SC(".n")),
 	_DECL_GLOBALBLOB_FUNC(castf2i,2,_SC(".n")),
 	_DECL_GLOBALBLOB_FUNC(swap2,2,_SC(".n")),
 	_DECL_GLOBALBLOB_FUNC(swap4,2,_SC(".n")),
 	_DECL_GLOBALBLOB_FUNC(swapfloat,2,_SC(".n")),
-	{NULL,(SQFUNCTION)0,0,NULL}
+	{NULL,(SQFUNCTION)0,0,NULL,false}
 };
 
 SQRESULT sqstd_getblob(HSQUIRRELVM v,SQInteger idx,SQUserPointer *ptr)
@@ -582,6 +582,7 @@ SQInteger sqstd_getblobsize(HSQUIRRELVM v,SQInteger idx)
 	return blob->Len();
 }
 
+//used by sqstdio
 SQInteger blob_read(SQUserPointer file,SQUserPointer buf,SQInteger size)
 {
 	SQInteger ret;
@@ -590,6 +591,7 @@ SQInteger blob_read(SQUserPointer file,SQUserPointer buf,SQInteger size)
 	return -1;
 }
 
+//used by sqstdio
 SQInteger blob_write(SQUserPointer file,SQUserPointer p,SQInteger size)
 {
     SQBlob *blob = (SQBlob *)file;

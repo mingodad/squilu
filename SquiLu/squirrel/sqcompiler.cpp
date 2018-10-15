@@ -48,8 +48,8 @@ struct SQScope
 
 #define BEGIN_SCOPE() SQScope __oldscope__ = _scope; \
     ++_scope.nested; \
-    _scope.outers = _fs->_outers; \
-    _scope.stacksize = _fs->GetStackSize();\
+    _scope.outers = (SQInt16)_fs->_outers; \
+    _scope.stacksize = (SQInt32)_fs->GetStackSize();\
     _scope_types.push_back(SQTable::Create(_ss(_vm),0)); \
     _scope_consts.push_back(SQTable::Create(_ss(_vm),0));
 
@@ -186,10 +186,10 @@ public:
     static void ThrowError(void *ud, const SQChar *s)
     {
         SQCompiler *c = (SQCompiler *)ud;
-        c->Error(s);
+        c->Error(_SC("%s"), s);
     }
 
-    void Error(const SQChar *s, ...) //__attribute__((format(printf, 2, 3)))
+    void Error(const SQChar *s, ...) __attribute__((format(printf, 2, 3)))
     {
         va_list vl;
         va_start(vl, s);
@@ -199,7 +199,7 @@ public:
         longjmp(_errorjmp,1);
     }
 
-    void Warning(const SQChar *s, ...) //__attribute__((format(printf, 2, 3)))
+    void Warning(const SQChar *s, ...) __attribute__((format(printf, 2, 3)))
     {
         if(!_show_warnings) return;
         va_list vl;
@@ -243,7 +243,7 @@ public:
         return _table(_type_names)->NewSlot(key,val);
     }
 
-    int CheckExternName(const SQObject &name, bool addIfNotExists=false)
+    SQInteger CheckExternName(const SQObject &name, bool addIfNotExists=false)
     {
         SQObjectPtr orefcount;
         int found = _table(_extern_names)->Get(name, orefcount);
@@ -256,9 +256,9 @@ public:
         }
         return found ? _integer(orefcount) : 0;
     }
-    int ExternNameSetRefCount(const SQObject &name)
+    SQInteger ExternNameSetRefCount(const SQObject &name)
     {
-        int ref_count = CheckExternName(name);
+        SQInteger ref_count = CheckExternName(name);
         if(ref_count == 1)
         {
             SQObjectPtr orefcount;
@@ -289,7 +289,7 @@ public:
         {
             if(checkLocals) Error(_SC("%s '%s' already declared"), found, _stringval(name));
             else Warning(_SC("%s:%d:%d warning %s '%s' already declared will be shadowed\n"),
-                             _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn,
+                             _stringval(_sourcename), (int)_lex.data->currentline, (int)_lex.data->currentcolumn,
                              found, _stringval(name));
         }
         else if(checkLocals) CheckLocalNameScope(name, -1, false);
@@ -309,13 +309,13 @@ public:
                 Error(_SC("local '%s' already declared"), _stringval(name));
             else
                 Warning(_SC("%s:%d:%d warning local '%s' already declared will be shadowed\n"),
-                        _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn, _stringval(name));
+                        _stringval(_sourcename), (int)_lex.data->currentline, (int)_lex.data->currentcolumn, _stringval(name));
         }
         else
         {
             found = _fs->FindOuterVariable(name);
             if(found >= 0) Warning(_SC("%s:%d:%d warning outer variable '%s' already declared will be shadowed\n"),
-                                       _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn, _stringval(name));
+                                       _stringval(_sourcename), (int)_lex.data->currentline, (int)_lex.data->currentcolumn, _stringval(name));
         }
         if(checkGlobals) CheckGlobalName(name, false, false);
         SQObjectPtr strongid = name;
@@ -397,7 +397,7 @@ public:
             Error(_SC("constant '%s' already exists\n"), _stringval(key));
         }
         if(found >= 0) Warning(_SC("%s:%d:%d warning an already defined constant '%s' will be shadowed\n"),
-                                   _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn,  _stringval(key));
+                                   _stringval(_sourcename), (int)_lex.data->currentline, (int)_lex.data->currentcolumn,  _stringval(key));
     }
 
     bool ConstsGet(const SQObjectPtr &key,SQObjectPtr &val)
@@ -482,7 +482,7 @@ public:
                     }
                     Error(_SC("expected '%s'"), etypename);
                 }
-                Error(_SC("expected '%c'"), tok);
+                Error(_SC("expected '%c'"), (int)tok);
             }
         }
     }
@@ -497,7 +497,6 @@ public:
         {
         CASE_TK_LOCAL_TYPES:
             return GetTokenObject(_token);
-            break;
         case TK_IDENTIFIER:
             break;
         default:
@@ -518,7 +517,7 @@ public:
         }
         if(!IsEndOfStatement())
         {
-            Error(_SC("end of statement expected (; or lf) found (%d)"), _token);
+            Error(_SC("end of statement expected (; or lf) found (%d)"), (int)_token);
         }
     }
     void MoveIfCurrentTargetIsLocal()
@@ -533,8 +532,8 @@ public:
 
     void Pragma()
     {
-        int line = _lex.data->currentline;
-        int column = _lex.data->currentcolumn;
+        SQInteger line = _lex.data->currentline;
+        SQInteger column = _lex.data->currentcolumn;
         Lex();
         if(_token == TK_ELSE)
         {
@@ -552,7 +551,7 @@ public:
             SQInteger nested_count = _nested_includes_count + 1;
             if((_max_nested_includes <= 0) || (nested_count > _max_nested_includes))
             {
-                Error(_SC("Error: too many nested includes %d %s\n"), nested_count, _stringval(id));
+                Error(_SC("Error: too many nested includes %d %s\n"), (int)nested_count, _stringval(id));
             }
 
             //C/C++ system includes we do not use it in SquiLu
@@ -640,7 +639,7 @@ public:
 
                 //close file
                 fclose(fp);
-                if(_inside_ifdef) Error(_SC("unterminated #ifdef starting on line %d"), _ifdef_line);
+                if(_inside_ifdef) Error(_SC("unterminated #ifdef starting on line %d"), (int)_ifdef_line);
                 //restore saved source file and lex state
                 _fs->_sourcename = saved_source_name;
                 _sourcename = saved_source_name;
@@ -696,7 +695,7 @@ public:
             {
                 if(_vm->IsDefined(_stringval(id)))
                     Warning(_SC("%s:%d:%d warning '%s' redefined\n"),
-                        _stringval(_sourcename), line, column, _stringval(id));
+                        _stringval(_sourcename), (int)line, (int)column, _stringval(id));
                 _vm->AddDefined(_stringval(id));
             }
         }
@@ -734,7 +733,7 @@ public:
                 Statement();
                 if(_lex.data->prevtoken != _SC('}') && _lex.data->prevtoken != _SC(';')) OptionalSemicolon();
             }
-            if(_inside_ifdef) Error(_SC("unterminated #ifdef starting on line %d"), _ifdef_line);
+            if(_inside_ifdef) Error(_SC("unterminated #ifdef starting on line %d"), (int)_ifdef_line);
             _fs->SetStackSize(stacksize);
             _fs->AddLineInfos(_lex.data->currentline, _lineinfo, true);
             _fs->AddInstruction(_OP_RETURN, 0xFF);
@@ -774,7 +773,7 @@ public:
         while(_ifdef_exclude && (_token != TK_PRAGMA))
         {
             Lex();
-            if(_token <= 0) Error(_SC("'#endif' expected to close '#ifdef' started at %d"), _ifdef_line);
+            if(_token <= 0) Error(_SC("'#endif' expected to close '#ifdef' started at %d"), (int)_ifdef_line);
         }
 start_again:
         switch(_token)
@@ -975,7 +974,7 @@ start_again:
             if(_scope.nested)
             {
                 Warning(_SC("%s:%d:%d warning static cualifier is ignored\n"),
-                        _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn);
+                        _stringval(_sourcename), (int)_lex.data->currentline, (int)_lex.data->currentcolumn);
             }
             Lex(); //ignore it only to allow run some C/C++ code
             goto start_again;
@@ -1023,7 +1022,6 @@ start_again:
         case TK_UNSAFE:
             Lex(); //ignore for now
             goto start_again;
-            break;
 
         case TK_TEMPLATE:
             TemplateStatement();
@@ -1192,7 +1190,7 @@ start_again:
                 break;
             case _SC('='): //ASSIGN
                 if(warningAssign) Warning(_SC("%s:%d:%d warning making assignment, maybe it's not what you want\n"),
-                                              _stringval(_sourcename), _lex.data->currentline, _lex.data->currentcolumn);
+                                              _stringval(_sourcename), (int)_lex.data->currentline, (int)_lex.data->currentcolumn);
                 switch(ds)
                 {
                 case LOCAL:
@@ -1485,7 +1483,6 @@ start_again:
         case TK_MODEQ:
             oper = _SC('%');
             break;
-            break;
         default:
             oper = 0; //shut up compiler
             assert(0);
@@ -1613,7 +1610,6 @@ start_again:
                 }
             }
             return;
-            break;
             case _SC('('):
                 switch(_es.etype)
                 {
@@ -1690,7 +1686,6 @@ start_again:
             _es.etype  = BASE;
             _es.epos   = _fs->TopTarget();
             return (_es.epos);
-            break;
         case _SC('$'): //compile time checked constant
             Lex();
             ErrorIfNotToken(TK_IDENTIFIER);
@@ -1817,7 +1812,6 @@ start_again:
             _token = _SC('.'); /* hack: drop into PrefixExpr, case '.'*/
             _es.epos = -1;
             return _es.epos;
-            break;
         case TK_NULL:
             _fs->AddInstruction(_OP_LOADNULLS, _fs->PushTarget(),1);
             Lex();
@@ -1969,7 +1963,6 @@ start_again:
             //        _lex.data->currentline, _lex.data->currentcolumn);
             Lex();
             return Factor();
-            break;
         default:
             Error(_SC("expression expected"));
         }
@@ -2235,7 +2228,6 @@ function_params_decl:
                         }
                         AddClassMemberExists(member_names, obj_id);
                         goto function_params_decl;
-                        break;
                     case _SC(':'): //typescript field with type annotation
                         if(membertypename)
                         {
@@ -3258,7 +3250,7 @@ error:
                     //param type specifier like typescript
                     if(param_type_name)
                     {
-                        Error(_SC("parameter type already declared before %s"), _string(paramname));
+                        Error(_SC("parameter type already declared before %s"), _stringval(paramname));
                     }
                     Lex();
                     type_name = ExpectTypeToken();

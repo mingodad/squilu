@@ -29,7 +29,6 @@ typedef char SQInt8;
 #define SQ_INT_MIN _I64_MIN
 typedef __int64 SQInteger;
 typedef unsigned __int64 SQUnsignedInteger;
-typedef unsigned __int64 SQHash; /*should be the same size of a pointer*/
 #else
 #define SQ_INT_MAX LLONG_MAX
 #define SQ_INT_MIN LLONG_MIN
@@ -52,7 +51,7 @@ typedef double SQFloat;
 typedef float SQFloat;
 #endif
 
-#if defined(SQUSEDOUBLE) && !defined(_SQ64) || !defined(SQUSEDOUBLE) && defined(_SQ64)
+#if defined(SQUSEDOUBLE) || defined(_SQ64)
 #ifdef _MSC_VER
 typedef __int64 SQRawObjectVal; //must be 64bits
 #else
@@ -154,6 +153,8 @@ typedef unsigned wchar_t SQUChar;
 #define scisalpha   iswalpha
 #define sciscntrl   iswcntrl
 #define scisalnum   iswalnum
+#define scisupper   iswupper
+#define scislower   iswlower
 
 
 #define sq_rsl(l) ((l)<<WCHAR_SHIFT_MUL)
@@ -203,6 +204,8 @@ typedef unsigned char SQUChar;
 #define sciscntrl   iscntrl
 #define scisalpha   isalpha
 #define scisalnum   isalnum
+#define scisupper   isupper
+#define scislower   islower
 #define scprintf    printf
 #define MAX_CHAR 0xFF
 

@@ -132,7 +132,7 @@ const unsigned char isUpperMapTable[] = { //0
 int nstrLenSubSetLatinUtf8( const char *str, int n )
 {
 	int result = 0;
-	unsigned char *pstr = ( unsigned char * )str;
+	const unsigned char *pstr = ( const unsigned char * )str;
 
 	while ( *pstr && (--n >= 0) ) {
 		// an error when an utf8 char  is formed by 195#195 ???
@@ -146,7 +146,7 @@ int nstrLenSubSetLatinUtf8( const char *str, int n )
 
 int strLenSubSetLatinUtf8( const char *str ) {
 	int result = 0;
-	unsigned char *pstr = ( unsigned char * )str;
+	const unsigned char *pstr = ( const unsigned char * )str;
 
 	while ( *pstr ) {
 		// an error when an utf8 char  is formed by 195#195 ???
@@ -160,7 +160,7 @@ int strLenSubSetLatinUtf8( const char *str ) {
 
 int isDeaccentableSubSetLatinUtf8( const char *str ) {
 	unsigned int c1, c2;
-	unsigned char *pstr = ( unsigned char * )str;
+	const unsigned char *pstr = ( const unsigned char * )str;
 
 	if ( *pstr == 195 ) {
 		c1 = *( pstr + 1 );
@@ -249,17 +249,17 @@ char *toUpperSubSetLatinUtf8( char *str ) {
 }
 
 #define checkToLowerSubSetLatinUtf8( a, b ) \
-	if ( (*(unsigned char *)b) == 195 ) ++b;\
+	if ( (*(const unsigned char *)b) == 195 ) ++b;\
 	a = toLowerMap(*b)
 
 int strICmpSubSetLatinUtf8( const char *zLeft, const char *zRight ) {
 
-	unsigned char *a, *b;
+	const unsigned char *a, *b;
 	unsigned char a2, b2;
 	a2 = b2 = '\0';
 
-	a = ( unsigned char* )zLeft;
-	b = ( unsigned char* )zRight;
+	a = (const  unsigned char* )zLeft;
+	b = ( const unsigned char* )zRight;
 
 	while ( *a && *b) {
 		checkToLowerSubSetLatinUtf8( a2, a );
@@ -275,16 +275,16 @@ int strICmpSubSetLatinUtf8( const char *zLeft, const char *zRight ) {
 }
 
 #define  checkLowerDeAccentSubSetLatinUtf8( a, b ) \
-	if ( (*(unsigned char *)b) == 195 ) b++;\
+	if ( (*(const unsigned char *)b) == 195 ) b++;\
 	a = toLowerDeaccentedMap(*b)
 
 int strICmpSubSetLatinUtf8NoAccents( const char *zLeft, const char *zRight ) {
-	unsigned char *a, *b;
+	const unsigned char *a, *b;
 	unsigned char a2, b2;
 	a2 = b2 = '\0';
 
-	a = ( unsigned char * )zLeft;
-	b = ( unsigned char * )zRight;
+	a = ( const unsigned char * )zLeft;
+	b = ( const unsigned char * )zRight;
 
 	while ( *a && *b) {
 		checkLowerDeAccentSubSetLatinUtf8( a2, a );
@@ -300,16 +300,16 @@ int strICmpSubSetLatinUtf8NoAccents( const char *zLeft, const char *zRight ) {
 }
 
 #define  checkDeAccentSubSetLatinUtf8( a, b ) \
-	if ( (*(unsigned char *)b) == 195 ) b++;\
+	if ( (*(const unsigned char *)b) == 195 ) b++;\
 	a = deAccentMap(*b)
 
 int strCmpSubSetLatinUtf8NoAccents( const char *zLeft, const char *zRight ) {
-	unsigned char *a, *b;
+	const unsigned char *a, *b;
 	unsigned char a2, b2;
 	a2 = b2 = '\0';
 
-	a = ( unsigned char * )zLeft;
-	b = ( unsigned char * )zRight;
+	a = ( const unsigned char * )zLeft;
+	b = ( const unsigned char * )zRight;
 
 	while ( *a && *b) {
 		checkDeAccentSubSetLatinUtf8( a2, a );
@@ -326,12 +326,12 @@ int strCmpSubSetLatinUtf8NoAccents( const char *zLeft, const char *zRight ) {
 
 // the N parameter is expected to be utf8 chars count
 int strNICmpSubSetLatinUtf8( const char *zLeft, const char *zRight, int n ) {
-	unsigned char *a, *b;
+	const unsigned char *a, *b;
 	unsigned char a2, b2;
 	a2 = b2 = '\0';
 
-	a = ( unsigned char * )zLeft;
-	b = ( unsigned char * )zRight;
+	a = ( const unsigned char * )zLeft;
+	b = ( const unsigned char * )zRight;
 
 	while ( *a && *b ) {
 		if ( --n < 0 ) break;
@@ -350,12 +350,12 @@ int strNICmpSubSetLatinUtf8( const char *zLeft, const char *zRight, int n ) {
 
 // the N parameter is expected to be utf8 chars count
 int strNICmpSubSetLatinUtf8NoAccents( const char *zLeft, const char *zRight, int n ) {
-	unsigned char *a, *b;
+	const unsigned char *a, *b;
 	unsigned char a2, b2;
 	a2 = b2 = '\0';
 
-	a = ( unsigned char * )zLeft;
-	b = ( unsigned char * )zRight;
+	a = ( const unsigned char * )zLeft;
+	b = ( const unsigned char * )zRight;
 
 	while ( *a && *b) {
 		if ( --n < 0 ) break;
@@ -374,12 +374,12 @@ int strNICmpSubSetLatinUtf8NoAccents( const char *zLeft, const char *zRight, int
 
 // the N parameter is expected to be utf8 chars count
 int strNCmpSubSetLatinUtf8NoAccents( const char *zLeft, const char *zRight, int n ) {
-	unsigned char *a, *b;
+	const unsigned char *a, *b;
 	unsigned char a2, b2;
 	a2 = b2 = '\0';
 
-	a = ( unsigned char * )zLeft;
-	b = ( unsigned char * )zRight;
+	a = ( const unsigned char * )zLeft;
+	b = ( const unsigned char * )zRight;
 
 	while ( *a && *b) {
 		if ( --n < 0 ) break;
@@ -413,15 +413,15 @@ static int subLatinLikeCompare0(
 	int prevEscape;
 
 #define checkStringChar() \
-	if( *(unsigned char*)(zString+iString) == 195 ) iString++;
+	if( *(const unsigned char*)(zString+iString) == 195 ) iString++;
 #define nextStringChar() \
 	iString++;\
-	if( *(unsigned char*)(zString+iString) == 195 ) iString++;
+	if( *(const unsigned char*)(zString+iString) == 195 ) iString++;
 #define checkPatternChar()\
-	if( *(unsigned char*)(zPattern+iPattern) == 195 ) iPattern++;
+	if( *(const unsigned char*)(zPattern+iPattern) == 195 ) iPattern++;
 #define nextPatternChar()\
 	iPattern++;\
-	if( *(unsigned char*)(zPattern+iPattern) == 195 ) iPattern++;
+	if( *(const unsigned char*)(zPattern+iPattern) == 195 ) iPattern++;
 
 	MATCH_ONE = '_';
 	MATCH_ALL = '%';

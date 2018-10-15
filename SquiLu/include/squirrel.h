@@ -195,7 +195,7 @@ typedef SQRESULT (*SQRELEASEHOOK)(SQUserPointer ptr, SQInteger size, HSQUIRRELVM
 typedef SQRESULT (*SQRELEASEHOOK)(SQUserPointer ptr, SQInteger size, void *ep);
 #endif // SQ_WITH_DELAYED_RELEASE_HOOKS
 typedef void (*SQCOMPILERERROR)(HSQUIRRELVM,const SQChar * /*desc*/,const SQChar * /*source*/,SQInteger /*line*/,SQInteger /*column*/);
-typedef void (*SQPRINTFUNCTION)(HSQUIRRELVM,const SQChar * ,...);
+typedef void (*SQPRINTFUNCTION)(HSQUIRRELVM,const SQChar * ,...)  __attribute__ ((__format__ (__printf__, 2, 3)));
 typedef void (*SQDEBUGHOOK)(HSQUIRRELVM /*v*/, SQInteger /*type*/, const SQChar * /*sourcename*/, SQInteger /*line*/, const SQChar * /*funcname*/);
 typedef SQInteger (*SQWRITEFUNC)(SQUserPointer,SQUserPointer,SQInteger);
 typedef SQInteger (*SQREADFUNC)(SQUserPointer,SQUserPointer,SQInteger);

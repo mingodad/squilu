@@ -504,7 +504,7 @@ static SQRESULT _regexp_gsub(HSQUIRRELVM v)
                             }
                             else
                             {
-                                return sq_throwerror(v, _SC("there is no match for replacement $%d"), idx);
+                                return sq_throwerror(v, _SC("there is no match for replacement $%d"), (int)idx);
                             }
                             continue;
                         }
@@ -638,7 +638,7 @@ static SQRESULT _regexp_constructor(HSQUIRRELVM v)
 	const SQChar *error,*pattern;
 	sq_getstring(v,2,&pattern);
 	SQRex *rex = sqstd_rex_compile(pattern,&error);
-	if(!rex) return sq_throwerror(v,error);
+	if(!rex) return sq_throwerror(v,_SC("%s"),error);
 	sq_setinstanceup(v,1,rex);
 	sq_setreleasehook(v,1,_rexobj_releasehook);
 	return 0;
@@ -650,7 +650,7 @@ static SQRESULT _regexp__typeof(HSQUIRRELVM v)
 	return 1;
 }
 
-#define _DECL_REX_FUNC(name,nparams,pmask) {_SC(#name),_regexp_##name,nparams,pmask}
+#define _DECL_REX_FUNC(name,nparams,pmask) {_SC(#name),_regexp_##name,nparams,pmask,false}
 static SQRegFunction rexobj_funcs[]={
 	_DECL_REX_FUNC(constructor,2,_SC(".s")),
 	_DECL_REX_FUNC(search,-2,_SC("xsn")),
@@ -662,16 +662,16 @@ static SQRegFunction rexobj_funcs[]={
 	_DECL_REX_FUNC(getxcapture,4,_SC("xsna")),
 	_DECL_REX_FUNC(subexpcount,1,_SC("x")),
 	_DECL_REX_FUNC(_typeof,1,_SC("x")),
-	{NULL,(SQFUNCTION)0,0,NULL}
+	{NULL,(SQFUNCTION)0,0,NULL,false}
 };
 #undef _DECL_REX_FUNC
 
-#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_string_##name,nparams,pmask}
+#define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_string_##name,nparams,pmask,false}
 static SQRegFunction stringlib_funcs[]={
 	_DECL_FUNC(printf,-2,_SC(".s")),
 	_DECL_FUNC(format,-2,_SC(".s")),
     _DECL_FUNC(escape,2,_SC(".s")),
-	{NULL,(SQFUNCTION)0,0,NULL}
+	{NULL,(SQFUNCTION)0,0,NULL,false}
 };
 #undef _DECL_FUNC
 

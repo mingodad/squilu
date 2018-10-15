@@ -7,6 +7,13 @@
 #include <sqstdfile.h>
 #include "sqstdstream.h"
 
+#if 0
+#ifndef _WIN32
+#include <unistd.h>
+#include <fcntl.h>
+#endif // _WIN32
+#endif // 0
+
 //only to make the SQFile vtable be generated here
 void SQFile::DummyPinVtable(){}
 
@@ -147,13 +154,12 @@ static SQRESULT _popen_close(HSQUIRRELVM v)
 	return 0;
 }
 
-//bindings
-#define _DECL_FILE_FUNC(name,nparams,typecheck) {_SC(#name),_popen_##name,nparams,typecheck}
+#define _DECL_FILE_FUNC(name,nparams,typecheck) {_SC(#name),_popen_##name,nparams,typecheck,false}
 static const SQRegFunction _popen_methods[] = {
     _DECL_FILE_FUNC(constructor,3,_SC("x")),
     _DECL_FILE_FUNC(_typeof,1,_SC("x")),
     _DECL_FILE_FUNC(close,1,_SC("x")),
-    {NULL,(SQFUNCTION)0,0,NULL}
+    {NULL,(SQFUNCTION)0,0,NULL,false}
 };
 #undef _DECL_FILE_FUNC
 
@@ -209,14 +215,57 @@ static SQRESULT _file_close(HSQUIRRELVM v)
 	}
 	return 0;
 }
+#if 0
+static SQRESULT _file_nonblock(HSQUIRRELVM v)
+{
+	SQFile *self = NULL;
+#ifdef _WIN32
+    return sq_throwerror(v, _SC("nonblock not supported on win32"));
+#else
+	if(SQ_SUCCEEDED(sq_getinstanceup(v,1,(SQUserPointer*)&self,(SQUserPointer)SQSTD_FILE_TYPE_TAG))
+		&& self != NULL)
+	{
+	    SQFILE handle = self->GetHandle();
+	    if(handle)
+        {
+            int fd = fileno((FILE*)handle);
+            if(fd > STDERR_FILENO)
+            {
+                int flags = fcntl(fd, F_GETFL, 0);
 
+                if(sq_gettop(v) > 1)
+                {
+                    //set nonblocking
+                    SQBool isNonBlocking;
+                    sq_getbool(v, 2, &isNonBlocking);
+                    if (flags >= 0) {
+                        int rc = fcntl(fd, F_SETFL,
+                                    isNonBlocking ? flags | O_NONBLOCK
+                                    : flags ^ O_NONBLOCK);
+                        sq_pushbool(v, rc == 0);
+                    }
+                    else return 0;
+                }
+                else
+                {
+                    sq_pushbool(v, flags & O_NONBLOCK);
+                }
+                return 1;
+            }
+        }
+	}
+	return 0;
+#endif // _WIN32
+}
+#endif // 0
 //bindings
-#define _DECL_FILE_FUNC(name,nparams,typecheck) {_SC(#name),_file_##name,nparams,typecheck}
+#define _DECL_FILE_FUNC(name,nparams,typecheck) {_SC(#name),_file_##name,nparams,typecheck,false}
 static const SQRegFunction _file_methods[] = {
     _DECL_FILE_FUNC(constructor,3,_SC("x")), //TODO if we change "x" to "xss" it stops working
     _DECL_FILE_FUNC(_typeof,1,_SC("x")),
     _DECL_FILE_FUNC(close,1,_SC("x")),
-    {NULL,(SQFUNCTION)0,0,NULL}
+    //_DECL_FILE_FUNC(nonblock,-1,_SC("xb")),
+    {NULL,(SQFUNCTION)0,0,NULL,false}
 };
 
 
@@ -264,7 +313,7 @@ struct IOBuffer {
     SQFILE file;
 };
 
-SQInteger _read_byte(IOBuffer *iobuffer)
+static SQInteger _read_byte(IOBuffer *iobuffer)
 {
 	if(iobuffer->ptr < iobuffer->size) {
 
@@ -284,7 +333,7 @@ SQInteger _read_byte(IOBuffer *iobuffer)
 	return 0;
 }
 
-SQInteger _read_two_bytes(IOBuffer *iobuffer)
+static SQInteger _read_two_bytes(IOBuffer *iobuffer)
 {
     if(iobuffer->ptr < iobuffer->size) {
         if(iobuffer->size < 2) return 0;
@@ -372,14 +421,14 @@ static SQInteger _io_file_lexfeed_UCS2_BE(SQUserPointer iobuf)
 	return 0;
 }
 
-SQInteger file_read(SQUserPointer file,SQUserPointer buf,SQInteger size)
+static SQInteger file_read(SQUserPointer file,SQUserPointer buf,SQInteger size)
 {
 	SQInteger ret;
 	if( ( ret = sqstd_fread(buf,1,size,(SQFILE)file ))!=0 )return ret;
 	return -1;
 }
 
-SQInteger file_write(SQUserPointer file,SQUserPointer p,SQInteger size)
+static SQInteger file_write(SQUserPointer file,SQUserPointer p,SQInteger size)
 {
 	return sqstd_fwrite(p,1,size,(SQFILE)file);
 }
@@ -536,6 +585,7 @@ SQInteger _g_io_loadstring(HSQUIRRELVM v)
 	return rc < 0 ? rc : 1;
 }
 
+//used by sq_slave_vm
 SQInteger _g_io_dostring(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
@@ -608,7 +658,7 @@ SQInteger _g_io_writefile(HSQUIRRELVM v)
 	return sq_throwerror(v,_SC("could not open file %s"), filename);
 }
 
-#define _DECL_GLOBALIO_FUNC(name,nparams,typecheck) {_SC(#name),_g_io_##name,nparams,typecheck}
+#define _DECL_GLOBALIO_FUNC(name,nparams,typecheck) {_SC(#name),_g_io_##name,nparams,typecheck,false}
 static const SQRegFunction iolib_funcs[]={
 	_DECL_GLOBALIO_FUNC(loadfile,-2,_SC(".sbb")),
 	_DECL_GLOBALIO_FUNC(dofile,-2,_SC(".sbb")),
@@ -619,7 +669,7 @@ static const SQRegFunction iolib_funcs[]={
 	_DECL_GLOBALIO_FUNC(existsfile,2,_SC(".s")),
 	_DECL_GLOBALIO_FUNC(readfile,2,_SC(".s")),
 	_DECL_GLOBALIO_FUNC(writefile,3,_SC(".ss")),
-	{NULL,(SQFUNCTION)0,0,NULL}
+	{NULL,(SQFUNCTION)0,0,NULL,false}
 };
 
 SQRESULT sqstd_register_iolib(HSQUIRRELVM v)

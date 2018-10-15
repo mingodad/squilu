@@ -1,6 +1,7 @@
 /* see copyright notice in squirrel.h */
 #include <squirrel.h>
 #include <math.h>
+//#include <float.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <sqstdmath.h>
@@ -130,7 +131,7 @@ static SQRESULT math_abs(HSQUIRRELVM v)
 {
     SQInteger n;
     sq_getinteger(v,2,&n);
-    sq_pushinteger(v,(SQInteger)abs(n));
+    sq_pushinteger(v,(SQInteger)::abs(n));
 	return 1;
 }
 
@@ -294,8 +295,7 @@ static SQRESULT math_number_format(HSQUIRRELVM v) {
 		dec = -dec;
 	}
 
-    int idec = dec; //on 64 bits there is a warning here about SQInteger/int
-	tmplen = scsprintf(tmpbuf, sizeof(tmpbuf), _SC("%.*f"), idec, d);
+	tmplen = scsprintf(tmpbuf, sizeof(tmpbuf), _SC("%.*f"), (int)dec, d);
 
 	resbuf[0] = _SC('\0');
 
@@ -443,7 +443,7 @@ static SQRESULT math_rad (HSQUIRRELVM v) {
 
 //DAD end
 
-#define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),math_##name,nparams,tycheck}
+#define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),math_##name,nparams,tycheck,false}
 static const SQRegFunction mathlib_funcs[] = {
 	_DECL_FUNC(sqrt,2,_SC(".n")),
 	_DECL_FUNC(sin,2,_SC(".n")),
@@ -484,7 +484,7 @@ static const SQRegFunction mathlib_funcs[] = {
 	_DECL_FUNC(tanh,2,_SC(".n")),
 	_DECL_FUNC(atanh,2,_SC(".n")),
 
-	{NULL,(SQFUNCTION)0,0,NULL}
+	{NULL,(SQFUNCTION)0,0,NULL,false}
 };
 #undef _DECL_FUNC
 

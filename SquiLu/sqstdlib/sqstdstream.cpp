@@ -21,7 +21,7 @@ static const SQChar SQSTD_STREAM_TYPE_TAG[] = _SC("std_stream");
 	if(!self || !self->IsValid())  \
 		return sq_throwerror(v,_SC("the stream is invalid"));
 
-SQInteger _stream_read_line(HSQUIRRELVM v) {
+static SQInteger _stream_read_line(HSQUIRRELVM v) {
 	SETUP_STREAM(v);
     const SQChar nl = _SC('\n');
     const SQChar rc = _SC('\r');
@@ -67,7 +67,7 @@ SQInteger _stream_read_line(HSQUIRRELVM v) {
     return 1;
 }
 
-SQInteger _stream_read_all(HSQUIRRELVM v) {
+static SQInteger _stream_read_all(HSQUIRRELVM v) {
 	SETUP_STREAM(v);
     SQInteger size = 4096, read_size;
     SQBlob line_buf(0, size);
@@ -201,15 +201,15 @@ SQInteger _stream_readn(HSQUIRRELVM v)
 	return 1;
 }
 
-SQInteger _stream_write_str(HSQUIRRELVM v)
+static SQInteger _stream_write_str(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
-	SETUP_STREAM(v);
+    SETUP_STREAM(v);
     SQ_GET_STRING(v, 2, str);
     SQ_OPT_INTEGER(v, 3, start, 0);
-    if(start < 0 || start > str_size) return sq_throwerror(v, _SC("start position out of range (%d)"), start);
+    if(start < 0 || start > str_size) return sq_throwerror(v, _SC("start position out of range (" _PRINT_INT_FMT ")"), start);
     SQ_OPT_INTEGER(v, 4, len, str_size - start);
-    if(len < 0 || len > (str_size-start)) return sq_throwerror(v, _SC("len value out of range (%d)"), len);
+    if(len < 0 || len > (str_size-start)) return sq_throwerror(v, _SC("len value out of range (" _PRINT_INT_FMT ")"), len);
 
     if(self->Write(((const SQChar*)str)+start, len) != len)
             return sq_throwerror(v,_SC("io error"));
@@ -217,7 +217,7 @@ SQInteger _stream_write_str(HSQUIRRELVM v)
 	return 1;
 }
 
-SQInteger _stream_write(HSQUIRRELVM v)
+static SQInteger _stream_write(HSQUIRRELVM v)
 {
 	const SQChar *str;
 	SQInteger total_size, size;
@@ -237,7 +237,7 @@ SQInteger _stream_write(HSQUIRRELVM v)
 	return 1;
 }
 
-SQInteger _stream_write_non_null(HSQUIRRELVM v)
+static SQInteger _stream_write_non_null(HSQUIRRELVM v)
 {
     if(sq_gettype(v, 2) != OT_NULL)
     {
@@ -246,7 +246,7 @@ SQInteger _stream_write_non_null(HSQUIRRELVM v)
 	return 0;
 }
 
-SQInteger _stream_write_fmt(HSQUIRRELVM v)
+static SQInteger _stream_write_fmt(HSQUIRRELVM v)
 {
 	const SQChar *str;
 	SQInteger size;
@@ -398,12 +398,12 @@ SQInteger _stream_eos(HSQUIRRELVM v)
 	return 1;
 }
 
- SQInteger _stream__cloned(HSQUIRRELVM v)
+ static SQInteger _stream__cloned(HSQUIRRELVM v)
  {
 	 return sq_throwerror(v,_SC("this object cannot be cloned"));
  }
 
-#define _DECL_STREAM_FUNC2(name,name2, nparams,typecheck) {_SC(#name2),_stream_##name,nparams,typecheck}
+#define _DECL_STREAM_FUNC2(name,name2, nparams,typecheck) {_SC(#name2),_stream_##name,nparams,typecheck,false}
 
 static SQRegFunction _stream_methods[] = {
 	_DECL_STREAM_FUNC(read_line,-1,_SC("xi")),
@@ -425,10 +425,10 @@ static SQRegFunction _stream_methods[] = {
 	_DECL_STREAM_FUNC(eos,1,_SC("x")),
 	_DECL_STREAM_FUNC(flush,1,_SC("x")),
 	_DECL_STREAM_FUNC(_cloned,0,NULL),
-	{NULL,(SQFUNCTION)0,0,NULL}
+	{NULL,(SQFUNCTION)0,0,NULL,false}
 };
 
-void init_streamclass(HSQUIRRELVM v)
+static void init_streamclass(HSQUIRRELVM v)
 {
 	sq_pushregistrytable(v);
 	sq_pushstring(v,SQSTD_STREAM_TYPE_TAG,-1);

@@ -260,7 +260,8 @@ static SQRESULT sq_SQLexer_readcount(HSQUIRRELVM v){
     sq_pushinteger(v, self->lex->data->readcount);
 	return 1;
 }
-#define _DECL_SQLEXER_FUNC(name,nparams,pmask) {_SC(#name),sq_SQLexer_##name,nparams,pmask}
+
+#define _DECL_SQLEXER_FUNC(name,nparams,pmask) {_SC(#name),sq_SQLexer_##name,nparams,pmask,false}
 static SQRegFunction SQLexer_obj_funcs[]={
 
 	_DECL_SQLEXER_FUNC(constructor, -2, _SC(".sbt")),

@@ -15,7 +15,7 @@
 
 SQ_OPT_STRING_STRLEN();
 
-bool str2num(const SQChar *s,SQObjectPtr &res, SQInteger base=10)
+static bool str2num(const SQChar *s,SQObjectPtr &res, SQInteger base=10)
 {
 	SQChar *end;
 	const SQChar *e = s;
@@ -235,7 +235,7 @@ static SQRESULT base_assert(HSQUIRRELVM v)
         if (top>2 && SQ_SUCCEEDED(sq_tostring(v,3))) {
             const SQChar *str = 0;
             if (SQ_SUCCEEDED(sq_getstring(v,-1,&str))) {
-                return sq_throwerror(v, str);
+                return sq_throwerror(v,_SC("%s"), str);
             }
         }
         return sq_throwerror(v, _SC("assertion failed"));
@@ -440,7 +440,7 @@ static SQRESULT base_str_from_chars (HSQUIRRELVM v) {
   for (i=2; i<=n; ++i) {
     SQ_GET_INTEGER(v, i, c);
     if(SQUChar(c) != c){
-        return sq_throwerror(v, _SC("invalid value for parameter %d"), i);
+        return sq_throwerror(v, _SC("invalid value for parameter %d"), (int)i);
     }
     data[i-2] = SQUChar(c);
   }
@@ -591,70 +591,70 @@ static SQRESULT bf_table_create(HSQUIRRELVM v)
 
 static SQRegFunction base_funcs[]={
 	//generic
-	{_SC("setatexithandler"),base_setatexithandler,2, _SC(".c")},
-	{_SC("getatexithandler"),base_getatexithandler,1, NULL},
-	{_SC("seterrorhandler"),base_seterrorhandler,2, _SC(".c")},
-	{_SC("geterrorhandler"),base_geterrorhandler,1, NULL},
-	{_SC("setdebughook"),base_setdebughook,2, NULL},
-	{_SC("enabledebuginfo"),base_enabledebuginfo,2, NULL},
-	{_SC("getstackinfos"),base_getstackinfos,2, _SC(".n")},
-	{_SC("getstacktop"),base_getstacktop,1, _SC(".")},
-	{_SC("gettypetag"),base_gettypetag,2, _SC("..")},
-	{_SC("getdefaultdelegate"),base_getdefaultdelegate,2, _SC("..")},
-	{_SC("getroottable"),base_getroottable,1, NULL},
-	{_SC("setroottable"),base_setroottable,2, NULL},
-	{_SC("getconsttable"),base_getconsttable,1, NULL},
-	{_SC("setconsttable"),base_setconsttable,2, NULL},
-	{_SC("assert"),base_assert,-2, ".bs"},
-	{_SC("print1"),base_print1,2, NULL},
-	{_SC("print"),base_print,-2, NULL},
-	{_SC("error"),base_error,2, NULL},
-	{_SC("get_last_error"),base_get_last_error,1, NULL},
-	{_SC("get_last_stackinfo"),base_get_last_stackinfo,1, NULL},
-	{_SC("compilestring"),base_compilestring,-2, _SC(".ssb")},
-	{_SC("newthread"),base_newthread,2, _SC(".c")},
-	{_SC("suspend"),base_suspend,-1, NULL},
-	{_SC("array"),base_array,-2, _SC(".n.")},
-	{_SC("array_float64"),base_array_float64,-2, _SC(".nf")},
-	{_SC("array_float32"),base_array_float32,-2, _SC(".nf")},
-	{_SC("array_int64"),base_array_int64,-2, _SC(".ni")},
-	{_SC("array_int32"),base_array_int32,-2, _SC(".ni")},
-	{_SC("array_int16"),base_array_int16,-2, _SC(".ni")},
-	{_SC("array_int8"),base_array_int8,-2, _SC(".ni")},
-	{_SC("type"),base_type,2, NULL},
-	{_SC("callee"),base_callee,0,NULL},
-	{_SC("dummy"),base_dummy,0,NULL},
+	{_SC("setatexithandler"),base_setatexithandler,2, _SC(".c"), false},
+	{_SC("getatexithandler"),base_getatexithandler,1, NULL, false},
+	{_SC("seterrorhandler"),base_seterrorhandler,2, _SC(".c"), false},
+	{_SC("geterrorhandler"),base_geterrorhandler,1, NULL, false},
+	{_SC("setdebughook"),base_setdebughook,2, NULL, false},
+	{_SC("enabledebuginfo"),base_enabledebuginfo,2, NULL, false},
+	{_SC("getstackinfos"),base_getstackinfos,2, _SC(".n"), false},
+	{_SC("getstacktop"),base_getstacktop,1, _SC("."), false},
+	{_SC("gettypetag"),base_gettypetag,2, _SC(".."), false},
+	{_SC("getdefaultdelegate"),base_getdefaultdelegate,2, _SC(".."), false},
+	{_SC("getroottable"),base_getroottable,1, NULL, false},
+	{_SC("setroottable"),base_setroottable,2, NULL, false},
+	{_SC("getconsttable"),base_getconsttable,1, NULL, false},
+	{_SC("setconsttable"),base_setconsttable,2, NULL, false},
+	{_SC("assert"),base_assert,-2, ".bs", false},
+	{_SC("print1"),base_print1,2, NULL, false},
+	{_SC("print"),base_print,-2, NULL, false},
+	{_SC("error"),base_error,2, NULL, false},
+	{_SC("get_last_error"),base_get_last_error,1, NULL, false},
+	{_SC("get_last_stackinfo"),base_get_last_stackinfo,1, NULL, false},
+	{_SC("compilestring"),base_compilestring,-2, _SC(".ssb"), false},
+	{_SC("newthread"),base_newthread,2, _SC(".c"), false},
+	{_SC("suspend"),base_suspend,-1, NULL, false},
+	{_SC("array"),base_array,-2, _SC(".n."), false},
+	{_SC("array_float64"),base_array_float64,-2, _SC(".nf"), false},
+	{_SC("array_float32"),base_array_float32,-2, _SC(".nf"), false},
+	{_SC("array_int64"),base_array_int64,-2, _SC(".ni"), false},
+	{_SC("array_int32"),base_array_int32,-2, _SC(".ni"), false},
+	{_SC("array_int16"),base_array_int16,-2, _SC(".ni"), false},
+	{_SC("array_int8"),base_array_int8,-2, _SC(".ni"), false},
+	{_SC("type"),base_type,2, NULL, false},
+	{_SC("callee"),base_callee,0,NULL, false},
+	{_SC("dummy"),base_dummy,0,NULL, false},
 #ifndef NO_GARBAGE_COLLECTOR
-	{_SC("collectgarbage"),base_collectgarbage,0, NULL},
-	{_SC("resurrectunreachable"),base_resurectureachable,0, NULL},
-	{_SC("getrefcount"),base_getrefcount,2, _SC("..")},
+	{_SC("collectgarbage"),base_collectgarbage,0, NULL, false},
+	{_SC("resurrectunreachable"),base_resurectureachable,0, NULL, false},
+	{_SC("getrefcount"),base_getrefcount,2, _SC(".."), false},
 #ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
-	{_SC("check_delayed_release_hooks"),base_check_delayed_release_hooks,-1, _SC(".b")},
-	{_SC("call_delayed_release_hooks"),base_call_delayed_release_hooks,1, NULL},
+	{_SC("check_delayed_release_hooks"),base_check_delayed_release_hooks,-1, _SC(".b"), false},
+	{_SC("call_delayed_release_hooks"),base_call_delayed_release_hooks,1, NULL, false},
 #endif // SQ_WITH_DELAYED_RELEASE_HOOKS
 #endif
-	{_SC("str_from_chars"),base_str_from_chars,-1, _SC(".i")},
-	{_SC("try_tostring"),base_try_tostring,-2, _SC("..s")},
-	{_SC("getincludepath"),base_getincludepath,1, _SC(".")},
-	{_SC("table_create"),bf_table_create,-1, _SC(".i")},
-	{_SC("table_new"),bf_table_create,-1, _SC(".i")},
-	{_SC("table_len"),bf_table_len,2, _SC(".t")},
-	{_SC("table_size"),bf_table_len,2, _SC(".t")},
-	{_SC("table_get"),bf_table_get,-3, _SC(".t.")},
-	{_SC("table_rawget"),bf_table_rawget,-3, _SC(".t.")},
-	{_SC("table_set"),bf_table_set,4, _SC(".t..")},
-	{_SC("table_rawset"),bf_table_rawset,4, _SC(".t..")},
-	{_SC("table_rawdelete"),bf_table_rawdelete,3, _SC(".t.")},
-	{_SC("table_rawin"),bf_table_rawexists,3, _SC(".t.")},
-	{_SC("table_weakref"),bf_table_weakref,2, _SC(".t")},
-	{_SC("table_tostring"),bf_table_tostring,2, _SC(".t")},
-	{_SC("table_clear"),bf_table_clear,2, _SC(".t")},
-	{_SC("table_setdelegate"),bf_table_setdelegate,3, _SC(".t t|o")},
-	{_SC("table_getdelegate"),bf_table_getdelegate,2, _SC(".t")},
-	{_SC("table_getdelegate_squirrel"),bf_table_getdelegate_squirrel,1, _SC(".")},
-	{_SC("table_incnum"),bf_table_incnum,-4, _SC(".tsnb")},
-	{_SC("obj_clone"),bf_obj_clone,2, _SC(". t|a|x|i|f|s")},
-	{NULL,(SQFUNCTION)0,0,NULL}
+	{_SC("str_from_chars"),base_str_from_chars,-1, _SC(".i"), false},
+	{_SC("try_tostring"),base_try_tostring,-2, _SC("..s"), false},
+	{_SC("getincludepath"),base_getincludepath,1, _SC("."), false},
+	{_SC("table_create"),bf_table_create,-1, _SC(".i"), false},
+	{_SC("table_new"),bf_table_create,-1, _SC(".i"), false},
+	{_SC("table_len"),bf_table_len,2, _SC(".t"), false},
+	{_SC("table_size"),bf_table_len,2, _SC(".t"), false},
+	{_SC("table_get"),bf_table_get,-3, _SC(".t."), false},
+	{_SC("table_rawget"),bf_table_rawget,-3, _SC(".t."), false},
+	{_SC("table_set"),bf_table_set,4, _SC(".t.."), false},
+	{_SC("table_rawset"),bf_table_rawset,4, _SC(".t.."), false},
+	{_SC("table_rawdelete"),bf_table_rawdelete,3, _SC(".t."), false},
+	{_SC("table_rawin"),bf_table_rawexists,3, _SC(".t."), false},
+	{_SC("table_weakref"),bf_table_weakref,2, _SC(".t"), false},
+	{_SC("table_tostring"),bf_table_tostring,2, _SC(".t"), false},
+	{_SC("table_clear"),bf_table_clear,2, _SC(".t"), false},
+	{_SC("table_setdelegate"),bf_table_setdelegate,3, _SC(".t t|o"), false},
+	{_SC("table_getdelegate"),bf_table_getdelegate,2, _SC(".t"), false},
+	{_SC("table_getdelegate_squirrel"),bf_table_getdelegate_squirrel,1, _SC("."), false},
+	{_SC("table_incnum"),bf_table_incnum,-4, _SC(".tsnb"), false},
+	{_SC("obj_clone"),bf_obj_clone,2, _SC(". t|a|x|i|f|s"), false},
+	{NULL,(SQFUNCTION)0,0,NULL, false}
 };
 
 void sq_base_register(HSQUIRRELVM v)
@@ -708,7 +708,6 @@ static SQRESULT default_delegate_tofloat(HSQUIRRELVM v)
 			break;
 		}}
 		return sq_throwerror(v, _SC("cannot convert the string"));
-		break;
 	case OT_INTEGER:case OT_FLOAT:
 		v->Push(SQObjectPtr(tofloat(o)));
 		break;
@@ -731,7 +730,7 @@ static SQRESULT default_delegate_tointeger(HSQUIRRELVM v)
 		SQInteger base;
 		if(sq_gettop(v) > 1){
 		    if(sq_getinteger(v, 2, &base) < 0) return sq_throwerror(v, _SC("parameter integer expected (2-36)"));
-		    if(base < 2 || base > 36) return sq_throwerror(v, _SC("invalid base \"%d\" to tointeger (2-36)"), base);
+		    if(base < 2 || base > 36) return sq_throwerror(v, _SC("invalid base \"%d\" to tointeger (2-36)"), (int)base);
 		}
 		else base = 10;
 		if(str2num(_stringval(o),res, base)){
@@ -739,7 +738,6 @@ static SQRESULT default_delegate_tointeger(HSQUIRRELVM v)
 			break;
 		}}
 		return sq_throwerror(v, _SC("cannot convert the string"));
-		break;
 	case OT_INTEGER:case OT_FLOAT:
 		v->Push(SQObjectPtr(tointeger(o)));
 		break;
@@ -824,7 +822,7 @@ static SQRESULT container_rawget(HSQUIRRELVM v)
 static SQRESULT container_get(HSQUIRRELVM v)
 {
     switch(sq_gettop(v)){
-        case 2: return SQ_SUCCEEDED(sq_get(v,-2))?1:SQ_ERROR;break;
+        case 2: return SQ_SUCCEEDED(sq_get(v,-2))?1:SQ_ERROR;
         case 3: {
             sq_push(v, 2); //copy key to top
             sq_get(v,-4); //if it fail pop the key and default value is on top
@@ -849,23 +847,23 @@ static SQRESULT table_getdelegate(HSQUIRRELVM v)
 }
 
 SQRegFunction SQSharedState::_table_default_delegate_squirrel_funcz[]={
-	{_SC("len"),default_delegate_len,1, _SC("t")},
-	{_SC("size"),default_delegate_len,1, _SC("t")},
-	{_SC("get"),container_get,-2, _SC("t")},
-	{_SC("rawget"),container_rawget,-2, _SC("t")},
-	{_SC("rawset"),container_rawset,3, _SC("t")},
-	{_SC("rawdelete"),table_rawdelete,2, _SC("t")},
-	{_SC("rawin"),container_rawexists,2, _SC("t")},
-	{_SC("weakref"),obj_delegate_weakref,1, NULL },
-	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
-	{_SC("clear"),obj_clear,1, _SC(".")},
-	{_SC("setdelegate"),table_setdelegate,2, _SC(".t|o")},
-	{_SC("getdelegate"),table_getdelegate,1, _SC(".")},
-	{NULL,(SQFUNCTION)0,0,NULL}
+	{_SC("len"),default_delegate_len,1, _SC("t"), false},
+	{_SC("size"),default_delegate_len,1, _SC("t"), false},
+	{_SC("get"),container_get,-2, _SC("t"), false},
+	{_SC("rawget"),container_rawget,-2, _SC("t"), false},
+	{_SC("rawset"),container_rawset,3, _SC("t"), false},
+	{_SC("rawdelete"),table_rawdelete,2, _SC("t"), false},
+	{_SC("rawin"),container_rawexists,2, _SC("t"), false},
+	{_SC("weakref"),obj_delegate_weakref,1, NULL, false},
+	{_SC("tostring"),default_delegate_tostring,1, _SC("."), false},
+	{_SC("clear"),obj_clear,1, _SC("."), false},
+	{_SC("setdelegate"),table_setdelegate,2, _SC(".t|o"), false},
+	{_SC("getdelegate"),table_getdelegate,1, _SC("."), false},
+	{NULL,(SQFUNCTION)0,0,NULL, false}
 };
 
 SQRegFunction SQSharedState::_table_default_delegate_funcz[]={
-	{NULL,(SQFUNCTION)0,0,NULL}
+	{NULL,(SQFUNCTION)0,0,NULL, false}
 };
 
 //ARRAY DEFAULT DELEGATE///////////////////////////////////////
@@ -1392,42 +1390,42 @@ static SQRESULT array_sizeofelm(HSQUIRRELVM v)
 //DAD end
 
 SQRegFunction SQSharedState::_array_default_delegate_funcz[]={
-	{_SC("len"),default_delegate_len,1, _SC("a")},
-	{_SC("size"),default_delegate_len,1, _SC("a")},
-	{_SC("append"),array_append,2, _SC("a")},
-	{_SC("push"),array_append,2, _SC("a")},
-	{_SC("push_back"),array_append,2, _SC("a")},
-	{_SC("extend"),array_extend,2, _SC("aa")},
-	{_SC("pop"),array_pop,1, _SC("a")},
-	{_SC("top"),array_top,1, _SC("a")},
-	{_SC("insert"),array_insert,3, _SC("an")},
-	{_SC("remove"),array_remove,2, _SC("an")},
-	{_SC("resize"),array_resize,-2, _SC("an")},
-	{_SC("minsize"),array_minsize,-2, _SC("an")},
-	{_SC("reserve"),array_reserve,-2, _SC("an")},
-	{_SC("capacity"),array_capacity,1, _SC("a")},
-	{_SC("reverse"),array_reverse,1, _SC("a")},
-	{_SC("sort"),array_sort,-1, _SC("a c|o a")},
-	{_SC("slice"),array_slice,-1, _SC("ann")},
-	{_SC("weakref"),obj_delegate_weakref,1, NULL },
-	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
-	{_SC("clear"),obj_clear,1, _SC(".")},
-	{_SC("map"),array_map,2, _SC("ac")},
-	{_SC("apply"),array_apply,2, _SC("ac")},
-	{_SC("reduce"),array_reduce,2, _SC("ac")},
-	{_SC("filter"),array_filter,2, _SC("ac")},
-	{_SC("find"),array_find,2, _SC("a.")},
-	{_SC("indexOf"),array_find,2, _SC("a.")},
-	{_SC("bsearch"),array_bsearch,2, _SC("a.")},
-	{_SC("concat"),array_concat,-1, _SC("as")},
-	{_SC("join"),array_concat,-1, _SC("as")},
-	{_SC("concat2"),array_concat2,-1, _SC("as")},
-	{_SC("getdelegate"),array_getdelegate,1, _SC(".")},
-	{_SC("get"),container_rawget, -2, _SC("ai.")},
-	{_SC("set"),array_set, 3, _SC("ai.")},
-	{_SC("isempty"),array_empty, 1, _SC("a")},
-	{_SC("sizeofelm"),array_sizeofelm, 1, _SC("a")},
-	{NULL,(SQFUNCTION)0,0,NULL}
+	{_SC("len"),default_delegate_len,1, _SC("a"), false},
+	{_SC("size"),default_delegate_len,1, _SC("a"), false},
+	{_SC("append"),array_append,2, _SC("a"), false},
+	{_SC("push"),array_append,2, _SC("a"), false},
+	{_SC("push_back"),array_append,2, _SC("a"), false},
+	{_SC("extend"),array_extend,2, _SC("aa"), false},
+	{_SC("pop"),array_pop,1, _SC("a"), false},
+	{_SC("top"),array_top,1, _SC("a"), false},
+	{_SC("insert"),array_insert,3, _SC("an"), false},
+	{_SC("remove"),array_remove,2, _SC("an"), false},
+	{_SC("resize"),array_resize,-2, _SC("an"), false},
+	{_SC("minsize"),array_minsize,-2, _SC("an"), false},
+	{_SC("reserve"),array_reserve,-2, _SC("an"), false},
+	{_SC("capacity"),array_capacity,1, _SC("a"), false},
+	{_SC("reverse"),array_reverse,1, _SC("a"), false},
+	{_SC("sort"),array_sort,-1, _SC("a c|o a"), false},
+	{_SC("slice"),array_slice,-1, _SC("ann"), false},
+	{_SC("weakref"),obj_delegate_weakref,1, NULL, false},
+	{_SC("tostring"),default_delegate_tostring,1, _SC("."), false},
+	{_SC("clear"),obj_clear,1, _SC("."), false},
+	{_SC("map"),array_map,2, _SC("ac"), false},
+	{_SC("apply"),array_apply,2, _SC("ac"), false},
+	{_SC("reduce"),array_reduce,2, _SC("ac"), false},
+	{_SC("filter"),array_filter,2, _SC("ac"), false},
+	{_SC("find"),array_find,2, _SC("a."), false},
+	{_SC("indexOf"),array_find,2, _SC("a."), false},
+	{_SC("bsearch"),array_bsearch,2, _SC("a."), false},
+	{_SC("concat"),array_concat,-1, _SC("as"), false},
+	{_SC("join"),array_concat,-1, _SC("as"), false},
+	{_SC("concat2"),array_concat2,-1, _SC("as"), false},
+	{_SC("getdelegate"),array_getdelegate,1, _SC("."), false},
+	{_SC("get"),container_rawget, -2, _SC("ai."), false},
+	{_SC("set"),array_set, 3, _SC("ai."), false},
+	{_SC("isempty"),array_empty, 1, _SC("a"), false},
+	{_SC("sizeofelm"),array_sizeofelm, 1, _SC("a"), false},
+	{NULL,(SQFUNCTION)0,0,NULL, false}
 };
 
 //STRING DEFAULT DELEGATE//////////////////////////
@@ -1459,7 +1457,7 @@ static SQRESULT string_substr(HSQUIRRELVM v)
 	SQObjectPtr &o = stack_get(v,1);
     SQInteger str_size = sq_getsize(v, 1);
     SQ_OPT_INTEGER(v, 3, len, str_size - start);
-	if(start < 0)	return sq_throwerror(v,_SC("invalid start index %d"), start);
+	if(start < 0)	return sq_throwerror(v,_SC("invalid start index " _PRINT_INT_FMT), start);
 	if(len > (str_size - start))	return sq_throwerror(v,_SC("lenght out of range"));
 	v->Push(SQString::Create(_ss(v),&_stringval(o)[start], len));
 	return 1;
@@ -1639,7 +1637,7 @@ static SQRESULT string_gsub(HSQUIRRELVM v)
             free(buf);
             return 1;
         }
-        return sq_throwerror(v,error_ptr);
+        return sq_throwerror(v,_SC("%s"),error_ptr);
     }
     else
     {
@@ -1656,7 +1654,7 @@ static SQRESULT string_gsub(HSQUIRRELVM v)
                     free(buf);
                     if(!error_ptr) return 1;
                 }
-                return sq_throwerror(v,error_ptr);
+                return sq_throwerror(v,_SC("%s"),error_ptr);
             }
    	   default:
 		return sq_throwerror(v, _SC("unexpected type"));
@@ -1705,6 +1703,7 @@ static int process_string_gmatch(LuaMatchState *ms, void *udata, lua_char_buffer
     return process_string_gmatch_find(ms, udata, b, false);
 }
 
+//used by sqstdblob
 SQRESULT string_gmatch_base(HSQUIRRELVM v, int isGmatch, const SQChar *src, SQInteger src_size)
 {
     SQ_FUNC_VARS(v);
@@ -1724,7 +1723,7 @@ SQRESULT string_gmatch_base(HSQUIRRELVM v, int isGmatch, const SQChar *src, SQIn
         if((rtype == OT_CLOSURE) || (rtype == OT_NATIVECLOSURE)){
             _rc_ = lua_str_match(&ms, src, max_len ? start_pos + max_len : src_size,
                     pattern, pattern_size, start_pos, 0, process_string_gmatch, v);
-            if(ms.error) return sq_throwerror(v, ms.error);
+            if(ms.error) return sq_throwerror(v,_SC("%s"), ms.error);
             sq_pushinteger(v, _rc_);
             return 1;
         }
@@ -1738,7 +1737,7 @@ SQRESULT string_gmatch_base(HSQUIRRELVM v, int isGmatch, const SQChar *src, SQIn
     }
     _rc_ = lua_str_match(&ms, src, max_len ? start_pos + max_len : src_size,
                         pattern, pattern_size, start_pos, 0, 0, 0);
-    if(ms.error) return sq_throwerror(v, ms.error);
+    if(ms.error) return sq_throwerror(v,_SC("%s"), ms.error);
     if(_rc_ < 0) sq_pushnull(v);
     else if(ms.level){
         if(ms.level == 1)
@@ -1778,6 +1777,7 @@ static int process_string_find_lua(LuaMatchState *ms, void *udata, lua_char_buff
     return process_string_gmatch_find(ms, udata, b, true);
 }
 
+//used by sqstdblob
 SQRESULT string_find_lua(HSQUIRRELVM v, const SQChar *src, SQInteger src_size)
 {
     SQ_FUNC_VARS(v);
@@ -1797,7 +1797,7 @@ SQRESULT string_find_lua(HSQUIRRELVM v, const SQChar *src, SQInteger src_size)
         memset(&ms, 0, sizeof(ms));
         int rc = lua_str_find(&ms, src, src_size, pattern, pattern_size,
                 start_pos, raw == SQTrue, 0, 0);
-        if(ms.error) return sq_throwerror(v, ms.error);
+        if(ms.error) return sq_throwerror(v,_SC("%s"), ms.error);
         sq_pushinteger(v, rc);
         return 1;
     }
@@ -1806,7 +1806,7 @@ SQRESULT string_find_lua(HSQUIRRELVM v, const SQChar *src, SQInteger src_size)
         memset(&ms, 0, sizeof(ms));
         int rc = lua_str_find(&ms, src, src_size, pattern, pattern_size,
                 start_pos, raw == SQTrue, process_string_find_lua, v);
-        if(ms.error) return sq_throwerror(v, ms.error);
+        if(ms.error) return sq_throwerror(v,_SC("%s"), ms.error);
         sq_pushinteger(v, rc);
         return 1;
     }
@@ -1815,7 +1815,7 @@ SQRESULT string_find_lua(HSQUIRRELVM v, const SQChar *src, SQInteger src_size)
         memset(&ms, 0, sizeof(ms));
         int rc = lua_str_find(&ms, src, src_size, pattern, pattern_size,
                 start_pos, raw == SQTrue, 0, 0);
-        if(ms.error) return sq_throwerror(v, ms.error);
+        if(ms.error) return sq_throwerror(v,_SC("%s"), ms.error);
         if(rtype == OT_TABLE){
             sq_pushstring(v, _SC("start_pos"), -1);
             sq_pushinteger(v, ms.start_pos);
@@ -2252,7 +2252,7 @@ static SQRESULT string_##name(HSQUIRRELVM v)\
     SQ_GET_STRING(v, 1, str);\
     SQ_GET_INTEGER(v, 2, idx);\
     if(idx >= str_size) {\
-        return sq_throwerror(v, _SC("index %d out of range"), idx);\
+        return sq_throwerror(v, _SC("index " _PRINT_INT_FMT " out of range"), idx);\
     }\
 	sq_pushbool(v, sc##name(str[idx]));\
 	return 1;\
@@ -2265,6 +2265,8 @@ string_char_is(isalnum);
 string_char_is(isdigit);
 string_char_is(isxdigit);
 string_char_is(iscntrl);
+string_char_is(islower);
+string_char_is(isupper);
 
 static SQRESULT string_count_char(HSQUIRRELVM v)
 {
@@ -2509,70 +2511,72 @@ static SQRESULT string_iso88959_to_utf8 (HSQUIRRELVM v) {
 
 
 SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
-	{_SC("len"),default_delegate_len,1, _SC("s")},
-	{_SC("size"),default_delegate_len,1, _SC("s")},
-	{_SC("tointeger"),default_delegate_tointeger,-1, _SC("sn")},
-	{_SC("tofloat"),default_delegate_tofloat,1, _SC("s")},
-	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
-	{_SC("hash"),string_hash,1, _SC("s")},
-	{_SC("slice"),string_slice,-1, _SC(" s n  n")},
-	{_SC("substr"),string_substr,-2, _SC(" s n  n")},
-	{_SC("replace"),string_replace,-3, _SC("sssi")},
-	{_SC("find"),string_find,-2, _SC("s s n ")},
-	{_SC("indexOf"),string_find,-2, _SC("s s n ")},
-	{_SC("find_lua"),string_find_lua,-2, _SC("ss a|t|c n b n")},
-	{_SC("find_close_quote"),string_find_close_quote,-1, _SC("sni")},
-	{_SC("find_delimiter"),string_find_delimiter,4, _SC("siin")},
-	{_SC("strchr"),string_strchr,-2, _SC("sii")},
-	{_SC("strncmp"),string_strncmp,-3, _SC("sisi")},
-	{_SC("countchr"),string_countchr,2, _SC("si")},
-	{_SC("gsub"),string_gsub,-3, _SC("s s s|a|t|c n")},
-	{_SC("gmatch"),string_gmatch, -3, _SC("s s c n n")},
-	{_SC("match"), string_match, -2, _SC("s s n n")},
-	{_SC("startswith"),string_startswith, 2, _SC("ss")},
-	{_SC("endswith"),string_endswith, 2, _SC("ss")},
-	{_SC("reverse"),string_reverse, 1, _SC("s")},
-	{_SC("rep"),string_rep, 2, _SC("si")},
-	{_SC("tolower"),string_tolower,1, _SC("s")},
-	{_SC("toupper"),string_toupper,1, _SC("s")},
-	{_SC("weakref"),obj_delegate_weakref,1, NULL },
-	{_SC("getdelegate"),string_getdelegate,1, _SC(".")},
-	{_SC("strip"),string_strip,1, _SC("s")},
-	{_SC("trim"),string_strip,1, _SC("s")},
-	{_SC("lstrip"),string_lstrip,1, _SC("s")},
-	{_SC("ltrim"),string_lstrip,1, _SC("s")},
-	{_SC("rstrip"),string_rstrip,1, _SC("s")},
-	{_SC("rtrim"),string_rstrip,1, _SC("s")},
-	{_SC("split"),string_split,2, _SC("s i|s")},
-	{_SC("split_csv"),string_split_csv,2, _SC("si")},
-	{_SC("isempty"),string_isempty,1, _SC("s")},
-	{_SC("isspace"),string_isspace,2, _SC("si")},
-	{_SC("isprint"),string_isprint,2, _SC("si")},
-	{_SC("iscntrl"),string_iscntrl,2, _SC("si")},
-	{_SC("isalpha"),string_isalpha,2, _SC("si")},
-	{_SC("isalnum"),string_isalnum,2, _SC("si")},
-	{_SC("isdigit"),string_isdigit,2, _SC("si")},
-	{_SC("isxdigit"),string_isxdigit,2, _SC("si")},
-	{_SC("count_char"),string_count_char,2, _SC("si")},
-	{_SC("uchar"),string_uchar,2, _SC("si")},
-	{_SC("ushort"),string_ushort,2, _SC("si")},
-	{_SC("edit_distance"),string_edit_distance,-2, _SC("ssi")},
-	{_SC("mod_97_10"),string_mod_97_10,1, _SC("s")},
-	{_SC("iso88959_to_utf8"),string_iso88959_to_utf8,1, _SC("s")},
-	{_SC("isvalidutf8"),string_isvalidutf8,1, _SC("s")},
+	{_SC("len"),default_delegate_len,1, _SC("s"), false},
+	{_SC("size"),default_delegate_len,1, _SC("s"), false},
+	{_SC("tointeger"),default_delegate_tointeger,-1, _SC("sn"), false},
+	{_SC("tofloat"),default_delegate_tofloat,1, _SC("s"), false},
+	{_SC("tostring"),default_delegate_tostring,1, _SC("."), false},
+	{_SC("hash"),string_hash,1, _SC("s"), false},
+	{_SC("slice"),string_slice,-1, _SC(" s n  n"), false},
+	{_SC("substr"),string_substr,-2, _SC(" s n  n"), false},
+	{_SC("replace"),string_replace,-3, _SC("sssi"), false},
+	{_SC("find"),string_find,-2, _SC("s s n "), false},
+	{_SC("indexOf"),string_find,-2, _SC("s s n "), false},
+	{_SC("find_lua"),string_find_lua,-2, _SC("ss a|t|c n b n"), false},
+	{_SC("find_close_quote"),string_find_close_quote,-1, _SC("sni"), false},
+	{_SC("find_delimiter"),string_find_delimiter,4, _SC("siin"), false},
+	{_SC("strchr"),string_strchr,-2, _SC("sii"), false},
+	{_SC("strncmp"),string_strncmp,-3, _SC("sisi"), false},
+	{_SC("countchr"),string_countchr,2, _SC("si"), false},
+	{_SC("gsub"),string_gsub,-3, _SC("s s s|a|t|c n"), false},
+	{_SC("gmatch"),string_gmatch, -3, _SC("s s c n n"), false},
+	{_SC("match"), string_match, -2, _SC("s s n n"), false},
+	{_SC("startswith"),string_startswith, 2, _SC("ss"), false},
+	{_SC("endswith"),string_endswith, 2, _SC("ss"), false},
+	{_SC("reverse"),string_reverse, 1, _SC("s"), false},
+	{_SC("rep"),string_rep, 2, _SC("si"), false},
+	{_SC("tolower"),string_tolower,1, _SC("s"), false},
+	{_SC("toupper"),string_toupper,1, _SC("s"), false},
+	{_SC("weakref"),obj_delegate_weakref,1, NULL, false},
+	{_SC("getdelegate"),string_getdelegate,1, _SC("."), false},
+	{_SC("strip"),string_strip,1, _SC("s"), false},
+	{_SC("trim"),string_strip,1, _SC("s"), false},
+	{_SC("lstrip"),string_lstrip,1, _SC("s"), false},
+	{_SC("ltrim"),string_lstrip,1, _SC("s"), false},
+	{_SC("rstrip"),string_rstrip,1, _SC("s"), false},
+	{_SC("rtrim"),string_rstrip,1, _SC("s"), false},
+	{_SC("split"),string_split,2, _SC("s i|s"), false},
+	{_SC("split_csv"),string_split_csv,2, _SC("si"), false},
+	{_SC("isempty"),string_isempty,1, _SC("s"), false},
+	{_SC("isspace"),string_isspace,2, _SC("si"), false},
+	{_SC("isprint"),string_isprint,2, _SC("si"), false},
+	{_SC("iscntrl"),string_iscntrl,2, _SC("si"), false},
+	{_SC("isalpha"),string_isalpha,2, _SC("si"), false},
+	{_SC("isalnum"),string_isalnum,2, _SC("si"), false},
+	{_SC("isdigit"),string_isdigit,2, _SC("si"), false},
+	{_SC("isxdigit"),string_isxdigit,2, _SC("si"), false},
+	{_SC("islower"),string_islower,2, _SC("si"), false},
+	{_SC("isupper"),string_isupper,2, _SC("si"), false},
+	{_SC("count_char"),string_count_char,2, _SC("si"), false},
+	{_SC("uchar"),string_uchar,2, _SC("si"), false},
+	{_SC("ushort"),string_ushort,2, _SC("si"), false},
+	{_SC("edit_distance"),string_edit_distance,-2, _SC("ssi"), false},
+	{_SC("mod_97_10"),string_mod_97_10,1, _SC("s"), false},
+	{_SC("iso88959_to_utf8"),string_iso88959_to_utf8,1, _SC("s"), false},
+	{_SC("isvalidutf8"),string_isvalidutf8,1, _SC("s"), false},
 #ifdef SQ_SUBLATIN
-	{_SC("sl_len"),string_sl_len,1, _SC("s")},
-	{_SC("sl_lower"),string_sl_lower,1, _SC("s")},
-	{_SC("sl_upper"),string_sl_upper,1, _SC("s")},
-	{_SC("sl_deaccent"),string_sl_deaccent,1, _SC("s")},
-	{_SC("sl_lower_deaccent"),string_sl_lower_deaccent,1, _SC("s")},
-	{_SC("sl_icmp"),string_sl_icmp,2, _SC("ss")},
-	{_SC("sl_icmp_noaccents"),string_sl_icmp_noaccents,2, _SC("ss")},
-	{_SC("sl_cmp_noaccents"),string_sl_cmp_noaccents, 2, _SC("ss")},
-	{_SC("sl_like_cmp"),string_sl_like_cmp, -2, _SC("ssi")},
-	{_SC("sl_like_cmp_noaccents"),string_sl_like_cmp_noaccents, -2, _SC("ssi")},
+	{_SC("sl_len"),string_sl_len,1, _SC("s"), false},
+	{_SC("sl_lower"),string_sl_lower,1, _SC("s"), false},
+	{_SC("sl_upper"),string_sl_upper,1, _SC("s"), false},
+	{_SC("sl_deaccent"),string_sl_deaccent,1, _SC("s"), false},
+	{_SC("sl_lower_deaccent"),string_sl_lower_deaccent,1, _SC("s"), false},
+	{_SC("sl_icmp"),string_sl_icmp,2, _SC("ss"), false},
+	{_SC("sl_icmp_noaccents"),string_sl_icmp_noaccents,2, _SC("ss"), false},
+	{_SC("sl_cmp_noaccents"),string_sl_cmp_noaccents, 2, _SC("ss"), false},
+	{_SC("sl_like_cmp"),string_sl_like_cmp, -2, _SC("ssi"), false},
+	{_SC("sl_like_cmp_noaccents"),string_sl_like_cmp_noaccents, -2, _SC("ssi"), false},
 #endif
-	{NULL,(SQFUNCTION)0,0,NULL}
+	{NULL,(SQFUNCTION)0,0,NULL, false}
 };
 
 //NUMBER DEFAULT DELEGATE//////////////////////////
@@ -2582,13 +2586,13 @@ static SQRESULT number_getdelegate(HSQUIRRELVM v)
 }
 
 SQRegFunction SQSharedState::_number_default_delegate_funcz[]={
-	{_SC("tointeger"),default_delegate_tointeger,1, _SC("n|b")},
-	{_SC("tofloat"),default_delegate_tofloat,1, _SC("n|b")},
-	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
-	{_SC("tochar"),number_delegate_tochar,1, _SC("n|b")},
-	{_SC("weakref"),obj_delegate_weakref,1, NULL },
-	{_SC("getdelegate"),number_getdelegate,1, _SC(".")},
-	{NULL,(SQFUNCTION)0,0,NULL}
+	{_SC("tointeger"),default_delegate_tointeger,1, _SC("n|b"), false},
+	{_SC("tofloat"),default_delegate_tofloat,1, _SC("n|b"), false},
+	{_SC("tostring"),default_delegate_tostring,1, _SC("."), false},
+	{_SC("tochar"),number_delegate_tochar,1, _SC("n|b"), false},
+	{_SC("weakref"),obj_delegate_weakref,1, NULL, false},
+	{_SC("getdelegate"),number_getdelegate,1, _SC("."), false},
+	{NULL,(SQFUNCTION)0,0,NULL, false}
 };
 
 //CLOSURE DEFAULT DELEGATE//////////////////////////
@@ -2710,20 +2714,20 @@ static SQRESULT closure_getdelegate(HSQUIRRELVM v)
 
 
 SQRegFunction SQSharedState::_closure_default_delegate_funcz[]={
-	{_SC("call"),closure_call,-1, _SC("c")},
+	{_SC("call"),closure_call,-1, _SC("c"), false},
 	//pcall removed because it doesn't work as documented use try/catch instead
-	//{_SC("pcall"),closure_pcall,-1, _SC("c")},
-	{_SC("acall"),closure_acall,2, _SC("ca")},
-	{_SC("acall2"),closure_acall2,3, _SC("c.a")},
-	{_SC("pacall"),closure_pacall,2, _SC("ca")},
-	{_SC("weakref"),obj_delegate_weakref,1, NULL },
-	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
-	{_SC("bindenv"),closure_bindenv,2, _SC("c x|y|t|a")},
-	{_SC("setenv"),closure_setenv,2, _SC("c x|y|t")},
-	{_SC("getenv"),closure_getenv,1, _SC("c")},
-	{_SC("getinfos"),closure_getinfos,1, _SC("c")},
-	{_SC("getdelegate"),closure_getdelegate,1, _SC(".")},
-	{NULL,(SQFUNCTION)0,0,NULL}
+	//{_SC("pcall"),closure_pcall,-1, _SC("c"), false},
+	{_SC("acall"),closure_acall,2, _SC("ca"), false},
+	{_SC("acall2"),closure_acall2,3, _SC("c.a"), false},
+	{_SC("pacall"),closure_pacall,2, _SC("ca"), false},
+	{_SC("weakref"),obj_delegate_weakref,1, NULL, false},
+	{_SC("tostring"),default_delegate_tostring,1, _SC("."), false},
+	{_SC("bindenv"),closure_bindenv,2, _SC("c x|y|t|a"), false},
+	{_SC("setenv"),closure_setenv,2, _SC("c x|y|t"), false},
+	{_SC("getenv"),closure_getenv,1, _SC("c"), false},
+	{_SC("getinfos"),closure_getinfos,1, _SC("c"), false},
+	{_SC("getdelegate"),closure_getdelegate,1, _SC("."), false},
+	{NULL,(SQFUNCTION)0,0,NULL, false}
 };
 
 //GENERATOR DEFAULT DELEGATE
@@ -2745,11 +2749,11 @@ static SQRESULT generator_getdelegate(HSQUIRRELVM v)
 }
 
 SQRegFunction SQSharedState::_generator_default_delegate_funcz[]={
-	{_SC("getstatus"),generator_getstatus,1, _SC("g")},
-	{_SC("weakref"),obj_delegate_weakref,1, NULL },
-	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
-	{_SC("getdelegate"),generator_getdelegate,1, _SC(".")},
-	{NULL,(SQFUNCTION)0,0,NULL}
+	{_SC("getstatus"),generator_getstatus,1, _SC("g"), false},
+	{_SC("weakref"),obj_delegate_weakref,1, NULL, false},
+	{_SC("tostring"),default_delegate_tostring,1, _SC("."), false},
+	{_SC("getdelegate"),generator_getdelegate,1, _SC("."), false},
+	{NULL,(SQFUNCTION)0,0,NULL, false}
 };
 
 //THREAD DEFAULT DELEGATE
@@ -2782,10 +2786,8 @@ static SQRESULT thread_wakeup(HSQUIRRELVM v)
 			switch(state) {
 				case SQ_VMSTATE_IDLE:
 					return sq_throwerror(v,_SC("cannot wakeup a idle thread"));
-				break;
 				case SQ_VMSTATE_RUNNING:
 					return sq_throwerror(v,_SC("cannot wakeup a running thread"));
-				break;
 			}
 		}
 
@@ -2840,7 +2842,7 @@ static SQRESULT thread_getstackinfos(HSQUIRRELVM v)
 		{
 			sq_settop(thread,threadtop);
 			if(sq_type(thread->_lasterror) == OT_STRING) {
-				sq_throwerror(v,_stringval(thread->_lasterror));
+				sq_throwerror(v,_SC("%s"),_stringval(thread->_lasterror));
 			}
 			else {
 				sq_throwerror(v,_SC("unknown error"));
@@ -2868,14 +2870,14 @@ static SQRESULT thread_getdelegate(HSQUIRRELVM v)
 
 
 SQRegFunction SQSharedState::_thread_default_delegate_funcz[] = {
-	{_SC("call"), thread_call, -1, _SC("v")},
-	{_SC("wakeup"), thread_wakeup, -1, _SC("v")},
-	{_SC("getstatus"), thread_getstatus, 1, _SC("v")},
-	{_SC("weakref"),obj_delegate_weakref,1, NULL },
-	{_SC("getstackinfos"),thread_getstackinfos,2, _SC("vn")},
-	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
-	{_SC("getdelegate"),thread_getdelegate,1, _SC(".")},
-	{NULL,(SQFUNCTION)0,0,NULL},
+	{_SC("call"), thread_call, -1, _SC("v"), false},
+	{_SC("wakeup"), thread_wakeup, -1, _SC("v"), false},
+	{_SC("getstatus"), thread_getstatus, 1, _SC("v"), false},
+	{_SC("weakref"),obj_delegate_weakref,1, NULL, false},
+	{_SC("getstackinfos"),thread_getstackinfos,2, _SC("vn"), false},
+	{_SC("tostring"),default_delegate_tostring,1, _SC("."), false},
+	{_SC("getdelegate"),thread_getdelegate,1, _SC("."), false},
+	{NULL,(SQFUNCTION)0,0,NULL,false},
 };
 
 static SQRESULT class_getattributes(HSQUIRRELVM v)
@@ -2936,20 +2938,20 @@ static SQRESULT class_getdelegate(HSQUIRRELVM v)
 }
 
 SQRegFunction SQSharedState::_class_default_delegate_funcz[] = {
-	{_SC("getattributes"), class_getattributes, 2, _SC("y.")},
-	{_SC("setattributes"), class_setattributes, 3, _SC("y..")},
-	{_SC("get"),container_get,-2, _SC("y")},
-	{_SC("rawget"),container_rawget,-2, _SC("y")},
-	{_SC("rawset"),container_rawset,3, _SC("y")},
-	{_SC("rawin"),container_rawexists,2, _SC("y")},
-	{_SC("weakref"),obj_delegate_weakref,1, NULL },
-	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
-	{_SC("instance"),class_instance,1, _SC("y")},
-	{_SC("getbase"),class_getbase,1, _SC("y")},
-	{_SC("newmember"),class_newmember,-3, _SC("y")},
-	{_SC("rawnewmember"),class_rawnewmember,-3, _SC("y")},
-	{_SC("getdelegate"),class_getdelegate,1, _SC(".")},
-	{NULL,(SQFUNCTION)0,0,NULL}
+	{_SC("getattributes"), class_getattributes, 2, _SC("y."), false},
+	{_SC("setattributes"), class_setattributes, 3, _SC("y.."), false},
+	{_SC("get"),container_get,-2, _SC("y"), false},
+	{_SC("rawget"),container_rawget,-2, _SC("y"), false},
+	{_SC("rawset"),container_rawset,3, _SC("y"), false},
+	{_SC("rawin"),container_rawexists,2, _SC("y"), false},
+	{_SC("weakref"),obj_delegate_weakref,1, NULL, false},
+	{_SC("tostring"),default_delegate_tostring,1, _SC("."), false},
+	{_SC("instance"),class_instance,1, _SC("y"), false},
+	{_SC("getbase"),class_getbase,1, _SC("y"), false},
+	{_SC("newmember"),class_newmember,-3, _SC("y"), false},
+	{_SC("rawnewmember"),class_rawnewmember,-3, _SC("y"), false},
+	{_SC("getdelegate"),class_getdelegate,1, _SC("."), false},
+	{NULL,(SQFUNCTION)0,0,NULL, false}
 };
 
 
@@ -2966,15 +2968,15 @@ static SQRESULT instance_getdelegate(HSQUIRRELVM v)
 }
 
 SQRegFunction SQSharedState::_instance_default_delegate_funcz[] = {
-	{_SC("getclass"), instance_getclass, 1, _SC("x")},
-	{_SC("get"),container_get,-2, _SC("x")},
-	{_SC("rawget"),container_rawget,-2, _SC("x")},
-	{_SC("rawset"),container_rawset,3, _SC("x")},
-	{_SC("rawin"),container_rawexists,2, _SC("x")},
-	{_SC("weakref"),obj_delegate_weakref,1, NULL },
-	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
-	{_SC("getdelegate"),instance_getdelegate,1, _SC(".")},
-	{NULL,(SQFUNCTION)0,0,NULL}
+	{_SC("getclass"), instance_getclass, 1, _SC("x"), false},
+	{_SC("get"),container_get,-2, _SC("x"), false},
+	{_SC("rawget"),container_rawget,-2, _SC("x"), false},
+	{_SC("rawset"),container_rawset,3, _SC("x"), false},
+	{_SC("rawin"),container_rawexists,2, _SC("x"), false},
+	{_SC("weakref"),obj_delegate_weakref,1, NULL, false},
+	{_SC("tostring"),default_delegate_tostring,1, _SC("."), false},
+	{_SC("getdelegate"),instance_getdelegate,1, _SC("."), false},
+	{NULL,(SQFUNCTION)0,0,NULL, false}
 };
 
 static SQRESULT weakref_ref(HSQUIRRELVM v)
@@ -2990,11 +2992,11 @@ static SQRESULT weakref_getdelegate(HSQUIRRELVM v)
 }
 
 SQRegFunction SQSharedState::_weakref_default_delegate_funcz[] = {
-	{_SC("ref"),weakref_ref,1, _SC("r")},
-	{_SC("weakref"),obj_delegate_weakref,1, NULL },
-	{_SC("tostring"),default_delegate_tostring,1, _SC(".")},
-	{_SC("getdelegate"),weakref_getdelegate,1, _SC(".")},
-	{NULL,(SQFUNCTION)0,0,NULL}
+	{_SC("ref"),weakref_ref,1, _SC("r"), false},
+	{_SC("weakref"),obj_delegate_weakref,1, NULL, false},
+	{_SC("tostring"),default_delegate_tostring,1, _SC("."), false},
+	{_SC("getdelegate"),weakref_getdelegate,1, _SC("."), false},
+	{NULL,(SQFUNCTION)0,0,NULL,false}
 };
 
 
