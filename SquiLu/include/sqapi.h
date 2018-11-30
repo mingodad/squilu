@@ -69,7 +69,7 @@ SQUIRREL_API_FUNC(SQRESULT, bindenv, (HSQUIRRELVM v,SQInteger idx))
 SQUIRREL_API_FUNC(SQRESULT, setclosureroot, (HSQUIRRELVM v,SQInteger idx))
 SQUIRREL_API_FUNC(SQRESULT, getclosureroot, (HSQUIRRELVM v,SQInteger idx))
 SQUIRREL_API_FUNC(void, pushstring, (HSQUIRRELVM v,const SQChar *s,SQInteger len))
-SQUIRREL_API_FUNC(void, pushfstring, (HSQUIRRELVM v,const SQChar *fmt, ...))
+SQUIRREL_API_FUNC(void, pushfstring, (HSQUIRRELVM v,const SQChar *fmt, ...) __attribute__ ((__format__ (__printf__, 2, 3))))
 SQUIRREL_API_FUNC(void, pushfloat, (HSQUIRRELVM v,SQFloat f))
 SQUIRREL_API_FUNC(void, pushinteger, (HSQUIRRELVM v,SQInteger n))
 SQUIRREL_API_FUNC(void, pushbool, (HSQUIRRELVM v,SQBool b))
@@ -176,12 +176,12 @@ SQUIRREL_API_FUNC(SQRESULT, call, (HSQUIRRELVM v,SQInteger params,SQBool retval,
 SQUIRREL_API_FUNC(SQRESULT, call_va_vl, (HSQUIRRELVM v, SQBool reset_stack, SQInteger idx, const SQChar *func,
                                     SQInteger idx_this, const SQChar *sig, va_list vl))
 SQUIRREL_API_FUNC(SQRESULT, call_va, (HSQUIRRELVM v, SQBool reset_stack, SQInteger idx, const SQChar *func,
-                                 SQInteger idx_this, const SQChar *sig, ...))
+                                 SQInteger idx_this, const SQChar *sig, ...) __attribute__ ((__format__ (__printf__, 6, 7))))
 SQUIRREL_API_FUNC(SQRESULT, resume, (HSQUIRRELVM v,SQBool retval,SQBool raiseerror))
 SQUIRREL_API_FUNC(const SQChar*, getlocal, (HSQUIRRELVM v,SQUnsignedInteger level,SQUnsignedInteger idx))
 SQUIRREL_API_FUNC(SQRESULT, getcallee, (HSQUIRRELVM v))
 SQUIRREL_API_FUNC(const SQChar*, getfreevariable, (HSQUIRRELVM v,SQInteger idx,SQUnsignedInteger nval))
-SQUIRREL_API_FUNC(SQRESULT, throwerror, (HSQUIRRELVM v,const SQChar *fmt, ...))
+SQUIRREL_API_FUNC(SQRESULT, throwerror, (HSQUIRRELVM v,const SQChar *fmt, ...) __attribute__ ((__format__ (__printf__, 2, 3))))
 SQUIRREL_API_FUNC(SQRESULT, throwobject, (HSQUIRRELVM v))
 SQUIRREL_API_FUNC(void, reseterror, (HSQUIRRELVM v))
 SQUIRREL_API_FUNC(void, getlasterror, (HSQUIRRELVM v))
@@ -225,3 +225,9 @@ SQUIRREL_API_FUNC(void, setdebughook, (HSQUIRRELVM v))
 SQUIRREL_API_FUNC(void, setnativedebughook, (HSQUIRRELVM v,SQDEBUGHOOK hook))
 SQUIRREL_API_FUNC(SQInteger, getfulltop, (HSQUIRRELVM v))
 SQUIRREL_API_FUNC(void, getlaststackinfo, (HSQUIRRELVM v))
+
+#ifdef SQ_DEBUG_MEMORY
+extern int _sq_total_malloc;
+extern int _sq_total_realloc;
+extern int _sq_total_free;
+#endif
