@@ -226,10 +226,10 @@ static PQconnectdb_t dlPQconnectdb = 0;
 
 static const char *dynamicLibName = DYNLIB_FOR_OS(libpq);
 
-static bool load_libpq()
+static bool load_libpq(const char *libname)
 {
     if(dlPQconnectdb) return true;
-    if(libpq.open(dynamicLibName))
+    if(libpq.open(libname))
     {
         //@write_pgsql_functions_load();
 // generated-code:begin
@@ -481,7 +481,7 @@ static SQRESULT sq_pgsql_result_row_as_array(HSQUIRRELVM v){
         }
     }
     int row_count = dlPQntuples(self);
-    if(row < 0 || row >= row_count) return sq_throwerror(v, _SC("invalid row (%d)"), row);
+    if(row < 0 || row >= row_count) return sq_throwerror(v, _SC("invalid row (" _PRINT_INT_FMT ")"), row);
 
     int col_count = dlPQnfields(self);
     sq_newarray(v, col_count);
@@ -797,7 +797,7 @@ static SQRESULT sq_pgsql_statement_exec(HSQUIRRELVM v, int exec_type){
                 self->param_sizes[i] = (int)sq_getsize(v, -1);
                 break;
             default:
-                result = sq_throwerror(v, _SC("Unknow parameter type at pos %d"), i);
+                result = sq_throwerror(v, _SC("Unknow parameter type at pos %d"), (int)i);
                 goto cleanup;
             }
         }
@@ -848,7 +848,7 @@ static SQRESULT sq_pgsql_statement_exec(HSQUIRRELVM v, int exec_type){
     {
         dlPQclear(qres);
         //sq_settop(v, _top_);
-        result = sq_throwerror(v, dlPQerrorMessage(self->db));
+        result = sq_throwerror(v, _SC("%s"), dlPQerrorMessage(self->db));
     }
 cleanup:
 	return result;
@@ -890,7 +890,7 @@ static SQRESULT sq_pgsql_constructor(HSQUIRRELVM v)
     SQ_GET_STRING(v, 2, szConnInfo);
     PGconn *self=0;
 
-    if(load_libpq())
+    if(load_libpq(dynamicLibName))
     {
         self = dlPQconnectdb(szConnInfo);
         if (dlPQstatus(self) == CONNECTION_BAD) return sq_throwerror(v, _SC("Failed to connect ot database !"));
@@ -958,7 +958,7 @@ static SQRESULT sq_pgsql_exec_dml(HSQUIRRELVM v){
     if (is_ok) result = atoi(dlPQcmdTuples(qres));
     dlPQclear(qres);
 
-    if (!is_ok) return sq_throwerror(v, dlPQerrorMessage(self));
+    if (!is_ok) return sq_throwerror(v, _SC("%s"), dlPQerrorMessage(self));
 
     sq_pushinteger(v, result);
 	return 1;
@@ -978,7 +978,7 @@ static SQRESULT sq_pgsql_exec_scalar(HSQUIRRELVM v){
     if (is_ok) result = atoi(dlPQgetvalue(qres, 0, 0));
     dlPQclear(qres);
 
-    if (!is_ok) return sq_throwerror(v, dlPQerrorMessage(self));
+    if (!is_ok) return sq_throwerror(v, _SC("%s"), dlPQerrorMessage(self));
 
     sq_pushinteger(v, result);
 	return 1;
@@ -1005,7 +1005,7 @@ static SQRESULT sq_pgsql_exec_query(HSQUIRRELVM v){
             }
         }
     }
-    return sq_throwerror(v, dlPQerrorMessage(self));
+    return sq_throwerror(v, _SC("%s"), dlPQerrorMessage(self));
 }
 
 static SQRESULT sq_pgsql_do_prepare(HSQUIRRELVM v, int isGetPrepared){
@@ -1054,7 +1054,7 @@ static SQRESULT sq_pgsql_do_prepare(HSQUIRRELVM v, int isGetPrepared){
         }
     }
     sq_free(stmt, sizeof(PgSqlStatement));
-    return sq_throwerror(v, dlPQerrorMessage(self));
+    return sq_throwerror(v, _SC("%s"), dlPQerrorMessage(self));
 }
 
 static SQRESULT sq_pgsql_prepare(HSQUIRRELVM v){
@@ -1244,6 +1244,14 @@ static SQRESULT sq_pgsql_unescape_bytea(HSQUIRRELVM v){
 	return sq_throwerror(v, _SC("could not allocate unescaped bytea"));
 }
 
+static SQRESULT sq_pgsql_loadlib(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS(v);
+    SQ_OPT_STRING(v, 2, libname, dynamicLibName);
+    sq_pushbool(v, load_libpq(libname));
+	return 1;
+}
+
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_pgsql_##name,nparams,tycheck}
 static SQRegFunction sq_pgsql_methods[] =
 {
@@ -1264,6 +1272,7 @@ static SQRegFunction sq_pgsql_methods[] =
 	_DECL_FUNC(escape_string,  2, _SC("xs")),
 	_DECL_FUNC(escape_bytea,  2, _SC("xs")),
 	_DECL_FUNC(unescape_bytea,  2, _SC("xs")),
+	_DECL_FUNC(loadlib,-1,_SC(".s")),
 	{0,0}
 };
 #undef _DECL_FUNC
