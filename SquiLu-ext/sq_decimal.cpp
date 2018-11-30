@@ -29,7 +29,7 @@ static SQRESULT sq_DecimalCtx_constructor (HSQUIRRELVM v) {
     SQ_FUNC_VARS(v);
     GET_DecimalCtx_INSTANCE(v, 1);
     SQ_OPT_INTEGER(v, 2, prec, 8);
-    if(prec < 0) return sq_throwerror(v, _SC("invalid precision (%d)"), prec);
+    if(prec < 0) return sq_throwerror(v, _SC("invalid precision (" _PRINT_INT_FMT ")"), prec);
     ctx = (mpd_context_t *)sq_malloc(sizeof(mpd_context_t));
     mpd_init(ctx, prec);
     sq_setinstanceup(v, 1, ctx);
@@ -44,7 +44,7 @@ static SQRESULT sq_DecimalCtx_##sqfn(HSQUIRRELVM v)\
     GET_DecimalCtx_INSTANCE(v, 1);\
     if(_top_ > 1){\
         SQ_GET_INTEGER(v, 2, sqfn);\
-        if(sqfn < 0) return sq_throwerror(v, _SC("invalid " #sqfn " (%d)"), sqfn);\
+        if(sqfn < 0) return sq_throwerror(v, _SC("invalid " #sqfn));\
         mpd_qset##sqfn(ctx, sqfn);\
         return 0;\
     }\
@@ -109,7 +109,7 @@ static SQRESULT sq_Decimal_error(HSQUIRRELVM v, uint32_t status) {
         CASE_ERROR(MPD_Underflow);
     }
 #undef CASE_ERROR
-    return sq_throwerror(v, error);
+    return sq_throwerror(v, _SC("%s"), error);
 }
 
 static SQRESULT sq_Decimal_set_from(HSQUIRRELVM v, SQInteger idx, mpd_context_t *ctx, mpd_t *dec, uint32_t *status){
