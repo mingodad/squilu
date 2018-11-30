@@ -436,6 +436,7 @@ static const SQChar *sqstd_rex_matchnode(SQRex* exp,SQRexNode *node,const SQChar
 			{
 			    while_nmatches++;
 			    s = last_match;
+			    if(greedystop && (greedystop->type == *s)) break;
 			    if(while_nmatches == p1) break;
 			}
 			if(!while_nmatches) break;
