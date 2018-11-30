@@ -43,7 +43,7 @@ public:
 		if(v._size > _allocated) {
 			_realloc(v._size);
 		}
-		for(SQUnsignedInteger i = 0; i < v._size; i++) {
+		for(SQSizeType i = 0; i < v._size; i++) {
 			new ((void *)&_vals[i]) T(v._vals[i]);
 		}
 		_size = v._size;
@@ -51,13 +51,13 @@ public:
 	~sqvector()
 	{
 		if(_allocated) {
-			for(SQUnsignedInteger i = 0; i < _size; i++)
+			for(SQSizeType i = 0; i < _size; i++)
 				_vals[i].~T();
 			SQ_FREE(_vals, (_allocated * sizeof(T)));
 		}
 	}
-	void reserve(SQUnsignedInteger newsize) { _realloc(newsize); }
-	void resize(SQUnsignedInteger newsize, const T& fill = T())
+	void reserve(SQSizeType newsize) { _realloc(newsize); }
+	void resize(SQSizeType newsize, const T& fill = T())
 	{
 		if(newsize > _allocated)
 			_realloc(newsize);
@@ -76,8 +76,8 @@ public:
 	}
 	void shrinktofit() { if(_size > 4) { _realloc(_size); } }
 	T& top() const { return _vals[_size - 1]; }
-	inline SQUnsignedInteger size() const { return _size; }
-	inline SQUnsignedInteger sizeOf() const { return sizeof(T); }
+	inline SQSizeType size() const { return _size; }
+	inline SQSizeType sizeOf() const { return sizeof(T); }
 	bool empty() const { return (_size <= 0); }
 	inline T &push_back(const T& val = T())
 	{
@@ -89,17 +89,17 @@ public:
 	{
 		_size--; _vals[_size].~T();
 	}
-	bool insert(SQUnsignedInteger idx, const T& val)
+	bool insert(SQSizeType idx, const T& val)
 	{
 	    if(idx > _size) return false;
 		resize(_size + 1);
-		for(SQUnsignedInteger i = _size - 1; i > idx; i--) {
+		for(SQSizeType i = _size - 1; i > idx; i--) {
 			_vals[i] = _vals[i - 1];
 		}
     	_vals[idx] = val;
     	return true;
 	}
-	bool remove(SQUnsignedInteger idx)
+	bool remove(SQSizeType idx)
 	{
 	    if(idx < _size){
             _vals[idx].~T();
@@ -111,39 +111,39 @@ public:
 	    }
 		return false;
 	}
-	void removeFromBegining(SQUnsignedInteger count)
+	void removeFromBegining(SQSizeType count)
 	{
 	    if(count <= _size){
-	        for(SQUnsignedInteger i=0; i < count; ++i) _vals[i].~T();
+	        for(SQSizeType i=0; i < count; ++i) _vals[i].~T();
             if(count < (_size - 1)) {
                 memmove(&_vals[0], &_vals[count], sizeof(T) * (_size - count));
             }
             _size -= count;
 	    }
 	}
-	SQUnsignedInteger capacity() { return _allocated; }
+	SQSizeType capacity() { return _allocated; }
 	inline T &back() const { return _vals[_size - 1]; }
-	inline T get(SQUnsignedInteger pos) const{ return _vals[pos]; }
-	inline void set(SQUnsignedInteger pos, T val) const{ _vals[pos] = val; }
-	inline T& operator[](SQUnsignedInteger pos) const{ return _vals[pos]; }
+	inline T get(SQSizeType pos) const{ return _vals[pos]; }
+	inline void set(SQSizeType pos, T val) const{ _vals[pos] = val; }
+	inline T& operator[](SQSizeType pos) const{ return _vals[pos]; }
 	T* _vals;
 private:
-	void _realloc(SQUnsignedInteger newsize)
+	void _realloc(SQSizeType newsize)
 	{
 		newsize = (newsize > 0)?newsize:4;
 		_vals = (T*)SQ_REALLOC(_vals, _allocated * sizeof(T), newsize * sizeof(T));
 		_allocated = newsize;
 	}
-	SQUnsignedInteger _size;
-	SQUnsignedInteger _allocated;
+	SQSizeType _size;
+	SQSizeType _allocated;
 };
 
 class SQCharBuf : public sqvector<char>
 {
 public:
-    void append(const char *p, size_t count)
+    void append(const char *p, SQSizeType count)
     {
-        size_t old_size = size();
+        SQSizeType old_size = size();
         resize(old_size + count);
         memcpy(_vals+old_size, p, count);
     }
