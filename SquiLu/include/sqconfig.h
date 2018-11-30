@@ -8,11 +8,15 @@ typedef uintptr_t SQHash; /*should be the same size of a pointer*/
 typedef float SQFloat32;
 typedef double SQFloat64;
 typedef long long SQInt64;
+typedef unsigned long long SQUInt64;
 typedef int SQInt32; /*must be 32 bits(also on 64bits processors)*/
+typedef unsigned int SQUInt32; /*must be 32 bits(also on 64bits processors)*/
 typedef unsigned int SQUnsignedInteger32; /*must be 32 bits(also on 64bits processors)*/
 typedef short SQInt16;
+typedef unsigned short SQUInt16;
 typedef unsigned short SQUnsignedInt16;
 typedef char SQInt8;
+typedef unsigned char SQUInt8;
 
 #ifdef _SQ64
 
@@ -71,9 +75,11 @@ typedef SQUnsignedInteger SQRawObjectVal; //is 32 bits on 32 bits builds and 64 
 #endif
 #endif
 
+typedef SQUnsignedInteger SQSizeType;
 typedef void* SQUserPointer;
-typedef SQUnsignedInteger SQBool;
+typedef SQInteger SQBool;
 typedef SQInteger SQRESULT;
+typedef SQUnsignedInteger SQUInteger;
 
 #ifdef SQUNICODE
 #include <wchar.h>
