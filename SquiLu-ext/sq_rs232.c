@@ -83,13 +83,13 @@ static SQRESULT sq_rs232_open(HSQUIRRELVM v){
 	SQ_GET_STRING(v, 2, device);
 	if(self != NULL) sq_throwerror(v, _SC("rs232 already opened"));
 	self = rs232_init();
-	if(self == NULL) sq_throwerror(v, rs232_strerror(RS232_ERR_CONFIG));
+	if(self == NULL) sq_throwerror(v, _SC("%s"), rs232_strerror(RS232_ERR_CONFIG));
 	rs232_set_device(self, (char*)device);
 	int ret = rs232_open(self);
     if (ret > RS232_ERR_NOERROR) {
 		free(self->pt);
 		free(self);
-		return sq_throwerror(v, rs232_strerror(ret));
+		return sq_throwerror(v, _SC("%s"), rs232_strerror(ret));
 	}
     sq_setinstanceup(v, 1, self);
 	return 0;
@@ -127,7 +127,7 @@ static SQRESULT sq_rs232_read(HSQUIRRELVM v){
         }
 		break;
 	default:
-		return sq_throwerror(v, _SC("wrong number of parameters %d"), _top_-1);
+		return sq_throwerror(v, _SC("wrong number of parameters " _PRINT_INT_FMT), _top_-1);
 	}
 
 	DBG("rc=%d hex='%s' bytes_read=%d\n",
@@ -155,10 +155,10 @@ static SQRESULT sq_rs232_write(HSQUIRRELVM v){
         }
 		break;
 	default:
-		return sq_throwerror(v, _SC("wrong number of parameters %d"), _top_-1);
+		return sq_throwerror(v, _SC("wrong number of parameters " _PRINT_INT_FMT), _top_-1);
 	}
 
-    if(_rc_ > RS232_ERR_NOERROR) return sq_throwerror(v, rs232_strerror(_rc_));
+    if(_rc_ > RS232_ERR_NOERROR) return sq_throwerror(v, _SC("%s"), rs232_strerror(_rc_));
     sq_pushinteger(v, wlen);
 	return 1;
 }
@@ -168,7 +168,7 @@ static SQRESULT sq_rs232_in_queue(HSQUIRRELVM v){
 	GET_sq_rs232_INSTANCE(v, 1);
 	unsigned int in_bytes;
 	int rc = rs232_in_queue(self, &in_bytes);
-    if(rc > RS232_ERR_NOERROR) return sq_throwerror(v, rs232_strerror(rc));
+    if(rc > RS232_ERR_NOERROR) return sq_throwerror(v, _SC("%s"), rs232_strerror(rc));
 	sq_pushinteger(v, in_bytes);
 	return 1;
 }
