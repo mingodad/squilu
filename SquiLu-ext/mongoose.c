@@ -3581,7 +3581,7 @@ void mg_handle_cgi_request(struct mg_connection *conn, const char *prog) {
                                    (size_t)(data_len - headers_len));
 
   // Read the rest of CGI output and send to the client
-  send_file_data(conn, out, INT64_MAX);
+  send_file_data(conn, out, LONG_MAX);
 
 done:
   if (pid != (pid_t) -1) {
@@ -3730,7 +3730,7 @@ static void do_ssi_exec(struct mg_connection *conn, char *tag) {
   } else if ((fp = popen(cmd, "r")) == NULL) {
     cry(conn, "Cannot SSI #exec: [%s]: %s", cmd, strerror(ERRNO));
   } else {
-    send_file_data(conn, fp, INT64_MAX);
+    send_file_data(conn, fp, LONG_MAX);
     (void) pclose(fp);
   }
 }
