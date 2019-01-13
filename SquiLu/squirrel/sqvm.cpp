@@ -112,7 +112,7 @@ bool SQVM::ARITH_OP(SQUnsignedInteger op,SQObjectPtr &trg,const SQObjectPtr &o1,
 			trg = res; }
 			break;
 		default:
-			if(op == '+' &&	(tmask & _RT_STRING)){
+			if(op == '+' && (tmask & _RT_STRING) && !(tmask & _RT_INSTANCE)){
 				if(!StringCat(o1, o2, trg)) return false;
 			}
 			else if(!ArithMetaMethod(op,o1,o2,trg)) {
