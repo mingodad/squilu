@@ -634,6 +634,7 @@ SQRESULT sqext_register_numarray (HSQUIRRELVM v);
 SQRESULT sqext_register_fann (HSQUIRRELVM v);
 SQRESULT sqext_register_numarray (HSQUIRRELVM v);
 SQRESULT sqext_register_Snowball (HSQUIRRELVM v);
+SQRESULT sqext_register_sq_spawnx(HSQUIRRELVM v);
 
 static sq_modules_preload_st modules_preload[] = {
     {"blob", sqstd_register_bloblib},
@@ -685,6 +686,9 @@ static sq_modules_preload_st modules_preload[] = {
 #ifdef SQ_USE_BLOSC
     {"blosc", sqext_register_sq_blosc},
 #endif // SQ_USE_BLOSC
+#ifdef SQ_USE_SPAWNX
+    {"sqspawnx", sqext_register_sq_spawnx},
+#endif // SQ_USE_SPAWNX
 #ifdef SQ_USE_LAPACK
     {"lapack", sqext_register_lapack},
 #endif // SQ_USE_LAPACK
