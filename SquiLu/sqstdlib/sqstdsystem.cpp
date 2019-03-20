@@ -59,6 +59,24 @@ static SQRESULT _system_getenv(HSQUIRRELVM v)
 	return 0;
 }
 
+#ifdef _WIN32
+#define setenv(k, v, o) !SetEnvironmentVariable(k, v)
+#define unsetenv(k) !SetEnvironmentVariable(k, NULL)
+#endif
+static SQRESULT _system_setenv(HSQUIRRELVM v)
+{
+	const SQChar *key, *value;
+	SQBool rc = SQFalse;
+	if(SQ_SUCCEEDED(sq_getstring(v,2,&key)) ) {
+		if((sq_gettop(v) > 2) && SQ_SUCCEEDED(sq_getstring(v,3,&value))){
+			rc = !setenv(key, value, 1);
+		}
+		else rc = !unsetenv(key);
+	}
+	sq_pushbool(v, rc);
+	return 1;
+}
+
 static SQRESULT _system_system(HSQUIRRELVM v)
 {
 	const SQChar *s;
@@ -617,6 +635,7 @@ static SQRESULT _system_raise(HSQUIRRELVM v)
 #define _DECL_FUNC(name,nparams,pmask) {_SC(#name),_system_##name,nparams,pmask,false}
 static SQRegFunction systemlib_funcs[]={
 	_DECL_FUNC(getenv,2,_SC(".s")),
+	_DECL_FUNC(setenv,-2,_SC(".ss")),
 	_DECL_FUNC(system,2,_SC(".s")),
 	_DECL_FUNC(clock,0,NULL),
 	_DECL_FUNC(remove,2,_SC(".s")),
