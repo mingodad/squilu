@@ -589,8 +589,19 @@ static SQRESULT bf_table_create(HSQUIRRELVM v)
 	return 1;
 }
 
+#ifdef SQ_DEBUG_MEMORY
+static SQRESULT base_getdebugmemory(HSQUIRRELVM v)
+{
+    sq_pushfstring(v, "tm=%d, tr=%d, tf=%d", _sq_total_malloc, _sq_total_realloc, _sq_total_free);
+	return 1;
+}
+#endif
+
 static SQRegFunction base_funcs[]={
 	//generic
+#ifdef SQ_DEBUG_MEMORY
+	{_SC("getdebugmemory"),base_getdebugmemory,1, _SC("."), false},
+#endif
 	{_SC("setatexithandler"),base_setatexithandler,2, _SC(".c"), false},
 	{_SC("getatexithandler"),base_getatexithandler,1, NULL, false},
 	{_SC("seterrorhandler"),base_seterrorhandler,2, _SC(".c"), false},
@@ -2122,6 +2133,56 @@ static SQRESULT string_isvalidutf8(HSQUIRRELVM v) {
     return 1;
 }
 
+//adapted from https://www.techiedelight.com/longest-common-substring-problem/
+static const SQChar * cstrLCS(const SQChar *X, const SQChar *Y, SQInteger X_sz, SQInteger Y_sz, SQInteger *result_sz)
+{
+	SQInteger maxlen = 0;			// stores the max length of LCS
+	SQInteger endingIndex = 0;	// stores the ending index of LCS in X
+	SQInteger m = X_sz;
+	SQInteger n = Y_sz;
+
+	// lookup[i][j] stores the length of LCS of substring
+	// X[0..i-1], Y[0..j-1]
+	int lookup[m + 1][n + 1];
+
+	// initialize all cells of lookup table to 0
+	memset(lookup, 0, sizeof(lookup));
+
+	// fill the lookup table in bottom-up manner
+	for (SQInteger i = 1; i <= m; ++i)
+	{
+		for (SQInteger j = 1; j <= n; ++j)
+		{
+			// if current character of X and Y matches
+			if (X[i - 1] == Y[j - 1])
+			{
+				lookup[i][j] = lookup[i - 1][j - 1] + 1;
+
+				// update the maximum length and ending index
+				if (lookup[i][j] > maxlen)
+				{
+					maxlen = lookup[i][j];
+					endingIndex = i;
+				}
+			}
+		}
+	}
+
+	// return Longest common substring having length maxlen
+	*result_sz = maxlen;
+	return X+(endingIndex - maxlen);
+}
+
+static SQRESULT string_longestcommonsubstr(HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, strX);
+    SQ_GET_STRING(v, 2, strY);
+    SQInteger result_sz;
+    const SQChar *result = cstrLCS(strX, strY, strX_size, strY_size, &result_sz);
+    sq_pushstring(v, result, result_sz);
+    return 1;
+}
+
 //DAD end
 
 static void __strip_l(const SQChar *str,const SQChar **start)
@@ -2564,6 +2625,8 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("mod_97_10"),string_mod_97_10,1, _SC("s"), false},
 	{_SC("iso88959_to_utf8"),string_iso88959_to_utf8,1, _SC("s"), false},
 	{_SC("isvalidutf8"),string_isvalidutf8,1, _SC("s"), false},
+	{_SC("longestcommonsubstr"),string_longestcommonsubstr,2, _SC("ss"), false},
+	
 #ifdef SQ_SUBLATIN
 	{_SC("sl_len"),string_sl_len,1, _SC("s"), false},
 	{_SC("sl_lower"),string_sl_lower,1, _SC("s"), false},
@@ -2691,7 +2754,7 @@ static SQRESULT closure_getinfos(HSQUIRRELVM v) {
 		SQNativeClosure *nc = _nativeclosure(o);
 		res->NewSlot(SQString::Create(_ss(v),_SC("native"),-1),true);
 		res->NewSlot(SQString::Create(_ss(v),_SC("name"),-1),nc->_name);
-		res->NewSlot(SQString::Create(_ss(v),_SC("paramscheck"),-1),nc->_nparamscheck);
+		res->NewSlot(SQString::Create(_ss(v),_SC("paramscheck"),-1),(SQInteger)nc->_nparamscheck);
 		SQObjectPtr typecheck;
 		if(nc->_typecheck.size() > 0) {
 			typecheck =
