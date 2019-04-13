@@ -369,8 +369,17 @@ static SQRESULT  _system_sleep(HSQUIRRELVM v)
     return 0;
 }
 
-#ifndef _WIN32_WCE
+#if !defined(_WIN32_WCE)
+#if !defined(NO_TIMEB)
 #include <sys/timeb.h>
+#else
+struct timeb {
+    time_t          time;
+    unsigned short  millitm;
+    short           timezone;
+    short           dstflag;
+};
+#endif
 
 #if !(defined(TARGET_IOS) || defined(__APPLE__) || defined(_WIN32))
 static int sqftime(struct timeb *tp)
