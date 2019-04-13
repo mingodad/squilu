@@ -344,6 +344,7 @@ static SQRESULT sq_axtls_sha256(HSQUIRRELVM v)
     sq_pushstring(v, buf, -1);
     return 1;
 }
+
 static SQRESULT sq_axtls_rng_initialize(HSQUIRRELVM v)
 {
     RNG_initialize();
@@ -355,13 +356,14 @@ static SQRESULT sq_axtls_rng_terminate(HSQUIRRELVM v)
     RNG_terminate();
     return 0;
 }
+
 typedef int (*get_random_fptr_t)(int, uint8_t*);
 
 static SQRESULT sq_axtls_get_random0(HSQUIRRELVM v, get_random_fptr_t grf)
 {
 	SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_INTEGER(v, 2, length);
-    if(length < 1) return sq_throwerror(v, _SC("Minimun length error %d"), length);
+    if(length < 1) return sq_throwerror(v, _SC("Minimun length error " _PRINT_INT_FMT), length);
     if(!RNG_is_initialized()) return sq_throwerror(v, _SC("Need to call rng_initialize first"));
     SQChar *buff = sq_getscratchpad(v, length);
     (*grf)(length, buff);
@@ -378,6 +380,7 @@ static SQRESULT sq_axtls_get_random_nz(HSQUIRRELVM v)
 {
     return sq_axtls_get_random0(v, get_random_NZ);
 }
+
 #define _DECL_AXTLS_FUNC(name,nparams,pmask) {_SC(#name),sq_axtls_##name,nparams,pmask}
 static SQRegFunction axtls_obj_funcs[]={
 	_DECL_AXTLS_FUNC(get_config,2,_SC(".i")),

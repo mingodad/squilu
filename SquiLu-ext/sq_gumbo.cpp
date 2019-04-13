@@ -93,6 +93,7 @@ static SQRESULT build_element(HSQUIRRELVM v, GumboElement *element) {
     sq_newarray(v, element->children.length);
     if(add_children(v, &element->children) == SQ_ERROR) return SQ_ERROR;
     sq_rawset(v, -3);
+
     sq_pushliteral(v, _SC("start_pos"));
     sq_pushinteger(v, element->start_pos.offset);
     sq_rawset(v, -3);
@@ -100,6 +101,7 @@ static SQRESULT build_element(HSQUIRRELVM v, GumboElement *element) {
     sq_pushliteral(v, _SC("end_pos"));
     sq_pushinteger(v, element->end_pos.offset);
     sq_rawset(v, -3);
+
     return SQ_OK;
 }
 
@@ -190,7 +192,7 @@ static SQRESULT gumbo_parse_file(HSQUIRRELVM v)		/** parse_file(s) */
   error: // Return nil and an error message if an assertion fails
     if (file) fclose(file);
     if (input) sq_free(input, len+1);
-    return sq_throwerror(v, strerror(errno));
+    return sq_throwerror(v, _SC("%s"), strerror(errno));
 }
 
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),gumbo_##name,nparams,tycheck}

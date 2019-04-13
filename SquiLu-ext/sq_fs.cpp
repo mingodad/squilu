@@ -142,7 +142,7 @@ static SQRESULT sqfs_chdir (HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 2, path);
 	if (chdir(path)) {
-	    return sq_throwerror(v, "Unable to change working directory to '%s'\n%s\n",
+	    return sq_throwerror(v, _SC("Unable to change working directory to '%s'\n%s\n"),
 				path, chdir_error);
 	} else {
 		sq_pushbool (v, SQTrue);
@@ -160,7 +160,7 @@ static SQRESULT sqfs_currentdir (HSQUIRRELVM v) {
   /* Passing (NULL, 0) is not guaranteed to work. Use a temp buffer and size instead. */
   char buf[LFS_MAXPATHLEN];
   if ((path = getcwd(buf, LFS_MAXPATHLEN)) == NULL) {
-    return sq_throwerror(v, getcwd_error);
+    return sq_throwerror(v, _SC("%s"), getcwd_error);
   }
   else {
     sq_pushstring(v, buf, -1);
@@ -184,7 +184,7 @@ static SQRESULT sqfs_lock_dir(HSQUIRRELVM v) {
   char *ln;
   const char *lockfile = "/lockfile.sqfs";
   ln = (char*)sq_malloc(path_size + strlen(lockfile) + 1);
-  if(!ln) return sq_throwerror(v, strerror(errno));
+  if(!ln) return sq_throwerror(v, _SC("%s"), strerror(errno));
 
   strcpy(ln, path); strcat(ln, lockfile);
   if((fd = CreateFile(ln, GENERIC_WRITE, 0, NULL, CREATE_NEW,
@@ -222,11 +222,11 @@ static SQRESULT sqfs_lock_dir(HSQUIRRELVM v) {
   const char *lockfile = "/lockfile.sqfs";
   lock = (lfs_Lock*)lua_newuserdata(L, sizeof(sqfs_Lock));
   ln = (char*)sq_malloc(path_size + strlen(lockfile) + 1);
-  if(!ln) return sq_throwerror(v, strerror(errno));
+  if(!ln) return sq_throwerror(v, _SC("%s"), strerror(errno));
   strcpy(ln, path); strcat(ln, lockfile);
   if(symlink("lock", ln) == -1) {
     free(ln);
-    return sq_throwerror(v, strerror(errno));
+    return sq_throwerror(v, _SC("%s"), strerror(errno));
   }
   lock->ln = ln;
   luaL_getmetatable (L, LOCK_METATABLE);
@@ -272,7 +272,7 @@ static int lfs_g_setmode (HSQUIRRELVM v, FILE *f, int arg) {
 }
 #else
 static int lfs_g_setmode (HSQUIRRELVM v, FILE *f, int arg) {
-  return sq_throwerror(v, "setmode not supported on this platform");
+  return sq_throwerror(v, _SC("setmode not supported on this platform"));
 }
 #endif
 
@@ -304,7 +304,7 @@ static int _file_lock (HSQUIRRELVM v, FILE *fp, const char *mode, const long sta
 		case 'r': lkmode = LK_NBLCK; break;
 		case 'w': lkmode = LK_NBLCK; break;
 		case 'u': lkmode = LK_UNLCK; break;
-		default : return sq_throwerror (v, "%s: invalid mode", funcname);
+		default : return sq_throwerror (v, _SC("%s: invalid mode"), funcname);
 	}
 	if (!len) {
 		fseek (fp, 0L, SEEK_END);
@@ -319,7 +319,7 @@ static int _file_lock (HSQUIRRELVM v, FILE *fp, const char *mode, const long sta
 		case 'w': f.l_type = F_WRLCK; break;
 		case 'r': f.l_type = F_RDLCK; break;
 		case 'u': f.l_type = F_UNLCK; break;
-		default : return sq_throwerror(v, "%s: invalid mode", funcname);
+		default : return sq_throwerror(v, _SC("%s: invalid mode"), funcname);
 	}
 	f.l_whence = SEEK_SET;
 	f.l_start = (off_t)start;
@@ -399,7 +399,7 @@ static SQRESULT sqfs_link(HSQUIRRELVM v)
     sq_pushinteger(v, (bsym ? symlink : link)(oldpath, newpath));
     return 1;
 #else
-    return sq_throwerror(v, "make_link is not supported on Windows");
+    return sq_throwerror(v, _SC("make_link is not supported on Windows"));
 #endif
 }
 
@@ -418,7 +418,7 @@ static SQRESULT sqfs_mkdir (HSQUIRRELVM v) {
 	                     S_IWGRP | S_IXGRP | S_IROTH | S_IXOTH );
 #endif
 	if (fail) {
-        return sq_throwerror (v, "%s", strerror(errno));
+        return sq_throwerror (v, _SC("%s"), strerror(errno));
 	}
 #ifndef _WIN32_WCE
 	umask (oldmask);
@@ -439,7 +439,7 @@ static SQRESULT sqfs_rmdir (HSQUIRRELVM v) {
 	fail = rmdir (path);
 
 	if (fail) {
-		return sq_throwerror (v, "%s", strerror(errno));
+		return sq_throwerror (v, _SC("%s"), strerror(errno));
 	}
 	sq_pushbool (v, SQTrue);
 	return 1;
@@ -479,13 +479,13 @@ static SQRESULT _dir_constructor(HSQUIRRELVM v)
 #ifdef _WIN32
     dir->hFile = 0L;
     if (strlen(path) > MAX_PATH-2)
-      return sq_throwerror(v, "path too long: %s", path);
+      return sq_throwerror(v, _SC("path too long: %s"), path);
     else
       scsprintf (dir->pattern, sizeof(dir->pattern), "%s/*", path);
 #else
     dir->dir = opendir (path);
     if (dir->dir == NULL)
-      return sq_throwerror(v, "cannot open %s: %s", path, strerror (errno));
+      return sq_throwerror(v, _SC("cannot open %s: %s"), path, strerror (errno));
 #endif
     //sq_pushstring(v, currFileName_key, sizeof(currFileName_key)-1); //store file name between iterations
     //sq_pushliteral(v, _SC(""));
@@ -529,12 +529,12 @@ static SQRESULT _dir__nexti(HSQUIRRELVM v)
     struct dirent *entry;
 #endif
     const char *fname;
-    if(self->closed) return sq_throwerror(v, "closed directory");
+    if(self->closed) return sq_throwerror(v, _SC("closed directory"));
 #ifdef _WIN32
     if (self->hFile == 0L) { /* first entry */
         if ((self->hFile = _findfirst (self->pattern, &c_file)) == -1L) {
                 self->closed = 1;
-                return sq_throwerror(v, strerror (errno));
+                return sq_throwerror(v, _SC("%s"), strerror (errno));
         }
     } else { /* next entry */
         if (_findnext (self->hFile, &c_file) == -1L) {
@@ -642,7 +642,7 @@ static SQRESULT sqfs_touch (HSQUIRRELVM v) {
 		buf = &utb;
 	}
 	if (utime (file, buf)) {
-		return sq_throwerror(v, "%s", strerror (errno));
+		return sq_throwerror(v, _SC("%s"), strerror (errno));
 	}
 	sq_pushbool (v, SQTrue);
 	return 1;
@@ -704,7 +704,7 @@ static void push_st_blksize (HSQUIRRELVM v, STAT_STRUCT *info) {
 }
 #endif
 static void push_invalid (HSQUIRRELVM v, STAT_STRUCT *info) {
-  sq_throwerror(v, "invalid attribute name");
+  sq_throwerror(v, _SC("invalid attribute name"));
 #ifndef _WIN32
   info->st_blksize = 0; /* never reached */
 #endif
@@ -746,7 +746,7 @@ static int _file_info_ (HSQUIRRELVM v, int (*st)(const SQChar*, STAT_STRUCT*)) {
 	STAT_STRUCT info;
 
 	if (st(file, &info)) {
-		return sq_throwerror(v, "cannot obtain information from file `%s'", file);
+		return sq_throwerror(v, _SC("cannot obtain information from file `%s'"), file);
 	}
 	if(_top_ > 2){
 	    int ptype = sq_gettype(v, 3);

@@ -146,10 +146,10 @@ static mysql_stmt_error_t dlmysql_stmt_error = 0;
 
 static const char *dynamicLibName = DYNLIB_FOR_OS(libmysqlclient);
 
-static bool load_libmysqlclient()
+static bool load_libmysqlclient(const char *libName)
 {
     if(dlmysql_init) return true;
-    if(libmysqlclient.open(dynamicLibName))
+    if(libmysqlclient.open(libName))
     {
         //@write_mysql_functions_load();
 // generated-code:begin
@@ -285,7 +285,7 @@ static SQRESULT sq_mysql_result_col_name(HSQUIRRELVM v){
 	GET_mysql_result_INSTANCE();
 	SQ_GET_INTEGER(v, 2, col);
 	if(col < 0 || col > dlmysql_num_fields(self)-1)
-		return sq_throwerror(v, _SC("invalid col number (%d)"), col);
+		return sq_throwerror(v, _SC("invalid col number (" _PRINT_INT_FMT ")"), col);
 	MYSQL_FIELD *fields = dlmysql_fetch_fields(self);
 	sq_pushstring(v, fields[col].name, -1);
 	return 1;
@@ -382,7 +382,7 @@ static SQRESULT sq_mysql_result_row_as_array(HSQUIRRELVM v){
         }
     }
     int row_count = dlmysql_num_rows(self);
-    if(row < 0 || row >= row_count) return sq_throwerror(v, _SC("invalid row (%d)"), row);
+    if(row < 0 || row >= row_count) return sq_throwerror(v, _SC("invalid row (" _PRINT_INT_FMT ")"), row);
 
     int col_count = dlmysql_num_fields(self);
     sq_newarray(v, col_count);
@@ -408,7 +408,7 @@ static SQRESULT sq_mysql_result_row_as_table(HSQUIRRELVM v){
         }
     }
     int row_count = dlmysql_num_rows(self);
-    if(row < 0 || row >= row_count) return sq_throwerror(v, _SC("invalid row (%d)"), row);
+    if(row < 0 || row >= row_count) return sq_throwerror(v, _SC("invalid row (" _PRINT_INT_FMT ")"), row);
 
     int col_count = dlmysql_num_fields(self);
     sq_newtableex(v, col_count);
@@ -489,7 +489,7 @@ static SQRESULT sq_mysql_statement_bind_base(HSQUIRRELVM v, SQInteger top, SQ_My
 
     SQRESULT _rc_;
 	if((top - 1) != self->param_count){
-		return sq_throwerror(v, "Expect %d params but got %d !", self->param_count, top-1);
+		return sq_throwerror(v, "Expect %d params but got %d !", (int)self->param_count, (int)top-1);
 	}
 
     memset(self->bind_data_buffer, 0, self->bind_data_buffer_size);
@@ -654,7 +654,7 @@ static SQRESULT sq_mysql_constructor(HSQUIRRELVM v)
     SQ_OPT_INTEGER(v, 8, optflags, 0);
     MYSQL *self=0;
 
-    if(load_libmysqlclient())
+    if(load_libmysqlclient(dynamicLibName))
     {
         self = dlmysql_init(NULL);
 		if (!self) return sq_throwerror(v, _SC("error connecting: Out of memory."));
@@ -834,6 +834,14 @@ static SQRESULT sq_mysql_escape_string(HSQUIRRELVM v){
 	return sq_throwerror(v, _SC("could not allocate escaped string"));
 }
 
+static SQRESULT sq_mysql_loadlib(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS(v);
+    SQ_OPT_STRING(v, 2, libname, dynamicLibName);
+    sq_pushbool(v, load_libmysqlclient(libname));
+	return 1;
+}
+
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_mysql_##name,nparams,tycheck}
 static SQRegFunction sq_mysql_methods[] =
 {
@@ -848,6 +856,7 @@ static SQRegFunction sq_mysql_methods[] =
 	_DECL_FUNC(version,  1, _SC("x")),
 	_DECL_FUNC(last_insert_id,  1, _SC("x")),
 	_DECL_FUNC(escape_string,  2, _SC("xs")),
+	_DECL_FUNC(loadlib,-1,_SC(".s")),
 	{0,0}
 };
 #undef _DECL_FUNC

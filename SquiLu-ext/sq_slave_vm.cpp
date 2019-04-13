@@ -120,7 +120,7 @@ static const SQChar sq_slave_vm_TAG[] = _SC("SlaveVM");
 static SQRESULT get_slave_vm_instance(HSQUIRRELVM v, SQInteger idx, SlaveVM_st **svm_st)
 {
     if(sq_getinstanceup(v, idx, (SQUserPointer*)svm_st, (void*)sq_slave_vm_TAG) != SQ_OK) return SQ_ERROR;
-    if(!*svm_st) return sq_throwerror(v, _SC("slave vm already closed"));
+    if(!*svm_st) return sq_throwerror(v, _SC("%s"), _SC("slave vm already closed"));
     return SQ_OK;
 }
 
@@ -167,7 +167,7 @@ static SQRESULT sq_slave_vm_release_hook(SQUserPointer p, SQInteger size, void *
 
 #define SQ_getforeignptr_slave(v) \
     SlaveVM_st *self = (SlaveVM_st*)sq_getforeignptr(v);\
-    if(!self) return sq_throwerror(v, _SC("No slavevm foreignptr found"));
+    if(!self) return sq_throwerror(v, _SC("%s"), _SC("No slavevm foreignptr found"));
 
 static SQRESULT sq_vm_thread_lock(HSQUIRRELVM v)
 {
@@ -291,7 +291,7 @@ static SQRESULT checkTryLock(HSQUIRRELVM v, SlaveVM_st *self)
 {
     if(self->isRunningAsThread && mg_thread_mutex_trylock(&self->mutex))
     {
-        return sq_throwerror(v, _SC("Could not aquire slave lock"));
+        return sq_throwerror(v, _SC("%s"), _SC("Could not aquire slave lock"));
     }
     return SQ_OK;
 }
@@ -335,6 +335,7 @@ static SQRESULT sq_slave_vm_get_include_path(HSQUIRRELVM v)
     else sq_pushnull(v);
     return 1;
 }
+
 static SQRESULT sq_slave_vm_call(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
@@ -360,12 +361,12 @@ static SQRESULT sq_slave_vm_call(HSQUIRRELVM v)
             int argc = sq_gettop(v) - 3;
             if(argc && copy_values_between_vms(svm, v, argc, 4) != SQ_OK)
             {
-                result = sq_throwerror(v, sq_getlasterror_str(svm));
+                result = sq_throwerror(v, _SC("%s"), sq_getlasterror_str(svm));
                 goto cleanup;
             }
             if(sq_call(svm, argc+1, has_ret_val, SQFalse) != SQ_OK)
             {
-                result = sq_throwerror(v, sq_getlasterror_str(svm));
+                result = sq_throwerror(v, _SC("%s"), sq_getlasterror_str(svm));
                 goto cleanup;
             }
             if(has_ret_val)
@@ -378,7 +379,7 @@ static SQRESULT sq_slave_vm_call(HSQUIRRELVM v)
     }
     else
     {
-        result = sq_throwerror(v, sq_getlasterror_str(svm));
+        result = sq_throwerror(v, _SC("%s"), sq_getlasterror_str(svm));
     }
 cleanup:
     sq_settop(svm, top);
@@ -401,7 +402,7 @@ static SQRESULT sq_slave_vm_set(HSQUIRRELVM v)
             && copy_values_between_vms(svm, v, 1, 3) == SQ_OK)
     {
         result = sq_newslot(svm, -3, SQFalse);
-        if(result == SQ_ERROR) sq_throwerror(v, sq_getlasterror_str(svm));
+        if(result == SQ_ERROR) sq_throwerror(v, _SC("%s"), sq_getlasterror_str(svm));
     }
     else result = SQ_ERROR;
     sq_settop(svm, top);
@@ -430,7 +431,7 @@ static SQRESULT sq_slave_vm_get(HSQUIRRELVM v)
         else
         {
             if(sq_gettop(v) == 3) result = 1; //we have a default value
-            else sq_throwerror(v, sq_getlasterror_str(svm));
+            else sq_throwerror(v, _SC("%s"), sq_getlasterror_str(svm));
         }
     }
     sq_settop(svm, top);
@@ -462,7 +463,7 @@ static SQRESULT sq_slave_vm_dofile(HSQUIRRELVM v)
         }
         else result = SQ_OK;
     }
-    else sq_throwerror(v, sq_getlasterror_str(svm));
+    else sq_throwerror(v, _SC("%s"), sq_getlasterror_str(svm));
     sq_settop(svm, top);
 #ifdef SLAVE_VM_WITH_OS_THREADS
     if(self->isRunningAsThread) mg_thread_mutex_unlock(&self->mutex);
@@ -522,7 +523,7 @@ static SQRESULT sq_slave_vm_compilestring(HSQUIRRELVM v)
         if(last_error) {
             SQInteger line, column;
             sq_getlasterror_line_col(svm, &line, &column);
-            result = sq_throwerror(v, _SC("compilestring %s %d:%d: %s"), func_name, line, column, last_error);
+            result = sq_throwerror(v, _SC("compilestring %s %d:%d: %s"), func_name, (int)line, (int)column, last_error);
         }
     }
     sq_settop(svm, top);
@@ -582,7 +583,7 @@ static SQRESULT sq_slave_vm_is_runing_as_thread(HSQUIRRELVM v)
 #ifdef SLAVE_VM_WITH_OS_THREADS
 
 #define check_run_as_thread(v) \
-    if(!self->isRunningAsThread) return sq_throwerror(v, _SC("Slave VM not running as thread"))
+    if(!self->isRunningAsThread) return sq_throwerror(v, _SC("%s"), _SC("Slave VM not running as thread"))
 
 static void *slaveThreadTask(void *p)
 {
@@ -618,7 +619,7 @@ static SQRESULT sq_slave_vm_thread_run(HSQUIRRELVM v)
     int rc;
     const SQChar *func_name;
     SQInteger func_name_size;
-    if(self->thread_id) return sq_throwerror(v, _SC("slavevm already running in a thread"));
+    if(self->thread_id) return sq_throwerror(v, _SC("%s"), _SC("slavevm already running in a thread"));
     SQInteger top = sq_gettop(svm);
     rc = mg_thread_mutex_trylock(&self->mutex) == 0;
     if(rc)

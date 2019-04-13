@@ -460,7 +460,7 @@ static SQRESULT sq_pcre_gsub(HSQUIRRELVM v)
                             }
                             if(idx != match_idx)
                             {
-                                return sq_throwerror(v, _SC("there is no match for replacement $%d"), idx);
+                                return sq_throwerror(v, _SC("there is no match for replacement $" _PRINT_INT_FMT), idx);
                             }
                             continue;
                         }

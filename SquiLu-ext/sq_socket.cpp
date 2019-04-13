@@ -14,6 +14,7 @@ SQ_OPT_STRING_STRLEN();
 #include <sys/time.h>
 #endif
 
+
 /* option registry */
 typedef struct t_opt {
   const char *name;
@@ -385,7 +386,7 @@ static SQRESULT inet_global_tohostname(HSQUIRRELVM v) {
     SQ_GET_STRING(v, 2, address);
     struct hostent *hp = NULL;
     int err = inet_gethost(address, &hp);
-    if (err != IO_DONE) return sq_throwerror(v, lua_socket_hoststrerror(err));
+    if (err != IO_DONE) return sq_throwerror(v, _SC("%s"), lua_socket_hoststrerror(err));
     sq_newtable(v);
     sq_pushliteral(v, _SC("name"));
     sq_pushstring(v, hp->h_name, -1);
@@ -406,7 +407,7 @@ static SQRESULT inet_global_toip(HSQUIRRELVM v)
     SQ_GET_STRING(v, 2, address);
     struct hostent *hp = NULL;
     int err = inet_gethost(address, &hp);
-    if (err != IO_DONE) return sq_throwerror(v, lua_socket_hoststrerror(err));
+    if (err != IO_DONE) return sq_throwerror(v, _SC("%s"), lua_socket_hoststrerror(err));
     sq_newtable(v);
     sq_pushliteral(v, _SC("address"));
     sq_pushstring(v, inet_ntoa(*((struct in_addr *) hp->h_addr)), -1);
@@ -657,7 +658,7 @@ static int buffer_meth_send(HSQUIRRELVM v, p_buffer buf) {
     if (start <= end) err = sendraw(buf, data+start, end-start, &sent);
     /* check if there was an error */
     if (err != IO_DONE) {
-        return sq_throwerror(v, buf->io->error(buf->io->ctx, err));
+        return sq_throwerror(v, _SC("%s"), buf->io->error(buf->io->ctx, err));
     } else {
         sq_pushinteger(v, sent+start);
     }
@@ -708,7 +709,7 @@ static int buffer_meth_receive(HSQUIRRELVM v, p_buffer buf) {
     sq_pushinteger(v, err);
     sq_rawset(v, -3);
     /* check if there was an error */
-    //if (err != IO_DONE) return sq_throwerror(v, buf->io->error(buf->io->ctx, err));
+    //if (err != IO_DONE) return sq_throwerror(v, _SC("%s"), buf->io->error(buf->io->ctx, err));
 #ifdef LUASOCKET_DEBUG
     /* push time elapsed during operation as the last return value */
     buf->elapsed = timeout_gettime() - timeout_getstart(tm);
@@ -988,7 +989,7 @@ static SQRESULT tcp_constructor(HSQUIRRELVM v)
     if (!err) {
         return tcp_constructor_for_socket(v, 1, sock, TCP_TYPE_MASTER);
     }
-    return sq_throwerror(v, err);
+    return sq_throwerror(v, _SC("%s"), err);
 }
 
 /*-------------------------------------------------------------------------*\
@@ -1014,7 +1015,7 @@ static SQRESULT tcp_meth_accept(HSQUIRRELVM v)
         if(rc < 0) return rc;
         tcp_constructor_for_socket(v, sq_gettop(v), sock, TCP_TYPE_CLIENT);
     } else {
-        return sq_throwerror(v, lua_socket_strerror(err));
+        return sq_throwerror(v, _SC("%s"), lua_socket_strerror(err));
     }
     return 1;
 }
@@ -1029,7 +1030,7 @@ static SQRESULT tcp_meth_bind(HSQUIRRELVM v)
     SQ_GET_STRING(v, 2, address);
     SQ_GET_INTEGER(v, 3, port);
     const char *err = inet_trybind(&tcp->sock, address, port);
-    if (err) return sq_throwerror(v, err);
+    if (err) return sq_throwerror(v, _SC("%s"), err);
     return 0;
 }
 
@@ -1045,7 +1046,7 @@ static SQRESULT tcp_meth_connect(HSQUIRRELVM v)
     p_timeout tm = lua_timeout_markstart(&tcp->tm);
     const char *err = inet_tryconnect(&tcp->sock, address, port, tm);
     /* have to set the class even if it failed due to non-blocking connects */
-    if (err) return sq_throwerror(v, err);
+    if (err) return sq_throwerror(v, _SC("%s"), err);
     tcp->type = TCP_TYPE_CLIENT;
     return 0;
 }
@@ -1070,7 +1071,7 @@ static SQRESULT tcp_meth_listen(HSQUIRRELVM v)
     GET_tcp_master_INSTANCE_AT(v, 1);
     SQ_OPT_INTEGER(v, 2, backlog, 32);
     int err = lua_socket_listen(&tcp->sock, backlog);
-    if (err != IO_DONE) return sq_throwerror(v, lua_socket_strerror(err));
+    if (err != IO_DONE) return sq_throwerror(v, _SC("%s"), lua_socket_strerror(err));
     /* turn master object into a server object */
     tcp->type = TCP_TYPE_SERVER;
     return 0;
@@ -1192,7 +1193,7 @@ static SQRESULT udp_meth_send(HSQUIRRELVM v) {
     SQ_GET_STRING(v, 2, data);
     lua_timeout_markstart(tm);
     err = lua_socket_send(&udp->sock, data, data_size, &sent, tm);
-    if (err != IO_DONE) return sq_throwerror(v, udp_strerror(err));
+    if (err != IO_DONE) return sq_throwerror(v, _SC("%s"), udp_strerror(err));
     sq_pushinteger(v, sent);
     return 1;
 }
@@ -1218,7 +1219,7 @@ static SQRESULT udp_meth_sendto(HSQUIRRELVM v) {
     lua_timeout_markstart(tm);
     err = lua_socket_sendto(&udp->sock, data, data_size, &sent,
             (SA *) &addr, sizeof(addr), tm);
-    if (err != IO_DONE) return sq_throwerror(v, udp_strerror(err));
+    if (err != IO_DONE) return sq_throwerror(v, _SC("%s"), udp_strerror(err));
     sq_pushinteger(v, sent);
     return 1;
 }
@@ -1231,14 +1232,14 @@ static SQRESULT udp_meth_receive(HSQUIRRELVM v) {
     GET_udp_INSTANCE_AT(v, 1);
     char buffer[UDP_DATAGRAMSIZE];
     SQ_OPT_INTEGER(v, 2, count, sizeof(buffer));
-    if(count <= 0) return sq_throwerror(v, _SC("invalid size for receive (%d)"), count);
+    if(count <= 0) return sq_throwerror(v, _SC("invalid size for receive (" _PRINT_INT_FMT ")"), count);
     size_t got;
     int err;
     p_timeout tm = &udp->tm;
     count = MIN(count, sizeof(buffer));
     lua_timeout_markstart(tm);
     err = lua_socket_recv(&udp->sock, buffer, count, &got, tm);
-    if (err != IO_DONE) return sq_throwerror(v, udp_strerror(err));
+    if (err != IO_DONE) return sq_throwerror(v, _SC("%s"), udp_strerror(err));
     sq_pushstring(v, buffer, got);
     return 1;
 }
@@ -1254,7 +1255,7 @@ static SQRESULT udp_meth_receivefrom(HSQUIRRELVM v) {
     char buffer[UDP_DATAGRAMSIZE];
     size_t got;
     SQ_OPT_INTEGER(v, 2, count, sizeof(buffer));
-    if(count <= 0) return sq_throwerror(v, _SC("invalid size for receive (%d)"), count);
+    if(count <= 0) return sq_throwerror(v, _SC("invalid size for receive (" _PRINT_INT_FMT ")"), count);
     int err;
     p_timeout tm = &udp->tm;
     lua_timeout_markstart(tm);
@@ -1274,7 +1275,7 @@ static SQRESULT udp_meth_receivefrom(HSQUIRRELVM v) {
         sq_rawset(v, -3);
         return 1;
     }
-    else return sq_throwerror(v, udp_strerror(err));
+    else return sq_throwerror(v, _SC("%s"), udp_strerror(err));
 }
 
 /*-------------------------------------------------------------------------*\
@@ -1350,7 +1351,7 @@ static SQRESULT udp_meth_setpeername(HSQUIRRELVM v) {
     if(connecting) sq_getinteger(v, 3, &port);
     else sq_optinteger(v, 3, &port, 0);
     const char *err = inet_tryconnect(&udp->sock, address, port, tm);
-    if (err) return sq_throwerror(v,  err);
+    if (err) return sq_throwerror(v, _SC("%s"),  err);
     /* change class to connected or unconnected depending on address */
     if (connecting)
     udp->type = connecting ? UDP_TYPE_CONNECTED : UDP_TYPE_UNCONNECTED;
@@ -1376,7 +1377,7 @@ static SQRESULT udp_meth_setsockname(HSQUIRRELVM v) {
     SQ_GET_STRING(v, 2, address);
     SQ_GET_INTEGER(v, 3, port);
     const char *err = inet_trybind(&udp->sock, address, port);
-    if (err) return sq_throwerror(v, err);
+    if (err) return sq_throwerror(v, _SC("%s"), err);
     return 0;
 }
 
@@ -1413,7 +1414,7 @@ static SQRESULT udp_constructor(HSQUIRRELVM v) {
         sq_setreleasehook(v, 1, udp_releasehook);
         return 1;
     }
-    return sq_throwerror(v, err);
+    return sq_throwerror(v, _SC("%s"), err);
 }
 
 #ifdef HAS_UNIX_DOMAIN_SOCKETS
@@ -1599,7 +1600,7 @@ static SQRESULT unix_meth_accept(HSQUIRRELVM v)
         if(rc < 0) return rc;
         unix_constructor_for_socket(v, sq_gettop(v), sock, UNIX_TYPE_CLIENT);
     } else {
-        return sq_throwerror(v, lua_socket_strerror(err));
+        return sq_throwerror(v, _SC("%s"), lua_socket_strerror(err));
     }
     return 1;
 }
@@ -1634,7 +1635,7 @@ static SQRESULT unix_meth_bind(HSQUIRRELVM v)
     GET_unix_master_INSTANCE_AT(v, 1);
     SQ_GET_STRING(v, 2, path);
     const char *err = unix_trybind(unix_sock, path);
-    if (err) return sq_throwerror(v, err);
+    if (err) return sq_throwerror(v, _SC("%s"), err);
     return 0;
 }
 
@@ -1669,7 +1670,7 @@ static SQRESULT unix_meth_connect(HSQUIRRELVM v)
     GET_unix_INSTANCE_AT(v, 1);
     SQ_GET_STRING(v, 2, path);
     const char *err = unix_tryconnect(unix_sock, path);
-    if (err) return sq_throwerror(v, err);
+    if (err) return sq_throwerror(v, _SC("%s"), err);
     unix_sock->type = UNIX_TYPE_CLIENT;
     return 0;
 }
@@ -1693,7 +1694,7 @@ static SQRESULT unix_meth_listen(HSQUIRRELVM v) {
     GET_unix_master_INSTANCE_AT(v, 1);
     SQ_OPT_INTEGER(v, 2, backlog, 32);
     int err = lua_socket_listen(&unix_sock->sock, backlog);
-    if (err != IO_DONE) return sq_throwerror(v, lua_socket_strerror(err));
+    if (err != IO_DONE) return sq_throwerror(v, _SC("%s"), lua_socket_strerror(err));
     /* turn master object into a server object */
     unix_sock->type = UNIX_TYPE_SERVER;
     return 0;
@@ -1748,7 +1749,7 @@ static SQRESULT unix_constructor(HSQUIRRELVM v) {
     if (!err) {
         return unix_constructor_for_socket(v, 1, sock, UNIX_TYPE_MASTER);
     }
-    return sq_throwerror(v, err);
+    return sq_throwerror(v, _SC("%s"), err);
 }
 
 #endif //HAS_UNIX_DOMAIN_SOCKETS

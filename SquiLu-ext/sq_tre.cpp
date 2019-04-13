@@ -139,7 +139,6 @@ if(!dltre_version) return false;
 
 #endif // SQ_USE_TRE_STATIC
 
-
 struct sqtre_st {
     regex_t re;
     regamatch_t amatch;
@@ -225,6 +224,7 @@ static SQRESULT sq_tre_constructor(HSQUIRRELVM v)
     if(subject_str_size < 0) return sq_throwerror(v, _SC("str size - start_offset can't be negative")); \
     const SQChar *subject_str = subject + start_offset; \
     if(max_len && (max_len < subject_str_size)) subject_str_size = max_len;
+
 static SQRESULT sq_tre_exec(HSQUIRRELVM v)
 {
 	SQ_FUNC_VARS(v);
@@ -305,7 +305,6 @@ static SQRESULT sq_tre_gmatch(HSQUIRRELVM v)
 
     SQInteger rc;
     bool isFirst = true;
-
 
     regmatch_t *pmatch = self->amatch.pmatch;
     SQInteger nmatch = self->amatch.nmatch;
@@ -465,7 +464,7 @@ static SQRESULT sq_tre_gsub(HSQUIRRELVM v)
                             }
                             if(idx != match_idx)
                             {
-                                return sq_throwerror(v, _SC("there is no match for replacement $%d"), idx);
+                                return sq_throwerror(v, _SC("there is no match for replacement $" _PRINT_INT_FMT), idx);
                             }
                             continue;
                         }
@@ -491,6 +490,7 @@ static SQRESULT sq_tre_gsub(HSQUIRRELVM v)
 	        default:
                 return sq_throwerror(v, _SC("gsub only works with closure, array, table for replacement"));
 	    }
+
         end_pos = pmatch[0].rm_eo;
         subject_size -= end_pos;
         if(subject_size <= 0) break;
@@ -499,6 +499,7 @@ static SQRESULT sq_tre_gsub(HSQUIRRELVM v)
         {
             if(--max_sub == 0) break;
         }
+
 	}
 
     if(rc == REG_ESPACE) //only no matching errore
@@ -624,10 +625,11 @@ static SQRESULT sq_tre_config(HSQUIRRELVM v)
             sq_pushstring(v, (const SQChar*)config_result, -1);
             break;
         default:
-            return sq_throwerror(v, _SC("unknown config option '%d'"), option);
+            return sq_throwerror(v, _SC("unknown config option '" _PRINT_INT_FMT "')"), option);
     }
 	return 1;
 }
+
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),sq_tre_##name,nparams,tycheck}
 static SQRegFunction sq_tre_methods[] =
 {

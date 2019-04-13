@@ -267,7 +267,7 @@ static SQRESULT sqlite3_stmt_bind_value(HSQUIRRELVM v, sqlite3_stmt *stmt, int n
     if(_rc_ != SQLITE_OK)
     {
         sqlite3 *db = sqlite3_db_handle(stmt);
-        return sq_throwerror(v, sqlite3_errmsg(db));
+        return sq_throwerror(v, _SC("%s"), sqlite3_errmsg(db));
     }
     return SQ_OK;
 }
@@ -300,7 +300,7 @@ static SQRESULT sq_sqlite3_stmt_prepare_aux(HSQUIRRELVM v, sqlite3 *db, sqlite3_
     SQ_GET_STRING(v, params_start, szSQL);
     if(sqlite3_prepare_v2(db, szSQL, szSQL_size, stmt, 0) != SQLITE_OK)
     {
-        return sq_throwerror(v, sqlite3_errmsg(db));
+        return sq_throwerror(v, _SC("%s"), sqlite3_errmsg(db));
     }
 
     return sq_sqlite3_stmt_bind_vargv(v, db, *stmt, params_start);
@@ -327,7 +327,7 @@ static SQRESULT sq_sqlite3_stmt_constructor(HSQUIRRELVM v)
     {
         if(sqlite3_prepare_v2(self, "select 'statement not prepared';", -1, &stmt, 0) != SQLITE_OK)
         {
-            _rc_ = sq_throwerror(v, sqlite3_errmsg(self));
+            _rc_ = sq_throwerror(v, _SC("%s"), sqlite3_errmsg(self));
         }
         else _rc_ = SQ_OK;
     }
@@ -458,7 +458,7 @@ static SQRESULT sq_sqlite3_stmt_bind_blob(HSQUIRRELVM v)
     if(sqlite3_bind_blob(self, npar, blob, blob_size, SQLITE_TRANSIENT) != SQLITE_OK)
     {
         sqlite3 *db = sqlite3_db_handle(self);
-        return sq_throwerror(v, sqlite3_errmsg(db));
+        return sq_throwerror(v, _SC("%s"), sqlite3_errmsg(db));
     }
     return SQ_OK;
 }
@@ -472,7 +472,7 @@ static SQRESULT sq_sqlite3_stmt_bind_zeroblob(HSQUIRRELVM v)
     if(sqlite3_bind_zeroblob(self, npar, nsize))
     {
         sqlite3 *db = sqlite3_db_handle(self);
-        return sq_throwerror(v, sqlite3_errmsg(db));
+        return sq_throwerror(v, _SC("%s"), sqlite3_errmsg(db));
     }
     return SQ_OK;
 }
@@ -485,7 +485,7 @@ static SQRESULT sq_sqlite3_stmt_bind_values0(HSQUIRRELVM v, int isExec)
     if (_top_ - 1 != sqlite3_bind_parameter_count(self))
         return sq_throwerror(v,
                              _SC("incorrect number of parameters to bind (%d given, %d to bind)"),
-                             _top_ - 1,
+                             (int)_top_ - 1,
                              sqlite3_bind_parameter_count(self));
 
     for (int n = 2; n <= _top_; ++n)
@@ -1272,7 +1272,7 @@ static SQRESULT sq_sle2vecOfvec(HSQUIRRELVM v)
         return sq_throwerror(v,_SC("invalid parameter 2 of type %s"), sq_gettypename(v, 3));
 
     SQ_OPT_INTEGER(v, 4, start, 0);
-    if(start < 0) return sq_throwerror(v, _SC("invalid start position (%d)"), start);
+    if(start < 0) return sq_throwerror(v, _SC("invalid start position (" _PRINT_INT_FMT ")"), start);
     sq_push(v, 3);
 
     int rc, data_count = 1;
@@ -1385,7 +1385,7 @@ static SQRESULT sq_add2sle(HSQUIRRELVM v)
     SQ_GET_INSTANCE_VAR(v, 2, SQBlob, blob, SQBlob::SQBlob_TAG);
     SQ_GET_STRING(v, 3, str);
     SQ_OPT_INTEGER(v, 4, size, str_size);
-    if(size < 0) return sq_throwerror(v, _SC("invalid size value (%d)"), size);
+    if(size < 0) return sq_throwerror(v, _SC("invalid size value (" _PRINT_INT_FMT ")"), size);
     sq_pushinteger(v, add2sle(*blob, str, size));
     return 1;
 }
@@ -1578,7 +1578,7 @@ static SQRESULT sq_sqlite3_transaction_exec_sq(sq_sqlite3_sdb *sdb, const char *
 {
     char *errmsg;
     if(sqlite3_exec(sdb->db, sql, NULL, NULL, &errmsg) != SQLITE_OK){
-        sq_throwerror(sdb->v, errmsg);
+        sq_throwerror(sdb->v, _SC("%s"), errmsg);
         sqlite3_free(errmsg);
         return SQ_ERROR;
     }
@@ -1703,7 +1703,7 @@ static SQRESULT sq_sqlite3_session_constructor(HSQUIRRELVM v)
     sqlite3_session *session = 0;
     if(sqlite3session_create(self, dbname, &session) != SQLITE_OK)
     {
-        _rc_ = sq_throwerror(v, sqlite3_errmsg(self));
+        _rc_ = sq_throwerror(v, _SC("%s"), sqlite3_errmsg(self));
     }
     else _rc_ = SQ_OK;
     sq_setinstanceup(v, 1, session); //replace self for this instance with this new sqlite3_stmt
@@ -1858,7 +1858,7 @@ static SQRESULT sq_sqlite3_session_iterator_constructor(HSQUIRRELVM v)
     sqlite3_changeset_iter *pIter = 0;
     if(sqlite3changeset_start(&pIter, changeset_size, changeset) != SQLITE_OK)
     {
-        _rc_ = sq_throwerror(v, _SC("sqlite3_changeset_iter error %d"), _rc_);
+        _rc_ = sq_throwerror(v, _SC("sqlite3_changeset_iter error %d"), (int)_rc_);
     }
     else _rc_ = SQ_OK;
     sq_setinstanceup(v, 1, pIter); //replace self for this instance with this new sqlite3_stmt
@@ -2211,7 +2211,7 @@ static SQRESULT sq_sqlite3_close_release(HSQUIRRELVM v, sq_sqlite3_sdb *sdb)
         }
         else
         {
-            if(v) return sq_throwerror(v, sqlite3_errmsg(db));
+            if(v) return sq_throwerror(v, _SC("%s"), sqlite3_errmsg(db));
         }
     }
     return rc;
@@ -2321,7 +2321,7 @@ static SQRESULT sq_sqlite3_exec_dml(HSQUIRRELVM v)
 	SQ_GET_STRING(v, 2, szSQL);
 	char *errmsg;
 	if(sqlite3_exec(self, szSQL, NULL, NULL, &errmsg) != SQLITE_OK){
-		sq_throwerror(v, errmsg);
+		sq_throwerror(v, _SC("%s"), errmsg);
 		sqlite3_free(errmsg);
 		return SQ_ERROR;
 	}

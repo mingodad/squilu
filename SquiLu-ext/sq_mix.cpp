@@ -25,7 +25,7 @@ static SQRESULT mix_loadbuffer(HSQUIRRELVM sqvm, mix_state_t *S, const SQChar *n
 	    MixInteger ch;
 	    while((ch = sq_mix_reader_char(S))) blob.WriteChar(ch);
         if (S->error != NULL) {
-            return sq_throwerror(sqvm, S->error);
+            return sq_throwerror(sqvm, _SC("%s"), S->error);
         }
         sq_pushstring(sqvm, (const SQChar*)blob.GetBuf(), blob.Len());
 	}
@@ -33,7 +33,7 @@ static SQRESULT mix_loadbuffer(HSQUIRRELVM sqvm, mix_state_t *S, const SQChar *n
 	{
         res = sq_compile(sqvm, sq_mix_reader_char, S, name, SQTrue, SQTrue, SQ_MAX_INCLUDE_FILES);
         if (S->error != NULL) {
-            return sq_throwerror(sqvm, S->error);
+            return sq_throwerror(sqvm, _SC("%s"), S->error);
         } else if (res != 0) {
             sq_pushnull(sqvm);
         }

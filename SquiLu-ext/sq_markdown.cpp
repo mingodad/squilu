@@ -20,7 +20,7 @@ static SQRESULT sq_markdown2html(HSQUIRRELVM v)
     SQ_OPT_INTEGER(v, 3, len, str_size);
     SQ_OPT_INTEGER(v, 4, parser_flags, MD_DIALECT_GITHUB | MD_FLAG_PERMISSIVEATXHEADERS);
     SQ_OPT_INTEGER(v, 5, renderer_flags, 0);
-    if(len > str_size || len < 0) return sq_throwerror(v, _SC("invalid parameter value (%d)"), len);
+    if(len > str_size || len < 0) return sq_throwerror(v, _SC("invalid parameter value (" _PRINT_INT_FMT ")"), len);
     /* Input size is good estimation of output size. Add some more reserve to
      * deal with the HTML header/footer and tags. */
     SQBlob b(0, len + (len/8 + 64));

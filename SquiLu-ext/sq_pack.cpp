@@ -41,7 +41,7 @@ static SQRESULT badcode(HSQUIRRELVM v, int c)
 {
 	SQChar s[]=_SC("bad code '?'");
 	s[sizeof(s)-(3*sizeof(SQChar))]=c;
-	return sq_throwerror(v,s);
+	return sq_throwerror(v,_SC("%s"),s);
 }
 
 static int doendian(int c)
