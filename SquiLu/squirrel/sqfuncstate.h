@@ -29,7 +29,7 @@ struct SQFuncState
 	SQInteger GetNumericConstant(const SQInteger cons);
 	SQInteger GetNumericConstant(const SQFloat cons);
 	SQInteger PushLocalVariable(const SQObject &name, SQInteger scope, SQInteger type=_VAR_ANY);
-	void AddParameter(const SQObject &name, SQInteger scope, SQInteger type=_VAR_ANY);
+	SQInteger AddParameter(const SQObject &name, SQInteger scope, SQInteger type=_VAR_ANY);
 	void AddParameterTypeName(const SQObject &type_name);
 	void AddParameterTypeName(const SQChar *type_name);
 	void SetReturnTypeName(const SQChar *type_name);
@@ -95,6 +95,7 @@ private:
 	SQSharedState *_ss;
 };
 
+void SQDumpLiteral(SQObjectPtr &o);
 
 #endif //_SQFUNCSTATE_H_
 

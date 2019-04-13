@@ -892,16 +892,21 @@ bool SQFunctionProto::SaveAsSource(SQVM *v,SQUserPointer up,SQWRITEFUNC write)
                     SQLocalVarInfo &lvi2=_localvarinfos[nlocalvarinfos-1-inst._arg2];
                     const SQChar *str_name2 =  sq_isstring(lvi2._name) ? _stringval(lvi2._name) : "?";
                     SafeWriteFmt(v,write,up,"\t\t/* stk[" _PRINT_INT_FMT "] = stk[" _PRINT_INT_FMT "](\"%s\") %s stk[" _PRINT_INT_FMT "](\"%s\") */",
-                                (SQInteger)inst._arg0, (SQInteger)inst._arg1, str_name1, SQGetArithOpName(inst.op), (SQInteger)inst._arg2, str_name2);
+                                (SQInteger)inst._arg0, (SQInteger)inst._arg2, str_name2, SQGetArithOpName(inst.op), (SQInteger)inst._arg1, str_name1);
             }
             break;
-            case _OP_INCL:
-                    SafeWriteFmt(v,write,up,"\t\t/* stk[" _PRINT_INT_FMT "] = stk[" _PRINT_INT_FMT "] + sarg3(%c) */",
-                                (SQInteger)inst._arg1, (SQInteger)inst._arg1, ((char)inst._arg3));
+            case _OP_PINC:
+            case _OP_INC:
+                    SafeWriteFmt(v,write,up,"\t\t/* target = stk(" _PRINT_INT_FMT "); stk[" _PRINT_INT_FMT "] = stk[" _PRINT_INT_FMT "][stk[" _PRINT_INT_FMT "]] + sarg3(%d) */",
+                                (SQInteger)inst._arg0, (SQInteger)inst._arg0, (SQInteger)inst._arg1, (SQInteger)inst._arg2, ((int)inst._arg3));
             break;
             case _OP_PINCL:
-                    SafeWriteFmt(v,write,up,"\t\t/* target = stk(" _PRINT_INT_FMT "); stk[" _PRINT_INT_FMT "] = stk[" _PRINT_INT_FMT "] + sarg3(%c) */",
-                                (SQInteger)inst._arg1, (SQInteger)inst._arg1, (SQInteger)inst._arg1, ((char)inst._arg3));
+                    SafeWriteFmt(v,write,up,"\t\t/* stk[" _PRINT_INT_FMT "] = stk[" _PRINT_INT_FMT "]; stk[" _PRINT_INT_FMT "] += arg3(%d) */",
+                                (SQInteger)inst._arg0, (SQInteger)inst._arg1, (SQInteger)inst._arg1, ((int)inst._arg3));
+            break;
+            case _OP_INCL:
+                    SafeWriteFmt(v,write,up,"\t\t/* stk[" _PRINT_INT_FMT "] = stk[" _PRINT_INT_FMT "] + sarg3(%d) */",
+                                (SQInteger)inst._arg0, (SQInteger)inst._arg1, ((int)inst._arg3));
             break;
             case _OP_BITW:
                     SafeWriteFmt(v,write,up,"\t\t/* stk[" _PRINT_INT_FMT "] = stk[" _PRINT_INT_FMT "] %s stk[" _PRINT_INT_FMT "] */",

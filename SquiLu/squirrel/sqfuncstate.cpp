@@ -24,10 +24,42 @@ SQInstructionDesc g_InstrDesc[]={
 };
 #undef ENUM_OP
 #endif
-void DumpLiteral(SQObjectPtr &o)
+void SQDumpLiteral(SQObjectPtr &o)
 {
 	switch(sq_type(o)){
-		case OT_STRING:	scprintf(_SC("\"%s\""),_stringval(o));break;
+		case OT_STRING: {
+		    int i, len, buf_idx = 0;
+		    #define BUF_SIZE 64
+		    SQChar buf[BUF_SIZE];
+		    SQChar *str = _stringval(o);
+		    scprintf(_SC("\""));
+		    for(i=0, len=_string(o)->_len; i < len; ++i, ++buf_idx) {
+                if(buf_idx == (BUF_SIZE-1)) {
+                    scprintf(_SC("%*.s"), buf_idx, buf);
+                    buf_idx = 0;
+                }
+                switch(str[i])
+                {
+                case _SC('\a'):
+                case _SC('\b'):
+                case _SC('\t'):
+                case _SC('\n'):
+                case _SC('\v'):
+                case _SC('\f'):
+                case _SC('\r'):
+                case _SC('\\'):
+                case _SC('\"'):
+                    buf[buf_idx++] = _SC('\\');
+                    //falthrough
+                default:
+                        buf[buf_idx++] = str[i];
+                }
+		    }
+		    if(buf_idx > 0) scprintf(_SC("%*.s"), buf_idx, buf);
+		    scprintf(_SC("\""));
+		    #undef BUF_SIZE
+        }
+		break;
 		case OT_FLOAT: scprintf(_SC("{%f}"),_float(o));break;
 		case OT_INTEGER: scprintf(_SC("{") _PRINT_INT_FMT _SC("}"),_integer(o));break;
 		case OT_BOOL: scprintf(_SC("%s"),_integer(o)?_SC("true"):_SC("false"));break;
@@ -69,7 +101,7 @@ void SQFuncState::Dump(SQFunctionProto *func)
 	}
 	for(i=0;i<templiterals.size();i++){
 		scprintf(_SC("[%d] "),(SQInt32)n);
-		DumpLiteral(templiterals[i]);
+		SQDumpLiteral(templiterals[i]);
 		scprintf(_SC("\n"));
 		n++;
 	}
@@ -79,7 +111,7 @@ void SQFuncState::Dump(SQFunctionProto *func)
 	n=0;
 	for(i=0;i<_parameters.size();i++){
 		scprintf(_SC("[%d] "),(SQInt32)n);
-		DumpLiteral(_parameters[i]);
+		SQDumpLiteral(_parameters[i]);
 		scprintf(_SC("\n"));
 		n++;
 	}
@@ -111,7 +143,7 @@ void SQFuncState::Dump(SQFunctionProto *func)
 				while(((refidx=_table(_literals)->Next(false,refo,key,val))!= -1) && (_integer(val) != lidx)) {
 					refo = refidx;
 				}
-				DumpLiteral(key);
+				SQDumpLiteral(key);
 			}
 			if(inst.op != _OP_DLOAD) {
 				scprintf(_SC(" %d %d \n"),inst._arg2,inst._arg3);
@@ -127,7 +159,7 @@ void SQFuncState::Dump(SQFunctionProto *func)
 					while(((refidx=_table(_literals)->Next(false,refo,key,val))!= -1) && (_integer(val) != lidx)) {
 						refo = refidx;
 				}
-				DumpLiteral(key);
+				SQDumpLiteral(key);
 				scprintf(_SC("\n"));
 			}
 			}
@@ -362,10 +394,12 @@ SQInteger SQFuncState::GetOuterVariable(const SQObject &name)
 	return -1;
 }
 
-void SQFuncState::AddParameter(const SQObject &name, SQInteger scope, SQInteger type)
+SQInteger SQFuncState::AddParameter(const SQObject &name, SQInteger scope, SQInteger type)
 {
-	PushLocalVariable(name, scope, type);
+	SQInteger rc = PushLocalVariable(name, scope, type);
+	if(rc < 0) return rc;
 	_parameters.push_back(name);
+	return rc;
 }
 
 void SQFuncState::AddParameterTypeName(const SQObject &type_name)
