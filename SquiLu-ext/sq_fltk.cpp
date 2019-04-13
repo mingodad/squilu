@@ -313,7 +313,7 @@ static SQRESULT getInstance_for_Fl_Klass(HSQUIRRELVM v, const SQChar *klass, SQU
 static SQRESULT get_fltk_klass_instance(HSQUIRRELVM v, SQInteger idx, void **Var, void *klass_Tag){
     SQRESULT _rc_;
 	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)Var,klass_Tag)) < 0) return _rc_;
-	if(!*Var) return sq_throwerror(v, _SC("widget (%s) is empty"), klass_Tag);
+	if(!*Var) return sq_throwerror(v, _SC("widget (%s) is empty"), (SQChar*)klass_Tag);
 	return _rc_;
 }
 
@@ -635,6 +635,7 @@ class My##klass : public klass {\
 };\
 CREATE_TAG(klass);\
 FLTK_CONSTRUCTOR(My##klass);
+
 #define MY_FL_CLASS_HANDLE(klass, setup_fl) \
 MY_FL_CLASS(klass,\
     int handle(int event){\
@@ -1434,6 +1435,7 @@ FLTK_CONSTRUCTOR(Fl_Input_);
 #define SETUP_FL_INPUT_(v) SETUP_FL_KLASS(v, Fl_Input_)
 FUNC_GETSET_STR(_Fl_Input__, SETUP_FL_INPUT_, self->, value);
 CHEAP_RTTI_FOR(Fl_Input_);
+
 static SQRESULT _Fl_Input__value_int(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
@@ -1459,6 +1461,7 @@ static SQRESULT _Fl_Input__value_float(HSQUIRRELVM v)
     else sq_pushfloat(v, self->value_float());
 	return 1;
 }
+
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Input__##name,nparams,pmask,isStatic}
 static SQRegFunction fl_input__obj_funcs[]={
     CHEAP_RTTI_REG_FUN_FOR(Fl_Input_)
@@ -1498,6 +1501,7 @@ static SQRegFunction fl_input_obj_funcs[]={
 
 FLTK_CONSTRUCTOR(Fl_Float_Input);
 CHEAP_RTTI_FOR(Fl_Float_Input);
+
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Float_Input_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_float_input_obj_funcs[]={
     CHEAP_RTTI_REG_FUN_FOR(Fl_Float_Input)
@@ -1784,6 +1788,7 @@ static SQRESULT _Flu_Combo_Box__get(HSQUIRRELVM v){
     }
     return sq_throwerror(v, NULL);
 }
+
 CHEAP_RTTI_FOR(Flu_Combo_Box);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Flu_Combo_Box_##name,nparams,pmask,isStatic}
 static SQRegFunction flu_combo_box_obj_funcs[]={
@@ -2554,10 +2559,12 @@ public:
                     }
                 }
                 break;
+
             case FL_Up:
             case FL_Down:
                 if(Fl::event_shift()) mark_row(false, false);
             break;
+
                 //default:
                 //handled = handle_key(key);
             }
@@ -2766,6 +2773,7 @@ static SQRESULT _Fl_Scroll_scroll_to(HSQUIRRELVM v){
     self->scroll_to(x, y);
     return 0;
 }
+
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Scroll_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_scroll_obj_funcs[]={
     CHEAP_RTTI_REG_FUN_FOR(Fl_Scroll)
@@ -2867,6 +2875,7 @@ static SQRESULT _Fl_Browser_size(HSQUIRRELVM v){
     sq_pushinteger(v, self->size());
     return 1;
 }
+
 CHEAP_RTTI_FOR(Fl_Browser);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Browser_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_browser_obj_funcs[]={
@@ -3123,6 +3132,7 @@ static SQRegFunction fl_svg_image_obj_funcs[]={
 	{0,0}
 };
 #undef _DECL_FUNC
+
 #define SETUP_FL_IMAGE_DEVICE(v) SETUP_FL_KLASS(v, Fl_Image_Surface)
 
 static SQRESULT _Fl_Image_Surface_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
@@ -3162,6 +3172,8 @@ static SQRegFunction fl_image_surface_obj_funcs[]={
 	{0,0}
 };
 #undef _DECL_FUNC
+
+
 static SQRESULT _Fl_Text_Buffer_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	Fl_Text_Buffer *self = ((Fl_Text_Buffer *)p);
@@ -3260,6 +3272,102 @@ static SQRESULT _Fl_Text_Buffer_append(HSQUIRRELVM v)
     return 0;
 }
 
+static SQRESULT _Fl_Text_Buffer_selection_position(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_TEXT_BUFFER(v);
+    int pos_start, pos_end;
+    if(self->selection_position(&pos_start, &pos_end))
+    {
+        sq_newarray(v, 2);
+        sq_pushinteger(v, pos_start);
+        sq_arrayset(v, -2, 0);
+        sq_pushinteger(v, pos_end);
+        sq_arrayset(v, -2, 1);
+    }
+    else sq_pushnull(v);
+    return 1;
+}
+
+static SQRESULT _Fl_Text_Buffer_replace(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_TEXT_BUFFER(v);
+    SQ_GET_INTEGER(v, 2, pos_start);
+    SQ_GET_INTEGER(v, 3, pos_end);
+    SQ_GET_STRING(v, 4, txt);
+    self->replace(pos_start, pos_end, txt);
+    return 0;
+}
+
+static SQRESULT _Fl_Text_Buffer_replace_selection(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_TEXT_BUFFER(v);
+    SQ_GET_STRING(v, 2, txt);
+    self->replace_selection(txt);
+    return 0;
+}
+
+static SQRESULT _Fl_Text_Buffer_line_text(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_TEXT_BUFFER(v);
+    SQ_GET_INTEGER(v, 2, pos);
+    char *txt = self->line_text(pos);
+    if(txt)
+    {
+        sq_pushstring(v, txt, -1);
+        free(txt);
+    }
+    else sq_pushnull(v);
+    return 1;
+}
+
+static SQRESULT _Fl_Text_Buffer_text_range(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_TEXT_BUFFER(v);
+    SQ_GET_INTEGER(v, 2, pos_start);
+    SQ_GET_INTEGER(v, 3, pos_end);
+    char *txt = self->text_range(pos_start, pos_end);
+    if(txt)
+    {
+        sq_pushstring(v, txt, -1);
+        free(txt);
+    }
+    else sq_pushnull(v);
+    return 1;
+}
+
+static SQRESULT _Fl_Text_Buffer_word_start(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_TEXT_BUFFER(v);
+    SQ_GET_INTEGER(v, 2, pos);
+    sq_pushinteger(v, self->word_start(pos));
+    return 1;
+}
+
+static SQRESULT _Fl_Text_Buffer_word_end(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_TEXT_BUFFER(v);
+    SQ_GET_INTEGER(v, 2, pos);
+    sq_pushinteger(v, self->word_end(pos));
+    return 1;
+}
+
+static SQRESULT _Fl_Text_Buffer_undo(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_TEXT_BUFFER(v);
+    int cursor_pos;
+    if(self->undo(&cursor_pos)) sq_pushinteger(v, cursor_pos);
+    else sq_pushnull(v);
+    return 1;
+}
+
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Text_Buffer_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_text_buffer_obj_funcs[]={
 	_DECL_FUNC(constructor,-1,_SC("xii"),SQFalse),
@@ -3274,6 +3382,14 @@ static SQRegFunction fl_text_buffer_obj_funcs[]={
 	_DECL_FUNC(selected, 1,_SC("x"),SQFalse),
 	_DECL_FUNC(unselect, 1,_SC("x"),SQFalse),
 	_DECL_FUNC(selection_text, 1,_SC("x"),SQFalse),
+	_DECL_FUNC(selection_position, 1,_SC("x"),SQFalse),
+	_DECL_FUNC(replace, 4,_SC("xiis"),SQFalse),
+	_DECL_FUNC(replace_selection, 2,_SC("xs"),SQFalse),
+	_DECL_FUNC(line_text, 2,_SC("xi"),SQFalse),
+	_DECL_FUNC(word_start, 2,_SC("xi"),SQFalse),
+	_DECL_FUNC(word_end, 2,_SC("xi"),SQFalse),
+	_DECL_FUNC(text_range, 3,_SC("xii"),SQFalse),
+	_DECL_FUNC(undo, 1,_SC("x"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -3331,6 +3447,26 @@ static SQRESULT _Fl_Text_Display_show_insert_position(HSQUIRRELVM v)
     return 0;
 }
 
+static SQRESULT _Fl_Text_Display_redisplay_range(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_TEXT_DISPLAY(v);
+    SQ_GET_INTEGER(v, 2, pos_start);
+    SQ_GET_INTEGER(v, 3, pos_end);
+    self->redisplay_range(pos_start, pos_end);
+    return 0;
+}
+
+static SQRESULT _Fl_Text_Display_scroll(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_TEXT_DISPLAY(v);
+    SQ_GET_INTEGER(v, 2, topLineNum);
+    SQ_GET_INTEGER(v, 3, horizOffset);
+    self->scroll(topLineNum, horizOffset);
+    return 0;
+}
+
 CHEAP_RTTI_FOR(Fl_Text_Display);
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Text_Display_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_text_display_obj_funcs[]={
@@ -3341,6 +3477,8 @@ static SQRegFunction fl_text_display_obj_funcs[]={
 	_DECL_FUNC(wrap_mode, 3,_SC("xii"),SQFalse),
 	_DECL_FUNC(insert_position,-1,_SC("xi"),SQFalse),
 	_DECL_FUNC(show_insert_position,1,_SC("x"),SQFalse),
+	_DECL_FUNC(redisplay_range,3,_SC("xii"),SQFalse),
+	_DECL_FUNC(scroll,3,_SC("xii"),SQFalse),
 	{0,0}
 };
 #undef _DECL_FUNC
@@ -3889,7 +4027,6 @@ static SQRegFunction fl_postscript_file_device_obj_funcs[]={
 };
 #undef _DECL_FUNC
 
-
 static SQRESULT _Fl_File_Chooser_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
 	Fl_File_Chooser *self = ((Fl_File_Chooser *)p);
@@ -4018,6 +4155,7 @@ static SQRESULT _fl_handle(HSQUIRRELVM v)
 	sq_pushinteger(v, Fl::handle(event, window));
 	return 1;
 }
+
 static void fltk_cb_hook(void* udata, bool freeAfter){
     HSQOBJECT error_obj;
     HSQUIRRELVM v = (HSQUIRRELVM) Fl::user_data;
@@ -4065,6 +4203,7 @@ static SQRESULT _fl_add_timeout(HSQUIRRELVM v)
     return 1;
 }
 
+
 static SQRESULT _fl_repeat_timeout(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
@@ -4074,6 +4213,7 @@ static SQRESULT _fl_repeat_timeout(HSQUIRRELVM v)
     sq_pushinteger(v, ref);
     return 1;
 }
+
 
 static SQRESULT _fl_remove_timeout(HSQUIRRELVM v)
 {
