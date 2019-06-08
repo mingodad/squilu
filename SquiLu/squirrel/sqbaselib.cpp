@@ -359,11 +359,11 @@ static SQRESULT base_array_base(HSQUIRRELVM v)
 	T *a;
 	SQObject &size = stack_get(v,2);
 	if(sq_gettop(v) > 2) {
-        a = T::Create(_ss(v),0);
+		a = T::Create(_ss(v),0);
 		a->Resize(tointeger(size),stack_get(v,3));
 	}
 	else {
-        a = T::Create(_ss(v),tointeger(size));
+		a = T::Create(_ss(v),tointeger(size));
 	}
 	v->Push(a);
 	return 1;
