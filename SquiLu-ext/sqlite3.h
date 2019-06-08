@@ -123,9 +123,9 @@ extern "C" {
 ** [sqlite3_libversion_number()], [sqlite3_sourceid()],
 ** [sqlite_version()] and [sqlite_source_id()].
 */
-#define SQLITE_VERSION        "3.28.0"
-#define SQLITE_VERSION_NUMBER 3028000
-#define SQLITE_SOURCE_ID      "2019-04-13 04:38:32 07ee06fd390bfebebc014b47583d489747b0423bb96c810bed5c605ce0e3alt1"
+#define SQLITE_VERSION        "3.29.0"
+#define SQLITE_VERSION_NUMBER 3029000
+#define SQLITE_SOURCE_ID      "2019-05-27 00:29:15 15202aee150fa8e15fb90e90e5765c5e19a1eaf4896da2996a747636b76dalt1"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -2200,6 +2200,7 @@ struct sqlite3_mem_methods {
 ** features include but are not limited to the following:
 ** <ul>
 ** <li> The [PRAGMA writable_schema=ON] statement.
+** <li> The [PRAGMA journal_mode=OFF] statement.
 ** <li> Writes to the [sqlite_dbpage] virtual table.
 ** <li> Direct writes to [shadow tables].
 ** </ul>
@@ -7341,7 +7342,8 @@ SQLITE_API int sqlite3_test_control(int op, ...);
 #define SQLITE_TESTCTRL_SORTER_MMAP             24
 #define SQLITE_TESTCTRL_IMPOSTER                25
 #define SQLITE_TESTCTRL_PARSER_COVERAGE         26
-#define SQLITE_TESTCTRL_LAST                    26  /* Largest TESTCTRL */
+#define SQLITE_TESTCTRL_RESULT_INTREAL          27
+#define SQLITE_TESTCTRL_LAST                    27  /* Largest TESTCTRL */
 
 /*
 ** CAPI3REF: SQL Keyword Checking
