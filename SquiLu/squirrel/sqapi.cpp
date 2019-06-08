@@ -519,6 +519,20 @@ SQRESULT sq_arraygetsizeof(HSQUIRRELVM v,SQInteger idx)
 	return SQ_OK;
 }
 
+SQRESULT sq_arraygettype(HSQUIRRELVM v,SQInteger idx, SQInteger *atype)
+{
+    CHECK_ARRAY_AT(idx, arr);
+    *atype = _array(arr)->GetArrayType();
+	return SQ_OK;
+}
+
+SQRESULT sq_arraygetrawdata(HSQUIRRELVM v,SQInteger idx, void **rdata)
+{
+    CHECK_ARRAY_AT(idx, arr);
+    *rdata = _array(arr)->RawData();
+	return SQ_OK;
+}
+
 void sq_newclosure(HSQUIRRELVM v,SQFUNCTION func,SQUnsignedInteger nfreevars)
 {
 	SQNativeClosure *nc = SQNativeClosure::Create(_ss(v), func,nfreevars);

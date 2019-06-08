@@ -163,6 +163,8 @@ SQUIRREL_API_FUNC(SQRESULT, arrayinsert, (HSQUIRRELVM v,SQInteger idx,SQInteger 
 SQUIRREL_API_FUNC(SQRESULT, arrayget, (HSQUIRRELVM v,SQInteger idx,SQInteger pos))
 SQUIRREL_API_FUNC(SQRESULT, arrayset, (HSQUIRRELVM v,SQInteger idx,SQInteger destpos))
 SQUIRREL_API_FUNC(SQRESULT, arraygetsizeof, (HSQUIRRELVM v,SQInteger idx))
+SQUIRREL_API_FUNC(SQRESULT, arraygettype, (HSQUIRRELVM v,SQInteger idx, SQInteger *atype))
+SQUIRREL_API_FUNC(SQRESULT, arraygetrawdata, (HSQUIRRELVM v,SQInteger idx, void **rdata))
 SQUIRREL_API_FUNC(SQRESULT, setdelegate, (HSQUIRRELVM v,SQInteger idx))
 SQUIRREL_API_FUNC(SQRESULT, getdelegate, (HSQUIRRELVM v,SQInteger idx))
 SQUIRREL_API_FUNC(SQRESULT, clone, (HSQUIRRELVM v,SQInteger idx))

@@ -44,6 +44,16 @@ extern "C" {
 #define SQTrue	(1)
 #define SQFalse	(0)
 
+enum SQEnumArrayTypes {
+    eat_SQArray = 1,
+    eat_SQFloat64Array,
+    eat_SQFloat32Array,
+    eat_SQInt64Array,
+    eat_SQInt32Array,
+    eat_SQInt16Array,
+    eat_SQInt8Array,
+};
+
 struct SQVM;
 struct SQTable;
 struct SQArrayBase;

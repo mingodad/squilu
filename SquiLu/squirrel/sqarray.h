@@ -2,13 +2,14 @@
 #ifndef _SQARRAY_H_
 #define _SQARRAY_H_
 
+
 struct SQArrayBase : public CHAINABLE_OBJ
 {
 protected:
 	SQArrayBase(SQSharedState *ss,SQInteger nsize){
 	    INIT_CHAIN();
 	    ADD_TO_CHAIN(&_ss(this)->_gc_chain,this);
-    }
+	}
 	~SQArrayBase()
 	{
 		REMOVE_FROM_CHAIN(&_ss(this)->_gc_chain,this);
@@ -57,6 +58,8 @@ public:
 		return -1;
 	}
 	ABSTRACT_METHOD(virtual SQArrayBase *Clone(bool withData=true), { return NULL;})
+	ABSTRACT_METHOD(virtual void *RawData(), { return NULL;})
+	ABSTRACT_METHOD(virtual SQInteger GetArrayType(), { return 0;})
 	ABSTRACT_METHOD(virtual SQUnsignedInteger SizeOf() const, { return 0;})
 	ABSTRACT_METHOD(virtual SQUnsignedInteger Size() const, { return 0;})
 	bool Resize(SQUnsignedInteger size)
@@ -122,6 +125,7 @@ private:
 	    return anew;\
     }\
 	void Release(){sq_delete(this,atype);}\
+	virtual SQInteger GetArrayType() { return eat_##atype;} \
 	void DummyPinVtable();
 
 struct SQArray : public SQArrayBase
@@ -163,6 +167,7 @@ public:
 	{
         out = _vec_values[idx];
 	}
+	virtual void *RawData() { return NULL;}
 private:
 
     virtual void _getObjectPtr(const SQInteger nidx,SQObjectPtr &val){
@@ -238,6 +243,7 @@ public:
         _vec_values[idx1] = tv;
         return true;
 	}
+	virtual void *RawData() { return _vec_values._vals;}
 private:
 
     virtual bool _setObjectPtr(const SQInteger nidx, const SQObjectPtr &val){
