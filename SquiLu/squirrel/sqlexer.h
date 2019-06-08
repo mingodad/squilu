@@ -85,7 +85,7 @@ struct SQLexer
 private:
 	SQInteger GetIDType(const SQChar *s,SQInteger len);
 	SQInteger ReadString(SQInteger ndelim,bool verbatim);
-	SQInteger ReadNumber();
+	SQInteger ReadNumber(SQInteger startChar=0);
 	SQInteger LexBlockComment();
 	SQInteger LexLineComment();
 	SQInteger ReadID();

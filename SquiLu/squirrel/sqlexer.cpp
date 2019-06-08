@@ -418,7 +418,14 @@ SQInteger SQLexer::Lex()
             }
 		case _SC('.'):
 			NEXT();
-			if (CUR_CHAR != _SC('.')){ RETURN_TOKEN(_SC('.')) }
+			if (CUR_CHAR != _SC('.')){
+			    if (scisdigit(CUR_CHAR)) {
+				SQInteger ret = ReadNumber(_SC('.'));
+				if(ret < 0) return -1;
+				RETURN_TOKEN(ret);
+			    }
+			    RETURN_TOKEN(_SC('.'));
+			}
 			NEXT();
 			if (CUR_CHAR != _SC('.')){ return Error(_SC("invalid token '..'")); }
 			NEXT();
@@ -849,18 +856,18 @@ static SQInteger isexponent(SQInteger c) { return c == _SC('e') || c==_SC('E'); 
 
 
 #define MAX_HEX_DIGITS (sizeof(SQInteger)*2)
-SQInteger SQLexer::ReadNumber()
+SQInteger SQLexer::ReadNumber(SQInteger startChar)
 {
 #define TINT 1
 #define TFLOAT 2
 #define THEX 3
 #define TSCIENTIFIC 4
 #define TOCTAL 5
-	SQInteger rtype, type = TINT, firstchar = CUR_CHAR;
+	SQInteger rtype, type = TINT, firstchar = startChar ? startChar : CUR_CHAR;
 	SQUnsignedInteger itmp=0;
 	SQChar *sTemp;
 	INIT_TEMP_STRING();
-	NEXT();
+	if(!startChar) NEXT();
 	if(firstchar == _SC('0') && (toupper(CUR_CHAR) == _SC('X') || scisodigit(CUR_CHAR)) ) {
 		if(scisodigit(CUR_CHAR)) {
 			type = TOCTAL;
