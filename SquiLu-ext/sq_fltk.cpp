@@ -3368,6 +3368,59 @@ static SQRESULT _Fl_Text_Buffer_undo(HSQUIRRELVM v)
     return 1;
 }
 
+/*
+static void fl_text_buffer_modify_calback_hook(
+    int pos, int nInserted, int nDeleted,
+    int nRestyled, const char* deletedText,
+    void* cbArg)
+{
+    if(!udata) return;
+    HSQOBJECT error_obj;
+    HSQUIRRELVM v = (HSQUIRRELVM) Fl::user_data;
+    SQInteger savedTop = sq_gettop(v);
+    if(sq_pushref(v, (SQInteger)udata) == SQ_OK){
+        sq_arrayget(v, -1, 0);
+        sq_pushroottable(v);
+        if(fltk_get_registered_instance(v, sender) != SQ_OK) sq_pushnull(v);
+        sq_arrayget(v, savedTop+1, 1); //userdata
+        int rc = sq_call(v, 3, SQFalse, SQTrue);
+        if(rc != SQ_OK) {
+            sq_getlasterror(v);
+            sq_resetobject(&error_obj);
+            sq_getstackobj(v, -1, &error_obj);
+            sq_addref(v, &error_obj);
+        }
+        sq_settop(v, savedTop);
+        if(rc != SQ_OK) {
+            fl_alert("%s", sq_objtostring(&error_obj));
+            sq_release(v, &error_obj);
+        }
+    }
+}
+
+static SQRESULT _Fl_Text_Buffer_add_modify_callback(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_TEXT_BUFFER(v);
+    return 0;
+}
+
+static SQRESULT _Fl_Text_Buffer_remove_modify_callback(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_TEXT_BUFFER(v);
+    return 0;
+}
+*/
+
+static SQRESULT _Fl_Text_Buffer_call_modify_callbacks(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SETUP_FL_TEXT_BUFFER(v);
+    self->call_modify_callbacks();
+    return 0;
+}
+
 #define _DECL_FUNC(name,nparams,pmask,isStatic) {_SC(#name),_Fl_Text_Buffer_##name,nparams,pmask,isStatic}
 static SQRegFunction fl_text_buffer_obj_funcs[]={
 	_DECL_FUNC(constructor,-1,_SC("xii"),SQFalse),
@@ -3390,6 +3443,9 @@ static SQRegFunction fl_text_buffer_obj_funcs[]={
 	_DECL_FUNC(word_end, 2,_SC("xi"),SQFalse),
 	_DECL_FUNC(text_range, 3,_SC("xii"),SQFalse),
 	_DECL_FUNC(undo, 1,_SC("x"),SQFalse),
+	_DECL_FUNC(call_modify_callbacks, 1,_SC("x"),SQFalse),
+	//add_modify_callback
+	//remove_modify_callback
 	{0,0}
 };
 #undef _DECL_FUNC
