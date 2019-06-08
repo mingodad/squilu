@@ -208,6 +208,11 @@ public:
         va_end(vl);
     }
 
+    void ErrorNameAlreadyDeclared(const SQObject &name)
+    {
+	//Error(_SC("Name '%s' already declared"), _stringval(name));
+    }
+
     bool CheckNameIsType(const SQObject &name)
     {
         for(int i=_scope.nested-1; i >= 0; --i)
@@ -719,8 +724,12 @@ public:
         SQFuncState funcstate(_ss(_vm), NULL,ThrowError,this);
         funcstate._name = SQString::Create(_ss(_vm), _SC("main"));
         _fs = &funcstate;
-        _fs->AddParameter(_fs->CreateString(_SC("this")), _scope.nested+1);
-        _fs->AddParameter(_fs->CreateString(_SC("vargv")), _scope.nested+1);
+        SQObject strTemp = _fs->CreateString(_SC("this"));
+        if(_fs->AddParameter(strTemp, _scope.nested+1) < 0)
+            ErrorNameAlreadyDeclared(strTemp);
+        strTemp = _fs->CreateString(_SC("vargv"));
+        if(_fs->AddParameter(strTemp, _scope.nested+1) < 0)
+            ErrorNameAlreadyDeclared(strTemp);
         _fs->_varparams = true;
         _fs->_sourcename = _sourcename;
 
@@ -840,7 +849,7 @@ start_again:
         case TK_GOTO:
         {
             //error if outside any function
-            if(!_fs->_parent) Error(_SC("'goto' has to be in a function block"));
+            //if(!_fs->_parent) Error(_SC("'goto' has to be in a function block"));
             Lex(); //ignore for now
             id = Expect(TK_IDENTIFIER);
             SQGotoLabelsInfo info;
@@ -1033,7 +1042,7 @@ start_again:
             SQInteger lhtk = _lex.LookaheadLex();
             if(lhtk == _SC(':'))
             {
-                if(!_fs->_parent) Error(_SC("'label' has to be inside a function block"));
+                //if(!_fs->_parent) Error(_SC("'label' has to be inside a function block"));
                 if(!_fs->AddGotoTarget(id, _lex.data->currentline, _fs->_traps, _scope.nested))
                 {
                     Error(_SC("Label already declared"));
@@ -2420,7 +2429,8 @@ function_params_decl:
             //doing this way works but prevents garbage collection when doing multiple reloads on the same vm
             //the following is an attempt to allow local declared functions be called recursivelly
             SQInteger old_pos = _fs->GetCurrentPos(); //save current instructions position
-            _fs->PushLocalVariable(varname, _scope.nested, _VAR_CLOSURE); //add function name to find it as outer var if needed
+            if(_fs->PushLocalVariable(varname, _scope.nested, _VAR_CLOSURE) < 0) //add function name to find it as outer var if needed
+                ErrorNameAlreadyDeclared(varname);
             if(sq_type(type_name) == OT_STRING) _fs->AddParameterTypeName(type_name);
             CreateFunction(varname, eFunctionType_local, declType);
             if(_is_parsing_extern)
@@ -2446,7 +2456,8 @@ function_params_decl:
             CreateFunction(varname,eFunctionType::local);
             _fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
             _fs->PopTarget();
-            _fs->PushLocalVariable(varname, _scope.nested, _VAR_CLOSURE);
+           if( _fs->PushLocalVariable(varname, _scope.nested, _VAR_CLOSURE) < 0)
+            ErrorNameAlreadyDeclared(varname);;
 #endif
             return;
         }
@@ -2519,10 +2530,10 @@ function_params_decl:
             else
             {
                 _fs->PopTarget();
-                _fs->PushLocalVariable(varname, _scope.nested, (is_const_declaration ? _VAR_CONST : declType)
+                if(_fs->PushLocalVariable(varname, _scope.nested, (is_const_declaration ? _VAR_CONST : declType)
                                        | (is_reference_declaration ? _VAR_REFERENCE : 0)
                                        | (is_pointer_declaration ? _VAR_POINTER : 0)
-                                       );
+                                       ) < 0) ErrorNameAlreadyDeclared(varname);
                 if(sq_type(type_name) == OT_STRING) _fs->AddParameterTypeName(type_name);
             }
             if(_token == _SC(',')) Lex();
@@ -2735,12 +2746,16 @@ lbl_commaexpr:
         SQInteger container = _fs->TopTarget();
         //push the index local var
         SQInteger indexpos = _fs->PushLocalVariable(idxname, _scope.nested);
+        if(indexpos < 0) ErrorNameAlreadyDeclared(idxname);
         _fs->AddInstruction(_OP_LOADNULLS, indexpos,1);
         //push the value local var
         SQInteger valuepos = _fs->PushLocalVariable(valname, _scope.nested);
+        if(valuepos < 0) ErrorNameAlreadyDeclared(valname);
         _fs->AddInstruction(_OP_LOADNULLS, valuepos,1);
         //push reference index
-        SQInteger itrpos = _fs->PushLocalVariable(_fs->CreateString(_SC("@ITERATOR@")), _scope.nested); //use invalid id to make it inaccessible
+        SQObject strIter = _fs->CreateString(_SC("@ITERATOR@"));
+        SQInteger itrpos = _fs->PushLocalVariable(strIter, _scope.nested); //use invalid id to make it inaccessible
+        if(itrpos < 0) ErrorNameAlreadyDeclared(strIter);
         _fs->AddInstruction(_OP_LOADNULLS, itrpos,1);
         SQInteger jmppos = _fs->GetCurrentPos();
         _fs->AddInstruction(_OP_FOREACH, container, 0, indexpos);
@@ -3071,6 +3086,7 @@ error:
         {
             BEGIN_SCOPE();
             SQInteger ex_target = _fs->PushLocalVariable(exid, _scope.nested);
+            if(ex_target < 0) ErrorNameAlreadyDeclared(exid);
             _fs->SetInstructionParam(trappos, 0, ex_target);
             Statement();
             _fs->SetInstructionParams(jmppos, 0, (_fs->GetCurrentPos() - jmppos), 0);
@@ -3176,7 +3192,9 @@ error:
         SQFuncState *funcstate = _fs->PushChildState(_ss(_vm));
         funcstate->_name = name;
         SQObject paramname, type_name;
-        funcstate->AddParameter(_fs->CreateString(_SC("this")), _scope.nested+1);
+        SQObject strThis = _fs->CreateString(_SC("this"));
+        if(funcstate->AddParameter(strThis, _scope.nested+1) < 0)
+            ErrorNameAlreadyDeclared(strThis);
         funcstate->_sourcename = _sourcename;
         SQInteger defparams = 0;
         bool is_reference_declaration = 0;
@@ -3204,7 +3222,9 @@ error:
             if(_token == TK_VARPARAMS)
             {
                 if(defparams > 0) Error(_SC("function with default parameters cannot have variable number of parameters"));
-                funcstate->AddParameter(_fs->CreateString(_SC("vargv")), _scope.nested+1);
+		SQObject strVargv = _fs->CreateString(_SC("vargv"));
+                if(funcstate->AddParameter(strVargv, _scope.nested+1) < 0)
+                    ErrorNameAlreadyDeclared(strVargv);
                 funcstate->_varparams = true;
                 Lex();
                 if(_token != _SC(')')) Error(_SC("expected ')'"));
@@ -3229,8 +3249,9 @@ error:
                     EatTemplateInitialization();
                     paramname = Expect(TK_IDENTIFIER);
                 }
-                funcstate->AddParameter(paramname, _scope.nested+1, is_reference_declaration ? _VAR_REFERENCE :
-                                            (is_pointer_declaration ? _VAR_POINTER : _VAR_ANY));
+                if(funcstate->AddParameter(paramname, _scope.nested+1, is_reference_declaration ? _VAR_REFERENCE :
+                                            (is_pointer_declaration ? _VAR_POINTER : _VAR_ANY)) < 0)
+                    ErrorNameAlreadyDeclared(paramname);
                 if(param_type_name)
                 {
                     funcstate->AddParameterTypeName(param_type_name);
