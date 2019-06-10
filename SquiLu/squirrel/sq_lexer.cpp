@@ -130,7 +130,8 @@ static SQRESULT sq_SQLexer_longstr(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_SQLexer_INSTANCE();
 
-    sq_pushstring(v, &self->lex->data->longstr[0], self->lex->data->longstr.size());
+	SQSizeType sz = self->lex->data->longstr.size();
+	sq_pushstring(v, &self->lex->data->longstr[0], sz > 0 ? sz-1 : 0);
 	return 1;
 }
 
