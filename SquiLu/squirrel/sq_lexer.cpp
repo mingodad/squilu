@@ -166,6 +166,14 @@ static SQRESULT sq_SQLexer_svalue(HSQUIRRELVM v){
 	return 1;
 }
 
+static SQRESULT sq_SQLexer_isCharacter(HSQUIRRELVM v){
+	SQ_FUNC_VARS_NO_TOP(v);
+	GET_SQLexer_INSTANCE();
+
+    sq_pushbool(v, self->lex->data->isCharacter);
+	return 1;
+}
+
 static SQRESULT sq_SQLexer_nvalue(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
 	GET_SQLexer_INSTANCE();
@@ -270,6 +278,7 @@ static SQRegFunction SQLexer_obj_funcs[]={
 	_DECL_SQLEXER_FUNC(tok2str, 2, _SC(".i")),
 	_DECL_SQLEXER_FUNC(token_name, 2, _SC(".i")),
 	_DECL_SQLEXER_FUNC(lasterror, 1, _SC(".")),
+	_DECL_SQLEXER_FUNC(isCharacter, 1, _SC(".")),
 	_DECL_SQLEXER_FUNC(longstr, 1, _SC(".")),
 	_DECL_SQLEXER_FUNC(svalue, 1, _SC(".")),
 	_DECL_SQLEXER_FUNC(nvalue, 1, _SC(".")),

@@ -50,6 +50,7 @@ SQInteger SQLexer::ResetReader(SQLEXREADFUNC rg, SQUserPointer up, SQInteger lin
 	data->prevtoken = -1;
 	data->readcount = 0;
 	data->reached_eof = SQFalse;
+	data->isCharacter = SQFalse;
 	return Next();
 }
 
@@ -789,6 +790,7 @@ try_again:
 		if(len == 0) return Error(_SC("empty constant"));
 		if(len > 1) return Error(_SC("constant too long"));
 		data->nvalue = data->longstr[0];
+		data->isCharacter = SQTrue;
 		return TK_INTEGER;
 	}
 	data->svalue = &data->longstr[0];
@@ -930,6 +932,7 @@ SQInteger SQLexer::ReadNumber(SQInteger startChar)
 	if(!okNumber) Error(_SC("integer overflow %s"), &data->longstr[0]);
 
 	rtype = TK_INTEGER;
+	data->isCharacter = SQFalse;
 	switch(type) {
 	case TINT:
 	    switch(CUR_CHAR)
@@ -971,9 +974,9 @@ SQInteger SQLexer::ReadNumber(SQInteger startChar)
 	case THEX:
 	case TOCTAL:
 	    //to allow 64 bits integers comment bellow
-        //if(itmp > INT_MAX) return Error(_SC("integer overflow %ulld %d"));
-        data->nvalue = (SQInteger) itmp;
-		return rtype;
+	    //if(itmp > INT_MAX) return Error(_SC("integer overflow %ulld %d"));
+	    data->nvalue = (SQInteger) itmp;
+	    return rtype;
 	}
 	return 0;
 }

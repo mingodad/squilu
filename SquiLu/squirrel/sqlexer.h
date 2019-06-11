@@ -23,6 +23,7 @@ struct SQLexerData
     LexChar currdata;
     SQInteger readcount;
     SQBool reached_eof;
+    SQBool isCharacter;
     SQChar lasterror[256];
     SQLexerData()
     {
@@ -36,6 +37,7 @@ struct SQLexerData
     {
         curtoken = src->curtoken;
         reached_eof = src->reached_eof;
+        isCharacter = src->isCharacter;
         prevtoken = src->prevtoken;
         currentline = src->currentline;
         currentcolumn = src->currentcolumn;
@@ -54,6 +56,7 @@ struct SQLexerData
     {
         curtoken = 0;
         reached_eof = SQFalse;
+        isCharacter = SQFalse;
         prevtoken = -1;
         currentline = 0;
         currentcolumn = 0;
