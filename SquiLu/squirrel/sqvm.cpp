@@ -1256,6 +1256,7 @@ exception_restore:
 			OPCODE_TARGET(YIELD) {
 				if(ci->_generator) {
 					if(sarg1 != MAX_FUNC_STACKSIZE) temp_reg = STK(arg1);
+					if (_openouters) CloseOuters(&_stack._vals[_stackbase]);
 					_GUARD(ci->_generator->Yield(this,arg2));
 					traps -= ci->_etraps;
 					if(sarg1 != MAX_FUNC_STACKSIZE) _Swap(STK(arg1),temp_reg);//STK(arg1) = temp_reg;
