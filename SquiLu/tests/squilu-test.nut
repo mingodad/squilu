@@ -1484,6 +1484,7 @@ sqt.run("number", function(){
 	sqt.ok((123).tostring() == "123");
 	sqt.ok((-123).tostring() == "-123");
 	//sqt.ok((-0).tostring() == "-0");
+	//sqt.ok((-0.0).tostring() == "-0.0");
 	sqt.ok((12.34).tostring() == "12.34");
 	sqt.ok((-0.0001).tostring() == "-0.0001");
 
@@ -1534,6 +1535,7 @@ sqt.run("number", function(){
 	sqt.ok(123 != 124);
 	sqt.ok(-3 != 3);
 	sqt.ok(0 == -0);
+	sqt.ok(0.0 == -0.0);
 	sqt.ok(123 != "123");
 	sqt.ok(1 == true);
 	sqt.ok(0 == false);

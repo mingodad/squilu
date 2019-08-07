@@ -718,11 +718,11 @@ bool SQVM::CLASS_OP(SQObjectPtr &target,SQInteger baseclass,SQInteger attributes
 
 bool SQVM::IsEqualDeep(const SQObjectPtr &o1,const SQObjectPtr &o2)
 {
+	if(IsEqualIdentity(o1, o2)) return true;
 	if(sq_type(o1) == sq_type(o2)) {
-		if(_rawval(o1) == _rawval(o2)) return true;
-        SQInteger rc;
-        if(ObjCmp(o1, o2, rc) && (rc == 0)) return true;
-        return false;
+        	SQInteger rc;
+       		if(ObjCmp(o1, o2, rc) && (rc == 0)) return true;
+        	return false;
 	}
 	return IsEqual(o1, o2);
 }
@@ -730,21 +730,21 @@ bool SQVM::IsEqualDeep(const SQObjectPtr &o1,const SQObjectPtr &o2)
 bool SQVM::IsEqual(const SQObjectPtr &o1,const SQObjectPtr &o2)
 {
 	bool res = false;
-	if(sq_type(o1) == sq_type(o2)) {
-		res = (_rawval(o1) == _rawval(o2));
+	if(IsEqualIdentity(o1, o2)) {
+		res = true;
 	}
 	else if(sq_isnumeric(o1) && sq_isnumeric(o2)) {
 		res = (tofloat(o1) == tofloat(o2));
 	}
 	else if(sq_type(o1) == OT_BOOL) {
-        if(sq_type(o2) & SQOBJECT_CANBEFALSE) {
-            res = _integer(o1) == (IsFalse(o2) ? 0 : 1);
-        }
+        	if(sq_type(o2) & SQOBJECT_CANBEFALSE) {
+            		res = _integer(o1) == (IsFalse(o2) ? 0 : 1);
+        	}
 	}
 	else if(sq_type(o2) == OT_BOOL) {
-        if(sq_type(o1) & SQOBJECT_CANBEFALSE) {
-            res = _integer(o2) == (IsFalse(o1) ? 0 : 1);
-        }
+        	if(sq_type(o1) & SQOBJECT_CANBEFALSE) {
+            		res = _integer(o2) == (IsFalse(o1) ? 0 : 1);
+        	}
 	}
 	return res;
 }
@@ -752,8 +752,14 @@ bool SQVM::IsEqual(const SQObjectPtr &o1,const SQObjectPtr &o2)
 bool SQVM::IsEqualIdentity(const SQObjectPtr &o1,const SQObjectPtr &o2)
 {
 	bool res = false;
-	if(sq_type(o1) == sq_type(o2)) {
-		res = (_rawval(o1) == _rawval(o2));
+	SQObjectType t1 = sq_type(o1), t2 = sq_type(o2);
+	if(t1 == t2) {
+		if (t1 == OT_FLOAT) {
+			res = (_float(o1) == _float(o2));
+		}
+		else {
+			res = (_rawval(o1) == _rawval(o2));
+		}
 	}
 	return res;
 }
