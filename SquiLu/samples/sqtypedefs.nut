@@ -31,3 +31,6 @@ typedef void_ptr_t SQFuncState_ptr_t;
 typedef void_ptr_t SQObjectPtr_ptr_t;
 typedef void_ptr_t SQUserPointer;
 typedef void_ptr_t va_list;
+typedef class_t SQLocalVarInfo;
+typedef class_t SQFunctionProto;
+typedef struct_t FILE;

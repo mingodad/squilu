@@ -4,7 +4,7 @@ local function getMembersNotInBaseClass(klass, klass_members){
 	local bklass_members = {};
 	if(bklass) foreach(k,v in bklass) bklass_members[k] <- true;
 	foreach(k,v in klass) {
-		if(bklass_members.get(k, klass) == klass) { //not found
+		if(table_get(bklass_members, k, klass) == klass) { //not found
 			klass_members.push([k,v]);
 		}
 	}

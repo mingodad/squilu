@@ -1,6 +1,8 @@
 #define NESTED_INCLUDE
 #ifdef NESTED_INCLUDE
 #include "test-array.nut"
+#else
+#include <stdio.h>
 #endif
 
 # define DEBUG
