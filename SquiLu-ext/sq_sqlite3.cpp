@@ -103,6 +103,7 @@ enum e_type_result {tr_first_row_first_col, tr_first_row, tr_all_rows, tr_ddml};
 #define WITH_COL_NAMES 0x04
 #define WITH_BLOB_AS_NULL 0x08
 #define WITH_SQ_NULL 0x100
+#define WITH_STMT_DBG 0x200
 
 static void sqlite3_stmt_push_string(HSQUIRRELVM v, sqlite3_stmt *stmt, int col, int flags)
 {
@@ -198,6 +199,7 @@ static void sqlite3_stmt_row_asTable(HSQUIRRELVM v, sqlite3_stmt *stmt, int flag
 
 static void sqlite3_stmt_asArrayOfArrays(HSQUIRRELVM v, sqlite3_stmt *stmt, int flags)
 {
+    int rc;
     sq_newarray(v, 0);
     if(flags & WITH_COL_NAMES)
     {
@@ -210,11 +212,12 @@ static void sqlite3_stmt_asArrayOfArrays(HSQUIRRELVM v, sqlite3_stmt *stmt, int 
         }
         sq_arrayappend(v, -2);
     }
-    while(sqlite3_step(stmt) == SQLITE_ROW)
+    while((rc = sqlite3_step(stmt)) == SQLITE_ROW)
     {
         sqlite3_stmt_row_asArray(v, stmt, flags);
         sq_arrayappend(v, -2);
     }
+    if(flags & WITH_STMT_DBG) printf("sqlite3_step(stmt) = %d\n", rc);
 }
 
 static void sqlite3_stmt_asArrayOfTables(HSQUIRRELVM v, sqlite3_stmt *stmt, int flags)
@@ -3941,6 +3944,7 @@ extern "C" {
         INT_CONST(v,WITH_COL_NAMES);
         INT_CONST(v,WITH_BLOB_AS_NULL);
         INT_CONST(v,WITH_SQ_NULL);
+        INT_CONST(v,WITH_STMT_DBG);
 
         //push sqlite3_NULL as a member
         sq_pushstring(v, nullName,-1);
