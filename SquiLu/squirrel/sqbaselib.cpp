@@ -528,6 +528,27 @@ static SQRESULT bf_table_incnum(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT bf_table_toarray(HSQUIRRELVM v)
+{
+	SQObjectPtr &self = stack_get(v, 2);
+	SQInteger tsz = sq_getsize(v, 2);
+	sq_newarray(v, tsz);
+	SQInteger idx = 0;
+    sq_pushnull(v);
+    while(sq_next(v, 2) == SQ_OK)
+    {
+        sq_newarray(v, 2);
+        sq_push(v, -3);
+        sq_arrayset(v, -2, 0); //table key
+        sq_push(v, -2);
+        sq_arrayset(v, -2, 1); //table value
+        sq_arrayset(v, 3, idx++); //set the new array into ary
+        sq_pop(v, 2);
+    }
+    sq_pop(v, 1); //the null before while
+	return 1;
+}
+
 static SQRESULT bf_obj_clone(HSQUIRRELVM v)
 {
     SQRESULT rc = sq_clone(v,-1);
@@ -664,6 +685,7 @@ static SQRegFunction base_funcs[]={
 	{_SC("table_getdelegate"),bf_table_getdelegate,2, _SC(".t"), false},
 	{_SC("table_getdelegate_squirrel"),bf_table_getdelegate_squirrel,1, _SC("."), false},
 	{_SC("table_incnum"),bf_table_incnum,-4, _SC(".tsnb"), false},
+	{_SC("table_toarray"),bf_table_toarray,2, _SC(".t"), false},
 	{_SC("obj_clone"),bf_obj_clone,2, _SC(". t|a|x|i|f|s"), false},
 	{NULL,(SQFUNCTION)0,0,NULL, false}
 };
@@ -2626,7 +2648,7 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("iso88959_to_utf8"),string_iso88959_to_utf8,1, _SC("s"), false},
 	{_SC("isvalidutf8"),string_isvalidutf8,1, _SC("s"), false},
 	{_SC("longestcommonsubstr"),string_longestcommonsubstr,2, _SC("ss"), false},
-	
+
 #ifdef SQ_SUBLATIN
 	{_SC("sl_len"),string_sl_len,1, _SC("s"), false},
 	{_SC("sl_lower"),string_sl_lower,1, _SC("s"), false},

@@ -968,9 +968,19 @@ sqt.run("table", function(){
 	sqt.ok((table_get(t, "one") == 10));
 	table_rawset(t, "two", 2);
 	sqt.ok(table_len(t) == 2 && (table_get(t, "two") == 2));
+
+	local ary = table_toarray(t);
+	sqt.ok(type(ary) == "array");
+	sqt.ok(ary.len() == table_len(t));
+	sqt.ok(type(ary[0]) == "array");
+	sqt.ok(type(ary[1]) == "array");
+	sqt.ok(ary[0][1] == table_rawget(t, ary[0][0]));
+	sqt.ok(ary[1][1] == table_rawget(t, ary[1][0]));
+	
 	table_rawdelete(t, "one");
 	sqt.ok(table_len(t) == 1 && (table_get(t, "two") == 2));
 	sqt.ok(table_rawin(t, "two"));
+	
 	table_clear(t);
 	sqt.ok(table_len(t) == 0);
 
