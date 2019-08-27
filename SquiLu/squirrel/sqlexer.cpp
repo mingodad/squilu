@@ -23,7 +23,7 @@
 SQLexer::SQLexer(){_keywords=0;}
 SQLexer::~SQLexer()
 {
-	_keywords->Release();
+	if(_keywords) _keywords->Release();
 }
 
 SQInteger SQLexer::Init(SQSharedState *ss, SQLEXREADFUNC rg,
