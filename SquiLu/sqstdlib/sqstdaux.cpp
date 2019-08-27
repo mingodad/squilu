@@ -1,7 +1,9 @@
 /* see copyright notice in squirrel.h */
 #include <squirrel.h>
 #include <sqstdaux.h>
+#include <stdio.h>
 #include <assert.h>
+#include <stdarg.h>
 
 void sqstd_printcallstack(HSQUIRRELVM v)
 {
@@ -108,6 +110,25 @@ void sqstd_printcallstack(HSQUIRRELVM v)
 			}
 		}
 	}
+}
+
+SQRESULT sqstd_throwerrorf(HSQUIRRELVM v,const SQChar *err,...)
+{
+    SQInteger n=256;
+    va_list args;
+begin:
+    va_start(args,err);
+    SQChar *b=sq_getscratchpad(v,n);
+    SQInteger r=scvsprintf(b,n,err,args);
+    va_end(args);
+    if (r>=n) {
+        n=r+1;//required+null
+        goto begin;
+    } else if (r<0) {
+        return sq_throwerror(v,_SC("@failed to generate formatted error message"));
+    } else {
+        return sq_throwerror(v,b);
+    }
 }
 
 static SQRESULT _sqstd_aux_printerror(HSQUIRRELVM v)

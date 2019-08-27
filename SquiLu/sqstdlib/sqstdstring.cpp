@@ -8,6 +8,7 @@
 #include <ctype.h>
 #include <assert.h>
 #include <stddef.h>
+#include <stdarg.h>
 
 #ifdef _WIN32_WCE
 extern "C" {
@@ -231,6 +232,25 @@ static SQRESULT _string_format(HSQUIRRELVM v)
 		return -1;
 	sq_pushstring(v,dest,length);
 	return 1;
+}
+
+void sqstd_pushstringf(HSQUIRRELVM v,const SQChar *s,...)
+{
+    SQInteger n=256;
+    va_list args;
+begin:
+    va_start(args,s);
+    SQChar *b=sq_getscratchpad(v,n);
+    SQInteger r=scvsprintf(b,n,s,args);
+    va_end(args);
+    if (r>=n) {
+        n=r+1;//required+null
+        goto begin;
+    } else if (r<0) {
+        sq_pushnull(v);
+    } else {
+        sq_pushstring(v,b,r);
+    }
 }
 
 static SQRESULT _string_printf(HSQUIRRELVM v)
