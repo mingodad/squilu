@@ -283,7 +283,8 @@ SQInteger SQLexer::LookaheadLex()
     return _data_lookahead.curtoken;
 }
 
-SQInteger SQLexer::Lex()
+//dontThrowIntegerOverflow for when in 32bits parsing 64bits integer inside excluded ifdef
+SQInteger SQLexer::Lex(bool dontThrowIntegerOverflow)
 {
     if(_data_lookahead.currentline >= 0 && data != &_data_lookahead)
     {
@@ -421,7 +422,7 @@ SQInteger SQLexer::Lex()
 			NEXT();
 			if (CUR_CHAR != _SC('.')){
 			    if (scisdigit(CUR_CHAR)) {
-				SQInteger ret = ReadNumber(_SC('.'));
+				SQInteger ret = ReadNumber(_SC('.'), dontThrowIntegerOverflow);
 				if(ret < 0) return -1;
 				RETURN_TOKEN(ret);
 			    }
@@ -472,7 +473,7 @@ SQInteger SQLexer::Lex()
 			return 0;
 		default:{
 				if (scisdigit(CUR_CHAR)) {
-					SQInteger ret = ReadNumber();
+					SQInteger ret = ReadNumber(0, dontThrowIntegerOverflow);
 					if(ret < 0) return -1;
 					RETURN_TOKEN(ret);
 				}
@@ -858,7 +859,8 @@ static SQInteger isexponent(SQInteger c) { return c == _SC('e') || c==_SC('E'); 
 
 
 #define MAX_HEX_DIGITS (sizeof(SQInteger)*2)
-SQInteger SQLexer::ReadNumber(SQInteger startChar)
+//dontThrowIntegerOverflow for when in 32bits parsing 64bits integer inside excluded ifdef
+SQInteger SQLexer::ReadNumber(SQInteger startChar, bool dontThrowIntegerOverflow)
 {
 #define TINT 1
 #define TFLOAT 2
@@ -886,7 +888,8 @@ SQInteger SQLexer::ReadNumber(SQInteger startChar)
 				APPEND_CHAR(CUR_CHAR);
 				NEXT();
 			}
-			if(data->longstr.size() > MAX_HEX_DIGITS) return Error(_SC("too many digits for an Hex number"));
+			if((data->longstr.size() > MAX_HEX_DIGITS)  && !dontThrowIntegerOverflow)
+                return Error(_SC("too many digits for an Hex number"));
 		}
 	}
 	else {
@@ -929,7 +932,7 @@ SQInteger SQLexer::ReadNumber(SQInteger startChar)
 		break;
 	}
 
-	if(!okNumber) Error(_SC("integer overflow %s"), &data->longstr[0]);
+	if(!okNumber && !dontThrowIntegerOverflow) Error(_SC("integer overflow %s"), &data->longstr[0]);
 
 	rtype = TK_INTEGER;
 	data->isCharacter = SQFalse;

@@ -6,6 +6,36 @@
 #include "minctest.nut"
 local sqt = minctest();
 
+#ifdef __SQUILU_INT_SZ8__
+print("__SQUILU_INT_SZ8__ defined");
+#endif
+
+#ifdef __SQUILU_INT_SZ4__
+print("__SQUILU_INT_SZ4__ defined");
+#endif
+
+#ifdef __SQUILU_FLOAT_SZ8__
+print("__SQUILU_FLOAT_SZ8__ defined");
+#endif
+
+#ifdef __SQUILU_FLOAT_SZ4__
+print("__SQUILU_FLOAT_SZ4__ defined");
+#endif
+
+#ifdef __SQUILU_PTR_SZ8__
+print("__SQUILU_PTR_SZ8__ defined");
+#endif
+
+#ifdef __SQUILU_PTR_SZ4__
+print("__SQUILU_PTR_SZ4__ defined");
+#endif
+
+print("_versionnumber_", _versionnumber_);
+print("_version_", _version_);
+print("_charsize_", _charsize_);
+print("_intsize_", _intsize_);
+print("_floatsize_", _floatsize_);
+
 local Is32Bits = _intsize_ == 4;
 //print("Is32Bits", Is32Bits);
 
@@ -382,16 +412,16 @@ sqt.run("sort", function(){
 sqt.run("pattern matching", function(){
 
 	local re = regexp(@"^[^\n]+");
-	sqt.ok(re.match("abc\ndef") == "abc");	
+	sqt.ok(re.match("abc\ndef") == "abc");
 	sqt.ok("abc\ndef".match("^[^\n]+") == "abc");
-	
+
 	re = regexp(@"abc..def");
-	sqt.ok(re.match("abc\u00b5def") == "abc\u00b5def");	
-	sqt.ok("abc\u00b5def".match("abc..def") == "abc\u00b5def"); 
+	sqt.ok(re.match("abc\u00b5def") == "abc\u00b5def");
+	sqt.ok("abc\u00b5def".match("abc..def") == "abc\u00b5def");
 
 	re = regexp("ab\u00b5\u2704."); //need not use @ to expand \uXXXX
-	sqt.ok(re.match("ab\u00b5\u2704x") == "ab\u00b5\u2704x");	
-	sqt.ok("ab\u00b5\u2704x".match("ab\u00b5\u2704.") == "ab\u00b5\u2704x"); 
+	sqt.ok(re.match("ab\u00b5\u2704x") == "ab\u00b5\u2704x");
+	sqt.ok("ab\u00b5\u2704x".match("ab\u00b5\u2704.") == "ab\u00b5\u2704x");
 
 	sqt.ok("aBcaBc" == "abcabc".gsub("b", "B"));
 	sqt.ok("aBcaBc" == "abcabc".gsub("b", function(w){return w.toupper(); }));
@@ -619,7 +649,7 @@ sqt.run("pattern matching", function(){
 	function mygsub(str, p, fnc)
 	{
 		try {
-			return str.gsub(p, fnc); 
+			return str.gsub(p, fnc);
 		} catch(e) {
 			//print(e);
 			return false;
@@ -814,7 +844,7 @@ sqt.run("regexp", function(){
 	sqt.ok(re_match("ab{2,4}", "abbbbb") == RE_E_OK);
 	sqt.ok(re_match("ab{2,4}", "aabbbb") == RE_E_OK);
 	sqt.ok(re_match("a{,2}b{2,4}", "aabbbb") == RE_E_SYNTAX);
-	sqt.ok(re_match("a{0,2}b{2,4}", "aabbbb") == RE_E_OK); 
+	sqt.ok(re_match("a{0,2}b{2,4}", "aabbbb") == RE_E_OK);
 	sqt.ok(re_match("a)", "") == RE_E_SYNTAX);
 	//sqt.ok(re_match("(a+b+)?", "") == RE_E_OK);
 	sqt.ok(re_match("(a{2}b+)*c", "aabc") == RE_E_OK);
@@ -957,7 +987,7 @@ sqt.run("regexp", function(){
 });
 
 sqt.run("table", function(){
-	
+
 	local t = table_new(10);
 	local t2 = obj_clone(t);
 	sqt.ok((type(t2) == "table") && (t != t2));
@@ -976,11 +1006,11 @@ sqt.run("table", function(){
 	sqt.ok(type(ary[1]) == "array");
 	sqt.ok(ary[0][1] == table_rawget(t, ary[0][0]));
 	sqt.ok(ary[1][1] == table_rawget(t, ary[1][0]));
-	
+
 	table_rawdelete(t, "one");
 	sqt.ok(table_len(t) == 1 && (table_get(t, "two") == 2));
 	sqt.ok(table_rawin(t, "two"));
-	
+
 	table_clear(t);
 	sqt.ok(table_len(t) == 0);
 
@@ -989,7 +1019,7 @@ sqt.run("table", function(){
 });
 
 sqt.run("array", function(){
-	
+
 	local t = array(0);
 	local t2 = obj_clone(t);
 	sqt.ok((type(t2) == "array") && (t != t2));
@@ -1023,7 +1053,7 @@ sqt.run("array", function(){
 	t.resize(5);
 	sqt.ok(t.len() == 5);
 	sqt.ok(t.capacity() == t.len());
-	
+
 	if(table_rawget(globals, "array_float32", false))
 	{
 		local function testArray(arr, sz, val)
@@ -1046,7 +1076,7 @@ sqt.run("array", function(){
 			local arr2 = obj_clone(arr);
 			for(local i=0; i < asize; ++i) sqt.ok(arr[i] == arr2[i]);
 			sqt.ok(arr.sizeofelm() == arr2.sizeofelm());
-			
+
 			local arr3 = arr2.slice(2, 18);
 			sqt.ok(arr3.sizeofelm() == arr2.sizeofelm());
 			sqt.ok(arr3[0] == arr2[2]);
@@ -1055,7 +1085,7 @@ sqt.run("array", function(){
 			try { arr.resize(-5); sqt.ok(false);} catch(e) {sqt.ok(true);};
 			try { arr.reserve(-5); sqt.ok(false);} catch(e) {sqt.ok(true);};
 		}
-		
+
 		if(_intsize_ == 8)
 		{
 			t = array_int64(0);
@@ -1065,22 +1095,22 @@ sqt.run("array", function(){
 		if(_floatsize_ == 8)
 		{
 			t = array_float64(0);
-			testArray(t, 8, 1.0);			
+			testArray(t, 8, 1.0);
 		}
 
 		t = array_float32(0);
 		testArray(t, 4, 1.0);
-		
+
 		t = array_int32(0);
 		testArray(t, 4, 1);
 
 		t = array_int16(0);
 		testArray(t, 2, 1);
-		
+
 		t = array_int8(0);
 		testArray(t, 1, 1);
 	}
-	
+
 	try { t.resize(-5); sqt.ok(false);} catch(e) {sqt.ok(true);};
 	try { t.reserve(-5); sqt.ok(false);} catch(e) {sqt.ok(true);};
 
@@ -1091,12 +1121,12 @@ sqt.run("string", function(){
 
 	sqt.ok( ("a".toupper() + "A".tolower()) == "Aa");
 	sqt.ok( ("à".sl_upper() + "À".sl_lower()) == "Àà");
-	
+
 	sqt.ok(type("s") == "string");
 	sqt.ok("a" + "b" == "ab");
-	
+
 	local str = "abcde";
-	
+
 	sqt.ok(str.slice(0, 0) == "");
 	sqt.ok(str.slice(1, 1) == "");
 	sqt.ok(str.slice(1, 3) == "bc");
@@ -1125,7 +1155,7 @@ sqt.run("string", function(){
 	sqt.ok("søméஃthîng".slice(3, 10) == "méஃt");
 	sqt.ok("søméஃthîng".slice(3, 9) == "méஃ");
 	sqt.ok("søméஃthîng".slice(3, 6) == "mé");
-	
+
 	sqt.ok("".tostring() == "");
 	sqt.ok("blah".tostring() == "blah");
 	sqt.ok("a\0b\0c".tostring() == "a\0b\0c");
@@ -1233,7 +1263,7 @@ sqt.run("string", function(){
 	sqt.ok("a\0b\0c".indexOf("a") == 0);
 	//sqt.ok("a\0b\0c".indexOf("a\0b\0c\0d") == -1);
 	sqt.ok("a\0b\0a\0b".indexOf("a\0b") == 0);
-	
+
 	local base_str = "one two"
 	str = "one \
 two";
@@ -1313,7 +1343,7 @@ sqt.run("number", function(){
 	//sqt.ok(".5".tofloat() == .5);
 	sqt.ok("122138760e-2".tofloat() == 122138760e-2);
 	//sqt.ok("122138760e-2" == (122138760e-2).tostring());
-	
+
 	// signed and unsigned integer
 	sqt.ok( 1 == 1 );
 	sqt.ok(-1 == -1);
@@ -1346,7 +1376,8 @@ sqt.run("number", function(){
 	sqt.ok(0.1 == 1.0e-1);
 	sqt.ok( 10.0 == 1.0e+1 );
 
-	sqt.ok(format("%7.1e",  68.514) == "6.9e+01");
+	auto nstr = format("%7.1e",  68.514);
+	sqt.ok( (nstr == "6.9e+01") || (nstr == "6.9e+001"));
 	sqt.ok(format("%4d %4d %4d %4d %d %#x %#X", 6, 34, 16923, -12, -1, 14, 12) == "   6   34 16923  -12 -1 0xe 0XC");
 
 	sqt.ok((3.123456788 + 0.000000001) == 3.123456789);
@@ -1423,7 +1454,7 @@ sqt.run("number", function(){
 	sqt.ok(math.pow(2,4) == 16);
 	sqt.ok(math.pow(2, 10) == 1024);
 	sqt.ok(math.pow(1, 0) == 1);
-	
+
 	sqt.ok(math.sqrt(4) == 2);
 	sqt.ok(math.sqrt(1000000) == 1000);
 	sqt.ok(math.sqrt(1) == 1);
@@ -1490,7 +1521,7 @@ sqt.run("number", function(){
 	//sqt.ok("1.2suffix".tofloat() == null);
 	sqt.ok("1.2suffix".tofloat() == 1.2); // ??????
 	sqt.ok("1.2suffix".tointeger() == 1); // ?????
-	
+
 	sqt.ok((123).tostring() == "123");
 	sqt.ok((-123).tostring() == "-123");
 	//sqt.ok((-0).tostring() == "-0");
@@ -1553,17 +1584,21 @@ sqt.run("number", function(){
 	sqt.ok(0 !== false);
 
 	sqt.ok((0 & 0) == 0);
+#ifdef __SQUILU_INT_SZ8__
 	sqt.ok((0xaaaaaaaa & 0x55555555) == 0);
 	sqt.ok((0xf0f0f0f0 & 0x3c3c3c3c) == 808464432);
 	sqt.ok((0xffffffff & 0xffffffff) == 4294967295);
-	
+#endif
+
 	try{1 & false, sqt.ok(0)} catch(e) {sqt.ok(1);} // expect runtime error: Right operand must be a number.
 
 	sqt.ok((0 << 0) == 0);
 	sqt.ok((1 << 0) == 1);
 	sqt.ok((0 << 1) == 0);
 	sqt.ok((1 << 1) == 2);
+#ifdef __SQUILU_INT_SZ8__
 	sqt.ok((0xffffffff << 0) == 4294967295);
+#endif
 
 	sqt.ok((0 >> 0) == 0);
 	sqt.ok((1 >> 0) == 1);
@@ -1578,19 +1613,21 @@ sqt.run("number", function(){
 	sqt.ok((0xffffffff >> 1) == 2147483647);
 #else
 	sqt.ok((0xaaaaaaaa << 1) == 1431655764);
-	sqt.ok((0xf0f0f0f0 << 1) == -505290272);
 	sqt.ok((0xaaaaaaaa >> 1) == -715827883);
-	sqt.ok((0xf0f0f0f0 >> 1) == -126322568);
-	sqt.ok((0xffffffff >> 1) == -1);
+	//sqt.ok((0xf0f0f0f0 << 1) == -505290272);
+	//sqt.ok((0xf0f0f0f0 >> 1) == -126322568);
+	//sqt.ok((0xffffffff >> 1) == -1);
 #endif
 
 	sqt.ok((0 ^ 0) == 0);
 	sqt.ok((1 ^ 1) == 0);
 	sqt.ok((0 ^ 1) == 1);
 	sqt.ok((1 ^ 0) == 1);
+#ifdef __SQUILU_INT_SZ8__
 	sqt.ok((0xaaaaaaaa ^ 0x55555555) == 4294967295);
 	sqt.ok((0xf0f0f0f0 ^ 0x3c3c3c3c) == 3435973836);
 	sqt.ok((0xffffffff ^ 0xffffffff) == 0);
+#endif
 
 	//sqt.ok((~0) == 4294967295);
 	//sqt.ok((~1) == 4294967294);
@@ -1601,9 +1638,11 @@ sqt.run("number", function(){
 	//sqt.ok((~345.67) == 4294966950);
 
 	sqt.ok((0 | 0) == 0);
+#ifdef __SQUILU_INT_SZ8__
 	sqt.ok((0xaaaaaaaa | 0x55555555) == 4294967295);
 	sqt.ok((0xcccccccc | 0x66666666) == 4008636142);
 	sqt.ok((0xffffffff | 0xffffffff) == 4294967295);
+#endif
 
 	local a = 3;
 	sqt.ok((5 - 3) == 2);
@@ -1631,8 +1670,10 @@ sqt.run("number", function(){
 	//10000000000000004 < 32BITS
 	//10000000000000002 < 64BITS
 	//print(format("%.17g", 1e16 + 2.9999) , "10000000000000002");
-	//if(_intsize_ == 8) 
+	//if(_intsize_ == 8)
+#ifdef __SQUILU_INT_SZ8__
 	sqt.ok(format("%.17g", 1e16 + 2.9999) == "10000000000000002");
+#endif
 	//else sqt.ok(format("%.17g", 1e16 + 2.9999) == "10000000000000004");
 });
 
@@ -1658,7 +1699,7 @@ sqt.run("constants", function(){
 	const ONE = 1;
 	const STR = "string";
 	const $CTCC;
-	
+
 	sqt.ok(ONE == 1);
 	sqt.ok(STR == "string");
 	sqt.ok(CTCC == "CTCC");
@@ -1666,7 +1707,7 @@ sqt.run("constants", function(){
 	sqt.ok($ONE == 1);
 	sqt.ok($STR == "string");
 	sqt.ok($CTCC == "CTCC");
-	
+
 	//print(dostring("return $CTC == \"CTC\";"));
 
 });
@@ -1752,7 +1793,7 @@ sqt.run("coroutines", function(){
 		{
 		case 0: sqt.ok(statethread.wakeup() == "state1"); break;
 		case 1: sqt.ok(statethread.wakeup() == "state2"); break;
-		case 2: 
+		case 2:
 			sqt.ok(statethread.wakeup() == "state3");
 			j = 0; //restart
 			break;
@@ -1778,7 +1819,7 @@ class Dad
 	int_t _n;
 public:
 	Dad(int_t n){ _n = n;}
-	
+
 	void print() {printf("%d\n", _n);}
 	int_t getN() {return _n;}
 protected:
@@ -1795,13 +1836,13 @@ sqt.ok(dad.getN() == 6);
 	// int8_t, int16_t, int32_t, int64_t, float_t, double_t, string_t, void, void_ptr_t
 
 	extern int_t eadd(int_t a, int_t b);
-	
+
 	//int_t add(int_t a, int_t b);
 	int_t a = 4;
-	
+
 	//SquiLu accpet "auto" as an alias for "local"
 	auto b = 5;
-	
+
 	int_t add(const int_t a, const int_t b) {return a+b;}
 	sqt.ok(add(a,b) == 9);
 
@@ -1820,28 +1861,28 @@ sqt.ok(dad.getN() == 6);
 	//but doesn't do anything with it right now
 	//although class/struct/function definitions work
 	//because dynamic type values are the default
-	
+
 	template<typename T>
 	T tadd(const T a, const T b) {return a+b;}
 	sqt.ok(tadd(a,b) == 9);
-	
+
 
 	class A
 	{
 		int_t _a;
-		
+
 	public:
 		A(const int_t a){ _a = a;}
 		virtual ~A() {/*ignored in squilu*/}
 		virtual void addIt(const int_t n) {_a += n;}
 		virtual int_t getIt() {return _a;}
 	};
-	
+
 	auto ca = A(4); //RAII with direct constructor call
 	sqt.ok(ca.getIt() == 4);
 	ca.addIt(5);
 	sqt.ok(ca.getIt() == 9);
-	
+
 	class B :public A
 	{
 	public:
@@ -1859,13 +1900,13 @@ sqt.ok(dad.getN() == 6);
 	struct S
 	{
 		int_t _a;
-		
+
 		S(const int_t a){ _a = a;}
 		virtual ~S() {/*ignored in squilu*/}
 		virtual void addIt(const int_t n) {_a += n;}
 		virtual int_t getIt() {return _a;}
 	};
-	
+
 	auto sa = S(4); //RAII with direct constructor call
 	sqt.ok(sa.getIt() == 4);
 	sa.addIt(5);
@@ -1875,7 +1916,7 @@ sqt.ok(dad.getN() == 6);
 	class Ktpl
 	{
 		T _a;
-		
+
 	public:
 		Ktpl(const T a){ _a = a;}
 		virtual ~Ktpl() {/*ignored in squilu*/}
@@ -1883,7 +1924,7 @@ sqt.ok(dad.getN() == 6);
 		virtual T getIt() {return _a;}
 		T getItPlus(const T n);
 	};
-	
+
 	//T Ktpl::getItPlus(const T n) {return _a + n;}
 
 	auto ki = Ktpl<int_t>(4); //RAII with direct constructor call
@@ -1903,7 +1944,7 @@ sqt.ok(dad.getN() == 6);
 
 /*
 	typedef Ktpl<int64_t> Ktpl_i64;
-	
+
 	auto ki64 = Ktpl_i64(4); //RAII with direct constructor call
 	sqt.ok(ki64.getIt() == 4);
 	ki64.addIt(5);
@@ -1912,13 +1953,13 @@ sqt.ok(dad.getN() == 6);
 
 	auto max_loop = 10;
 	for(auto i=max_loop; i >= 0; --i) sqt.ok(max_loop-- == i);
-	
+
 	//SquiLu only accept the reference parameter syntax
 	//for int/float/boolean it doesn't do anything, they are still passed by value
 	//instances are passed by reference allways
 	int_t addByRef(const int_t &a, const int_t &b) {return a + b;}
 	sqt.ok(addByRef(a, b) == addByRef(b, a));
-	
+
 	//SquiLu do not accept '*' pointer notation
 	//but with a dummy typedef we can simulate it
 #ifdef __SQUILU__
@@ -1950,7 +1991,7 @@ sqt.run("Typescript syntax", function(){
 
 	let user = "Jane User";
 	sqt.ok(greeter(user) == Greeting1 + user);
-	
+
 	let notSure: any = 4;
 	notSure = "maybe a string instead";
 	notSure = false; // okay, definitely a boolean

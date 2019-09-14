@@ -81,14 +81,15 @@ struct SQLexer
 	SQInteger ResetReader(SQLEXREADFUNC rg, SQUserPointer up, SQInteger line);
 	virtual SQTable * GetKeywords();
 	SQInteger Error(const SQChar *err, ...) __attribute__ ((__format__ (__printf__, 2, 3)));
-	SQInteger Lex();
+	//dontThrowIntegerOverflow for when in 32bits parsing 64bits integer inside excluded ifdef
+	SQInteger Lex(bool dontThrowIntegerOverflow=false);
 	SQInteger LookaheadLex();
 	const SQChar *Tok2Str(SQInteger tok);
 	const SQChar *GetTokenName(SQInteger tk_code);
 private:
 	SQInteger GetIDType(const SQChar *s,SQInteger len);
 	SQInteger ReadString(SQInteger ndelim,bool verbatim);
-	SQInteger ReadNumber(SQInteger startChar=0);
+	SQInteger ReadNumber(SQInteger startChar=0, bool dontThrowIntegerOverflow=false);
 	SQInteger LexBlockComment();
 	SQInteger LexLineComment();
 	SQInteger ReadID();

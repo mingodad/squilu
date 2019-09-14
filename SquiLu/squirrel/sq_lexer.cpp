@@ -231,10 +231,11 @@ static SQRESULT sq_SQLexer_currentcolumn(HSQUIRRELVM v){
 }
 
 static SQRESULT sq_SQLexer_lex(HSQUIRRELVM v){
-	SQ_FUNC_VARS_NO_TOP(v);
+	SQ_FUNC_VARS(v);
 	GET_SQLexer_INSTANCE();
+	SQ_OPT_BOOL(v, 2, dontThrowIntegerOverflow, SQFalse);
 
-    sq_pushinteger(v, self->lex->Lex());
+    sq_pushinteger(v, self->lex->Lex(dontThrowIntegerOverflow));
 	return 1;
 }
 
@@ -290,7 +291,7 @@ static SQRegFunction SQLexer_obj_funcs[]={
 	_DECL_SQLEXER_FUNC(lasttokencolumn, 1, _SC(".")),
 	_DECL_SQLEXER_FUNC(first_enum_token, 1, _SC(".")),
 	_DECL_SQLEXER_FUNC(last_enum_token, 1, _SC(".")),
-	_DECL_SQLEXER_FUNC(lex, 1, _SC(".")),
+	_DECL_SQLEXER_FUNC(lex, -1, _SC(".b")),
 	_DECL_SQLEXER_FUNC(lookaheadlex, 1, _SC(".")),
 	_DECL_SQLEXER_FUNC(readcount, 1, _SC(".")),
 	{0,0}

@@ -428,9 +428,9 @@ public:
         return _table(_ss(_vm)->_consts)->NewSlot(key,val);
     }
 
-    void Lex()
+    void Lex(bool dontThrowIntegerOverflow=false)
     {
-        _token = _lex.Lex();
+        _token = _lex.Lex(dontThrowIntegerOverflow);
     }
     SQObjectPtr GetTokenObject(SQInteger tok, bool doLex=true)
     {
@@ -781,7 +781,7 @@ public:
         _fs->AddLineInfos(_lex.data->currentline, _lineinfo);
         while(_ifdef_exclude && (_token != TK_PRAGMA))
         {
-            Lex();
+            Lex(true); //dontThrowIntegerOverflow for when in 32bits parsing 64bits integer inside excluded ifdef
             if(_token <= 0) Error(_SC("'#endif' expected to close '#ifdef' started at %d"), (int)_ifdef_line);
         }
 start_again:

@@ -35,7 +35,7 @@ extern "C" {
 #endif
 
 #if (defined(_WIN64) || defined(_LP64))
-#ifndef _SQ64
+#if !(defined(_SQ64) || defined(_SQ32))
 #define _SQ64
 #endif
 #endif

@@ -341,6 +341,7 @@ static SQRESULT base_compilestring(HSQUIRRELVM v)
 
 static SQRESULT base_newthread(HSQUIRRELVM v)
 {
+    if(sq_gettype(v, 2) != OT_CLOSURE) return sq_throwerror(v, _SC("invalid type function expected"));
 	SQObjectPtr &func = stack_get(v,2);
 	SQInteger stksize = (_closure(func)->_function->_stacksize << 1) +2;
 	HSQUIRRELVM newv = sq_newthread(v, (stksize < MIN_STACK_OVERHEAD + 2)? MIN_STACK_OVERHEAD + 2 : stksize);

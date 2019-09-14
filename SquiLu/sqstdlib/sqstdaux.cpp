@@ -127,7 +127,7 @@ begin:
     } else if (r<0) {
         return sq_throwerror(v,_SC("@failed to generate formatted error message"));
     } else {
-        return sq_throwerror(v,b);
+        return sq_throwerror(v,"%s", b);
     }
 }
 
