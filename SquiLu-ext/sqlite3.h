@@ -125,7 +125,7 @@ extern "C" {
 */
 #define SQLITE_VERSION        "3.30.0"
 #define SQLITE_VERSION_NUMBER 3030000
-#define SQLITE_SOURCE_ID      "2019-08-22 00:53:16 81b9f0f55042777b37de78069f7089041a9ee21dd0a0c86b879053fb46e1alt1"
+#define SQLITE_SOURCE_ID      "2019-09-14 00:21:34 f464d847af490dd3ec45565dcc4c2e6ff4ed1ebb65036f30ca0b3ce2e730alt1"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -5008,9 +5008,18 @@ SQLITE_API int sqlite3_create_window_function(
 **
 ** The SQLITE_DIRECTONLY flag means that the function may only be invoked
 ** from top-level SQL, and cannot be used in VIEWs or TRIGGERs.
+**
+** The SQLITE_SUBTYPE flag indicates to SQLite that a function may call
+** [sqlite3_value_subtype()] to inspect the sub-types of its arguments.
+** Specifying this flag makes no difference for scalar or aggregate user
+** functions. However, if it is not specified for a user-defined window
+** function, then any sub-types belonging to arguments passed to the window
+** function may be discarded before the window function is called (i.e.
+** sqlite3_value_subtype() will always return 0).
 */
 #define SQLITE_DETERMINISTIC    0x000000800
 #define SQLITE_DIRECTONLY       0x000080000
+#define SQLITE_SUBTYPE          0x000100000
 
 /*
 ** CAPI3REF: Deprecated Functions
