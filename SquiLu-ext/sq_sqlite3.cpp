@@ -3710,6 +3710,35 @@ static SQRESULT sq_sqlite3_exec_loop(HSQUIRRELVM v)
 }
 #endif // 0
 
+static SQRESULT sq_sqlite3_keyword_count(HSQUIRRELVM v)
+{
+    sq_pushinteger(v, sqlite3_keyword_count());
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_keyword_name(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_INTEGER(v, 2, idx);
+    const char* keyword;
+    int keyword_size;
+    if(sqlite3_keyword_name(idx, &keyword, &keyword_size) == SQLITE_OK)
+    {
+        sq_pushstring(v, keyword, keyword_size);
+    }
+    else sq_pushnull(v);
+    return 1;
+}
+
+static SQRESULT sq_sqlite3_keyword_check(HSQUIRRELVM v)
+{
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 2, keyword);
+    sq_pushbool(v, sqlite3_keyword_check(keyword, keyword_size) != 0);
+    return 1;
+}
+
+
 #define _DECL_FUNC(name,nparams,tycheck) {_SC(#name),  sq_sqlite3_##name,nparams,tycheck}
 static SQRegFunction sq_sqlite3_methods[] =
 {
@@ -3763,6 +3792,9 @@ static SQRegFunction sq_sqlite3_methods[] =
 #ifdef SQLITE_HAS_CODEC
     _DECL_FUNC(key,  2, _SC("xs")),
     _DECL_FUNC(rekey,  2, _SC("xs")),
+    _DECL_FUNC(keyword_count,  1, _SC("x|y")),
+    _DECL_FUNC(keyword_name,  2, _SC("x|y i")),
+    _DECL_FUNC(keyword_check,  2, _SC("x|y s")),
 #endif
     {0,0}
 };
