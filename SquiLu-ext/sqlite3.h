@@ -123,9 +123,9 @@ extern "C" {
 ** [sqlite3_libversion_number()], [sqlite3_sourceid()],
 ** [sqlite_version()] and [sqlite_source_id()].
 */
-#define SQLITE_VERSION        "3.30.0"
-#define SQLITE_VERSION_NUMBER 3030000
-#define SQLITE_SOURCE_ID      "2019-09-14 00:21:34 f464d847af490dd3ec45565dcc4c2e6ff4ed1ebb65036f30ca0b3ce2e730alt1"
+#define SQLITE_VERSION        "3.31.0"
+#define SQLITE_VERSION_NUMBER 3031000
+#define SQLITE_SOURCE_ID      "2019-10-28 04:20:28 a1e1ba9145049491c593ac70d9e05149662d34770129c270d702f284cd19alt1"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -4881,9 +4881,12 @@ SQLITE_API int sqlite3_reset(sqlite3_stmt *pStmt);
 ** function that is not deterministic.  The SQLite query planner is able to
 ** perform additional optimizations on deterministic functions, so use
 ** of the [SQLITE_DETERMINISTIC] flag is recommended where possible.
+**
 ** ^The fourth parameter may also optionally include the [SQLITE_DIRECTONLY]
 ** flag, which if present prevents the function from being invoked from
-** within VIEWs or TRIGGERs.
+** within VIEWs or TRIGGERs.  For security reasons, the [SQLITE_DIRECTONLY]
+** flag is recommended for any application-defined SQL function that has
+** side-effects.
 **
 ** ^(The fifth parameter is an arbitrary pointer.  The implementation of the
 ** function can gain access to this pointer using [sqlite3_user_data()].)^
@@ -5007,7 +5010,12 @@ SQLITE_API int sqlite3_create_window_function(
 ** deterministic, for example, but randomblob() is not.
 **
 ** The SQLITE_DIRECTONLY flag means that the function may only be invoked
-** from top-level SQL, and cannot be used in VIEWs or TRIGGERs.
+** from top-level SQL, and cannot be used in VIEWs or TRIGGERs.  This is
+** a security feature which is recommended for all 
+** [application-defined SQL functions] that have side-effects.  This flag 
+** prevents an attacker from adding triggers and views to a schema then 
+** tricking a high-privilege application into causing unintended side-effects
+** while performing ordinary queries.
 **
 ** The SQLITE_SUBTYPE flag indicates to SQLite that a function may call
 ** [sqlite3_value_subtype()] to inspect the sub-types of its arguments.
