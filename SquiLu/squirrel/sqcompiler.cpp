@@ -1560,7 +1560,7 @@ start_again:
                 }
                 break;
             case _SC('['):
-                if(_lex.data->prevtoken == _SC('\n')) Error(_SC("cannot brake deref/or comma needed after [exp]=exp slot declaration"));
+                if(_lex.data->prevtoken == _SC('\n')) Error(_SC("cannot breake deref/or comma needed after [exp]=exp slot declaration"));
                 Lex();
                 Expression();
                 Expect(_SC(']'));
