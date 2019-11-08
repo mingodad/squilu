@@ -17,7 +17,13 @@
     #ifdef __cplusplus
     extern "C" {
     #endif
+#ifdef __MACH__
+    #include <util.h>
+	int openpty(int *, int *, char *, struct termios *, struct winsize *);
+	pid_t forkpty(int *, char *, struct termios *, struct winsize *);
+#else
     #include <pty.h>
+#endif
     #include <unistd.h>
     #include <termios.h>
     #ifdef __cplusplus
@@ -86,7 +92,7 @@ static SQRESULT sq_spawnx_open(HSQUIRRELVM v, SQ_SpawnX *self, const char *cmd)
 			  NULL, // start directory
 			  &si, &self->pi);
 
-	CloseHandle(pi.hThread);
+	CloseHandle(self->pi.hThread);
 	CloseHandle(hRead2);
 	CloseHandle(hPipeWrite);
 
@@ -227,7 +233,7 @@ static SQRESULT sq_spawnx_pid(HSQUIRRELVM v)
 {
     GET_sq_spawnx_INSTANCE(v, 1);
 #ifdef WIN32
-    sq_pushinteger(v, (int)(self->hPipeRead));
+    sq_pushinteger(v, (intptr_t)(self->hPipeRead));
 #else
     sq_pushinteger(v, self->pid);
 #endif
