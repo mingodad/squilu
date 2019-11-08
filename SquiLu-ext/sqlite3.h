@@ -125,7 +125,7 @@ extern "C" {
 */
 #define SQLITE_VERSION        "3.31.0"
 #define SQLITE_VERSION_NUMBER 3031000
-#define SQLITE_SOURCE_ID      "2019-10-28 04:20:28 a1e1ba9145049491c593ac70d9e05149662d34770129c270d702f284cd19alt1"
+#define SQLITE_SOURCE_ID      "2019-11-07 14:51:24 34f64f11ca481996b1ff1686bdc5e278946635b6856cd1fe2355fce8e298alt1"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -2261,6 +2261,28 @@ struct sqlite3_mem_methods {
 ** default value of this setting is determined by the [-DSQLITE_DQS]
 ** compile-time option.
 ** </dd>
+**
+** [[SQLITE_DBCONFIG_LEGACY_FILE_FORMAT]]
+** <dt>SQLITE_DBCONFIG_LEGACY_FILE_FORMAT</td>
+** <dd>The SQLITE_DBCONFIG_LEGACY_FILE_FORMAT option activates or deactivates
+** the legacy file format flag.  When activated, this flag causes all newly
+** created database file to have a schema format version number (the 4-byte
+** integer found at offset 44 into the database header) of 1.  This in turn
+** means that the resulting database file will be readable and writable by
+** any SQLite version back to 3.0.0 ([dateof:3.0.0]).  Without this setting,
+** newly created databases are generally not understandable by SQLite versions
+** prior to 3.3.0 ([dateof:3.3.0]).  As these words are written, there
+** is now scarcely any need to generated database files that are compatible 
+** all the way back to version 3.0.0, and so this setting is of little
+** practical use, but is provided so that SQLite can continue to claim the
+** ability to generate new database files that are compatible with  version
+** 3.0.0.
+** <p>Note that when the SQLITE_DBCONFIG_LEGACY_FILE_FORMAT setting is on,
+** the [VACUUM] command will fail with an obscure error when attempting to
+** process a table with generated columns and a descending index.  This is
+** not considered a bug since SQLite versions 3.3.0 and earlier do not support
+** either generated columns or decending indexes.
+** </dd>
 ** </dl>
 */
 #define SQLITE_DBCONFIG_MAINDBNAME            1000 /* const char* */
@@ -2279,7 +2301,8 @@ struct sqlite3_mem_methods {
 #define SQLITE_DBCONFIG_DQS_DML               1013 /* int int* */
 #define SQLITE_DBCONFIG_DQS_DDL               1014 /* int int* */
 #define SQLITE_DBCONFIG_ENABLE_VIEW           1015 /* int int* */
-#define SQLITE_DBCONFIG_MAX                   1015 /* Largest DBCONFIG */
+#define SQLITE_DBCONFIG_LEGACY_FILE_FORMAT    1016 /* int int* */
+#define SQLITE_DBCONFIG_MAX                   1016 /* Largest DBCONFIG */
 
 /*
 ** CAPI3REF: Enable Or Disable Extended Result Codes
