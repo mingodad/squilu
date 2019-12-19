@@ -91,7 +91,7 @@ static SQRESULT sq_SQLexer_constructor(HSQUIRRELVM v){
 
     sq_SQLexer_reset_src(v, self);
     self->lex = (CustomSQLexer*)sq_malloc(sizeof(CustomSQLexer));
-    new (self->lex) CustomSQLexer(v, ((_top > 3) ? 4 : 0));
+    new (self->lex) CustomSQLexer(v, ((_top > 4) ? 5 : 0));
     self->vm = v;
 
     SQBool want_comments = SQFalse;
@@ -101,7 +101,15 @@ static SQRESULT sq_SQLexer_constructor(HSQUIRRELVM v){
         sq_getbool(v, 3, &want_comments);
     }
 
-    self->lex->Init(v->_sharedstate, sq_strbuf_lexfeed, &self->buf, NULL, NULL, want_comments);
+    SQBool want_stringSingleAndDoubleQuotes = SQFalse;
+    if(_top > 3)
+    {
+        //we want comments returned by the lexer
+        sq_getbool(v, 4, &want_stringSingleAndDoubleQuotes);
+    }
+
+    self->lex->Init(v->_sharedstate, sq_strbuf_lexfeed, &self->buf, NULL, NULL,
+                    want_comments, want_stringSingleAndDoubleQuotes);
 
     sq_setinstanceup(v, 1, self);
     sq_setreleasehook(v,1, SQLexer_release_hook);
@@ -274,7 +282,7 @@ static SQRESULT sq_SQLexer_readcount(HSQUIRRELVM v){
 #define _DECL_SQLEXER_FUNC(name,nparams,pmask) {_SC(#name),sq_SQLexer_##name,nparams,pmask,false}
 static SQRegFunction SQLexer_obj_funcs[]={
 
-	_DECL_SQLEXER_FUNC(constructor, -2, _SC(".sbt")),
+	_DECL_SQLEXER_FUNC(constructor, -2, _SC(".sbbt")),
 	_DECL_SQLEXER_FUNC(reset, 2, _SC(".s")),
 	_DECL_SQLEXER_FUNC(tok2str, 2, _SC(".i")),
 	_DECL_SQLEXER_FUNC(token_name, 2, _SC(".i")),

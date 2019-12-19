@@ -27,9 +27,11 @@ SQLexer::~SQLexer()
 }
 
 SQInteger SQLexer::Init(SQSharedState *ss, SQLEXREADFUNC rg,
-                        SQUserPointer up,CompilerErrorFunc efunc,void *ed, SQBool want_comments)
+                        SQUserPointer up,CompilerErrorFunc efunc,void *ed,
+                        SQBool want_comments, SQBool want_stringSingleAndDoubleQuotes)
 {
     _want_comments = want_comments;
+    _want_stringSingleAndDoubleQuotes = want_stringSingleAndDoubleQuotes;
     data = &_data;
     _data_lookahead.currentline = -1;
 	_errfunc = efunc;
@@ -787,7 +789,7 @@ try_again:
 	}
 	TERMINATE_BUFFER();
 	SQInteger len = data->longstr.size()-1;
-	if(ndelim == _SC('\'')) {
+	if(ndelim == _SC('\'') && !_want_stringSingleAndDoubleQuotes) {
 		if(len == 0) return Error(_SC("empty constant"));
 		if(len > 1) return Error(_SC("constant too long"));
 		data->nvalue = data->longstr[0];
