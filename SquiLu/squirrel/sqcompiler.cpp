@@ -1870,6 +1870,7 @@ start_again:
             break;
         case TK_STRUCT:
         case TK_CLASS:
+        case TK_INTERFACE:
             Lex();
             ClassExp(NULL);
             break;
@@ -3257,6 +3258,7 @@ error:
                 {
                     funcstate->AddParameterTypeName(param_type_name);
                 }
+    default_value:
                 if(_token == _SC('='))
                 {
                     if(is_reference_declaration) Error(_SC("parameter passed by reference can't have default value"));
@@ -3278,6 +3280,7 @@ error:
                     type_name = ExpectTypeToken();
                     funcstate->AddParameterTypeName(type_name);
                     //printf("%d %s\n", __LINE__, _stringval(type_name));
+                    if(_token == _SC('=')) goto default_value; //default value
                 }
                 else
                 {
