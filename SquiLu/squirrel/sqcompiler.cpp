@@ -894,6 +894,7 @@ start_again:
             break;
         case TK_CLASS:
         case TK_STRUCT:
+        case TK_INTERFACE:
             ClassStatement();
             break;
         case TK_ENUM:
