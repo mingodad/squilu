@@ -25,15 +25,23 @@ public:
     CustomSQLexer(HSQUIRRELVM vm, SQInteger kw_idx):
         _vm(vm), _kw_idx(kw_idx){}
 
+    ~CustomSQLexer() {--this->_keywords->_uiRef;}
     virtual SQTable * GetKeywords()
     {
+        SQTable *tbl;
         if(_vm && _kw_idx)
         {
             SQObjectPtr &tbl_var = stack_get(_vm, _kw_idx);
-            SQTable *tbl = _table(tbl_var)->Clone();
+            tbl = _table(tbl_var)->Clone();
             return tbl;
         }
-        return SQLexer::GetKeywords();
+        else tbl = SQLexer::GetKeywords();
+        //due cleanup at the vm closing,
+        //it was segfaulting due to the order
+        //of constructing the keywords table before
+        //the CustomSQLexer (inside it's constructor)
+        ++tbl->_uiRef;
+        return tbl;
     }
     virtual void DummyPinVtable();
 };

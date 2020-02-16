@@ -87,7 +87,7 @@ struct SQLexer
 	SQInteger LookaheadLex();
 	const SQChar *Tok2Str(SQInteger tok);
 	const SQChar *GetTokenName(SQInteger tk_code);
-private:
+protected:
 	SQInteger GetIDType(const SQChar *s,SQInteger len);
 	SQInteger ReadString(SQInteger ndelim,bool verbatim);
 	SQInteger ReadNumber(SQInteger startChar=0, bool dontThrowIntegerOverflow=false);
