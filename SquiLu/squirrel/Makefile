@@ -12,6 +12,7 @@ OBJS= \
 	sqfuncstate.o \
 	sqdebug.o \
 	sqlexer.o \
+	sq_lexer.o \
 	sqobject.o \
 	sqcompiler.o \
 	sqstate.o \
@@ -28,6 +29,7 @@ SRCS= \
 	sqfuncstate.cpp \
 	sqdebug.cpp \
 	sqlexer.cpp \
+	sq_lexer.cpp \
 	sqobject.cpp \
 	sqcompiler.cpp \
 	sqstate.cpp \
@@ -41,6 +43,11 @@ SRCS= \
 	
 	
 sq32:
+	$(CC) -O2 -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ) $(DEFS)
+	ar rc $(OUT) *.o
+	rm *.o
+
+sq3232:
 	$(CC) -O2 -fno-exceptions -fno-rtti -Wall -fno-strict-aliasing -c $(SRCS) $(INCZ) $(DEFS)
 	ar rc $(OUT) *.o
 	rm *.o
