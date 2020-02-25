@@ -2,6 +2,8 @@
 	see copyright notice in squirrel.h
 */
 #include <math.h>
+//to compile on AIX OS math.h shoud be before sqpcheader.h
+//due to the definition of the macro _class
 #include "sqpcheader.h"
 #include <limits.h>
 #include <stdlib.h>
