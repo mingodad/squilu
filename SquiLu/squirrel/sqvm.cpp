@@ -1,8 +1,8 @@
 /*
 	see copyright notice in squirrel.h
 */
-#include "sqpcheader.h"
 #include <math.h>
+#include "sqpcheader.h"
 #include <limits.h>
 #include <stdlib.h>
 #include "sqopcodes.h"
