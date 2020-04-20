@@ -38,8 +38,8 @@ CFLAGS = $(INC) -O3 -Wall -fno-strict-aliasing  \
     -DSQLITE_SOUNDEX=1 \
     -DSQLITE_USE_URI=1 \
     -DUSE_BITVECTOR=1 \
-	-DSQLITE_ENABLE_SESSION=1 \
-	-DSQLITE_ENABLE_PREUPDATE_HOOK=1 \
+    -DSQLITE_ENABLE_SESSION=1 \
+    -DSQLITE_ENABLE_PREUPDATE_HOOK=1 \
     -DSQ_SUBLATIN=1 \
     -DSQUSEDECIMAL64x=1 \
     -DSQUSEDOUBLE=1 \
@@ -110,6 +110,8 @@ SOURCES= \
     ../SquiLu-ext/sq_zlib.cpp  \
     ../SquiLu-ext/tinyxml2.cpp \
     ../SquiLu-ext/dad_utils.cpp \
+    ../SquiLu-ext/sq_tweetnacl.cpp \
+    ../SquiLu-ext/tweetnacl.c \
     ../SquiLu-ext/randombytes.c \
     ../SquiLu-ext/tweetnacl.c \
     ../SquiLu-ext/sq_tweetnacl.cpp \
