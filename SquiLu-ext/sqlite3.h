@@ -123,9 +123,9 @@ extern "C" {
 ** [sqlite3_libversion_number()], [sqlite3_sourceid()],
 ** [sqlite_version()] and [sqlite_source_id()].
 */
-#define SQLITE_VERSION        "3.31.0"
-#define SQLITE_VERSION_NUMBER 3031000
-#define SQLITE_SOURCE_ID      "2020-01-23 00:08:25 8a6fe3066cf0599fcf2960e8fb3ae39e4e7a61ec81e8ec71d0b5910aee2calt1"
+#define SQLITE_VERSION        "3.32.0"
+#define SQLITE_VERSION_NUMBER 3032000
+#define SQLITE_SOURCE_ID      "2020-02-07 01:12:53 5a877221ce90e7523059353a68650c5fdd28ed032807afc2f10afbfbf864alt1"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -572,6 +572,7 @@ SQLITE_API int sqlite3_exec(
 #define SQLITE_OPEN_PRIVATECACHE     0x00040000  /* Ok for sqlite3_open_v2() */
 #define SQLITE_OPEN_WAL              0x00080000  /* VFS only */
 #define SQLITE_OPEN_NOFOLLOW         0x01000000  /* Ok for sqlite3_open_v2() */
+
 /* Reserved:                         0x00F00000 */
 #define SQLITE_OPEN_SUBLATIN_LIKE    0x04000000  /* Ok for sqlite3_open_v2() */
 #define SQLITE_OPEN_SUBLATIN_NA_LIKE 0x08000000  /* Ok for sqlite3_open_v2() */
@@ -3585,7 +3586,6 @@ SQLITE_API void *sqlite3_get_db_user_data(sqlite3 *db);
 ** the name of the first query parameter, 1 for the second parameter, and
 ** so forth.
 **
->>>>>>> END MERGE CONFLICT >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ** If F is a NULL pointer, then sqlite3_uri_parameter(F,P) returns NULL and
 ** sqlite3_uri_boolean(F,P,B) returns B.  If F is not a NULL pointer and
 ** is not a database file pathname pointer that the SQLite core passed
@@ -5876,7 +5876,7 @@ SQLITE_API int sqlite3_rekey_v2(
 );
 
 /*
-** Specify the activation key for a SEE database.  Unless
+** Specify the activation key for a SEE database.  Unless 
 ** activated, none of the SEE routines will work.
 */
 SQLITE_API void sqlite3_activate_see(
@@ -9044,7 +9044,7 @@ SQLITE_API int sqlite3_vtab_config(sqlite3*, int op, ...);
 
 /*
 ** CAPI3REF: Virtual Table Configuration Options
-** KEYWORDS: {virtual table configuration options} 
+** KEYWORDS: {virtual table configuration options}
 ** KEYWORDS: {virtual table configuration option}
 **
 ** These macros define the various options to the
