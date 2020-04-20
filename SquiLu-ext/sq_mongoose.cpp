@@ -1088,6 +1088,7 @@ SQRESULT sqext_register_sq_zlib(HSQUIRRELVM v);
 SQRESULT sqext_register_sq_blosc(HSQUIRRELVM v);
 SQRESULT sqext_register_pcre2(HSQUIRRELVM v);
 SQRESULT sqext_register_markdown(HSQUIRRELVM v);
+SQRESULT sqext_register_lpsolve(HSQUIRRELVM v);
 
 #ifdef __cplusplus
 } /*extern "C"*/
@@ -1123,7 +1124,10 @@ static sq_modules_preload_st modules_preload[] = {
     {"socket", sqext_register_sq_socket},
     {"slave_vm", sqext_register_sq_slave_vm},
 #ifdef USE_AXTLS
-    {"axtls", sqext_register_axtls},
+    {"axtls", sqext_register_lpsolve},
+#endif
+#ifdef SQ_USE_LPSOLVE
+    {"SQLPSolve", sqext_register_axtls},
 #endif
 #ifdef USE_OPENSSL
     {"openssl", sqext_register_openssl},
