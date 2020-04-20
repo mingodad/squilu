@@ -635,6 +635,8 @@ SQRESULT sqext_register_fann (HSQUIRRELVM v);
 SQRESULT sqext_register_numarray (HSQUIRRELVM v);
 SQRESULT sqext_register_Snowball (HSQUIRRELVM v);
 SQRESULT sqext_register_sq_spawnx(HSQUIRRELVM v);
+SQRESULT sqext_register_lpsolve(HSQUIRRELVM v);
+SQRESULT sqext_register_tree_sitter(HSQUIRRELVM v);
 
 static sq_modules_preload_st modules_preload[] = {
     {"blob", sqstd_register_bloblib},
@@ -676,10 +678,13 @@ static sq_modules_preload_st modules_preload[] = {
 #endif // SQ_USE_PCRE2
 #if defined(SQ_USE_TRE) || defined(SQ_USE_TRE_STATIC)
     {"sqtre", sqext_register_tre},
-#endif // SQ_USE_PCRE2
+#endif // SQ_USE_TRE
 #if defined(SQ_USE_HUNSPELL) || defined(SQ_USE_HUNSPELL_STATIC)
     {"sqhunspell", sqext_register_hunspell},
-#endif // SQ_USE_PCRE2
+#endif // SQ_USE_HUNSPELL
+#if defined(SQ_USE_LPSOLVE) || defined(SQ_USE_LPSOLVE_STATIC)
+    {"sqlpsolve", sqext_register_lpsolve},
+#endif // SQ_USE_LPSOLVE
 #ifdef SQ_USE_FREETYPE
     {"freetype", sqext_register_freetype},
 #endif // SQ_USE_FREETYPE
@@ -768,6 +773,9 @@ static sq_modules_preload_st modules_preload[] = {
 #if defined(SQ_USE_LMDB)
     {"sqlmdb", sqext_register_LmDB},
 #endif // SQ_USE_LMDB
+#ifdef SQ_USE_TREE_SITTER
+    {"tree_sitter", sqext_register_tree_sitter},
+#endif // SQ_USE_FREETYPE
     {NULL, NULL}
 };
 
