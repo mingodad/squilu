@@ -141,7 +141,7 @@ static SQRESULT sq_lpsolve_releasehook(SQUserPointer p, SQInteger /*size*/, void
 
 static SQRESULT sq_lpsolve_constructor(HSQUIRRELVM v)
 {
-    if(!load_library(dynamicLibName)) return sq_throwerror(v, _SC("Failed to load liblpsolve !"));
+    //if(!load_library(dynamicLibName)) return sq_throwerror(v, _SC("Failed to load liblpsolve !"));
 	SQ_FUNC_VARS_NO_TOP(v);
 	SQ_GET_INTEGER(v, 2, constraints);
 	SQ_GET_INTEGER(v, 3, variables);
@@ -159,6 +159,16 @@ static SQRESULT sq_lpsolve_version(HSQUIRRELVM v)
     int majorversion, minorversion, release, build;
     dllp_solve_version(&majorversion, &minorversion, &release, &build);
 	sq_pushfstring(v,_SC("lp_solve %d.%d.%d.%d"), majorversion, minorversion, release, build);
+	return 1;
+}
+
+static SQRESULT sq_lpsolve_resize_lp(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS_NO_TOP(v);
+    GET_lpsolve_INSTANCE();
+	SQ_GET_INTEGER(v, 2, rows);
+	SQ_GET_INTEGER(v, 3, cols);
+	sq_pushbool(v, self->resize_lp(self, rows, cols));
 	return 1;
 }
 
@@ -180,6 +190,14 @@ static SQRESULT sq_lpsolve_set_verbose(HSQUIRRELVM v)
 	return 0;
 }
 
+static SQRESULT isSQFloat64Array(HSQUIRRELVM v, SQInteger idx)
+{
+    SQInteger atype;
+    if(sq_arraygettype(v, idx, &atype) != SQ_OK && atype == eat_SQFloat64Array) return sq_throwerror(v, _SC("SQFloat64Array expected"));
+    return SQ_OK;
+}
+#define IS_SQFloat64Array(idx) if((_rc_ =isSQFloat64Array(v, idx))) return _rc_;
+
 static SQRESULT sq_lpsolve_set_obj_fn(HSQUIRRELVM v)
 {
 	SQ_FUNC_VARS_NO_TOP(v);
@@ -187,9 +205,8 @@ static SQRESULT sq_lpsolve_set_obj_fn(HSQUIRRELVM v)
     const SQInteger ary_idx = 2;
     if(sq_gettype(v, ary_idx) == OT_ARRAY)
     {
-        SQInteger atype;
-        if(sq_arraygettype(v, ary_idx, &atype) != SQ_OK && atype == eat_SQFloat64Array) return sq_throwerror(v, _SC("SQFloat64Array expected"));
         void *ary;
+        IS_SQFloat64Array(ary_idx);
         sq_arraygetrawdata(v, ary_idx, &ary);
         sq_pushbool(v, self->set_obj_fn(self, (REAL*)ary));
     }
@@ -204,9 +221,8 @@ static SQRESULT sq_lpsolve_add_constraint(HSQUIRRELVM v)
     const SQInteger ary_idx = 2;
     if(sq_gettype(v, ary_idx) == OT_ARRAY)
     {
-        SQInteger atype;
-        if(sq_arraygettype(v, ary_idx, &atype) != SQ_OK && atype == eat_SQFloat64Array) return sq_throwerror(v, _SC("SQFloat64Array expected"));
         void *ary;
+        IS_SQFloat64Array(ary_idx);
         sq_arraygetrawdata(v, ary_idx, &ary);
         SQ_GET_INTEGER(v, 3, constr_type);
         SQ_GET_FLOAT(v, 4, rh);
@@ -345,6 +361,15 @@ static SQRESULT sq_lpsolve_write_mps(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT sq_lpsolve_write_basis(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS_NO_TOP(v);
+    GET_lpsolve_INSTANCE();
+	SQ_GET_STRING(v, 2, filename);
+	sq_pushbool(v, self->write_basis(self, (SQChar*)filename));
+	return 1;
+}
+
 static SQRESULT sq_lpsolve_write_freemps(HSQUIRRELVM v)
 {
 	SQ_FUNC_VARS_NO_TOP(v);
@@ -399,6 +424,16 @@ static SQRESULT sq_lpsolve_read_MPS(HSQUIRRELVM v)
 
 	lprec *self = dlread_MPS((SQChar*)filename, options);
 	return sq_lpsolve_read_problem(v, self);
+}
+
+static SQRESULT sq_lpsolve_read_basis(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS_NO_TOP(v);
+    GET_lpsolve_INSTANCE();
+	SQ_GET_STRING(v, 2, filename);
+
+	sq_pushbool(v, self->read_params(self, (SQChar*)filename, NULL));
+	return 1;
 }
 
 static SQRESULT sq_lpsolve_read_freeMPS(HSQUIRRELVM v)
@@ -465,8 +500,7 @@ static SQRESULT sq_lpsolve_get_variables(HSQUIRRELVM v)
     const SQInteger ary_idx = 2;
     if(sq_gettype(v, ary_idx) == OT_ARRAY)
     {
-        SQInteger atype;
-        if(sq_arraygettype(v, ary_idx, &atype) != SQ_OK && atype == eat_SQFloat64Array) return sq_throwerror(v, _SC("SQFloat64Array expected"));
+        IS_SQFloat64Array(ary_idx);
         int  ncols = self->get_Ncolumns(self);
         if(sq_getsize(v, ary_idx) != ncols) return sq_throwerror(v, _SC("SQFloat64Array of size %d expected"), ncols);
         void *ary;
@@ -484,8 +518,7 @@ static SQRESULT sq_lpsolve_get_constraints(HSQUIRRELVM v)
     const SQInteger ary_idx = 2;
     if(sq_gettype(v, ary_idx) == OT_ARRAY)
     {
-        SQInteger atype;
-        if(sq_arraygettype(v, ary_idx, &atype) != SQ_OK && atype == eat_SQFloat64Array) return sq_throwerror(v, _SC("SQFloat64Array expected"));
+        IS_SQFloat64Array(ary_idx);
         int  nrows = self->get_Nrows(self);
         if(sq_getsize(v, ary_idx) != nrows) return sq_throwerror(v, _SC("SQFloat64Array of size %d expected"), nrows);
         void *ary;
@@ -503,8 +536,7 @@ static SQRESULT sq_lpsolve_get_dual_solution(HSQUIRRELVM v)
     const SQInteger ary_idx = 2;
     if(sq_gettype(v, ary_idx) == OT_ARRAY)
     {
-        SQInteger atype;
-        if(sq_arraygettype(v, ary_idx, &atype) != SQ_OK && atype == eat_SQFloat64Array) return sq_throwerror(v, _SC("SQFloat64Array expected"));
+        IS_SQFloat64Array(ary_idx);
         int  nrows = self->get_Nrows(self);
         if(sq_getsize(v, ary_idx) != nrows) return sq_throwerror(v, _SC("SQFloat64Array of size %d expected"), nrows);
         void *ary;
@@ -515,6 +547,24 @@ static SQRESULT sq_lpsolve_get_dual_solution(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT sq_lpsolve_get_sensitivity_obj(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS_NO_TOP(v);
+    GET_lpsolve_INSTANCE();
+    const SQInteger ary_idx_objfrom = 2;
+    const SQInteger ary_idx_objtill = 3;
+    IS_SQFloat64Array(ary_idx_objfrom);
+    IS_SQFloat64Array(ary_idx_objtill);
+    int  nrows = self->get_Nrows(self);
+    if(sq_getsize(v, ary_idx_objfrom) != nrows || sq_getsize(v, ary_idx_objtill) != nrows)
+        return sq_throwerror(v, _SC("SQFloat64Array of size %d expected"), nrows);
+    void *ary_objfrom, *ary_objtill;
+    sq_arraygetrawdata(v, ary_idx_objfrom, &ary_objfrom);
+    sq_arraygetrawdata(v, ary_idx_objtill, &ary_objtill);
+    sq_pushbool(v, self->get_sensitivity_obj(self, (REAL*)ary_objfrom, (REAL*)ary_objtill));
+	return 1;
+}
+
 static SQRESULT sq_lpsolve_get_sensitivity_rhs(HSQUIRRELVM v)
 {
 	SQ_FUNC_VARS_NO_TOP(v);
@@ -522,10 +572,9 @@ static SQRESULT sq_lpsolve_get_sensitivity_rhs(HSQUIRRELVM v)
     const SQInteger ary_idx_duals = 2;
     const SQInteger ary_idx_dualsfrom = 3;
     const SQInteger ary_idx_dualstill = 4;
-    SQInteger atype;
-    if(sq_arraygettype(v, ary_idx_duals, &atype) != SQ_OK && atype == eat_SQFloat64Array) return sq_throwerror(v, _SC("SQFloat64Array expected"));
-    if(sq_arraygettype(v, ary_idx_dualsfrom, &atype) != SQ_OK && atype == eat_SQFloat64Array) return sq_throwerror(v, _SC("SQFloat64Array expected"));
-    if(sq_arraygettype(v, ary_idx_dualstill, &atype) != SQ_OK && atype == eat_SQFloat64Array) return sq_throwerror(v, _SC("SQFloat64Array expected"));
+    IS_SQFloat64Array(ary_idx_duals);
+    IS_SQFloat64Array(ary_idx_dualsfrom);
+    IS_SQFloat64Array(ary_idx_dualstill);
     int  nrows = self->get_Nrows(self);
     if(sq_getsize(v, ary_idx_duals) != nrows || sq_getsize(v, ary_idx_dualsfrom) != nrows || sq_getsize(v, ary_idx_dualstill) != nrows)
         return sq_throwerror(v, _SC("SQFloat64Array of size %d expected"), nrows);
@@ -558,6 +607,23 @@ static SQRESULT sq_lpsolve_get_Ncolumns(HSQUIRRELVM v)
 	SQ_FUNC_VARS_NO_TOP(v);
     GET_lpsolve_INSTANCE();
 	sq_pushinteger(v, self->get_Ncolumns(self));
+	return 1;
+}
+
+static SQRESULT sq_lpsolve_get_status(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS_NO_TOP(v);
+    GET_lpsolve_INSTANCE();
+	sq_pushinteger(v, self->get_status(self));
+	return 1;
+}
+
+static SQRESULT sq_lpsolve_get_statustext(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS_NO_TOP(v);
+    GET_lpsolve_INSTANCE();
+    SQ_GET_INTEGER(v, 2, statuscode);
+	sq_pushstring(v, self->get_statustext(self, statuscode), -1);
 	return 1;
 }
 
@@ -648,6 +714,16 @@ static SQRESULT sq_lpsolve_set_rh_range(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT sq_lpsolve_set_binary(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS_NO_TOP(v);
+    GET_lpsolve_INSTANCE();
+    SQ_GET_INTEGER(v, 2, col);
+    SQ_GET_BOOL(v, 3, bval);
+	sq_pushbool(v, self->set_binary(self, col, bval));
+	return 1;
+}
+
 static SQRESULT sq_lpsolve_set_int(HSQUIRRELVM v)
 {
 	SQ_FUNC_VARS_NO_TOP(v);
@@ -692,9 +768,8 @@ static SQRESULT sq_lpsolve_add_column(HSQUIRRELVM v)
     const SQInteger ary_idx = 2;
     if(sq_gettype(v, ary_idx) == OT_ARRAY)
     {
-        SQInteger atype;
-        if(sq_arraygettype(v, ary_idx, &atype) != SQ_OK && atype == eat_SQFloat64Array) return sq_throwerror(v, _SC("SQFloat64Array expected"));
         void *ary;
+        IS_SQFloat64Array(ary_idx);
         sq_arraygetrawdata(v, ary_idx, &ary);
         //for(SQInteger i= 0, len =sq_getsize(v, ary_idx); i < len; ++i) printf("add_constraint %d %f\n", (int) i, ((REAL*)ary)[i]);
         sq_pushbool(v, self->add_column(self, (REAL*)ary));
@@ -733,9 +808,8 @@ static SQRESULT sq_lpsolve_set_column(HSQUIRRELVM v)
     const SQInteger ary_idx = 3;
     if(sq_gettype(v, ary_idx) == OT_ARRAY)
     {
-        SQInteger atype;
-        if(sq_arraygettype(v, ary_idx, &atype) != SQ_OK && atype == eat_SQFloat64Array) return sq_throwerror(v, _SC("SQFloat64Array expected"));
         void *ary;
+        IS_SQFloat64Array(ary_idx);
         sq_arraygetrawdata(v, ary_idx, &ary);
         //for(SQInteger i= 0, len =sq_getsize(v, ary_idx); i < len; ++i) printf("add_constraint %d %f\n", (int) i, ((REAL*)ary)[i]);
         sq_pushbool(v, self->set_column(self, colno, (REAL*)ary));
@@ -776,12 +850,29 @@ static SQRESULT sq_lpsolve_del_column(HSQUIRRELVM v)
 	return 1;
 }
 
+static SQRESULT sq_lpsolve_get_scaling(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS_NO_TOP(v);
+    GET_lpsolve_INSTANCE();
+	sq_pushinteger(v, self->get_scaling(self));
+	return 1;
+}
+
 static SQRESULT sq_lpsolve_set_scaling(HSQUIRRELVM v)
 {
 	SQ_FUNC_VARS_NO_TOP(v);
     GET_lpsolve_INSTANCE();
     SQ_GET_INTEGER(v, 2, scal_type);
 	self->set_scaling(self, scal_type);
+	return 0;
+}
+
+static SQRESULT sq_lpsolve_set_sense(HSQUIRRELVM v)
+{
+	SQ_FUNC_VARS_NO_TOP(v);
+    GET_lpsolve_INSTANCE();
+    SQ_GET_BOOL(v, 2, sense_max);
+	self->set_sense(self, sense_max);
 	return 0;
 }
 
@@ -838,9 +929,8 @@ static SQRESULT sq_lpsolve_set_row(HSQUIRRELVM v)
     const SQInteger ary_idx = 3;
     if(sq_gettype(v, ary_idx) == OT_ARRAY)
     {
-        SQInteger atype;
-        if(sq_arraygettype(v, ary_idx, &atype) != SQ_OK && atype == eat_SQFloat64Array) return sq_throwerror(v, _SC("SQFloat64Array expected"));
         void *ary;
+        IS_SQFloat64Array(ary_idx);
         sq_arraygetrawdata(v, ary_idx, &ary);
         sq_pushbool(v, self->set_row(self, rowno, (REAL*)ary));
     }
@@ -874,67 +964,76 @@ static SQRESULT sq_lpsolve_set_rowex(HSQUIRRELVM v)
 static SQRegFunction sq_lpsolve_methods[] =
 {
 	_DECL_FUNC(constructor,3,_SC(".ii")),
-    _DECL_FUNC(version,1,_SC(".")),
-    _DECL_FUNC(loadlib,2,_SC(".s")),
-    _DECL_FUNC(set_verbose,2,_SC("xi")),
-    _DECL_FUNC(set_obj_fn,2,_SC("xa")),
+    _DECL_FUNC(add_column,2,_SC(".a")),
+    _DECL_FUNC(add_columnex,4,_SC(".iaa")),
     _DECL_FUNC(add_constraint,4,_SC("xain")),
     _DECL_FUNC(add_constraintex,6,_SC("xiaain")),
+    _DECL_FUNC(default_basis,1,_SC(".")),
+    _DECL_FUNC(del_column,2,_SC(".i")),
     _DECL_FUNC(del_constraint,2,_SC(".i")),
-    _DECL_FUNC(set_constr_type,3,_SC(".ii")),
-    _DECL_FUNC(set_lowbo,3,_SC("xin")),
-    _DECL_FUNC(set_upbo,3,_SC("xin")),
-    _DECL_FUNC(set_bounds,4,_SC("xinn")),
-    _DECL_FUNC(set_lp_name,2,_SC("xs")),
-    _DECL_FUNC(get_lp_name,1,_SC("x")),
-    _DECL_FUNC(set_col_name,3,_SC("xis")),
     _DECL_FUNC(get_col_name,2,_SC("xi")),
-    _DECL_FUNC(set_row_name,3,_SC("xis")),
-    _DECL_FUNC(get_row_name,2,_SC("xi")),
-    _DECL_FUNC(write_lp,2,_SC("xs")),
-    _DECL_FUNC(write_mps,2,_SC("xs")),
-    _DECL_FUNC(write_freemps,2,_SC("xs")),
-    _DECL_FUNC(write_params,3,_SC("xss")),
-    _DECL_FUNC(read_LP,4,_SC(".sbs")),
-    _DECL_FUNC(read_MPS,3,_SC(".si")),
-    _DECL_FUNC(read_freeMPS,3,_SC(".si")),
-    _DECL_FUNC(read_params,3,_SC("xss")),
-    _DECL_FUNC(get_mat,3,_SC("xii")),
-    _DECL_FUNC(set_mat,4,_SC("xiin")),
-    _DECL_FUNC(solve,1,_SC("x")),
-    _DECL_FUNC(get_objective,1,_SC("x")),
-    _DECL_FUNC(get_variables,2,_SC("xa")),
     _DECL_FUNC(get_constraints,2,_SC("xa")),
     _DECL_FUNC(get_dual_solution,2,_SC("xa")),
-    _DECL_FUNC(get_sensitivity_rhs,4,_SC("xaaa")),
+    _DECL_FUNC(get_lp_name,1,_SC("x")),
+    _DECL_FUNC(get_mat,3,_SC("xii")),
+    _DECL_FUNC(get_Ncolumns,1,_SC("x")),
     _DECL_FUNC(get_nonzeros,1,_SC("x")),
     _DECL_FUNC(get_Nrows,1,_SC("x")),
-    _DECL_FUNC(get_Ncolumns,1,_SC("x")),
-    _DECL_FUNC(set_timeout,2,_SC("xi")),
+    _DECL_FUNC(get_objective,1,_SC("x")),
+    _DECL_FUNC(get_row_name,2,_SC("xi")),
+    _DECL_FUNC(get_scaling,1,_SC("x")),
+    _DECL_FUNC(get_sensitivity_obj,4,_SC("xaa")),
+    _DECL_FUNC(get_sensitivity_rhs,4,_SC("xaaa")),
+    _DECL_FUNC(get_statustext,2,_SC("xi")),
+    _DECL_FUNC(get_status,1,_SC("x")),
     _DECL_FUNC(get_timeout,1,_SC("x")),
+    _DECL_FUNC(get_variables,2,_SC("xa")),
+    _DECL_FUNC(is_presolve,2,_SC(".i")),
+    _DECL_FUNC(loadlib,2,_SC(".s")),
+    _DECL_FUNC(print_constraints,2,_SC(".i")),
+    _DECL_FUNC(print_duals,1,_SC(".")),
     _DECL_FUNC(print_lp,1,_SC(".")),
     _DECL_FUNC(print_objective,1,_SC(".")),
     _DECL_FUNC(print_solution,2,_SC(".i")),
-    _DECL_FUNC(print_constraints,2,_SC(".i")),
-    _DECL_FUNC(print_duals,1,_SC(".")),
-    _DECL_FUNC(set_maxim,1,_SC(".")),
-    _DECL_FUNC(set_rh,3,_SC(".in")),
-    _DECL_FUNC(set_rh_range,3,_SC(".in")),
-    _DECL_FUNC(set_int,3,_SC(".ib")),
-    _DECL_FUNC(set_debug,2,_SC(".b")),
-    _DECL_FUNC(set_trace,2,_SC(".b")),
-    _DECL_FUNC(add_column,2,_SC(".a")),
-    _DECL_FUNC(add_columnex,4,_SC(".iaa")),
+    _DECL_FUNC(read_basis,2,_SC(".s")),
+    _DECL_FUNC(read_freeMPS,3,_SC(".si")),
+    _DECL_FUNC(read_LP,4,_SC(".sbs")),
+    _DECL_FUNC(read_MPS,3,_SC(".si")),
+    _DECL_FUNC(read_params,3,_SC("xss")),
+    _DECL_FUNC(resize_lp,3,_SC(".ii")),
+    _DECL_FUNC(set_binary,3,_SC(".ib")),
+    _DECL_FUNC(set_bounds,4,_SC("xinn")),
+    _DECL_FUNC(set_col_name,3,_SC("xis")),
     _DECL_FUNC(set_column,3,_SC(".ia")),
     _DECL_FUNC(set_columnex,5,_SC(".iiaa")),
-    _DECL_FUNC(del_column,2,_SC(".i")),
-    _DECL_FUNC(set_scaling,2,_SC(".i")),
-    _DECL_FUNC(unscale,1,_SC(".")),
-    _DECL_FUNC(default_basis,1,_SC(".")),
-    _DECL_FUNC(is_presolve,2,_SC(".i")),
+    _DECL_FUNC(set_constr_type,3,_SC(".ii")),
+    _DECL_FUNC(set_debug,2,_SC(".b")),
+    _DECL_FUNC(set_int,3,_SC(".ib")),
+    _DECL_FUNC(set_lowbo,3,_SC("xin")),
+    _DECL_FUNC(set_lp_name,2,_SC("xs")),
+    _DECL_FUNC(set_mat,4,_SC("xiin")),
+    _DECL_FUNC(set_maxim,1,_SC(".")),
+    _DECL_FUNC(set_obj_fn,2,_SC("xa")),
     _DECL_FUNC(set_presolve,3,_SC(".ii")),
+    _DECL_FUNC(set_rh,3,_SC(".in")),
+    _DECL_FUNC(set_rh_range,3,_SC(".in")),
     _DECL_FUNC(set_row,3,_SC(".ia")),
     _DECL_FUNC(set_rowex,5,_SC(".iiaa")),
+    _DECL_FUNC(set_row_name,3,_SC("xis")),
+    _DECL_FUNC(set_scaling,2,_SC(".i")),
+    _DECL_FUNC(set_sense,2,_SC(".b")),
+    _DECL_FUNC(set_timeout,2,_SC("xi")),
+    _DECL_FUNC(set_trace,2,_SC(".b")),
+    _DECL_FUNC(set_upbo,3,_SC("xin")),
+    _DECL_FUNC(set_verbose,2,_SC("xi")),
+    _DECL_FUNC(solve,1,_SC("x")),
+    _DECL_FUNC(unscale,1,_SC(".")),
+    _DECL_FUNC(version,1,_SC(".")),
+    _DECL_FUNC(write_basis,2,_SC("xs")),
+    _DECL_FUNC(write_freemps,2,_SC("xs")),
+    _DECL_FUNC(write_lp,2,_SC("xs")),
+    _DECL_FUNC(write_mps,2,_SC("xs")),
+    _DECL_FUNC(write_params,3,_SC("xss")),
     {0,0}
 };
 #undef _DECL_FUNC
