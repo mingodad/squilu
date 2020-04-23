@@ -125,7 +125,7 @@ extern "C" {
 */
 #define SQLITE_VERSION        "3.32.0"
 #define SQLITE_VERSION_NUMBER 3032000
-#define SQLITE_SOURCE_ID      "2020-02-07 01:12:53 5a877221ce90e7523059353a68650c5fdd28ed032807afc2f10afbfbf864alt1"
+#define SQLITE_SOURCE_ID      "2020-04-22 13:49:25 8789368b91fb5b7477bdba3a953412fc3839b4894443b65186f7b8f79f63alt1"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -1089,10 +1089,12 @@ struct sqlite3_io_methods {
 ** a prior successful call to [SQLITE_FCNTL_BEGIN_ATOMIC_WRITE].
 **
 ** <li>[[SQLITE_FCNTL_LOCK_TIMEOUT]]
-** The [SQLITE_FCNTL_LOCK_TIMEOUT] opcode causes attempts to obtain
-** a file lock using the xLock or xShmLock methods of the VFS to wait
-** for up to M milliseconds before failing, where M is the single
-** unsigned integer parameter.
+** The [SQLITE_FCNTL_LOCK_TIMEOUT] opcode is used to configure a VFS
+** to block for up to M milliseconds before failing when attempting to
+** obtain a file lock using the xLock or xShmLock methods of the VFS.
+** The parameter is a pointer to a 32-bit signed integer that contains
+** the value that M is to be set to. Before returning, the 32-bit signed
+** integer is overwritten with the previous value of M.
 **
 ** <li>[[SQLITE_FCNTL_DATA_VERSION]]
 ** The [SQLITE_FCNTL_DATA_VERSION] opcode is used to detect changes to
@@ -1157,6 +1159,7 @@ struct sqlite3_io_methods {
 #define SQLITE_FCNTL_DATA_VERSION           35
 #define SQLITE_FCNTL_SIZE_LIMIT             36
 #define SQLITE_FCNTL_CKPT_DONE              37
+#define SQLITE_FCNTL_RESERVE_BYTES          38
 
 /* deprecated names */
 #define SQLITE_GET_LOCKPROXYFILE      SQLITE_FCNTL_GET_LOCKPROXYFILE
@@ -3638,6 +3641,78 @@ SQLITE_API const char *sqlite3_filename_database(const char*);
 SQLITE_API const char *sqlite3_filename_journal(const char*);
 SQLITE_API const char *sqlite3_filename_wal(const char*);
 
+/*
+** CAPI3REF:  Database File Corresponding To A Journal
+**
+** ^If X is the name of a rollback or WAL-mode journal file that is
+** passed into the xOpen method of [sqlite3_vfs], then 
+** sqlite3_database_file_object(X) returns a pointer to the [sqlite3_file]
+** object that represents the main database file.
+**
+** This routine is intended for use in custom [VFS] implementations
+** only.  It is not a general-purpose interface.
+** The argument sqlite3_file_object(X) must be a filename pointer that
+** has been passed into [sqlite3_vfs].xOpen method where the 
+** flags parameter to xOpen contains one of the bits
+** [SQLITE_OPEN_MAIN_JOURNAL] or [SQLITE_OPEN_WAL].  Any other use
+** of this routine results in undefined and probably undesirable
+** behavior.
+*/
+SQLITE_API sqlite3_file *sqlite3_database_file_object(const char*);
+
+/*
+** CAPI3REF: Create and Destroy VFS Filenames
+**
+** These interfces are provided for use by [VFS shim] implementations and
+** are not useful outside of that context.
+**
+** The sqlite3_create_filename(D,J,W,N,P) allocates memory to hold a version of
+** database filename D with corresponding journal file J and WAL file W and
+** with N URI parameters key/values pairs in the array P.  The result from
+** sqlite3_create_filename(D,J,W,N,P) is a pointer to a database filename that
+** is safe to pass to routines like:
+** <ul>
+** <li> [sqlite3_uri_parameter()],
+** <li> [sqlite3_uri_boolean()],
+** <li> [sqlite3_uri_int64()],
+** <li> [sqlite3_uri_key()],
+** <li> [sqlite3_filename_database()],
+** <li> [sqlite3_filename_journal()], or
+** <li> [sqlite3_filename_wal()].
+** </ul>
+** If a memory allocation error occurs, sqlite3_create_filename() might
+** return a NULL pointer.  The memory obtained from sqlite3_create_filename(X)
+** must be released by a corresponding call to sqlite3_free_filename(Y).
+**
+** The P parameter in sqlite3_create_filename(D,J,W,N,P) should be an array
+** of 2*N pointers to strings.  Each pair of pointers in this array corresponds
+** to a key and value for a query parameter.  The P parameter may be a NULL
+** pointer if N is zero.  None of the 2*N pointers in the P array may be
+** NULL pointers and key pointers should not be empty strings.
+** None of the D, J, or W parameters to sqlite3_create_filename(D,J,W,N,P) may
+** be NULL pointers, though they can be empty strings.
+**
+** The sqlite3_free_filename(Y) routine releases a memory allocation
+** previously obtained from sqlite3_create_filename().  Invoking
+** sqlite3_free_filename(Y) is a NULL pointer is a harmless no-op.
+**
+** If the Y parameter to sqlite3_free_filename(Y) is anything other
+** than a NULL pointer or a pointer previously acquired from
+** sqlite3_create_filename(), then bad things such as heap
+** corruption or segfaults may occur. The value Y should be
+** used again after sqlite3_free_filename(Y) has been called.  This means
+** that if the [sqlite3_vfs.xOpen()] method of a VFS has been called using Y,
+** then the corresponding [sqlite3_module.xClose() method should also be
+** invoked prior to calling sqlite3_free_filename(Y).
+*/
+SQLITE_API char *sqlite3_create_filename(
+  const char *zDatabase,
+  const char *zJournal,
+  const char *zWal,
+  int nParam,
+  const char **azParam
+);
+SQLITE_API void sqlite3_free_filename(char*);
 
 /*
 ** CAPI3REF: Error Codes And Messages
@@ -4220,12 +4295,30 @@ typedef struct sqlite3_context sqlite3_context;
 ** [sqlite3_bind_parameter_index()] API if desired.  ^The index
 ** for "?NNN" parameters is the value of NNN.
 ** ^The NNN value must be between 1 and the [sqlite3_limit()]
-** parameter [SQLITE_LIMIT_VARIABLE_NUMBER] (default value: 999).
+** parameter [SQLITE_LIMIT_VARIABLE_NUMBER] (default value: 32766).
 **
 ** ^The third argument is the value to bind to the parameter.
 ** ^If the third parameter to sqlite3_bind_text() or sqlite3_bind_text16()
 ** or sqlite3_bind_blob() is a NULL pointer then the fourth parameter
 ** is ignored and the end result is the same as sqlite3_bind_null().
+** ^If the third parameter to sqlite3_bind_text() is not NULL, then
+** it should be a pointer to well-formed UTF8 text.
+** ^If the third parameter to sqlite3_bind_text16() is not NULL, then
+** it should be a pointer to well-formed UTF16 text.
+** ^If the third parameter to sqlite3_bind_text64() is not NULL, then
+** it should be a pointer to a well-formed unicode string that is
+** either UTF8 if the sixth parameter is SQLITE_UTF8, or UTF16
+** otherwise.
+**
+** [[byte-order determination rules]] ^The byte-order of
+** UTF16 input text is determined by the byte-order mark (BOM, U+FEFF)
+** found in first character, which is removed, or in the absence of a BOM
+** the byte order is the native byte order of the host
+** machine for sqlite3_bind_text16() or the byte order specified in
+** the 6th parameter for sqlite3_bind_text64().)^
+** ^If UTF16 input text contains invalid unicode
+** characters, then SQLite might change those invalid characters
+** into the unicode replacement character: U+FFFD.
 **
 ** ^(In those routines that have a fourth argument, its value is the
 ** number of bytes in the parameter.  To be clear: the value is the
@@ -4239,7 +4332,7 @@ typedef struct sqlite3_context sqlite3_context;
 ** or sqlite3_bind_text16() or sqlite3_bind_text64() then
 ** that parameter must be the byte offset
 ** where the NUL terminator would occur assuming the string were NUL
-** terminated.  If any NUL characters occur at byte offsets less than
+** terminated.  If any NUL characters occurs at byte offsets less than
 ** the value of the fourth parameter then the resulting string value will
 ** contain embedded NULs.  The result of expressions involving strings
 ** with embedded NULs is undefined.
@@ -5565,8 +5658,9 @@ typedef void (*sqlite3_destructor_type)(void*);
 ** 2nd parameter of sqlite3_result_error() or sqlite3_result_error16()
 ** as the text of an error message.  ^SQLite interprets the error
 ** message string from sqlite3_result_error() as UTF-8. ^SQLite
-** interprets the string from sqlite3_result_error16() as UTF-16 in native
-** byte order.  ^If the third parameter to sqlite3_result_error()
+** interprets the string from sqlite3_result_error16() as UTF-16 using
+** the same [byte-order determination rules] as [sqlite3_bind_text16()].
+** ^If the third parameter to sqlite3_result_error()
 ** or sqlite3_result_error16() is negative then SQLite takes as the error
 ** message all text up through the first zero character.
 ** ^If the third parameter to sqlite3_result_error() or
@@ -5633,6 +5727,25 @@ typedef void (*sqlite3_destructor_type)(void*);
 ** or sqlite3_result_blob is the special constant SQLITE_TRANSIENT
 ** then SQLite makes a copy of the result into space obtained
 ** from [sqlite3_malloc()] before it returns.
+**
+** ^For the sqlite3_result_text16(), sqlite3_result_text16le(), and
+** sqlite3_result_text16be() routines, and for sqlite3_result_text64()
+** when the encoding is not UTF8, if the input UTF16 begins with a
+** byte-order mark (BOM, U+FEFF) then the BOM is removed from the
+** string and the rest of the string is interpreted according to the
+** byte-order specified by the BOM.  ^The byte-order specified by
+** the BOM at the beginning of the text overrides the byte-order
+** specified by the interface procedure.  ^So, for example, if
+** sqlite3_result_text16le() is invoked with text that begins
+** with bytes 0xfe, 0xff (a big-endian byte-order mark) then the
+** first two bytes of input are skipped and the remaining input
+** is interpreted as UTF16BE text.
+**
+** ^For UTF16 input text to the sqlite3_result_text16(),
+** sqlite3_result_text16be(), sqlite3_result_text16le(), and
+** sqlite3_result_text64() routines, if the text contains invalid
+** UTF16 characters, the invalid characters might be converted
+** into the unicode replacement character, U+FFFD.
 **
 ** ^The sqlite3_result_value() interface sets the result of
 ** the application-defined function to be a copy of the
@@ -5876,7 +5989,7 @@ SQLITE_API int sqlite3_rekey_v2(
 );
 
 /*
-** Specify the activation key for a SEE database.  Unless 
+** Specify the activation key for a SEE database.  Unless
 ** activated, none of the SEE routines will work.
 */
 SQLITE_API void sqlite3_activate_see(
@@ -7626,7 +7739,7 @@ SQLITE_API int sqlite3_test_control(int op, ...);
 #define SQLITE_TESTCTRL_PENDING_BYTE            11
 #define SQLITE_TESTCTRL_ASSERT                  12
 #define SQLITE_TESTCTRL_ALWAYS                  13
-#define SQLITE_TESTCTRL_RESERVE                 14
+#define SQLITE_TESTCTRL_RESERVE                 14  /* NOT USED */
 #define SQLITE_TESTCTRL_OPTIMIZATIONS           15
 #define SQLITE_TESTCTRL_ISKEYWORD               16  /* NOT USED */
 #define SQLITE_TESTCTRL_SCRATCHMALLOC           17  /* NOT USED */
