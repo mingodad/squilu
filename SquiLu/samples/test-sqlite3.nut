@@ -152,6 +152,14 @@ for(local i=0; i<count; ++i){
 }
 print("SQL prepared function took:", os.clock() -now);
 
+now = os.clock();
+for(local i=0; i<count; ++i){
+	stmt.reset();
+	stmt.step()
+	local val = stmt[0];
+}
+print("SQL prepared2 function took:", os.clock() -now);
+
 stmt.finalize();
 stmt_squilu.finalize();
 
@@ -160,6 +168,37 @@ db.exec_dml("insert into test_slice values('value text')");
 stmt = db.prepare("select * from test_slice");
 if(stmt.next_row()) print("col_slice", stmt.col_slice(0, 2, 5));
 stmt.finalize();
+
+local function sq_concat_xStep(ctx, value)
+{
+	local buf = ctx.aggregate_data();
+	if(!buf)
+	{
+		buf = blob();
+		ctx.aggregate_data(buf);
+		buf.write(value);//first value
+	}
+	else
+	{
+		//print("sq_concat_xStep", ctx, buf, buf.len(), value);
+		buf.write( "::", value);
+	}
+}
+
+local function sq_concat_xFinal(ctx)
+{
+	local buf = ctx.aggregate_data();
+	//print("sq_concat_xFinal", ctx, buf, buf.len());
+	//print(buf.tostring());
+	ctx.result_text(buf.tostring());
+	buf.clear();
+}
+
+db.create_aggregate("sq_concat", 1, sq_concat_xStep, sq_concat_xFinal);
+db.exec_dml("insert into test_slice values('another text')");
+print(db.exec_get_one("select group_concat(value, '::') gc from test_slice"));
+print(db.exec_get_one("select sq_concat(value) gc from test_slice"));
+print(db.exec_get_one("select sq_concat(value) gc from test_slice"));
 
 
 db.close();
