@@ -436,12 +436,12 @@ static SQRESULT base_callee(HSQUIRRELVM v)
 static SQRESULT base_str_from_chars (HSQUIRRELVM v) {
   SQ_FUNC_VARS_NO_TOP(v);
   SQInteger n = sq_gettop(v);  /* number of arguments */
-  int i;
+  SQInteger i;
   SQChar *data = sq_getscratchpad(v, n);
   for (i=2; i<=n; ++i) {
     SQ_GET_INTEGER(v, i, c);
     if(SQUChar(c) != c){
-        return sq_throwerror(v, _SC("invalid value for parameter %d"), (int)i);
+        return sq_throwerror(v, _SC("invalid value for parameter " _PRINT_INT_FMT), i);
     }
     data[i-2] = SQUChar(c);
   }
@@ -764,7 +764,7 @@ static SQRESULT default_delegate_tointeger(HSQUIRRELVM v)
 		SQInteger base;
 		if(sq_gettop(v) > 1){
 		    if(sq_getinteger(v, 2, &base) < 0) return sq_throwerror(v, _SC("parameter integer expected (2-36)"));
-		    if(base < 2 || base > 36) return sq_throwerror(v, _SC("invalid base \"%d\" to tointeger (2-36)"), (int)base);
+		    if(base < 2 || base > 36) return sq_throwerror(v, _SC("invalid base \"" _PRINT_INT_FMT "\" to tointeger (2-36)"), base);
 		}
 		else base = 10;
 		if(str2num(_stringval(o),res, base)){
@@ -1356,7 +1356,7 @@ static SQRESULT array_concat0 (HSQUIRRELVM v, int allowAll) {
 
   SQBlob blob(0, 8192);
 
-  for (int i=opt_first; i <= opt_last; ++i) {
+  for (SQInteger i=opt_first; i <= opt_last; ++i) {
       SQObject o;
       SQObjectPtr str;
       arr->_get2(i, o);
@@ -1374,7 +1374,7 @@ static SQRESULT array_concat0 (HSQUIRRELVM v, int allowAll) {
               break;
             }
           default:
-              return sq_throwerror(v, _SC("Invalid type \"%s\" at position %d for array concat !"),
+              return sq_throwerror(v, _SC("Invalid type \"%s\" at position " _PRINT_INT_FMT " for array concat !"),
 								GetTypeName(o), i);
       }
 
@@ -1925,8 +1925,8 @@ static SQRESULT string_replace(HSQUIRRELVM v) {
     SQ_GET_STRING(v, 3, p2);
     SQ_OPT_INTEGER(v, 4, count, 0);
     const SQChar *s2;
-    int n = 0;
-    int init = 0;
+    SQInteger n = 0;
+    SQInteger init = 0;
 
     SQBlob b(0, 8192);
 
@@ -1978,7 +1978,7 @@ static SQRESULT string_startswith(HSQUIRRELVM v) {
     SQ_GET_STRING(v, 1, str);
     SQ_GET_STRING(v, 2, token);
 
-    int i;
+    SQInteger i;
     SQBool start = SQTrue;
     // please make this less ugly...
     if(token_size <= str_size){
@@ -2071,7 +2071,7 @@ static SQRESULT string_find_delimiter(HSQUIRRELVM v) {
 }
 
 static SQRESULT string_reverse (HSQUIRRELVM v) {
-  int i;
+  SQInteger i;
   SQ_FUNC_VARS_NO_TOP(v);
   SQ_GET_STRING(v, 1, s)
   SQChar *data = sq_getscratchpad(v,s_size);
@@ -2085,7 +2085,7 @@ static SQRESULT string_reverse (HSQUIRRELVM v) {
 
 
 static SQRESULT string_rep (HSQUIRRELVM v) {
-  int i;
+  SQInteger i;
   SQ_FUNC_VARS_NO_TOP(v);
   SQ_GET_STRING(v, 1, s)
   SQ_GET_INTEGER(v, 2, n);
@@ -2307,7 +2307,7 @@ static SQRESULT string_split(HSQUIRRELVM v) {
         if((sep > 0xFF) || (sep < 0)) return sq_throwerror(v,_SC("character separator out of range 0..255"));
         sq_newarray(v,0);
         while ((token = scstrchr(str, sep)) != NULL) {
-            int sz = token - str;
+            SQInteger sz = token - str;
             if(sz > 0)
             {
                 sq_pushstring(v, str, token - str);

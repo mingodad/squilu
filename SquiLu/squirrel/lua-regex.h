@@ -58,8 +58,8 @@ typedef struct LuaMatchState {
   const char *src_init;  /* init of source string */
   const char *src_end;  /* end ('\0') of source string */
   const char *p_end;  /* end ('\0') of pattern */
-  int   start_pos;  /* pattern match start position */
-  int   end_pos;    /* pattern match end position */
+  size_t   start_pos;  /* pattern match start position */
+  size_t   end_pos;    /* pattern match end position */
   const char *error;
   int level;  /* total number of captures (finished or unfinished) */
   LuaCapture capture[LUA_REGEX_MAXCAPTURES];
