@@ -632,11 +632,16 @@ SQInteger _g_io_readfile(HSQUIRRELVM v)
         SQInteger size,res;
         SQChar *data;
         size = fs.Len();
-        data = sq_getscratchpad(v,size);
+        data = sq_getscratchstr(v,size);
         res = fs.Read(data,size);
-        if(res <= 0)
-            return sq_throwerror(v,_SC("no data left to read"));
-        sq_pushstring(v,data,res);
+        if(res != size)
+        {
+            sq_delscratchstr(v, data);
+            if(res <= 0)
+                return sq_throwerror(v,_SC("no data left to read"));
+            return sq_throwerror(v,_SC("could not read whole file"));
+        }
+        sq_pushscratchstr(v);
         return 1;
     }
 	return sq_throwerror(v,_SC("could not open file %s"), filename);

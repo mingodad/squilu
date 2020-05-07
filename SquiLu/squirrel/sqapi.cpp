@@ -1751,6 +1751,24 @@ SQChar *sq_getscratchpad(HSQUIRRELVM v,SQInteger minsize)
 	return _ss(v)->GetScratchPad(minsize);
 }
 
+SQChar *sq_getscratchstr(HSQUIRRELVM v,SQInteger size)
+{
+	return _ss(v)->GetScratchStr(size);
+}
+
+SQBool sq_delscratchstr(HSQUIRRELVM v, SQChar *s)
+{
+	return _ss(v)->DelScratchStr(s);
+}
+
+void sq_pushscratchstr(HSQUIRRELVM v)
+{
+    SQString *s = _ss(v)->AddScratchStr();
+	if(s)
+		v->Push(SQObjectPtr(s));
+	else v->PushNull();
+}
+
 SQRESULT sq_resurrectunreachable(HSQUIRRELVM v)
 {
 #ifndef NO_GARBAGE_COLLECTOR

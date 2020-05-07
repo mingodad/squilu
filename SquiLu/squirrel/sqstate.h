@@ -16,6 +16,7 @@ struct SQStringTable
 	SQString *Add(const SQChar *,SQInteger len);
 	SQString *Add(SQString *strBuf);
 	SQString *NewStrBuf(SQInteger len);
+	void DeleteStrBuf(SQString *);
 	void Remove(SQString *);
 private:
     SQString *Contains(const SQChar *news, SQInteger &len, SQHash &newhash, SQHash &h);
@@ -75,6 +76,9 @@ struct SQSharedState
 	void Init();
 public:
 	SQChar* GetScratchPad(SQInteger size);
+	SQChar* GetScratchStr(SQInteger size);
+	SQString* AddScratchStr();
+	SQBool DelScratchStr(SQChar *s);
 	SQInteger GetMetaMethodIdxByName(const SQObjectPtr &name);
 #ifndef NO_GARBAGE_COLLECTOR
 	SQInteger CollectGarbage(SQVM *vm);
@@ -135,6 +139,7 @@ public:
 	SQRELEASEHOOK _releasehook;
 private:
 	SQChar *_scratchpad;
+	SQString *_scratchstr;
 	SQInteger _scratchpadsize;
 #ifdef SQ_WITH_DELAYED_RELEASE_HOOKS
 	bool _already_in_CallDelayedReleaseHooks;

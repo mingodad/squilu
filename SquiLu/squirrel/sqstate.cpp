@@ -105,6 +105,7 @@ static SQTable *CreateDefaultDelegate(SQSharedState *ss,const SQRegFunction *fun
 
 void SQSharedState::Init()
 {
+	_scratchstr=NULL;
 	_scratchpad=NULL;
 	_scratchpadsize=0;
 #ifndef NO_GARBAGE_COLLECTOR
@@ -249,6 +250,7 @@ SQSharedState::~SQSharedState()
 	sq_delete(_types,SQObjectPtrVec);
 	sq_delete(_systemstrings,SQObjectPtrVec);
 	sq_delete(_metamethods,SQObjectPtrVec);
+	if(_scratchstr) DelScratchStr(_scratchstr->_val);
 	sq_delete(_stringtable,SQStringTable);
 	if(_scratchpad)SQ_FREE(_scratchpad,_scratchpadsize);
 }
@@ -462,6 +464,32 @@ SQChar* SQSharedState::GetScratchPad(SQInteger size)
 		}
 	}
 	return _scratchpad;
+}
+
+SQChar* SQSharedState::GetScratchStr(SQInteger size)
+{
+    if(_scratchstr) return NULL; //only one at a time
+    _scratchstr = _stringtable->NewStrBuf(size);
+	return _scratchstr->_val;
+}
+
+SQString* SQSharedState::AddScratchStr()
+{
+    if(!_scratchstr) return NULL;
+    SQString *str = _stringtable->Add(_scratchstr);
+    _scratchstr = NULL;
+	return str;
+}
+
+SQBool SQSharedState::DelScratchStr(SQChar *s)
+{
+    if(_scratchstr && _scratchstr->_val == s)
+    {
+        _stringtable->DeleteStrBuf(_scratchstr);
+        _scratchstr = NULL;
+        return SQTrue;
+    }
+    return SQFalse;
 }
 
 RefTable::RefTable()
@@ -713,6 +741,11 @@ SQString *SQStringTable::NewStrBuf(SQInteger len)
 	new (t) SQString;
 	t->_len = len;
 	return t;
+}
+
+void SQStringTable::DeleteStrBuf(SQString *sb)
+{
+    SQ_FREE(sb,SQSTRING_CALCULATED_SIZE(rsl(sb->_len)));
 }
 
 void SQStringTable::Resize(SQInteger size)
