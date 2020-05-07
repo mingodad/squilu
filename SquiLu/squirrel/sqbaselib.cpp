@@ -267,13 +267,33 @@ static SQRESULT get_slice_params(HSQUIRRELVM v,SQInteger &sidx,SQInteger &eidx,S
 	return 1;
 }
 
+#define MAX_PRINT_STRSZ 1024*1024*1024
+static void base_print_huge_str(HSQUIRRELVM v, const SQChar *str, SQInteger str_size)
+{
+    SQPRINTFUNCTION sqprint = _ss(v)->_printfunc;
+    if(str_size > MAX_PRINT_STRSZ)
+    {
+        /*Print huge strings (> 2GB) is problematic*/
+        int print_size = MAX_PRINT_STRSZ;
+        while(str_size > 0)
+        {
+            sqprint(v,_SC("%.*s"), print_size, str);
+            str += print_size;
+            str_size -= print_size;
+            if(str_size < print_size) print_size = str_size;
+        }
+    }
+    else sqprint(v,_SC("%s"),str);
+}
+
 static SQInteger base_print1(HSQUIRRELVM v)
 {
     const SQChar *str;
+    SQInteger str_size;
     if(SQ_SUCCEEDED(sq_tostring(v,2)))
     {
-        if(SQ_SUCCEEDED(sq_getstring(v,-1,&str))) {
-            if(_ss(v)->_printfunc) _ss(v)->_printfunc(v,_SC("%s"),str);
+        if(SQ_SUCCEEDED(sq_getstr_and_size(v,-1,&str, &str_size))) {
+            if(_ss(v)->_printfunc) base_print_huge_str(v, str, str_size);
             return 0;
         }
     }
@@ -285,12 +305,12 @@ static SQRESULT base_print(HSQUIRRELVM v)
     if(_ss(v)->_printfunc){
         SQPRINTFUNCTION sqprint = _ss(v)->_printfunc;
         const SQChar *str;
-        SQInteger nargs=sq_gettop(v);
+        SQInteger str_size, nargs=sq_gettop(v);
         for(int i=2; i<=nargs; ++i){
             if(i>2) sqprint(v,_SC("\t"));
             if(SQ_SUCCEEDED(sq_tostring(v,i))) {
-                sq_getstring(v,-1,&str);
-                sqprint(v,_SC("%s"),str);
+                sq_getstr_and_size(v,-1,&str, &str_size);
+                base_print_huge_str(v, str, str_size);
                 sq_poptop(v); //remove converted string
             } else {
                 return SQ_ERROR;
