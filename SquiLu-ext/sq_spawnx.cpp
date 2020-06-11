@@ -196,23 +196,24 @@ static SQRESULT sq_spawnx_read(HSQUIRRELVM v)
     GET_sq_spawnx_INSTANCE(v, 1);
 #define DEFAULT_BUFFSIZE 2048
     SQ_OPT_INTEGER(v, 2, read_sz, DEFAULT_BUFFSIZE);
-    int isScratchString = (read_sz == DEFAULT_BUFFSIZE);
-    SQChar *buf =  isScratchString ? sq_getscratchstr(v, read_sz) : sq_getscratchpad(v, read_sz);
+    //int isScratchString = (read_sz == DEFAULT_BUFFSIZE);
+    //SQChar *buf =  isScratchString ? sq_getscratchstr(v, read_sz) : sq_getscratchpad(v, read_sz);
+    SQChar *buf = sq_getscratchpad(v, read_sz);
 #ifdef WIN32
     DWORD bytesRead;
     int res = ReadFile(self->hPipeRead,buf,read_sz, &bytesRead, NULL);
     if (res == 0)  {
-	    if(isScratchString) sq_delscratchstr(v, buf);
+	    //if(isScratchString) sq_delscratchstr(v, buf);
 	    return sq_throwerror(v, _SC("error reading GetLastError() = %d"), GetLastError());
 #else
     int bytesRead = read(self->spawn_fd, buf, read_sz);
     if(bytesRead < 0) {
-	    if(isScratchString) sq_delscratchstr(v, buf);
+	    //if(isScratchString) sq_delscratchstr(v, buf);
 	    return sq_throwerror(v, _SC("error reading %d : %s"), errno, strerror(errno));
 #endif
     } else {
-	if(isScratchString) sq_pushscratchstr(v);
-        else sq_pushstring(v,buf, bytesRead);
+	/*if(isScratchString) sq_pushscratchstr(v);
+        else*/ sq_pushstring(v,buf, bytesRead);
     }
     return 1;
 }
