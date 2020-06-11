@@ -96,8 +96,8 @@ static SQRESULT sq_spawnx_open(HSQUIRRELVM v, SQ_SpawnX *self, const char *cmd)
 	CloseHandle(hRead2);
 	CloseHandle(hPipeWrite);
 
-	if (running) return 0;
-    return sq_throwerror(v, _SC("unable to spawn process"));
+	if (running) return SQ_OK;
+	return sq_throwerror(v, _SC("unable to spawn process"));
 }
 
 #else
@@ -146,7 +146,7 @@ static SQRESULT sq_spawnx_open(HSQUIRRELVM v, SQ_SpawnX *self, const char *cmd)
         // if we get here, it's an error!
         perror("unable to spawn process");
     } else {
-        return 0;
+        return SQ_OK;
     }
     return sq_throwerror(v, _SC("unable to spawn process"));
 }
@@ -170,9 +170,9 @@ static SQRESULT sq_spawnx_releasehook(SQUserPointer p, SQInteger /*size*/, void 
 {
 	SQ_SpawnX *self = ((SQ_SpawnX *)p);
 	if(self)
-    {
-        sq_free(self, sizeof(SQ_SpawnX));
-    }
+	{
+		sq_free(self, sizeof(SQ_SpawnX));
+	}
 	return 1;
 }
 
@@ -181,9 +181,9 @@ static SQRESULT sq_spawnx_constructor(HSQUIRRELVM v)
 	SQ_FUNC_VARS_NO_TOP(v);
 	SQ_GET_STRING(v, 2, cmd);
 
-    SQ_SpawnX *self = (SQ_SpawnX*)sq_malloc(sizeof(SQ_SpawnX));
+	SQ_SpawnX *self = (SQ_SpawnX*)sq_malloc(sizeof(SQ_SpawnX));
 
-    _rc_ = sq_spawnx_open(v, self, cmd);
+	_rc_ = sq_spawnx_open(v, self, cmd);
 
 	sq_setinstanceup(v,1,self);
 	sq_setreleasehook(v,1,sq_spawnx_releasehook);
@@ -194,21 +194,25 @@ static SQRESULT sq_spawnx_read(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS(v);
     GET_sq_spawnx_INSTANCE(v, 1);
-    SQ_OPT_INTEGER(v, 2, read_sz, 2048);
-    SQChar *buf = sq_getscratchpad(v, read_sz);
+#define DEFAULT_BUFFSIZE 2048
+    SQ_OPT_INTEGER(v, 2, read_sz, DEFAULT_BUFFSIZE);
+    int isScratchString = (read_sz == DEFAULT_BUFFSIZE);
+    SQChar *buf =  isScratchString ? sq_getscratchstr(v, read_sz) : sq_getscratchpad(v, read_sz);
 #ifdef WIN32
     DWORD bytesRead;
     int res = ReadFile(self->hPipeRead,buf,read_sz, &bytesRead, NULL);
-    if (res == 0) {
-        sq_pushnull(v);
+    if (res == 0)  {
+	    if(isScratchString) sq_delscratchstr(v, buf);
+	    return sq_throwerror(v, _SC("error reading GetLastError() = %d"), GetLastError());
 #else
     int bytesRead = read(self->spawn_fd, buf, read_sz);
-    if (errno != 0) {
-        sq_pushinteger(v, errno);
-        //sq_pushstring(v,strerror(errno));
+    if(bytesRead < 0) {
+	    if(isScratchString) sq_delscratchstr(v, buf);
+	    return sq_throwerror(v, _SC("error reading %d : %s"), errno, strerror(errno));
 #endif
     } else {
-        sq_pushstring(v,buf, bytesRead);
+	if(isScratchString) sq_pushscratchstr(v);
+        else sq_pushstring(v,buf, bytesRead);
     }
     return 1;
 }
@@ -224,6 +228,7 @@ static SQRESULT sq_spawnx_write(HSQUIRRELVM v)
     sq_pushinteger(v, bytesWrote);
 #else
     ssize_t n = write(self->spawn_fd,str,str_size);
+    //fdatasync(self->spawn_fd);
     sq_pushinteger(v, n);
 #endif
     return 1;
