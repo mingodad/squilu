@@ -1188,7 +1188,7 @@ static SQRESULT array_bsearch(HSQUIRRELVM v)
 }
 
 
-static bool _sort_compare(HSQUIRRELVM v,const SQObjectPtr &a,const SQObjectPtr &b,SQInteger func,SQInteger &ret)
+static bool _sort_compare(HSQUIRRELVM v, SQArrayBase *arr,const SQObjectPtr &a,const SQObjectPtr &b,SQInteger func,SQInteger &ret)
 {
 	if(func < 0) {
 		if(!v->ObjCmp(a,b,ret)) return false;
@@ -1199,6 +1199,8 @@ static bool _sort_compare(HSQUIRRELVM v,const SQObjectPtr &a,const SQObjectPtr &
 		sq_pushroottable(v);
 		v->Push(a);
 		v->Push(b);
+		void *valptr = arr->RawData();
+		SQUnsignedInteger precallsize = arr->Size();
 		if(SQ_FAILED(sq_call(v, 3, SQTrue, SQFalse))) {
 			if(!sq_isstring( v->_lasterror))
 				v->Raise_Error(_SC("compare func failed"));
@@ -1206,6 +1208,10 @@ static bool _sort_compare(HSQUIRRELVM v,const SQObjectPtr &a,const SQObjectPtr &
 		}
 		if(SQ_FAILED(sq_getinteger(v, -1, &ret))) {
 			v->Raise_Error(_SC("numeric value expected as return value of the compare function"));
+			return false;
+		}
+		if (precallsize != arr->Size() || valptr != arr->RawData()) {
+			v->Raise_Error(_SC("array resized during sort operation"));
 			return false;
 		}
 		sq_settop(v, top);
@@ -1233,7 +1239,7 @@ static bool lua_auxsort (HSQUIRRELVM v, SQArrayBase *arr, SQInteger l, SQInteger
     /* sort elements a[l], a[(l+u)/2] and a[u] */
     arr->_get2(u, o1);
     arr->_get2(l, o2);
-    if(!_sort_compare(v,o1,o2,func,ret))
+    if(!_sort_compare(v,arr,o1,o2,func,ret))
         return false;
     if (ret < 0)  /* a[u] < a[l]? */
       ARR_SWAP(l, u)  /* swap a[l] - a[u] */
@@ -1241,14 +1247,14 @@ static bool lua_auxsort (HSQUIRRELVM v, SQArrayBase *arr, SQInteger l, SQInteger
     i = (l+u)/2;
     arr->_get2(i, o1);
     arr->_get2(l, o2);
-    if(!_sort_compare(v,o1,o2,func,ret))
+    if(!_sort_compare(v,arr,o1,o2,func,ret))
         return false;
     if (ret < 0)  /* a[i]<a[l]? */
       ARR_SWAP(i, l)
     else {
       arr->_get2(u, o1);
       arr->_get2(i, o2);
-      if(!_sort_compare(v,o1,o2,func,ret))
+      if(!_sort_compare(v,arr,o1,o2,func,ret))
         return false;
       if (ret < 0)  /* a[u]<a[i]? */
         ARR_SWAP(i, u)
@@ -1261,7 +1267,7 @@ static bool lua_auxsort (HSQUIRRELVM v, SQArrayBase *arr, SQInteger l, SQInteger
     i = l; j = u-1;
     for (;;) {  /* invariant: a[l..i] <= P <= a[j..u] */
       /* repeat ++i until a[i] >= P */
-      while (arr->_get2(++i, o1), (rc = _sort_compare(v,o1,P,func,ret)) && (ret < 0)) {
+      while (arr->_get2(++i, o1), (rc = _sort_compare(v,arr,o1,P,func,ret)) && (ret < 0)) {
         if (i>u)
         {
             sq_throwerror(v, _SC("invalid order function for sorting"));
@@ -1270,7 +1276,7 @@ static bool lua_auxsort (HSQUIRRELVM v, SQArrayBase *arr, SQInteger l, SQInteger
       }
       if(!rc) return false;
       /* repeat --j until a[j] <= P */
-      while (arr->_get2(--j, o2), (rc = _sort_compare(v,P, o2,func,ret)) && (ret < 0)) {
+      while (arr->_get2(--j, o2), (rc = _sort_compare(v,arr,P, o2,func,ret)) && (ret < 0)) {
         if (j<l)
         {
             sq_throwerror(v, _SC("invalid order function for sorting"));

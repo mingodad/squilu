@@ -1891,6 +1891,7 @@ SQInteger prevstackbase = _stackbase;
 		}
 		break;
 	default:
+		Raise_Error(_SC("attempt to call '%s'"), GetTypeName(closure));
 		return false;
 	}
 #ifdef _DEBUG
