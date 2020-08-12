@@ -3788,15 +3788,15 @@ static SQRegFunction sq_sqlite3_methods[] =
     _DECL_FUNC(total_changes,  1, _SC("x")),
     _DECL_FUNC(backup,  -2, _SC("xsss")),
     _DECL_FUNC(restore,  -2, _SC("xsss")),
+    _DECL_FUNC(keyword_count,  1, _SC("x|y")),
+    _DECL_FUNC(keyword_name,  2, _SC("x|y i")),
+    _DECL_FUNC(keyword_check,  2, _SC("x|y s")),
 #ifndef SQLITE_OMIT_LOAD_EXTENSION
     _DECL_FUNC(enable_load_extension, 2, _SC("xb")),
 #endif
 #ifdef SQLITE_HAS_CODEC
     _DECL_FUNC(key,  2, _SC("xs")),
     _DECL_FUNC(rekey,  2, _SC("xs")),
-    _DECL_FUNC(keyword_count,  1, _SC("x|y")),
-    _DECL_FUNC(keyword_name,  2, _SC("x|y i")),
-    _DECL_FUNC(keyword_check,  2, _SC("x|y s")),
 #endif
     {0,0}
 };
