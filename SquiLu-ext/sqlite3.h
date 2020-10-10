@@ -123,9 +123,9 @@ extern "C" {
 ** [sqlite3_libversion_number()], [sqlite3_sourceid()],
 ** [sqlite_version()] and [sqlite_source_id()].
 */
-#define SQLITE_VERSION        "3.33.0"
-#define SQLITE_VERSION_NUMBER 3033000
-#define SQLITE_SOURCE_ID      "2020-08-10 21:01:32 5bbd4bddd3b9fa64d134ed62bce3eb4a09456bf24dec2474b5d764a3a377alt1"
+#define SQLITE_VERSION        "3.34.0"
+#define SQLITE_VERSION_NUMBER 3034000
+#define SQLITE_SOURCE_ID      "2020-10-07 11:24:45 54b54f02c66c5aeaa3504c52a04614e2fb4d7260da8367840d5ea5a71cdcalt1"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -6254,6 +6254,57 @@ SQLITE_API const char *sqlite3_db_filename(sqlite3 *db, const char *zDbName);
 SQLITE_API int sqlite3_db_readonly(sqlite3 *db, const char *zDbName);
 
 /*
+** CAPI3REF: Determine the transaction state of a database
+** METHOD: sqlite3
+**
+** ^The sqlite3_txn_state(D,S) interface returns the current
+** [transaction state] of schema S in database connection D.  ^If S is NULL,
+** then the highest transaction state of any schema on databse connection D
+** is returned.  Transaction states are (in order of lowest to highest):
+** <ol>
+** <li value="0"> SQLITE_TXN_NONE
+** <li value="1"> SQLITE_TXN_READ
+** <li value="2"> SQLITE_TXN_WRITE
+** </ol>
+** ^If the S argument to sqlite3_txn_state(D,S) is not the name of
+** a valid schema, then -1 is returned.
+*/
+SQLITE_API int sqlite3_txn_state(sqlite3*,const char *zSchema);
+
+/*
+** CAPI3REF: Allowed return values from [sqlite3_txn_state()]
+** KEYWORDS: {transaction state}
+**
+** These constants define the current transaction state of a database file.
+** ^The [sqlite3_txn_state(D,S)] interface returns one of these
+** constants in order to describe the transaction state of schema S
+** in [database connection] D.
+**
+** <dl>
+** [[SQLITE_TXN_NONE]] <dt>SQLITE_TXN_NONE</dt>
+** <dd>The SQLITE_TXN_NONE state means that no transaction is currently
+** pending.</dd>
+**
+** [[SQLITE_TXN_READ]] <dt>SQLITE_TXN_READ</dt>
+** <dd>The SQLITE_TXN_READ state means that the database is currently
+** in a read transaction.  Content has been read from the database file
+** but nothing in the database file has changed.  The transaction state
+** will advanced to SQLITE_TXN_WRITE if any changes occur and there are
+** no other conflicting concurrent write transactions.  The transaction
+** state will revert to SQLITE_TXN_NONE following a [ROLLBACK] or
+** [COMMIT].</dd>
+**
+** [[SQLITE_TXN_WRITE]] <dt>SQLITE_TXN_WRITE</dt>
+** <dd>The SQLITE_TXN_WRITE state means that the database is currently
+** in a write transaction.  Content has been written to the database file
+** but has not yet committed.  The transaction state will change to
+** to SQLITE_TXN_NONE at the next [ROLLBACK] or [COMMIT].</dd>
+*/
+#define SQLITE_TXN_NONE  0
+#define SQLITE_TXN_READ  1
+#define SQLITE_TXN_WRITE 2
+
+/*
 ** CAPI3REF: Find the next prepared statement
 ** METHOD: sqlite3
 **
@@ -7755,6 +7806,7 @@ SQLITE_API int sqlite3_test_control(int op, ...);
 #define SQLITE_TESTCTRL_PRNG_SAVE                5
 #define SQLITE_TESTCTRL_PRNG_RESTORE             6
 #define SQLITE_TESTCTRL_PRNG_RESET               7  /* NOT USED */
+#define SQLITE_TESTCTRL_SEEK_COUNT               7
 #define SQLITE_TESTCTRL_BITVEC_TEST              8
 #define SQLITE_TESTCTRL_FAULT_INSTALL            9
 #define SQLITE_TESTCTRL_BENIGN_MALLOC_HOOKS     10
@@ -9412,6 +9464,7 @@ SQLITE_API void sqlite3_stmt_scanstatus_reset(sqlite3_stmt*);
 
 /*
 ** CAPI3REF: Flush caches to disk mid-transaction
+** METHOD: sqlite3
 **
 ** ^If a write-transaction is open on [database connection] D when the
 ** [sqlite3_db_cacheflush(D)] interface invoked, any dirty
@@ -9444,6 +9497,7 @@ SQLITE_API int sqlite3_db_cacheflush(sqlite3*);
 
 /*
 ** CAPI3REF: The pre-update hook.
+** METHOD: sqlite3
 **
 ** ^These interfaces are only available if SQLite is compiled using the
 ** [SQLITE_ENABLE_PREUPDATE_HOOK] compile-time option.
@@ -9484,7 +9538,7 @@ SQLITE_API int sqlite3_db_cacheflush(sqlite3*);
 ** seventh parameter is the final rowid value of the row being inserted
 ** or updated. The value of the seventh parameter passed to the callback
 ** function is not defined for operations on WITHOUT ROWID tables, or for
-** INSERT operations on rowid tables.
+** DELETE operations on rowid tables.
 **
 ** The [sqlite3_preupdate_old()], [sqlite3_preupdate_new()],
 ** [sqlite3_preupdate_count()], and [sqlite3_preupdate_depth()] interfaces
@@ -9546,6 +9600,7 @@ SQLITE_API int sqlite3_preupdate_new(sqlite3 *, int, sqlite3_value **);
 
 /*
 ** CAPI3REF: Low-level system error code
+** METHOD: sqlite3
 **
 ** ^Attempt to return the underlying operating system error code or error
 ** number that caused the most recent I/O error or failure to open a file.
