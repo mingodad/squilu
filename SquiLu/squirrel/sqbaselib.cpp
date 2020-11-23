@@ -2646,7 +2646,9 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("reverse"),string_reverse, 1, _SC("s"), false},
 	{_SC("rep"),string_rep, 2, _SC("si"), false},
 	{_SC("tolower"),string_tolower,1, _SC("s"), false},
+	{_SC("toLowerCase"),string_tolower,1, _SC("s"), false}, //for javascript compatibility
 	{_SC("toupper"),string_toupper,1, _SC("s"), false},
+	{_SC("toUpperCase"),string_toupper,1, _SC("s"), false}, //for javascript compatibility
 	{_SC("weakref"),obj_delegate_weakref,1, NULL, false},
 	{_SC("getdelegate"),string_getdelegate,1, _SC("."), false},
 	{_SC("strip"),string_strip,1, _SC("s"), false},
