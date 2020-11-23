@@ -2,7 +2,6 @@
 #include <squirrel.h>
 #include <math.h>
 //#include <float.h>
-#include <limits.h>
 #include <stdlib.h>
 #include <sqstdmath.h>
 

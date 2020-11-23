@@ -36,7 +36,8 @@ struct SQFile : public SQStream {
 		return sqstd_fflush(_handle);
 	}
 	SQInteger Tell() {
-		return sqstd_ftell(_handle);
+		SQInteger pos = sqstd_ftell(_handle);
+		return pos == SQ_INT_MAX ? 0 : (pos > 0 ? pos : 0);
 	}
 	SQInteger Len() {
 		SQInteger prevpos=Tell();
