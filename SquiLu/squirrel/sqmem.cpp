@@ -32,7 +32,17 @@ void sq_vm_free(void *p, SQUnsignedInteger SQ_UNUSED_ARG(size)){
 
 #ifdef CUSTOM_DELETE_OPERATOR
 //made public to allow link without libstdc++
+void operator delete(void *p, unsigned int len)
+{
+	printf("DELETE SHOULD NOT BE CALLED %p : %d\n", p, (int)len);
+	assert(0);
+}
 void operator delete(void *p, unsigned long len)
+{
+	printf("DELETE SHOULD NOT BE CALLED %p : %d\n", p, (int)len);
+	assert(0);
+}
+void operator delete(void *p, unsigned long long len)
 {
 	printf("DELETE SHOULD NOT BE CALLED %p : %d\n", p, (int)len);
 	assert(0);
