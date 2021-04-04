@@ -1556,12 +1556,11 @@ static SQRESULT string_find(HSQUIRRELVM v)
 	if(eidx < 0)eidx = slen + eidx; \
 	if(eidx < sidx)	return sq_throwerror(v,_SC("wrong indexes")); \
 	if(eidx > slen || sidx < 0)	return sq_throwerror(v,_SC("slice out of range")); \
-	SQInteger len=_string(str)->_len; \
 	const SQChar *sthis=_stringval(str); \
-	SQChar *snew=(_ss(v)->GetScratchPad(sq_rsl(len))); \
-	memcpy(snew,sthis,sq_rsl(len));\
+	SQChar *snew=(_ss(v)->GetScratchPad(sq_rsl(slen))); \
+	memcpy(snew,sthis,sq_rsl(slen));\
 	for(SQInteger i=sidx;i<eidx;i++) snew[i] = func(sthis[i]); \
-	v->Push(SQString::Create(_ss(v),snew,len)); \
+	v->Push(SQString::Create(_ss(v),snew,slen)); \
 	return 1; \
 }
 
