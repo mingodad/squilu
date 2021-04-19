@@ -2349,10 +2349,21 @@ function_params_decl:
         //C++/Java template instantiation
         if(_token == _SC('<'))
         {
+            int nested = 1;
             Lex();
-            ExpectTypeToken();
-            if(_token != _SC('>')) Error(_SC("template instantiation declaration expected <TYPE>"));
-            Lex();
+            while(nested > 0)
+            {
+                ExpectTypeToken();
+                switch(_token)
+                {
+                    case ',': break;
+                    case '<': ++nested; break;
+                    case '>': --nested; break;
+                    default:
+                        Error(_SC("template instantiation declaration unexpected token"));
+                }
+                Lex();
+            }
         }
     }
     SQInteger GetVarTypeDeclaration(SQInteger declType, SQInteger dest=-1)
