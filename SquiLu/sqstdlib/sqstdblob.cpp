@@ -361,6 +361,25 @@ static SQRESULT _blob_tostring(HSQUIRRELVM v)
     return _blob__tostring(v);
 }
 
+static SQRESULT _blob_slice(HSQUIRRELVM v)
+{
+    SETUP_BLOB(v);
+	SQInteger sidx, eidx;
+	SQInteger slen = self->Len();
+	SQInteger top = sq_gettop(v);
+	SQRESULT _rc_;
+    if(top>1) { SQ_GET_INTEGER_NVD(v, 2, sidx);}
+    else sidx = 0;
+    if(top>2) {SQ_GET_INTEGER_NVD(v, 3, eidx);}
+    else eidx = slen;
+	if(sidx < 0)sidx = slen + sidx;
+	if(eidx < 0)eidx = slen + eidx;
+	if(eidx < sidx)	return sq_throwerror(v,_SC("wrong indexes"));
+	if(eidx > slen || sidx < 0)	return sq_throwerror(v, _SC("slice out of range"));
+	sq_pushstring(v,((const SQChar*)self->GetBuf())+sidx,eidx-sidx);
+	return 1;
+}
+
 static SQRESULT _blob_setLen(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
@@ -494,6 +513,7 @@ static SQRegFunction _blob_methods[] = {
 	_DECL_BLOB_FUNC(_nexti,2,_SC("x")),
 	_DECL_BLOB_FUNC(_cloned,2,_SC("xx")),
 	//_DECL_BLOB_FUNC(_tostring,1,_SC("x")),
+	_DECL_BLOB_FUNC(slice,-1,_SC("xnn")),
 	_DECL_BLOB_FUNC(tostring,1,_SC("x")),
 	_DECL_BLOB_FUNC(setLen,2,_SC("xn")),
 	_DECL_BLOB_FUNC(clear,1,_SC("x")),
