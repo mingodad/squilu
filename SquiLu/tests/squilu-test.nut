@@ -1286,6 +1286,9 @@ bar]==] == "foo\nbar");
 	sqt.ok(("(" + 0x7fffffff + ")") == "(2147483647)");
 	sqt.ok(("(" + -0x80000000 + ")") ==  "(-2147483648)");
 
+	//C/C++ wchar
+	sqt.ok(L"fake wchar" == "fake wchar");
+	sqt.ok(L'\n' == '\n');
 });
 
 sqt.run("number", function(){

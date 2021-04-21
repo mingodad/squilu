@@ -996,11 +996,30 @@ SQInteger SQLexer::ReadID()
 		NEXT();
 	} while(scisalnum(CUR_CHAR) || CUR_CHAR == _SC('_'));
 	TERMINATE_BUFFER();
-	if((CUR_CHAR == _SC('"')) && (data->longstr[0] == _SC('R')) && (data->longstr.size() == 2))
-    {
-        //C++ multiline string
-        return ReadString(_SC('R'),true);
-    }
+	if(data->longstr.size() == 2)
+	{
+		if(CUR_CHAR == _SC('"'))
+		{
+		    if(data->longstr[0] == _SC('R'))
+		    {
+			//C++ multiline string
+			return ReadString(_SC('R'),true);
+		    }
+		    if(data->longstr[0] == _SC('L'))
+		    {
+			//C++ wchar string
+			return ReadString(CUR_CHAR,false);
+		    }
+		}
+		if(CUR_CHAR == _SC('\''))
+		{
+		    if(data->longstr[0] == _SC('L'))
+		    {
+			//C++ wchar string
+			return ReadString(CUR_CHAR,false);
+		    }
+		}
+	}
 	res = GetIDType(&data->longstr[0],data->longstr.size() - 1);
 	if(res == TK_IDENTIFIER || res == TK_CONSTRUCTOR || res == TK_DESTRUCTOR) {
 		data->svalue = &data->longstr[0];
