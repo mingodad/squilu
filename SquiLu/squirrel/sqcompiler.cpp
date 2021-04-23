@@ -1694,7 +1694,7 @@ start_again:
         case TK_BASE:
             Lex();
             if(_token == '(' && _inside_constructor)
-                Warning(_SC("calling 'base' as a function inside a constructor\n"));
+                Warning(_SC("calling 'base' as a function; did you mean base.constructor()?\n"));
             _fs->AddInstruction(_OP_GETBASE, _fs->PushTarget());
             _es.etype  = BASE;
             _es.epos   = _fs->TopTarget();
