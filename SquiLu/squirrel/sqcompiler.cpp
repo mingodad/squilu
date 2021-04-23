@@ -176,6 +176,7 @@ public:
         _ifdef_line = 0;
         _inside_ifdef = 0;
         squilu_lib_path = NULL;
+        _inside_constructor = false;
     }
     ~SQCompiler()
     {
@@ -1692,6 +1693,8 @@ start_again:
         break;
         case TK_BASE:
             Lex();
+            if(_token == '(' && _inside_constructor)
+                Warning(_SC("calling 'base' as a function inside a constructor\n"));
             _fs->AddInstruction(_OP_GETBASE, _fs->PushTarget());
             _es.etype  = BASE;
             _es.epos   = _fs->TopTarget();
@@ -2177,6 +2180,7 @@ member_has_type:
             case TK_CONSTRUCTOR:
             case TK_DESTRUCTOR:
             {
+                if(_token == TK_CONSTRUCTOR) _inside_constructor = true;
                 saved_tok = _token;
                 Lex();
                 obj_id = saved_tok == TK_FUNCTION ? Expect(TK_IDENTIFIER) :
@@ -2188,6 +2192,7 @@ function_params_decl:
                 _fs->AddInstruction(_OP_LOAD, _fs->PushTarget(), _fs->GetConstant(obj_id));
                 CreateFunction(obj_id, eFunctionType_member);
                 _fs->AddInstruction(_OP_CLOSURE, _fs->PushTarget(), _fs->_functions.size() - 1, 0);
+                _inside_constructor = false;
             }
             break;
             case _SC('['):
@@ -3501,6 +3506,7 @@ private:
     SQInteger _max_nested_includes, _nested_includes_count;
     SQInteger _ifdef_exclude, _ifdef_line, _inside_ifdef;
     const SQChar *squilu_lib_path;
+    bool _inside_constructor;
 };
 
 bool Compile(SQVM *vm,SQLEXREADFUNC rg, SQUserPointer up, const SQChar *sourcename, SQObjectPtr &out,
