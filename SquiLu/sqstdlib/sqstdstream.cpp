@@ -125,16 +125,22 @@ SQInteger _stream_gets(HSQUIRRELVM v)
 SQInteger _stream_readblob(HSQUIRRELVM v)
 {
 	SETUP_STREAM(v);
-	SQUserPointer blobp;
+	SQUserPointer blobBuf;
 	SQInteger size,res;
 	sq_getinteger(v,2,&size);
 	if(size > self->Len()) {
 		size = self->Len();
 	}
-	blobp = sqstd_createblob(v,size);
-	res = self->Read(blobp,size);
+	blobBuf = sqstd_createblob(v,size);
+	res = self->Read(blobBuf,size);
 	if(res <= 0)
 		return sq_throwerror(v,_SC("no data left to read"));
+    if(res < size) {
+        SQBlob *blob;
+        if(SQ_FAILED(sq_getinstanceup(v,-1,(SQUserPointer *)&blob,SQBlob::SQBlob_TAG)))
+            return sq_throwerror(v,_SC("failed to get blob from stack"));
+        blob->Resize(res);
+    }
 	return 1;
 }
 
