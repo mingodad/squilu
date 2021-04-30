@@ -87,6 +87,11 @@ bool SQVM::ARITH_OP(SQUnsignedInteger op,SQObjectPtr &trg,const SQObjectPtr &o1,
                     else if(i2 == -1 && i1 == SQ_INT_MIN) { res = 0; break; }
 					res = i1 % i2;
 					break;
+			case '|': res = i1 | i2; break;
+			case '&': res = i1 & i2; break;
+			case '^': res = i1 ^ i2; break;
+			case '<': res = i1 << i2; break;
+			case '>': res = i1 >> i2; break;
 			default: res = 0xDEADBEEF;
 			}
 			trg = res; }

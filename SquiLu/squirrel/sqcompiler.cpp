@@ -1494,6 +1494,21 @@ start_again:
         case TK_MODEQ:
             oper = _SC('%');
             break;
+        case TK_BIT_XOR_EQ:
+            oper = _SC('^');
+            break;
+        case TK_BIT_AND_EQ:
+            oper = _SC('&');
+            break;
+        case TK_BIT_OR_EQ:
+            oper = _SC('|');
+            break;
+        case TK_BIT_SHIFT_LEFT_EQ:
+            oper = _SC('<');
+            break;
+        case TK_BIT_SHIFT_RIGHT_EQ:
+            oper = _SC('>');
+            break;
         default:
             oper = 0; //shut up compiler
             assert(0);
