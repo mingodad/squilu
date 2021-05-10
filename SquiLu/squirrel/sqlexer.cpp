@@ -670,13 +670,13 @@ try_again:
 #ifdef SQUNICODE
 #if WCHAR_SIZE == 2
                         utf_value = scstrtoul(temp, &stemp, 16);
-                        utf_len += AddUTF16(utf_value);
+                        utf_len = AddUTF16(utf_value);
 #else
                         ADD_CHAR((SQChar)scstrtoul(temp, &stemp, 16));
 #endif
 #else
                         utf_value = scstrtoul(temp, &stemp, 16);
-                        utf_len += AddUTF8(utf_value);
+                        utf_len = AddUTF8(utf_value);
 #endif
 					}
 				    break;
