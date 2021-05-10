@@ -551,7 +551,6 @@ static SQRESULT bf_table_incnum(HSQUIRRELVM v)
 
 static SQRESULT bf_table_toarray(HSQUIRRELVM v)
 {
-	SQObjectPtr &self = stack_get(v, 2);
 	SQInteger tsz = sq_getsize(v, 2);
 	sq_newarray(v, tsz);
 	SQInteger idx = 0;
@@ -2136,41 +2135,56 @@ static SQRESULT string_getdelegate(HSQUIRRELVM v)
 // https://www.cl.cam.ac.uk/~mgk25/ucs/utf8_check.c
 // Optimized for predominantly 7-bit content by Alex Hultman, 2016
 // Licensed as Zlib, like the rest of this project
-static bool isValidUtf8(const unsigned char *s, size_t length)
+static int utf8Len(const unsigned char *s, size_t length)
 {
-    for (const unsigned char *e = s + length; s != e; ) {
+    int len = 0;
+    for (const unsigned char *e = s + length; s != e; ++len) {
         if (s + 4 <= e && ((*(const SQUnsignedInteger32 *) s) & 0x80808080) == 0) {
             s += 4;
         } else {
             while (!(*s & 0x80)) {
+                ++len;
                 if (++s == e) {
-                    return true;
+                    return len;
                 }
             }
 
             if ((s[0] & 0x60) == 0x40) {
                 if (s + 1 >= e || (s[1] & 0xc0) != 0x80 || (s[0] & 0xfe) == 0xc0) {
-                    return false;
+                    return -1;
                 }
                 s += 2;
             } else if ((s[0] & 0xf0) == 0xe0) {
                 if (s + 2 >= e || (s[1] & 0xc0) != 0x80 || (s[2] & 0xc0) != 0x80 ||
                         (s[0] == 0xe0 && (s[1] & 0xe0) == 0x80) || (s[0] == 0xed && (s[1] & 0xe0) == 0xa0)) {
-                    return false;
+                    return -1;
                 }
                 s += 3;
             } else if ((s[0] & 0xf8) == 0xf0) {
                 if (s + 3 >= e || (s[1] & 0xc0) != 0x80 || (s[2] & 0xc0) != 0x80 || (s[3] & 0xc0) != 0x80 ||
                         (s[0] == 0xf0 && (s[1] & 0xf0) == 0x80) || (s[0] == 0xf4 && s[1] > 0x8f) || s[0] > 0xf4) {
-                    return false;
+                    return -1;
                 }
                 s += 4;
             } else {
-                return false;
+                return -1;
             }
         }
     }
-    return true;
+    return len;
+}
+
+static SQRESULT string_utf8Len(HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 1, src);
+
+    sq_pushinteger(v, utf8Len((const unsigned char*)src, src_size));
+    return 1;
+}
+
+static bool isValidUtf8(const unsigned char *s, size_t length)
+{
+    return utf8Len(s, length) >= 0;
 }
 
 static SQRESULT string_isvalidutf8(HSQUIRRELVM v) {
@@ -2675,6 +2689,7 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("mod_97_10"),string_mod_97_10,1, _SC("s"), false},
 	{_SC("iso88959_to_utf8"),string_iso88959_to_utf8,1, _SC("s"), false},
 	{_SC("isvalidutf8"),string_isvalidutf8,1, _SC("s"), false},
+	{_SC("utf8Len"),string_utf8Len,1, _SC("s"), false},
 	{_SC("longestcommonsubstr"),string_longestcommonsubstr,2, _SC("ss"), false},
 
 #ifdef SQ_SUBLATIN
