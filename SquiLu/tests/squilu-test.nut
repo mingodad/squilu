@@ -1289,6 +1289,15 @@ bar]==] == "foo\nbar");
 	//C/C++ wchar
 	sqt.ok(L"fake wchar" == "fake wchar");
 	sqt.ok(L'\n' == '\n');
+
+	//utf8
+	sqt.ok("aàeèiìoòuù".isvalidutf8());
+	sqt.ok("aàeèiìoòuù".utf8Len() == 10);
+	sqt.ok("aàeèiìoòuù".len() == 15);
+	sqt.ok('\u0031' == 49);
+	sqt.ok('\u0531' == 1329);
+
+
 });
 
 sqt.run("number", function(){

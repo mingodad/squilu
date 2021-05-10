@@ -572,7 +572,7 @@ SQInteger scisodigit(SQInteger c) { return c >= _SC('0') && c <= _SC('7'); }
 SQInteger SQLexer::ReadString(SQInteger ndelim,bool verbatim)
 {
 	INIT_TEMP_STRING();
-	SQInteger start_equals = 0;
+	SQInteger start_equals = 0, utf_len = 0; SQUnsignedInteger utf_value = 0;
 	SQChar cpp_delimin[32], cdelim1, cdelim2, saved_ndelim = ndelim;
 	if(ndelim == _SC('{')){
 	    cdelim1 = _SC('{');
@@ -669,12 +669,14 @@ try_again:
                         SQChar *stemp;
 #ifdef SQUNICODE
 #if WCHAR_SIZE == 2
-                        AddUTF16(scstrtoul(temp, &stemp, 16));
+                        utf_value = scstrtoul(temp, &stemp, 16);
+                        utf_len += AddUTF16(utf_value);
 #else
                         ADD_CHAR((SQChar)scstrtoul(temp, &stemp, 16));
 #endif
 #else
-                        AddUTF8(scstrtoul(temp, &stemp, 16));
+                        utf_value = scstrtoul(temp, &stemp, 16);
+                        utf_len += AddUTF8(utf_value);
 #endif
 					}
 				    break;
@@ -792,8 +794,8 @@ try_again:
 	SQInteger len = data->longstr.size()-1;
 	if(ndelim == _SC('\'') && !_want_stringSingleAndDoubleQuotes) {
 		if(len == 0) return Error(_SC("empty constant"));
-		if(len > 1) return Error(_SC("constant too long"));
-		data->nvalue = data->longstr[0];
+		if(len > 1 && len != utf_len) Error(_SC("constant too long"));
+		data->nvalue = utf_len ? utf_value : data->longstr[0];
 		data->isCharacter = SQTrue;
 		return TK_INTEGER;
 	}
