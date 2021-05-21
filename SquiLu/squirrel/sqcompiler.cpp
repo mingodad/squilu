@@ -1283,51 +1283,42 @@ start_again:
     void LogicalOrExp()
     {
         LogicalAndExp();
-        for(;;) if(_token == TK_OR)
-            {
-                SQInteger first_exp = _fs->PopTarget();
-                SQInteger trg = _fs->PushTarget();
-                _fs->AddInstruction(_OP_OR, trg, 0, first_exp, 0);
-                SQInteger jpos = _fs->GetCurrentPos();
-                if(trg != first_exp) _fs->AddInstruction(_OP_MOVE, trg, first_exp);
-                Lex();
-                INVOKE_EXP(&SQCompiler::LogicalOrExp);
-                _fs->SnoozeOpt();
-                SQInteger second_exp = _fs->PopTarget();
-                if(trg != second_exp) _fs->AddInstruction(_OP_MOVE, trg, second_exp);
-                _fs->SnoozeOpt();
-                _fs->SetInstructionParam(jpos, 1, (_fs->GetCurrentPos() - jpos));
-                _es.etype = EXPR;
-                break;
-            }
-            else return;
+        if(_token == TK_OR)
+        {
+            SQInteger first_exp = _fs->PopTarget();
+            SQInteger trg = _fs->PushTarget();
+            _fs->AddInstruction(_OP_OR, trg, 0, first_exp, 0);
+            SQInteger jpos = _fs->GetCurrentPos();
+            if(trg != first_exp) _fs->AddInstruction(_OP_MOVE, trg, first_exp);
+            Lex();
+            INVOKE_EXP(&SQCompiler::LogicalOrExp);
+            _fs->SnoozeOpt();
+            SQInteger second_exp = _fs->PopTarget();
+            if(trg != second_exp) _fs->AddInstruction(_OP_MOVE, trg, second_exp);
+            _fs->SnoozeOpt();
+            _fs->SetInstructionParam(jpos, 1, (_fs->GetCurrentPos() - jpos));
+            _es.etype = EXPR;
+        }
     }
     void LogicalAndExp()
     {
         BitwiseOrExp();
-        for(;;) switch(_token)
-            {
-            case TK_AND:
-            {
-                SQInteger first_exp = _fs->PopTarget();
-                SQInteger trg = _fs->PushTarget();
-                _fs->AddInstruction(_OP_AND, trg, 0, first_exp, 0);
-                SQInteger jpos = _fs->GetCurrentPos();
-                if(trg != first_exp) _fs->AddInstruction(_OP_MOVE, trg, first_exp);
-                Lex();
-                INVOKE_EXP(&SQCompiler::LogicalAndExp);
-                _fs->SnoozeOpt();
-                SQInteger second_exp = _fs->PopTarget();
-                if(trg != second_exp) _fs->AddInstruction(_OP_MOVE, trg, second_exp);
-                _fs->SnoozeOpt();
-                _fs->SetInstructionParam(jpos, 1, (_fs->GetCurrentPos() - jpos));
-                _es.etype = EXPR;
-                break;
-            }
-
-            default:
-                return;
-            }
+        if(_token == TK_AND)
+        {
+            SQInteger first_exp = _fs->PopTarget();
+            SQInteger trg = _fs->PushTarget();
+            _fs->AddInstruction(_OP_AND, trg, 0, first_exp, 0);
+            SQInteger jpos = _fs->GetCurrentPos();
+            if(trg != first_exp) _fs->AddInstruction(_OP_MOVE, trg, first_exp);
+            Lex();
+            INVOKE_EXP(&SQCompiler::LogicalAndExp);
+            _fs->SnoozeOpt();
+            SQInteger second_exp = _fs->PopTarget();
+            if(trg != second_exp) _fs->AddInstruction(_OP_MOVE, trg, second_exp);
+            _fs->SnoozeOpt();
+            _fs->SetInstructionParam(jpos, 1, (_fs->GetCurrentPos() - jpos));
+            _es.etype = EXPR;
+        }
     }
     void BitwiseOrExp()
     {
