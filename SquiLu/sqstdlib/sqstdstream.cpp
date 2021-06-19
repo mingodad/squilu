@@ -345,6 +345,40 @@ SQInteger _stream_writen(HSQUIRRELVM v)
 		self->Write(&d, sizeof(double));
 			  }
 		break;
+	case 'u': { //utf8
+		SQInteger ch;
+		char c;
+		sq_getinteger(v, 2, &ch);
+		if (ch < 0x80) {
+		    c = (char)ch;
+		    self->Write(&c, sizeof(char));
+		}
+		else if (ch < 0x800) {
+		    c = (char)((ch >> 6) | 0xC0);
+		    self->Write(&c, sizeof(char));
+		    c = (char)((ch & 0x3F) | 0x80);
+		    self->Write(&c, sizeof(char));
+		}
+		else if (ch < 0x10000) {
+		    c = (char)((ch >> 12) | 0xE0);
+		    self->Write(&c, sizeof(char));
+		    c = (char)(((ch >> 6) & 0x3F) | 0x80);
+		    self->Write(&c, sizeof(char));
+		    c = (char)((ch & 0x3F) | 0x80);
+		    self->Write(&c, sizeof(char));
+		}
+		else if (ch < 0x110000) {
+		    c = (char)((ch >> 18) | 0xF0);
+		    self->Write(&c, sizeof(char));
+		    c = (char)(((ch >> 12) & 0x3F) | 0x80);
+		    self->Write(&c, sizeof(char));
+		    c = (char)(((ch >> 6) & 0x3F) | 0x80);
+		    self->Write(&c, sizeof(char));
+		    c = (char)((ch & 0x3F) | 0x80);
+		    self->Write(&c, sizeof(char));
+		}
+		}
+		break;
 	default:
 		return sq_throwerror(v, _SC("invalid format"));
 	}

@@ -754,6 +754,7 @@ static SQRESULT default_delegate_tofloat(HSQUIRRELVM v)
 {
 	SQObjectPtr &o=stack_get(v,1);
 	switch(sq_type(o)){
+	case OT_STRING_UTF8:
 	case OT_STRING:{
 		SQObjectPtr res;
 		if(str2num(_stringval(o),res)){
@@ -778,6 +779,7 @@ static SQRESULT default_delegate_tointeger(HSQUIRRELVM v)
 {
 	SQObjectPtr &o=stack_get(v,1);
 	switch(sq_type(o)){
+	case OT_STRING_UTF8:
 	case OT_STRING:{
 		SQObjectPtr res;
 		SQInteger base;
@@ -1386,6 +1388,7 @@ static SQRESULT array_concat0 (HSQUIRRELVM v, int allowAll) {
       SQObjectPtr str;
       arr->_get2(i, o);
       switch(sq_type(o)){
+          case OT_STRING_UTF8:
           case OT_STRING:
               break;
           case OT_INTEGER:
@@ -1405,7 +1408,7 @@ static SQRESULT array_concat0 (HSQUIRRELVM v, int allowAll) {
 
       const SQChar *value;
       SQInteger value_size;
-      if(sq_type(o) == OT_STRING) {
+      if(sq_type(o) & _RT_STRING) {
 		value = _stringval(o);
 		value_size = _string(o)->_len;
       }
@@ -1686,7 +1689,7 @@ static SQRESULT string_gsub(HSQUIRRELVM v)
     SQ_GET_STRING(v, 2, pattern);
     SQ_OPT_INTEGER(v, 4, max_sub, 0);
     SQObjectType rtype = sq_gettype(v, 3);
-    if(rtype == OT_STRING){
+    if(rtype & _RT_STRING){
         SQ_GET_STRING(v, 3, replacement);
         lua_char_buffer_st *buf = lua_str_gsub (src, src_size, pattern, pattern_size,
                               replacement, replacement_size, max_sub, &error_ptr, 0, 0);
@@ -2177,8 +2180,12 @@ static int utf8Len(const unsigned char *s, size_t length)
 static SQRESULT string_utf8Len(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_STRING(v, 1, src);
-
     sq_pushinteger(v, utf8Len((const unsigned char*)src, src_size));
+    return 1;
+}
+
+static SQRESULT string_asutf8(HSQUIRRELVM v) {
+    if(sq_str_as_utf8(v, 1) != SQ_OK) return SQ_ERROR;
     return 1;
 }
 
@@ -2320,7 +2327,7 @@ static SQRESULT string_split_csv(HSQUIRRELVM v) {
 static SQRESULT string_split(HSQUIRRELVM v) {
     SQ_FUNC_VARS_NO_TOP(v);
     SQObjectType rtype = sq_gettype(v, 2);
-    if(rtype == OT_STRING)
+    if(rtype & _RT_STRING)
     {
         const SQChar *str,*seps;
         SQChar *stemp,*tok;
@@ -2688,6 +2695,7 @@ SQRegFunction SQSharedState::_string_default_delegate_funcz[]={
 	{_SC("edit_distance"),string_edit_distance,-2, _SC("ssi"), false},
 	{_SC("mod_97_10"),string_mod_97_10,1, _SC("s"), false},
 	{_SC("iso88959_to_utf8"),string_iso88959_to_utf8,1, _SC("s"), false},
+	{_SC("asutf8"),string_asutf8,1, _SC("s"), false},
 	{_SC("isvalidutf8"),string_isvalidutf8,1, _SC("s"), false},
 	{_SC("utf8Len"),string_utf8Len,1, _SC("s"), false},
 	{_SC("longestcommonsubstr"),string_longestcommonsubstr,2, _SC("ss"), false},

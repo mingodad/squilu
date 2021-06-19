@@ -20,6 +20,7 @@ static void sq_raise_type_error(HSQUIRRELVM v, SQObjectType type,SQObjectPtr &o)
     v->Raise_Error(_SC("wrong argument type, expected '%s' got '%.50s'"),IdType2Name(type),_stringval(oval));
 }
 #define _CHECK_OBJ_TYPE(v,otype,o) if(sq_type(o) != otype) {sq_raise_type_error(v, otype, o); return SQ_ERROR;}
+#define _CHECK_OBJ_TYPE_STRING(v,o) if(!((sq_type(o) == OT_STRING) || (sq_type(o) == OT_STRING_UTF8))) {sq_raise_type_error(v, OT_STRING, o); return SQ_ERROR;}
 
 static bool sq_aux_gettypedarg(HSQUIRRELVM v,SQInteger idx,SQObjectType type,SQObjectPtr **o)
 {
@@ -240,7 +241,7 @@ SQUnsignedInteger sq_getvmrefcount(HSQUIRRELVM SQ_UNUSED_ARG(v), const HSQOBJECT
 
 const SQChar *sq_objtostring(const HSQOBJECT *o)
 {
-	if(sq_type(*o) == OT_STRING) {
+	if(sq_type(*o) & _RT_STRING) {
 		return _stringval(*o);
 	}
 	return NULL;
@@ -1010,10 +1011,19 @@ SQRESULT sq_getbool(HSQUIRRELVM v,SQInteger idx,SQBool *b)
 	return SQ_ERROR;
 }
 
+SQRESULT sq_str_as_utf8(HSQUIRRELVM v,SQInteger idx)
+{
+	SQObjectPtr &o = stack_get(v,idx);
+	_CHECK_OBJ_TYPE_STRING(v, o);
+	sq_type(o) = OT_STRING_UTF8;
+	v->Push(o);
+	return SQ_OK;
+}
+
 SQRESULT sq_getstring(HSQUIRRELVM v,SQInteger idx,const SQChar **c)
 {
 	SQObjectPtr &o = stack_get(v,idx);
-	_CHECK_OBJ_TYPE(v, OT_STRING, o);
+	_CHECK_OBJ_TYPE_STRING(v, o);
 	*c = _stringval(o);
 	return SQ_OK;
 }
@@ -1021,7 +1031,7 @@ SQRESULT sq_getstring(HSQUIRRELVM v,SQInteger idx,const SQChar **c)
 SQRESULT sq_getstr_and_size(HSQUIRRELVM v,SQInteger idx,const SQChar **c, SQInteger *size)
 {
 	SQObjectPtr &o = stack_get(v,idx);
-	_CHECK_OBJ_TYPE(v, OT_STRING, o);
+	_CHECK_OBJ_TYPE_STRING(v, o);
 	*c = _stringval(o);
 	*size = _string(o)->_len;
 	return SQ_OK;
@@ -1051,6 +1061,7 @@ SQInteger sq_getsize(HSQUIRRELVM v, SQInteger idx)
 	SQObjectPtr &o = stack_get(v, idx);
 	SQObjectType type = sq_type(o);
 	switch(type) {
+ 	case OT_STRING_UTF8:
 	case OT_STRING:		return _string(o)->_len;
 	case OT_TABLE:		return _table(o)->CountUsed();
 	case OT_ARRAY:		return _array(o)->Size();
@@ -2022,6 +2033,7 @@ SQRESULT sq_getdefaultdelegate(HSQUIRRELVM v,SQObjectType t)
 	switch(t) {
 	case OT_TABLE: v->Push(ss->_table_default_delegate); break;
 	case OT_ARRAY: v->Push(ss->_array_default_delegate); break;
+	case OT_STRING_UTF8:
 	case OT_STRING: v->Push(ss->_string_default_delegate); break;
 	case OT_INTEGER: case OT_FLOAT: v->Push(ss->_number_default_delegate); break;
 	case OT_GENERATOR: v->Push(ss->_generator_default_delegate); break;

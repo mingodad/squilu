@@ -74,6 +74,7 @@ void SQVM::Raise_Error(const SQObjectPtr &desc)
 SQString *SQVM::PrintObjVal(const SQObjectPtr &o)
 {
     switch(sq_type(o)) {
+    case OT_STRING_UTF8:
     case OT_STRING: return _string(o);
     case OT_INTEGER:
         scsprintf(_sp(sq_rsl(NUMBER_MAX_CHAR+1)),sq_rsl(NUMBER_MAX_CHAR), _PRINT_INT_FMT, _integer(o));

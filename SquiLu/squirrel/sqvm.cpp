@@ -290,6 +290,7 @@ bool SQVM::ObjCmp(const SQObjectPtr &o1,const SQObjectPtr &o2,SQInteger &result)
 		if(_rawval(o1) == _rawval(o2))_RET_SUCCEED(0);
 		SQObjectPtr res;
 		switch(t1){
+	        case OT_STRING_UTF8:
 		case OT_STRING:
 			_RET_SUCCEED(sq_l_strcmp(o1,o2));
 		case OT_INTEGER:
@@ -364,6 +365,7 @@ bool SQVM::ToString(const SQObjectPtr &o,SQObjectPtr &res)
 {
 	switch(sq_type(o)) {
 	case OT_STRING:
+	case OT_STRING_UTF8:
 		res = o;
 		return true;
 	case OT_FLOAT:
@@ -611,6 +613,9 @@ bool SQVM::FOREACH_OP(SQObjectPtr &o1,SQObjectPtr &o2,SQObjectPtr
 		o4 = (SQInteger) nrefidx; _FINISH(1);
 	case OT_STRING:
 		if((nrefidx = _string(o1)->Next(o4, o2, o3)) == -1)_FINISH(exitpos);
+		o4 = (SQInteger)nrefidx; _FINISH(1);
+	case OT_STRING_UTF8:
+		if((nrefidx = _stringutf8(o1)->Next(o4, o2, o3)) == -1)_FINISH(exitpos);
 		o4 = (SQInteger)nrefidx; _FINISH(1);
 	case OT_CLASS:
 		if((nrefidx = _class(o1)->Next(o4, o2, o3)) == -1)_FINISH(exitpos);
@@ -1546,6 +1551,7 @@ bool SQVM::Get(const SQObjectPtr &self,const SQObjectPtr &key,SQObjectPtr &dest,
 	case OT_CLASS:
 		if(_class(self)->Get(key,dest)) return true;
 		break;
+	case OT_STRING_UTF8:
 	case OT_STRING:
 		if(sq_isnumeric(key)){
 			SQInteger n = tointeger(key);
@@ -1588,6 +1594,7 @@ bool SQVM::InvokeDefaultDelegate(const SQObjectPtr &self,const SQObjectPtr &key,
 		case OT_CLASS: ddel = _class_ddel; break;
 		case OT_TABLE: ddel = _table_ddel; break;
 		case OT_ARRAY: ddel = _array_ddel; break;
+		case OT_STRING_UTF8:
 		case OT_STRING: ddel = _string_ddel; break;
 		case OT_INSTANCE: ddel = _instance_ddel; break;
 		case OT_INTEGER:case OT_FLOAT:case OT_BOOL: ddel = _number_ddel; break;
@@ -1739,6 +1746,7 @@ cloned_mt:
 	case OT_INTEGER:
 	case OT_FLOAT:
 	case OT_STRING:
+	case OT_STRING_UTF8:
 		target = self;
 		return true;
 	default:
@@ -2136,6 +2144,7 @@ void SQVM::dumpstack(SQInteger stackbase,bool dumpall)
 		case OT_FLOAT:			scprintf(_SC("FLOAT %.3f"),_float(obj));break;
 		case OT_INTEGER:		scprintf(_SC("INTEGER " _PRINT_INT_FMT),_integer(obj));break;
 		case OT_BOOL:			scprintf(_SC("BOOL %s"),_integer(obj)?"true":"false");break;
+		case OT_STRING_UTF8:
 		case OT_STRING:			scprintf(_SC("STRING %s"),_stringval(obj));break;
 		case OT_NULL:			scprintf(_SC("NULL"));	break;
 		case OT_TABLE:			scprintf(_SC("TABLE %p[%p]"),_table(obj),_table(obj)->_delegate);break;

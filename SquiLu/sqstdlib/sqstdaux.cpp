@@ -58,6 +58,7 @@ void sqstd_printcallstack(HSQUIRRELVM v)
 					pf(v,_SC("[%s] USERPOINTER\n"),name);
 					break;
 				case OT_STRING:
+				case OT_STRING_UTF8:
 					sq_getstring(v,-1,&s);
 					if(sq_getsize(v, -1) > max_str_size)
 					{

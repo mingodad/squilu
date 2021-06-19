@@ -110,6 +110,7 @@ struct SQOuter;
 #define _RT_FLOAT			0x00000004
 #define _RT_BOOL			0x00000008
 #define _RT_STRING			0x00000010
+#define _RT_STRING_UTF8		0x00100010
 #define _RT_TABLE			0x00000020
 #define _RT_ARRAY			0x00000040
 #define _RT_USERDATA		0x00000080
@@ -130,6 +131,7 @@ typedef enum tagSQObjectType{
 	OT_FLOAT =			(_RT_FLOAT|SQOBJECT_NUMERIC|SQOBJECT_CANBEFALSE),
 	OT_BOOL =			(_RT_BOOL|SQOBJECT_CANBEFALSE),
 	OT_STRING =			(_RT_STRING|SQOBJECT_REF_COUNTED),
+	OT_STRING_UTF8 =	(_RT_STRING_UTF8|SQOBJECT_REF_COUNTED),
 	OT_TABLE =			(_RT_TABLE|SQOBJECT_REF_COUNTED|SQOBJECT_DELEGABLE),
 	OT_ARRAY =			(_RT_ARRAY|SQOBJECT_REF_COUNTED),
 	OT_USERDATA =		(_RT_USERDATA|SQOBJECT_REF_COUNTED|SQOBJECT_DELEGABLE),
@@ -164,6 +166,7 @@ typedef union tagSQObjectValue
 	struct SQGenerator *pGenerator;
 	struct SQNativeClosure *pNativeClosure;
 	struct SQString *pString;
+	struct SQStringUtf8 *pStrUtf8;
 	struct SQUserData *pUserData;
 	SQInteger nInteger;
 	SQFloat fFloat;
@@ -251,6 +254,7 @@ typedef struct {
 #define sq_isgenerator(o) ((o)._type==OT_GENERATOR)
 #define sq_isnativeclosure(o) ((o)._type==OT_NATIVECLOSURE)
 #define sq_isstring(o) ((o)._type==OT_STRING)
+#define sq_isstringutf8(o) ((o)._type==OT_STRING_UTF8)
 #define sq_isinteger(o) ((o)._type==OT_INTEGER)
 #define sq_isfloat(o) ((o)._type==OT_FLOAT)
 #define sq_isuserpointer(o) ((o)._type==OT_USERPOINTER)

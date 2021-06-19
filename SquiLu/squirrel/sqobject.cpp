@@ -20,6 +20,7 @@ const SQChar *IdType2Name(SQObjectType type)
 	case _RT_INTEGER:return _SC("integer");
 	case _RT_FLOAT:return _SC("float");
 	case _RT_BOOL:return _SC("bool");
+	case _RT_STRING_UTF8:return _SC("strutf8");
 	case _RT_STRING:return _SC("string");
 	case _RT_TABLE:return _SC("table");
 	case _RT_ARRAY:return _SC("array");
@@ -79,11 +80,80 @@ void SQString::Release()
 SQInteger SQString::Next(const SQObjectPtr &refpos, SQObjectPtr &outkey, SQObjectPtr &outval)
 {
 	SQInteger idx = (SQInteger)SQTranslateIndex(refpos);
-	while(idx < _len){
+	if(idx < _len){
 		outkey = (SQInteger)idx;
 		outval = (SQInteger)((SQUnsignedInteger)_val[idx]);
 		//return idx for the next iteration
 		return ++idx;
+	}
+	//nothing to iterate anymore
+	return -1;
+}
+
+/*
+** Decode one UTF-8 sequence, returning NULL if byte sequence is
+** invalid.  The array 'limits' stores the minimum value for each
+** sequence length, to check for overlong representations. Its first
+** entry forces an error for non-ascii bytes with no continuation
+** bytes (count == 0).
+*/
+
+#define MAXUNICODE	0x10FFFFu
+
+#define MAXUTF		0x7FFFFFFFu
+
+/*
+** Integer type for decoded UTF-8 values; MAXUTF needs 31 bits.
+*/
+#if (UINT_MAX >> 30) >= 1
+typedef unsigned int utfint;
+#else
+typedef unsigned long utfint;
+#endif
+
+static int utf8_decode (const char *s, utfint *val, int strict) {
+  static const utfint limits[] =
+        {~(utfint)0, 0x80, 0x800, 0x10000u, 0x200000u, 0x4000000u};
+  unsigned int c = (unsigned char)s[0];
+  int count = 0; /* to count number of continuation bytes */
+  utfint res = 0;  /* final result */
+  if (c < 0x80) { /* ascii? */
+    res = c;
+    count = 1;
+  } else {
+    for (; c & 0x40; c <<= 1) {  /* while it needs continuation bytes... */
+      unsigned int cc = (unsigned char)s[++count];  /* read next byte */
+      if ((cc & 0xC0) != 0x80)  /* not a continuation byte? */
+        return -1;  /* invalid byte sequence */
+      res = (res << 6) | (cc & 0x3F);  /* add lower 6 bits from cont. byte */
+    }
+    res |= ((utfint)(c & 0x7F) << (count * 5));  /* add first byte */
+    if (count > 5 || res > MAXUTF || res < limits[count])
+      return -1;  /* invalid byte sequence */
+    //s += count;  /* skip continuation bytes read */
+    ++count; //add the first byte
+  }
+  if (strict) {
+    /* check for invalid code points; too large or surrogates */
+    if (res > MAXUNICODE || (0xD800u <= res && res <= 0xDFFFu))
+      return -1;
+  }
+  if (val) *val = res;
+  return count;  /* +1 to include first byte */
+}
+
+SQInteger SQStringUtf8::Next(const SQObjectPtr &refpos, SQObjectPtr &outkey, SQObjectPtr &outval)
+{
+	SQInteger idx = (SQInteger)SQTranslateIndex(refpos);
+	if(idx < _len){
+		outkey = (SQInteger)idx;
+		const char *s = (const char *)(_val + idx);
+		utfint code;
+		int code_size = utf8_decode(s, &code, 1);
+		if(code_size > 0) {
+            outval = (SQInteger)code;
+            return idx + code_size;
+		}
 	}
 	//nothing to iterate anymore
 	return -1;
@@ -268,7 +338,7 @@ const SQChar* SQFunctionProto::GetLocal(SQVM *vm,SQUnsignedInteger stackbase,SQU
 
 SQInteger SQFunctionProto::GetLine(SQInstruction *curr)
 {
-	SQInteger op = (SQInteger)(curr-_instructions);
+    SQInteger op = (SQInteger)(curr-_instructions);
     SQInteger line=_lineinfos[0]._line;
     SQInteger low = 0;
     SQInteger high = _nlineinfos - 1;
@@ -362,6 +432,7 @@ static bool WriteObjectAsCode(HSQUIRRELVM v,SQUserPointer up,SQWRITEFUNC write,S
 	SQChar buf[32];
 	SQInteger sz;
 	switch(sq_type(o)){
+	case OT_STRING_UTF8:
 	case OT_STRING:{
             SQInteger str_size = _string(o)->_len;
             if(str_size){
@@ -410,6 +481,7 @@ static bool WriteObject(HSQUIRRELVM v,SQUserPointer up,SQWRITEFUNC write,SQObjec
 	SQUnsignedInteger32 _type = (SQUnsignedInteger32)sq_type(o);
 	_CHECK_IO(SafeWrite(v,write,up,&_type,sizeof(_type)));
 	switch(sq_type(o)){
+	case OT_STRING_UTF8:
 	case OT_STRING:
 		_CHECK_IO(SafeWrite(v,write,up,&_string(o)->_len,sizeof(SQInteger)));
 		_CHECK_IO(SafeWrite(v,write,up,_stringval(o),rsl(_string(o)->_len)));
@@ -434,6 +506,7 @@ static bool ReadObject(HSQUIRRELVM v,SQUserPointer up,SQREADFUNC read,SQObjectPt
 	_CHECK_IO(SafeRead(v,read,up,&_type,sizeof(_type)));
 	SQObjectType t = (SQObjectType)_type;
 	switch(t){
+	case OT_STRING_UTF8:
 	case OT_STRING:{
 		SQInteger len;
 		_CHECK_IO(SafeRead(v,read,up,&len,sizeof(SQInteger)));

@@ -27,6 +27,7 @@ SQInstructionDesc g_InstrDesc[]={
 void SQDumpLiteral(SQObjectPtr &o)
 {
 	switch(sq_type(o)){
+		case OT_STRING_UTF8:
 		case OT_STRING: {
 		    int i, len, buf_idx = 0;
 		    #define BUF_SIZE 64

@@ -32,6 +32,9 @@ public:
 	//<FIXME> Padding not accounted
 };
 
+struct SQStringUtf8 : public SQString {
+    SQInteger Next(const SQObjectPtr &refpos, SQObjectPtr &outkey, SQObjectPtr &outval);
+};
 
 
 #endif //_SQSTRING_H_
