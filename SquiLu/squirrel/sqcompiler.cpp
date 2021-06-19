@@ -775,16 +775,20 @@ public:
             if(_lex.data->prevtoken != _SC('}') && _lex.data->prevtoken != _SC(';')) OptionalSemicolon();
         }
     }
-    void Statement(bool closeframe = true)
+    void checkEatPragma()
     {
-        _es.etype = EXPR_STATEMENT;
-        SQObject id;
-        _fs->AddLineInfos(_lex.data->currentline, _lineinfo);
         while(_ifdef_exclude && (_token != TK_PRAGMA))
         {
             Lex(true); //dontThrowIntegerOverflow for when in 32bits parsing 64bits integer inside excluded ifdef
             if(_token <= 0) Error(_SC("'#endif' expected to close '#ifdef' started at %d"), (int)_ifdef_line);
         }
+    }
+    void Statement(bool closeframe = true)
+    {
+        _es.etype = EXPR_STATEMENT;
+        SQObject id;
+        _fs->AddLineInfos(_lex.data->currentline, _lineinfo);
+        checkEatPragma();
 start_again:
         switch(_token)
         {
@@ -2129,6 +2133,10 @@ start_again:
             bool compileTimeCheckedConstant = false;
             const SQChar *membertypename = 0;
             SQInteger member_type_token = 0;
+
+            checkEatPragma();
+            if(_token == TK_PRAGMA) Pragma();
+
             //check if is an attribute
             if(isClass)
             {
@@ -2141,6 +2149,7 @@ start_again:
                 }
                 if(_token == TK_STATIC)
                 {
+                    /* There is a problem with static members been cloned ? */
                     isstatic = true;
                     Lex();
                 }
