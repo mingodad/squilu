@@ -2125,6 +2125,12 @@ start_again:
         int addClassMember = 0;
         while(_token != terminator)
         {
+            checkEatPragma();
+            if(_token == TK_PRAGMA) {
+                    Pragma();
+                    continue;
+            }
+
             bool hasattrs = false;
             bool isstatic = false;
             bool cppDestructor = false;
@@ -2133,9 +2139,6 @@ start_again:
             bool compileTimeCheckedConstant = false;
             const SQChar *membertypename = 0;
             SQInteger member_type_token = 0;
-
-            checkEatPragma();
-            if(_token == TK_PRAGMA) Pragma();
 
             //check if is an attribute
             if(isClass)
