@@ -58,6 +58,7 @@ static void errorfunc(HSQUIRRELVM v,const SQChar *s,...)
 {
 	va_list vl;
 	va_start(vl, s);
+	fflush(stdout);
 	scvprintf(stderr, s, vl);
 	va_end(vl);
 	(void)v; /* UNUSED */
