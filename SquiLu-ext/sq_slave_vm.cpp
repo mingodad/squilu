@@ -119,7 +119,7 @@ static const SQChar sq_slave_vm_TAG[] = _SC("SlaveVM");
 
 static SQRESULT get_slave_vm_instance(HSQUIRRELVM v, SQInteger idx, SlaveVM_st **svm_st)
 {
-    if(sq_getinstanceup(v, idx, (SQUserPointer*)svm_st, (void*)sq_slave_vm_TAG) != SQ_OK) return SQ_ERROR;
+    if(sq_getinstanceup(v, idx, (SQUserPointer*)svm_st, (void*)sq_slave_vm_TAG,SQFalse) != SQ_OK) return SQ_ERROR;
     if(!*svm_st) return sq_throwerror(v, _SC("%s"), _SC("slave vm already closed"));
     return SQ_OK;
 }

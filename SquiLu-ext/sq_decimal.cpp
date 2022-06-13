@@ -83,7 +83,7 @@ static mpd_context_t * sq_get_global_ctx(HSQUIRRELVM v, SQInteger idx)
     SQ_PUSH_CONTEXT_STATIC(v);
     sq_get(v, idx);
     mpd_context_t *ctx = 0;
-    sq_getinstanceup(v, -1, (void**)&ctx, (void*)sq_decimal_ctx_TAG);
+    sq_getinstanceup(v, -1, (void**)&ctx, (void*)sq_decimal_ctx_TAG,SQFalse);
     sq_poptop(v);
 	return ctx;
 }

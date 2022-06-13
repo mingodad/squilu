@@ -1150,10 +1150,10 @@ SQRESULT sq_setclassudsize(HSQUIRRELVM v, SQInteger idx, SQInteger udsize)
 }
 
 
-SQRESULT sq_getinstanceup(HSQUIRRELVM v, SQInteger idx, SQUserPointer *p,SQUserPointer typetag)
+SQRESULT sq_getinstanceup(HSQUIRRELVM v, SQInteger idx, SQUserPointer *p,SQUserPointer typetag,SQBool throwerror)
 {
 	SQObjectPtr &o = stack_get(v,idx);
-	if(sq_type(o) != OT_INSTANCE) return sq_throwerror(v,_SC("the object is not a class instance"));
+	if(sq_type(o) != OT_INSTANCE) return throwerror ? sq_throwerror(v, _SC("the object is not a class instance")) : SQ_ERROR;
 	(*p) = _instance(o)->_userpointer;
 	if(typetag != 0) {
 		SQClass *cl = _instance(o)->_class;
@@ -1162,7 +1162,7 @@ SQRESULT sq_getinstanceup(HSQUIRRELVM v, SQInteger idx, SQUserPointer *p,SQUserP
 				return SQ_OK;
 			cl = cl->_base;
 		}while(cl != NULL);
-		return sq_throwerror(v,_SC("invalid type tag"));
+		return throwerror ? sq_throwerror(v, _SC("invalid type tag")) : SQ_ERROR;
 	}
 	return SQ_OK;
 }

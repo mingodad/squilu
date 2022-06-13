@@ -332,7 +332,7 @@ static const SQChar *PostgreSQL_TAG = _SC("PostgreSQL");
 
 static SQRESULT get_pgsql_instance(HSQUIRRELVM v, SQInteger idx, PGconn **self){
     SQRESULT _rc_;
-	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)self,(void*)PostgreSQL_TAG)) < 0) return _rc_;
+	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)self,(void*)PostgreSQL_TAG,SQFalse)) < 0) return _rc_;
 	if(!*self) return sq_throwerror(v, _SC("database is closed"));
 	return _rc_;
 }
@@ -348,7 +348,7 @@ static const SQChar *_curr_row_key = _SC("_curr_row");
 
 static SQRESULT get_pgsql_result_instance(HSQUIRRELVM v, SQInteger idx, PGresult **self){
     SQRESULT _rc_;
-	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)self,(void*)PostgreSQL_Result_TAG)) < 0) return _rc_;
+	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)self,(void*)PostgreSQL_Result_TAG,SQFalse)) < 0) return _rc_;
 	if(!*self) return sq_throwerror(v, _SC("PGresult is closed"));
 	return _rc_;
 }
@@ -524,7 +524,7 @@ static const SQChar *PostgreSQL_Statement_TAG = _SC("PostgreSQL_Statement");
 
 static SQRESULT get_pgsql_statement_instance(HSQUIRRELVM v, SQInteger idx, PgSqlStatement **self){
     SQRESULT _rc_;
-	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)self,(void*)PostgreSQL_Statement_TAG)) < 0) return _rc_;
+	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)self,(void*)PostgreSQL_Statement_TAG,SQFalse)) < 0) return _rc_;
 	if(!*self) return sq_throwerror(v, _SC("PGstatement is closed"));
 	return _rc_;
 }

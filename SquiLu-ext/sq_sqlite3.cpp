@@ -21,7 +21,7 @@ static const SQChar nullName[] = _SC("Null");
 static SQRESULT getOptionalBlob(HSQUIRRELVM v, SQInteger idx, SQBlob **blob)
 {
     if(sq_gettop(v) >= idx) {
-        if(SQ_FAILED(sq_getinstanceup(v,3,(SQUserPointer*)blob,(SQUserPointer)SQBlob::SQBlob_TAG)))
+        if(SQ_FAILED(sq_getinstanceup(v,3,(SQUserPointer*)blob,(SQUserPointer)SQBlob::SQBlob_TAG,SQFalse)))
             return sq_throwerror(v,_SC("expect a blob as second parameter"));
         if(!(*blob) || !(*blob)->IsValid())
             return sq_throwerror(v,_SC("the blob is invalid"));
@@ -48,7 +48,7 @@ SQRegFunction sqlite3_NULL_methods[]=
 static SQRESULT get_sqlite3_instance(HSQUIRRELVM v, SQInteger idx, sq_sqlite3_sdb **sdb)
 {
     SQRESULT _rc_;
-    if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)sdb,(void*)SQLite3_TAG)) < 0) return _rc_;
+    if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)sdb,(void*)SQLite3_TAG,SQFalse)) < 0) return _rc_;
     if(!*sdb) return sq_throwerror(v, _SC("database is closed"));
     return _rc_;
 }
@@ -56,7 +56,7 @@ static SQRESULT get_sqlite3_instance(HSQUIRRELVM v, SQInteger idx, sq_sqlite3_sd
 static SQRESULT get_sqlite3_stmt_instance(HSQUIRRELVM v, SQInteger idx, sqlite3_stmt **stmt)
 {
     SQRESULT _rc_;
-    if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)stmt,(void*)SQLite3_Stmt_TAG)) < 0) return _rc_;
+    if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)stmt,(void*)SQLite3_Stmt_TAG,SQFalse)) < 0) return _rc_;
     if(!*stmt) return sq_throwerror(v, _SC("statement is closed"));
     return _rc_;
 }
@@ -64,7 +64,7 @@ static SQRESULT get_sqlite3_stmt_instance(HSQUIRRELVM v, SQInteger idx, sqlite3_
 static SQRESULT get_sqlite3_blob_instance(HSQUIRRELVM v, SQInteger idx, sqlite3_blob **blob)
 {
     SQRESULT _rc_;
-    if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)blob,(void*)SQLite3_Blob_TAG)) < 0) return _rc_;
+    if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)blob,(void*)SQLite3_Blob_TAG,SQFalse)) < 0) return _rc_;
     if(!*blob) return sq_throwerror(v, _SC("blob is closed"));
     return _rc_;
 }
@@ -1261,7 +1261,7 @@ static SQRESULT sq_sle2vecOfvec(HSQUIRRELVM v)
         sq_getstr_and_size(v, 2, &sle, &sle_size);
         break;
     case OT_INSTANCE:
-        if(SQ_FAILED(sq_getinstanceup(v,2,(SQUserPointer*)&blob,(SQUserPointer)SQBlob::SQBlob_TAG)))
+        if(SQ_FAILED(sq_getinstanceup(v,2,(SQUserPointer*)&blob,(SQUserPointer)SQBlob::SQBlob_TAG,SQFalse)))
             return sq_throwerror(v,_SC("invalid type tag"));
         if(!blob || !blob->IsValid())
             return sq_throwerror(v,_SC("the blob is invalid"));
@@ -1565,7 +1565,7 @@ static const SQChar *SQLite3_Transaction_TAG = "SQLite3Transaction";
 static SQRESULT get_sqlite3_transaction_instance(HSQUIRRELVM v, SQInteger idx, sq_sqlite3_sdb **sdb)
 {
     SQRESULT _rc_;
-    if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)sdb,(void*)SQLite3_Transaction_TAG)) < 0) return _rc_;
+    if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)sdb,(void*)SQLite3_Transaction_TAG,SQFalse)) < 0) return _rc_;
     if(!*sdb) return sq_throwerror(v, _SC("transaction is closed"));
     return _rc_;
 }
@@ -1680,7 +1680,7 @@ static const SQChar *SQLite3_Session_TAG = "SQLite3Session";
 static SQRESULT get_sqlite3_session_instance(HSQUIRRELVM v, SQInteger idx, sqlite3_session **session)
 {
     SQRESULT _rc_;
-    if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)session,(void*)SQLite3_Session_TAG)) < 0) return _rc_;
+    if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)session,(void*)SQLite3_Session_TAG,SQFalse)) < 0) return _rc_;
     if(!*session) return sq_throwerror(v, _SC("session is closed"));
     return _rc_;
 }
@@ -1836,7 +1836,7 @@ static const SQChar *SQLite3_Session_Iterator_TAG = "SQLite3SessionIterator";
 static SQRESULT get_sqlite3_session_iterator_instance(HSQUIRRELVM v, SQInteger idx, sqlite3_changeset_iter **ppIter)
 {
     SQRESULT _rc_;
-    if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)ppIter,(void*)SQLite3_Session_Iterator_TAG)) < 0) return _rc_;
+    if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)ppIter,(void*)SQLite3_Session_Iterator_TAG,SQFalse)) < 0) return _rc_;
     if(!*ppIter) return sq_throwerror(v, _SC("changeset iterator is closed"));
     return _rc_;
 }
@@ -3076,7 +3076,7 @@ static SQRESULT sq_sqlite3_context_constructor(HSQUIRRELVM v)
 
 #define SQ_SQLITE3_GETCONTEXT(v, idx) \
     sq_sqlite3_context_st *self;\
-    if((_rc_ = sq_getinstanceup(v, idx, (void**)&self, (void*)sq_sqlite3_context_TAG)) < 0) return _rc_;
+    if((_rc_ = sq_getinstanceup(v, idx, (void**)&self, (void*)sq_sqlite3_context_TAG,SQFalse)) < 0) return _rc_;
 
 #define GET_sqlite3_context_INSTANCE() SQ_SQLITE3_GETCONTEXT(v,1)
 
@@ -3340,7 +3340,7 @@ static SQRESULT new_context_instance(HSQUIRRELVM v, sq_sqlite3_context_st **ctx)
     sq_pushroottable(v);
     rc = sq_call(v, 1, SQTrue, SQFalse);
     sq_remove(v, -2); //class
-    rc = sq_getinstanceup(v, -1, (void**)ctx, (void*)sq_sqlite3_context_TAG);
+    rc = sq_getinstanceup(v, -1, (void**)ctx, (void*)sq_sqlite3_context_TAG,SQFalse);
     return rc;
 }
 /* scalar function to be called
@@ -3424,14 +3424,14 @@ static void db_sql_finalize_function(sqlite3_context *context)
     sq_remove(v, -2); //registrytable
 
     sq_sqlite3_context_st *self;
-    SQRESULT rc = sq_getinstanceup(v, -1, (void**)&self, (void*)sq_sqlite3_context_TAG);
+    SQRESULT rc = sq_getinstanceup(v, -1, (void**)&self, (void*)sq_sqlite3_context_TAG,SQFalse);
     if(rc != SQ_OK)
     {
         sqlite3_result_error(context, "Unexpected missing sqlite3_aggregate_context on stack", -1);
         sq_settop(v, top);
         return;
     }
-    self->ctx = context;
+    self->ctx = context; //xFinal function has a different context saved from xStep
 
     if (sq_call(v, 2, SQFalse, SQFalse) != SQ_OK) //2 = roottable + ctx
     {

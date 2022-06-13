@@ -1431,7 +1431,7 @@ void SQVM::CallDebugHook(SQInteger type,SQInteger forcedline)
 		SQObjectPtr creg;
 		SQInteger nparams=5;
 		Push(_roottable); Push(type); Push(func->_sourcename); Push(forcedline?forcedline:func->GetLine(ci->_ip)); Push(func->_name);
-		Call(_debughook_closure,nparams,_top-nparams,creg,SQFalse);
+		Call(_debughook_closure,nparams,_top-nparams,creg,SQTrue);
 		Pop(nparams);
 	}
 	_debughook = true;

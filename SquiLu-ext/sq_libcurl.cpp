@@ -463,7 +463,7 @@ static size_t sq_EasyCurl_reader_writer_callback(char *bufptr, size_t size, size
     case OT_INSTANCE:
         {
             SQBlob *blob = NULL;
-            if(SQ_FAILED(sq_getinstanceup(v,-1,(SQUserPointer*)&blob,(SQUserPointer)SQBlob::SQBlob_TAG)))
+            if(SQ_FAILED(sq_getinstanceup(v,-1,(SQUserPointer*)&blob,(SQUserPointer)SQBlob::SQBlob_TAG,SQFalse)))
                 break;
             if(!blob || !blob->IsValid())
                 break;
@@ -524,7 +524,6 @@ static size_t sq_EasyCurl_reader_writer_callback(char *bufptr, size_t size, size
             }
         }
 
-
         break;
     }
 
@@ -570,7 +569,7 @@ static SQRESULT sq_EasyCurl_set_reader_writer(HSQUIRRELVM v, int isReader){
         case OT_INSTANCE:
             {
             SQBlob *blob = NULL;
-            if(SQ_FAILED(sq_getinstanceup(v,2,(SQUserPointer*)&blob,(SQUserPointer)SQBlob::SQBlob_TAG)))
+            if(SQ_FAILED(sq_getinstanceup(v,2,(SQUserPointer*)&blob,(SQUserPointer)SQBlob::SQBlob_TAG,SQFalse)))
                 return sq_throwerror(v,_SC("expect a blob as second parameter"));
             if(!blob || !blob->IsValid())
                 return sq_throwerror(v,_SC("the blob is invalid"));

@@ -186,7 +186,7 @@ struct MyLibClang {
 
 static SQRESULT get_libclang_instance(HSQUIRRELVM v, SQInteger idx, MyLibClang **self){
     SQRESULT _rc_;
-	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)self,(void*)LibClang_TAG)) < 0) return _rc_;
+	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)self,(void*)LibClang_TAG,SQFalse)) < 0) return _rc_;
 	if(!*self) return sq_throwerror(v, _SC("libclang is closed"));
 	return _rc_;
 }
@@ -359,6 +359,7 @@ cursorVisitor(CXCursor cursor, CXCursor parent, CXClientData client_data)
 
 		dlclang_disposeString(to_func_filename);
 		ret = CXChildVisit_Continue;
+	} else if (kind == CXCursor_VarDecl) {
 	}
 
 	dlclang_disposeString(name);

@@ -583,7 +583,7 @@ static SQRESULT sq_glue_Output(HSQUIRRELVM v){
 	if(_top_ > 1) {
         SQObjectType ptype = sq_gettype(v, 2);
         if(ptype == OT_INSTANCE){
-            if(SQ_FAILED(sq_getinstanceup(v,2,(SQUserPointer*)&blob,(SQUserPointer)SQBlob::SQBlob_TAG)))
+            if(SQ_FAILED(sq_getinstanceup(v,2,(SQUserPointer*)&blob,(SQUserPointer)SQBlob::SQBlob_TAG,SQFalse)))
                 return sq_throwerror(v,_SC("invalid type tag"));
             if(!blob || !blob->IsValid())
                 return sq_throwerror(v,_SC("the blob is invalid"));

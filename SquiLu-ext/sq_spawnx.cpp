@@ -156,7 +156,7 @@ static const SQChar sq_spawnx_TAG[] = _SC("SQ_SpawnX");
 
 static SQRESULT get_spawnx_instance(HSQUIRRELVM v, SQInteger idx, SQ_SpawnX **spawnx_st)
 {
-    if(sq_getinstanceup(v, idx, (SQUserPointer*)spawnx_st, (void*)sq_spawnx_TAG) != SQ_OK) return SQ_ERROR;
+    if(sq_getinstanceup(v, idx, (SQUserPointer*)spawnx_st, (void*)sq_spawnx_TAG,SQFalse) != SQ_OK) return SQ_ERROR;
     if(!*spawnx_st) return sq_throwerror(v, _SC("%s"), _SC("spawnx already closed"));
     return SQ_OK;
 }

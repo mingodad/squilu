@@ -312,7 +312,7 @@ static SQRESULT getInstance_for_Fl_Klass(HSQUIRRELVM v, const SQChar *klass, SQU
 
 static SQRESULT get_fltk_klass_instance(HSQUIRRELVM v, SQInteger idx, void **Var, void *klass_Tag){
     SQRESULT _rc_;
-	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)Var,klass_Tag)) < 0) return _rc_;
+	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)Var,klass_Tag,SQFalse)) < 0) return _rc_;
 	if(!*Var) return sq_throwerror(v, _SC("widget (%s) is empty"), (SQChar*)klass_Tag);
 	return _rc_;
 }
@@ -3458,7 +3458,7 @@ static SQRESULT _Fl_Text_Display_buffer(HSQUIRRELVM v)
     SETUP_FL_TEXT_DISPLAY(v);
     if(sq_gettop(v) > 1){
         SQUserPointer rsz;
-        sq_getinstanceup(v, -1, &rsz, 0);
+        sq_getinstanceup(v, -1, &rsz, 0,SQFalse);
         self->buffer((Fl_Text_Buffer*)rsz);
         return 0;
     }

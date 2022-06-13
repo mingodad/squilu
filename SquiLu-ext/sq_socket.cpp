@@ -860,7 +860,7 @@ typedef t_tcp *p_tcp;
 static const SQChar SQ_tcp_TAG[] = _SC("sq_tcp");
 #define GET_tcp_INSTANCE_AT(v, idx) \
 	p_tcp tcp; \
-	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)&tcp,(void*)SQ_tcp_TAG)) < 0) return _rc_;
+	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)&tcp,(void*)SQ_tcp_TAG,SQFalse)) < 0) return _rc_;
 
 #define GET_tcp_client_INSTANCE_AT(v, idx) GET_tcp_INSTANCE_AT(v, idx)\
 	if(tcp->type != TCP_TYPE_CLIENT) return sq_throwerror(v, _SC("tcp client expected"));
@@ -1164,7 +1164,7 @@ static t_opt udp_opt[] = {
 static const SQChar SQ_udp_TAG[] = _SC("sq_udp");
 #define GET_udp_INSTANCE_AT(v, idx) \
 	p_udp udp; \
-	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)&udp,(void*)SQ_udp_TAG)) < 0) return _rc_;
+	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)&udp,(void*)SQ_udp_TAG,SQFalse)) < 0) return _rc_;
 
 #define GET_udp_connected_INSTANCE_AT(v, idx) GET_udp_INSTANCE_AT(v, idx)\
 	if(udp->type != UDP_TYPE_CONNECTED) return sq_throwerror(v, _SC("udp connected expected"));
@@ -1458,7 +1458,7 @@ typedef t_unix *p_unix;
 static const SQChar SQ_unix_TAG[] = _SC("sq_unix_socket");
 #define GET_unix_INSTANCE_AT(v, idx) \
 	p_unix unix_sock; \
-	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)&unix_sock,(void*)SQ_unix_TAG)) < 0) return _rc_;
+	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)&unix_sock,(void*)SQ_unix_TAG,SQFalse)) < 0) return _rc_;
 
 #define GET_unix_client_INSTANCE_AT(v, idx) GET_unix_INSTANCE_AT(v, idx)\
 	if(unix_sock->type != UNIX_TYPE_CLIENT) return sq_throwerror(v, _SC("unix client expected"));

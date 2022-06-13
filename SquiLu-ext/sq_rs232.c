@@ -53,7 +53,7 @@ static const SQChar SQRS232_TAG[] = _SC("SqRs232");
 
 static SQRESULT get_rs232_instance(HSQUIRRELVM v, SQInteger idx, struct rs232_port_t **self){
     SQRESULT _rc_;
-	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)self,(void*)SQRS232_TAG)) < 0) return _rc_;
+	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)self,(void*)SQRS232_TAG,SQFalse)) < 0) return _rc_;
 	if(!*self) return sq_throwerror(v, _SC("rs232 is closed"));
 	return _rc_;
 }
@@ -79,7 +79,7 @@ static SQRESULT sq_rs232_constructor (HSQUIRRELVM v) {
 static SQRESULT sq_rs232_open(HSQUIRRELVM v){
     SQ_FUNC_VARS_NO_TOP(v);
     struct rs232_port_t *self=NULL;
-    if((_rc_ = sq_getinstanceup(v,1,(SQUserPointer*)&self,(void*)SQRS232_TAG)) < 0) return _rc_;
+    if((_rc_ = sq_getinstanceup(v,1,(SQUserPointer*)&self,(void*)SQRS232_TAG,SQFalse)) < 0) return _rc_;
 	SQ_GET_STRING(v, 2, device);
 	if(self != NULL) sq_throwerror(v, _SC("rs232 already opened"));
 	self = rs232_init();

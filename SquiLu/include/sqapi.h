@@ -114,7 +114,7 @@ SQUIRREL_API_FUNC(SQRESULT, getclosureinfo, (HSQUIRRELVM v,SQInteger idx,SQInteg
 SQUIRREL_API_FUNC(SQRESULT, getclosurename, (HSQUIRRELVM v,SQInteger idx))
 SQUIRREL_API_FUNC(SQRESULT, setnativeclosurename, (HSQUIRRELVM v,SQInteger idx,const SQChar *name))
 SQUIRREL_API_FUNC(SQRESULT, setinstanceup, (HSQUIRRELVM v, SQInteger idx, SQUserPointer p))
-SQUIRREL_API_FUNC(SQRESULT, getinstanceup, (HSQUIRRELVM v, SQInteger idx, SQUserPointer *p,SQUserPointer typetag))
+SQUIRREL_API_FUNC(SQRESULT, getinstanceup, (HSQUIRRELVM v, SQInteger idx, SQUserPointer *p,SQUserPointer typetag,SQBool throwerror))
 SQUIRREL_API_FUNC(SQRESULT, setclassudsize, (HSQUIRRELVM v, SQInteger idx, SQInteger udsize))
 SQUIRREL_API_FUNC(SQRESULT, newclass, (HSQUIRRELVM v,SQBool hasbase))
 SQUIRREL_API_FUNC(SQRESULT, pushnewclass, (HSQUIRRELVM v, const SQChar *className,

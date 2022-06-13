@@ -16,7 +16,7 @@ static const SQChar SQSTD_STREAM_TYPE_TAG[] = _SC("std_stream");
 
 #define SETUP_STREAM(v) \
 	SQStream *self = NULL; \
-	if(SQ_FAILED(sq_getinstanceup(v,1,(SQUserPointer*)&self,(SQUserPointer)SQSTD_STREAM_TYPE_TAG))) \
+	if(SQ_FAILED(sq_getinstanceup(v,1,(SQUserPointer*)&self,(SQUserPointer)SQSTD_STREAM_TYPE_TAG,SQFalse))) \
 		return sq_throwerror(v,_SC("invalid type tag")); \
 	if(!self || !self->IsValid())  \
 		return sq_throwerror(v,_SC("the stream is invalid"));
@@ -137,7 +137,7 @@ SQInteger _stream_readblob(HSQUIRRELVM v)
 		return sq_throwerror(v,_SC("no data left to read"));
     if(res < size) {
         SQBlob *blob;
-        if(SQ_FAILED(sq_getinstanceup(v,-1,(SQUserPointer *)&blob,SQBlob::SQBlob_TAG)))
+        if(SQ_FAILED(sq_getinstanceup(v,-1,(SQUserPointer *)&blob,SQBlob::SQBlob_TAG,SQFalse)))
             return sq_throwerror(v,_SC("failed to get blob from stack"));
         blob->Resize(res);
     }

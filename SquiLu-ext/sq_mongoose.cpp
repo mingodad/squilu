@@ -82,7 +82,7 @@ static const SQChar sq_http_request_TAG[] = "HttpRequest";
 
 #define GET_http_request_INSTANCE() \
     struct mg_connection *conn; \
-    if((_rc_ = sq_getinstanceup(v,1,(SQUserPointer*)&conn,(void*)sq_http_request_TAG)) < 0) return _rc_;
+    if((_rc_ = sq_getinstanceup(v,1,(SQUserPointer*)&conn,(void*)sq_http_request_TAG,SQFalse)) < 0) return _rc_;
 
 static SQRESULT sq_http_request_releasehook(SQUserPointer p, SQInteger size, void */*ep*/)
 {
@@ -157,7 +157,7 @@ sq_http_request_read(HSQUIRRELVM v)
 
     SQBlob *blob = NULL;
     if(_top_ > 2) {
-        if(SQ_FAILED(sq_getinstanceup(v,3,(SQUserPointer*)&blob,(SQUserPointer)SQBlob::SQBlob_TAG)))
+        if(SQ_FAILED(sq_getinstanceup(v,3,(SQUserPointer*)&blob,(SQUserPointer)SQBlob::SQBlob_TAG,SQFalse)))
             return sq_throwerror(v,_SC("expect a blob as second parameter"));
         if(!blob || !blob->IsValid())
             return sq_throwerror(v,_SC("the blob is invalid"));
@@ -199,7 +199,7 @@ sq_http_request_write_blob(HSQUIRRELVM v)
     SQ_FUNC_VARS_NO_TOP(v);
     GET_http_request_INSTANCE();
 	SQBlob *blob = NULL;
-	{ if(SQ_FAILED(sq_getinstanceup(v,2,(SQUserPointer*)&blob,(SQUserPointer)SQBlob::SQBlob_TAG)))
+	{ if(SQ_FAILED(sq_getinstanceup(v,2,(SQUserPointer*)&blob,(SQUserPointer)SQBlob::SQBlob_TAG,SQFalse)))
 		return sq_throwerror(v,_SC("invalid type tag"));  }
 	if(!blob || !blob->IsValid())
 		return sq_throwerror(v,_SC("the blob is invalid"));
@@ -699,7 +699,7 @@ static SQRESULT sq_mongoose_constructor(HSQUIRRELVM v)
 
 #define GET_mongoose_INSTANCE() \
     SQ_Mg_Context *self; \
-    if((_rc_ = sq_getinstanceup(v,1,(SQUserPointer*)&self,(void*)sq_mongoose_TAG)) < 0) return _rc_;
+    if((_rc_ = sq_getinstanceup(v,1,(SQUserPointer*)&self,(void*)sq_mongoose_TAG,SQFalse)) < 0) return _rc_;
 
 static SQRESULT
 sq_mongoose_show_errors_on_stdout(HSQUIRRELVM v)

@@ -104,7 +104,7 @@ static SQRESULT sq_blosc_compcode_to_compname(HSQUIRRELVM v)
 {
     SQ_FUNC_VARS_NO_TOP(v);
     SQ_GET_INTEGER(v, 2, compcode);
-    char *compname;
+    const char *compname;
     int rc = blosc_compcode_to_compname(compcode, &compname);
     if(rc > -1) sq_pushstring(v, compname, -1);
     else sq_pushnull(v);

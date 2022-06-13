@@ -235,7 +235,6 @@ static SQRESULT sq_LmDB_Env_txn_begin(HSQUIRRELVM v){
 
 static SQRESULT sq_LmDB_Env_strerror(HSQUIRRELVM v){
 	SQ_FUNC_VARS_NO_TOP(v);
-
 	SQ_GET_INTEGER(v, 2, int_error);
 //	char *mdb_strerror(int err)
 	sq_pushstring(v, mdb_strerror(int_error), -1);
@@ -243,7 +242,6 @@ static SQRESULT sq_LmDB_Env_strerror(HSQUIRRELVM v){
 }
 
 static SQRESULT sq_LmDB_Env_version(HSQUIRRELVM v){
-
 //	char *mdb_version(int *major, int *minor, int *patch)
 	int major, minor, patch;
 	sq_pushstring(v, mdb_version(&major, &minor, &patch), -1);

@@ -224,7 +224,7 @@ static const SQChar *MySQL_TAG = _SC("MySQL");
 
 static SQRESULT get_mysql_instance(HSQUIRRELVM v, SQInteger idx, MYSQL **self){
     SQRESULT _rc_;
-	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)self,(void*)MySQL_TAG)) < 0) return _rc_;
+	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)self,(void*)MySQL_TAG,SQFalse)) < 0) return _rc_;
 	if(!*self) return sq_throwerror(v, _SC("database is closed"));
 	return _rc_;
 }
@@ -240,7 +240,7 @@ static const SQChar *_curr_row_key = _SC("_curr_row");
 
 static SQRESULT get_mysql_result_instance(HSQUIRRELVM v, SQInteger idx, MYSQL_RES **self){
     SQRESULT _rc_;
-	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)self,(void*)MySQL_Result_TAG)) < 0) return _rc_;
+	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)self,(void*)MySQL_Result_TAG,SQFalse)) < 0) return _rc_;
 	if(!*self) return sq_throwerror(v, _SC("MYSQL_RES is closed"));
 	return _rc_;
 }
@@ -455,7 +455,7 @@ static const SQChar *MySQL_Statement_TAG = _SC("MySQL_Statement");
 
 static SQRESULT get_mysql_statement_instance(HSQUIRRELVM v, SQInteger idx, SQ_MysqlStatement **self){
     SQRESULT _rc_;
-	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)self,(void*)MySQL_Statement_TAG)) < 0) return _rc_;
+	if((_rc_ = sq_getinstanceup(v,idx,(SQUserPointer*)self,(void*)MySQL_Statement_TAG,SQFalse)) < 0) return _rc_;
 	if(!*self) return sq_throwerror(v, _SC("MySql statement is closed"));
 	return _rc_;
 }

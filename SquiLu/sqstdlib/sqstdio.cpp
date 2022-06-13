@@ -145,7 +145,7 @@ static SQRESULT _popen_constructor(HSQUIRRELVM v)
 static SQRESULT _popen_close(HSQUIRRELVM v)
 {
 	SQPopen *self = NULL;
-	if(SQ_SUCCEEDED(sq_getinstanceup(v,1,(SQUserPointer*)&self,(SQUserPointer)SQSTD_FILE_TYPE_TAG))
+	if(SQ_SUCCEEDED(sq_getinstanceup(v,1,(SQUserPointer*)&self,(SQUserPointer)SQSTD_FILE_TYPE_TAG,SQTrue))
 		&& self != NULL)
 	{
 		sq_pushinteger(v, self->PClose());
@@ -208,7 +208,7 @@ static SQRESULT _file_constructor(HSQUIRRELVM v)
 static SQRESULT _file_close(HSQUIRRELVM v)
 {
 	SQFile *self = NULL;
-	if(SQ_SUCCEEDED(sq_getinstanceup(v,1,(SQUserPointer*)&self,(SQUserPointer)SQSTD_FILE_TYPE_TAG))
+	if(SQ_SUCCEEDED(sq_getinstanceup(v,1,(SQUserPointer*)&self,(SQUserPointer)SQSTD_FILE_TYPE_TAG,SQTrue))
 		&& self != NULL)
 	{
 		self->Close();
@@ -296,7 +296,7 @@ SQRESULT sqstd_createfile(HSQUIRRELVM v, SQFILE file,SQBool own)
 SQRESULT sqstd_getfile(HSQUIRRELVM v, SQInteger idx, SQFILE *file)
 {
 	SQFile *fileobj = NULL;
-	if(SQ_SUCCEEDED(sq_getinstanceup(v,idx,(SQUserPointer*)&fileobj,(SQUserPointer)SQSTD_FILE_TYPE_TAG))) {
+	if(SQ_SUCCEEDED(sq_getinstanceup(v,idx,(SQUserPointer*)&fileobj,(SQUserPointer)SQSTD_FILE_TYPE_TAG,SQFalse))) {
 		*file = fileobj->GetHandle();
 		return SQ_OK;
 	}
