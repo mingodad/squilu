@@ -133,7 +133,7 @@ typedef struct dir_data {
 #endif
 
 static const SQChar currFileName_key[] = _SC("currFileName");
-
+static HSQOBJECT currFileName_key_obj;
 #ifndef _WIN32_WCE
 /*
 ** This function changes the working (current) directory
@@ -506,7 +506,7 @@ static SQRESULT _dir_close(HSQUIRRELVM v)
 
 static SQRESULT _dir__get(HSQUIRRELVM v)
 {
-    sq_pushstring(v, currFileName_key, sizeof(currFileName_key)-1);
+    sq_pushobject(v, currFileName_key_obj);
     if(sq_get(v, 1) == SQ_ERROR) sq_pushnull(v);
     return 1;
 }
@@ -556,7 +556,7 @@ static SQRESULT _dir__nexti(HSQUIRRELVM v)
     }
     fname = entry->d_name;
 #endif
-    sq_pushstring(v, currFileName_key, sizeof(currFileName_key)-1);
+    sq_pushobject(v, currFileName_key_obj);
     sq_pushstring(v, fname, -1);
     if(sq_set(v, 1) != SQ_OK) return SQ_ERROR;
 
@@ -789,6 +789,20 @@ static SQRESULT sqfs_attributes (HSQUIRRELVM v) {
 
 
 /*
+** Check if dir exists using stat.
+*/
+static SQRESULT sqfs_existsdir (HSQUIRRELVM v) {
+    SQ_FUNC_VARS_NO_TOP(v);
+    SQ_GET_STRING(v, 2, file);
+	STAT_STRUCT info;
+
+	if (STAT_FUNC(file, &info)) sq_pushbool(v, SQFalse);
+	else sq_pushbool(v,  S_ISDIR(info.st_mode));
+	return 1;
+}
+
+
+/*
 ** Get symbolic link information using lstat.
 */
 #ifndef _WIN32
@@ -832,6 +846,7 @@ static SQRegFunction sqfs_methods[] =
 	_DECL_FUNC(lock,  -3, _SC("xsii")),
 */
 	_DECL_FUNC(link,  -3, _SC(".ssb")),
+	_DECL_FUNC(existsdir,  2, _SC(".s")),
 	_DECL_FUNC(mkdir,  2, _SC(".s")),
 	_DECL_FUNC(rmdir,  2, _SC(".s")),
 	_DECL_FUNC(symlinkattributes,  -2, _SC(".ss")),
@@ -869,6 +884,7 @@ extern "C" {
         sq_insert_reg_funcs(v, _dir_methods);
 
         sq_pushstring(v, currFileName_key, sizeof(currFileName_key)-1); //store file name between iterations
+        sq_getstackobj(v, -1, &currFileName_key_obj); //store reference to currFileName_key
         sq_pushnull(v);
         sq_newslot(v,-3,SQFalse);
 
