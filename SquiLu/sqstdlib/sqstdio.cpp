@@ -85,6 +85,11 @@ struct SQPopen : public SQFile {
 		}
 		return false;
 	}
+	// Crucial: Add an explicit virtual destructor to ensure
+	// standard C++ delete / destructor calls route correctly.
+	virtual ~SQPopen() {
+		PClose();
+	}
 	int PClose() {
 	    int result = 0;
 		if(_handle && _owns) {
@@ -112,7 +117,7 @@ static SQRESULT _popen__typeof(HSQUIRRELVM v)
 static SQRESULT _popen_releasehook(SQUserPointer p, SQInteger /*size*/, void */*ep*/)
 {
 	SQPopen *self = (SQPopen*)p;
-	self->~SQPopen(); //on osx it doesn't seem to work
+	self->~SQPopen();
 	sq_free(self,sizeof(SQFile));
 	return 1;
 }
